@@ -1,13 +1,15 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import List, Union
+from typing import List, Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
 
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
+from .computer_action_list import ComputerActionList
 
 __all__ = [
     "ResponseComputerToolCall",
+    "PendingSafetyCheck",
     "Action",
     "ActionClick",
     "ActionDoubleClick",
@@ -19,11 +21,25 @@ __all__ = [
     "ActionScroll",
     "ActionType",
     "ActionWait",
-    "PendingSafetyCheck",
 ]
 
 
+class PendingSafetyCheck(BaseModel):
+    """A pending safety check for the computer call."""
+
+    id: str
+    """The ID of the pending safety check."""
+
+    code: Optional[str] = None
+    """The type of the pending safety check."""
+
+    message: Optional[str] = None
+    """Details about the pending safety check."""
+
+
 class ActionClick(BaseModel):
+    """A click action."""
+
     button: Literal["left", "right", "wheel", "back", "forward"]
     """Indicates which mouse button was pressed during the click.
 
@@ -31,10 +47,7 @@ class ActionClick(BaseModel):
     """
 
     type: Literal["click"]
-    """Specifies the event type.
-
-    For a click action, this property is always set to `click`.
-    """
+    """Specifies the event type. For a click action, this property is always `click`."""
 
     x: int
     """The x-coordinate where the click occurred."""
@@ -42,8 +55,16 @@ class ActionClick(BaseModel):
     y: int
     """The y-coordinate where the click occurred."""
 
+    keys: Optional[List[str]] = None
+    """The keys being held while clicking."""
+
 
 class ActionDoubleClick(BaseModel):
+    """A double click action."""
+
+    keys: Optional[List[str]] = None
+    """The keys being held while double-clicking."""
+
     type: Literal["double_click"]
     """Specifies the event type.
 
@@ -58,6 +79,8 @@ class ActionDoubleClick(BaseModel):
 
 
 class ActionDragPath(BaseModel):
+    """An x/y coordinate pair, e.g. `{ x: 100, y: 200 }`."""
+
     x: int
     """The x-coordinate."""
 
@@ -66,6 +89,8 @@ class ActionDragPath(BaseModel):
 
 
 class ActionDrag(BaseModel):
+    """A drag action."""
+
     path: List[ActionDragPath]
     """An array of coordinates representing the path of the drag action.
 
@@ -85,8 +110,13 @@ class ActionDrag(BaseModel):
     For a drag action, this property is always set to `drag`.
     """
 
+    keys: Optional[List[str]] = None
+    """The keys being held while dragging the mouse."""
+
 
 class ActionKeypress(BaseModel):
+    """A collection of keypresses the model would like to perform."""
+
     keys: List[str]
     """The combination of keys the model is requesting to be pressed.
 
@@ -101,6 +131,8 @@ class ActionKeypress(BaseModel):
 
 
 class ActionMove(BaseModel):
+    """A mouse move action."""
+
     type: Literal["move"]
     """Specifies the event type.
 
@@ -113,8 +145,13 @@ class ActionMove(BaseModel):
     y: int
     """The y-coordinate to move to."""
 
+    keys: Optional[List[str]] = None
+    """The keys being held while moving the mouse."""
+
 
 class ActionScreenshot(BaseModel):
+    """A screenshot action."""
+
     type: Literal["screenshot"]
     """Specifies the event type.
 
@@ -123,6 +160,8 @@ class ActionScreenshot(BaseModel):
 
 
 class ActionScroll(BaseModel):
+    """A scroll action."""
+
     scroll_x: int
     """The horizontal scroll distance."""
 
@@ -141,8 +180,13 @@ class ActionScroll(BaseModel):
     y: int
     """The y-coordinate where the scroll occurred."""
 
+    keys: Optional[List[str]] = None
+    """The keys being held while scrolling."""
+
 
 class ActionType(BaseModel):
+    """An action to type in text."""
+
     text: str
     """The text to type."""
 
@@ -154,6 +198,8 @@ class ActionType(BaseModel):
 
 
 class ActionWait(BaseModel):
+    """A wait action."""
+
     type: Literal["wait"]
     """Specifies the event type.
 
@@ -177,23 +223,15 @@ Action: TypeAlias = Annotated[
 ]
 
 
-class PendingSafetyCheck(BaseModel):
-    id: str
-    """The ID of the pending safety check."""
-
-    code: str
-    """The type of the pending safety check."""
-
-    message: str
-    """Details about the pending safety check."""
-
-
 class ResponseComputerToolCall(BaseModel):
+    """A tool call to a computer use tool.
+
+    See the
+    [computer use guide](https://platform.openai.com/docs/guides/tools-computer-use) for more information.
+    """
+
     id: str
     """The unique ID of the computer call."""
-
-    action: Action
-    """A click action."""
 
     call_id: str
     """An identifier used when responding to the tool call with output."""
@@ -210,3 +248,12 @@ class ResponseComputerToolCall(BaseModel):
 
     type: Literal["computer_call"]
     """The type of the computer call. Always `computer_call`."""
+
+    action: Optional[Action] = None
+    """A click action."""
+
+    actions: Optional[ComputerActionList] = None
+    """Flattened batched actions for `computer_use`.
+
+    Each action includes an `type` discriminator and action-specific fields.
+    """

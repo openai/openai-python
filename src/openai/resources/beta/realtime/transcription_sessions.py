@@ -96,7 +96,7 @@ class TranscriptionSessions(SyncAPIResource):
               set to `null` to turn off, in which case the client must manually trigger model
               response. Server VAD means that the model will detect the start and end of
               speech based on audio volume and respond at the end of user speech. Semantic VAD
-              is more advanced and uses a turn detection model (in conjuction with VAD) to
+              is more advanced and uses a turn detection model (in conjunction with VAD) to
               semantically estimate whether the user has finished speaking, then dynamically
               sets a timeout based on this probability. For example, if user audio trails off
               with "uhhm", the model will score a low probability of turn end and wait longer
@@ -209,7 +209,7 @@ class AsyncTranscriptionSessions(AsyncAPIResource):
               set to `null` to turn off, in which case the client must manually trigger model
               response. Server VAD means that the model will detect the start and end of
               speech based on audio volume and respond at the end of user speech. Semantic VAD
-              is more advanced and uses a turn detection model (in conjuction with VAD) to
+              is more advanced and uses a turn detection model (in conjunction with VAD) to
               semantically estimate whether the user has finished speaking, then dynamically
               sets a timeout based on this probability. For example, if user audio trails off
               with "uhhm", the model will score a low probability of turn end and wait longer

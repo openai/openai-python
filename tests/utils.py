@@ -5,7 +5,7 @@ import os
 import inspect
 import traceback
 import contextlib
-from typing import Any, TypeVar, Iterator, ForwardRef, cast
+from typing import Any, TypeVar, Iterator, Sequence, ForwardRef, cast
 from datetime import date, datetime
 from typing_extensions import Literal, get_args, get_origin, assert_type
 
@@ -18,10 +18,11 @@ from openai._utils import (
     is_list_type,
     is_union_type,
     extract_type_arg,
+    is_sequence_type,
     is_annotated_type,
     is_type_alias_type,
 )
-from openai._compat import PYDANTIC_V2, field_outer_type, get_model_fields
+from openai._compat import PYDANTIC_V1, field_outer_type, get_model_fields
 from openai._models import BaseModel
 
 BaseModelT = TypeVar("BaseModelT", bound=BaseModel)
@@ -34,12 +35,12 @@ def evaluate_forwardref(forwardref: ForwardRef, globalns: dict[str, Any]) -> typ
 def assert_matches_model(model: type[BaseModelT], value: BaseModelT, *, path: list[str]) -> bool:
     for name, field in get_model_fields(model).items():
         field_value = getattr(value, name)
-        if PYDANTIC_V2:
-            allow_none = False
-        else:
+        if PYDANTIC_V1:
             # in v1 nullability was structured differently
             # https://docs.pydantic.dev/2.0/migration/#required-optional-and-nullable-fields
             allow_none = getattr(field, "allow_none", False)
+        else:
+            allow_none = False
 
         assert_matches_type(
             field_outer_type(field),
@@ -77,6 +78,13 @@ def assert_matches_type(
 
     if is_list_type(type_):
         return _assert_list_type(type_, value)
+
+    if is_sequence_type(type_):
+        assert isinstance(value, Sequence)
+        inner_type = get_args(type_)[0]
+        for entry in value:  # type: ignore
+            assert_type(inner_type, entry)  # type: ignore
+        return
 
     if origin == str:
         assert isinstance(value, str)

@@ -8,12 +8,27 @@ from ..._models import BaseModel
 from .response_output_text import ResponseOutputText
 from .response_output_refusal import ResponseOutputRefusal
 
-__all__ = ["ResponseContentPartDoneEvent", "Part"]
+__all__ = ["ResponseContentPartDoneEvent", "Part", "PartReasoningText"]
 
-Part: TypeAlias = Annotated[Union[ResponseOutputText, ResponseOutputRefusal], PropertyInfo(discriminator="type")]
+
+class PartReasoningText(BaseModel):
+    """Reasoning text from the model."""
+
+    text: str
+    """The reasoning text from the model."""
+
+    type: Literal["reasoning_text"]
+    """The type of the reasoning text. Always `reasoning_text`."""
+
+
+Part: TypeAlias = Annotated[
+    Union[ResponseOutputText, ResponseOutputRefusal, PartReasoningText], PropertyInfo(discriminator="type")
+]
 
 
 class ResponseContentPartDoneEvent(BaseModel):
+    """Emitted when a content part is done."""
+
     content_index: int
     """The index of the content part that is done."""
 

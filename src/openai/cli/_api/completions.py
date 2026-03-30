@@ -8,7 +8,7 @@ from functools import partial
 from openai.types.completion import Completion
 
 from .._utils import get_client
-from ..._types import NOT_GIVEN, NotGivenOr
+from ..._types import Omittable, omit
 from ..._utils import is_given
 from .._errors import CLIError
 from .._models import BaseModel
@@ -95,18 +95,18 @@ class CLICompletionCreateArgs(BaseModel):
     stream: bool = False
 
     prompt: Optional[str] = None
-    n: NotGivenOr[int] = NOT_GIVEN
-    stop: NotGivenOr[str] = NOT_GIVEN
-    user: NotGivenOr[str] = NOT_GIVEN
-    echo: NotGivenOr[bool] = NOT_GIVEN
-    suffix: NotGivenOr[str] = NOT_GIVEN
-    best_of: NotGivenOr[int] = NOT_GIVEN
-    top_p: NotGivenOr[float] = NOT_GIVEN
-    logprobs: NotGivenOr[int] = NOT_GIVEN
-    max_tokens: NotGivenOr[int] = NOT_GIVEN
-    temperature: NotGivenOr[float] = NOT_GIVEN
-    presence_penalty: NotGivenOr[float] = NOT_GIVEN
-    frequency_penalty: NotGivenOr[float] = NOT_GIVEN
+    n: Omittable[int] = omit
+    stop: Omittable[str] = omit
+    user: Omittable[str] = omit
+    echo: Omittable[bool] = omit
+    suffix: Omittable[str] = omit
+    best_of: Omittable[int] = omit
+    top_p: Omittable[float] = omit
+    logprobs: Omittable[int] = omit
+    max_tokens: Omittable[int] = omit
+    temperature: Omittable[float] = omit
+    presence_penalty: Omittable[float] = omit
+    frequency_penalty: Omittable[float] = omit
 
 
 class CLICompletions:

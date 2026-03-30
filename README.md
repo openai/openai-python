@@ -3,7 +3,7 @@
 <!-- prettier-ignore -->
 [![PyPI version](https://img.shields.io/pypi/v/openai.svg?label=pypi%20(stable))](https://pypi.org/project/openai/)
 
-The OpenAI Python library provides convenient access to the OpenAI REST API from any Python 3.8+
+The OpenAI Python library provides convenient access to the OpenAI REST API from any Python 3.9+
 application. The library includes type definitions for all request params and response fields,
 and offers both synchronous and asynchronous clients powered by [httpx](https://github.com/encode/httpx).
 
@@ -36,7 +36,7 @@ client = OpenAI(
 )
 
 response = client.responses.create(
-    model="gpt-4o",
+    model="gpt-5.2",
     instructions="You are a coding assistant that talks like a pirate.",
     input="How do I check if a Python object is an instance of a class?",
 )
@@ -52,7 +52,7 @@ from openai import OpenAI
 client = OpenAI()
 
 completion = client.chat.completions.create(
-    model="gpt-4o",
+    model="gpt-5.2",
     messages=[
         {"role": "developer", "content": "Talk like a pirate."},
         {
@@ -80,7 +80,7 @@ prompt = "What is in this image?"
 img_url = "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/2023_06_08_Raccoon1.jpg/1599px-2023_06_08_Raccoon1.jpg"
 
 response = client.responses.create(
-    model="gpt-4o-mini",
+    model="gpt-5.2",
     input=[
         {
             "role": "user",
@@ -106,7 +106,7 @@ with open("path/to/image.png", "rb") as image_file:
     b64_image = base64.b64encode(image_file.read()).decode("utf-8")
 
 response = client.responses.create(
-    model="gpt-4o-mini",
+    model="gpt-5.2",
     input=[
         {
             "role": "user",
@@ -136,7 +136,7 @@ client = AsyncOpenAI(
 
 async def main() -> None:
     response = await client.responses.create(
-        model="gpt-4o", input="Explain disestablishmentarianism to a smart five year old."
+        model="gpt-5.2", input="Explain disestablishmentarianism to a smart five year old."
     )
     print(response.output_text)
 
@@ -160,6 +160,7 @@ pip install openai[aiohttp]
 Then you can enable it by instantiating the client with `http_client=DefaultAioHttpClient()`:
 
 ```python
+import os
 import asyncio
 from openai import DefaultAioHttpClient
 from openai import AsyncOpenAI
@@ -167,7 +168,7 @@ from openai import AsyncOpenAI
 
 async def main() -> None:
     async with AsyncOpenAI(
-        api_key="My API Key",
+        api_key=os.environ.get("OPENAI_API_KEY"),  # This is the default and can be omitted
         http_client=DefaultAioHttpClient(),
     ) as client:
         chat_completion = await client.chat.completions.create(
@@ -177,7 +178,7 @@ async def main() -> None:
                     "content": "Say this is a test",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.2",
         )
 
 
@@ -194,7 +195,7 @@ from openai import OpenAI
 client = OpenAI()
 
 stream = client.responses.create(
-    model="gpt-4o",
+    model="gpt-5.2",
     input="Write a one-sentence bedtime story about a unicorn.",
     stream=True,
 )
@@ -214,7 +215,7 @@ client = AsyncOpenAI()
 
 async def main():
     stream = await client.responses.create(
-        model="gpt-4o",
+        model="gpt-5.2",
         input="Write a one-sentence bedtime story about a unicorn.",
         stream=True,
     )
@@ -226,7 +227,7 @@ async def main():
 asyncio.run(main())
 ```
 
-## Realtime API beta
+## Realtime API
 
 The Realtime API enables you to build low-latency, multi-modal conversational experiences. It currently supports text and audio as both input and output, as well as [function calling](https://platform.openai.com/docs/guides/function-calling) through a WebSocket connection.
 
@@ -243,8 +244,10 @@ from openai import AsyncOpenAI
 async def main():
     client = AsyncOpenAI()
 
-    async with client.beta.realtime.connect(model="gpt-4o-realtime-preview") as connection:
-        await connection.session.update(session={'modalities': ['text']})
+    async with client.realtime.connect(model="gpt-realtime") as connection:
+        await connection.session.update(
+            session={"type": "realtime", "output_modalities": ["text"]}
+        )
 
         await connection.conversation.item.create(
             item={
@@ -256,10 +259,10 @@ async def main():
         await connection.response.create()
 
         async for event in connection:
-            if event.type == 'response.text.delta':
+            if event.type == "response.output_text.delta":
                 print(event.delta, flush=True, end="")
 
-            elif event.type == 'response.text.done':
+            elif event.type == "response.output_text.done":
                 print()
 
             elif event.type == "response.done":
@@ -277,7 +280,7 @@ Whenever an error occurs, the Realtime API will send an [`error` event](https://
 ```py
 client = AsyncOpenAI()
 
-async with client.beta.realtime.connect(model="gpt-4o-realtime-preview") as connection:
+async with client.realtime.connect(model="gpt-realtime") as connection:
     ...
     async for event in connection:
         if event.type == 'error':
@@ -383,7 +386,7 @@ response = client.chat.responses.create(
             "content": "How much ?",
         }
     ],
-    model="gpt-4o",
+    model="gpt-5.2",
     response_format={"type": "json_object"},
 )
 ```
@@ -538,7 +541,7 @@ All object responses in the SDK provide a `_request_id` property which is added 
 
 ```python
 response = await client.responses.create(
-    model="gpt-4o-mini",
+    model="gpt-5.2",
     input="Say 'this is a test'.",
 )
 print(response._request_id)  # req_123
@@ -556,7 +559,7 @@ import openai
 
 try:
     completion = await client.chat.completions.create(
-        messages=[{"role": "user", "content": "Say this is a test"}], model="gpt-4"
+        messages=[{"role": "user", "content": "Say this is a test"}], model="gpt-5.2"
     )
 except openai.APIStatusError as exc:
     print(exc.request_id)  # req_123
@@ -588,7 +591,7 @@ client.with_options(max_retries=5).chat.completions.create(
             "content": "How can I get the name of the current day in JavaScript?",
         }
     ],
-    model="gpt-4o",
+    model="gpt-5.2",
 )
 ```
 
@@ -619,7 +622,7 @@ client.with_options(timeout=5.0).chat.completions.create(
             "content": "How can I list all files in a directory using Python?",
         }
     ],
-    model="gpt-4o",
+    model="gpt-5.2",
 )
 ```
 
@@ -666,7 +669,7 @@ response = client.chat.completions.with_raw_response.create(
         "role": "user",
         "content": "Say this is a test",
     }],
-    model="gpt-4o",
+    model="gpt-5.2",
 )
 print(response.headers.get('X-My-Header'))
 
@@ -699,7 +702,7 @@ with client.chat.completions.with_streaming_response.create(
             "content": "Say this is a test",
         }
     ],
-    model="gpt-4o",
+    model="gpt-5.2",
 ) as response:
     print(response.headers.get("X-My-Header"))
 
@@ -852,7 +855,7 @@ print(openai.__version__)
 
 ## Requirements
 
-Python 3.8 or higher.
+Python 3.9 or higher.
 
 ## Contributing
 

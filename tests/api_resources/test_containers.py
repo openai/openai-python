@@ -38,6 +38,15 @@ class TestContainers:
                 "minutes": 0,
             },
             file_ids=["string"],
+            memory_limit="1g",
+            network_policy={"type": "disabled"},
+            skills=[
+                {
+                    "skill_id": "x",
+                    "type": "skill_reference",
+                    "version": "version",
+                }
+            ],
         )
         assert_matches_type(ContainerCreateResponse, container, path=["response"])
 
@@ -113,6 +122,7 @@ class TestContainers:
         container = client.containers.list(
             after="after",
             limit=0,
+            name="name",
             order="asc",
         )
         assert_matches_type(SyncCursorPage[ContainerListResponse], container, path=["response"])
@@ -197,6 +207,15 @@ class TestAsyncContainers:
                 "minutes": 0,
             },
             file_ids=["string"],
+            memory_limit="1g",
+            network_policy={"type": "disabled"},
+            skills=[
+                {
+                    "skill_id": "x",
+                    "type": "skill_reference",
+                    "version": "version",
+                }
+            ],
         )
         assert_matches_type(ContainerCreateResponse, container, path=["response"])
 
@@ -272,6 +291,7 @@ class TestAsyncContainers:
         container = await async_client.containers.list(
             after="after",
             limit=0,
+            name="name",
             order="asc",
         )
         assert_matches_type(AsyncCursorPage[ContainerListResponse], container, path=["response"])

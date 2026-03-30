@@ -8,6 +8,8 @@ __all__ = ["ResponseWebSearchCallCompletedEvent"]
 
 
 class ResponseWebSearchCallCompletedEvent(BaseModel):
+    """Emitted when a web search call is completed."""
+
     item_id: str
     """Unique ID for the output item associated with the web search call."""
 

@@ -9,8 +9,8 @@ from typing_extensions import Literal
 import httpx
 
 from .... import _legacy_response
-from ...._types import NOT_GIVEN, Body, Query, Headers, NotGiven
-from ...._utils import maybe_transform, async_maybe_transform
+from ...._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
+from ...._utils import path_template, maybe_transform, async_maybe_transform
 from ...._compat import cached_property
 from ...._resource import SyncAPIResource, AsyncAPIResource
 from ...._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -29,6 +29,8 @@ __all__ = ["Messages", "AsyncMessages"]
 
 
 class Messages(SyncAPIResource):
+    """Build Assistants that can call models and use tools."""
+
     @cached_property
     def with_raw_response(self) -> MessagesWithRawResponse:
         """
@@ -55,14 +57,14 @@ class Messages(SyncAPIResource):
         *,
         content: Union[str, Iterable[MessageContentPartParam]],
         role: Literal["user", "assistant"],
-        attachments: Optional[Iterable[message_create_params.Attachment]] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
+        attachments: Optional[Iterable[message_create_params.Attachment]] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Message:
         """
         Create a message.
@@ -99,7 +101,7 @@ class Messages(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._post(
-            f"/threads/{thread_id}/messages",
+            path_template("/threads/{thread_id}/messages", thread_id=thread_id),
             body=maybe_transform(
                 {
                     "content": content,
@@ -126,7 +128,7 @@ class Messages(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Message:
         """
         Retrieve a message.
@@ -146,7 +148,7 @@ class Messages(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `message_id` but received {message_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._get(
-            f"/threads/{thread_id}/messages/{message_id}",
+            path_template("/threads/{thread_id}/messages/{message_id}", thread_id=thread_id, message_id=message_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -159,13 +161,13 @@ class Messages(SyncAPIResource):
         message_id: str,
         *,
         thread_id: str,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Message:
         """
         Modifies a message.
@@ -192,7 +194,7 @@ class Messages(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `message_id` but received {message_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._post(
-            f"/threads/{thread_id}/messages/{message_id}",
+            path_template("/threads/{thread_id}/messages/{message_id}", thread_id=thread_id, message_id=message_id),
             body=maybe_transform({"metadata": metadata}, message_update_params.MessageUpdateParams),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
@@ -205,17 +207,17 @@ class Messages(SyncAPIResource):
         self,
         thread_id: str,
         *,
-        after: str | NotGiven = NOT_GIVEN,
-        before: str | NotGiven = NOT_GIVEN,
-        limit: int | NotGiven = NOT_GIVEN,
-        order: Literal["asc", "desc"] | NotGiven = NOT_GIVEN,
-        run_id: str | NotGiven = NOT_GIVEN,
+        after: str | Omit = omit,
+        before: str | Omit = omit,
+        limit: int | Omit = omit,
+        order: Literal["asc", "desc"] | Omit = omit,
+        run_id: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> SyncCursorPage[Message]:
         """
         Returns a list of messages for a given thread.
@@ -251,7 +253,7 @@ class Messages(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._get_api_list(
-            f"/threads/{thread_id}/messages",
+            path_template("/threads/{thread_id}/messages", thread_id=thread_id),
             page=SyncCursorPage[Message],
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -283,7 +285,7 @@ class Messages(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> MessageDeleted:
         """
         Deletes a message.
@@ -303,7 +305,7 @@ class Messages(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `message_id` but received {message_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._delete(
-            f"/threads/{thread_id}/messages/{message_id}",
+            path_template("/threads/{thread_id}/messages/{message_id}", thread_id=thread_id, message_id=message_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -312,6 +314,8 @@ class Messages(SyncAPIResource):
 
 
 class AsyncMessages(AsyncAPIResource):
+    """Build Assistants that can call models and use tools."""
+
     @cached_property
     def with_raw_response(self) -> AsyncMessagesWithRawResponse:
         """
@@ -338,14 +342,14 @@ class AsyncMessages(AsyncAPIResource):
         *,
         content: Union[str, Iterable[MessageContentPartParam]],
         role: Literal["user", "assistant"],
-        attachments: Optional[Iterable[message_create_params.Attachment]] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
+        attachments: Optional[Iterable[message_create_params.Attachment]] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Message:
         """
         Create a message.
@@ -382,7 +386,7 @@ class AsyncMessages(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._post(
-            f"/threads/{thread_id}/messages",
+            path_template("/threads/{thread_id}/messages", thread_id=thread_id),
             body=await async_maybe_transform(
                 {
                     "content": content,
@@ -409,7 +413,7 @@ class AsyncMessages(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Message:
         """
         Retrieve a message.
@@ -429,7 +433,7 @@ class AsyncMessages(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `message_id` but received {message_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._get(
-            f"/threads/{thread_id}/messages/{message_id}",
+            path_template("/threads/{thread_id}/messages/{message_id}", thread_id=thread_id, message_id=message_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -442,13 +446,13 @@ class AsyncMessages(AsyncAPIResource):
         message_id: str,
         *,
         thread_id: str,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Message:
         """
         Modifies a message.
@@ -475,7 +479,7 @@ class AsyncMessages(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `message_id` but received {message_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._post(
-            f"/threads/{thread_id}/messages/{message_id}",
+            path_template("/threads/{thread_id}/messages/{message_id}", thread_id=thread_id, message_id=message_id),
             body=await async_maybe_transform({"metadata": metadata}, message_update_params.MessageUpdateParams),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
@@ -488,17 +492,17 @@ class AsyncMessages(AsyncAPIResource):
         self,
         thread_id: str,
         *,
-        after: str | NotGiven = NOT_GIVEN,
-        before: str | NotGiven = NOT_GIVEN,
-        limit: int | NotGiven = NOT_GIVEN,
-        order: Literal["asc", "desc"] | NotGiven = NOT_GIVEN,
-        run_id: str | NotGiven = NOT_GIVEN,
+        after: str | Omit = omit,
+        before: str | Omit = omit,
+        limit: int | Omit = omit,
+        order: Literal["asc", "desc"] | Omit = omit,
+        run_id: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[Message, AsyncCursorPage[Message]]:
         """
         Returns a list of messages for a given thread.
@@ -534,7 +538,7 @@ class AsyncMessages(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._get_api_list(
-            f"/threads/{thread_id}/messages",
+            path_template("/threads/{thread_id}/messages", thread_id=thread_id),
             page=AsyncCursorPage[Message],
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -566,7 +570,7 @@ class AsyncMessages(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> MessageDeleted:
         """
         Deletes a message.
@@ -586,7 +590,7 @@ class AsyncMessages(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `message_id` but received {message_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._delete(
-            f"/threads/{thread_id}/messages/{message_id}",
+            path_template("/threads/{thread_id}/messages/{message_id}", thread_id=thread_id, message_id=message_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -600,27 +604,27 @@ class MessagesWithRawResponse:
 
         self.create = (  # pyright: ignore[reportDeprecated]
             _legacy_response.to_raw_response_wrapper(
-                messages.create  # pyright: ignore[reportDeprecated],
+                messages.create,  # pyright: ignore[reportDeprecated],
             )
         )
         self.retrieve = (  # pyright: ignore[reportDeprecated]
             _legacy_response.to_raw_response_wrapper(
-                messages.retrieve  # pyright: ignore[reportDeprecated],
+                messages.retrieve,  # pyright: ignore[reportDeprecated],
             )
         )
         self.update = (  # pyright: ignore[reportDeprecated]
             _legacy_response.to_raw_response_wrapper(
-                messages.update  # pyright: ignore[reportDeprecated],
+                messages.update,  # pyright: ignore[reportDeprecated],
             )
         )
         self.list = (  # pyright: ignore[reportDeprecated]
             _legacy_response.to_raw_response_wrapper(
-                messages.list  # pyright: ignore[reportDeprecated],
+                messages.list,  # pyright: ignore[reportDeprecated],
             )
         )
         self.delete = (  # pyright: ignore[reportDeprecated]
             _legacy_response.to_raw_response_wrapper(
-                messages.delete  # pyright: ignore[reportDeprecated],
+                messages.delete,  # pyright: ignore[reportDeprecated],
             )
         )
 
@@ -631,27 +635,27 @@ class AsyncMessagesWithRawResponse:
 
         self.create = (  # pyright: ignore[reportDeprecated]
             _legacy_response.async_to_raw_response_wrapper(
-                messages.create  # pyright: ignore[reportDeprecated],
+                messages.create,  # pyright: ignore[reportDeprecated],
             )
         )
         self.retrieve = (  # pyright: ignore[reportDeprecated]
             _legacy_response.async_to_raw_response_wrapper(
-                messages.retrieve  # pyright: ignore[reportDeprecated],
+                messages.retrieve,  # pyright: ignore[reportDeprecated],
             )
         )
         self.update = (  # pyright: ignore[reportDeprecated]
             _legacy_response.async_to_raw_response_wrapper(
-                messages.update  # pyright: ignore[reportDeprecated],
+                messages.update,  # pyright: ignore[reportDeprecated],
             )
         )
         self.list = (  # pyright: ignore[reportDeprecated]
             _legacy_response.async_to_raw_response_wrapper(
-                messages.list  # pyright: ignore[reportDeprecated],
+                messages.list,  # pyright: ignore[reportDeprecated],
             )
         )
         self.delete = (  # pyright: ignore[reportDeprecated]
             _legacy_response.async_to_raw_response_wrapper(
-                messages.delete  # pyright: ignore[reportDeprecated],
+                messages.delete,  # pyright: ignore[reportDeprecated],
             )
         )
 
@@ -662,27 +666,27 @@ class MessagesWithStreamingResponse:
 
         self.create = (  # pyright: ignore[reportDeprecated]
             to_streamed_response_wrapper(
-                messages.create  # pyright: ignore[reportDeprecated],
+                messages.create,  # pyright: ignore[reportDeprecated],
             )
         )
         self.retrieve = (  # pyright: ignore[reportDeprecated]
             to_streamed_response_wrapper(
-                messages.retrieve  # pyright: ignore[reportDeprecated],
+                messages.retrieve,  # pyright: ignore[reportDeprecated],
             )
         )
         self.update = (  # pyright: ignore[reportDeprecated]
             to_streamed_response_wrapper(
-                messages.update  # pyright: ignore[reportDeprecated],
+                messages.update,  # pyright: ignore[reportDeprecated],
             )
         )
         self.list = (  # pyright: ignore[reportDeprecated]
             to_streamed_response_wrapper(
-                messages.list  # pyright: ignore[reportDeprecated],
+                messages.list,  # pyright: ignore[reportDeprecated],
             )
         )
         self.delete = (  # pyright: ignore[reportDeprecated]
             to_streamed_response_wrapper(
-                messages.delete  # pyright: ignore[reportDeprecated],
+                messages.delete,  # pyright: ignore[reportDeprecated],
             )
         )
 
@@ -693,26 +697,26 @@ class AsyncMessagesWithStreamingResponse:
 
         self.create = (  # pyright: ignore[reportDeprecated]
             async_to_streamed_response_wrapper(
-                messages.create  # pyright: ignore[reportDeprecated],
+                messages.create,  # pyright: ignore[reportDeprecated],
             )
         )
         self.retrieve = (  # pyright: ignore[reportDeprecated]
             async_to_streamed_response_wrapper(
-                messages.retrieve  # pyright: ignore[reportDeprecated],
+                messages.retrieve,  # pyright: ignore[reportDeprecated],
             )
         )
         self.update = (  # pyright: ignore[reportDeprecated]
             async_to_streamed_response_wrapper(
-                messages.update  # pyright: ignore[reportDeprecated],
+                messages.update,  # pyright: ignore[reportDeprecated],
             )
         )
         self.list = (  # pyright: ignore[reportDeprecated]
             async_to_streamed_response_wrapper(
-                messages.list  # pyright: ignore[reportDeprecated],
+                messages.list,  # pyright: ignore[reportDeprecated],
             )
         )
         self.delete = (  # pyright: ignore[reportDeprecated]
             async_to_streamed_response_wrapper(
-                messages.delete  # pyright: ignore[reportDeprecated],
+                messages.delete,  # pyright: ignore[reportDeprecated],
             )
         )

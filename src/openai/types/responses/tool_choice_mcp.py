@@ -9,6 +9,10 @@ __all__ = ["ToolChoiceMcp"]
 
 
 class ToolChoiceMcp(BaseModel):
+    """
+    Use this option to force the model to call a specific tool on a remote MCP server.
+    """
+
     server_label: str
     """The label of the MCP server to use."""
 

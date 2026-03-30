@@ -25,6 +25,8 @@ class FileCounts(BaseModel):
 
 
 class VectorStoreFileBatch(BaseModel):
+    """A batch of files attached to a vector store."""
+
     id: str
     """The identifier, which can be referenced in API endpoints."""
 

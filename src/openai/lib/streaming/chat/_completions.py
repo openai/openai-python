@@ -23,7 +23,7 @@ from ._events import (
     FunctionToolCallArgumentsDeltaEvent,
 )
 from .._deltas import accumulate_delta
-from ...._types import NOT_GIVEN, IncEx, NotGiven
+from ...._types import Omit, IncEx, omit
 from ...._utils import is_given, consume_sync_iterator, consume_async_iterator
 from ...._compat import model_dump
 from ...._models import build, construct_type
@@ -33,11 +33,10 @@ from ..._parsing import (
     maybe_parse_content,
     parse_chat_completion,
     get_input_tool_by_name,
-    solve_response_format_t,
     parse_function_tool_arguments,
 )
 from ...._streaming import Stream, AsyncStream
-from ....types.chat import ChatCompletionChunk, ParsedChatCompletion, ChatCompletionToolParam
+from ....types.chat import ChatCompletionChunk, ParsedChatCompletion, ChatCompletionToolUnionParam
 from ...._exceptions import LengthFinishReasonError, ContentFilterFinishReasonError
 from ....types.chat.chat_completion import ChoiceLogprobs
 from ....types.chat.chat_completion_chunk import Choice as ChoiceChunk
@@ -57,8 +56,8 @@ class ChatCompletionStream(Generic[ResponseFormatT]):
         self,
         *,
         raw_stream: Stream[ChatCompletionChunk],
-        response_format: type[ResponseFormatT] | ResponseFormatParam | NotGiven,
-        input_tools: Iterable[ChatCompletionToolParam] | NotGiven,
+        response_format: type[ResponseFormatT] | ResponseFormatParam | Omit,
+        input_tools: Iterable[ChatCompletionToolUnionParam] | Omit,
     ) -> None:
         self._raw_stream = raw_stream
         self._response = raw_stream.response
@@ -138,8 +137,8 @@ class ChatCompletionStreamManager(Generic[ResponseFormatT]):
         self,
         api_request: Callable[[], Stream[ChatCompletionChunk]],
         *,
-        response_format: type[ResponseFormatT] | ResponseFormatParam | NotGiven,
-        input_tools: Iterable[ChatCompletionToolParam] | NotGiven,
+        response_format: type[ResponseFormatT] | ResponseFormatParam | Omit,
+        input_tools: Iterable[ChatCompletionToolUnionParam] | Omit,
     ) -> None:
         self.__stream: ChatCompletionStream[ResponseFormatT] | None = None
         self.__api_request = api_request
@@ -180,8 +179,8 @@ class AsyncChatCompletionStream(Generic[ResponseFormatT]):
         self,
         *,
         raw_stream: AsyncStream[ChatCompletionChunk],
-        response_format: type[ResponseFormatT] | ResponseFormatParam | NotGiven,
-        input_tools: Iterable[ChatCompletionToolParam] | NotGiven,
+        response_format: type[ResponseFormatT] | ResponseFormatParam | Omit,
+        input_tools: Iterable[ChatCompletionToolUnionParam] | Omit,
     ) -> None:
         self._raw_stream = raw_stream
         self._response = raw_stream.response
@@ -261,8 +260,8 @@ class AsyncChatCompletionStreamManager(Generic[ResponseFormatT]):
         self,
         api_request: Awaitable[AsyncStream[ChatCompletionChunk]],
         *,
-        response_format: type[ResponseFormatT] | ResponseFormatParam | NotGiven,
-        input_tools: Iterable[ChatCompletionToolParam] | NotGiven,
+        response_format: type[ResponseFormatT] | ResponseFormatParam | Omit,
+        input_tools: Iterable[ChatCompletionToolUnionParam] | Omit,
     ) -> None:
         self.__stream: AsyncChatCompletionStream[ResponseFormatT] | None = None
         self.__api_request = api_request
@@ -314,15 +313,15 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
     def __init__(
         self,
         *,
-        input_tools: Iterable[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
-        response_format: type[ResponseFormatT] | ResponseFormatParam | NotGiven = NOT_GIVEN,
+        input_tools: Iterable[ChatCompletionToolUnionParam] | Omit = omit,
+        response_format: type[ResponseFormatT] | ResponseFormatParam | Omit = omit,
     ) -> None:
         self.__current_completion_snapshot: ParsedChatCompletionSnapshot | None = None
         self.__choice_event_states: list[ChoiceEventState] = []
 
         self._input_tools = [tool for tool in input_tools] if is_given(input_tools) else []
         self._response_format = response_format
-        self._rich_response_format: type | NotGiven = response_format if inspect.isclass(response_format) else NOT_GIVEN
+        self._rich_response_format: type | Omit = response_format if inspect.isclass(response_format) else omit
 
     def get_final_completion(self) -> ParsedChatCompletion[ResponseFormatT]:
         """Parse the final completion object.
@@ -584,7 +583,7 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
 
 
 class ChoiceEventState:
-    def __init__(self, *, input_tools: list[ChatCompletionToolParam]) -> None:
+    def __init__(self, *, input_tools: list[ChatCompletionToolUnionParam]) -> None:
         self._input_tools = input_tools
 
         self._content_done = False
@@ -599,7 +598,7 @@ class ChoiceEventState:
         *,
         choice_chunk: ChoiceChunk,
         choice_snapshot: ParsedChoiceSnapshot,
-        response_format: type[ResponseFormatT] | ResponseFormatParam | NotGiven,
+        response_format: type[ResponseFormatT] | ResponseFormatParam | Omit,
     ) -> list[ChatCompletionStreamEvent[ResponseFormatT]]:
         events_to_fire: list[ChatCompletionStreamEvent[ResponseFormatT]] = []
 
@@ -639,7 +638,7 @@ class ChoiceEventState:
         self,
         *,
         choice_snapshot: ParsedChoiceSnapshot,
-        response_format: type[ResponseFormatT] | ResponseFormatParam | NotGiven,
+        response_format: type[ResponseFormatT] | ResponseFormatParam | Omit,
     ) -> list[ChatCompletionStreamEvent[ResponseFormatT]]:
         events_to_fire: list[ChatCompletionStreamEvent[ResponseFormatT]] = []
 
@@ -663,7 +662,7 @@ class ChoiceEventState:
                     # type variable, e.g. `ContentDoneEvent[MyModelType]`
                     cast(  # pyright: ignore[reportUnnecessaryCast]
                         "type[ContentDoneEvent[ResponseFormatT]]",
-                        cast(Any, ContentDoneEvent)[solve_response_format_t(response_format)],
+                        cast(Any, ContentDoneEvent),
                     ),
                     type="content.done",
                     content=choice_snapshot.message.content,

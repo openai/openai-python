@@ -5,12 +5,13 @@ from __future__ import annotations
 from typing import Dict, List, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
+from ..._types import SequenceNotStr
 from ..shared.chat_model import ChatModel
 from ..shared_params.metadata import Metadata
 from ..shared.reasoning_effort import ReasoningEffort
-from .chat_completion_tool_param import ChatCompletionToolParam
 from .chat_completion_audio_param import ChatCompletionAudioParam
 from .chat_completion_message_param import ChatCompletionMessageParam
+from .chat_completion_tool_union_param import ChatCompletionToolUnionParam
 from ..shared_params.function_parameters import FunctionParameters
 from ..shared_params.response_format_text import ResponseFormatText
 from .chat_completion_stream_options_param import ChatCompletionStreamOptionsParam
@@ -177,13 +178,36 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     far, increasing the model's likelihood to talk about new topics.
     """
 
-    reasoning_effort: Optional[ReasoningEffort]
-    """**o-series models only**
+    prompt_cache_key: str
+    """
+    Used by OpenAI to cache responses for similar requests to optimize your cache
+    hit rates. Replaces the `user` field.
+    [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
+    """
 
+    prompt_cache_retention: Optional[Literal["in-memory", "24h"]]
+    """The retention policy for the prompt cache.
+
+    Set to `24h` to enable extended prompt caching, which keeps cached prefixes
+    active for longer, up to a maximum of 24 hours.
+    [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
+    """
+
+    reasoning_effort: Optional[ReasoningEffort]
+    """
     Constrains effort on reasoning for
     [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
-    supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
-    result in faster responses and fewer tokens used on reasoning in a response.
+    supported values are `none`, `minimal`, `low`, `medium`, `high`, and `xhigh`.
+    Reducing reasoning effort can result in faster responses and fewer tokens used
+    on reasoning in a response.
+
+    - `gpt-5.1` defaults to `none`, which does not perform reasoning. The supported
+      reasoning values for `gpt-5.1` are `none`, `low`, `medium`, and `high`. Tool
+      calls are supported for all reasoning values in gpt-5.1.
+    - All models before `gpt-5.1` default to `medium` reasoning effort, and do not
+      support `none`.
+    - The `gpt-5-pro` model defaults to (and only supports) `high` reasoning effort.
+    - `xhigh` is supported for all models after `gpt-5.1-codex-max`.
     """
 
     response_format: ResponseFormat
@@ -197,6 +221,16 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     Setting to `{ "type": "json_object" }` enables the older JSON mode, which
     ensures the message the model generates is valid JSON. Using `json_schema` is
     preferred for models that support it.
+    """
+
+    safety_identifier: str
+    """
+    A stable identifier used to help detect users of your application that may be
+    violating OpenAI's usage policies. The IDs should be a string that uniquely
+    identifies each user, with a maximum length of 64 characters. We recommend
+    hashing their username or email address, in order to avoid sending us any
+    identifying information.
+    [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
     """
 
     seed: Optional[int]
@@ -217,9 +251,8 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     - If set to 'default', then the request will be processed with the standard
       pricing and performance for the selected model.
     - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-      'priority', then the request will be processed with the corresponding service
-      tier. [Contact sales](https://openai.com/contact-sales) to learn more about
-      Priority processing.
+      '[priority](https://openai.com/api-priority-processing/)', then the request
+      will be processed with the corresponding service tier.
     - When not set, the default behavior is 'auto'.
 
     When the `service_tier` parameter is set, the response body will include the
@@ -228,7 +261,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     parameter.
     """
 
-    stop: Union[Optional[str], List[str], None]
+    stop: Union[Optional[str], SequenceNotStr[str], None]
     """Not supported with latest reasoning models `o3` and `o4-mini`.
 
     Up to 4 sequences where the API will stop generating further tokens. The
@@ -241,7 +274,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     our [model distillation](https://platform.openai.com/docs/guides/distillation)
     or [evals](https://platform.openai.com/docs/guides/evals) products.
 
-    Supports text and image inputs. Note: image inputs over 10MB will be dropped.
+    Supports text and image inputs. Note: image inputs over 8MB will be dropped.
     """
 
     stream_options: Optional[ChatCompletionStreamOptionsParam]
@@ -268,12 +301,12 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     are present.
     """
 
-    tools: Iterable[ChatCompletionToolParam]
+    tools: Iterable[ChatCompletionToolUnionParam]
     """A list of tools the model may call.
 
-    Currently, only functions are supported as a tool. Use this to provide a list of
-    functions the model may generate JSON inputs for. A max of 128 functions are
-    supported.
+    You can provide either
+    [custom tools](https://platform.openai.com/docs/guides/function-calling#custom-tools)
+    or [function tools](https://platform.openai.com/docs/guides/function-calling).
     """
 
     top_logprobs: Optional[int]
@@ -293,11 +326,20 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     """
 
     user: str
-    """A stable identifier for your end-users.
+    """This field is being replaced by `safety_identifier` and `prompt_cache_key`.
 
-    Used to boost cache hit rates by better bucketing similar requests and to help
-    OpenAI detect and prevent abuse.
-    [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
+    Use `prompt_cache_key` instead to maintain caching optimizations. A stable
+    identifier for your end-users. Used to boost cache hit rates by better bucketing
+    similar requests and to help OpenAI detect and prevent abuse.
+    [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+    """
+
+    verbosity: Optional[Literal["low", "medium", "high"]]
+    """Constrains the verbosity of the model's response.
+
+    Lower values will result in more concise responses, while higher values will
+    result in more verbose responses. Currently supported values are `low`,
+    `medium`, and `high`.
     """
 
     web_search_options: WebSearchOptions
@@ -341,6 +383,8 @@ ResponseFormat: TypeAlias = Union[ResponseFormatText, ResponseFormatJSONSchema, 
 
 
 class WebSearchOptionsUserLocationApproximate(TypedDict, total=False):
+    """Approximate location parameters for the search."""
+
     city: str
     """Free text input for the city of the user, e.g. `San Francisco`."""
 
@@ -361,6 +405,8 @@ class WebSearchOptionsUserLocationApproximate(TypedDict, total=False):
 
 
 class WebSearchOptionsUserLocation(TypedDict, total=False):
+    """Approximate location parameters for the search."""
+
     approximate: Required[WebSearchOptionsUserLocationApproximate]
     """Approximate location parameters for the search."""
 
@@ -369,6 +415,11 @@ class WebSearchOptionsUserLocation(TypedDict, total=False):
 
 
 class WebSearchOptions(TypedDict, total=False):
+    """
+    This tool searches the web for relevant results to use in a response.
+    Learn more about the [web search tool](https://platform.openai.com/docs/guides/tools-web-search?api-mode=chat).
+    """
+
     search_context_size: Literal["low", "medium", "high"]
     """
     High level guidance for the amount of context window space to use for the

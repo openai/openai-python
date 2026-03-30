@@ -44,7 +44,8 @@ def test_translation_create_overloads_in_sync(sync: bool, client: OpenAI, async_
         elif is_literal_type(typ):
             overload_response_formats.update(get_args(typ))
 
-    src_response_formats: set[str] = set(get_args(AudioResponseFormat))
+    # 'diarized_json' applies only to transcriptions, not translations.
+    src_response_formats: set[str] = set(get_args(AudioResponseFormat)) - {"diarized_json"}
     diff = src_response_formats.difference(overload_response_formats)
     assert len(diff) == 0, f"some response format options don't have overloads"
 
@@ -57,17 +58,26 @@ def test_transcription_create_overloads_in_sync(sync: bool, client: OpenAI, asyn
     overload_response_formats: set[str] = set()
 
     for i, overload in enumerate(typing_extensions.get_overloads(fn)):
-        assert_signatures_in_sync(
-            fn,
-            overload,
-            exclude_params={"response_format", "stream"},
-            description=f" for overload {i}",
-        )
-
         sig = inspect.signature(overload)
         typ = evaluate_forwardref(
             sig.parameters["response_format"].annotation,
             globalns=sys.modules[fn.__module__].__dict__,
+        )
+
+        exclude_params = {"response_format", "stream"}
+        # known_speaker_names and known_speaker_references are only supported by diarized_json
+        if not (is_literal_type(typ) and set(get_args(typ)) == {"diarized_json"}):
+            exclude_params.update({"known_speaker_names", "known_speaker_references"})
+
+        # diarized_json does not support these parameters
+        if is_literal_type(typ) and set(get_args(typ)) == {"diarized_json"}:
+            exclude_params.update({"include", "prompt", "timestamp_granularities"})
+
+        assert_signatures_in_sync(
+            fn,
+            overload,
+            exclude_params=exclude_params,
+            description=f" for overload {i}",
         )
         if is_union_type(typ):
             for arg in get_args(typ):

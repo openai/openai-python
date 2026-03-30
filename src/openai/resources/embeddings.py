@@ -4,14 +4,14 @@ from __future__ import annotations
 
 import array
 import base64
-from typing import List, Union, Iterable, cast
+from typing import Union, Iterable, cast
 from typing_extensions import Literal
 
 import httpx
 
 from .. import _legacy_response
 from ..types import embedding_create_params
-from .._types import NOT_GIVEN, Body, Query, Headers, NotGiven
+from .._types import Body, Omit, Query, Headers, NotGiven, SequenceNotStr, omit, not_given
 from .._utils import is_given, maybe_transform
 from .._compat import cached_property
 from .._extras import numpy as np, has_numpy
@@ -25,6 +25,10 @@ __all__ = ["Embeddings", "AsyncEmbeddings"]
 
 
 class Embeddings(SyncAPIResource):
+    """
+    Get a vector representation of a given input that can be easily consumed by machine learning models and algorithms.
+    """
+
     @cached_property
     def with_raw_response(self) -> EmbeddingsWithRawResponse:
         """
@@ -47,17 +51,17 @@ class Embeddings(SyncAPIResource):
     def create(
         self,
         *,
-        input: Union[str, List[str], Iterable[int], Iterable[Iterable[int]]],
+        input: Union[str, SequenceNotStr[str], Iterable[int], Iterable[Iterable[int]]],
         model: Union[str, EmbeddingModel],
-        dimensions: int | NotGiven = NOT_GIVEN,
-        encoding_format: Literal["float", "base64"] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        dimensions: int | Omit = omit,
+        encoding_format: Literal["float", "base64"] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> CreateEmbeddingResponse:
         """
         Creates an embedding vector representing the input text.
@@ -144,6 +148,10 @@ class Embeddings(SyncAPIResource):
 
 
 class AsyncEmbeddings(AsyncAPIResource):
+    """
+    Get a vector representation of a given input that can be easily consumed by machine learning models and algorithms.
+    """
+
     @cached_property
     def with_raw_response(self) -> AsyncEmbeddingsWithRawResponse:
         """
@@ -166,17 +174,17 @@ class AsyncEmbeddings(AsyncAPIResource):
     async def create(
         self,
         *,
-        input: Union[str, List[str], Iterable[int], Iterable[Iterable[int]]],
+        input: Union[str, SequenceNotStr[str], Iterable[int], Iterable[Iterable[int]]],
         model: Union[str, EmbeddingModel],
-        dimensions: int | NotGiven = NOT_GIVEN,
-        encoding_format: Literal["float", "base64"] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        dimensions: int | Omit = omit,
+        encoding_format: Literal["float", "base64"] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> CreateEmbeddingResponse:
         """
         Creates an embedding vector representing the input text.

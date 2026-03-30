@@ -20,6 +20,8 @@ class ImageURL(TypedDict, total=False):
 
 
 class ChatCompletionContentPartImageParam(TypedDict, total=False):
+    """Learn about [image inputs](https://platform.openai.com/docs/guides/vision)."""
+
     image_url: Required[ImageURL]
 
     type: Required[Literal["image_url"]]

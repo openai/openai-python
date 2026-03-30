@@ -10,14 +10,21 @@ __all__ = ["VectorStoreFile", "LastError"]
 
 
 class LastError(BaseModel):
+    """The last error associated with this vector store file.
+
+    Will be `null` if there are no errors.
+    """
+
     code: Literal["server_error", "unsupported_file", "invalid_file"]
-    """One of `server_error` or `rate_limit_exceeded`."""
+    """One of `server_error`, `unsupported_file`, or `invalid_file`."""
 
     message: str
     """A human-readable description of the error."""
 
 
 class VectorStoreFile(BaseModel):
+    """A list of files attached to a vector store."""
+
     id: str
     """The identifier, which can be referenced in API endpoints."""
 

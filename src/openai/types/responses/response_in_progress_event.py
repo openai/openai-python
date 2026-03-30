@@ -9,6 +9,8 @@ __all__ = ["ResponseInProgressEvent"]
 
 
 class ResponseInProgressEvent(BaseModel):
+    """Emitted when the response is in progress."""
+
     response: Response
     """The response that is in progress."""
 

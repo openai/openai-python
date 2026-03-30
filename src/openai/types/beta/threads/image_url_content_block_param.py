@@ -10,6 +10,8 @@ __all__ = ["ImageURLContentBlockParam"]
 
 
 class ImageURLContentBlockParam(TypedDict, total=False):
+    """References an image URL in the content of a message."""
+
     image_url: Required[ImageURLParam]
 
     type: Required[Literal["image_url"]]

@@ -9,11 +9,15 @@ __all__ = ["BatchFailedWebhookEvent", "Data"]
 
 
 class Data(BaseModel):
+    """Event data payload."""
+
     id: str
     """The unique ID of the batch API request."""
 
 
 class BatchFailedWebhookEvent(BaseModel):
+    """Sent when a batch API request has failed."""
+
     id: str
     """The unique ID of the event."""
 

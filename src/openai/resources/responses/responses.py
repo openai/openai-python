@@ -2,16 +2,22 @@
 
 from __future__ import annotations
 
-from typing import Any, List, Type, Union, Iterable, Optional, cast
+import json
+import logging
+from copy import copy
+from types import TracebackType
+from typing import TYPE_CHECKING, Any, List, Type, Union, Iterable, Iterator, Optional, AsyncIterator, cast
 from functools import partial
 from typing_extensions import Literal, overload
 
 import httpx
+from pydantic import BaseModel
 
 from ... import _legacy_response
-from ..._types import NOT_GIVEN, Body, Query, Headers, NoneType, NotGiven
-from ..._utils import is_given, maybe_transform, async_maybe_transform
+from ..._types import NOT_GIVEN, Body, Omit, Query, Headers, NoneType, NotGiven, omit, not_given
+from ..._utils import is_given, path_template, maybe_transform, strip_not_given, async_maybe_transform
 from ..._compat import cached_property
+from ..._models import construct_type_unchecked
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from .input_items import (
@@ -24,34 +30,65 @@ from .input_items import (
 )
 from ..._streaming import Stream, AsyncStream
 from ...lib._tools import PydanticFunctionTool, ResponsesPydanticFunctionTool
-from ..._base_client import make_request_options
-from ...types.responses import response_create_params, response_retrieve_params
+from .input_tokens import (
+    InputTokens,
+    AsyncInputTokens,
+    InputTokensWithRawResponse,
+    AsyncInputTokensWithRawResponse,
+    InputTokensWithStreamingResponse,
+    AsyncInputTokensWithStreamingResponse,
+)
+from ..._exceptions import OpenAIError
+from ..._base_client import _merge_mappings, make_request_options
+from ...types.responses import (
+    response_create_params,
+    response_compact_params,
+    response_retrieve_params,
+    responses_client_event_param,
+)
 from ...lib._parsing._responses import (
     TextFormatT,
     parse_response,
     type_to_text_format_param as _type_to_text_format_param,
 )
-from ...types.shared.chat_model import ChatModel
 from ...types.responses.response import Response
 from ...types.responses.tool_param import ToolParam, ParseableToolParam
 from ...types.shared_params.metadata import Metadata
 from ...types.shared_params.reasoning import Reasoning
 from ...types.responses.parsed_response import ParsedResponse
 from ...lib.streaming.responses._responses import ResponseStreamManager, AsyncResponseStreamManager
+from ...types.responses.compacted_response import CompactedResponse
+from ...types.websocket_connection_options import WebSocketConnectionOptions
 from ...types.responses.response_includable import ResponseIncludable
 from ...types.shared_params.responses_model import ResponsesModel
 from ...types.responses.response_input_param import ResponseInputParam
 from ...types.responses.response_prompt_param import ResponsePromptParam
 from ...types.responses.response_stream_event import ResponseStreamEvent
+from ...types.responses.responses_client_event import ResponsesClientEvent
+from ...types.responses.responses_server_event import ResponsesServerEvent
+from ...types.responses.response_input_item_param import ResponseInputItemParam
 from ...types.responses.response_text_config_param import ResponseTextConfigParam
+from ...types.responses.responses_client_event_param import ResponsesClientEventParam
+
+if TYPE_CHECKING:
+    from websockets.sync.client import ClientConnection as WebSocketConnection
+    from websockets.asyncio.client import ClientConnection as AsyncWebSocketConnection
+
+    from ..._client import OpenAI, AsyncOpenAI
 
 __all__ = ["Responses", "AsyncResponses"]
+
+log: logging.Logger = logging.getLogger(__name__)
 
 
 class Responses(SyncAPIResource):
     @cached_property
     def input_items(self) -> InputItems:
         return InputItems(self._client)
+
+    @cached_property
+    def input_tokens(self) -> InputTokens:
+        return InputTokens(self._client)
 
     @cached_property
     def with_raw_response(self) -> ResponsesWithRawResponse:
@@ -76,35 +113,41 @@ class Responses(SyncAPIResource):
     def create(
         self,
         *,
-        background: Optional[bool] | NotGiven = NOT_GIVEN,
-        include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
-        input: Union[str, ResponseInputParam] | NotGiven = NOT_GIVEN,
-        instructions: Optional[str] | NotGiven = NOT_GIVEN,
-        max_output_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        max_tool_calls: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        model: ResponsesModel | NotGiven = NOT_GIVEN,
-        parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
-        previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
-        prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
-        reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
-        store: Optional[bool] | NotGiven = NOT_GIVEN,
-        stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
-        temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
-        tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
-        tools: Iterable[ToolParam] | NotGiven = NOT_GIVEN,
-        top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
-        top_p: Optional[float] | NotGiven = NOT_GIVEN,
-        truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        background: Optional[bool] | Omit = omit,
+        context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
+        conversation: Optional[response_create_params.Conversation] | Omit = omit,
+        include: Optional[List[ResponseIncludable]] | Omit = omit,
+        input: Union[str, ResponseInputParam] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_output_tokens: Optional[int] | Omit = omit,
+        max_tool_calls: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: ResponsesModel | Omit = omit,
+        parallel_tool_calls: Optional[bool] | Omit = omit,
+        previous_response_id: Optional[str] | Omit = omit,
+        prompt: Optional[ResponsePromptParam] | Omit = omit,
+        prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
+        reasoning: Optional[Reasoning] | Omit = omit,
+        safety_identifier: str | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        store: Optional[bool] | Omit = omit,
+        stream: Optional[Literal[False]] | Omit = omit,
+        stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        text: ResponseTextConfigParam | Omit = omit,
+        tool_choice: response_create_params.ToolChoice | Omit = omit,
+        tools: Iterable[ToolParam] | Omit = omit,
+        top_logprobs: Optional[int] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation: Optional[Literal["auto", "disabled"]] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Response:
         """Creates a model response.
 
@@ -124,9 +167,18 @@ class Responses(SyncAPIResource):
           background: Whether to run the model response in the background.
               [Learn more](https://platform.openai.com/docs/guides/background).
 
+          context_management: Context management configuration for this request.
+
+          conversation: The conversation that this response belongs to. Items from this conversation are
+              prepended to `input_items` for this response request. Input items and output
+              items from this response are automatically added to this conversation after this
+              response completes.
+
           include: Specify additional output data to include in the model response. Currently
               supported values are:
 
+              - `web_search_call.action.sources`: Include the sources of the web search tool
+                call.
               - `code_interpreter_call.outputs`: Includes the outputs of python code execution
                 in code interpreter tool call items.
               - `computer_call_output.output.image_url`: Include image urls from the computer
@@ -184,14 +236,31 @@ class Responses(SyncAPIResource):
           previous_response_id: The unique ID of the previous response to the model. Use this to create
               multi-turn conversations. Learn more about
               [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+              Cannot be used in conjunction with `conversation`.
 
           prompt: Reference to a prompt template and its variables.
               [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
 
-          reasoning: **o-series models only**
+          prompt_cache_key: Used by OpenAI to cache responses for similar requests to optimize your cache
+              hit rates. Replaces the `user` field.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
+
+          prompt_cache_retention: The retention policy for the prompt cache. Set to `24h` to enable extended
+              prompt caching, which keeps cached prefixes active for longer, up to a maximum
+              of 24 hours.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
+
+          reasoning: **gpt-5 and o-series models only**
 
               Configuration options for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+
+          safety_identifier: A stable identifier used to help detect users of your application that may be
+              violating OpenAI's usage policies. The IDs should be a string that uniquely
+              identifies each user, with a maximum length of 64 characters. We recommend
+              hashing their username or email address, in order to avoid sending us any
+              identifying information.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           service_tier: Specifies the processing type used for serving the request.
 
@@ -201,9 +270,8 @@ class Responses(SyncAPIResource):
               - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
               - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                'priority', then the request will be processed with the corresponding service
-                tier. [Contact sales](https://openai.com/contact-sales) to learn more about
-                Priority processing.
+                '[priority](https://openai.com/api-priority-processing/)', then the request
+                will be processed with the corresponding service tier.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -219,6 +287,8 @@ class Responses(SyncAPIResource):
               See the
               [Streaming section below](https://platform.openai.com/docs/api-reference/responses-streaming)
               for more information.
+
+          stream_options: Options for streaming responses. Only set this when you set `stream: true`.
 
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more
@@ -238,7 +308,7 @@ class Responses(SyncAPIResource):
           tools: An array of tools the model may call while generating a response. You can
               specify which tool to use by setting the `tool_choice` parameter.
 
-              The two categories of tools you can provide the model are:
+              We support the following categories of tools:
 
               - **Built-in tools**: Tools that are provided by OpenAI that extend the model's
                 capabilities, like
@@ -246,9 +316,14 @@ class Responses(SyncAPIResource):
                 [file search](https://platform.openai.com/docs/guides/tools-file-search).
                 Learn more about
                 [built-in tools](https://platform.openai.com/docs/guides/tools).
+              - **MCP Tools**: Integrations with third-party systems via custom MCP servers or
+                predefined connectors such as Google Drive and SharePoint. Learn more about
+                [MCP Tools](https://platform.openai.com/docs/guides/tools-connectors-mcp).
               - **Function calls (custom tools)**: Functions that are defined by you, enabling
-                the model to call your own code. Learn more about
+                the model to call your own code with strongly typed arguments and outputs.
+                Learn more about
                 [function calling](https://platform.openai.com/docs/guides/function-calling).
+                You can also use custom tools to call your own code.
 
           top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
               return at each token position, each with an associated log probability.
@@ -261,15 +336,17 @@ class Responses(SyncAPIResource):
 
           truncation: The truncation strategy to use for the model response.
 
-              - `auto`: If the context of this response and previous ones exceeds the model's
-                context window size, the model will truncate the response to fit the context
-                window by dropping input items in the middle of the conversation.
-              - `disabled` (default): If a model response will exceed the context window size
+              - `auto`: If the input to this Response exceeds the model's context window size,
+                the model will truncate the response to fit the context window by dropping
+                items from the beginning of the conversation.
+              - `disabled` (default): If the input size will exceed the context window size
                 for a model, the request will fail with a 400 error.
 
-          user: A stable identifier for your end-users. Used to boost cache hit rates by better
-              bucketing similar requests and to help OpenAI detect and prevent abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
+          user: This field is being replaced by `safety_identifier` and `prompt_cache_key`. Use
+              `prompt_cache_key` instead to maintain caching optimizations. A stable
+              identifier for your end-users. Used to boost cache hit rates by better bucketing
+              similar requests and to help OpenAI detect and prevent abuse.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           extra_headers: Send extra headers
 
@@ -286,34 +363,40 @@ class Responses(SyncAPIResource):
         self,
         *,
         stream: Literal[True],
-        background: Optional[bool] | NotGiven = NOT_GIVEN,
-        include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
-        input: Union[str, ResponseInputParam] | NotGiven = NOT_GIVEN,
-        instructions: Optional[str] | NotGiven = NOT_GIVEN,
-        max_output_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        max_tool_calls: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        model: ResponsesModel | NotGiven = NOT_GIVEN,
-        parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
-        previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
-        prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
-        reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
-        store: Optional[bool] | NotGiven = NOT_GIVEN,
-        temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
-        tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
-        tools: Iterable[ToolParam] | NotGiven = NOT_GIVEN,
-        top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
-        top_p: Optional[float] | NotGiven = NOT_GIVEN,
-        truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        background: Optional[bool] | Omit = omit,
+        context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
+        conversation: Optional[response_create_params.Conversation] | Omit = omit,
+        include: Optional[List[ResponseIncludable]] | Omit = omit,
+        input: Union[str, ResponseInputParam] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_output_tokens: Optional[int] | Omit = omit,
+        max_tool_calls: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: ResponsesModel | Omit = omit,
+        parallel_tool_calls: Optional[bool] | Omit = omit,
+        previous_response_id: Optional[str] | Omit = omit,
+        prompt: Optional[ResponsePromptParam] | Omit = omit,
+        prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
+        reasoning: Optional[Reasoning] | Omit = omit,
+        safety_identifier: str | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        store: Optional[bool] | Omit = omit,
+        stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        text: ResponseTextConfigParam | Omit = omit,
+        tool_choice: response_create_params.ToolChoice | Omit = omit,
+        tools: Iterable[ToolParam] | Omit = omit,
+        top_logprobs: Optional[int] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation: Optional[Literal["auto", "disabled"]] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Stream[ResponseStreamEvent]:
         """Creates a model response.
 
@@ -340,9 +423,18 @@ class Responses(SyncAPIResource):
           background: Whether to run the model response in the background.
               [Learn more](https://platform.openai.com/docs/guides/background).
 
+          context_management: Context management configuration for this request.
+
+          conversation: The conversation that this response belongs to. Items from this conversation are
+              prepended to `input_items` for this response request. Input items and output
+              items from this response are automatically added to this conversation after this
+              response completes.
+
           include: Specify additional output data to include in the model response. Currently
               supported values are:
 
+              - `web_search_call.action.sources`: Include the sources of the web search tool
+                call.
               - `code_interpreter_call.outputs`: Includes the outputs of python code execution
                 in code interpreter tool call items.
               - `computer_call_output.output.image_url`: Include image urls from the computer
@@ -400,14 +492,31 @@ class Responses(SyncAPIResource):
           previous_response_id: The unique ID of the previous response to the model. Use this to create
               multi-turn conversations. Learn more about
               [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+              Cannot be used in conjunction with `conversation`.
 
           prompt: Reference to a prompt template and its variables.
               [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
 
-          reasoning: **o-series models only**
+          prompt_cache_key: Used by OpenAI to cache responses for similar requests to optimize your cache
+              hit rates. Replaces the `user` field.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
+
+          prompt_cache_retention: The retention policy for the prompt cache. Set to `24h` to enable extended
+              prompt caching, which keeps cached prefixes active for longer, up to a maximum
+              of 24 hours.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
+
+          reasoning: **gpt-5 and o-series models only**
 
               Configuration options for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+
+          safety_identifier: A stable identifier used to help detect users of your application that may be
+              violating OpenAI's usage policies. The IDs should be a string that uniquely
+              identifies each user, with a maximum length of 64 characters. We recommend
+              hashing their username or email address, in order to avoid sending us any
+              identifying information.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           service_tier: Specifies the processing type used for serving the request.
 
@@ -417,9 +526,8 @@ class Responses(SyncAPIResource):
               - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
               - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                'priority', then the request will be processed with the corresponding service
-                tier. [Contact sales](https://openai.com/contact-sales) to learn more about
-                Priority processing.
+                '[priority](https://openai.com/api-priority-processing/)', then the request
+                will be processed with the corresponding service tier.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -428,6 +536,8 @@ class Responses(SyncAPIResource):
               parameter.
 
           store: Whether to store the generated model response for later retrieval via API.
+
+          stream_options: Options for streaming responses. Only set this when you set `stream: true`.
 
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more
@@ -447,7 +557,7 @@ class Responses(SyncAPIResource):
           tools: An array of tools the model may call while generating a response. You can
               specify which tool to use by setting the `tool_choice` parameter.
 
-              The two categories of tools you can provide the model are:
+              We support the following categories of tools:
 
               - **Built-in tools**: Tools that are provided by OpenAI that extend the model's
                 capabilities, like
@@ -455,9 +565,14 @@ class Responses(SyncAPIResource):
                 [file search](https://platform.openai.com/docs/guides/tools-file-search).
                 Learn more about
                 [built-in tools](https://platform.openai.com/docs/guides/tools).
+              - **MCP Tools**: Integrations with third-party systems via custom MCP servers or
+                predefined connectors such as Google Drive and SharePoint. Learn more about
+                [MCP Tools](https://platform.openai.com/docs/guides/tools-connectors-mcp).
               - **Function calls (custom tools)**: Functions that are defined by you, enabling
-                the model to call your own code. Learn more about
+                the model to call your own code with strongly typed arguments and outputs.
+                Learn more about
                 [function calling](https://platform.openai.com/docs/guides/function-calling).
+                You can also use custom tools to call your own code.
 
           top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
               return at each token position, each with an associated log probability.
@@ -470,15 +585,17 @@ class Responses(SyncAPIResource):
 
           truncation: The truncation strategy to use for the model response.
 
-              - `auto`: If the context of this response and previous ones exceeds the model's
-                context window size, the model will truncate the response to fit the context
-                window by dropping input items in the middle of the conversation.
-              - `disabled` (default): If a model response will exceed the context window size
+              - `auto`: If the input to this Response exceeds the model's context window size,
+                the model will truncate the response to fit the context window by dropping
+                items from the beginning of the conversation.
+              - `disabled` (default): If the input size will exceed the context window size
                 for a model, the request will fail with a 400 error.
 
-          user: A stable identifier for your end-users. Used to boost cache hit rates by better
-              bucketing similar requests and to help OpenAI detect and prevent abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
+          user: This field is being replaced by `safety_identifier` and `prompt_cache_key`. Use
+              `prompt_cache_key` instead to maintain caching optimizations. A stable
+              identifier for your end-users. Used to boost cache hit rates by better bucketing
+              similar requests and to help OpenAI detect and prevent abuse.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           extra_headers: Send extra headers
 
@@ -495,34 +612,40 @@ class Responses(SyncAPIResource):
         self,
         *,
         stream: bool,
-        background: Optional[bool] | NotGiven = NOT_GIVEN,
-        include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
-        input: Union[str, ResponseInputParam] | NotGiven = NOT_GIVEN,
-        instructions: Optional[str] | NotGiven = NOT_GIVEN,
-        max_output_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        max_tool_calls: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        model: ResponsesModel | NotGiven = NOT_GIVEN,
-        parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
-        previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
-        prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
-        reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
-        store: Optional[bool] | NotGiven = NOT_GIVEN,
-        temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
-        tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
-        tools: Iterable[ToolParam] | NotGiven = NOT_GIVEN,
-        top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
-        top_p: Optional[float] | NotGiven = NOT_GIVEN,
-        truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        background: Optional[bool] | Omit = omit,
+        context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
+        conversation: Optional[response_create_params.Conversation] | Omit = omit,
+        include: Optional[List[ResponseIncludable]] | Omit = omit,
+        input: Union[str, ResponseInputParam] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_output_tokens: Optional[int] | Omit = omit,
+        max_tool_calls: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: ResponsesModel | Omit = omit,
+        parallel_tool_calls: Optional[bool] | Omit = omit,
+        previous_response_id: Optional[str] | Omit = omit,
+        prompt: Optional[ResponsePromptParam] | Omit = omit,
+        prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
+        reasoning: Optional[Reasoning] | Omit = omit,
+        safety_identifier: str | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        store: Optional[bool] | Omit = omit,
+        stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        text: ResponseTextConfigParam | Omit = omit,
+        tool_choice: response_create_params.ToolChoice | Omit = omit,
+        tools: Iterable[ToolParam] | Omit = omit,
+        top_logprobs: Optional[int] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation: Optional[Literal["auto", "disabled"]] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Response | Stream[ResponseStreamEvent]:
         """Creates a model response.
 
@@ -549,9 +672,18 @@ class Responses(SyncAPIResource):
           background: Whether to run the model response in the background.
               [Learn more](https://platform.openai.com/docs/guides/background).
 
+          context_management: Context management configuration for this request.
+
+          conversation: The conversation that this response belongs to. Items from this conversation are
+              prepended to `input_items` for this response request. Input items and output
+              items from this response are automatically added to this conversation after this
+              response completes.
+
           include: Specify additional output data to include in the model response. Currently
               supported values are:
 
+              - `web_search_call.action.sources`: Include the sources of the web search tool
+                call.
               - `code_interpreter_call.outputs`: Includes the outputs of python code execution
                 in code interpreter tool call items.
               - `computer_call_output.output.image_url`: Include image urls from the computer
@@ -609,14 +741,31 @@ class Responses(SyncAPIResource):
           previous_response_id: The unique ID of the previous response to the model. Use this to create
               multi-turn conversations. Learn more about
               [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+              Cannot be used in conjunction with `conversation`.
 
           prompt: Reference to a prompt template and its variables.
               [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
 
-          reasoning: **o-series models only**
+          prompt_cache_key: Used by OpenAI to cache responses for similar requests to optimize your cache
+              hit rates. Replaces the `user` field.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
+
+          prompt_cache_retention: The retention policy for the prompt cache. Set to `24h` to enable extended
+              prompt caching, which keeps cached prefixes active for longer, up to a maximum
+              of 24 hours.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
+
+          reasoning: **gpt-5 and o-series models only**
 
               Configuration options for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+
+          safety_identifier: A stable identifier used to help detect users of your application that may be
+              violating OpenAI's usage policies. The IDs should be a string that uniquely
+              identifies each user, with a maximum length of 64 characters. We recommend
+              hashing their username or email address, in order to avoid sending us any
+              identifying information.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           service_tier: Specifies the processing type used for serving the request.
 
@@ -626,9 +775,8 @@ class Responses(SyncAPIResource):
               - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
               - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                'priority', then the request will be processed with the corresponding service
-                tier. [Contact sales](https://openai.com/contact-sales) to learn more about
-                Priority processing.
+                '[priority](https://openai.com/api-priority-processing/)', then the request
+                will be processed with the corresponding service tier.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -637,6 +785,8 @@ class Responses(SyncAPIResource):
               parameter.
 
           store: Whether to store the generated model response for later retrieval via API.
+
+          stream_options: Options for streaming responses. Only set this when you set `stream: true`.
 
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more
@@ -656,7 +806,7 @@ class Responses(SyncAPIResource):
           tools: An array of tools the model may call while generating a response. You can
               specify which tool to use by setting the `tool_choice` parameter.
 
-              The two categories of tools you can provide the model are:
+              We support the following categories of tools:
 
               - **Built-in tools**: Tools that are provided by OpenAI that extend the model's
                 capabilities, like
@@ -664,9 +814,14 @@ class Responses(SyncAPIResource):
                 [file search](https://platform.openai.com/docs/guides/tools-file-search).
                 Learn more about
                 [built-in tools](https://platform.openai.com/docs/guides/tools).
+              - **MCP Tools**: Integrations with third-party systems via custom MCP servers or
+                predefined connectors such as Google Drive and SharePoint. Learn more about
+                [MCP Tools](https://platform.openai.com/docs/guides/tools-connectors-mcp).
               - **Function calls (custom tools)**: Functions that are defined by you, enabling
-                the model to call your own code. Learn more about
+                the model to call your own code with strongly typed arguments and outputs.
+                Learn more about
                 [function calling](https://platform.openai.com/docs/guides/function-calling).
+                You can also use custom tools to call your own code.
 
           top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
               return at each token position, each with an associated log probability.
@@ -679,15 +834,17 @@ class Responses(SyncAPIResource):
 
           truncation: The truncation strategy to use for the model response.
 
-              - `auto`: If the context of this response and previous ones exceeds the model's
-                context window size, the model will truncate the response to fit the context
-                window by dropping input items in the middle of the conversation.
-              - `disabled` (default): If a model response will exceed the context window size
+              - `auto`: If the input to this Response exceeds the model's context window size,
+                the model will truncate the response to fit the context window by dropping
+                items from the beginning of the conversation.
+              - `disabled` (default): If the input size will exceed the context window size
                 for a model, the request will fail with a 400 error.
 
-          user: A stable identifier for your end-users. Used to boost cache hit rates by better
-              bucketing similar requests and to help OpenAI detect and prevent abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
+          user: This field is being replaced by `safety_identifier` and `prompt_cache_key`. Use
+              `prompt_cache_key` instead to maintain caching optimizations. A stable
+              identifier for your end-users. Used to boost cache hit rates by better bucketing
+              similar requests and to help OpenAI detect and prevent abuse.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           extra_headers: Send extra headers
 
@@ -702,41 +859,49 @@ class Responses(SyncAPIResource):
     def create(
         self,
         *,
-        background: Optional[bool] | NotGiven = NOT_GIVEN,
-        include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
-        input: Union[str, ResponseInputParam] | NotGiven = NOT_GIVEN,
-        instructions: Optional[str] | NotGiven = NOT_GIVEN,
-        max_output_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        max_tool_calls: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        model: ResponsesModel | NotGiven = NOT_GIVEN,
-        parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
-        previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
-        prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
-        reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
-        store: Optional[bool] | NotGiven = NOT_GIVEN,
-        stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
-        temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
-        tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
-        tools: Iterable[ToolParam] | NotGiven = NOT_GIVEN,
-        top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
-        top_p: Optional[float] | NotGiven = NOT_GIVEN,
-        truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        background: Optional[bool] | Omit = omit,
+        context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
+        conversation: Optional[response_create_params.Conversation] | Omit = omit,
+        include: Optional[List[ResponseIncludable]] | Omit = omit,
+        input: Union[str, ResponseInputParam] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_output_tokens: Optional[int] | Omit = omit,
+        max_tool_calls: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: ResponsesModel | Omit = omit,
+        parallel_tool_calls: Optional[bool] | Omit = omit,
+        previous_response_id: Optional[str] | Omit = omit,
+        prompt: Optional[ResponsePromptParam] | Omit = omit,
+        prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
+        reasoning: Optional[Reasoning] | Omit = omit,
+        safety_identifier: str | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        store: Optional[bool] | Omit = omit,
+        stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
+        stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        text: ResponseTextConfigParam | Omit = omit,
+        tool_choice: response_create_params.ToolChoice | Omit = omit,
+        tools: Iterable[ToolParam] | Omit = omit,
+        top_logprobs: Optional[int] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation: Optional[Literal["auto", "disabled"]] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Response | Stream[ResponseStreamEvent]:
         return self._post(
             "/responses",
             body=maybe_transform(
                 {
                     "background": background,
+                    "context_management": context_management,
+                    "conversation": conversation,
                     "include": include,
                     "input": input,
                     "instructions": instructions,
@@ -747,10 +912,14 @@ class Responses(SyncAPIResource):
                     "parallel_tool_calls": parallel_tool_calls,
                     "previous_response_id": previous_response_id,
                     "prompt": prompt,
+                    "prompt_cache_key": prompt_cache_key,
+                    "prompt_cache_retention": prompt_cache_retention,
                     "reasoning": reasoning,
+                    "safety_identifier": safety_identifier,
                     "service_tier": service_tier,
                     "store": store,
                     "stream": stream,
+                    "stream_options": stream_options,
                     "temperature": temperature,
                     "text": text,
                     "tool_choice": tool_choice,
@@ -777,9 +946,9 @@ class Responses(SyncAPIResource):
         self,
         *,
         response_id: str,
-        text_format: type[TextFormatT] | NotGiven = NOT_GIVEN,
-        starting_after: int | NotGiven = NOT_GIVEN,
-        tools: Iterable[ParseableToolParam] | NotGiven = NOT_GIVEN,
+        text_format: type[TextFormatT] | Omit = omit,
+        starting_after: int | Omit = omit,
+        tools: Iterable[ParseableToolParam] | Omit = omit,
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
@@ -792,24 +961,34 @@ class Responses(SyncAPIResource):
         self,
         *,
         input: Union[str, ResponseInputParam],
-        model: Union[str, ChatModel],
-        background: Optional[bool] | NotGiven = NOT_GIVEN,
-        text_format: type[TextFormatT] | NotGiven = NOT_GIVEN,
-        tools: Iterable[ParseableToolParam] | NotGiven = NOT_GIVEN,
-        include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
-        instructions: Optional[str] | NotGiven = NOT_GIVEN,
-        max_output_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
-        previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
-        reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
-        store: Optional[bool] | NotGiven = NOT_GIVEN,
-        temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
-        tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
-        top_p: Optional[float] | NotGiven = NOT_GIVEN,
-        truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        model: ResponsesModel,
+        background: Optional[bool] | Omit = omit,
+        context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
+        text_format: type[TextFormatT] | Omit = omit,
+        tools: Iterable[ParseableToolParam] | Omit = omit,
+        conversation: Optional[response_create_params.Conversation] | Omit = omit,
+        include: Optional[List[ResponseIncludable]] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_output_tokens: Optional[int] | Omit = omit,
+        max_tool_calls: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        parallel_tool_calls: Optional[bool] | Omit = omit,
+        previous_response_id: Optional[str] | Omit = omit,
+        prompt: Optional[ResponsePromptParam] | Omit = omit,
+        prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
+        reasoning: Optional[Reasoning] | Omit = omit,
+        safety_identifier: str | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        store: Optional[bool] | Omit = omit,
+        stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        text: ResponseTextConfigParam | Omit = omit,
+        tool_choice: response_create_params.ToolChoice | Omit = omit,
+        top_logprobs: Optional[int] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation: Optional[Literal["auto", "disabled"]] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -821,27 +1000,37 @@ class Responses(SyncAPIResource):
     def stream(
         self,
         *,
-        response_id: str | NotGiven = NOT_GIVEN,
-        input: Union[str, ResponseInputParam] | NotGiven = NOT_GIVEN,
-        model: Union[str, ChatModel] | NotGiven = NOT_GIVEN,
-        background: Optional[bool] | NotGiven = NOT_GIVEN,
-        text_format: type[TextFormatT] | NotGiven = NOT_GIVEN,
-        tools: Iterable[ParseableToolParam] | NotGiven = NOT_GIVEN,
-        include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
-        instructions: Optional[str] | NotGiven = NOT_GIVEN,
-        max_output_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
-        previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
-        reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
-        store: Optional[bool] | NotGiven = NOT_GIVEN,
-        temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
-        tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
-        top_p: Optional[float] | NotGiven = NOT_GIVEN,
-        truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
-        starting_after: int | NotGiven = NOT_GIVEN,
+        response_id: str | Omit = omit,
+        input: Union[str, ResponseInputParam] | Omit = omit,
+        model: ResponsesModel | Omit = omit,
+        background: Optional[bool] | Omit = omit,
+        context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
+        text_format: type[TextFormatT] | Omit = omit,
+        tools: Iterable[ParseableToolParam] | Omit = omit,
+        conversation: Optional[response_create_params.Conversation] | Omit = omit,
+        include: Optional[List[ResponseIncludable]] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_output_tokens: Optional[int] | Omit = omit,
+        max_tool_calls: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        parallel_tool_calls: Optional[bool] | Omit = omit,
+        previous_response_id: Optional[str] | Omit = omit,
+        prompt: Optional[ResponsePromptParam] | Omit = omit,
+        prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
+        reasoning: Optional[Reasoning] | Omit = omit,
+        safety_identifier: str | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        store: Optional[bool] | Omit = omit,
+        stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        text: ResponseTextConfigParam | Omit = omit,
+        tool_choice: response_create_params.ToolChoice | Omit = omit,
+        top_logprobs: Optional[int] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation: Optional[Literal["auto", "disabled"]] | Omit = omit,
+        user: str | Omit = omit,
+        starting_after: int | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -852,17 +1041,27 @@ class Responses(SyncAPIResource):
         new_response_args = {
             "input": input,
             "model": model,
+            "context_management": context_management,
+            "conversation": conversation,
             "include": include,
             "instructions": instructions,
             "max_output_tokens": max_output_tokens,
+            "max_tool_calls": max_tool_calls,
             "metadata": metadata,
             "parallel_tool_calls": parallel_tool_calls,
             "previous_response_id": previous_response_id,
+            "prompt": prompt,
+            "prompt_cache_key": prompt_cache_key,
+            "prompt_cache_retention": prompt_cache_retention,
             "reasoning": reasoning,
+            "safety_identifier": safety_identifier,
+            "service_tier": service_tier,
             "store": store,
+            "stream_options": stream_options,
             "temperature": temperature,
             "text": text,
             "tool_choice": tool_choice,
+            "top_logprobs": top_logprobs,
             "top_p": top_p,
             "truncation": truncation,
             "user": user,
@@ -890,6 +1089,7 @@ class Responses(SyncAPIResource):
                 if "format" in text:
                     raise TypeError("Cannot mix and match text.format with text_format")
 
+                text = copy(text)
                 text["format"] = _type_to_text_format_param(text_format)
 
             api_request: partial[Stream[ResponseStreamEvent]] = partial(
@@ -897,18 +1097,28 @@ class Responses(SyncAPIResource):
                 input=input,
                 model=model,
                 tools=tools,
+                context_management=context_management,
+                conversation=conversation,
                 include=include,
                 instructions=instructions,
                 max_output_tokens=max_output_tokens,
+                max_tool_calls=max_tool_calls,
                 metadata=metadata,
                 parallel_tool_calls=parallel_tool_calls,
                 previous_response_id=previous_response_id,
+                prompt=prompt,
+                prompt_cache_key=prompt_cache_key,
+                prompt_cache_retention=prompt_cache_retention,
                 store=store,
+                stream_options=stream_options,
                 stream=True,
                 temperature=temperature,
                 text=text,
                 tool_choice=tool_choice,
                 reasoning=reasoning,
+                safety_identifier=safety_identifier,
+                service_tier=service_tier,
+                top_logprobs=top_logprobs,
                 top_p=top_p,
                 truncation=truncation,
                 user=user,
@@ -932,7 +1142,7 @@ class Responses(SyncAPIResource):
                     extra_headers=extra_headers,
                     extra_query=extra_query,
                     extra_body=extra_body,
-                    starting_after=NOT_GIVEN,
+                    starting_after=omit,
                     timeout=timeout,
                 ),
                 text_format=text_format,
@@ -943,30 +1153,37 @@ class Responses(SyncAPIResource):
     def parse(
         self,
         *,
-        text_format: type[TextFormatT] | NotGiven = NOT_GIVEN,
-        background: Optional[bool] | NotGiven = NOT_GIVEN,
-        include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
-        input: Union[str, ResponseInputParam] | NotGiven = NOT_GIVEN,
-        instructions: Optional[str] | NotGiven = NOT_GIVEN,
-        max_output_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        max_tool_calls: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        model: ResponsesModel | NotGiven = NOT_GIVEN,
-        parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
-        previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
-        prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
-        reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
-        store: Optional[bool] | NotGiven = NOT_GIVEN,
-        stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
-        temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
-        tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
-        tools: Iterable[ParseableToolParam] | NotGiven = NOT_GIVEN,
-        top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
-        top_p: Optional[float] | NotGiven = NOT_GIVEN,
-        truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        text_format: type[TextFormatT] | Omit = omit,
+        background: Optional[bool] | Omit = omit,
+        context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
+        conversation: Optional[response_create_params.Conversation] | Omit = omit,
+        include: Optional[List[ResponseIncludable]] | Omit = omit,
+        input: Union[str, ResponseInputParam] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_output_tokens: Optional[int] | Omit = omit,
+        max_tool_calls: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: ResponsesModel | Omit = omit,
+        parallel_tool_calls: Optional[bool] | Omit = omit,
+        previous_response_id: Optional[str] | Omit = omit,
+        prompt: Optional[ResponsePromptParam] | Omit = omit,
+        prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
+        reasoning: Optional[Reasoning] | Omit = omit,
+        safety_identifier: str | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        store: Optional[bool] | Omit = omit,
+        stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
+        stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        text: ResponseTextConfigParam | Omit = omit,
+        tool_choice: response_create_params.ToolChoice | Omit = omit,
+        tools: Iterable[ParseableToolParam] | Omit = omit,
+        top_logprobs: Optional[int] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation: Optional[Literal["auto", "disabled"]] | Omit = omit,
+        user: str | Omit = omit,
+        verbosity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -980,7 +1197,7 @@ class Responses(SyncAPIResource):
 
             if "format" in text:
                 raise TypeError("Cannot mix and match text.format with text_format")
-
+            text = copy(text)
             text["format"] = _type_to_text_format_param(text_format)
 
         tools = _make_tools(tools)
@@ -997,6 +1214,8 @@ class Responses(SyncAPIResource):
             body=maybe_transform(
                 {
                     "background": background,
+                    "context_management": context_management,
+                    "conversation": conversation,
                     "include": include,
                     "input": input,
                     "instructions": instructions,
@@ -1007,10 +1226,14 @@ class Responses(SyncAPIResource):
                     "parallel_tool_calls": parallel_tool_calls,
                     "previous_response_id": previous_response_id,
                     "prompt": prompt,
+                    "prompt_cache_key": prompt_cache_key,
+                    "prompt_cache_retention": prompt_cache_retention,
                     "reasoning": reasoning,
+                    "safety_identifier": safety_identifier,
                     "service_tier": service_tier,
                     "store": store,
                     "stream": stream,
+                    "stream_options": stream_options,
                     "temperature": temperature,
                     "text": text,
                     "tool_choice": tool_choice,
@@ -1019,6 +1242,7 @@ class Responses(SyncAPIResource):
                     "top_p": top_p,
                     "truncation": truncation,
                     "user": user,
+                    "verbosity": verbosity,
                 },
                 response_create_params.ResponseCreateParams,
             ),
@@ -1039,15 +1263,16 @@ class Responses(SyncAPIResource):
         self,
         response_id: str,
         *,
-        include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
-        starting_after: int | NotGiven = NOT_GIVEN,
-        stream: Literal[False] | NotGiven = NOT_GIVEN,
+        include: List[ResponseIncludable] | Omit = omit,
+        include_obfuscation: bool | Omit = omit,
+        starting_after: int | Omit = omit,
+        stream: Literal[False] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Response: ...
 
     @overload
@@ -1056,8 +1281,8 @@ class Responses(SyncAPIResource):
         response_id: str,
         *,
         stream: Literal[True],
-        include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
-        starting_after: int | NotGiven = NOT_GIVEN,
+        include: List[ResponseIncludable] | Omit = omit,
+        starting_after: int | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -1072,8 +1297,8 @@ class Responses(SyncAPIResource):
         response_id: str,
         *,
         stream: bool,
-        include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
-        starting_after: int | NotGiven = NOT_GIVEN,
+        include: List[ResponseIncludable] | Omit = omit,
+        starting_after: int | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -1088,8 +1313,8 @@ class Responses(SyncAPIResource):
         response_id: str,
         *,
         stream: bool = False,
-        include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
-        starting_after: int | NotGiven = NOT_GIVEN,
+        include: List[ResponseIncludable] | Omit = omit,
+        starting_after: int | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -1103,6 +1328,13 @@ class Responses(SyncAPIResource):
         Args:
           include: Additional fields to include in the response. See the `include` parameter for
               Response creation above for more information.
+
+          include_obfuscation: When true, stream obfuscation will be enabled. Stream obfuscation adds random
+              characters to an `obfuscation` field on streaming delta events to normalize
+              payload sizes as a mitigation to certain side-channel attacks. These obfuscation
+              fields are included by default, but add a small amount of overhead to the data
+              stream. You can set `include_obfuscation` to false to optimize for bandwidth if
+              you trust the network links between your application and the OpenAI API.
 
           starting_after: The sequence number of the event after which to start streaming.
 
@@ -1129,14 +1361,15 @@ class Responses(SyncAPIResource):
         response_id: str,
         *,
         stream: Literal[True],
-        include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
-        starting_after: int | NotGiven = NOT_GIVEN,
+        include: List[ResponseIncludable] | Omit = omit,
+        include_obfuscation: bool | Omit = omit,
+        starting_after: int | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Stream[ResponseStreamEvent]:
         """
         Retrieves a model response with the given ID.
@@ -1152,6 +1385,13 @@ class Responses(SyncAPIResource):
           include: Additional fields to include in the response. See the `include` parameter for
               Response creation above for more information.
 
+          include_obfuscation: When true, stream obfuscation will be enabled. Stream obfuscation adds random
+              characters to an `obfuscation` field on streaming delta events to normalize
+              payload sizes as a mitigation to certain side-channel attacks. These obfuscation
+              fields are included by default, but add a small amount of overhead to the data
+              stream. You can set `include_obfuscation` to false to optimize for bandwidth if
+              you trust the network links between your application and the OpenAI API.
+
           starting_after: The sequence number of the event after which to start streaming.
 
           extra_headers: Send extra headers
@@ -1170,14 +1410,15 @@ class Responses(SyncAPIResource):
         response_id: str,
         *,
         stream: bool,
-        include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
-        starting_after: int | NotGiven = NOT_GIVEN,
+        include: List[ResponseIncludable] | Omit = omit,
+        include_obfuscation: bool | Omit = omit,
+        starting_after: int | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Response | Stream[ResponseStreamEvent]:
         """
         Retrieves a model response with the given ID.
@@ -1192,6 +1433,13 @@ class Responses(SyncAPIResource):
 
           include: Additional fields to include in the response. See the `include` parameter for
               Response creation above for more information.
+
+          include_obfuscation: When true, stream obfuscation will be enabled. Stream obfuscation adds random
+              characters to an `obfuscation` field on streaming delta events to normalize
+              payload sizes as a mitigation to certain side-channel attacks. These obfuscation
+              fields are included by default, but add a small amount of overhead to the data
+              stream. You can set `include_obfuscation` to false to optimize for bandwidth if
+              you trust the network links between your application and the OpenAI API.
 
           starting_after: The sequence number of the event after which to start streaming.
 
@@ -1209,20 +1457,21 @@ class Responses(SyncAPIResource):
         self,
         response_id: str,
         *,
-        include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
-        starting_after: int | NotGiven = NOT_GIVEN,
-        stream: Literal[False] | Literal[True] | NotGiven = NOT_GIVEN,
+        include: List[ResponseIncludable] | Omit = omit,
+        include_obfuscation: bool | Omit = omit,
+        starting_after: int | Omit = omit,
+        stream: Literal[False] | Literal[True] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Response | Stream[ResponseStreamEvent]:
         if not response_id:
             raise ValueError(f"Expected a non-empty value for `response_id` but received {response_id!r}")
         return self._get(
-            f"/responses/{response_id}",
+            path_template("/responses/{response_id}", response_id=response_id),
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -1231,6 +1480,7 @@ class Responses(SyncAPIResource):
                 query=maybe_transform(
                     {
                         "include": include,
+                        "include_obfuscation": include_obfuscation,
                         "starting_after": starting_after,
                         "stream": stream,
                     },
@@ -1251,7 +1501,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> None:
         """
         Deletes a model response with the given ID.
@@ -1269,7 +1519,7 @@ class Responses(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `response_id` but received {response_id!r}")
         extra_headers = {"Accept": "*/*", **(extra_headers or {})}
         return self._delete(
-            f"/responses/{response_id}",
+            path_template("/responses/{response_id}", response_id=response_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -1285,7 +1535,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Response:
         """Cancels a model response with the given ID.
 
@@ -1305,11 +1555,196 @@ class Responses(SyncAPIResource):
         if not response_id:
             raise ValueError(f"Expected a non-empty value for `response_id` but received {response_id!r}")
         return self._post(
-            f"/responses/{response_id}/cancel",
+            path_template("/responses/{response_id}/cancel", response_id=response_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
             cast_to=Response,
+        )
+
+    def compact(
+        self,
+        *,
+        model: Union[
+            Literal[
+                "gpt-5.4",
+                "gpt-5.4-mini",
+                "gpt-5.4-nano",
+                "gpt-5.4-mini-2026-03-17",
+                "gpt-5.4-nano-2026-03-17",
+                "gpt-5.3-chat-latest",
+                "gpt-5.2",
+                "gpt-5.2-2025-12-11",
+                "gpt-5.2-chat-latest",
+                "gpt-5.2-pro",
+                "gpt-5.2-pro-2025-12-11",
+                "gpt-5.1",
+                "gpt-5.1-2025-11-13",
+                "gpt-5.1-codex",
+                "gpt-5.1-mini",
+                "gpt-5.1-chat-latest",
+                "gpt-5",
+                "gpt-5-mini",
+                "gpt-5-nano",
+                "gpt-5-2025-08-07",
+                "gpt-5-mini-2025-08-07",
+                "gpt-5-nano-2025-08-07",
+                "gpt-5-chat-latest",
+                "gpt-4.1",
+                "gpt-4.1-mini",
+                "gpt-4.1-nano",
+                "gpt-4.1-2025-04-14",
+                "gpt-4.1-mini-2025-04-14",
+                "gpt-4.1-nano-2025-04-14",
+                "o4-mini",
+                "o4-mini-2025-04-16",
+                "o3",
+                "o3-2025-04-16",
+                "o3-mini",
+                "o3-mini-2025-01-31",
+                "o1",
+                "o1-2024-12-17",
+                "o1-preview",
+                "o1-preview-2024-09-12",
+                "o1-mini",
+                "o1-mini-2024-09-12",
+                "gpt-4o",
+                "gpt-4o-2024-11-20",
+                "gpt-4o-2024-08-06",
+                "gpt-4o-2024-05-13",
+                "gpt-4o-audio-preview",
+                "gpt-4o-audio-preview-2024-10-01",
+                "gpt-4o-audio-preview-2024-12-17",
+                "gpt-4o-audio-preview-2025-06-03",
+                "gpt-4o-mini-audio-preview",
+                "gpt-4o-mini-audio-preview-2024-12-17",
+                "gpt-4o-search-preview",
+                "gpt-4o-mini-search-preview",
+                "gpt-4o-search-preview-2025-03-11",
+                "gpt-4o-mini-search-preview-2025-03-11",
+                "chatgpt-4o-latest",
+                "codex-mini-latest",
+                "gpt-4o-mini",
+                "gpt-4o-mini-2024-07-18",
+                "gpt-4-turbo",
+                "gpt-4-turbo-2024-04-09",
+                "gpt-4-0125-preview",
+                "gpt-4-turbo-preview",
+                "gpt-4-1106-preview",
+                "gpt-4-vision-preview",
+                "gpt-4",
+                "gpt-4-0314",
+                "gpt-4-0613",
+                "gpt-4-32k",
+                "gpt-4-32k-0314",
+                "gpt-4-32k-0613",
+                "gpt-3.5-turbo",
+                "gpt-3.5-turbo-16k",
+                "gpt-3.5-turbo-0301",
+                "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-1106",
+                "gpt-3.5-turbo-0125",
+                "gpt-3.5-turbo-16k-0613",
+                "o1-pro",
+                "o1-pro-2025-03-19",
+                "o3-pro",
+                "o3-pro-2025-06-10",
+                "o3-deep-research",
+                "o3-deep-research-2025-06-26",
+                "o4-mini-deep-research",
+                "o4-mini-deep-research-2025-06-26",
+                "computer-use-preview",
+                "computer-use-preview-2025-03-11",
+                "gpt-5-codex",
+                "gpt-5-pro",
+                "gpt-5-pro-2025-10-06",
+                "gpt-5.1-codex-max",
+            ],
+            str,
+            None,
+        ],
+        input: Union[str, Iterable[ResponseInputItemParam], None] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        previous_response_id: Optional[str] | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> CompactedResponse:
+        """Compact a conversation.
+
+        Returns a compacted response object.
+
+        Learn when and how to compact long-running conversations in the
+        [conversation state guide](https://platform.openai.com/docs/guides/conversation-state#managing-the-context-window).
+        For ZDR-compatible compaction details, see
+        [Compaction (advanced)](https://platform.openai.com/docs/guides/conversation-state#compaction-advanced).
+
+        Args:
+          model: Model ID used to generate the response, like `gpt-5` or `o3`. OpenAI offers a
+              wide range of models with different capabilities, performance characteristics,
+              and price points. Refer to the
+              [model guide](https://platform.openai.com/docs/models) to browse and compare
+              available models.
+
+          input: Text, image, or file inputs to the model, used to generate a response
+
+          instructions: A system (or developer) message inserted into the model's context. When used
+              along with `previous_response_id`, the instructions from a previous response
+              will not be carried over to the next response. This makes it simple to swap out
+              system (or developer) messages in new responses.
+
+          previous_response_id: The unique ID of the previous response to the model. Use this to create
+              multi-turn conversations. Learn more about
+              [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+              Cannot be used in conjunction with `conversation`.
+
+          prompt_cache_key: A key to use when reading from or writing to the prompt cache.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        return self._post(
+            "/responses/compact",
+            body=maybe_transform(
+                {
+                    "model": model,
+                    "input": input,
+                    "instructions": instructions,
+                    "previous_response_id": previous_response_id,
+                    "prompt_cache_key": prompt_cache_key,
+                },
+                response_compact_params.ResponseCompactParams,
+            ),
+            options=make_request_options(
+                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+            ),
+            cast_to=CompactedResponse,
+        )
+
+    def connect(
+        self,
+        extra_query: Query = {},
+        extra_headers: Headers = {},
+        websocket_connection_options: WebSocketConnectionOptions = {},
+    ) -> ResponsesConnectionManager:
+        """Connect to a persistent Responses API WebSocket.
+
+        Send `response.create` events and receive response stream events over the socket.
+        """
+        return ResponsesConnectionManager(
+            client=self._client,
+            extra_query=extra_query,
+            extra_headers=extra_headers,
+            websocket_connection_options=websocket_connection_options,
         )
 
 
@@ -1317,6 +1752,10 @@ class AsyncResponses(AsyncAPIResource):
     @cached_property
     def input_items(self) -> AsyncInputItems:
         return AsyncInputItems(self._client)
+
+    @cached_property
+    def input_tokens(self) -> AsyncInputTokens:
+        return AsyncInputTokens(self._client)
 
     @cached_property
     def with_raw_response(self) -> AsyncResponsesWithRawResponse:
@@ -1341,35 +1780,41 @@ class AsyncResponses(AsyncAPIResource):
     async def create(
         self,
         *,
-        background: Optional[bool] | NotGiven = NOT_GIVEN,
-        include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
-        input: Union[str, ResponseInputParam] | NotGiven = NOT_GIVEN,
-        instructions: Optional[str] | NotGiven = NOT_GIVEN,
-        max_output_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        max_tool_calls: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        model: ResponsesModel | NotGiven = NOT_GIVEN,
-        parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
-        previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
-        prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
-        reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
-        store: Optional[bool] | NotGiven = NOT_GIVEN,
-        stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
-        temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
-        tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
-        tools: Iterable[ToolParam] | NotGiven = NOT_GIVEN,
-        top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
-        top_p: Optional[float] | NotGiven = NOT_GIVEN,
-        truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        background: Optional[bool] | Omit = omit,
+        context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
+        conversation: Optional[response_create_params.Conversation] | Omit = omit,
+        include: Optional[List[ResponseIncludable]] | Omit = omit,
+        input: Union[str, ResponseInputParam] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_output_tokens: Optional[int] | Omit = omit,
+        max_tool_calls: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: ResponsesModel | Omit = omit,
+        parallel_tool_calls: Optional[bool] | Omit = omit,
+        previous_response_id: Optional[str] | Omit = omit,
+        prompt: Optional[ResponsePromptParam] | Omit = omit,
+        prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
+        reasoning: Optional[Reasoning] | Omit = omit,
+        safety_identifier: str | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        store: Optional[bool] | Omit = omit,
+        stream: Optional[Literal[False]] | Omit = omit,
+        stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        text: ResponseTextConfigParam | Omit = omit,
+        tool_choice: response_create_params.ToolChoice | Omit = omit,
+        tools: Iterable[ToolParam] | Omit = omit,
+        top_logprobs: Optional[int] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation: Optional[Literal["auto", "disabled"]] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Response:
         """Creates a model response.
 
@@ -1389,9 +1834,18 @@ class AsyncResponses(AsyncAPIResource):
           background: Whether to run the model response in the background.
               [Learn more](https://platform.openai.com/docs/guides/background).
 
+          context_management: Context management configuration for this request.
+
+          conversation: The conversation that this response belongs to. Items from this conversation are
+              prepended to `input_items` for this response request. Input items and output
+              items from this response are automatically added to this conversation after this
+              response completes.
+
           include: Specify additional output data to include in the model response. Currently
               supported values are:
 
+              - `web_search_call.action.sources`: Include the sources of the web search tool
+                call.
               - `code_interpreter_call.outputs`: Includes the outputs of python code execution
                 in code interpreter tool call items.
               - `computer_call_output.output.image_url`: Include image urls from the computer
@@ -1449,14 +1903,31 @@ class AsyncResponses(AsyncAPIResource):
           previous_response_id: The unique ID of the previous response to the model. Use this to create
               multi-turn conversations. Learn more about
               [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+              Cannot be used in conjunction with `conversation`.
 
           prompt: Reference to a prompt template and its variables.
               [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
 
-          reasoning: **o-series models only**
+          prompt_cache_key: Used by OpenAI to cache responses for similar requests to optimize your cache
+              hit rates. Replaces the `user` field.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
+
+          prompt_cache_retention: The retention policy for the prompt cache. Set to `24h` to enable extended
+              prompt caching, which keeps cached prefixes active for longer, up to a maximum
+              of 24 hours.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
+
+          reasoning: **gpt-5 and o-series models only**
 
               Configuration options for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+
+          safety_identifier: A stable identifier used to help detect users of your application that may be
+              violating OpenAI's usage policies. The IDs should be a string that uniquely
+              identifies each user, with a maximum length of 64 characters. We recommend
+              hashing their username or email address, in order to avoid sending us any
+              identifying information.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           service_tier: Specifies the processing type used for serving the request.
 
@@ -1466,9 +1937,8 @@ class AsyncResponses(AsyncAPIResource):
               - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
               - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                'priority', then the request will be processed with the corresponding service
-                tier. [Contact sales](https://openai.com/contact-sales) to learn more about
-                Priority processing.
+                '[priority](https://openai.com/api-priority-processing/)', then the request
+                will be processed with the corresponding service tier.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -1484,6 +1954,8 @@ class AsyncResponses(AsyncAPIResource):
               See the
               [Streaming section below](https://platform.openai.com/docs/api-reference/responses-streaming)
               for more information.
+
+          stream_options: Options for streaming responses. Only set this when you set `stream: true`.
 
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more
@@ -1503,7 +1975,7 @@ class AsyncResponses(AsyncAPIResource):
           tools: An array of tools the model may call while generating a response. You can
               specify which tool to use by setting the `tool_choice` parameter.
 
-              The two categories of tools you can provide the model are:
+              We support the following categories of tools:
 
               - **Built-in tools**: Tools that are provided by OpenAI that extend the model's
                 capabilities, like
@@ -1511,9 +1983,14 @@ class AsyncResponses(AsyncAPIResource):
                 [file search](https://platform.openai.com/docs/guides/tools-file-search).
                 Learn more about
                 [built-in tools](https://platform.openai.com/docs/guides/tools).
+              - **MCP Tools**: Integrations with third-party systems via custom MCP servers or
+                predefined connectors such as Google Drive and SharePoint. Learn more about
+                [MCP Tools](https://platform.openai.com/docs/guides/tools-connectors-mcp).
               - **Function calls (custom tools)**: Functions that are defined by you, enabling
-                the model to call your own code. Learn more about
+                the model to call your own code with strongly typed arguments and outputs.
+                Learn more about
                 [function calling](https://platform.openai.com/docs/guides/function-calling).
+                You can also use custom tools to call your own code.
 
           top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
               return at each token position, each with an associated log probability.
@@ -1526,15 +2003,17 @@ class AsyncResponses(AsyncAPIResource):
 
           truncation: The truncation strategy to use for the model response.
 
-              - `auto`: If the context of this response and previous ones exceeds the model's
-                context window size, the model will truncate the response to fit the context
-                window by dropping input items in the middle of the conversation.
-              - `disabled` (default): If a model response will exceed the context window size
+              - `auto`: If the input to this Response exceeds the model's context window size,
+                the model will truncate the response to fit the context window by dropping
+                items from the beginning of the conversation.
+              - `disabled` (default): If the input size will exceed the context window size
                 for a model, the request will fail with a 400 error.
 
-          user: A stable identifier for your end-users. Used to boost cache hit rates by better
-              bucketing similar requests and to help OpenAI detect and prevent abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
+          user: This field is being replaced by `safety_identifier` and `prompt_cache_key`. Use
+              `prompt_cache_key` instead to maintain caching optimizations. A stable
+              identifier for your end-users. Used to boost cache hit rates by better bucketing
+              similar requests and to help OpenAI detect and prevent abuse.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           extra_headers: Send extra headers
 
@@ -1551,34 +2030,40 @@ class AsyncResponses(AsyncAPIResource):
         self,
         *,
         stream: Literal[True],
-        background: Optional[bool] | NotGiven = NOT_GIVEN,
-        include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
-        input: Union[str, ResponseInputParam] | NotGiven = NOT_GIVEN,
-        instructions: Optional[str] | NotGiven = NOT_GIVEN,
-        max_output_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        max_tool_calls: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        model: ResponsesModel | NotGiven = NOT_GIVEN,
-        parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
-        previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
-        prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
-        reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
-        store: Optional[bool] | NotGiven = NOT_GIVEN,
-        temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
-        tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
-        tools: Iterable[ToolParam] | NotGiven = NOT_GIVEN,
-        top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
-        top_p: Optional[float] | NotGiven = NOT_GIVEN,
-        truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        background: Optional[bool] | Omit = omit,
+        context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
+        conversation: Optional[response_create_params.Conversation] | Omit = omit,
+        include: Optional[List[ResponseIncludable]] | Omit = omit,
+        input: Union[str, ResponseInputParam] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_output_tokens: Optional[int] | Omit = omit,
+        max_tool_calls: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: ResponsesModel | Omit = omit,
+        parallel_tool_calls: Optional[bool] | Omit = omit,
+        previous_response_id: Optional[str] | Omit = omit,
+        prompt: Optional[ResponsePromptParam] | Omit = omit,
+        prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
+        reasoning: Optional[Reasoning] | Omit = omit,
+        safety_identifier: str | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        store: Optional[bool] | Omit = omit,
+        stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        text: ResponseTextConfigParam | Omit = omit,
+        tool_choice: response_create_params.ToolChoice | Omit = omit,
+        tools: Iterable[ToolParam] | Omit = omit,
+        top_logprobs: Optional[int] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation: Optional[Literal["auto", "disabled"]] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> AsyncStream[ResponseStreamEvent]:
         """Creates a model response.
 
@@ -1605,9 +2090,18 @@ class AsyncResponses(AsyncAPIResource):
           background: Whether to run the model response in the background.
               [Learn more](https://platform.openai.com/docs/guides/background).
 
+          context_management: Context management configuration for this request.
+
+          conversation: The conversation that this response belongs to. Items from this conversation are
+              prepended to `input_items` for this response request. Input items and output
+              items from this response are automatically added to this conversation after this
+              response completes.
+
           include: Specify additional output data to include in the model response. Currently
               supported values are:
 
+              - `web_search_call.action.sources`: Include the sources of the web search tool
+                call.
               - `code_interpreter_call.outputs`: Includes the outputs of python code execution
                 in code interpreter tool call items.
               - `computer_call_output.output.image_url`: Include image urls from the computer
@@ -1665,14 +2159,31 @@ class AsyncResponses(AsyncAPIResource):
           previous_response_id: The unique ID of the previous response to the model. Use this to create
               multi-turn conversations. Learn more about
               [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+              Cannot be used in conjunction with `conversation`.
 
           prompt: Reference to a prompt template and its variables.
               [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
 
-          reasoning: **o-series models only**
+          prompt_cache_key: Used by OpenAI to cache responses for similar requests to optimize your cache
+              hit rates. Replaces the `user` field.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
+
+          prompt_cache_retention: The retention policy for the prompt cache. Set to `24h` to enable extended
+              prompt caching, which keeps cached prefixes active for longer, up to a maximum
+              of 24 hours.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
+
+          reasoning: **gpt-5 and o-series models only**
 
               Configuration options for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+
+          safety_identifier: A stable identifier used to help detect users of your application that may be
+              violating OpenAI's usage policies. The IDs should be a string that uniquely
+              identifies each user, with a maximum length of 64 characters. We recommend
+              hashing their username or email address, in order to avoid sending us any
+              identifying information.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           service_tier: Specifies the processing type used for serving the request.
 
@@ -1682,9 +2193,8 @@ class AsyncResponses(AsyncAPIResource):
               - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
               - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                'priority', then the request will be processed with the corresponding service
-                tier. [Contact sales](https://openai.com/contact-sales) to learn more about
-                Priority processing.
+                '[priority](https://openai.com/api-priority-processing/)', then the request
+                will be processed with the corresponding service tier.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -1693,6 +2203,8 @@ class AsyncResponses(AsyncAPIResource):
               parameter.
 
           store: Whether to store the generated model response for later retrieval via API.
+
+          stream_options: Options for streaming responses. Only set this when you set `stream: true`.
 
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more
@@ -1712,7 +2224,7 @@ class AsyncResponses(AsyncAPIResource):
           tools: An array of tools the model may call while generating a response. You can
               specify which tool to use by setting the `tool_choice` parameter.
 
-              The two categories of tools you can provide the model are:
+              We support the following categories of tools:
 
               - **Built-in tools**: Tools that are provided by OpenAI that extend the model's
                 capabilities, like
@@ -1720,9 +2232,14 @@ class AsyncResponses(AsyncAPIResource):
                 [file search](https://platform.openai.com/docs/guides/tools-file-search).
                 Learn more about
                 [built-in tools](https://platform.openai.com/docs/guides/tools).
+              - **MCP Tools**: Integrations with third-party systems via custom MCP servers or
+                predefined connectors such as Google Drive and SharePoint. Learn more about
+                [MCP Tools](https://platform.openai.com/docs/guides/tools-connectors-mcp).
               - **Function calls (custom tools)**: Functions that are defined by you, enabling
-                the model to call your own code. Learn more about
+                the model to call your own code with strongly typed arguments and outputs.
+                Learn more about
                 [function calling](https://platform.openai.com/docs/guides/function-calling).
+                You can also use custom tools to call your own code.
 
           top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
               return at each token position, each with an associated log probability.
@@ -1735,15 +2252,17 @@ class AsyncResponses(AsyncAPIResource):
 
           truncation: The truncation strategy to use for the model response.
 
-              - `auto`: If the context of this response and previous ones exceeds the model's
-                context window size, the model will truncate the response to fit the context
-                window by dropping input items in the middle of the conversation.
-              - `disabled` (default): If a model response will exceed the context window size
+              - `auto`: If the input to this Response exceeds the model's context window size,
+                the model will truncate the response to fit the context window by dropping
+                items from the beginning of the conversation.
+              - `disabled` (default): If the input size will exceed the context window size
                 for a model, the request will fail with a 400 error.
 
-          user: A stable identifier for your end-users. Used to boost cache hit rates by better
-              bucketing similar requests and to help OpenAI detect and prevent abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
+          user: This field is being replaced by `safety_identifier` and `prompt_cache_key`. Use
+              `prompt_cache_key` instead to maintain caching optimizations. A stable
+              identifier for your end-users. Used to boost cache hit rates by better bucketing
+              similar requests and to help OpenAI detect and prevent abuse.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           extra_headers: Send extra headers
 
@@ -1760,34 +2279,40 @@ class AsyncResponses(AsyncAPIResource):
         self,
         *,
         stream: bool,
-        background: Optional[bool] | NotGiven = NOT_GIVEN,
-        include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
-        input: Union[str, ResponseInputParam] | NotGiven = NOT_GIVEN,
-        instructions: Optional[str] | NotGiven = NOT_GIVEN,
-        max_output_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        max_tool_calls: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        model: ResponsesModel | NotGiven = NOT_GIVEN,
-        parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
-        previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
-        prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
-        reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
-        store: Optional[bool] | NotGiven = NOT_GIVEN,
-        temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
-        tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
-        tools: Iterable[ToolParam] | NotGiven = NOT_GIVEN,
-        top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
-        top_p: Optional[float] | NotGiven = NOT_GIVEN,
-        truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        background: Optional[bool] | Omit = omit,
+        context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
+        conversation: Optional[response_create_params.Conversation] | Omit = omit,
+        include: Optional[List[ResponseIncludable]] | Omit = omit,
+        input: Union[str, ResponseInputParam] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_output_tokens: Optional[int] | Omit = omit,
+        max_tool_calls: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: ResponsesModel | Omit = omit,
+        parallel_tool_calls: Optional[bool] | Omit = omit,
+        previous_response_id: Optional[str] | Omit = omit,
+        prompt: Optional[ResponsePromptParam] | Omit = omit,
+        prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
+        reasoning: Optional[Reasoning] | Omit = omit,
+        safety_identifier: str | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        store: Optional[bool] | Omit = omit,
+        stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        text: ResponseTextConfigParam | Omit = omit,
+        tool_choice: response_create_params.ToolChoice | Omit = omit,
+        tools: Iterable[ToolParam] | Omit = omit,
+        top_logprobs: Optional[int] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation: Optional[Literal["auto", "disabled"]] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Response | AsyncStream[ResponseStreamEvent]:
         """Creates a model response.
 
@@ -1814,9 +2339,18 @@ class AsyncResponses(AsyncAPIResource):
           background: Whether to run the model response in the background.
               [Learn more](https://platform.openai.com/docs/guides/background).
 
+          context_management: Context management configuration for this request.
+
+          conversation: The conversation that this response belongs to. Items from this conversation are
+              prepended to `input_items` for this response request. Input items and output
+              items from this response are automatically added to this conversation after this
+              response completes.
+
           include: Specify additional output data to include in the model response. Currently
               supported values are:
 
+              - `web_search_call.action.sources`: Include the sources of the web search tool
+                call.
               - `code_interpreter_call.outputs`: Includes the outputs of python code execution
                 in code interpreter tool call items.
               - `computer_call_output.output.image_url`: Include image urls from the computer
@@ -1874,14 +2408,31 @@ class AsyncResponses(AsyncAPIResource):
           previous_response_id: The unique ID of the previous response to the model. Use this to create
               multi-turn conversations. Learn more about
               [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+              Cannot be used in conjunction with `conversation`.
 
           prompt: Reference to a prompt template and its variables.
               [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
 
-          reasoning: **o-series models only**
+          prompt_cache_key: Used by OpenAI to cache responses for similar requests to optimize your cache
+              hit rates. Replaces the `user` field.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
+
+          prompt_cache_retention: The retention policy for the prompt cache. Set to `24h` to enable extended
+              prompt caching, which keeps cached prefixes active for longer, up to a maximum
+              of 24 hours.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
+
+          reasoning: **gpt-5 and o-series models only**
 
               Configuration options for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+
+          safety_identifier: A stable identifier used to help detect users of your application that may be
+              violating OpenAI's usage policies. The IDs should be a string that uniquely
+              identifies each user, with a maximum length of 64 characters. We recommend
+              hashing their username or email address, in order to avoid sending us any
+              identifying information.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           service_tier: Specifies the processing type used for serving the request.
 
@@ -1891,9 +2442,8 @@ class AsyncResponses(AsyncAPIResource):
               - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
               - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                'priority', then the request will be processed with the corresponding service
-                tier. [Contact sales](https://openai.com/contact-sales) to learn more about
-                Priority processing.
+                '[priority](https://openai.com/api-priority-processing/)', then the request
+                will be processed with the corresponding service tier.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -1902,6 +2452,8 @@ class AsyncResponses(AsyncAPIResource):
               parameter.
 
           store: Whether to store the generated model response for later retrieval via API.
+
+          stream_options: Options for streaming responses. Only set this when you set `stream: true`.
 
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more
@@ -1921,7 +2473,7 @@ class AsyncResponses(AsyncAPIResource):
           tools: An array of tools the model may call while generating a response. You can
               specify which tool to use by setting the `tool_choice` parameter.
 
-              The two categories of tools you can provide the model are:
+              We support the following categories of tools:
 
               - **Built-in tools**: Tools that are provided by OpenAI that extend the model's
                 capabilities, like
@@ -1929,9 +2481,14 @@ class AsyncResponses(AsyncAPIResource):
                 [file search](https://platform.openai.com/docs/guides/tools-file-search).
                 Learn more about
                 [built-in tools](https://platform.openai.com/docs/guides/tools).
+              - **MCP Tools**: Integrations with third-party systems via custom MCP servers or
+                predefined connectors such as Google Drive and SharePoint. Learn more about
+                [MCP Tools](https://platform.openai.com/docs/guides/tools-connectors-mcp).
               - **Function calls (custom tools)**: Functions that are defined by you, enabling
-                the model to call your own code. Learn more about
+                the model to call your own code with strongly typed arguments and outputs.
+                Learn more about
                 [function calling](https://platform.openai.com/docs/guides/function-calling).
+                You can also use custom tools to call your own code.
 
           top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
               return at each token position, each with an associated log probability.
@@ -1944,15 +2501,17 @@ class AsyncResponses(AsyncAPIResource):
 
           truncation: The truncation strategy to use for the model response.
 
-              - `auto`: If the context of this response and previous ones exceeds the model's
-                context window size, the model will truncate the response to fit the context
-                window by dropping input items in the middle of the conversation.
-              - `disabled` (default): If a model response will exceed the context window size
+              - `auto`: If the input to this Response exceeds the model's context window size,
+                the model will truncate the response to fit the context window by dropping
+                items from the beginning of the conversation.
+              - `disabled` (default): If the input size will exceed the context window size
                 for a model, the request will fail with a 400 error.
 
-          user: A stable identifier for your end-users. Used to boost cache hit rates by better
-              bucketing similar requests and to help OpenAI detect and prevent abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
+          user: This field is being replaced by `safety_identifier` and `prompt_cache_key`. Use
+              `prompt_cache_key` instead to maintain caching optimizations. A stable
+              identifier for your end-users. Used to boost cache hit rates by better bucketing
+              similar requests and to help OpenAI detect and prevent abuse.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           extra_headers: Send extra headers
 
@@ -1967,41 +2526,49 @@ class AsyncResponses(AsyncAPIResource):
     async def create(
         self,
         *,
-        background: Optional[bool] | NotGiven = NOT_GIVEN,
-        include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
-        input: Union[str, ResponseInputParam] | NotGiven = NOT_GIVEN,
-        instructions: Optional[str] | NotGiven = NOT_GIVEN,
-        max_output_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        max_tool_calls: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        model: ResponsesModel | NotGiven = NOT_GIVEN,
-        parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
-        previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
-        prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
-        reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
-        store: Optional[bool] | NotGiven = NOT_GIVEN,
-        stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
-        temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
-        tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
-        tools: Iterable[ToolParam] | NotGiven = NOT_GIVEN,
-        top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
-        top_p: Optional[float] | NotGiven = NOT_GIVEN,
-        truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        background: Optional[bool] | Omit = omit,
+        context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
+        conversation: Optional[response_create_params.Conversation] | Omit = omit,
+        include: Optional[List[ResponseIncludable]] | Omit = omit,
+        input: Union[str, ResponseInputParam] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_output_tokens: Optional[int] | Omit = omit,
+        max_tool_calls: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: ResponsesModel | Omit = omit,
+        parallel_tool_calls: Optional[bool] | Omit = omit,
+        previous_response_id: Optional[str] | Omit = omit,
+        prompt: Optional[ResponsePromptParam] | Omit = omit,
+        prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
+        reasoning: Optional[Reasoning] | Omit = omit,
+        safety_identifier: str | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        store: Optional[bool] | Omit = omit,
+        stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
+        stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        text: ResponseTextConfigParam | Omit = omit,
+        tool_choice: response_create_params.ToolChoice | Omit = omit,
+        tools: Iterable[ToolParam] | Omit = omit,
+        top_logprobs: Optional[int] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation: Optional[Literal["auto", "disabled"]] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Response | AsyncStream[ResponseStreamEvent]:
         return await self._post(
             "/responses",
             body=await async_maybe_transform(
                 {
                     "background": background,
+                    "context_management": context_management,
+                    "conversation": conversation,
                     "include": include,
                     "input": input,
                     "instructions": instructions,
@@ -2012,10 +2579,14 @@ class AsyncResponses(AsyncAPIResource):
                     "parallel_tool_calls": parallel_tool_calls,
                     "previous_response_id": previous_response_id,
                     "prompt": prompt,
+                    "prompt_cache_key": prompt_cache_key,
+                    "prompt_cache_retention": prompt_cache_retention,
                     "reasoning": reasoning,
+                    "safety_identifier": safety_identifier,
                     "service_tier": service_tier,
                     "store": store,
                     "stream": stream,
+                    "stream_options": stream_options,
                     "temperature": temperature,
                     "text": text,
                     "tool_choice": tool_choice,
@@ -2042,9 +2613,9 @@ class AsyncResponses(AsyncAPIResource):
         self,
         *,
         response_id: str,
-        text_format: type[TextFormatT] | NotGiven = NOT_GIVEN,
-        starting_after: int | NotGiven = NOT_GIVEN,
-        tools: Iterable[ParseableToolParam] | NotGiven = NOT_GIVEN,
+        text_format: type[TextFormatT] | Omit = omit,
+        starting_after: int | Omit = omit,
+        tools: Iterable[ParseableToolParam] | Omit = omit,
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
@@ -2057,24 +2628,34 @@ class AsyncResponses(AsyncAPIResource):
         self,
         *,
         input: Union[str, ResponseInputParam],
-        model: Union[str, ChatModel],
-        background: Optional[bool] | NotGiven = NOT_GIVEN,
-        text_format: type[TextFormatT] | NotGiven = NOT_GIVEN,
-        tools: Iterable[ParseableToolParam] | NotGiven = NOT_GIVEN,
-        include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
-        instructions: Optional[str] | NotGiven = NOT_GIVEN,
-        max_output_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
-        previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
-        reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
-        store: Optional[bool] | NotGiven = NOT_GIVEN,
-        temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
-        tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
-        top_p: Optional[float] | NotGiven = NOT_GIVEN,
-        truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        model: ResponsesModel,
+        background: Optional[bool] | Omit = omit,
+        context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
+        text_format: type[TextFormatT] | Omit = omit,
+        tools: Iterable[ParseableToolParam] | Omit = omit,
+        conversation: Optional[response_create_params.Conversation] | Omit = omit,
+        include: Optional[List[ResponseIncludable]] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_output_tokens: Optional[int] | Omit = omit,
+        max_tool_calls: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        parallel_tool_calls: Optional[bool] | Omit = omit,
+        previous_response_id: Optional[str] | Omit = omit,
+        prompt: Optional[ResponsePromptParam] | Omit = omit,
+        prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
+        reasoning: Optional[Reasoning] | Omit = omit,
+        safety_identifier: str | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        store: Optional[bool] | Omit = omit,
+        stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        text: ResponseTextConfigParam | Omit = omit,
+        tool_choice: response_create_params.ToolChoice | Omit = omit,
+        top_logprobs: Optional[int] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation: Optional[Literal["auto", "disabled"]] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -2086,27 +2667,37 @@ class AsyncResponses(AsyncAPIResource):
     def stream(
         self,
         *,
-        response_id: str | NotGiven = NOT_GIVEN,
-        input: Union[str, ResponseInputParam] | NotGiven = NOT_GIVEN,
-        model: Union[str, ChatModel] | NotGiven = NOT_GIVEN,
-        background: Optional[bool] | NotGiven = NOT_GIVEN,
-        text_format: type[TextFormatT] | NotGiven = NOT_GIVEN,
-        tools: Iterable[ParseableToolParam] | NotGiven = NOT_GIVEN,
-        include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
-        instructions: Optional[str] | NotGiven = NOT_GIVEN,
-        max_output_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
-        previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
-        reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
-        store: Optional[bool] | NotGiven = NOT_GIVEN,
-        temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
-        tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
-        top_p: Optional[float] | NotGiven = NOT_GIVEN,
-        truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
-        starting_after: int | NotGiven = NOT_GIVEN,
+        response_id: str | Omit = omit,
+        input: Union[str, ResponseInputParam] | Omit = omit,
+        model: ResponsesModel | Omit = omit,
+        background: Optional[bool] | Omit = omit,
+        context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
+        text_format: type[TextFormatT] | Omit = omit,
+        tools: Iterable[ParseableToolParam] | Omit = omit,
+        conversation: Optional[response_create_params.Conversation] | Omit = omit,
+        include: Optional[List[ResponseIncludable]] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_output_tokens: Optional[int] | Omit = omit,
+        max_tool_calls: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        parallel_tool_calls: Optional[bool] | Omit = omit,
+        previous_response_id: Optional[str] | Omit = omit,
+        prompt: Optional[ResponsePromptParam] | Omit = omit,
+        prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
+        reasoning: Optional[Reasoning] | Omit = omit,
+        safety_identifier: str | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        store: Optional[bool] | Omit = omit,
+        stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        text: ResponseTextConfigParam | Omit = omit,
+        tool_choice: response_create_params.ToolChoice | Omit = omit,
+        top_logprobs: Optional[int] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation: Optional[Literal["auto", "disabled"]] | Omit = omit,
+        user: str | Omit = omit,
+        starting_after: int | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -2117,17 +2708,27 @@ class AsyncResponses(AsyncAPIResource):
         new_response_args = {
             "input": input,
             "model": model,
+            "context_management": context_management,
+            "conversation": conversation,
             "include": include,
             "instructions": instructions,
             "max_output_tokens": max_output_tokens,
+            "max_tool_calls": max_tool_calls,
             "metadata": metadata,
             "parallel_tool_calls": parallel_tool_calls,
             "previous_response_id": previous_response_id,
+            "prompt": prompt,
+            "prompt_cache_key": prompt_cache_key,
+            "prompt_cache_retention": prompt_cache_retention,
             "reasoning": reasoning,
+            "safety_identifier": safety_identifier,
+            "service_tier": service_tier,
             "store": store,
+            "stream_options": stream_options,
             "temperature": temperature,
             "text": text,
             "tool_choice": tool_choice,
+            "top_logprobs": top_logprobs,
             "top_p": top_p,
             "truncation": truncation,
             "user": user,
@@ -2155,7 +2756,7 @@ class AsyncResponses(AsyncAPIResource):
 
                 if "format" in text:
                     raise TypeError("Cannot mix and match text.format with text_format")
-
+                text = copy(text)
                 text["format"] = _type_to_text_format_param(text_format)
 
             api_request = self.create(
@@ -2163,20 +2764,31 @@ class AsyncResponses(AsyncAPIResource):
                 model=model,
                 stream=True,
                 tools=tools,
+                context_management=context_management,
+                conversation=conversation,
                 include=include,
                 instructions=instructions,
                 max_output_tokens=max_output_tokens,
+                max_tool_calls=max_tool_calls,
                 metadata=metadata,
                 parallel_tool_calls=parallel_tool_calls,
                 previous_response_id=previous_response_id,
+                prompt=prompt,
+                prompt_cache_key=prompt_cache_key,
+                prompt_cache_retention=prompt_cache_retention,
                 store=store,
+                stream_options=stream_options,
                 temperature=temperature,
                 text=text,
                 tool_choice=tool_choice,
                 reasoning=reasoning,
+                safety_identifier=safety_identifier,
+                service_tier=service_tier,
+                top_logprobs=top_logprobs,
                 top_p=top_p,
                 truncation=truncation,
                 user=user,
+                background=background,
                 extra_headers=extra_headers,
                 extra_query=extra_query,
                 extra_body=extra_body,
@@ -2190,7 +2802,7 @@ class AsyncResponses(AsyncAPIResource):
                 starting_after=None,
             )
         else:
-            if isinstance(response_id, NotGiven):
+            if isinstance(response_id, Omit):
                 raise ValueError("response_id must be provided when streaming an existing response")
 
             api_request = self.retrieve(
@@ -2212,30 +2824,37 @@ class AsyncResponses(AsyncAPIResource):
     async def parse(
         self,
         *,
-        text_format: type[TextFormatT] | NotGiven = NOT_GIVEN,
-        background: Optional[bool] | NotGiven = NOT_GIVEN,
-        include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
-        input: Union[str, ResponseInputParam] | NotGiven = NOT_GIVEN,
-        instructions: Optional[str] | NotGiven = NOT_GIVEN,
-        max_output_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        max_tool_calls: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        model: ResponsesModel | NotGiven = NOT_GIVEN,
-        parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
-        previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
-        prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
-        reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
-        store: Optional[bool] | NotGiven = NOT_GIVEN,
-        stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
-        temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
-        tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
-        tools: Iterable[ParseableToolParam] | NotGiven = NOT_GIVEN,
-        top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
-        top_p: Optional[float] | NotGiven = NOT_GIVEN,
-        truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        text_format: type[TextFormatT] | Omit = omit,
+        background: Optional[bool] | Omit = omit,
+        context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
+        conversation: Optional[response_create_params.Conversation] | Omit = omit,
+        include: Optional[List[ResponseIncludable]] | Omit = omit,
+        input: Union[str, ResponseInputParam] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_output_tokens: Optional[int] | Omit = omit,
+        max_tool_calls: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: ResponsesModel | Omit = omit,
+        parallel_tool_calls: Optional[bool] | Omit = omit,
+        previous_response_id: Optional[str] | Omit = omit,
+        prompt: Optional[ResponsePromptParam] | Omit = omit,
+        prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
+        reasoning: Optional[Reasoning] | Omit = omit,
+        safety_identifier: str | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        store: Optional[bool] | Omit = omit,
+        stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
+        stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        text: ResponseTextConfigParam | Omit = omit,
+        tool_choice: response_create_params.ToolChoice | Omit = omit,
+        tools: Iterable[ParseableToolParam] | Omit = omit,
+        top_logprobs: Optional[int] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation: Optional[Literal["auto", "disabled"]] | Omit = omit,
+        user: str | Omit = omit,
+        verbosity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -2249,7 +2868,7 @@ class AsyncResponses(AsyncAPIResource):
 
             if "format" in text:
                 raise TypeError("Cannot mix and match text.format with text_format")
-
+            text = copy(text)
             text["format"] = _type_to_text_format_param(text_format)
 
         tools = _make_tools(tools)
@@ -2266,6 +2885,8 @@ class AsyncResponses(AsyncAPIResource):
             body=maybe_transform(
                 {
                     "background": background,
+                    "context_management": context_management,
+                    "conversation": conversation,
                     "include": include,
                     "input": input,
                     "instructions": instructions,
@@ -2276,10 +2897,14 @@ class AsyncResponses(AsyncAPIResource):
                     "parallel_tool_calls": parallel_tool_calls,
                     "previous_response_id": previous_response_id,
                     "prompt": prompt,
+                    "prompt_cache_key": prompt_cache_key,
+                    "prompt_cache_retention": prompt_cache_retention,
                     "reasoning": reasoning,
+                    "safety_identifier": safety_identifier,
                     "service_tier": service_tier,
                     "store": store,
                     "stream": stream,
+                    "stream_options": stream_options,
                     "temperature": temperature,
                     "text": text,
                     "tool_choice": tool_choice,
@@ -2288,6 +2913,7 @@ class AsyncResponses(AsyncAPIResource):
                     "top_p": top_p,
                     "truncation": truncation,
                     "user": user,
+                    "verbosity": verbosity,
                 },
                 response_create_params.ResponseCreateParams,
             ),
@@ -2308,15 +2934,16 @@ class AsyncResponses(AsyncAPIResource):
         self,
         response_id: str,
         *,
-        include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
-        starting_after: int | NotGiven = NOT_GIVEN,
-        stream: Literal[False] | NotGiven = NOT_GIVEN,
+        include: List[ResponseIncludable] | Omit = omit,
+        include_obfuscation: bool | Omit = omit,
+        starting_after: int | Omit = omit,
+        stream: Literal[False] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Response: ...
 
     @overload
@@ -2325,8 +2952,8 @@ class AsyncResponses(AsyncAPIResource):
         response_id: str,
         *,
         stream: Literal[True],
-        include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
-        starting_after: int | NotGiven = NOT_GIVEN,
+        include: List[ResponseIncludable] | Omit = omit,
+        starting_after: int | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -2341,8 +2968,8 @@ class AsyncResponses(AsyncAPIResource):
         response_id: str,
         *,
         stream: bool,
-        include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
-        starting_after: int | NotGiven = NOT_GIVEN,
+        include: List[ResponseIncludable] | Omit = omit,
+        starting_after: int | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -2357,8 +2984,8 @@ class AsyncResponses(AsyncAPIResource):
         response_id: str,
         *,
         stream: bool = False,
-        include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
-        starting_after: int | NotGiven = NOT_GIVEN,
+        include: List[ResponseIncludable] | Omit = omit,
+        starting_after: int | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -2372,6 +2999,13 @@ class AsyncResponses(AsyncAPIResource):
         Args:
           include: Additional fields to include in the response. See the `include` parameter for
               Response creation above for more information.
+
+          include_obfuscation: When true, stream obfuscation will be enabled. Stream obfuscation adds random
+              characters to an `obfuscation` field on streaming delta events to normalize
+              payload sizes as a mitigation to certain side-channel attacks. These obfuscation
+              fields are included by default, but add a small amount of overhead to the data
+              stream. You can set `include_obfuscation` to false to optimize for bandwidth if
+              you trust the network links between your application and the OpenAI API.
 
           starting_after: The sequence number of the event after which to start streaming.
 
@@ -2398,14 +3032,15 @@ class AsyncResponses(AsyncAPIResource):
         response_id: str,
         *,
         stream: Literal[True],
-        include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
-        starting_after: int | NotGiven = NOT_GIVEN,
+        include: List[ResponseIncludable] | Omit = omit,
+        include_obfuscation: bool | Omit = omit,
+        starting_after: int | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> AsyncStream[ResponseStreamEvent]:
         """
         Retrieves a model response with the given ID.
@@ -2421,6 +3056,13 @@ class AsyncResponses(AsyncAPIResource):
           include: Additional fields to include in the response. See the `include` parameter for
               Response creation above for more information.
 
+          include_obfuscation: When true, stream obfuscation will be enabled. Stream obfuscation adds random
+              characters to an `obfuscation` field on streaming delta events to normalize
+              payload sizes as a mitigation to certain side-channel attacks. These obfuscation
+              fields are included by default, but add a small amount of overhead to the data
+              stream. You can set `include_obfuscation` to false to optimize for bandwidth if
+              you trust the network links between your application and the OpenAI API.
+
           starting_after: The sequence number of the event after which to start streaming.
 
           extra_headers: Send extra headers
@@ -2439,14 +3081,15 @@ class AsyncResponses(AsyncAPIResource):
         response_id: str,
         *,
         stream: bool,
-        include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
-        starting_after: int | NotGiven = NOT_GIVEN,
+        include: List[ResponseIncludable] | Omit = omit,
+        include_obfuscation: bool | Omit = omit,
+        starting_after: int | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Response | AsyncStream[ResponseStreamEvent]:
         """
         Retrieves a model response with the given ID.
@@ -2461,6 +3104,13 @@ class AsyncResponses(AsyncAPIResource):
 
           include: Additional fields to include in the response. See the `include` parameter for
               Response creation above for more information.
+
+          include_obfuscation: When true, stream obfuscation will be enabled. Stream obfuscation adds random
+              characters to an `obfuscation` field on streaming delta events to normalize
+              payload sizes as a mitigation to certain side-channel attacks. These obfuscation
+              fields are included by default, but add a small amount of overhead to the data
+              stream. You can set `include_obfuscation` to false to optimize for bandwidth if
+              you trust the network links between your application and the OpenAI API.
 
           starting_after: The sequence number of the event after which to start streaming.
 
@@ -2478,20 +3128,21 @@ class AsyncResponses(AsyncAPIResource):
         self,
         response_id: str,
         *,
-        include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
-        starting_after: int | NotGiven = NOT_GIVEN,
-        stream: Literal[False] | Literal[True] | NotGiven = NOT_GIVEN,
+        include: List[ResponseIncludable] | Omit = omit,
+        include_obfuscation: bool | Omit = omit,
+        starting_after: int | Omit = omit,
+        stream: Literal[False] | Literal[True] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Response | AsyncStream[ResponseStreamEvent]:
         if not response_id:
             raise ValueError(f"Expected a non-empty value for `response_id` but received {response_id!r}")
         return await self._get(
-            f"/responses/{response_id}",
+            path_template("/responses/{response_id}", response_id=response_id),
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -2500,6 +3151,7 @@ class AsyncResponses(AsyncAPIResource):
                 query=await async_maybe_transform(
                     {
                         "include": include,
+                        "include_obfuscation": include_obfuscation,
                         "starting_after": starting_after,
                         "stream": stream,
                     },
@@ -2520,7 +3172,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> None:
         """
         Deletes a model response with the given ID.
@@ -2538,7 +3190,7 @@ class AsyncResponses(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `response_id` but received {response_id!r}")
         extra_headers = {"Accept": "*/*", **(extra_headers or {})}
         return await self._delete(
-            f"/responses/{response_id}",
+            path_template("/responses/{response_id}", response_id=response_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -2554,7 +3206,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Response:
         """Cancels a model response with the given ID.
 
@@ -2574,11 +3226,196 @@ class AsyncResponses(AsyncAPIResource):
         if not response_id:
             raise ValueError(f"Expected a non-empty value for `response_id` but received {response_id!r}")
         return await self._post(
-            f"/responses/{response_id}/cancel",
+            path_template("/responses/{response_id}/cancel", response_id=response_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
             cast_to=Response,
+        )
+
+    async def compact(
+        self,
+        *,
+        model: Union[
+            Literal[
+                "gpt-5.4",
+                "gpt-5.4-mini",
+                "gpt-5.4-nano",
+                "gpt-5.4-mini-2026-03-17",
+                "gpt-5.4-nano-2026-03-17",
+                "gpt-5.3-chat-latest",
+                "gpt-5.2",
+                "gpt-5.2-2025-12-11",
+                "gpt-5.2-chat-latest",
+                "gpt-5.2-pro",
+                "gpt-5.2-pro-2025-12-11",
+                "gpt-5.1",
+                "gpt-5.1-2025-11-13",
+                "gpt-5.1-codex",
+                "gpt-5.1-mini",
+                "gpt-5.1-chat-latest",
+                "gpt-5",
+                "gpt-5-mini",
+                "gpt-5-nano",
+                "gpt-5-2025-08-07",
+                "gpt-5-mini-2025-08-07",
+                "gpt-5-nano-2025-08-07",
+                "gpt-5-chat-latest",
+                "gpt-4.1",
+                "gpt-4.1-mini",
+                "gpt-4.1-nano",
+                "gpt-4.1-2025-04-14",
+                "gpt-4.1-mini-2025-04-14",
+                "gpt-4.1-nano-2025-04-14",
+                "o4-mini",
+                "o4-mini-2025-04-16",
+                "o3",
+                "o3-2025-04-16",
+                "o3-mini",
+                "o3-mini-2025-01-31",
+                "o1",
+                "o1-2024-12-17",
+                "o1-preview",
+                "o1-preview-2024-09-12",
+                "o1-mini",
+                "o1-mini-2024-09-12",
+                "gpt-4o",
+                "gpt-4o-2024-11-20",
+                "gpt-4o-2024-08-06",
+                "gpt-4o-2024-05-13",
+                "gpt-4o-audio-preview",
+                "gpt-4o-audio-preview-2024-10-01",
+                "gpt-4o-audio-preview-2024-12-17",
+                "gpt-4o-audio-preview-2025-06-03",
+                "gpt-4o-mini-audio-preview",
+                "gpt-4o-mini-audio-preview-2024-12-17",
+                "gpt-4o-search-preview",
+                "gpt-4o-mini-search-preview",
+                "gpt-4o-search-preview-2025-03-11",
+                "gpt-4o-mini-search-preview-2025-03-11",
+                "chatgpt-4o-latest",
+                "codex-mini-latest",
+                "gpt-4o-mini",
+                "gpt-4o-mini-2024-07-18",
+                "gpt-4-turbo",
+                "gpt-4-turbo-2024-04-09",
+                "gpt-4-0125-preview",
+                "gpt-4-turbo-preview",
+                "gpt-4-1106-preview",
+                "gpt-4-vision-preview",
+                "gpt-4",
+                "gpt-4-0314",
+                "gpt-4-0613",
+                "gpt-4-32k",
+                "gpt-4-32k-0314",
+                "gpt-4-32k-0613",
+                "gpt-3.5-turbo",
+                "gpt-3.5-turbo-16k",
+                "gpt-3.5-turbo-0301",
+                "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-1106",
+                "gpt-3.5-turbo-0125",
+                "gpt-3.5-turbo-16k-0613",
+                "o1-pro",
+                "o1-pro-2025-03-19",
+                "o3-pro",
+                "o3-pro-2025-06-10",
+                "o3-deep-research",
+                "o3-deep-research-2025-06-26",
+                "o4-mini-deep-research",
+                "o4-mini-deep-research-2025-06-26",
+                "computer-use-preview",
+                "computer-use-preview-2025-03-11",
+                "gpt-5-codex",
+                "gpt-5-pro",
+                "gpt-5-pro-2025-10-06",
+                "gpt-5.1-codex-max",
+            ],
+            str,
+            None,
+        ],
+        input: Union[str, Iterable[ResponseInputItemParam], None] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        previous_response_id: Optional[str] | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> CompactedResponse:
+        """Compact a conversation.
+
+        Returns a compacted response object.
+
+        Learn when and how to compact long-running conversations in the
+        [conversation state guide](https://platform.openai.com/docs/guides/conversation-state#managing-the-context-window).
+        For ZDR-compatible compaction details, see
+        [Compaction (advanced)](https://platform.openai.com/docs/guides/conversation-state#compaction-advanced).
+
+        Args:
+          model: Model ID used to generate the response, like `gpt-5` or `o3`. OpenAI offers a
+              wide range of models with different capabilities, performance characteristics,
+              and price points. Refer to the
+              [model guide](https://platform.openai.com/docs/models) to browse and compare
+              available models.
+
+          input: Text, image, or file inputs to the model, used to generate a response
+
+          instructions: A system (or developer) message inserted into the model's context. When used
+              along with `previous_response_id`, the instructions from a previous response
+              will not be carried over to the next response. This makes it simple to swap out
+              system (or developer) messages in new responses.
+
+          previous_response_id: The unique ID of the previous response to the model. Use this to create
+              multi-turn conversations. Learn more about
+              [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+              Cannot be used in conjunction with `conversation`.
+
+          prompt_cache_key: A key to use when reading from or writing to the prompt cache.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        return await self._post(
+            "/responses/compact",
+            body=await async_maybe_transform(
+                {
+                    "model": model,
+                    "input": input,
+                    "instructions": instructions,
+                    "previous_response_id": previous_response_id,
+                    "prompt_cache_key": prompt_cache_key,
+                },
+                response_compact_params.ResponseCompactParams,
+            ),
+            options=make_request_options(
+                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+            ),
+            cast_to=CompactedResponse,
+        )
+
+    def connect(
+        self,
+        extra_query: Query = {},
+        extra_headers: Headers = {},
+        websocket_connection_options: WebSocketConnectionOptions = {},
+    ) -> AsyncResponsesConnectionManager:
+        """Connect to a persistent Responses API WebSocket.
+
+        Send `response.create` events and receive response stream events over the socket.
+        """
+        return AsyncResponsesConnectionManager(
+            client=self._client,
+            extra_query=extra_query,
+            extra_headers=extra_headers,
+            websocket_connection_options=websocket_connection_options,
         )
 
 
@@ -2598,6 +3435,9 @@ class ResponsesWithRawResponse:
         self.cancel = _legacy_response.to_raw_response_wrapper(
             responses.cancel,
         )
+        self.compact = _legacy_response.to_raw_response_wrapper(
+            responses.compact,
+        )
         self.parse = _legacy_response.to_raw_response_wrapper(
             responses.parse,
         )
@@ -2605,6 +3445,10 @@ class ResponsesWithRawResponse:
     @cached_property
     def input_items(self) -> InputItemsWithRawResponse:
         return InputItemsWithRawResponse(self._responses.input_items)
+
+    @cached_property
+    def input_tokens(self) -> InputTokensWithRawResponse:
+        return InputTokensWithRawResponse(self._responses.input_tokens)
 
 
 class AsyncResponsesWithRawResponse:
@@ -2623,6 +3467,9 @@ class AsyncResponsesWithRawResponse:
         self.cancel = _legacy_response.async_to_raw_response_wrapper(
             responses.cancel,
         )
+        self.compact = _legacy_response.async_to_raw_response_wrapper(
+            responses.compact,
+        )
         self.parse = _legacy_response.async_to_raw_response_wrapper(
             responses.parse,
         )
@@ -2630,6 +3477,10 @@ class AsyncResponsesWithRawResponse:
     @cached_property
     def input_items(self) -> AsyncInputItemsWithRawResponse:
         return AsyncInputItemsWithRawResponse(self._responses.input_items)
+
+    @cached_property
+    def input_tokens(self) -> AsyncInputTokensWithRawResponse:
+        return AsyncInputTokensWithRawResponse(self._responses.input_tokens)
 
 
 class ResponsesWithStreamingResponse:
@@ -2648,10 +3499,17 @@ class ResponsesWithStreamingResponse:
         self.cancel = to_streamed_response_wrapper(
             responses.cancel,
         )
+        self.compact = to_streamed_response_wrapper(
+            responses.compact,
+        )
 
     @cached_property
     def input_items(self) -> InputItemsWithStreamingResponse:
         return InputItemsWithStreamingResponse(self._responses.input_items)
+
+    @cached_property
+    def input_tokens(self) -> InputTokensWithStreamingResponse:
+        return InputTokensWithStreamingResponse(self._responses.input_tokens)
 
 
 class AsyncResponsesWithStreamingResponse:
@@ -2670,15 +3528,22 @@ class AsyncResponsesWithStreamingResponse:
         self.cancel = async_to_streamed_response_wrapper(
             responses.cancel,
         )
+        self.compact = async_to_streamed_response_wrapper(
+            responses.compact,
+        )
 
     @cached_property
     def input_items(self) -> AsyncInputItemsWithStreamingResponse:
         return AsyncInputItemsWithStreamingResponse(self._responses.input_items)
 
+    @cached_property
+    def input_tokens(self) -> AsyncInputTokensWithStreamingResponse:
+        return AsyncInputTokensWithStreamingResponse(self._responses.input_tokens)
 
-def _make_tools(tools: Iterable[ParseableToolParam] | NotGiven) -> List[ToolParam] | NotGiven:
+
+def _make_tools(tools: Iterable[ParseableToolParam] | Omit) -> List[ToolParam] | Omit:
     if not is_given(tools):
-        return NOT_GIVEN
+        return omit
 
     converted_tools: List[ToolParam] = []
     for tool in tools:
@@ -2712,3 +3577,495 @@ def _make_tools(tools: Iterable[ParseableToolParam] | NotGiven) -> List[ToolPara
         converted_tools.append(new_tool.cast())
 
     return converted_tools
+
+
+class AsyncResponsesConnection:
+    """Represents a live WebSocket connection to the Responses API"""
+
+    response: AsyncResponsesResponseResource
+
+    _connection: AsyncWebSocketConnection
+
+    def __init__(self, connection: AsyncWebSocketConnection) -> None:
+        self._connection = connection
+
+        self.response = AsyncResponsesResponseResource(self)
+
+    async def __aiter__(self) -> AsyncIterator[ResponsesServerEvent]:
+        """
+        An infinite-iterator that will continue to yield events until
+        the connection is closed.
+        """
+        from websockets.exceptions import ConnectionClosedOK
+
+        try:
+            while True:
+                yield await self.recv()
+        except ConnectionClosedOK:
+            return
+
+    async def recv(self) -> ResponsesServerEvent:
+        """
+        Receive the next message from the connection and parses it into a `ResponsesServerEvent` object.
+
+        Canceling this method is safe. There's no risk of losing data.
+        """
+        return self.parse_event(await self.recv_bytes())
+
+    async def recv_bytes(self) -> bytes:
+        """Receive the next message from the connection as raw bytes.
+
+        Canceling this method is safe. There's no risk of losing data.
+
+        If you want to parse the message into a `ResponsesServerEvent` object like `.recv()` does,
+        then you can call `.parse_event(data)`.
+        """
+        message = await self._connection.recv(decode=False)
+        log.debug(f"Received WebSocket message: %s", message)
+        return message
+
+    async def send(self, event: ResponsesClientEvent | ResponsesClientEventParam) -> None:
+        data = (
+            event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
+            if isinstance(event, BaseModel)
+            else json.dumps(await async_maybe_transform(event, ResponsesClientEventParam))
+        )
+        await self._connection.send(data)
+
+    async def close(self, *, code: int = 1000, reason: str = "") -> None:
+        await self._connection.close(code=code, reason=reason)
+
+    def parse_event(self, data: str | bytes) -> ResponsesServerEvent:
+        """
+        Converts a raw `str` or `bytes` message into a `ResponsesServerEvent` object.
+
+        This is helpful if you're using `.recv_bytes()`.
+        """
+        return cast(
+            ResponsesServerEvent,
+            construct_type_unchecked(value=json.loads(data), type_=cast(Any, ResponsesServerEvent)),
+        )
+
+
+class AsyncResponsesConnectionManager:
+    """
+    Context manager over a `AsyncResponsesConnection` that is returned by `responses.connect()`
+
+    This context manager ensures that the connection will be closed when it exits.
+
+    ---
+
+    Note that if your application doesn't work well with the context manager approach then you
+    can call the `.enter()` method directly to initiate a connection.
+
+    **Warning**: You must remember to close the connection with `.close()`.
+
+    ```py
+    connection = await client.responses.connect(...).enter()
+    # ...
+    await connection.close()
+    ```
+    """
+
+    def __init__(
+        self,
+        *,
+        client: AsyncOpenAI,
+        extra_query: Query,
+        extra_headers: Headers,
+        websocket_connection_options: WebSocketConnectionOptions,
+    ) -> None:
+        self.__client = client
+        self.__connection: AsyncResponsesConnection | None = None
+        self.__extra_query = extra_query
+        self.__extra_headers = extra_headers
+        self.__websocket_connection_options = websocket_connection_options
+
+    async def __aenter__(self) -> AsyncResponsesConnection:
+        """
+        👋 If your application doesn't work well with the context manager approach then you
+        can call this method directly to initiate a connection.
+
+        **Warning**: You must remember to close the connection with `.close()`.
+
+        ```py
+        connection = await client.responses.connect(...).enter()
+        # ...
+        await connection.close()
+        ```
+        """
+        try:
+            from websockets.asyncio.client import connect
+        except ImportError as exc:
+            raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
+
+        url = self._prepare_url().copy_with(
+            params={
+                **self.__client.base_url.params,
+                **self.__extra_query,
+            },
+        )
+        log.debug("Connecting to %s", url)
+        if self.__websocket_connection_options:
+            log.debug("Connection options: %s", self.__websocket_connection_options)
+
+        self.__connection = AsyncResponsesConnection(
+            await connect(
+                str(url),
+                user_agent_header=self.__client.user_agent,
+                additional_headers=_merge_mappings(
+                    {
+                        **self.__client.auth_headers,
+                    },
+                    self.__extra_headers,
+                ),
+                **self.__websocket_connection_options,
+            )
+        )
+
+        return self.__connection
+
+    enter = __aenter__
+
+    def _prepare_url(self) -> httpx.URL:
+        if self.__client.websocket_base_url is not None:
+            base_url = httpx.URL(self.__client.websocket_base_url)
+        else:
+            scheme = self.__client._base_url.scheme
+            ws_scheme = "ws" if scheme == "http" else "wss"
+            base_url = self.__client._base_url.copy_with(scheme=ws_scheme)
+
+        merge_raw_path = base_url.raw_path.rstrip(b"/") + b"/responses"
+        return base_url.copy_with(raw_path=merge_raw_path)
+
+    async def __aexit__(
+        self, exc_type: type[BaseException] | None, exc: BaseException | None, exc_tb: TracebackType | None
+    ) -> None:
+        if self.__connection is not None:
+            await self.__connection.close()
+
+
+class ResponsesConnection:
+    """Represents a live WebSocket connection to the Responses API"""
+
+    response: ResponsesResponseResource
+
+    _connection: WebSocketConnection
+
+    def __init__(self, connection: WebSocketConnection) -> None:
+        self._connection = connection
+
+        self.response = ResponsesResponseResource(self)
+
+    def __iter__(self) -> Iterator[ResponsesServerEvent]:
+        """
+        An infinite-iterator that will continue to yield events until
+        the connection is closed.
+        """
+        from websockets.exceptions import ConnectionClosedOK
+
+        try:
+            while True:
+                yield self.recv()
+        except ConnectionClosedOK:
+            return
+
+    def recv(self) -> ResponsesServerEvent:
+        """
+        Receive the next message from the connection and parses it into a `ResponsesServerEvent` object.
+
+        Canceling this method is safe. There's no risk of losing data.
+        """
+        return self.parse_event(self.recv_bytes())
+
+    def recv_bytes(self) -> bytes:
+        """Receive the next message from the connection as raw bytes.
+
+        Canceling this method is safe. There's no risk of losing data.
+
+        If you want to parse the message into a `ResponsesServerEvent` object like `.recv()` does,
+        then you can call `.parse_event(data)`.
+        """
+        message = self._connection.recv(decode=False)
+        log.debug(f"Received WebSocket message: %s", message)
+        return message
+
+    def send(self, event: ResponsesClientEvent | ResponsesClientEventParam) -> None:
+        data = (
+            event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
+            if isinstance(event, BaseModel)
+            else json.dumps(maybe_transform(event, ResponsesClientEventParam))
+        )
+        self._connection.send(data)
+
+    def close(self, *, code: int = 1000, reason: str = "") -> None:
+        self._connection.close(code=code, reason=reason)
+
+    def parse_event(self, data: str | bytes) -> ResponsesServerEvent:
+        """
+        Converts a raw `str` or `bytes` message into a `ResponsesServerEvent` object.
+
+        This is helpful if you're using `.recv_bytes()`.
+        """
+        return cast(
+            ResponsesServerEvent,
+            construct_type_unchecked(value=json.loads(data), type_=cast(Any, ResponsesServerEvent)),
+        )
+
+
+class ResponsesConnectionManager:
+    """
+    Context manager over a `ResponsesConnection` that is returned by `responses.connect()`
+
+    This context manager ensures that the connection will be closed when it exits.
+
+    ---
+
+    Note that if your application doesn't work well with the context manager approach then you
+    can call the `.enter()` method directly to initiate a connection.
+
+    **Warning**: You must remember to close the connection with `.close()`.
+
+    ```py
+    connection = client.responses.connect(...).enter()
+    # ...
+    connection.close()
+    ```
+    """
+
+    def __init__(
+        self,
+        *,
+        client: OpenAI,
+        extra_query: Query,
+        extra_headers: Headers,
+        websocket_connection_options: WebSocketConnectionOptions,
+    ) -> None:
+        self.__client = client
+        self.__connection: ResponsesConnection | None = None
+        self.__extra_query = extra_query
+        self.__extra_headers = extra_headers
+        self.__websocket_connection_options = websocket_connection_options
+
+    def __enter__(self) -> ResponsesConnection:
+        """
+        👋 If your application doesn't work well with the context manager approach then you
+        can call this method directly to initiate a connection.
+
+        **Warning**: You must remember to close the connection with `.close()`.
+
+        ```py
+        connection = client.responses.connect(...).enter()
+        # ...
+        connection.close()
+        ```
+        """
+        try:
+            from websockets.sync.client import connect
+        except ImportError as exc:
+            raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
+
+        url = self._prepare_url().copy_with(
+            params={
+                **self.__client.base_url.params,
+                **self.__extra_query,
+            },
+        )
+        log.debug("Connecting to %s", url)
+        if self.__websocket_connection_options:
+            log.debug("Connection options: %s", self.__websocket_connection_options)
+
+        self.__connection = ResponsesConnection(
+            connect(
+                str(url),
+                user_agent_header=self.__client.user_agent,
+                additional_headers=_merge_mappings(
+                    {
+                        **self.__client.auth_headers,
+                    },
+                    self.__extra_headers,
+                ),
+                **self.__websocket_connection_options,
+            )
+        )
+
+        return self.__connection
+
+    enter = __enter__
+
+    def _prepare_url(self) -> httpx.URL:
+        if self.__client.websocket_base_url is not None:
+            base_url = httpx.URL(self.__client.websocket_base_url)
+        else:
+            scheme = self.__client._base_url.scheme
+            ws_scheme = "ws" if scheme == "http" else "wss"
+            base_url = self.__client._base_url.copy_with(scheme=ws_scheme)
+
+        merge_raw_path = base_url.raw_path.rstrip(b"/") + b"/responses"
+        return base_url.copy_with(raw_path=merge_raw_path)
+
+    def __exit__(
+        self, exc_type: type[BaseException] | None, exc: BaseException | None, exc_tb: TracebackType | None
+    ) -> None:
+        if self.__connection is not None:
+            self.__connection.close()
+
+
+class BaseResponsesConnectionResource:
+    def __init__(self, connection: ResponsesConnection) -> None:
+        self._connection = connection
+
+
+class ResponsesResponseResource(BaseResponsesConnectionResource):
+    def create(
+        self,
+        *,
+        background: Optional[bool] | Omit = omit,
+        context_management: Optional[Iterable[responses_client_event_param.ContextManagement]] | Omit = omit,
+        conversation: Optional[responses_client_event_param.Conversation] | Omit = omit,
+        include: Optional[List[ResponseIncludable]] | Omit = omit,
+        input: Union[str, ResponseInputParam] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_output_tokens: Optional[int] | Omit = omit,
+        max_tool_calls: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: ResponsesModel | Omit = omit,
+        parallel_tool_calls: Optional[bool] | Omit = omit,
+        previous_response_id: Optional[str] | Omit = omit,
+        prompt: Optional[ResponsePromptParam] | Omit = omit,
+        prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
+        reasoning: Optional[Reasoning] | Omit = omit,
+        safety_identifier: str | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        store: Optional[bool] | Omit = omit,
+        stream: Optional[bool] | Omit = omit,
+        stream_options: Optional[responses_client_event_param.StreamOptions] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        text: ResponseTextConfigParam | Omit = omit,
+        tool_choice: responses_client_event_param.ToolChoice | Omit = omit,
+        tools: Iterable[ToolParam] | Omit = omit,
+        top_logprobs: Optional[int] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation: Optional[Literal["auto", "disabled"]] | Omit = omit,
+        user: str | Omit = omit,
+    ) -> None:
+        self._connection.send(
+            cast(
+                ResponsesClientEventParam,
+                strip_not_given(
+                    {
+                        "type": "response.create",
+                        "background": background,
+                        "context_management": context_management,
+                        "conversation": conversation,
+                        "include": include,
+                        "input": input,
+                        "instructions": instructions,
+                        "max_output_tokens": max_output_tokens,
+                        "max_tool_calls": max_tool_calls,
+                        "metadata": metadata,
+                        "model": model,
+                        "parallel_tool_calls": parallel_tool_calls,
+                        "previous_response_id": previous_response_id,
+                        "prompt": prompt,
+                        "prompt_cache_key": prompt_cache_key,
+                        "prompt_cache_retention": prompt_cache_retention,
+                        "reasoning": reasoning,
+                        "safety_identifier": safety_identifier,
+                        "service_tier": service_tier,
+                        "store": store,
+                        "stream": stream,
+                        "stream_options": stream_options,
+                        "temperature": temperature,
+                        "text": text,
+                        "tool_choice": tool_choice,
+                        "tools": tools,
+                        "top_logprobs": top_logprobs,
+                        "top_p": top_p,
+                        "truncation": truncation,
+                        "user": user,
+                    }
+                ),
+            )
+        )
+
+
+class BaseAsyncResponsesConnectionResource:
+    def __init__(self, connection: AsyncResponsesConnection) -> None:
+        self._connection = connection
+
+
+class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
+    async def create(
+        self,
+        *,
+        background: Optional[bool] | Omit = omit,
+        context_management: Optional[Iterable[responses_client_event_param.ContextManagement]] | Omit = omit,
+        conversation: Optional[responses_client_event_param.Conversation] | Omit = omit,
+        include: Optional[List[ResponseIncludable]] | Omit = omit,
+        input: Union[str, ResponseInputParam] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_output_tokens: Optional[int] | Omit = omit,
+        max_tool_calls: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: ResponsesModel | Omit = omit,
+        parallel_tool_calls: Optional[bool] | Omit = omit,
+        previous_response_id: Optional[str] | Omit = omit,
+        prompt: Optional[ResponsePromptParam] | Omit = omit,
+        prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
+        reasoning: Optional[Reasoning] | Omit = omit,
+        safety_identifier: str | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        store: Optional[bool] | Omit = omit,
+        stream: Optional[bool] | Omit = omit,
+        stream_options: Optional[responses_client_event_param.StreamOptions] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        text: ResponseTextConfigParam | Omit = omit,
+        tool_choice: responses_client_event_param.ToolChoice | Omit = omit,
+        tools: Iterable[ToolParam] | Omit = omit,
+        top_logprobs: Optional[int] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation: Optional[Literal["auto", "disabled"]] | Omit = omit,
+        user: str | Omit = omit,
+    ) -> None:
+        await self._connection.send(
+            cast(
+                ResponsesClientEventParam,
+                strip_not_given(
+                    {
+                        "type": "response.create",
+                        "background": background,
+                        "context_management": context_management,
+                        "conversation": conversation,
+                        "include": include,
+                        "input": input,
+                        "instructions": instructions,
+                        "max_output_tokens": max_output_tokens,
+                        "max_tool_calls": max_tool_calls,
+                        "metadata": metadata,
+                        "model": model,
+                        "parallel_tool_calls": parallel_tool_calls,
+                        "previous_response_id": previous_response_id,
+                        "prompt": prompt,
+                        "prompt_cache_key": prompt_cache_key,
+                        "prompt_cache_retention": prompt_cache_retention,
+                        "reasoning": reasoning,
+                        "safety_identifier": safety_identifier,
+                        "service_tier": service_tier,
+                        "store": store,
+                        "stream": stream,
+                        "stream_options": stream_options,
+                        "temperature": temperature,
+                        "text": text,
+                        "tool_choice": tool_choice,
+                        "tools": tools,
+                        "top_logprobs": top_logprobs,
+                        "top_p": top_p,
+                        "truncation": truncation,
+                        "user": user,
+                    }
+                ),
+            )
+        )

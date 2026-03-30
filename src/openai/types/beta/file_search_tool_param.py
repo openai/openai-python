@@ -8,6 +8,13 @@ __all__ = ["FileSearchToolParam", "FileSearch", "FileSearchRankingOptions"]
 
 
 class FileSearchRankingOptions(TypedDict, total=False):
+    """The ranking options for the file search.
+
+    If not specified, the file search tool will use the `auto` ranker and a score_threshold of 0.
+
+    See the [file search tool documentation](https://platform.openai.com/docs/assistants/tools/file-search#customizing-file-search-settings) for more information.
+    """
+
     score_threshold: Required[float]
     """The score threshold for the file search.
 
@@ -22,6 +29,8 @@ class FileSearchRankingOptions(TypedDict, total=False):
 
 
 class FileSearch(TypedDict, total=False):
+    """Overrides for the file search tool."""
+
     max_num_results: int
     """The maximum number of results the file search tool should output.
 

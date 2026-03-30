@@ -40,6 +40,10 @@ Source: TypeAlias = Union[SourceFileContent, SourceFileID]
 
 
 class CreateEvalJSONLRunDataSourceParam(TypedDict, total=False):
+    """
+    A JsonlRunDataSource object with that specifies a JSONL file that matches the eval
+    """
+
     source: Required[Source]
     """Determines what populates the `item` namespace in the data source."""
 

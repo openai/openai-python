@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+cd "$(dirname "$0")/.."
+
+CONFIG=${PYRIGHT_PROJECT:-pyproject.toml}
+exec pyright -p "$CONFIG" "$@"

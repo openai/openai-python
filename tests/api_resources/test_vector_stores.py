@@ -31,6 +31,7 @@ class TestVectorStores:
     def test_method_create_with_all_params(self, client: OpenAI) -> None:
         vector_store = client.vector_stores.create(
             chunking_strategy={"type": "auto"},
+            description="description",
             expires_after={
                 "anchor": "last_active_at",
                 "days": 1,
@@ -243,7 +244,7 @@ class TestVectorStores:
             },
             max_num_results=1,
             ranking_options={
-                "ranker": "auto",
+                "ranker": "none",
                 "score_threshold": 0,
             },
             rewrite_query=True,
@@ -299,6 +300,7 @@ class TestAsyncVectorStores:
     async def test_method_create_with_all_params(self, async_client: AsyncOpenAI) -> None:
         vector_store = await async_client.vector_stores.create(
             chunking_strategy={"type": "auto"},
+            description="description",
             expires_after={
                 "anchor": "last_active_at",
                 "days": 1,
@@ -511,7 +513,7 @@ class TestAsyncVectorStores:
             },
             max_num_results=1,
             ranking_options={
-                "ranker": "auto",
+                "ranker": "none",
                 "score_threshold": 0,
             },
             rewrite_query=True,

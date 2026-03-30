@@ -9,8 +9,8 @@ import httpx
 
 from .. import _legacy_response
 from ..types import batch_list_params, batch_create_params
-from .._types import NOT_GIVEN, Body, Query, Headers, NotGiven
-from .._utils import maybe_transform, async_maybe_transform
+from .._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
+from .._utils import path_template, maybe_transform, async_maybe_transform
 from .._compat import cached_property
 from .._resource import SyncAPIResource, AsyncAPIResource
 from .._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -23,6 +23,8 @@ __all__ = ["Batches", "AsyncBatches"]
 
 
 class Batches(SyncAPIResource):
+    """Create large batches of API requests to run asynchronously."""
+
     @cached_property
     def with_raw_response(self) -> BatchesWithRawResponse:
         """
@@ -46,15 +48,25 @@ class Batches(SyncAPIResource):
         self,
         *,
         completion_window: Literal["24h"],
-        endpoint: Literal["/v1/responses", "/v1/chat/completions", "/v1/embeddings", "/v1/completions"],
+        endpoint: Literal[
+            "/v1/responses",
+            "/v1/chat/completions",
+            "/v1/embeddings",
+            "/v1/completions",
+            "/v1/moderations",
+            "/v1/images/generations",
+            "/v1/images/edits",
+            "/v1/videos",
+        ],
         input_file_id: str,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | Omit = omit,
+        output_expires_after: batch_create_params.OutputExpiresAfter | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Batch:
         """
         Creates and executes a batch from an uploaded file of requests
@@ -64,9 +76,11 @@ class Batches(SyncAPIResource):
               is supported.
 
           endpoint: The endpoint to be used for all requests in the batch. Currently
-              `/v1/responses`, `/v1/chat/completions`, `/v1/embeddings`, and `/v1/completions`
-              are supported. Note that `/v1/embeddings` batches are also restricted to a
-              maximum of 50,000 embedding inputs across all requests in the batch.
+              `/v1/responses`, `/v1/chat/completions`, `/v1/embeddings`, `/v1/completions`,
+              `/v1/moderations`, `/v1/images/generations`, `/v1/images/edits`, and
+              `/v1/videos` are supported. Note that `/v1/embeddings` batches are also
+              restricted to a maximum of 50,000 embedding inputs across all requests in the
+              batch.
 
           input_file_id: The ID of an uploaded file that contains requests for the new batch.
 
@@ -85,6 +99,9 @@ class Batches(SyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
+          output_expires_after: The expiration policy for the output and/or error file that are generated for a
+              batch.
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -101,6 +118,7 @@ class Batches(SyncAPIResource):
                     "endpoint": endpoint,
                     "input_file_id": input_file_id,
                     "metadata": metadata,
+                    "output_expires_after": output_expires_after,
                 },
                 batch_create_params.BatchCreateParams,
             ),
@@ -119,7 +137,7 @@ class Batches(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Batch:
         """
         Retrieves a batch.
@@ -136,7 +154,7 @@ class Batches(SyncAPIResource):
         if not batch_id:
             raise ValueError(f"Expected a non-empty value for `batch_id` but received {batch_id!r}")
         return self._get(
-            f"/batches/{batch_id}",
+            path_template("/batches/{batch_id}", batch_id=batch_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -146,14 +164,14 @@ class Batches(SyncAPIResource):
     def list(
         self,
         *,
-        after: str | NotGiven = NOT_GIVEN,
-        limit: int | NotGiven = NOT_GIVEN,
+        after: str | Omit = omit,
+        limit: int | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> SyncCursorPage[Batch]:
         """List your organization's batches.
 
@@ -204,7 +222,7 @@ class Batches(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Batch:
         """Cancels an in-progress batch.
 
@@ -224,7 +242,7 @@ class Batches(SyncAPIResource):
         if not batch_id:
             raise ValueError(f"Expected a non-empty value for `batch_id` but received {batch_id!r}")
         return self._post(
-            f"/batches/{batch_id}/cancel",
+            path_template("/batches/{batch_id}/cancel", batch_id=batch_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -233,6 +251,8 @@ class Batches(SyncAPIResource):
 
 
 class AsyncBatches(AsyncAPIResource):
+    """Create large batches of API requests to run asynchronously."""
+
     @cached_property
     def with_raw_response(self) -> AsyncBatchesWithRawResponse:
         """
@@ -256,15 +276,25 @@ class AsyncBatches(AsyncAPIResource):
         self,
         *,
         completion_window: Literal["24h"],
-        endpoint: Literal["/v1/responses", "/v1/chat/completions", "/v1/embeddings", "/v1/completions"],
+        endpoint: Literal[
+            "/v1/responses",
+            "/v1/chat/completions",
+            "/v1/embeddings",
+            "/v1/completions",
+            "/v1/moderations",
+            "/v1/images/generations",
+            "/v1/images/edits",
+            "/v1/videos",
+        ],
         input_file_id: str,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | Omit = omit,
+        output_expires_after: batch_create_params.OutputExpiresAfter | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Batch:
         """
         Creates and executes a batch from an uploaded file of requests
@@ -274,9 +304,11 @@ class AsyncBatches(AsyncAPIResource):
               is supported.
 
           endpoint: The endpoint to be used for all requests in the batch. Currently
-              `/v1/responses`, `/v1/chat/completions`, `/v1/embeddings`, and `/v1/completions`
-              are supported. Note that `/v1/embeddings` batches are also restricted to a
-              maximum of 50,000 embedding inputs across all requests in the batch.
+              `/v1/responses`, `/v1/chat/completions`, `/v1/embeddings`, `/v1/completions`,
+              `/v1/moderations`, `/v1/images/generations`, `/v1/images/edits`, and
+              `/v1/videos` are supported. Note that `/v1/embeddings` batches are also
+              restricted to a maximum of 50,000 embedding inputs across all requests in the
+              batch.
 
           input_file_id: The ID of an uploaded file that contains requests for the new batch.
 
@@ -295,6 +327,9 @@ class AsyncBatches(AsyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
+          output_expires_after: The expiration policy for the output and/or error file that are generated for a
+              batch.
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -311,6 +346,7 @@ class AsyncBatches(AsyncAPIResource):
                     "endpoint": endpoint,
                     "input_file_id": input_file_id,
                     "metadata": metadata,
+                    "output_expires_after": output_expires_after,
                 },
                 batch_create_params.BatchCreateParams,
             ),
@@ -329,7 +365,7 @@ class AsyncBatches(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Batch:
         """
         Retrieves a batch.
@@ -346,7 +382,7 @@ class AsyncBatches(AsyncAPIResource):
         if not batch_id:
             raise ValueError(f"Expected a non-empty value for `batch_id` but received {batch_id!r}")
         return await self._get(
-            f"/batches/{batch_id}",
+            path_template("/batches/{batch_id}", batch_id=batch_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -356,14 +392,14 @@ class AsyncBatches(AsyncAPIResource):
     def list(
         self,
         *,
-        after: str | NotGiven = NOT_GIVEN,
-        limit: int | NotGiven = NOT_GIVEN,
+        after: str | Omit = omit,
+        limit: int | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[Batch, AsyncCursorPage[Batch]]:
         """List your organization's batches.
 
@@ -414,7 +450,7 @@ class AsyncBatches(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Batch:
         """Cancels an in-progress batch.
 
@@ -434,7 +470,7 @@ class AsyncBatches(AsyncAPIResource):
         if not batch_id:
             raise ValueError(f"Expected a non-empty value for `batch_id` but received {batch_id!r}")
         return await self._post(
-            f"/batches/{batch_id}/cancel",
+            path_template("/batches/{batch_id}/cancel", batch_id=batch_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),

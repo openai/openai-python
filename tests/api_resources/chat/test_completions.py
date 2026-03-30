@@ -31,7 +31,7 @@ class TestCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
         )
         assert_matches_type(ChatCompletion, completion, path=["response"])
 
@@ -45,10 +45,10 @@ class TestCompletions:
                     "name": "name",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
             audio={
                 "format": "wav",
-                "voice": "ash",
+                "voice": "string",
             },
             frequency_penalty=-2,
             function_call="none",
@@ -72,14 +72,20 @@ class TestCompletions:
                 "type": "content",
             },
             presence_penalty=-2,
-            reasoning_effort="low",
+            prompt_cache_key="prompt-cache-key-1234",
+            prompt_cache_retention="in-memory",
+            reasoning_effort="none",
             response_format={"type": "text"},
+            safety_identifier="safety-identifier-1234",
             seed=-9007199254740991,
             service_tier="auto",
             stop="\n",
             store=True,
             stream=False,
-            stream_options={"include_usage": True},
+            stream_options={
+                "include_obfuscation": True,
+                "include_usage": True,
+            },
             temperature=1,
             tool_choice="none",
             tools=[
@@ -96,6 +102,7 @@ class TestCompletions:
             top_logprobs=0,
             top_p=1,
             user="user-1234",
+            verbosity="low",
             web_search_options={
                 "search_context_size": "low",
                 "user_location": {
@@ -120,7 +127,7 @@ class TestCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
         )
 
         assert response.is_closed is True
@@ -137,7 +144,7 @@ class TestCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -156,7 +163,7 @@ class TestCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
             stream=True,
         )
         completion_stream.response.close()
@@ -171,11 +178,11 @@ class TestCompletions:
                     "name": "name",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
             stream=True,
             audio={
                 "format": "wav",
-                "voice": "ash",
+                "voice": "string",
             },
             frequency_penalty=-2,
             function_call="none",
@@ -199,13 +206,19 @@ class TestCompletions:
                 "type": "content",
             },
             presence_penalty=-2,
-            reasoning_effort="low",
+            prompt_cache_key="prompt-cache-key-1234",
+            prompt_cache_retention="in-memory",
+            reasoning_effort="none",
             response_format={"type": "text"},
+            safety_identifier="safety-identifier-1234",
             seed=-9007199254740991,
             service_tier="auto",
             stop="\n",
             store=True,
-            stream_options={"include_usage": True},
+            stream_options={
+                "include_obfuscation": True,
+                "include_usage": True,
+            },
             temperature=1,
             tool_choice="none",
             tools=[
@@ -222,6 +235,7 @@ class TestCompletions:
             top_logprobs=0,
             top_p=1,
             user="user-1234",
+            verbosity="low",
             web_search_options={
                 "search_context_size": "low",
                 "user_location": {
@@ -246,7 +260,7 @@ class TestCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
             stream=True,
         )
 
@@ -263,7 +277,7 @@ class TestCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
             stream=True,
         ) as response:
             assert not response.is_closed
@@ -460,7 +474,7 @@ class TestAsyncCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
         )
         assert_matches_type(ChatCompletion, completion, path=["response"])
 
@@ -474,10 +488,10 @@ class TestAsyncCompletions:
                     "name": "name",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
             audio={
                 "format": "wav",
-                "voice": "ash",
+                "voice": "string",
             },
             frequency_penalty=-2,
             function_call="none",
@@ -501,14 +515,20 @@ class TestAsyncCompletions:
                 "type": "content",
             },
             presence_penalty=-2,
-            reasoning_effort="low",
+            prompt_cache_key="prompt-cache-key-1234",
+            prompt_cache_retention="in-memory",
+            reasoning_effort="none",
             response_format={"type": "text"},
+            safety_identifier="safety-identifier-1234",
             seed=-9007199254740991,
             service_tier="auto",
             stop="\n",
             store=True,
             stream=False,
-            stream_options={"include_usage": True},
+            stream_options={
+                "include_obfuscation": True,
+                "include_usage": True,
+            },
             temperature=1,
             tool_choice="none",
             tools=[
@@ -525,6 +545,7 @@ class TestAsyncCompletions:
             top_logprobs=0,
             top_p=1,
             user="user-1234",
+            verbosity="low",
             web_search_options={
                 "search_context_size": "low",
                 "user_location": {
@@ -549,7 +570,7 @@ class TestAsyncCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
         )
 
         assert response.is_closed is True
@@ -566,7 +587,7 @@ class TestAsyncCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -585,7 +606,7 @@ class TestAsyncCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
             stream=True,
         )
         await completion_stream.response.aclose()
@@ -600,11 +621,11 @@ class TestAsyncCompletions:
                     "name": "name",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
             stream=True,
             audio={
                 "format": "wav",
-                "voice": "ash",
+                "voice": "string",
             },
             frequency_penalty=-2,
             function_call="none",
@@ -628,13 +649,19 @@ class TestAsyncCompletions:
                 "type": "content",
             },
             presence_penalty=-2,
-            reasoning_effort="low",
+            prompt_cache_key="prompt-cache-key-1234",
+            prompt_cache_retention="in-memory",
+            reasoning_effort="none",
             response_format={"type": "text"},
+            safety_identifier="safety-identifier-1234",
             seed=-9007199254740991,
             service_tier="auto",
             stop="\n",
             store=True,
-            stream_options={"include_usage": True},
+            stream_options={
+                "include_obfuscation": True,
+                "include_usage": True,
+            },
             temperature=1,
             tool_choice="none",
             tools=[
@@ -651,6 +678,7 @@ class TestAsyncCompletions:
             top_logprobs=0,
             top_p=1,
             user="user-1234",
+            verbosity="low",
             web_search_options={
                 "search_context_size": "low",
                 "user_location": {
@@ -675,7 +703,7 @@ class TestAsyncCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
             stream=True,
         )
 
@@ -692,7 +720,7 @@ class TestAsyncCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
             stream=True,
         ) as response:
             assert not response.is_closed

@@ -17,6 +17,8 @@ Grader: TypeAlias = Union[StringCheckGrader, TextSimilarityGrader, PythonGrader,
 
 
 class ReinforcementMethod(BaseModel):
+    """Configuration for the reinforcement fine-tuning method."""
+
     grader: Grader
     """The grader used for the fine-tuning job."""
 

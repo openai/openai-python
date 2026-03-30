@@ -108,12 +108,20 @@ class RunCreateParamsBase(TypedDict, total=False):
     """
 
     reasoning_effort: Optional[ReasoningEffort]
-    """**o-series models only**
-
+    """
     Constrains effort on reasoning for
     [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
-    supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
-    result in faster responses and fewer tokens used on reasoning in a response.
+    supported values are `none`, `minimal`, `low`, `medium`, `high`, and `xhigh`.
+    Reducing reasoning effort can result in faster responses and fewer tokens used
+    on reasoning in a response.
+
+    - `gpt-5.1` defaults to `none`, which does not perform reasoning. The supported
+      reasoning values for `gpt-5.1` are `none`, `low`, `medium`, and `high`. Tool
+      calls are supported for all reasoning values in gpt-5.1.
+    - All models before `gpt-5.1` default to `medium` reasoning effort, and do not
+      support `none`.
+    - The `gpt-5-pro` model defaults to (and only supports) `high` reasoning effort.
+    - `xhigh` is supported for all models after `gpt-5.1-codex-max`.
     """
 
     response_format: Optional[AssistantResponseFormatOptionParam]
@@ -176,7 +184,7 @@ class RunCreateParamsBase(TypedDict, total=False):
     truncation_strategy: Optional[TruncationStrategy]
     """Controls for how a thread will be truncated prior to the run.
 
-    Use this to control the intial context window of the run.
+    Use this to control the initial context window of the run.
     """
 
 
@@ -224,6 +232,11 @@ class AdditionalMessage(TypedDict, total=False):
 
 
 class TruncationStrategy(TypedDict, total=False):
+    """Controls for how a thread will be truncated prior to the run.
+
+    Use this to control the initial context window of the run.
+    """
+
     type: Required[Literal["auto", "last_messages"]]
     """The truncation strategy to use for the thread.
 

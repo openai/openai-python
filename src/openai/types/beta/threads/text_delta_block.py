@@ -10,6 +10,8 @@ __all__ = ["TextDeltaBlock"]
 
 
 class TextDeltaBlock(BaseModel):
+    """The text content that is part of a message."""
+
     index: int
     """The index of the content part in the message."""
 

@@ -8,8 +8,8 @@ from typing_extensions import Literal
 import httpx
 
 from .... import _legacy_response
-from ...._types import NOT_GIVEN, Body, Query, Headers, NotGiven
-from ...._utils import maybe_transform, async_maybe_transform
+from ...._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
+from ...._utils import path_template, maybe_transform, async_maybe_transform
 from ...._compat import cached_property
 from ...._resource import SyncAPIResource, AsyncAPIResource
 from ...._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -35,8 +35,11 @@ __all__ = ["Runs", "AsyncRuns"]
 
 
 class Runs(SyncAPIResource):
+    """Manage and run evals in the OpenAI platform."""
+
     @cached_property
     def output_items(self) -> OutputItems:
+        """Manage and run evals in the OpenAI platform."""
         return OutputItems(self._client)
 
     @cached_property
@@ -63,14 +66,14 @@ class Runs(SyncAPIResource):
         eval_id: str,
         *,
         data_source: run_create_params.DataSource,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        name: str | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | Omit = omit,
+        name: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> RunCreateResponse:
         """
         Kicks off a new run for a given evaluation, specifying the data source, and what
@@ -100,7 +103,7 @@ class Runs(SyncAPIResource):
         if not eval_id:
             raise ValueError(f"Expected a non-empty value for `eval_id` but received {eval_id!r}")
         return self._post(
-            f"/evals/{eval_id}/runs",
+            path_template("/evals/{eval_id}/runs", eval_id=eval_id),
             body=maybe_transform(
                 {
                     "data_source": data_source,
@@ -125,7 +128,7 @@ class Runs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> RunRetrieveResponse:
         """
         Get an evaluation run by ID.
@@ -144,7 +147,7 @@ class Runs(SyncAPIResource):
         if not run_id:
             raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
         return self._get(
-            f"/evals/{eval_id}/runs/{run_id}",
+            path_template("/evals/{eval_id}/runs/{run_id}", eval_id=eval_id, run_id=run_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -155,16 +158,16 @@ class Runs(SyncAPIResource):
         self,
         eval_id: str,
         *,
-        after: str | NotGiven = NOT_GIVEN,
-        limit: int | NotGiven = NOT_GIVEN,
-        order: Literal["asc", "desc"] | NotGiven = NOT_GIVEN,
-        status: Literal["queued", "in_progress", "completed", "canceled", "failed"] | NotGiven = NOT_GIVEN,
+        after: str | Omit = omit,
+        limit: int | Omit = omit,
+        order: Literal["asc", "desc"] | Omit = omit,
+        status: Literal["queued", "in_progress", "completed", "canceled", "failed"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> SyncCursorPage[RunListResponse]:
         """
         Get a list of runs for an evaluation.
@@ -191,7 +194,7 @@ class Runs(SyncAPIResource):
         if not eval_id:
             raise ValueError(f"Expected a non-empty value for `eval_id` but received {eval_id!r}")
         return self._get_api_list(
-            f"/evals/{eval_id}/runs",
+            path_template("/evals/{eval_id}/runs", eval_id=eval_id),
             page=SyncCursorPage[RunListResponse],
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -221,7 +224,7 @@ class Runs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> RunDeleteResponse:
         """
         Delete an eval run.
@@ -240,7 +243,7 @@ class Runs(SyncAPIResource):
         if not run_id:
             raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
         return self._delete(
-            f"/evals/{eval_id}/runs/{run_id}",
+            path_template("/evals/{eval_id}/runs/{run_id}", eval_id=eval_id, run_id=run_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -257,7 +260,7 @@ class Runs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> RunCancelResponse:
         """
         Cancel an ongoing evaluation run.
@@ -276,7 +279,7 @@ class Runs(SyncAPIResource):
         if not run_id:
             raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
         return self._post(
-            f"/evals/{eval_id}/runs/{run_id}",
+            path_template("/evals/{eval_id}/runs/{run_id}", eval_id=eval_id, run_id=run_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -285,8 +288,11 @@ class Runs(SyncAPIResource):
 
 
 class AsyncRuns(AsyncAPIResource):
+    """Manage and run evals in the OpenAI platform."""
+
     @cached_property
     def output_items(self) -> AsyncOutputItems:
+        """Manage and run evals in the OpenAI platform."""
         return AsyncOutputItems(self._client)
 
     @cached_property
@@ -313,14 +319,14 @@ class AsyncRuns(AsyncAPIResource):
         eval_id: str,
         *,
         data_source: run_create_params.DataSource,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        name: str | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | Omit = omit,
+        name: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> RunCreateResponse:
         """
         Kicks off a new run for a given evaluation, specifying the data source, and what
@@ -350,7 +356,7 @@ class AsyncRuns(AsyncAPIResource):
         if not eval_id:
             raise ValueError(f"Expected a non-empty value for `eval_id` but received {eval_id!r}")
         return await self._post(
-            f"/evals/{eval_id}/runs",
+            path_template("/evals/{eval_id}/runs", eval_id=eval_id),
             body=await async_maybe_transform(
                 {
                     "data_source": data_source,
@@ -375,7 +381,7 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> RunRetrieveResponse:
         """
         Get an evaluation run by ID.
@@ -394,7 +400,7 @@ class AsyncRuns(AsyncAPIResource):
         if not run_id:
             raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
         return await self._get(
-            f"/evals/{eval_id}/runs/{run_id}",
+            path_template("/evals/{eval_id}/runs/{run_id}", eval_id=eval_id, run_id=run_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -405,16 +411,16 @@ class AsyncRuns(AsyncAPIResource):
         self,
         eval_id: str,
         *,
-        after: str | NotGiven = NOT_GIVEN,
-        limit: int | NotGiven = NOT_GIVEN,
-        order: Literal["asc", "desc"] | NotGiven = NOT_GIVEN,
-        status: Literal["queued", "in_progress", "completed", "canceled", "failed"] | NotGiven = NOT_GIVEN,
+        after: str | Omit = omit,
+        limit: int | Omit = omit,
+        order: Literal["asc", "desc"] | Omit = omit,
+        status: Literal["queued", "in_progress", "completed", "canceled", "failed"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[RunListResponse, AsyncCursorPage[RunListResponse]]:
         """
         Get a list of runs for an evaluation.
@@ -441,7 +447,7 @@ class AsyncRuns(AsyncAPIResource):
         if not eval_id:
             raise ValueError(f"Expected a non-empty value for `eval_id` but received {eval_id!r}")
         return self._get_api_list(
-            f"/evals/{eval_id}/runs",
+            path_template("/evals/{eval_id}/runs", eval_id=eval_id),
             page=AsyncCursorPage[RunListResponse],
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -471,7 +477,7 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> RunDeleteResponse:
         """
         Delete an eval run.
@@ -490,7 +496,7 @@ class AsyncRuns(AsyncAPIResource):
         if not run_id:
             raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
         return await self._delete(
-            f"/evals/{eval_id}/runs/{run_id}",
+            path_template("/evals/{eval_id}/runs/{run_id}", eval_id=eval_id, run_id=run_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -507,7 +513,7 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> RunCancelResponse:
         """
         Cancel an ongoing evaluation run.
@@ -526,7 +532,7 @@ class AsyncRuns(AsyncAPIResource):
         if not run_id:
             raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
         return await self._post(
-            f"/evals/{eval_id}/runs/{run_id}",
+            path_template("/evals/{eval_id}/runs/{run_id}", eval_id=eval_id, run_id=run_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -556,6 +562,7 @@ class RunsWithRawResponse:
 
     @cached_property
     def output_items(self) -> OutputItemsWithRawResponse:
+        """Manage and run evals in the OpenAI platform."""
         return OutputItemsWithRawResponse(self._runs.output_items)
 
 
@@ -581,6 +588,7 @@ class AsyncRunsWithRawResponse:
 
     @cached_property
     def output_items(self) -> AsyncOutputItemsWithRawResponse:
+        """Manage and run evals in the OpenAI platform."""
         return AsyncOutputItemsWithRawResponse(self._runs.output_items)
 
 
@@ -606,6 +614,7 @@ class RunsWithStreamingResponse:
 
     @cached_property
     def output_items(self) -> OutputItemsWithStreamingResponse:
+        """Manage and run evals in the OpenAI platform."""
         return OutputItemsWithStreamingResponse(self._runs.output_items)
 
 
@@ -631,4 +640,5 @@ class AsyncRunsWithStreamingResponse:
 
     @cached_property
     def output_items(self) -> AsyncOutputItemsWithStreamingResponse:
+        """Manage and run evals in the OpenAI platform."""
         return AsyncOutputItemsWithStreamingResponse(self._runs.output_items)

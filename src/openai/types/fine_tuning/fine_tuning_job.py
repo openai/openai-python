@@ -14,6 +14,10 @@ __all__ = ["FineTuningJob", "Error", "Hyperparameters", "Method"]
 
 
 class Error(BaseModel):
+    """
+    For fine-tuning jobs that have `failed`, this will contain more information on the cause of the failure.
+    """
+
     code: str
     """A machine-readable error code."""
 
@@ -28,6 +32,11 @@ class Error(BaseModel):
 
 
 class Hyperparameters(BaseModel):
+    """The hyperparameters used for the fine-tuning job.
+
+    This value will only be returned when running `supervised` jobs.
+    """
+
     batch_size: Union[Literal["auto"], int, None] = None
     """Number of examples in each batch.
 
@@ -49,6 +58,8 @@ class Hyperparameters(BaseModel):
 
 
 class Method(BaseModel):
+    """The method used for fine-tuning."""
+
     type: Literal["supervised", "dpo", "reinforcement"]
     """The type of method. Is either `supervised`, `dpo`, or `reinforcement`."""
 
@@ -63,6 +74,10 @@ class Method(BaseModel):
 
 
 class FineTuningJob(BaseModel):
+    """
+    The `fine_tuning.job` object represents a fine-tuning job that has been created through the API.
+    """
+
     id: str
     """The object identifier, which can be referenced in the API endpoints."""
 

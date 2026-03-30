@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 from .multi_grader import MultiGrader as MultiGrader
+from .grader_inputs import GraderInputs as GraderInputs
 from .python_grader import PythonGrader as PythonGrader
 from .label_model_grader import LabelModelGrader as LabelModelGrader
 from .multi_grader_param import MultiGraderParam as MultiGraderParam
 from .score_model_grader import ScoreModelGrader as ScoreModelGrader
+from .grader_inputs_param import GraderInputsParam as GraderInputsParam
 from .python_grader_param import PythonGraderParam as PythonGraderParam
 from .string_check_grader import StringCheckGrader as StringCheckGrader
 from .text_similarity_grader import TextSimilarityGrader as TextSimilarityGrader

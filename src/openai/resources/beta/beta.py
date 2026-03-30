@@ -12,6 +12,14 @@ from .assistants import (
     AsyncAssistantsWithStreamingResponse,
 )
 from ..._resource import SyncAPIResource, AsyncAPIResource
+from .chatkit.chatkit import (
+    ChatKit,
+    AsyncChatKit,
+    ChatKitWithRawResponse,
+    AsyncChatKitWithRawResponse,
+    ChatKitWithStreamingResponse,
+    AsyncChatKitWithStreamingResponse,
+)
 from .threads.threads import (
     Threads,
     AsyncThreads,
@@ -24,10 +32,6 @@ from ...resources.chat import Chat, AsyncChat
 from .realtime.realtime import (
     Realtime,
     AsyncRealtime,
-    RealtimeWithRawResponse,
-    AsyncRealtimeWithRawResponse,
-    RealtimeWithStreamingResponse,
-    AsyncRealtimeWithStreamingResponse,
 )
 
 __all__ = ["Beta", "AsyncBeta"]
@@ -43,11 +47,17 @@ class Beta(SyncAPIResource):
         return Realtime(self._client)
 
     @cached_property
+    def chatkit(self) -> ChatKit:
+        return ChatKit(self._client)
+
+    @cached_property
     def assistants(self) -> Assistants:
+        """Build Assistants that can call models and use tools."""
         return Assistants(self._client)
 
     @cached_property
     def threads(self) -> Threads:
+        """Build Assistants that can call models and use tools."""
         return Threads(self._client)
 
     @cached_property
@@ -80,11 +90,17 @@ class AsyncBeta(AsyncAPIResource):
         return AsyncRealtime(self._client)
 
     @cached_property
+    def chatkit(self) -> AsyncChatKit:
+        return AsyncChatKit(self._client)
+
+    @cached_property
     def assistants(self) -> AsyncAssistants:
+        """Build Assistants that can call models and use tools."""
         return AsyncAssistants(self._client)
 
     @cached_property
     def threads(self) -> AsyncThreads:
+        """Build Assistants that can call models and use tools."""
         return AsyncThreads(self._client)
 
     @cached_property
@@ -112,15 +128,17 @@ class BetaWithRawResponse:
         self._beta = beta
 
     @cached_property
-    def realtime(self) -> RealtimeWithRawResponse:
-        return RealtimeWithRawResponse(self._beta.realtime)
+    def chatkit(self) -> ChatKitWithRawResponse:
+        return ChatKitWithRawResponse(self._beta.chatkit)
 
     @cached_property
     def assistants(self) -> AssistantsWithRawResponse:
+        """Build Assistants that can call models and use tools."""
         return AssistantsWithRawResponse(self._beta.assistants)
 
     @cached_property
     def threads(self) -> ThreadsWithRawResponse:
+        """Build Assistants that can call models and use tools."""
         return ThreadsWithRawResponse(self._beta.threads)
 
 
@@ -129,15 +147,17 @@ class AsyncBetaWithRawResponse:
         self._beta = beta
 
     @cached_property
-    def realtime(self) -> AsyncRealtimeWithRawResponse:
-        return AsyncRealtimeWithRawResponse(self._beta.realtime)
+    def chatkit(self) -> AsyncChatKitWithRawResponse:
+        return AsyncChatKitWithRawResponse(self._beta.chatkit)
 
     @cached_property
     def assistants(self) -> AsyncAssistantsWithRawResponse:
+        """Build Assistants that can call models and use tools."""
         return AsyncAssistantsWithRawResponse(self._beta.assistants)
 
     @cached_property
     def threads(self) -> AsyncThreadsWithRawResponse:
+        """Build Assistants that can call models and use tools."""
         return AsyncThreadsWithRawResponse(self._beta.threads)
 
 
@@ -146,15 +166,17 @@ class BetaWithStreamingResponse:
         self._beta = beta
 
     @cached_property
-    def realtime(self) -> RealtimeWithStreamingResponse:
-        return RealtimeWithStreamingResponse(self._beta.realtime)
+    def chatkit(self) -> ChatKitWithStreamingResponse:
+        return ChatKitWithStreamingResponse(self._beta.chatkit)
 
     @cached_property
     def assistants(self) -> AssistantsWithStreamingResponse:
+        """Build Assistants that can call models and use tools."""
         return AssistantsWithStreamingResponse(self._beta.assistants)
 
     @cached_property
     def threads(self) -> ThreadsWithStreamingResponse:
+        """Build Assistants that can call models and use tools."""
         return ThreadsWithStreamingResponse(self._beta.threads)
 
 
@@ -163,13 +185,15 @@ class AsyncBetaWithStreamingResponse:
         self._beta = beta
 
     @cached_property
-    def realtime(self) -> AsyncRealtimeWithStreamingResponse:
-        return AsyncRealtimeWithStreamingResponse(self._beta.realtime)
+    def chatkit(self) -> AsyncChatKitWithStreamingResponse:
+        return AsyncChatKitWithStreamingResponse(self._beta.chatkit)
 
     @cached_property
     def assistants(self) -> AsyncAssistantsWithStreamingResponse:
+        """Build Assistants that can call models and use tools."""
         return AsyncAssistantsWithStreamingResponse(self._beta.assistants)
 
     @cached_property
     def threads(self) -> AsyncThreadsWithStreamingResponse:
+        """Build Assistants that can call models and use tools."""
         return AsyncThreadsWithStreamingResponse(self._beta.threads)

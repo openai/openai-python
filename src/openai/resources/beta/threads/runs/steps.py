@@ -9,8 +9,8 @@ from typing_extensions import Literal
 import httpx
 
 from ..... import _legacy_response
-from ....._types import NOT_GIVEN, Body, Query, Headers, NotGiven
-from ....._utils import maybe_transform, async_maybe_transform
+from ....._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
+from ....._utils import path_template, maybe_transform, async_maybe_transform
 from ....._compat import cached_property
 from ....._resource import SyncAPIResource, AsyncAPIResource
 from ....._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -24,6 +24,8 @@ __all__ = ["Steps", "AsyncSteps"]
 
 
 class Steps(SyncAPIResource):
+    """Build Assistants that can call models and use tools."""
+
     @cached_property
     def with_raw_response(self) -> StepsWithRawResponse:
         """
@@ -50,13 +52,13 @@ class Steps(SyncAPIResource):
         *,
         thread_id: str,
         run_id: str,
-        include: List[RunStepInclude] | NotGiven = NOT_GIVEN,
+        include: List[RunStepInclude] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> RunStep:
         """
         Retrieves a run step.
@@ -86,7 +88,12 @@ class Steps(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `step_id` but received {step_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._get(
-            f"/threads/{thread_id}/runs/{run_id}/steps/{step_id}",
+            path_template(
+                "/threads/{thread_id}/runs/{run_id}/steps/{step_id}",
+                thread_id=thread_id,
+                run_id=run_id,
+                step_id=step_id,
+            ),
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -103,17 +110,17 @@ class Steps(SyncAPIResource):
         run_id: str,
         *,
         thread_id: str,
-        after: str | NotGiven = NOT_GIVEN,
-        before: str | NotGiven = NOT_GIVEN,
-        include: List[RunStepInclude] | NotGiven = NOT_GIVEN,
-        limit: int | NotGiven = NOT_GIVEN,
-        order: Literal["asc", "desc"] | NotGiven = NOT_GIVEN,
+        after: str | Omit = omit,
+        before: str | Omit = omit,
+        include: List[RunStepInclude] | Omit = omit,
+        limit: int | Omit = omit,
+        order: Literal["asc", "desc"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> SyncCursorPage[RunStep]:
         """
         Returns a list of run steps belonging to a run.
@@ -157,7 +164,7 @@ class Steps(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._get_api_list(
-            f"/threads/{thread_id}/runs/{run_id}/steps",
+            path_template("/threads/{thread_id}/runs/{run_id}/steps", thread_id=thread_id, run_id=run_id),
             page=SyncCursorPage[RunStep],
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -180,6 +187,8 @@ class Steps(SyncAPIResource):
 
 
 class AsyncSteps(AsyncAPIResource):
+    """Build Assistants that can call models and use tools."""
+
     @cached_property
     def with_raw_response(self) -> AsyncStepsWithRawResponse:
         """
@@ -206,13 +215,13 @@ class AsyncSteps(AsyncAPIResource):
         *,
         thread_id: str,
         run_id: str,
-        include: List[RunStepInclude] | NotGiven = NOT_GIVEN,
+        include: List[RunStepInclude] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> RunStep:
         """
         Retrieves a run step.
@@ -242,7 +251,12 @@ class AsyncSteps(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `step_id` but received {step_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._get(
-            f"/threads/{thread_id}/runs/{run_id}/steps/{step_id}",
+            path_template(
+                "/threads/{thread_id}/runs/{run_id}/steps/{step_id}",
+                thread_id=thread_id,
+                run_id=run_id,
+                step_id=step_id,
+            ),
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -259,17 +273,17 @@ class AsyncSteps(AsyncAPIResource):
         run_id: str,
         *,
         thread_id: str,
-        after: str | NotGiven = NOT_GIVEN,
-        before: str | NotGiven = NOT_GIVEN,
-        include: List[RunStepInclude] | NotGiven = NOT_GIVEN,
-        limit: int | NotGiven = NOT_GIVEN,
-        order: Literal["asc", "desc"] | NotGiven = NOT_GIVEN,
+        after: str | Omit = omit,
+        before: str | Omit = omit,
+        include: List[RunStepInclude] | Omit = omit,
+        limit: int | Omit = omit,
+        order: Literal["asc", "desc"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[RunStep, AsyncCursorPage[RunStep]]:
         """
         Returns a list of run steps belonging to a run.
@@ -313,7 +327,7 @@ class AsyncSteps(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._get_api_list(
-            f"/threads/{thread_id}/runs/{run_id}/steps",
+            path_template("/threads/{thread_id}/runs/{run_id}/steps", thread_id=thread_id, run_id=run_id),
             page=AsyncCursorPage[RunStep],
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -341,12 +355,12 @@ class StepsWithRawResponse:
 
         self.retrieve = (  # pyright: ignore[reportDeprecated]
             _legacy_response.to_raw_response_wrapper(
-                steps.retrieve  # pyright: ignore[reportDeprecated],
+                steps.retrieve,  # pyright: ignore[reportDeprecated],
             )
         )
         self.list = (  # pyright: ignore[reportDeprecated]
             _legacy_response.to_raw_response_wrapper(
-                steps.list  # pyright: ignore[reportDeprecated],
+                steps.list,  # pyright: ignore[reportDeprecated],
             )
         )
 
@@ -357,12 +371,12 @@ class AsyncStepsWithRawResponse:
 
         self.retrieve = (  # pyright: ignore[reportDeprecated]
             _legacy_response.async_to_raw_response_wrapper(
-                steps.retrieve  # pyright: ignore[reportDeprecated],
+                steps.retrieve,  # pyright: ignore[reportDeprecated],
             )
         )
         self.list = (  # pyright: ignore[reportDeprecated]
             _legacy_response.async_to_raw_response_wrapper(
-                steps.list  # pyright: ignore[reportDeprecated],
+                steps.list,  # pyright: ignore[reportDeprecated],
             )
         )
 
@@ -373,12 +387,12 @@ class StepsWithStreamingResponse:
 
         self.retrieve = (  # pyright: ignore[reportDeprecated]
             to_streamed_response_wrapper(
-                steps.retrieve  # pyright: ignore[reportDeprecated],
+                steps.retrieve,  # pyright: ignore[reportDeprecated],
             )
         )
         self.list = (  # pyright: ignore[reportDeprecated]
             to_streamed_response_wrapper(
-                steps.list  # pyright: ignore[reportDeprecated],
+                steps.list,  # pyright: ignore[reportDeprecated],
             )
         )
 
@@ -389,11 +403,11 @@ class AsyncStepsWithStreamingResponse:
 
         self.retrieve = (  # pyright: ignore[reportDeprecated]
             async_to_streamed_response_wrapper(
-                steps.retrieve  # pyright: ignore[reportDeprecated],
+                steps.retrieve,  # pyright: ignore[reportDeprecated],
             )
         )
         self.list = (  # pyright: ignore[reportDeprecated]
             async_to_streamed_response_wrapper(
-                steps.list  # pyright: ignore[reportDeprecated],
+                steps.list,  # pyright: ignore[reportDeprecated],
             )
         )

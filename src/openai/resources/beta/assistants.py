@@ -2,14 +2,15 @@
 
 from __future__ import annotations
 
+import typing_extensions
 from typing import Union, Iterable, Optional
 from typing_extensions import Literal
 
 import httpx
 
 from ... import _legacy_response
-from ..._types import NOT_GIVEN, Body, Query, Headers, NotGiven
-from ..._utils import maybe_transform, async_maybe_transform
+from ..._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
+from ..._utils import path_template, maybe_transform, async_maybe_transform
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -32,6 +33,8 @@ __all__ = ["Assistants", "AsyncAssistants"]
 
 
 class Assistants(SyncAPIResource):
+    """Build Assistants that can call models and use tools."""
+
     @cached_property
     def with_raw_response(self) -> AssistantsWithRawResponse:
         """
@@ -51,26 +54,27 @@ class Assistants(SyncAPIResource):
         """
         return AssistantsWithStreamingResponse(self)
 
+    @typing_extensions.deprecated("deprecated")
     def create(
         self,
         *,
         model: Union[str, ChatModel],
-        description: Optional[str] | NotGiven = NOT_GIVEN,
-        instructions: Optional[str] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        name: Optional[str] | NotGiven = NOT_GIVEN,
-        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
-        response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
-        temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        tool_resources: Optional[assistant_create_params.ToolResources] | NotGiven = NOT_GIVEN,
-        tools: Iterable[AssistantToolParam] | NotGiven = NOT_GIVEN,
-        top_p: Optional[float] | NotGiven = NOT_GIVEN,
+        description: Optional[str] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        name: Optional[str] | Omit = omit,
+        reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        tool_resources: Optional[assistant_create_params.ToolResources] | Omit = omit,
+        tools: Iterable[AssistantToolParam] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Assistant:
         """
         Create an assistant with a model and instructions.
@@ -96,12 +100,19 @@ class Assistants(SyncAPIResource):
 
           name: The name of the assistant. The maximum length is 256 characters.
 
-          reasoning_effort: **o-series models only**
-
-              Constrains effort on reasoning for
+          reasoning_effort: Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
-              supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
-              result in faster responses and fewer tokens used on reasoning in a response.
+              supported values are `none`, `minimal`, `low`, `medium`, `high`, and `xhigh`.
+              Reducing reasoning effort can result in faster responses and fewer tokens used
+              on reasoning in a response.
+
+              - `gpt-5.1` defaults to `none`, which does not perform reasoning. The supported
+                reasoning values for `gpt-5.1` are `none`, `low`, `medium`, and `high`. Tool
+                calls are supported for all reasoning values in gpt-5.1.
+              - All models before `gpt-5.1` default to `medium` reasoning effort, and do not
+                support `none`.
+              - The `gpt-5-pro` model defaults to (and only supports) `high` reasoning effort.
+              - `xhigh` is supported for all models after `gpt-5.1-codex-max`.
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
@@ -176,6 +187,7 @@ class Assistants(SyncAPIResource):
             cast_to=Assistant,
         )
 
+    @typing_extensions.deprecated("deprecated")
     def retrieve(
         self,
         assistant_id: str,
@@ -185,7 +197,7 @@ class Assistants(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Assistant:
         """
         Retrieves an assistant.
@@ -203,23 +215,30 @@ class Assistants(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `assistant_id` but received {assistant_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._get(
-            f"/assistants/{assistant_id}",
+            path_template("/assistants/{assistant_id}", assistant_id=assistant_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
             cast_to=Assistant,
         )
 
+    @typing_extensions.deprecated("deprecated")
     def update(
         self,
         assistant_id: str,
         *,
-        description: Optional[str] | NotGiven = NOT_GIVEN,
-        instructions: Optional[str] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
+        description: Optional[str] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
         model: Union[
             str,
             Literal[
+                "gpt-5",
+                "gpt-5-mini",
+                "gpt-5-nano",
+                "gpt-5-2025-08-07",
+                "gpt-5-mini-2025-08-07",
+                "gpt-5-nano-2025-08-07",
                 "gpt-4.1",
                 "gpt-4.1-mini",
                 "gpt-4.1-nano",
@@ -258,20 +277,20 @@ class Assistants(SyncAPIResource):
                 "gpt-3.5-turbo-16k-0613",
             ],
         ]
-        | NotGiven = NOT_GIVEN,
-        name: Optional[str] | NotGiven = NOT_GIVEN,
-        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
-        response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
-        temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        tool_resources: Optional[assistant_update_params.ToolResources] | NotGiven = NOT_GIVEN,
-        tools: Iterable[AssistantToolParam] | NotGiven = NOT_GIVEN,
-        top_p: Optional[float] | NotGiven = NOT_GIVEN,
+        | Omit = omit,
+        name: Optional[str] | Omit = omit,
+        reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        tool_resources: Optional[assistant_update_params.ToolResources] | Omit = omit,
+        tools: Iterable[AssistantToolParam] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Assistant:
         """Modifies an assistant.
 
@@ -298,12 +317,19 @@ class Assistants(SyncAPIResource):
 
           name: The name of the assistant. The maximum length is 256 characters.
 
-          reasoning_effort: **o-series models only**
-
-              Constrains effort on reasoning for
+          reasoning_effort: Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
-              supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
-              result in faster responses and fewer tokens used on reasoning in a response.
+              supported values are `none`, `minimal`, `low`, `medium`, `high`, and `xhigh`.
+              Reducing reasoning effort can result in faster responses and fewer tokens used
+              on reasoning in a response.
+
+              - `gpt-5.1` defaults to `none`, which does not perform reasoning. The supported
+                reasoning values for `gpt-5.1` are `none`, `low`, `medium`, and `high`. Tool
+                calls are supported for all reasoning values in gpt-5.1.
+              - All models before `gpt-5.1` default to `medium` reasoning effort, and do not
+                support `none`.
+              - The `gpt-5-pro` model defaults to (and only supports) `high` reasoning effort.
+              - `xhigh` is supported for all models after `gpt-5.1-codex-max`.
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
@@ -357,7 +383,7 @@ class Assistants(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `assistant_id` but received {assistant_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._post(
-            f"/assistants/{assistant_id}",
+            path_template("/assistants/{assistant_id}", assistant_id=assistant_id),
             body=maybe_transform(
                 {
                     "description": description,
@@ -380,19 +406,20 @@ class Assistants(SyncAPIResource):
             cast_to=Assistant,
         )
 
+    @typing_extensions.deprecated("deprecated")
     def list(
         self,
         *,
-        after: str | NotGiven = NOT_GIVEN,
-        before: str | NotGiven = NOT_GIVEN,
-        limit: int | NotGiven = NOT_GIVEN,
-        order: Literal["asc", "desc"] | NotGiven = NOT_GIVEN,
+        after: str | Omit = omit,
+        before: str | Omit = omit,
+        limit: int | Omit = omit,
+        order: Literal["asc", "desc"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> SyncCursorPage[Assistant]:
         """Returns a list of assistants.
 
@@ -445,6 +472,7 @@ class Assistants(SyncAPIResource):
             model=Assistant,
         )
 
+    @typing_extensions.deprecated("deprecated")
     def delete(
         self,
         assistant_id: str,
@@ -454,7 +482,7 @@ class Assistants(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> AssistantDeleted:
         """
         Delete an assistant.
@@ -472,7 +500,7 @@ class Assistants(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `assistant_id` but received {assistant_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._delete(
-            f"/assistants/{assistant_id}",
+            path_template("/assistants/{assistant_id}", assistant_id=assistant_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -481,6 +509,8 @@ class Assistants(SyncAPIResource):
 
 
 class AsyncAssistants(AsyncAPIResource):
+    """Build Assistants that can call models and use tools."""
+
     @cached_property
     def with_raw_response(self) -> AsyncAssistantsWithRawResponse:
         """
@@ -500,26 +530,27 @@ class AsyncAssistants(AsyncAPIResource):
         """
         return AsyncAssistantsWithStreamingResponse(self)
 
+    @typing_extensions.deprecated("deprecated")
     async def create(
         self,
         *,
         model: Union[str, ChatModel],
-        description: Optional[str] | NotGiven = NOT_GIVEN,
-        instructions: Optional[str] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        name: Optional[str] | NotGiven = NOT_GIVEN,
-        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
-        response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
-        temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        tool_resources: Optional[assistant_create_params.ToolResources] | NotGiven = NOT_GIVEN,
-        tools: Iterable[AssistantToolParam] | NotGiven = NOT_GIVEN,
-        top_p: Optional[float] | NotGiven = NOT_GIVEN,
+        description: Optional[str] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        name: Optional[str] | Omit = omit,
+        reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        tool_resources: Optional[assistant_create_params.ToolResources] | Omit = omit,
+        tools: Iterable[AssistantToolParam] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Assistant:
         """
         Create an assistant with a model and instructions.
@@ -545,12 +576,19 @@ class AsyncAssistants(AsyncAPIResource):
 
           name: The name of the assistant. The maximum length is 256 characters.
 
-          reasoning_effort: **o-series models only**
-
-              Constrains effort on reasoning for
+          reasoning_effort: Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
-              supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
-              result in faster responses and fewer tokens used on reasoning in a response.
+              supported values are `none`, `minimal`, `low`, `medium`, `high`, and `xhigh`.
+              Reducing reasoning effort can result in faster responses and fewer tokens used
+              on reasoning in a response.
+
+              - `gpt-5.1` defaults to `none`, which does not perform reasoning. The supported
+                reasoning values for `gpt-5.1` are `none`, `low`, `medium`, and `high`. Tool
+                calls are supported for all reasoning values in gpt-5.1.
+              - All models before `gpt-5.1` default to `medium` reasoning effort, and do not
+                support `none`.
+              - The `gpt-5-pro` model defaults to (and only supports) `high` reasoning effort.
+              - `xhigh` is supported for all models after `gpt-5.1-codex-max`.
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
@@ -625,6 +663,7 @@ class AsyncAssistants(AsyncAPIResource):
             cast_to=Assistant,
         )
 
+    @typing_extensions.deprecated("deprecated")
     async def retrieve(
         self,
         assistant_id: str,
@@ -634,7 +673,7 @@ class AsyncAssistants(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Assistant:
         """
         Retrieves an assistant.
@@ -652,23 +691,30 @@ class AsyncAssistants(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `assistant_id` but received {assistant_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._get(
-            f"/assistants/{assistant_id}",
+            path_template("/assistants/{assistant_id}", assistant_id=assistant_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
             cast_to=Assistant,
         )
 
+    @typing_extensions.deprecated("deprecated")
     async def update(
         self,
         assistant_id: str,
         *,
-        description: Optional[str] | NotGiven = NOT_GIVEN,
-        instructions: Optional[str] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
+        description: Optional[str] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
         model: Union[
             str,
             Literal[
+                "gpt-5",
+                "gpt-5-mini",
+                "gpt-5-nano",
+                "gpt-5-2025-08-07",
+                "gpt-5-mini-2025-08-07",
+                "gpt-5-nano-2025-08-07",
                 "gpt-4.1",
                 "gpt-4.1-mini",
                 "gpt-4.1-nano",
@@ -707,20 +753,20 @@ class AsyncAssistants(AsyncAPIResource):
                 "gpt-3.5-turbo-16k-0613",
             ],
         ]
-        | NotGiven = NOT_GIVEN,
-        name: Optional[str] | NotGiven = NOT_GIVEN,
-        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
-        response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
-        temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        tool_resources: Optional[assistant_update_params.ToolResources] | NotGiven = NOT_GIVEN,
-        tools: Iterable[AssistantToolParam] | NotGiven = NOT_GIVEN,
-        top_p: Optional[float] | NotGiven = NOT_GIVEN,
+        | Omit = omit,
+        name: Optional[str] | Omit = omit,
+        reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        tool_resources: Optional[assistant_update_params.ToolResources] | Omit = omit,
+        tools: Iterable[AssistantToolParam] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Assistant:
         """Modifies an assistant.
 
@@ -747,12 +793,19 @@ class AsyncAssistants(AsyncAPIResource):
 
           name: The name of the assistant. The maximum length is 256 characters.
 
-          reasoning_effort: **o-series models only**
-
-              Constrains effort on reasoning for
+          reasoning_effort: Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
-              supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
-              result in faster responses and fewer tokens used on reasoning in a response.
+              supported values are `none`, `minimal`, `low`, `medium`, `high`, and `xhigh`.
+              Reducing reasoning effort can result in faster responses and fewer tokens used
+              on reasoning in a response.
+
+              - `gpt-5.1` defaults to `none`, which does not perform reasoning. The supported
+                reasoning values for `gpt-5.1` are `none`, `low`, `medium`, and `high`. Tool
+                calls are supported for all reasoning values in gpt-5.1.
+              - All models before `gpt-5.1` default to `medium` reasoning effort, and do not
+                support `none`.
+              - The `gpt-5-pro` model defaults to (and only supports) `high` reasoning effort.
+              - `xhigh` is supported for all models after `gpt-5.1-codex-max`.
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
@@ -806,7 +859,7 @@ class AsyncAssistants(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `assistant_id` but received {assistant_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._post(
-            f"/assistants/{assistant_id}",
+            path_template("/assistants/{assistant_id}", assistant_id=assistant_id),
             body=await async_maybe_transform(
                 {
                     "description": description,
@@ -829,19 +882,20 @@ class AsyncAssistants(AsyncAPIResource):
             cast_to=Assistant,
         )
 
+    @typing_extensions.deprecated("deprecated")
     def list(
         self,
         *,
-        after: str | NotGiven = NOT_GIVEN,
-        before: str | NotGiven = NOT_GIVEN,
-        limit: int | NotGiven = NOT_GIVEN,
-        order: Literal["asc", "desc"] | NotGiven = NOT_GIVEN,
+        after: str | Omit = omit,
+        before: str | Omit = omit,
+        limit: int | Omit = omit,
+        order: Literal["asc", "desc"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[Assistant, AsyncCursorPage[Assistant]]:
         """Returns a list of assistants.
 
@@ -894,6 +948,7 @@ class AsyncAssistants(AsyncAPIResource):
             model=Assistant,
         )
 
+    @typing_extensions.deprecated("deprecated")
     async def delete(
         self,
         assistant_id: str,
@@ -903,7 +958,7 @@ class AsyncAssistants(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> AssistantDeleted:
         """
         Delete an assistant.
@@ -921,7 +976,7 @@ class AsyncAssistants(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `assistant_id` but received {assistant_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._delete(
-            f"/assistants/{assistant_id}",
+            path_template("/assistants/{assistant_id}", assistant_id=assistant_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -933,20 +988,30 @@ class AssistantsWithRawResponse:
     def __init__(self, assistants: Assistants) -> None:
         self._assistants = assistants
 
-        self.create = _legacy_response.to_raw_response_wrapper(
-            assistants.create,
+        self.create = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.to_raw_response_wrapper(
+                assistants.create,  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.retrieve = _legacy_response.to_raw_response_wrapper(
-            assistants.retrieve,
+        self.retrieve = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.to_raw_response_wrapper(
+                assistants.retrieve,  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.update = _legacy_response.to_raw_response_wrapper(
-            assistants.update,
+        self.update = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.to_raw_response_wrapper(
+                assistants.update,  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.list = _legacy_response.to_raw_response_wrapper(
-            assistants.list,
+        self.list = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.to_raw_response_wrapper(
+                assistants.list,  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.delete = _legacy_response.to_raw_response_wrapper(
-            assistants.delete,
+        self.delete = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.to_raw_response_wrapper(
+                assistants.delete,  # pyright: ignore[reportDeprecated],
+            )
         )
 
 
@@ -954,20 +1019,30 @@ class AsyncAssistantsWithRawResponse:
     def __init__(self, assistants: AsyncAssistants) -> None:
         self._assistants = assistants
 
-        self.create = _legacy_response.async_to_raw_response_wrapper(
-            assistants.create,
+        self.create = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.async_to_raw_response_wrapper(
+                assistants.create,  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.retrieve = _legacy_response.async_to_raw_response_wrapper(
-            assistants.retrieve,
+        self.retrieve = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.async_to_raw_response_wrapper(
+                assistants.retrieve,  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.update = _legacy_response.async_to_raw_response_wrapper(
-            assistants.update,
+        self.update = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.async_to_raw_response_wrapper(
+                assistants.update,  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.list = _legacy_response.async_to_raw_response_wrapper(
-            assistants.list,
+        self.list = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.async_to_raw_response_wrapper(
+                assistants.list,  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.delete = _legacy_response.async_to_raw_response_wrapper(
-            assistants.delete,
+        self.delete = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.async_to_raw_response_wrapper(
+                assistants.delete,  # pyright: ignore[reportDeprecated],
+            )
         )
 
 
@@ -975,20 +1050,30 @@ class AssistantsWithStreamingResponse:
     def __init__(self, assistants: Assistants) -> None:
         self._assistants = assistants
 
-        self.create = to_streamed_response_wrapper(
-            assistants.create,
+        self.create = (  # pyright: ignore[reportDeprecated]
+            to_streamed_response_wrapper(
+                assistants.create,  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.retrieve = to_streamed_response_wrapper(
-            assistants.retrieve,
+        self.retrieve = (  # pyright: ignore[reportDeprecated]
+            to_streamed_response_wrapper(
+                assistants.retrieve,  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.update = to_streamed_response_wrapper(
-            assistants.update,
+        self.update = (  # pyright: ignore[reportDeprecated]
+            to_streamed_response_wrapper(
+                assistants.update,  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.list = to_streamed_response_wrapper(
-            assistants.list,
+        self.list = (  # pyright: ignore[reportDeprecated]
+            to_streamed_response_wrapper(
+                assistants.list,  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.delete = to_streamed_response_wrapper(
-            assistants.delete,
+        self.delete = (  # pyright: ignore[reportDeprecated]
+            to_streamed_response_wrapper(
+                assistants.delete,  # pyright: ignore[reportDeprecated],
+            )
         )
 
 
@@ -996,18 +1081,28 @@ class AsyncAssistantsWithStreamingResponse:
     def __init__(self, assistants: AsyncAssistants) -> None:
         self._assistants = assistants
 
-        self.create = async_to_streamed_response_wrapper(
-            assistants.create,
+        self.create = (  # pyright: ignore[reportDeprecated]
+            async_to_streamed_response_wrapper(
+                assistants.create,  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.retrieve = async_to_streamed_response_wrapper(
-            assistants.retrieve,
+        self.retrieve = (  # pyright: ignore[reportDeprecated]
+            async_to_streamed_response_wrapper(
+                assistants.retrieve,  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.update = async_to_streamed_response_wrapper(
-            assistants.update,
+        self.update = (  # pyright: ignore[reportDeprecated]
+            async_to_streamed_response_wrapper(
+                assistants.update,  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.list = async_to_streamed_response_wrapper(
-            assistants.list,
+        self.list = (  # pyright: ignore[reportDeprecated]
+            async_to_streamed_response_wrapper(
+                assistants.list,  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.delete = async_to_streamed_response_wrapper(
-            assistants.delete,
+        self.delete = (  # pyright: ignore[reportDeprecated]
+            async_to_streamed_response_wrapper(
+                assistants.delete,  # pyright: ignore[reportDeprecated],
+            )
         )

@@ -8,6 +8,8 @@ __all__ = ["ResponseRefusalDoneEvent"]
 
 
 class ResponseRefusalDoneEvent(BaseModel):
+    """Emitted when refusal text is finalized."""
+
     content_index: int
     """The index of the content part that the refusal text is finalized."""
 

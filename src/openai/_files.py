@@ -69,12 +69,12 @@ def _transform_file(file: FileTypes) -> HttpxFileTypes:
         return file
 
     if is_tuple_t(file):
-        return (file[0], _read_file_content(file[1]), *file[2:])
+        return (file[0], read_file_content(file[1]), *file[2:])
 
     raise TypeError(f"Expected file types input to be a FileContent type or to be a tuple")
 
 
-def _read_file_content(file: FileContent) -> HttpxFileContent:
+def read_file_content(file: FileContent) -> HttpxFileContent:
     if isinstance(file, os.PathLike):
         return pathlib.Path(file).read_bytes()
     return file
@@ -111,12 +111,12 @@ async def _async_transform_file(file: FileTypes) -> HttpxFileTypes:
         return file
 
     if is_tuple_t(file):
-        return (file[0], await _async_read_file_content(file[1]), *file[2:])
+        return (file[0], await async_read_file_content(file[1]), *file[2:])
 
     raise TypeError(f"Expected file types input to be a FileContent type or to be a tuple")
 
 
-async def _async_read_file_content(file: FileContent) -> HttpxFileContent:
+async def async_read_file_content(file: FileContent) -> HttpxFileContent:
     if isinstance(file, os.PathLike):
         return await anyio.Path(file).read_bytes()
 

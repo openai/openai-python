@@ -8,6 +8,10 @@ __all__ = ["ResponseMcpCallArgumentsDeltaEvent"]
 
 
 class ResponseMcpCallArgumentsDeltaEvent(BaseModel):
+    """
+    Emitted when there is a delta (partial update) to the arguments of an MCP tool call.
+    """
+
     delta: str
     """
     A JSON string containing the partial update to the arguments for the MCP tool

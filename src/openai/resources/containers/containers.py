@@ -2,15 +2,15 @@
 
 from __future__ import annotations
 
-from typing import List
+from typing import Iterable
 from typing_extensions import Literal
 
 import httpx
 
 from ... import _legacy_response
 from ...types import container_list_params, container_create_params
-from ..._types import NOT_GIVEN, Body, Query, Headers, NoneType, NotGiven
-from ..._utils import maybe_transform, async_maybe_transform
+from ..._types import Body, Omit, Query, Headers, NoneType, NotGiven, SequenceNotStr, omit, not_given
+from ..._utils import path_template, maybe_transform, async_maybe_transform
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -59,14 +59,17 @@ class Containers(SyncAPIResource):
         self,
         *,
         name: str,
-        expires_after: container_create_params.ExpiresAfter | NotGiven = NOT_GIVEN,
-        file_ids: List[str] | NotGiven = NOT_GIVEN,
+        expires_after: container_create_params.ExpiresAfter | Omit = omit,
+        file_ids: SequenceNotStr[str] | Omit = omit,
+        memory_limit: Literal["1g", "4g", "16g", "64g"] | Omit = omit,
+        network_policy: container_create_params.NetworkPolicy | Omit = omit,
+        skills: Iterable[container_create_params.Skill] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ContainerCreateResponse:
         """
         Create Container
@@ -77,6 +80,12 @@ class Containers(SyncAPIResource):
           expires_after: Container expiration time in seconds relative to the 'anchor' time.
 
           file_ids: IDs of files to copy to the container.
+
+          memory_limit: Optional memory limit for the container. Defaults to "1g".
+
+          network_policy: Network access policy for the container.
+
+          skills: An optional list of skills referenced by id or inline data.
 
           extra_headers: Send extra headers
 
@@ -93,6 +102,9 @@ class Containers(SyncAPIResource):
                     "name": name,
                     "expires_after": expires_after,
                     "file_ids": file_ids,
+                    "memory_limit": memory_limit,
+                    "network_policy": network_policy,
+                    "skills": skills,
                 },
                 container_create_params.ContainerCreateParams,
             ),
@@ -111,7 +123,7 @@ class Containers(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ContainerRetrieveResponse:
         """
         Retrieve Container
@@ -128,7 +140,7 @@ class Containers(SyncAPIResource):
         if not container_id:
             raise ValueError(f"Expected a non-empty value for `container_id` but received {container_id!r}")
         return self._get(
-            f"/containers/{container_id}",
+            path_template("/containers/{container_id}", container_id=container_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -138,15 +150,16 @@ class Containers(SyncAPIResource):
     def list(
         self,
         *,
-        after: str | NotGiven = NOT_GIVEN,
-        limit: int | NotGiven = NOT_GIVEN,
-        order: Literal["asc", "desc"] | NotGiven = NOT_GIVEN,
+        after: str | Omit = omit,
+        limit: int | Omit = omit,
+        name: str | Omit = omit,
+        order: Literal["asc", "desc"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> SyncCursorPage[ContainerListResponse]:
         """List Containers
 
@@ -160,6 +173,8 @@ class Containers(SyncAPIResource):
 
           limit: A limit on the number of objects to be returned. Limit can range between 1 and
               100, and the default is 20.
+
+          name: Filter results by container name.
 
           order: Sort order by the `created_at` timestamp of the objects. `asc` for ascending
               order and `desc` for descending order.
@@ -184,6 +199,7 @@ class Containers(SyncAPIResource):
                     {
                         "after": after,
                         "limit": limit,
+                        "name": name,
                         "order": order,
                     },
                     container_list_params.ContainerListParams,
@@ -201,7 +217,7 @@ class Containers(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> None:
         """
         Delete Container
@@ -219,7 +235,7 @@ class Containers(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `container_id` but received {container_id!r}")
         extra_headers = {"Accept": "*/*", **(extra_headers or {})}
         return self._delete(
-            f"/containers/{container_id}",
+            path_template("/containers/{container_id}", container_id=container_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -255,14 +271,17 @@ class AsyncContainers(AsyncAPIResource):
         self,
         *,
         name: str,
-        expires_after: container_create_params.ExpiresAfter | NotGiven = NOT_GIVEN,
-        file_ids: List[str] | NotGiven = NOT_GIVEN,
+        expires_after: container_create_params.ExpiresAfter | Omit = omit,
+        file_ids: SequenceNotStr[str] | Omit = omit,
+        memory_limit: Literal["1g", "4g", "16g", "64g"] | Omit = omit,
+        network_policy: container_create_params.NetworkPolicy | Omit = omit,
+        skills: Iterable[container_create_params.Skill] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ContainerCreateResponse:
         """
         Create Container
@@ -273,6 +292,12 @@ class AsyncContainers(AsyncAPIResource):
           expires_after: Container expiration time in seconds relative to the 'anchor' time.
 
           file_ids: IDs of files to copy to the container.
+
+          memory_limit: Optional memory limit for the container. Defaults to "1g".
+
+          network_policy: Network access policy for the container.
+
+          skills: An optional list of skills referenced by id or inline data.
 
           extra_headers: Send extra headers
 
@@ -289,6 +314,9 @@ class AsyncContainers(AsyncAPIResource):
                     "name": name,
                     "expires_after": expires_after,
                     "file_ids": file_ids,
+                    "memory_limit": memory_limit,
+                    "network_policy": network_policy,
+                    "skills": skills,
                 },
                 container_create_params.ContainerCreateParams,
             ),
@@ -307,7 +335,7 @@ class AsyncContainers(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ContainerRetrieveResponse:
         """
         Retrieve Container
@@ -324,7 +352,7 @@ class AsyncContainers(AsyncAPIResource):
         if not container_id:
             raise ValueError(f"Expected a non-empty value for `container_id` but received {container_id!r}")
         return await self._get(
-            f"/containers/{container_id}",
+            path_template("/containers/{container_id}", container_id=container_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -334,15 +362,16 @@ class AsyncContainers(AsyncAPIResource):
     def list(
         self,
         *,
-        after: str | NotGiven = NOT_GIVEN,
-        limit: int | NotGiven = NOT_GIVEN,
-        order: Literal["asc", "desc"] | NotGiven = NOT_GIVEN,
+        after: str | Omit = omit,
+        limit: int | Omit = omit,
+        name: str | Omit = omit,
+        order: Literal["asc", "desc"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[ContainerListResponse, AsyncCursorPage[ContainerListResponse]]:
         """List Containers
 
@@ -356,6 +385,8 @@ class AsyncContainers(AsyncAPIResource):
 
           limit: A limit on the number of objects to be returned. Limit can range between 1 and
               100, and the default is 20.
+
+          name: Filter results by container name.
 
           order: Sort order by the `created_at` timestamp of the objects. `asc` for ascending
               order and `desc` for descending order.
@@ -380,6 +411,7 @@ class AsyncContainers(AsyncAPIResource):
                     {
                         "after": after,
                         "limit": limit,
+                        "name": name,
                         "order": order,
                     },
                     container_list_params.ContainerListParams,
@@ -397,7 +429,7 @@ class AsyncContainers(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> None:
         """
         Delete Container
@@ -415,7 +447,7 @@ class AsyncContainers(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `container_id` but received {container_id!r}")
         extra_headers = {"Accept": "*/*", **(extra_headers or {})}
         return await self._delete(
-            f"/containers/{container_id}",
+            path_template("/containers/{container_id}", container_id=container_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),

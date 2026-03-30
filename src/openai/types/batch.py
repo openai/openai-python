@@ -5,6 +5,7 @@ from typing_extensions import Literal
 
 from .._models import BaseModel
 from .batch_error import BatchError
+from .batch_usage import BatchUsage
 from .shared.metadata import Metadata
 from .batch_request_counts import BatchRequestCounts
 
@@ -80,8 +81,24 @@ class Batch(BaseModel):
     a maximum length of 512 characters.
     """
 
+    model: Optional[str] = None
+    """Model ID used to process the batch, like `gpt-5-2025-08-07`.
+
+    OpenAI offers a wide range of models with different capabilities, performance
+    characteristics, and price points. Refer to the
+    [model guide](https://platform.openai.com/docs/models) to browse and compare
+    available models.
+    """
+
     output_file_id: Optional[str] = None
     """The ID of the file containing the outputs of successfully executed requests."""
 
     request_counts: Optional[BatchRequestCounts] = None
     """The request counts for different statuses within the batch."""
+
+    usage: Optional[BatchUsage] = None
+    """
+    Represents token usage details including input tokens, output tokens, a
+    breakdown of output tokens, and the total tokens used. Only populated on batches
+    created after September 7, 2025.
+    """

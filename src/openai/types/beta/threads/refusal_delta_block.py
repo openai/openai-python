@@ -9,6 +9,8 @@ __all__ = ["RefusalDeltaBlock"]
 
 
 class RefusalDeltaBlock(BaseModel):
+    """The refusal content that is part of a message."""
+
     index: int
     """The index of the refusal part in the message."""
 

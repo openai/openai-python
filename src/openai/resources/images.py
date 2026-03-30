@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from typing import List, Union, Mapping, Optional, cast
+from typing import Union, Mapping, Optional, cast
 from typing_extensions import Literal, overload
 
 import httpx
 
 from .. import _legacy_response
 from ..types import image_edit_params, image_generate_params, image_create_variation_params
-from .._types import NOT_GIVEN, Body, Query, Headers, NotGiven, FileTypes
+from .._types import Body, Omit, Query, Headers, NotGiven, FileTypes, SequenceNotStr, omit, not_given
 from .._utils import extract_files, required_args, maybe_transform, deepcopy_minimal, async_maybe_transform
 from .._compat import cached_property
 from .._resource import SyncAPIResource, AsyncAPIResource
@@ -25,6 +25,8 @@ __all__ = ["Images", "AsyncImages"]
 
 
 class Images(SyncAPIResource):
+    """Given a prompt and/or an input image, the model will generate a new image."""
+
     @cached_property
     def with_raw_response(self) -> ImagesWithRawResponse:
         """
@@ -48,17 +50,17 @@ class Images(SyncAPIResource):
         self,
         *,
         image: FileTypes,
-        model: Union[str, ImageModel, None] | NotGiven = NOT_GIVEN,
-        n: Optional[int] | NotGiven = NOT_GIVEN,
-        response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
-        size: Optional[Literal["256x256", "512x512", "1024x1024"]] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        model: Union[str, ImageModel, None] | Omit = omit,
+        n: Optional[int] | Omit = omit,
+        response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        size: Optional[Literal["256x256", "512x512", "1024x1024"]] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse:
         """Creates a variation of a given image.
 
@@ -121,75 +123,76 @@ class Images(SyncAPIResource):
     def edit(
         self,
         *,
-        image: Union[FileTypes, List[FileTypes]],
+        image: Union[FileTypes, SequenceNotStr[FileTypes]],
         prompt: str,
-        background: Optional[Literal["transparent", "opaque", "auto"]] | NotGiven = NOT_GIVEN,
-        input_fidelity: Optional[Literal["high", "low"]] | NotGiven = NOT_GIVEN,
-        mask: FileTypes | NotGiven = NOT_GIVEN,
-        model: Union[str, ImageModel, None] | NotGiven = NOT_GIVEN,
-        n: Optional[int] | NotGiven = NOT_GIVEN,
-        output_compression: Optional[int] | NotGiven = NOT_GIVEN,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | NotGiven = NOT_GIVEN,
-        partial_images: Optional[int] | NotGiven = NOT_GIVEN,
-        quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | NotGiven = NOT_GIVEN,
-        response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
-        size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]]
-        | NotGiven = NOT_GIVEN,
-        stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
+        mask: FileTypes | Omit = omit,
+        model: Union[str, ImageModel, None] | Omit = omit,
+        n: Optional[int] | Omit = omit,
+        output_compression: Optional[int] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        partial_images: Optional[int] | Omit = omit,
+        quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | Omit = omit,
+        response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]] | Omit = omit,
+        stream: Optional[Literal[False]] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse:
         """Creates an edited or extended image given one or more source images and a
         prompt.
 
-        This endpoint only supports `gpt-image-1` and `dall-e-2`.
+        This endpoint supports GPT Image models (`gpt-image-1.5`, `gpt-image-1`,
+        `gpt-image-1-mini`, and `chatgpt-image-latest`) and `dall-e-2`.
 
         Args:
           image: The image(s) to edit. Must be a supported image file or an array of images.
 
-              For `gpt-image-1`, each image should be a `png`, `webp`, or `jpg` file less than
-              50MB. You can provide up to 16 images.
+              For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`, and
+              `gpt-image-1.5`), each image should be a `png`, `webp`, or `jpg` file less than
+              50MB. You can provide up to 16 images. `chatgpt-image-latest` follows the same
+              input constraints as GPT image models.
 
               For `dall-e-2`, you can only provide one image, and it should be a square `png`
               file less than 4MB.
 
           prompt: A text description of the desired image(s). The maximum length is 1000
-              characters for `dall-e-2`, and 32000 characters for `gpt-image-1`.
+              characters for `dall-e-2`, and 32000 characters for the GPT image models.
 
           background: Allows to set transparency for the background of the generated image(s). This
-              parameter is only supported for `gpt-image-1`. Must be one of `transparent`,
-              `opaque` or `auto` (default value). When `auto` is used, the model will
-              automatically determine the best background for the image.
+              parameter is only supported for the GPT image models. Must be one of
+              `transparent`, `opaque` or `auto` (default value). When `auto` is used, the
+              model will automatically determine the best background for the image.
 
               If `transparent`, the output format needs to support transparency, so it should
               be set to either `png` (default value) or `webp`.
 
           input_fidelity: Control how much effort the model will exert to match the style and features,
               especially facial features, of input images. This parameter is only supported
-              for `gpt-image-1`. Supports `high` and `low`. Defaults to `low`.
+              for `gpt-image-1` and `gpt-image-1.5` and later models, unsupported for
+              `gpt-image-1-mini`. Supports `high` and `low`. Defaults to `low`.
 
           mask: An additional image whose fully transparent areas (e.g. where alpha is zero)
               indicate where `image` should be edited. If there are multiple images provided,
               the mask will be applied on the first image. Must be a valid PNG file, less than
               4MB, and have the same dimensions as `image`.
 
-          model: The model to use for image generation. Only `dall-e-2` and `gpt-image-1` are
-              supported. Defaults to `dall-e-2` unless a parameter specific to `gpt-image-1`
-              is used.
+          model: The model to use for image generation. Defaults to `gpt-image-1.5`.
 
           n: The number of images to generate. Must be between 1 and 10.
 
           output_compression: The compression level (0-100%) for the generated images. This parameter is only
-              supported for `gpt-image-1` with the `webp` or `jpeg` output formats, and
+              supported for the GPT image models with the `webp` or `jpeg` output formats, and
               defaults to 100.
 
           output_format: The format in which the generated images are returned. This parameter is only
-              supported for `gpt-image-1`. Must be one of `png`, `jpeg`, or `webp`. The
+              supported for the GPT image models. Must be one of `png`, `jpeg`, or `webp`. The
               default value is `png`.
 
           partial_images: The number of partial images to generate. This parameter is used for streaming
@@ -199,18 +202,17 @@ class Images(SyncAPIResource):
               Note that the final image may be sent before the full number of partial images
               are generated if the full image is generated more quickly.
 
-          quality: The quality of the image that will be generated. `high`, `medium` and `low` are
-              only supported for `gpt-image-1`. `dall-e-2` only supports `standard` quality.
-              Defaults to `auto`.
+          quality: The quality of the image that will be generated for GPT image models. Defaults
+              to `auto`.
 
           response_format: The format in which the generated images are returned. Must be one of `url` or
               `b64_json`. URLs are only valid for 60 minutes after the image has been
-              generated. This parameter is only supported for `dall-e-2`, as `gpt-image-1`
-              will always return base64-encoded images.
+              generated. This parameter is only supported for `dall-e-2` (default is `url` for
+              `dall-e-2`), as GPT image models always return base64-encoded images.
 
           size: The size of the generated images. Must be one of `1024x1024`, `1536x1024`
-              (landscape), `1024x1536` (portrait), or `auto` (default value) for
-              `gpt-image-1`, and one of `256x256`, `512x512`, or `1024x1024` for `dall-e-2`.
+              (landscape), `1024x1536` (portrait), or `auto` (default value) for the GPT image
+              models, and one of `256x256`, `512x512`, or `1024x1024` for `dall-e-2`.
 
           stream: Edit the image in streaming mode. Defaults to `false`. See the
               [Image generation guide](https://platform.openai.com/docs/guides/image-generation)
@@ -234,79 +236,80 @@ class Images(SyncAPIResource):
     def edit(
         self,
         *,
-        image: Union[FileTypes, List[FileTypes]],
+        image: Union[FileTypes, SequenceNotStr[FileTypes]],
         prompt: str,
         stream: Literal[True],
-        background: Optional[Literal["transparent", "opaque", "auto"]] | NotGiven = NOT_GIVEN,
-        input_fidelity: Optional[Literal["high", "low"]] | NotGiven = NOT_GIVEN,
-        mask: FileTypes | NotGiven = NOT_GIVEN,
-        model: Union[str, ImageModel, None] | NotGiven = NOT_GIVEN,
-        n: Optional[int] | NotGiven = NOT_GIVEN,
-        output_compression: Optional[int] | NotGiven = NOT_GIVEN,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | NotGiven = NOT_GIVEN,
-        partial_images: Optional[int] | NotGiven = NOT_GIVEN,
-        quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | NotGiven = NOT_GIVEN,
-        response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
-        size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]]
-        | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
+        mask: FileTypes | Omit = omit,
+        model: Union[str, ImageModel, None] | Omit = omit,
+        n: Optional[int] | Omit = omit,
+        output_compression: Optional[int] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        partial_images: Optional[int] | Omit = omit,
+        quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | Omit = omit,
+        response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Stream[ImageEditStreamEvent]:
         """Creates an edited or extended image given one or more source images and a
         prompt.
 
-        This endpoint only supports `gpt-image-1` and `dall-e-2`.
+        This endpoint supports GPT Image models (`gpt-image-1.5`, `gpt-image-1`,
+        `gpt-image-1-mini`, and `chatgpt-image-latest`) and `dall-e-2`.
 
         Args:
           image: The image(s) to edit. Must be a supported image file or an array of images.
 
-              For `gpt-image-1`, each image should be a `png`, `webp`, or `jpg` file less than
-              50MB. You can provide up to 16 images.
+              For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`, and
+              `gpt-image-1.5`), each image should be a `png`, `webp`, or `jpg` file less than
+              50MB. You can provide up to 16 images. `chatgpt-image-latest` follows the same
+              input constraints as GPT image models.
 
               For `dall-e-2`, you can only provide one image, and it should be a square `png`
               file less than 4MB.
 
           prompt: A text description of the desired image(s). The maximum length is 1000
-              characters for `dall-e-2`, and 32000 characters for `gpt-image-1`.
+              characters for `dall-e-2`, and 32000 characters for the GPT image models.
 
           stream: Edit the image in streaming mode. Defaults to `false`. See the
               [Image generation guide](https://platform.openai.com/docs/guides/image-generation)
               for more information.
 
           background: Allows to set transparency for the background of the generated image(s). This
-              parameter is only supported for `gpt-image-1`. Must be one of `transparent`,
-              `opaque` or `auto` (default value). When `auto` is used, the model will
-              automatically determine the best background for the image.
+              parameter is only supported for the GPT image models. Must be one of
+              `transparent`, `opaque` or `auto` (default value). When `auto` is used, the
+              model will automatically determine the best background for the image.
 
               If `transparent`, the output format needs to support transparency, so it should
               be set to either `png` (default value) or `webp`.
 
           input_fidelity: Control how much effort the model will exert to match the style and features,
               especially facial features, of input images. This parameter is only supported
-              for `gpt-image-1`. Supports `high` and `low`. Defaults to `low`.
+              for `gpt-image-1` and `gpt-image-1.5` and later models, unsupported for
+              `gpt-image-1-mini`. Supports `high` and `low`. Defaults to `low`.
 
           mask: An additional image whose fully transparent areas (e.g. where alpha is zero)
               indicate where `image` should be edited. If there are multiple images provided,
               the mask will be applied on the first image. Must be a valid PNG file, less than
               4MB, and have the same dimensions as `image`.
 
-          model: The model to use for image generation. Only `dall-e-2` and `gpt-image-1` are
-              supported. Defaults to `dall-e-2` unless a parameter specific to `gpt-image-1`
-              is used.
+          model: The model to use for image generation. Defaults to `gpt-image-1.5`.
 
           n: The number of images to generate. Must be between 1 and 10.
 
           output_compression: The compression level (0-100%) for the generated images. This parameter is only
-              supported for `gpt-image-1` with the `webp` or `jpeg` output formats, and
+              supported for the GPT image models with the `webp` or `jpeg` output formats, and
               defaults to 100.
 
           output_format: The format in which the generated images are returned. This parameter is only
-              supported for `gpt-image-1`. Must be one of `png`, `jpeg`, or `webp`. The
+              supported for the GPT image models. Must be one of `png`, `jpeg`, or `webp`. The
               default value is `png`.
 
           partial_images: The number of partial images to generate. This parameter is used for streaming
@@ -316,18 +319,17 @@ class Images(SyncAPIResource):
               Note that the final image may be sent before the full number of partial images
               are generated if the full image is generated more quickly.
 
-          quality: The quality of the image that will be generated. `high`, `medium` and `low` are
-              only supported for `gpt-image-1`. `dall-e-2` only supports `standard` quality.
-              Defaults to `auto`.
+          quality: The quality of the image that will be generated for GPT image models. Defaults
+              to `auto`.
 
           response_format: The format in which the generated images are returned. Must be one of `url` or
               `b64_json`. URLs are only valid for 60 minutes after the image has been
-              generated. This parameter is only supported for `dall-e-2`, as `gpt-image-1`
-              will always return base64-encoded images.
+              generated. This parameter is only supported for `dall-e-2` (default is `url` for
+              `dall-e-2`), as GPT image models always return base64-encoded images.
 
           size: The size of the generated images. Must be one of `1024x1024`, `1536x1024`
-              (landscape), `1024x1536` (portrait), or `auto` (default value) for
-              `gpt-image-1`, and one of `256x256`, `512x512`, or `1024x1024` for `dall-e-2`.
+              (landscape), `1024x1536` (portrait), or `auto` (default value) for the GPT image
+              models, and one of `256x256`, `512x512`, or `1024x1024` for `dall-e-2`.
 
           user: A unique identifier representing your end-user, which can help OpenAI to monitor
               and detect abuse.
@@ -347,79 +349,80 @@ class Images(SyncAPIResource):
     def edit(
         self,
         *,
-        image: Union[FileTypes, List[FileTypes]],
+        image: Union[FileTypes, SequenceNotStr[FileTypes]],
         prompt: str,
         stream: bool,
-        background: Optional[Literal["transparent", "opaque", "auto"]] | NotGiven = NOT_GIVEN,
-        input_fidelity: Optional[Literal["high", "low"]] | NotGiven = NOT_GIVEN,
-        mask: FileTypes | NotGiven = NOT_GIVEN,
-        model: Union[str, ImageModel, None] | NotGiven = NOT_GIVEN,
-        n: Optional[int] | NotGiven = NOT_GIVEN,
-        output_compression: Optional[int] | NotGiven = NOT_GIVEN,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | NotGiven = NOT_GIVEN,
-        partial_images: Optional[int] | NotGiven = NOT_GIVEN,
-        quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | NotGiven = NOT_GIVEN,
-        response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
-        size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]]
-        | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
+        mask: FileTypes | Omit = omit,
+        model: Union[str, ImageModel, None] | Omit = omit,
+        n: Optional[int] | Omit = omit,
+        output_compression: Optional[int] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        partial_images: Optional[int] | Omit = omit,
+        quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | Omit = omit,
+        response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse | Stream[ImageEditStreamEvent]:
         """Creates an edited or extended image given one or more source images and a
         prompt.
 
-        This endpoint only supports `gpt-image-1` and `dall-e-2`.
+        This endpoint supports GPT Image models (`gpt-image-1.5`, `gpt-image-1`,
+        `gpt-image-1-mini`, and `chatgpt-image-latest`) and `dall-e-2`.
 
         Args:
           image: The image(s) to edit. Must be a supported image file or an array of images.
 
-              For `gpt-image-1`, each image should be a `png`, `webp`, or `jpg` file less than
-              50MB. You can provide up to 16 images.
+              For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`, and
+              `gpt-image-1.5`), each image should be a `png`, `webp`, or `jpg` file less than
+              50MB. You can provide up to 16 images. `chatgpt-image-latest` follows the same
+              input constraints as GPT image models.
 
               For `dall-e-2`, you can only provide one image, and it should be a square `png`
               file less than 4MB.
 
           prompt: A text description of the desired image(s). The maximum length is 1000
-              characters for `dall-e-2`, and 32000 characters for `gpt-image-1`.
+              characters for `dall-e-2`, and 32000 characters for the GPT image models.
 
           stream: Edit the image in streaming mode. Defaults to `false`. See the
               [Image generation guide](https://platform.openai.com/docs/guides/image-generation)
               for more information.
 
           background: Allows to set transparency for the background of the generated image(s). This
-              parameter is only supported for `gpt-image-1`. Must be one of `transparent`,
-              `opaque` or `auto` (default value). When `auto` is used, the model will
-              automatically determine the best background for the image.
+              parameter is only supported for the GPT image models. Must be one of
+              `transparent`, `opaque` or `auto` (default value). When `auto` is used, the
+              model will automatically determine the best background for the image.
 
               If `transparent`, the output format needs to support transparency, so it should
               be set to either `png` (default value) or `webp`.
 
           input_fidelity: Control how much effort the model will exert to match the style and features,
               especially facial features, of input images. This parameter is only supported
-              for `gpt-image-1`. Supports `high` and `low`. Defaults to `low`.
+              for `gpt-image-1` and `gpt-image-1.5` and later models, unsupported for
+              `gpt-image-1-mini`. Supports `high` and `low`. Defaults to `low`.
 
           mask: An additional image whose fully transparent areas (e.g. where alpha is zero)
               indicate where `image` should be edited. If there are multiple images provided,
               the mask will be applied on the first image. Must be a valid PNG file, less than
               4MB, and have the same dimensions as `image`.
 
-          model: The model to use for image generation. Only `dall-e-2` and `gpt-image-1` are
-              supported. Defaults to `dall-e-2` unless a parameter specific to `gpt-image-1`
-              is used.
+          model: The model to use for image generation. Defaults to `gpt-image-1.5`.
 
           n: The number of images to generate. Must be between 1 and 10.
 
           output_compression: The compression level (0-100%) for the generated images. This parameter is only
-              supported for `gpt-image-1` with the `webp` or `jpeg` output formats, and
+              supported for the GPT image models with the `webp` or `jpeg` output formats, and
               defaults to 100.
 
           output_format: The format in which the generated images are returned. This parameter is only
-              supported for `gpt-image-1`. Must be one of `png`, `jpeg`, or `webp`. The
+              supported for the GPT image models. Must be one of `png`, `jpeg`, or `webp`. The
               default value is `png`.
 
           partial_images: The number of partial images to generate. This parameter is used for streaming
@@ -429,18 +432,17 @@ class Images(SyncAPIResource):
               Note that the final image may be sent before the full number of partial images
               are generated if the full image is generated more quickly.
 
-          quality: The quality of the image that will be generated. `high`, `medium` and `low` are
-              only supported for `gpt-image-1`. `dall-e-2` only supports `standard` quality.
-              Defaults to `auto`.
+          quality: The quality of the image that will be generated for GPT image models. Defaults
+              to `auto`.
 
           response_format: The format in which the generated images are returned. Must be one of `url` or
               `b64_json`. URLs are only valid for 60 minutes after the image has been
-              generated. This parameter is only supported for `dall-e-2`, as `gpt-image-1`
-              will always return base64-encoded images.
+              generated. This parameter is only supported for `dall-e-2` (default is `url` for
+              `dall-e-2`), as GPT image models always return base64-encoded images.
 
           size: The size of the generated images. Must be one of `1024x1024`, `1536x1024`
-              (landscape), `1024x1536` (portrait), or `auto` (default value) for
-              `gpt-image-1`, and one of `256x256`, `512x512`, or `1024x1024` for `dall-e-2`.
+              (landscape), `1024x1536` (portrait), or `auto` (default value) for the GPT image
+              models, and one of `256x256`, `512x512`, or `1024x1024` for `dall-e-2`.
 
           user: A unique identifier representing your end-user, which can help OpenAI to monitor
               and detect abuse.
@@ -460,28 +462,27 @@ class Images(SyncAPIResource):
     def edit(
         self,
         *,
-        image: Union[FileTypes, List[FileTypes]],
+        image: Union[FileTypes, SequenceNotStr[FileTypes]],
         prompt: str,
-        background: Optional[Literal["transparent", "opaque", "auto"]] | NotGiven = NOT_GIVEN,
-        input_fidelity: Optional[Literal["high", "low"]] | NotGiven = NOT_GIVEN,
-        mask: FileTypes | NotGiven = NOT_GIVEN,
-        model: Union[str, ImageModel, None] | NotGiven = NOT_GIVEN,
-        n: Optional[int] | NotGiven = NOT_GIVEN,
-        output_compression: Optional[int] | NotGiven = NOT_GIVEN,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | NotGiven = NOT_GIVEN,
-        partial_images: Optional[int] | NotGiven = NOT_GIVEN,
-        quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | NotGiven = NOT_GIVEN,
-        response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
-        size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]]
-        | NotGiven = NOT_GIVEN,
-        stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
+        mask: FileTypes | Omit = omit,
+        model: Union[str, ImageModel, None] | Omit = omit,
+        n: Optional[int] | Omit = omit,
+        output_compression: Optional[int] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        partial_images: Optional[int] | Omit = omit,
+        quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | Omit = omit,
+        response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]] | Omit = omit,
+        stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse | Stream[ImageEditStreamEvent]:
         body = deepcopy_minimal(
             {
@@ -527,28 +528,28 @@ class Images(SyncAPIResource):
         self,
         *,
         prompt: str,
-        background: Optional[Literal["transparent", "opaque", "auto"]] | NotGiven = NOT_GIVEN,
-        model: Union[str, ImageModel, None] | NotGiven = NOT_GIVEN,
-        moderation: Optional[Literal["low", "auto"]] | NotGiven = NOT_GIVEN,
-        n: Optional[int] | NotGiven = NOT_GIVEN,
-        output_compression: Optional[int] | NotGiven = NOT_GIVEN,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | NotGiven = NOT_GIVEN,
-        partial_images: Optional[int] | NotGiven = NOT_GIVEN,
-        quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | NotGiven = NOT_GIVEN,
-        response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
+        background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        model: Union[str, ImageModel, None] | Omit = omit,
+        moderation: Optional[Literal["low", "auto"]] | Omit = omit,
+        n: Optional[int] | Omit = omit,
+        output_compression: Optional[int] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        partial_images: Optional[int] | Omit = omit,
+        quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | Omit = omit,
+        response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
         size: Optional[
             Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"]
         ]
-        | NotGiven = NOT_GIVEN,
-        stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
-        style: Optional[Literal["vivid", "natural"]] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        | Omit = omit,
+        stream: Optional[Literal[False]] | Omit = omit,
+        style: Optional[Literal["vivid", "natural"]] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse:
         """
         Creates an image given a prompt.
@@ -556,33 +557,34 @@ class Images(SyncAPIResource):
 
         Args:
           prompt: A text description of the desired image(s). The maximum length is 32000
-              characters for `gpt-image-1`, 1000 characters for `dall-e-2` and 4000 characters
-              for `dall-e-3`.
+              characters for the GPT image models, 1000 characters for `dall-e-2` and 4000
+              characters for `dall-e-3`.
 
           background: Allows to set transparency for the background of the generated image(s). This
-              parameter is only supported for `gpt-image-1`. Must be one of `transparent`,
-              `opaque` or `auto` (default value). When `auto` is used, the model will
-              automatically determine the best background for the image.
+              parameter is only supported for the GPT image models. Must be one of
+              `transparent`, `opaque` or `auto` (default value). When `auto` is used, the
+              model will automatically determine the best background for the image.
 
               If `transparent`, the output format needs to support transparency, so it should
               be set to either `png` (default value) or `webp`.
 
-          model: The model to use for image generation. One of `dall-e-2`, `dall-e-3`, or
-              `gpt-image-1`. Defaults to `dall-e-2` unless a parameter specific to
-              `gpt-image-1` is used.
+          model: The model to use for image generation. One of `dall-e-2`, `dall-e-3`, or a GPT
+              image model (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`). Defaults to
+              `dall-e-2` unless a parameter specific to the GPT image models is used.
 
-          moderation: Control the content-moderation level for images generated by `gpt-image-1`. Must
-              be either `low` for less restrictive filtering or `auto` (default value).
+          moderation: Control the content-moderation level for images generated by the GPT image
+              models. Must be either `low` for less restrictive filtering or `auto` (default
+              value).
 
           n: The number of images to generate. Must be between 1 and 10. For `dall-e-3`, only
               `n=1` is supported.
 
           output_compression: The compression level (0-100%) for the generated images. This parameter is only
-              supported for `gpt-image-1` with the `webp` or `jpeg` output formats, and
+              supported for the GPT image models with the `webp` or `jpeg` output formats, and
               defaults to 100.
 
           output_format: The format in which the generated images are returned. This parameter is only
-              supported for `gpt-image-1`. Must be one of `png`, `jpeg`, or `webp`.
+              supported for the GPT image models. Must be one of `png`, `jpeg`, or `webp`.
 
           partial_images: The number of partial images to generate. This parameter is used for streaming
               responses that return partial images. Value must be between 0 and 3. When set to
@@ -595,23 +597,23 @@ class Images(SyncAPIResource):
 
               - `auto` (default value) will automatically select the best quality for the
                 given model.
-              - `high`, `medium` and `low` are supported for `gpt-image-1`.
+              - `high`, `medium` and `low` are supported for the GPT image models.
               - `hd` and `standard` are supported for `dall-e-3`.
               - `standard` is the only option for `dall-e-2`.
 
           response_format: The format in which generated images with `dall-e-2` and `dall-e-3` are
               returned. Must be one of `url` or `b64_json`. URLs are only valid for 60 minutes
-              after the image has been generated. This parameter isn't supported for
-              `gpt-image-1` which will always return base64-encoded images.
+              after the image has been generated. This parameter isn't supported for the GPT
+              image models, which always return base64-encoded images.
 
           size: The size of the generated images. Must be one of `1024x1024`, `1536x1024`
-              (landscape), `1024x1536` (portrait), or `auto` (default value) for
-              `gpt-image-1`, one of `256x256`, `512x512`, or `1024x1024` for `dall-e-2`, and
-              one of `1024x1024`, `1792x1024`, or `1024x1792` for `dall-e-3`.
+              (landscape), `1024x1536` (portrait), or `auto` (default value) for the GPT image
+              models, one of `256x256`, `512x512`, or `1024x1024` for `dall-e-2`, and one of
+              `1024x1024`, `1792x1024`, or `1024x1792` for `dall-e-3`.
 
           stream: Generate the image in streaming mode. Defaults to `false`. See the
               [Image generation guide](https://platform.openai.com/docs/guides/image-generation)
-              for more information. This parameter is only supported for `gpt-image-1`.
+              for more information. This parameter is only supported for the GPT image models.
 
           style: The style of the generated images. This parameter is only supported for
               `dall-e-3`. Must be one of `vivid` or `natural`. Vivid causes the model to lean
@@ -638,27 +640,27 @@ class Images(SyncAPIResource):
         *,
         prompt: str,
         stream: Literal[True],
-        background: Optional[Literal["transparent", "opaque", "auto"]] | NotGiven = NOT_GIVEN,
-        model: Union[str, ImageModel, None] | NotGiven = NOT_GIVEN,
-        moderation: Optional[Literal["low", "auto"]] | NotGiven = NOT_GIVEN,
-        n: Optional[int] | NotGiven = NOT_GIVEN,
-        output_compression: Optional[int] | NotGiven = NOT_GIVEN,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | NotGiven = NOT_GIVEN,
-        partial_images: Optional[int] | NotGiven = NOT_GIVEN,
-        quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | NotGiven = NOT_GIVEN,
-        response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
+        background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        model: Union[str, ImageModel, None] | Omit = omit,
+        moderation: Optional[Literal["low", "auto"]] | Omit = omit,
+        n: Optional[int] | Omit = omit,
+        output_compression: Optional[int] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        partial_images: Optional[int] | Omit = omit,
+        quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | Omit = omit,
+        response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
         size: Optional[
             Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"]
         ]
-        | NotGiven = NOT_GIVEN,
-        style: Optional[Literal["vivid", "natural"]] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        | Omit = omit,
+        style: Optional[Literal["vivid", "natural"]] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Stream[ImageGenStreamEvent]:
         """
         Creates an image given a prompt.
@@ -666,37 +668,38 @@ class Images(SyncAPIResource):
 
         Args:
           prompt: A text description of the desired image(s). The maximum length is 32000
-              characters for `gpt-image-1`, 1000 characters for `dall-e-2` and 4000 characters
-              for `dall-e-3`.
+              characters for the GPT image models, 1000 characters for `dall-e-2` and 4000
+              characters for `dall-e-3`.
 
           stream: Generate the image in streaming mode. Defaults to `false`. See the
               [Image generation guide](https://platform.openai.com/docs/guides/image-generation)
-              for more information. This parameter is only supported for `gpt-image-1`.
+              for more information. This parameter is only supported for the GPT image models.
 
           background: Allows to set transparency for the background of the generated image(s). This
-              parameter is only supported for `gpt-image-1`. Must be one of `transparent`,
-              `opaque` or `auto` (default value). When `auto` is used, the model will
-              automatically determine the best background for the image.
+              parameter is only supported for the GPT image models. Must be one of
+              `transparent`, `opaque` or `auto` (default value). When `auto` is used, the
+              model will automatically determine the best background for the image.
 
               If `transparent`, the output format needs to support transparency, so it should
               be set to either `png` (default value) or `webp`.
 
-          model: The model to use for image generation. One of `dall-e-2`, `dall-e-3`, or
-              `gpt-image-1`. Defaults to `dall-e-2` unless a parameter specific to
-              `gpt-image-1` is used.
+          model: The model to use for image generation. One of `dall-e-2`, `dall-e-3`, or a GPT
+              image model (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`). Defaults to
+              `dall-e-2` unless a parameter specific to the GPT image models is used.
 
-          moderation: Control the content-moderation level for images generated by `gpt-image-1`. Must
-              be either `low` for less restrictive filtering or `auto` (default value).
+          moderation: Control the content-moderation level for images generated by the GPT image
+              models. Must be either `low` for less restrictive filtering or `auto` (default
+              value).
 
           n: The number of images to generate. Must be between 1 and 10. For `dall-e-3`, only
               `n=1` is supported.
 
           output_compression: The compression level (0-100%) for the generated images. This parameter is only
-              supported for `gpt-image-1` with the `webp` or `jpeg` output formats, and
+              supported for the GPT image models with the `webp` or `jpeg` output formats, and
               defaults to 100.
 
           output_format: The format in which the generated images are returned. This parameter is only
-              supported for `gpt-image-1`. Must be one of `png`, `jpeg`, or `webp`.
+              supported for the GPT image models. Must be one of `png`, `jpeg`, or `webp`.
 
           partial_images: The number of partial images to generate. This parameter is used for streaming
               responses that return partial images. Value must be between 0 and 3. When set to
@@ -709,19 +712,19 @@ class Images(SyncAPIResource):
 
               - `auto` (default value) will automatically select the best quality for the
                 given model.
-              - `high`, `medium` and `low` are supported for `gpt-image-1`.
+              - `high`, `medium` and `low` are supported for the GPT image models.
               - `hd` and `standard` are supported for `dall-e-3`.
               - `standard` is the only option for `dall-e-2`.
 
           response_format: The format in which generated images with `dall-e-2` and `dall-e-3` are
               returned. Must be one of `url` or `b64_json`. URLs are only valid for 60 minutes
-              after the image has been generated. This parameter isn't supported for
-              `gpt-image-1` which will always return base64-encoded images.
+              after the image has been generated. This parameter isn't supported for the GPT
+              image models, which always return base64-encoded images.
 
           size: The size of the generated images. Must be one of `1024x1024`, `1536x1024`
-              (landscape), `1024x1536` (portrait), or `auto` (default value) for
-              `gpt-image-1`, one of `256x256`, `512x512`, or `1024x1024` for `dall-e-2`, and
-              one of `1024x1024`, `1792x1024`, or `1024x1792` for `dall-e-3`.
+              (landscape), `1024x1536` (portrait), or `auto` (default value) for the GPT image
+              models, one of `256x256`, `512x512`, or `1024x1024` for `dall-e-2`, and one of
+              `1024x1024`, `1792x1024`, or `1024x1792` for `dall-e-3`.
 
           style: The style of the generated images. This parameter is only supported for
               `dall-e-3`. Must be one of `vivid` or `natural`. Vivid causes the model to lean
@@ -748,27 +751,27 @@ class Images(SyncAPIResource):
         *,
         prompt: str,
         stream: bool,
-        background: Optional[Literal["transparent", "opaque", "auto"]] | NotGiven = NOT_GIVEN,
-        model: Union[str, ImageModel, None] | NotGiven = NOT_GIVEN,
-        moderation: Optional[Literal["low", "auto"]] | NotGiven = NOT_GIVEN,
-        n: Optional[int] | NotGiven = NOT_GIVEN,
-        output_compression: Optional[int] | NotGiven = NOT_GIVEN,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | NotGiven = NOT_GIVEN,
-        partial_images: Optional[int] | NotGiven = NOT_GIVEN,
-        quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | NotGiven = NOT_GIVEN,
-        response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
+        background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        model: Union[str, ImageModel, None] | Omit = omit,
+        moderation: Optional[Literal["low", "auto"]] | Omit = omit,
+        n: Optional[int] | Omit = omit,
+        output_compression: Optional[int] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        partial_images: Optional[int] | Omit = omit,
+        quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | Omit = omit,
+        response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
         size: Optional[
             Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"]
         ]
-        | NotGiven = NOT_GIVEN,
-        style: Optional[Literal["vivid", "natural"]] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        | Omit = omit,
+        style: Optional[Literal["vivid", "natural"]] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse | Stream[ImageGenStreamEvent]:
         """
         Creates an image given a prompt.
@@ -776,37 +779,38 @@ class Images(SyncAPIResource):
 
         Args:
           prompt: A text description of the desired image(s). The maximum length is 32000
-              characters for `gpt-image-1`, 1000 characters for `dall-e-2` and 4000 characters
-              for `dall-e-3`.
+              characters for the GPT image models, 1000 characters for `dall-e-2` and 4000
+              characters for `dall-e-3`.
 
           stream: Generate the image in streaming mode. Defaults to `false`. See the
               [Image generation guide](https://platform.openai.com/docs/guides/image-generation)
-              for more information. This parameter is only supported for `gpt-image-1`.
+              for more information. This parameter is only supported for the GPT image models.
 
           background: Allows to set transparency for the background of the generated image(s). This
-              parameter is only supported for `gpt-image-1`. Must be one of `transparent`,
-              `opaque` or `auto` (default value). When `auto` is used, the model will
-              automatically determine the best background for the image.
+              parameter is only supported for the GPT image models. Must be one of
+              `transparent`, `opaque` or `auto` (default value). When `auto` is used, the
+              model will automatically determine the best background for the image.
 
               If `transparent`, the output format needs to support transparency, so it should
               be set to either `png` (default value) or `webp`.
 
-          model: The model to use for image generation. One of `dall-e-2`, `dall-e-3`, or
-              `gpt-image-1`. Defaults to `dall-e-2` unless a parameter specific to
-              `gpt-image-1` is used.
+          model: The model to use for image generation. One of `dall-e-2`, `dall-e-3`, or a GPT
+              image model (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`). Defaults to
+              `dall-e-2` unless a parameter specific to the GPT image models is used.
 
-          moderation: Control the content-moderation level for images generated by `gpt-image-1`. Must
-              be either `low` for less restrictive filtering or `auto` (default value).
+          moderation: Control the content-moderation level for images generated by the GPT image
+              models. Must be either `low` for less restrictive filtering or `auto` (default
+              value).
 
           n: The number of images to generate. Must be between 1 and 10. For `dall-e-3`, only
               `n=1` is supported.
 
           output_compression: The compression level (0-100%) for the generated images. This parameter is only
-              supported for `gpt-image-1` with the `webp` or `jpeg` output formats, and
+              supported for the GPT image models with the `webp` or `jpeg` output formats, and
               defaults to 100.
 
           output_format: The format in which the generated images are returned. This parameter is only
-              supported for `gpt-image-1`. Must be one of `png`, `jpeg`, or `webp`.
+              supported for the GPT image models. Must be one of `png`, `jpeg`, or `webp`.
 
           partial_images: The number of partial images to generate. This parameter is used for streaming
               responses that return partial images. Value must be between 0 and 3. When set to
@@ -819,19 +823,19 @@ class Images(SyncAPIResource):
 
               - `auto` (default value) will automatically select the best quality for the
                 given model.
-              - `high`, `medium` and `low` are supported for `gpt-image-1`.
+              - `high`, `medium` and `low` are supported for the GPT image models.
               - `hd` and `standard` are supported for `dall-e-3`.
               - `standard` is the only option for `dall-e-2`.
 
           response_format: The format in which generated images with `dall-e-2` and `dall-e-3` are
               returned. Must be one of `url` or `b64_json`. URLs are only valid for 60 minutes
-              after the image has been generated. This parameter isn't supported for
-              `gpt-image-1` which will always return base64-encoded images.
+              after the image has been generated. This parameter isn't supported for the GPT
+              image models, which always return base64-encoded images.
 
           size: The size of the generated images. Must be one of `1024x1024`, `1536x1024`
-              (landscape), `1024x1536` (portrait), or `auto` (default value) for
-              `gpt-image-1`, one of `256x256`, `512x512`, or `1024x1024` for `dall-e-2`, and
-              one of `1024x1024`, `1792x1024`, or `1024x1792` for `dall-e-3`.
+              (landscape), `1024x1536` (portrait), or `auto` (default value) for the GPT image
+              models, one of `256x256`, `512x512`, or `1024x1024` for `dall-e-2`, and one of
+              `1024x1024`, `1792x1024`, or `1024x1792` for `dall-e-3`.
 
           style: The style of the generated images. This parameter is only supported for
               `dall-e-3`. Must be one of `vivid` or `natural`. Vivid causes the model to lean
@@ -857,28 +861,28 @@ class Images(SyncAPIResource):
         self,
         *,
         prompt: str,
-        background: Optional[Literal["transparent", "opaque", "auto"]] | NotGiven = NOT_GIVEN,
-        model: Union[str, ImageModel, None] | NotGiven = NOT_GIVEN,
-        moderation: Optional[Literal["low", "auto"]] | NotGiven = NOT_GIVEN,
-        n: Optional[int] | NotGiven = NOT_GIVEN,
-        output_compression: Optional[int] | NotGiven = NOT_GIVEN,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | NotGiven = NOT_GIVEN,
-        partial_images: Optional[int] | NotGiven = NOT_GIVEN,
-        quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | NotGiven = NOT_GIVEN,
-        response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
+        background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        model: Union[str, ImageModel, None] | Omit = omit,
+        moderation: Optional[Literal["low", "auto"]] | Omit = omit,
+        n: Optional[int] | Omit = omit,
+        output_compression: Optional[int] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        partial_images: Optional[int] | Omit = omit,
+        quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | Omit = omit,
+        response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
         size: Optional[
             Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"]
         ]
-        | NotGiven = NOT_GIVEN,
-        stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
-        style: Optional[Literal["vivid", "natural"]] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        | Omit = omit,
+        stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
+        style: Optional[Literal["vivid", "natural"]] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse | Stream[ImageGenStreamEvent]:
         return self._post(
             "/images/generations",
@@ -913,6 +917,8 @@ class Images(SyncAPIResource):
 
 
 class AsyncImages(AsyncAPIResource):
+    """Given a prompt and/or an input image, the model will generate a new image."""
+
     @cached_property
     def with_raw_response(self) -> AsyncImagesWithRawResponse:
         """
@@ -936,17 +942,17 @@ class AsyncImages(AsyncAPIResource):
         self,
         *,
         image: FileTypes,
-        model: Union[str, ImageModel, None] | NotGiven = NOT_GIVEN,
-        n: Optional[int] | NotGiven = NOT_GIVEN,
-        response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
-        size: Optional[Literal["256x256", "512x512", "1024x1024"]] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        model: Union[str, ImageModel, None] | Omit = omit,
+        n: Optional[int] | Omit = omit,
+        response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        size: Optional[Literal["256x256", "512x512", "1024x1024"]] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse:
         """Creates a variation of a given image.
 
@@ -1009,75 +1015,76 @@ class AsyncImages(AsyncAPIResource):
     async def edit(
         self,
         *,
-        image: Union[FileTypes, List[FileTypes]],
+        image: Union[FileTypes, SequenceNotStr[FileTypes]],
         prompt: str,
-        background: Optional[Literal["transparent", "opaque", "auto"]] | NotGiven = NOT_GIVEN,
-        input_fidelity: Optional[Literal["high", "low"]] | NotGiven = NOT_GIVEN,
-        mask: FileTypes | NotGiven = NOT_GIVEN,
-        model: Union[str, ImageModel, None] | NotGiven = NOT_GIVEN,
-        n: Optional[int] | NotGiven = NOT_GIVEN,
-        output_compression: Optional[int] | NotGiven = NOT_GIVEN,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | NotGiven = NOT_GIVEN,
-        partial_images: Optional[int] | NotGiven = NOT_GIVEN,
-        quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | NotGiven = NOT_GIVEN,
-        response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
-        size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]]
-        | NotGiven = NOT_GIVEN,
-        stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
+        mask: FileTypes | Omit = omit,
+        model: Union[str, ImageModel, None] | Omit = omit,
+        n: Optional[int] | Omit = omit,
+        output_compression: Optional[int] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        partial_images: Optional[int] | Omit = omit,
+        quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | Omit = omit,
+        response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]] | Omit = omit,
+        stream: Optional[Literal[False]] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse:
         """Creates an edited or extended image given one or more source images and a
         prompt.
 
-        This endpoint only supports `gpt-image-1` and `dall-e-2`.
+        This endpoint supports GPT Image models (`gpt-image-1.5`, `gpt-image-1`,
+        `gpt-image-1-mini`, and `chatgpt-image-latest`) and `dall-e-2`.
 
         Args:
           image: The image(s) to edit. Must be a supported image file or an array of images.
 
-              For `gpt-image-1`, each image should be a `png`, `webp`, or `jpg` file less than
-              50MB. You can provide up to 16 images.
+              For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`, and
+              `gpt-image-1.5`), each image should be a `png`, `webp`, or `jpg` file less than
+              50MB. You can provide up to 16 images. `chatgpt-image-latest` follows the same
+              input constraints as GPT image models.
 
               For `dall-e-2`, you can only provide one image, and it should be a square `png`
               file less than 4MB.
 
           prompt: A text description of the desired image(s). The maximum length is 1000
-              characters for `dall-e-2`, and 32000 characters for `gpt-image-1`.
+              characters for `dall-e-2`, and 32000 characters for the GPT image models.
 
           background: Allows to set transparency for the background of the generated image(s). This
-              parameter is only supported for `gpt-image-1`. Must be one of `transparent`,
-              `opaque` or `auto` (default value). When `auto` is used, the model will
-              automatically determine the best background for the image.
+              parameter is only supported for the GPT image models. Must be one of
+              `transparent`, `opaque` or `auto` (default value). When `auto` is used, the
+              model will automatically determine the best background for the image.
 
               If `transparent`, the output format needs to support transparency, so it should
               be set to either `png` (default value) or `webp`.
 
           input_fidelity: Control how much effort the model will exert to match the style and features,
               especially facial features, of input images. This parameter is only supported
-              for `gpt-image-1`. Supports `high` and `low`. Defaults to `low`.
+              for `gpt-image-1` and `gpt-image-1.5` and later models, unsupported for
+              `gpt-image-1-mini`. Supports `high` and `low`. Defaults to `low`.
 
           mask: An additional image whose fully transparent areas (e.g. where alpha is zero)
               indicate where `image` should be edited. If there are multiple images provided,
               the mask will be applied on the first image. Must be a valid PNG file, less than
               4MB, and have the same dimensions as `image`.
 
-          model: The model to use for image generation. Only `dall-e-2` and `gpt-image-1` are
-              supported. Defaults to `dall-e-2` unless a parameter specific to `gpt-image-1`
-              is used.
+          model: The model to use for image generation. Defaults to `gpt-image-1.5`.
 
           n: The number of images to generate. Must be between 1 and 10.
 
           output_compression: The compression level (0-100%) for the generated images. This parameter is only
-              supported for `gpt-image-1` with the `webp` or `jpeg` output formats, and
+              supported for the GPT image models with the `webp` or `jpeg` output formats, and
               defaults to 100.
 
           output_format: The format in which the generated images are returned. This parameter is only
-              supported for `gpt-image-1`. Must be one of `png`, `jpeg`, or `webp`. The
+              supported for the GPT image models. Must be one of `png`, `jpeg`, or `webp`. The
               default value is `png`.
 
           partial_images: The number of partial images to generate. This parameter is used for streaming
@@ -1087,18 +1094,17 @@ class AsyncImages(AsyncAPIResource):
               Note that the final image may be sent before the full number of partial images
               are generated if the full image is generated more quickly.
 
-          quality: The quality of the image that will be generated. `high`, `medium` and `low` are
-              only supported for `gpt-image-1`. `dall-e-2` only supports `standard` quality.
-              Defaults to `auto`.
+          quality: The quality of the image that will be generated for GPT image models. Defaults
+              to `auto`.
 
           response_format: The format in which the generated images are returned. Must be one of `url` or
               `b64_json`. URLs are only valid for 60 minutes after the image has been
-              generated. This parameter is only supported for `dall-e-2`, as `gpt-image-1`
-              will always return base64-encoded images.
+              generated. This parameter is only supported for `dall-e-2` (default is `url` for
+              `dall-e-2`), as GPT image models always return base64-encoded images.
 
           size: The size of the generated images. Must be one of `1024x1024`, `1536x1024`
-              (landscape), `1024x1536` (portrait), or `auto` (default value) for
-              `gpt-image-1`, and one of `256x256`, `512x512`, or `1024x1024` for `dall-e-2`.
+              (landscape), `1024x1536` (portrait), or `auto` (default value) for the GPT image
+              models, and one of `256x256`, `512x512`, or `1024x1024` for `dall-e-2`.
 
           stream: Edit the image in streaming mode. Defaults to `false`. See the
               [Image generation guide](https://platform.openai.com/docs/guides/image-generation)
@@ -1122,79 +1128,80 @@ class AsyncImages(AsyncAPIResource):
     async def edit(
         self,
         *,
-        image: Union[FileTypes, List[FileTypes]],
+        image: Union[FileTypes, SequenceNotStr[FileTypes]],
         prompt: str,
         stream: Literal[True],
-        background: Optional[Literal["transparent", "opaque", "auto"]] | NotGiven = NOT_GIVEN,
-        input_fidelity: Optional[Literal["high", "low"]] | NotGiven = NOT_GIVEN,
-        mask: FileTypes | NotGiven = NOT_GIVEN,
-        model: Union[str, ImageModel, None] | NotGiven = NOT_GIVEN,
-        n: Optional[int] | NotGiven = NOT_GIVEN,
-        output_compression: Optional[int] | NotGiven = NOT_GIVEN,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | NotGiven = NOT_GIVEN,
-        partial_images: Optional[int] | NotGiven = NOT_GIVEN,
-        quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | NotGiven = NOT_GIVEN,
-        response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
-        size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]]
-        | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
+        mask: FileTypes | Omit = omit,
+        model: Union[str, ImageModel, None] | Omit = omit,
+        n: Optional[int] | Omit = omit,
+        output_compression: Optional[int] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        partial_images: Optional[int] | Omit = omit,
+        quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | Omit = omit,
+        response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> AsyncStream[ImageEditStreamEvent]:
         """Creates an edited or extended image given one or more source images and a
         prompt.
 
-        This endpoint only supports `gpt-image-1` and `dall-e-2`.
+        This endpoint supports GPT Image models (`gpt-image-1.5`, `gpt-image-1`,
+        `gpt-image-1-mini`, and `chatgpt-image-latest`) and `dall-e-2`.
 
         Args:
           image: The image(s) to edit. Must be a supported image file or an array of images.
 
-              For `gpt-image-1`, each image should be a `png`, `webp`, or `jpg` file less than
-              50MB. You can provide up to 16 images.
+              For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`, and
+              `gpt-image-1.5`), each image should be a `png`, `webp`, or `jpg` file less than
+              50MB. You can provide up to 16 images. `chatgpt-image-latest` follows the same
+              input constraints as GPT image models.
 
               For `dall-e-2`, you can only provide one image, and it should be a square `png`
               file less than 4MB.
 
           prompt: A text description of the desired image(s). The maximum length is 1000
-              characters for `dall-e-2`, and 32000 characters for `gpt-image-1`.
+              characters for `dall-e-2`, and 32000 characters for the GPT image models.
 
           stream: Edit the image in streaming mode. Defaults to `false`. See the
               [Image generation guide](https://platform.openai.com/docs/guides/image-generation)
               for more information.
 
           background: Allows to set transparency for the background of the generated image(s). This
-              parameter is only supported for `gpt-image-1`. Must be one of `transparent`,
-              `opaque` or `auto` (default value). When `auto` is used, the model will
-              automatically determine the best background for the image.
+              parameter is only supported for the GPT image models. Must be one of
+              `transparent`, `opaque` or `auto` (default value). When `auto` is used, the
+              model will automatically determine the best background for the image.
 
               If `transparent`, the output format needs to support transparency, so it should
               be set to either `png` (default value) or `webp`.
 
           input_fidelity: Control how much effort the model will exert to match the style and features,
               especially facial features, of input images. This parameter is only supported
-              for `gpt-image-1`. Supports `high` and `low`. Defaults to `low`.
+              for `gpt-image-1` and `gpt-image-1.5` and later models, unsupported for
+              `gpt-image-1-mini`. Supports `high` and `low`. Defaults to `low`.
 
           mask: An additional image whose fully transparent areas (e.g. where alpha is zero)
               indicate where `image` should be edited. If there are multiple images provided,
               the mask will be applied on the first image. Must be a valid PNG file, less than
               4MB, and have the same dimensions as `image`.
 
-          model: The model to use for image generation. Only `dall-e-2` and `gpt-image-1` are
-              supported. Defaults to `dall-e-2` unless a parameter specific to `gpt-image-1`
-              is used.
+          model: The model to use for image generation. Defaults to `gpt-image-1.5`.
 
           n: The number of images to generate. Must be between 1 and 10.
 
           output_compression: The compression level (0-100%) for the generated images. This parameter is only
-              supported for `gpt-image-1` with the `webp` or `jpeg` output formats, and
+              supported for the GPT image models with the `webp` or `jpeg` output formats, and
               defaults to 100.
 
           output_format: The format in which the generated images are returned. This parameter is only
-              supported for `gpt-image-1`. Must be one of `png`, `jpeg`, or `webp`. The
+              supported for the GPT image models. Must be one of `png`, `jpeg`, or `webp`. The
               default value is `png`.
 
           partial_images: The number of partial images to generate. This parameter is used for streaming
@@ -1204,18 +1211,17 @@ class AsyncImages(AsyncAPIResource):
               Note that the final image may be sent before the full number of partial images
               are generated if the full image is generated more quickly.
 
-          quality: The quality of the image that will be generated. `high`, `medium` and `low` are
-              only supported for `gpt-image-1`. `dall-e-2` only supports `standard` quality.
-              Defaults to `auto`.
+          quality: The quality of the image that will be generated for GPT image models. Defaults
+              to `auto`.
 
           response_format: The format in which the generated images are returned. Must be one of `url` or
               `b64_json`. URLs are only valid for 60 minutes after the image has been
-              generated. This parameter is only supported for `dall-e-2`, as `gpt-image-1`
-              will always return base64-encoded images.
+              generated. This parameter is only supported for `dall-e-2` (default is `url` for
+              `dall-e-2`), as GPT image models always return base64-encoded images.
 
           size: The size of the generated images. Must be one of `1024x1024`, `1536x1024`
-              (landscape), `1024x1536` (portrait), or `auto` (default value) for
-              `gpt-image-1`, and one of `256x256`, `512x512`, or `1024x1024` for `dall-e-2`.
+              (landscape), `1024x1536` (portrait), or `auto` (default value) for the GPT image
+              models, and one of `256x256`, `512x512`, or `1024x1024` for `dall-e-2`.
 
           user: A unique identifier representing your end-user, which can help OpenAI to monitor
               and detect abuse.
@@ -1235,79 +1241,80 @@ class AsyncImages(AsyncAPIResource):
     async def edit(
         self,
         *,
-        image: Union[FileTypes, List[FileTypes]],
+        image: Union[FileTypes, SequenceNotStr[FileTypes]],
         prompt: str,
         stream: bool,
-        background: Optional[Literal["transparent", "opaque", "auto"]] | NotGiven = NOT_GIVEN,
-        input_fidelity: Optional[Literal["high", "low"]] | NotGiven = NOT_GIVEN,
-        mask: FileTypes | NotGiven = NOT_GIVEN,
-        model: Union[str, ImageModel, None] | NotGiven = NOT_GIVEN,
-        n: Optional[int] | NotGiven = NOT_GIVEN,
-        output_compression: Optional[int] | NotGiven = NOT_GIVEN,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | NotGiven = NOT_GIVEN,
-        partial_images: Optional[int] | NotGiven = NOT_GIVEN,
-        quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | NotGiven = NOT_GIVEN,
-        response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
-        size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]]
-        | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
+        mask: FileTypes | Omit = omit,
+        model: Union[str, ImageModel, None] | Omit = omit,
+        n: Optional[int] | Omit = omit,
+        output_compression: Optional[int] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        partial_images: Optional[int] | Omit = omit,
+        quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | Omit = omit,
+        response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse | AsyncStream[ImageEditStreamEvent]:
         """Creates an edited or extended image given one or more source images and a
         prompt.
 
-        This endpoint only supports `gpt-image-1` and `dall-e-2`.
+        This endpoint supports GPT Image models (`gpt-image-1.5`, `gpt-image-1`,
+        `gpt-image-1-mini`, and `chatgpt-image-latest`) and `dall-e-2`.
 
         Args:
           image: The image(s) to edit. Must be a supported image file or an array of images.
 
-              For `gpt-image-1`, each image should be a `png`, `webp`, or `jpg` file less than
-              50MB. You can provide up to 16 images.
+              For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`, and
+              `gpt-image-1.5`), each image should be a `png`, `webp`, or `jpg` file less than
+              50MB. You can provide up to 16 images. `chatgpt-image-latest` follows the same
+              input constraints as GPT image models.
 
               For `dall-e-2`, you can only provide one image, and it should be a square `png`
               file less than 4MB.
 
           prompt: A text description of the desired image(s). The maximum length is 1000
-              characters for `dall-e-2`, and 32000 characters for `gpt-image-1`.
+              characters for `dall-e-2`, and 32000 characters for the GPT image models.
 
           stream: Edit the image in streaming mode. Defaults to `false`. See the
               [Image generation guide](https://platform.openai.com/docs/guides/image-generation)
               for more information.
 
           background: Allows to set transparency for the background of the generated image(s). This
-              parameter is only supported for `gpt-image-1`. Must be one of `transparent`,
-              `opaque` or `auto` (default value). When `auto` is used, the model will
-              automatically determine the best background for the image.
+              parameter is only supported for the GPT image models. Must be one of
+              `transparent`, `opaque` or `auto` (default value). When `auto` is used, the
+              model will automatically determine the best background for the image.
 
               If `transparent`, the output format needs to support transparency, so it should
               be set to either `png` (default value) or `webp`.
 
           input_fidelity: Control how much effort the model will exert to match the style and features,
               especially facial features, of input images. This parameter is only supported
-              for `gpt-image-1`. Supports `high` and `low`. Defaults to `low`.
+              for `gpt-image-1` and `gpt-image-1.5` and later models, unsupported for
+              `gpt-image-1-mini`. Supports `high` and `low`. Defaults to `low`.
 
           mask: An additional image whose fully transparent areas (e.g. where alpha is zero)
               indicate where `image` should be edited. If there are multiple images provided,
               the mask will be applied on the first image. Must be a valid PNG file, less than
               4MB, and have the same dimensions as `image`.
 
-          model: The model to use for image generation. Only `dall-e-2` and `gpt-image-1` are
-              supported. Defaults to `dall-e-2` unless a parameter specific to `gpt-image-1`
-              is used.
+          model: The model to use for image generation. Defaults to `gpt-image-1.5`.
 
           n: The number of images to generate. Must be between 1 and 10.
 
           output_compression: The compression level (0-100%) for the generated images. This parameter is only
-              supported for `gpt-image-1` with the `webp` or `jpeg` output formats, and
+              supported for the GPT image models with the `webp` or `jpeg` output formats, and
               defaults to 100.
 
           output_format: The format in which the generated images are returned. This parameter is only
-              supported for `gpt-image-1`. Must be one of `png`, `jpeg`, or `webp`. The
+              supported for the GPT image models. Must be one of `png`, `jpeg`, or `webp`. The
               default value is `png`.
 
           partial_images: The number of partial images to generate. This parameter is used for streaming
@@ -1317,18 +1324,17 @@ class AsyncImages(AsyncAPIResource):
               Note that the final image may be sent before the full number of partial images
               are generated if the full image is generated more quickly.
 
-          quality: The quality of the image that will be generated. `high`, `medium` and `low` are
-              only supported for `gpt-image-1`. `dall-e-2` only supports `standard` quality.
-              Defaults to `auto`.
+          quality: The quality of the image that will be generated for GPT image models. Defaults
+              to `auto`.
 
           response_format: The format in which the generated images are returned. Must be one of `url` or
               `b64_json`. URLs are only valid for 60 minutes after the image has been
-              generated. This parameter is only supported for `dall-e-2`, as `gpt-image-1`
-              will always return base64-encoded images.
+              generated. This parameter is only supported for `dall-e-2` (default is `url` for
+              `dall-e-2`), as GPT image models always return base64-encoded images.
 
           size: The size of the generated images. Must be one of `1024x1024`, `1536x1024`
-              (landscape), `1024x1536` (portrait), or `auto` (default value) for
-              `gpt-image-1`, and one of `256x256`, `512x512`, or `1024x1024` for `dall-e-2`.
+              (landscape), `1024x1536` (portrait), or `auto` (default value) for the GPT image
+              models, and one of `256x256`, `512x512`, or `1024x1024` for `dall-e-2`.
 
           user: A unique identifier representing your end-user, which can help OpenAI to monitor
               and detect abuse.
@@ -1348,28 +1354,27 @@ class AsyncImages(AsyncAPIResource):
     async def edit(
         self,
         *,
-        image: Union[FileTypes, List[FileTypes]],
+        image: Union[FileTypes, SequenceNotStr[FileTypes]],
         prompt: str,
-        background: Optional[Literal["transparent", "opaque", "auto"]] | NotGiven = NOT_GIVEN,
-        input_fidelity: Optional[Literal["high", "low"]] | NotGiven = NOT_GIVEN,
-        mask: FileTypes | NotGiven = NOT_GIVEN,
-        model: Union[str, ImageModel, None] | NotGiven = NOT_GIVEN,
-        n: Optional[int] | NotGiven = NOT_GIVEN,
-        output_compression: Optional[int] | NotGiven = NOT_GIVEN,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | NotGiven = NOT_GIVEN,
-        partial_images: Optional[int] | NotGiven = NOT_GIVEN,
-        quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | NotGiven = NOT_GIVEN,
-        response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
-        size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]]
-        | NotGiven = NOT_GIVEN,
-        stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
+        mask: FileTypes | Omit = omit,
+        model: Union[str, ImageModel, None] | Omit = omit,
+        n: Optional[int] | Omit = omit,
+        output_compression: Optional[int] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        partial_images: Optional[int] | Omit = omit,
+        quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | Omit = omit,
+        response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]] | Omit = omit,
+        stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse | AsyncStream[ImageEditStreamEvent]:
         body = deepcopy_minimal(
             {
@@ -1415,28 +1420,28 @@ class AsyncImages(AsyncAPIResource):
         self,
         *,
         prompt: str,
-        background: Optional[Literal["transparent", "opaque", "auto"]] | NotGiven = NOT_GIVEN,
-        model: Union[str, ImageModel, None] | NotGiven = NOT_GIVEN,
-        moderation: Optional[Literal["low", "auto"]] | NotGiven = NOT_GIVEN,
-        n: Optional[int] | NotGiven = NOT_GIVEN,
-        output_compression: Optional[int] | NotGiven = NOT_GIVEN,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | NotGiven = NOT_GIVEN,
-        partial_images: Optional[int] | NotGiven = NOT_GIVEN,
-        quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | NotGiven = NOT_GIVEN,
-        response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
+        background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        model: Union[str, ImageModel, None] | Omit = omit,
+        moderation: Optional[Literal["low", "auto"]] | Omit = omit,
+        n: Optional[int] | Omit = omit,
+        output_compression: Optional[int] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        partial_images: Optional[int] | Omit = omit,
+        quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | Omit = omit,
+        response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
         size: Optional[
             Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"]
         ]
-        | NotGiven = NOT_GIVEN,
-        stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
-        style: Optional[Literal["vivid", "natural"]] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        | Omit = omit,
+        stream: Optional[Literal[False]] | Omit = omit,
+        style: Optional[Literal["vivid", "natural"]] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse:
         """
         Creates an image given a prompt.
@@ -1444,33 +1449,34 @@ class AsyncImages(AsyncAPIResource):
 
         Args:
           prompt: A text description of the desired image(s). The maximum length is 32000
-              characters for `gpt-image-1`, 1000 characters for `dall-e-2` and 4000 characters
-              for `dall-e-3`.
+              characters for the GPT image models, 1000 characters for `dall-e-2` and 4000
+              characters for `dall-e-3`.
 
           background: Allows to set transparency for the background of the generated image(s). This
-              parameter is only supported for `gpt-image-1`. Must be one of `transparent`,
-              `opaque` or `auto` (default value). When `auto` is used, the model will
-              automatically determine the best background for the image.
+              parameter is only supported for the GPT image models. Must be one of
+              `transparent`, `opaque` or `auto` (default value). When `auto` is used, the
+              model will automatically determine the best background for the image.
 
               If `transparent`, the output format needs to support transparency, so it should
               be set to either `png` (default value) or `webp`.
 
-          model: The model to use for image generation. One of `dall-e-2`, `dall-e-3`, or
-              `gpt-image-1`. Defaults to `dall-e-2` unless a parameter specific to
-              `gpt-image-1` is used.
+          model: The model to use for image generation. One of `dall-e-2`, `dall-e-3`, or a GPT
+              image model (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`). Defaults to
+              `dall-e-2` unless a parameter specific to the GPT image models is used.
 
-          moderation: Control the content-moderation level for images generated by `gpt-image-1`. Must
-              be either `low` for less restrictive filtering or `auto` (default value).
+          moderation: Control the content-moderation level for images generated by the GPT image
+              models. Must be either `low` for less restrictive filtering or `auto` (default
+              value).
 
           n: The number of images to generate. Must be between 1 and 10. For `dall-e-3`, only
               `n=1` is supported.
 
           output_compression: The compression level (0-100%) for the generated images. This parameter is only
-              supported for `gpt-image-1` with the `webp` or `jpeg` output formats, and
+              supported for the GPT image models with the `webp` or `jpeg` output formats, and
               defaults to 100.
 
           output_format: The format in which the generated images are returned. This parameter is only
-              supported for `gpt-image-1`. Must be one of `png`, `jpeg`, or `webp`.
+              supported for the GPT image models. Must be one of `png`, `jpeg`, or `webp`.
 
           partial_images: The number of partial images to generate. This parameter is used for streaming
               responses that return partial images. Value must be between 0 and 3. When set to
@@ -1483,23 +1489,23 @@ class AsyncImages(AsyncAPIResource):
 
               - `auto` (default value) will automatically select the best quality for the
                 given model.
-              - `high`, `medium` and `low` are supported for `gpt-image-1`.
+              - `high`, `medium` and `low` are supported for the GPT image models.
               - `hd` and `standard` are supported for `dall-e-3`.
               - `standard` is the only option for `dall-e-2`.
 
           response_format: The format in which generated images with `dall-e-2` and `dall-e-3` are
               returned. Must be one of `url` or `b64_json`. URLs are only valid for 60 minutes
-              after the image has been generated. This parameter isn't supported for
-              `gpt-image-1` which will always return base64-encoded images.
+              after the image has been generated. This parameter isn't supported for the GPT
+              image models, which always return base64-encoded images.
 
           size: The size of the generated images. Must be one of `1024x1024`, `1536x1024`
-              (landscape), `1024x1536` (portrait), or `auto` (default value) for
-              `gpt-image-1`, one of `256x256`, `512x512`, or `1024x1024` for `dall-e-2`, and
-              one of `1024x1024`, `1792x1024`, or `1024x1792` for `dall-e-3`.
+              (landscape), `1024x1536` (portrait), or `auto` (default value) for the GPT image
+              models, one of `256x256`, `512x512`, or `1024x1024` for `dall-e-2`, and one of
+              `1024x1024`, `1792x1024`, or `1024x1792` for `dall-e-3`.
 
           stream: Generate the image in streaming mode. Defaults to `false`. See the
               [Image generation guide](https://platform.openai.com/docs/guides/image-generation)
-              for more information. This parameter is only supported for `gpt-image-1`.
+              for more information. This parameter is only supported for the GPT image models.
 
           style: The style of the generated images. This parameter is only supported for
               `dall-e-3`. Must be one of `vivid` or `natural`. Vivid causes the model to lean
@@ -1526,27 +1532,27 @@ class AsyncImages(AsyncAPIResource):
         *,
         prompt: str,
         stream: Literal[True],
-        background: Optional[Literal["transparent", "opaque", "auto"]] | NotGiven = NOT_GIVEN,
-        model: Union[str, ImageModel, None] | NotGiven = NOT_GIVEN,
-        moderation: Optional[Literal["low", "auto"]] | NotGiven = NOT_GIVEN,
-        n: Optional[int] | NotGiven = NOT_GIVEN,
-        output_compression: Optional[int] | NotGiven = NOT_GIVEN,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | NotGiven = NOT_GIVEN,
-        partial_images: Optional[int] | NotGiven = NOT_GIVEN,
-        quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | NotGiven = NOT_GIVEN,
-        response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
+        background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        model: Union[str, ImageModel, None] | Omit = omit,
+        moderation: Optional[Literal["low", "auto"]] | Omit = omit,
+        n: Optional[int] | Omit = omit,
+        output_compression: Optional[int] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        partial_images: Optional[int] | Omit = omit,
+        quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | Omit = omit,
+        response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
         size: Optional[
             Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"]
         ]
-        | NotGiven = NOT_GIVEN,
-        style: Optional[Literal["vivid", "natural"]] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        | Omit = omit,
+        style: Optional[Literal["vivid", "natural"]] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> AsyncStream[ImageGenStreamEvent]:
         """
         Creates an image given a prompt.
@@ -1554,37 +1560,38 @@ class AsyncImages(AsyncAPIResource):
 
         Args:
           prompt: A text description of the desired image(s). The maximum length is 32000
-              characters for `gpt-image-1`, 1000 characters for `dall-e-2` and 4000 characters
-              for `dall-e-3`.
+              characters for the GPT image models, 1000 characters for `dall-e-2` and 4000
+              characters for `dall-e-3`.
 
           stream: Generate the image in streaming mode. Defaults to `false`. See the
               [Image generation guide](https://platform.openai.com/docs/guides/image-generation)
-              for more information. This parameter is only supported for `gpt-image-1`.
+              for more information. This parameter is only supported for the GPT image models.
 
           background: Allows to set transparency for the background of the generated image(s). This
-              parameter is only supported for `gpt-image-1`. Must be one of `transparent`,
-              `opaque` or `auto` (default value). When `auto` is used, the model will
-              automatically determine the best background for the image.
+              parameter is only supported for the GPT image models. Must be one of
+              `transparent`, `opaque` or `auto` (default value). When `auto` is used, the
+              model will automatically determine the best background for the image.
 
               If `transparent`, the output format needs to support transparency, so it should
               be set to either `png` (default value) or `webp`.
 
-          model: The model to use for image generation. One of `dall-e-2`, `dall-e-3`, or
-              `gpt-image-1`. Defaults to `dall-e-2` unless a parameter specific to
-              `gpt-image-1` is used.
+          model: The model to use for image generation. One of `dall-e-2`, `dall-e-3`, or a GPT
+              image model (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`). Defaults to
+              `dall-e-2` unless a parameter specific to the GPT image models is used.
 
-          moderation: Control the content-moderation level for images generated by `gpt-image-1`. Must
-              be either `low` for less restrictive filtering or `auto` (default value).
+          moderation: Control the content-moderation level for images generated by the GPT image
+              models. Must be either `low` for less restrictive filtering or `auto` (default
+              value).
 
           n: The number of images to generate. Must be between 1 and 10. For `dall-e-3`, only
               `n=1` is supported.
 
           output_compression: The compression level (0-100%) for the generated images. This parameter is only
-              supported for `gpt-image-1` with the `webp` or `jpeg` output formats, and
+              supported for the GPT image models with the `webp` or `jpeg` output formats, and
               defaults to 100.
 
           output_format: The format in which the generated images are returned. This parameter is only
-              supported for `gpt-image-1`. Must be one of `png`, `jpeg`, or `webp`.
+              supported for the GPT image models. Must be one of `png`, `jpeg`, or `webp`.
 
           partial_images: The number of partial images to generate. This parameter is used for streaming
               responses that return partial images. Value must be between 0 and 3. When set to
@@ -1597,19 +1604,19 @@ class AsyncImages(AsyncAPIResource):
 
               - `auto` (default value) will automatically select the best quality for the
                 given model.
-              - `high`, `medium` and `low` are supported for `gpt-image-1`.
+              - `high`, `medium` and `low` are supported for the GPT image models.
               - `hd` and `standard` are supported for `dall-e-3`.
               - `standard` is the only option for `dall-e-2`.
 
           response_format: The format in which generated images with `dall-e-2` and `dall-e-3` are
               returned. Must be one of `url` or `b64_json`. URLs are only valid for 60 minutes
-              after the image has been generated. This parameter isn't supported for
-              `gpt-image-1` which will always return base64-encoded images.
+              after the image has been generated. This parameter isn't supported for the GPT
+              image models, which always return base64-encoded images.
 
           size: The size of the generated images. Must be one of `1024x1024`, `1536x1024`
-              (landscape), `1024x1536` (portrait), or `auto` (default value) for
-              `gpt-image-1`, one of `256x256`, `512x512`, or `1024x1024` for `dall-e-2`, and
-              one of `1024x1024`, `1792x1024`, or `1024x1792` for `dall-e-3`.
+              (landscape), `1024x1536` (portrait), or `auto` (default value) for the GPT image
+              models, one of `256x256`, `512x512`, or `1024x1024` for `dall-e-2`, and one of
+              `1024x1024`, `1792x1024`, or `1024x1792` for `dall-e-3`.
 
           style: The style of the generated images. This parameter is only supported for
               `dall-e-3`. Must be one of `vivid` or `natural`. Vivid causes the model to lean
@@ -1636,27 +1643,27 @@ class AsyncImages(AsyncAPIResource):
         *,
         prompt: str,
         stream: bool,
-        background: Optional[Literal["transparent", "opaque", "auto"]] | NotGiven = NOT_GIVEN,
-        model: Union[str, ImageModel, None] | NotGiven = NOT_GIVEN,
-        moderation: Optional[Literal["low", "auto"]] | NotGiven = NOT_GIVEN,
-        n: Optional[int] | NotGiven = NOT_GIVEN,
-        output_compression: Optional[int] | NotGiven = NOT_GIVEN,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | NotGiven = NOT_GIVEN,
-        partial_images: Optional[int] | NotGiven = NOT_GIVEN,
-        quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | NotGiven = NOT_GIVEN,
-        response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
+        background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        model: Union[str, ImageModel, None] | Omit = omit,
+        moderation: Optional[Literal["low", "auto"]] | Omit = omit,
+        n: Optional[int] | Omit = omit,
+        output_compression: Optional[int] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        partial_images: Optional[int] | Omit = omit,
+        quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | Omit = omit,
+        response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
         size: Optional[
             Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"]
         ]
-        | NotGiven = NOT_GIVEN,
-        style: Optional[Literal["vivid", "natural"]] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        | Omit = omit,
+        style: Optional[Literal["vivid", "natural"]] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse | AsyncStream[ImageGenStreamEvent]:
         """
         Creates an image given a prompt.
@@ -1664,37 +1671,38 @@ class AsyncImages(AsyncAPIResource):
 
         Args:
           prompt: A text description of the desired image(s). The maximum length is 32000
-              characters for `gpt-image-1`, 1000 characters for `dall-e-2` and 4000 characters
-              for `dall-e-3`.
+              characters for the GPT image models, 1000 characters for `dall-e-2` and 4000
+              characters for `dall-e-3`.
 
           stream: Generate the image in streaming mode. Defaults to `false`. See the
               [Image generation guide](https://platform.openai.com/docs/guides/image-generation)
-              for more information. This parameter is only supported for `gpt-image-1`.
+              for more information. This parameter is only supported for the GPT image models.
 
           background: Allows to set transparency for the background of the generated image(s). This
-              parameter is only supported for `gpt-image-1`. Must be one of `transparent`,
-              `opaque` or `auto` (default value). When `auto` is used, the model will
-              automatically determine the best background for the image.
+              parameter is only supported for the GPT image models. Must be one of
+              `transparent`, `opaque` or `auto` (default value). When `auto` is used, the
+              model will automatically determine the best background for the image.
 
               If `transparent`, the output format needs to support transparency, so it should
               be set to either `png` (default value) or `webp`.
 
-          model: The model to use for image generation. One of `dall-e-2`, `dall-e-3`, or
-              `gpt-image-1`. Defaults to `dall-e-2` unless a parameter specific to
-              `gpt-image-1` is used.
+          model: The model to use for image generation. One of `dall-e-2`, `dall-e-3`, or a GPT
+              image model (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`). Defaults to
+              `dall-e-2` unless a parameter specific to the GPT image models is used.
 
-          moderation: Control the content-moderation level for images generated by `gpt-image-1`. Must
-              be either `low` for less restrictive filtering or `auto` (default value).
+          moderation: Control the content-moderation level for images generated by the GPT image
+              models. Must be either `low` for less restrictive filtering or `auto` (default
+              value).
 
           n: The number of images to generate. Must be between 1 and 10. For `dall-e-3`, only
               `n=1` is supported.
 
           output_compression: The compression level (0-100%) for the generated images. This parameter is only
-              supported for `gpt-image-1` with the `webp` or `jpeg` output formats, and
+              supported for the GPT image models with the `webp` or `jpeg` output formats, and
               defaults to 100.
 
           output_format: The format in which the generated images are returned. This parameter is only
-              supported for `gpt-image-1`. Must be one of `png`, `jpeg`, or `webp`.
+              supported for the GPT image models. Must be one of `png`, `jpeg`, or `webp`.
 
           partial_images: The number of partial images to generate. This parameter is used for streaming
               responses that return partial images. Value must be between 0 and 3. When set to
@@ -1707,19 +1715,19 @@ class AsyncImages(AsyncAPIResource):
 
               - `auto` (default value) will automatically select the best quality for the
                 given model.
-              - `high`, `medium` and `low` are supported for `gpt-image-1`.
+              - `high`, `medium` and `low` are supported for the GPT image models.
               - `hd` and `standard` are supported for `dall-e-3`.
               - `standard` is the only option for `dall-e-2`.
 
           response_format: The format in which generated images with `dall-e-2` and `dall-e-3` are
               returned. Must be one of `url` or `b64_json`. URLs are only valid for 60 minutes
-              after the image has been generated. This parameter isn't supported for
-              `gpt-image-1` which will always return base64-encoded images.
+              after the image has been generated. This parameter isn't supported for the GPT
+              image models, which always return base64-encoded images.
 
           size: The size of the generated images. Must be one of `1024x1024`, `1536x1024`
-              (landscape), `1024x1536` (portrait), or `auto` (default value) for
-              `gpt-image-1`, one of `256x256`, `512x512`, or `1024x1024` for `dall-e-2`, and
-              one of `1024x1024`, `1792x1024`, or `1024x1792` for `dall-e-3`.
+              (landscape), `1024x1536` (portrait), or `auto` (default value) for the GPT image
+              models, one of `256x256`, `512x512`, or `1024x1024` for `dall-e-2`, and one of
+              `1024x1024`, `1792x1024`, or `1024x1792` for `dall-e-3`.
 
           style: The style of the generated images. This parameter is only supported for
               `dall-e-3`. Must be one of `vivid` or `natural`. Vivid causes the model to lean
@@ -1745,28 +1753,28 @@ class AsyncImages(AsyncAPIResource):
         self,
         *,
         prompt: str,
-        background: Optional[Literal["transparent", "opaque", "auto"]] | NotGiven = NOT_GIVEN,
-        model: Union[str, ImageModel, None] | NotGiven = NOT_GIVEN,
-        moderation: Optional[Literal["low", "auto"]] | NotGiven = NOT_GIVEN,
-        n: Optional[int] | NotGiven = NOT_GIVEN,
-        output_compression: Optional[int] | NotGiven = NOT_GIVEN,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | NotGiven = NOT_GIVEN,
-        partial_images: Optional[int] | NotGiven = NOT_GIVEN,
-        quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | NotGiven = NOT_GIVEN,
-        response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
+        background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        model: Union[str, ImageModel, None] | Omit = omit,
+        moderation: Optional[Literal["low", "auto"]] | Omit = omit,
+        n: Optional[int] | Omit = omit,
+        output_compression: Optional[int] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        partial_images: Optional[int] | Omit = omit,
+        quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | Omit = omit,
+        response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
         size: Optional[
             Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"]
         ]
-        | NotGiven = NOT_GIVEN,
-        stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
-        style: Optional[Literal["vivid", "natural"]] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        | Omit = omit,
+        stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
+        style: Optional[Literal["vivid", "natural"]] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse | AsyncStream[ImageGenStreamEvent]:
         return await self._post(
             "/images/generations",

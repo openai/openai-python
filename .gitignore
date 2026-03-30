@@ -1,5 +1,5 @@
 .prism.log
-.vscode
+.stdy.log
 _dev
 
 __pycache__

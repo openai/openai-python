@@ -9,6 +9,8 @@ __all__ = ["ResponseComputerToolCallOutputScreenshot"]
 
 
 class ResponseComputerToolCallOutputScreenshot(BaseModel):
+    """A computer screenshot image used with the computer use tool."""
+
     type: Literal["computer_screenshot"]
     """Specifies the event type.
 

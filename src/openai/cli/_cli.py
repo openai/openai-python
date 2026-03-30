@@ -16,7 +16,7 @@ from .. import _ApiType, __version__
 from ._api import register_commands
 from ._utils import can_use_http2
 from ._errors import CLIError, display_error
-from .._compat import PYDANTIC_V2, ConfigDict, model_parse
+from .._compat import PYDANTIC_V1, ConfigDict, model_parse
 from .._models import BaseModel
 from .._exceptions import APIError
 
@@ -28,14 +28,14 @@ logger.addHandler(handler)
 
 
 class Arguments(BaseModel):
-    if PYDANTIC_V2:
-        model_config: ClassVar[ConfigDict] = ConfigDict(
-            extra="ignore",
-        )
-    else:
+    if PYDANTIC_V1:
 
         class Config(pydantic.BaseConfig):  # type: ignore
             extra: Any = pydantic.Extra.ignore  # type: ignore
+    else:
+        model_config: ClassVar[ConfigDict] = ConfigDict(
+            extra="ignore",
+        )
 
     verbosity: int
     version: Optional[str] = None

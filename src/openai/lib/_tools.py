@@ -5,7 +5,7 @@ from typing import Any, Dict, cast
 import pydantic
 
 from ._pydantic import to_strict_json_schema
-from ..types.chat import ChatCompletionToolParam
+from ..types.chat import ChatCompletionFunctionToolParam
 from ..types.shared_params import FunctionDefinition
 from ..types.responses.function_tool_param import FunctionToolParam as ResponsesFunctionToolParam
 
@@ -42,7 +42,7 @@ def pydantic_function_tool(
     *,
     name: str | None = None,  # inferred from class name by default
     description: str | None = None,  # inferred from class docstring by default
-) -> ChatCompletionToolParam:
+) -> ChatCompletionFunctionToolParam:
     if description is None:
         # note: we intentionally don't use `.getdoc()` to avoid
         # including pydantic's docstrings

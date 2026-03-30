@@ -12,6 +12,8 @@ __all__ = ["EvalStoredCompletionsDataSourceConfig"]
 
 
 class EvalStoredCompletionsDataSourceConfig(BaseModel):
+    """Deprecated in favor of LogsDataSourceConfig."""
+
     schema_: Dict[str, object] = FieldInfo(alias="schema")
     """
     The json schema for the run data source items. Learn how to build JSON schemas

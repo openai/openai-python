@@ -9,6 +9,7 @@ import pytest
 
 from openai import OpenAI, AsyncOpenAI
 from tests.utils import assert_matches_type
+from openai._utils import assert_signatures_in_sync
 from openai.pagination import SyncCursorPage, AsyncCursorPage
 from openai.types.vector_stores import (
     VectorStoreFile,
@@ -25,7 +26,6 @@ class TestFileBatches:
     def test_method_create(self, client: OpenAI) -> None:
         file_batch = client.vector_stores.file_batches.create(
             vector_store_id="vs_abc123",
-            file_ids=["string"],
         )
         assert_matches_type(VectorStoreFileBatch, file_batch, path=["response"])
 
@@ -33,9 +33,16 @@ class TestFileBatches:
     def test_method_create_with_all_params(self, client: OpenAI) -> None:
         file_batch = client.vector_stores.file_batches.create(
             vector_store_id="vs_abc123",
-            file_ids=["string"],
             attributes={"foo": "string"},
             chunking_strategy={"type": "auto"},
+            file_ids=["string"],
+            files=[
+                {
+                    "file_id": "file_id",
+                    "attributes": {"foo": "string"},
+                    "chunking_strategy": {"type": "auto"},
+                }
+            ],
         )
         assert_matches_type(VectorStoreFileBatch, file_batch, path=["response"])
 
@@ -43,7 +50,6 @@ class TestFileBatches:
     def test_raw_response_create(self, client: OpenAI) -> None:
         response = client.vector_stores.file_batches.with_raw_response.create(
             vector_store_id="vs_abc123",
-            file_ids=["string"],
         )
 
         assert response.is_closed is True
@@ -55,7 +61,6 @@ class TestFileBatches:
     def test_streaming_response_create(self, client: OpenAI) -> None:
         with client.vector_stores.file_batches.with_streaming_response.create(
             vector_store_id="vs_abc123",
-            file_ids=["string"],
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -70,7 +75,6 @@ class TestFileBatches:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `vector_store_id` but received ''"):
             client.vector_stores.file_batches.with_raw_response.create(
                 vector_store_id="",
-                file_ids=["string"],
             )
 
     @parametrize
@@ -240,7 +244,6 @@ class TestAsyncFileBatches:
     async def test_method_create(self, async_client: AsyncOpenAI) -> None:
         file_batch = await async_client.vector_stores.file_batches.create(
             vector_store_id="vs_abc123",
-            file_ids=["string"],
         )
         assert_matches_type(VectorStoreFileBatch, file_batch, path=["response"])
 
@@ -248,9 +251,16 @@ class TestAsyncFileBatches:
     async def test_method_create_with_all_params(self, async_client: AsyncOpenAI) -> None:
         file_batch = await async_client.vector_stores.file_batches.create(
             vector_store_id="vs_abc123",
-            file_ids=["string"],
             attributes={"foo": "string"},
             chunking_strategy={"type": "auto"},
+            file_ids=["string"],
+            files=[
+                {
+                    "file_id": "file_id",
+                    "attributes": {"foo": "string"},
+                    "chunking_strategy": {"type": "auto"},
+                }
+            ],
         )
         assert_matches_type(VectorStoreFileBatch, file_batch, path=["response"])
 
@@ -258,7 +268,6 @@ class TestAsyncFileBatches:
     async def test_raw_response_create(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.vector_stores.file_batches.with_raw_response.create(
             vector_store_id="vs_abc123",
-            file_ids=["string"],
         )
 
         assert response.is_closed is True
@@ -270,7 +279,6 @@ class TestAsyncFileBatches:
     async def test_streaming_response_create(self, async_client: AsyncOpenAI) -> None:
         async with async_client.vector_stores.file_batches.with_streaming_response.create(
             vector_store_id="vs_abc123",
-            file_ids=["string"],
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -285,7 +293,6 @@ class TestAsyncFileBatches:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `vector_store_id` but received ''"):
             await async_client.vector_stores.file_batches.with_raw_response.create(
                 vector_store_id="",
-                file_ids=["string"],
             )
 
     @parametrize
@@ -444,3 +451,14 @@ class TestAsyncFileBatches:
                 batch_id="",
                 vector_store_id="vector_store_id",
             )
+
+
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+def test_create_and_poll_method_in_sync(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
+    checking_client: OpenAI | AsyncOpenAI = client if sync else async_client
+
+    # ensure helpers do not drift from generated spec
+    assert_signatures_in_sync(
+        checking_client.vector_stores.file_batches.create,
+        checking_client.vector_stores.file_batches.create_and_poll,
+    )

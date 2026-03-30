@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any, cast
 from argparse import ArgumentParser
 
 from .._utils import get_client, print_model
-from ..._types import NOT_GIVEN, NotGiven, NotGivenOr
+from ..._types import Omit, Omittable, omit
 from .._models import BaseModel
 from .._progress import BufferReader
 
@@ -63,7 +63,7 @@ class CLIImageCreateArgs(BaseModel):
     num_images: int
     size: str
     response_format: str
-    model: NotGivenOr[str] = NOT_GIVEN
+    model: Omittable[str] = omit
 
 
 class CLIImageCreateVariationArgs(BaseModel):
@@ -71,7 +71,7 @@ class CLIImageCreateVariationArgs(BaseModel):
     num_images: int
     size: str
     response_format: str
-    model: NotGivenOr[str] = NOT_GIVEN
+    model: Omittable[str] = omit
 
 
 class CLIImageEditArgs(BaseModel):
@@ -80,8 +80,8 @@ class CLIImageEditArgs(BaseModel):
     size: str
     response_format: str
     prompt: str
-    mask: NotGivenOr[str] = NOT_GIVEN
-    model: NotGivenOr[str] = NOT_GIVEN
+    mask: Omittable[str] = omit
+    model: Omittable[str] = omit
 
 
 class CLIImage:
@@ -119,8 +119,8 @@ class CLIImage:
         with open(args.image, "rb") as file_reader:
             buffer_reader = BufferReader(file_reader.read(), desc="Image upload progress")
 
-        if isinstance(args.mask, NotGiven):
-            mask: NotGivenOr[BufferReader] = NOT_GIVEN
+        if isinstance(args.mask, Omit):
+            mask: Omittable[BufferReader] = omit
         else:
             with open(args.mask, "rb") as file_reader:
                 mask = BufferReader(file_reader.read(), desc="Mask progress")
@@ -130,7 +130,7 @@ class CLIImage:
             prompt=args.prompt,
             image=("image", buffer_reader),
             n=args.num_images,
-            mask=("mask", mask) if not isinstance(mask, NotGiven) else mask,
+            mask=("mask", mask) if not isinstance(mask, Omit) else mask,
             # casts required because the API is typed for enums
             # but we don't want to validate that here for forwards-compat
             size=cast(Any, args.size),

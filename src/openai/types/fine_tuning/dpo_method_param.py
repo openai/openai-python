@@ -10,5 +10,7 @@ __all__ = ["DpoMethodParam"]
 
 
 class DpoMethodParam(TypedDict, total=False):
+    """Configuration for the DPO fine-tuning method."""
+
     hyperparameters: DpoHyperparametersParam
     """The hyperparameters used for the DPO fine-tuning job."""

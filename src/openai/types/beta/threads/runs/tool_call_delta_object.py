@@ -10,6 +10,8 @@ __all__ = ["ToolCallDeltaObject"]
 
 
 class ToolCallDeltaObject(BaseModel):
+    """Details of the tool call."""
+
     type: Literal["tool_calls"]
     """Always `tool_calls`."""
 

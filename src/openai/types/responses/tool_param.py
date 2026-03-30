@@ -2,20 +2,31 @@
 
 from __future__ import annotations
 
-from typing import Dict, List, Union, Optional
+from typing import Dict, Union, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
+from . import web_search_tool_param
+from ..chat import ChatCompletionFunctionToolParam
+from ..._types import SequenceNotStr
+from .custom_tool_param import CustomToolParam
 from .computer_tool_param import ComputerToolParam
 from .function_tool_param import FunctionToolParam
+from .namespace_tool_param import NamespaceToolParam
 from .web_search_tool_param import WebSearchToolParam
+from .apply_patch_tool_param import ApplyPatchToolParam
 from .file_search_tool_param import FileSearchToolParam
-from ..chat.chat_completion_tool_param import ChatCompletionToolParam
+from .tool_search_tool_param import ToolSearchToolParam
+from .function_shell_tool_param import FunctionShellToolParam
+from .web_search_preview_tool_param import WebSearchPreviewToolParam
+from .computer_use_preview_tool_param import ComputerUsePreviewToolParam
+from .container_network_policy_disabled_param import ContainerNetworkPolicyDisabledParam
+from .container_network_policy_allowlist_param import ContainerNetworkPolicyAllowlistParam
 
 __all__ = [
     "ToolParam",
     "Mcp",
     "McpAllowedTools",
-    "McpAllowedToolsMcpAllowedToolsFilter",
+    "McpAllowedToolsMcpToolFilter",
     "McpRequireApproval",
     "McpRequireApprovalMcpToolApprovalFilter",
     "McpRequireApprovalMcpToolApprovalFilterAlways",
@@ -23,53 +34,135 @@ __all__ = [
     "CodeInterpreter",
     "CodeInterpreterContainer",
     "CodeInterpreterContainerCodeInterpreterToolAuto",
+    "CodeInterpreterContainerCodeInterpreterToolAutoNetworkPolicy",
     "ImageGeneration",
     "ImageGenerationInputImageMask",
     "LocalShell",
 ]
 
+WebSearchTool = web_search_tool_param.WebSearchToolParam
+WebSearchToolFilters = web_search_tool_param.Filters
+WebSearchToolUserLocation = web_search_tool_param.UserLocation
 
-class McpAllowedToolsMcpAllowedToolsFilter(TypedDict, total=False):
-    tool_names: List[str]
+
+class McpAllowedToolsMcpToolFilter(TypedDict, total=False):
+    """A filter object to specify which tools are allowed."""
+
+    read_only: bool
+    """Indicates whether or not a tool modifies data or is read-only.
+
+    If an MCP server is
+    [annotated with `readOnlyHint`](https://modelcontextprotocol.io/specification/2025-06-18/schema#toolannotations-readonlyhint),
+    it will match this filter.
+    """
+
+    tool_names: SequenceNotStr[str]
     """List of allowed tool names."""
 
 
-McpAllowedTools: TypeAlias = Union[List[str], McpAllowedToolsMcpAllowedToolsFilter]
+McpAllowedTools: TypeAlias = Union[SequenceNotStr[str], McpAllowedToolsMcpToolFilter]
 
 
 class McpRequireApprovalMcpToolApprovalFilterAlways(TypedDict, total=False):
-    tool_names: List[str]
-    """List of tools that require approval."""
+    """A filter object to specify which tools are allowed."""
+
+    read_only: bool
+    """Indicates whether or not a tool modifies data or is read-only.
+
+    If an MCP server is
+    [annotated with `readOnlyHint`](https://modelcontextprotocol.io/specification/2025-06-18/schema#toolannotations-readonlyhint),
+    it will match this filter.
+    """
+
+    tool_names: SequenceNotStr[str]
+    """List of allowed tool names."""
 
 
 class McpRequireApprovalMcpToolApprovalFilterNever(TypedDict, total=False):
-    tool_names: List[str]
-    """List of tools that do not require approval."""
+    """A filter object to specify which tools are allowed."""
+
+    read_only: bool
+    """Indicates whether or not a tool modifies data or is read-only.
+
+    If an MCP server is
+    [annotated with `readOnlyHint`](https://modelcontextprotocol.io/specification/2025-06-18/schema#toolannotations-readonlyhint),
+    it will match this filter.
+    """
+
+    tool_names: SequenceNotStr[str]
+    """List of allowed tool names."""
 
 
 class McpRequireApprovalMcpToolApprovalFilter(TypedDict, total=False):
+    """Specify which of the MCP server's tools require approval.
+
+    Can be
+    `always`, `never`, or a filter object associated with tools
+    that require approval.
+    """
+
     always: McpRequireApprovalMcpToolApprovalFilterAlways
-    """A list of tools that always require approval."""
+    """A filter object to specify which tools are allowed."""
 
     never: McpRequireApprovalMcpToolApprovalFilterNever
-    """A list of tools that never require approval."""
+    """A filter object to specify which tools are allowed."""
 
 
 McpRequireApproval: TypeAlias = Union[McpRequireApprovalMcpToolApprovalFilter, Literal["always", "never"]]
 
 
 class Mcp(TypedDict, total=False):
+    """
+    Give the model access to additional tools via remote Model Context Protocol
+    (MCP) servers. [Learn more about MCP](https://platform.openai.com/docs/guides/tools-remote-mcp).
+    """
+
     server_label: Required[str]
     """A label for this MCP server, used to identify it in tool calls."""
-
-    server_url: Required[str]
-    """The URL for the MCP server."""
 
     type: Required[Literal["mcp"]]
     """The type of the MCP tool. Always `mcp`."""
 
     allowed_tools: Optional[McpAllowedTools]
     """List of allowed tool names or a filter object."""
+
+    authorization: str
+    """
+    An OAuth access token that can be used with a remote MCP server, either with a
+    custom MCP server URL or a service connector. Your application must handle the
+    OAuth authorization flow and provide the token here.
+    """
+
+    connector_id: Literal[
+        "connector_dropbox",
+        "connector_gmail",
+        "connector_googlecalendar",
+        "connector_googledrive",
+        "connector_microsoftteams",
+        "connector_outlookcalendar",
+        "connector_outlookemail",
+        "connector_sharepoint",
+    ]
+    """Identifier for service connectors, like those available in ChatGPT.
+
+    One of `server_url` or `connector_id` must be provided. Learn more about service
+    connectors
+    [here](https://platform.openai.com/docs/guides/tools-remote-mcp#connectors).
+
+    Currently supported `connector_id` values are:
+
+    - Dropbox: `connector_dropbox`
+    - Gmail: `connector_gmail`
+    - Google Calendar: `connector_googlecalendar`
+    - Google Drive: `connector_googledrive`
+    - Microsoft Teams: `connector_microsoftteams`
+    - Outlook Calendar: `connector_outlookcalendar`
+    - Outlook Email: `connector_outlookemail`
+    - SharePoint: `connector_sharepoint`
+    """
+
+    defer_loading: bool
+    """Whether this MCP tool is deferred and discovered via tool search."""
 
     headers: Optional[Dict[str, str]]
     """Optional HTTP headers to send to the MCP server.
@@ -83,24 +176,48 @@ class Mcp(TypedDict, total=False):
     server_description: str
     """Optional description of the MCP server, used to provide more context."""
 
+    server_url: str
+    """The URL for the MCP server.
+
+    One of `server_url` or `connector_id` must be provided.
+    """
+
+
+CodeInterpreterContainerCodeInterpreterToolAutoNetworkPolicy: TypeAlias = Union[
+    ContainerNetworkPolicyDisabledParam, ContainerNetworkPolicyAllowlistParam
+]
+
 
 class CodeInterpreterContainerCodeInterpreterToolAuto(TypedDict, total=False):
+    """Configuration for a code interpreter container.
+
+    Optionally specify the IDs of the files to run the code on.
+    """
+
     type: Required[Literal["auto"]]
     """Always `auto`."""
 
-    file_ids: List[str]
+    file_ids: SequenceNotStr[str]
     """An optional list of uploaded files to make available to your code."""
+
+    memory_limit: Optional[Literal["1g", "4g", "16g", "64g"]]
+    """The memory limit for the code interpreter container."""
+
+    network_policy: CodeInterpreterContainerCodeInterpreterToolAutoNetworkPolicy
+    """Network access policy for the container."""
 
 
 CodeInterpreterContainer: TypeAlias = Union[str, CodeInterpreterContainerCodeInterpreterToolAuto]
 
 
 class CodeInterpreter(TypedDict, total=False):
+    """A tool that runs Python code to help generate a response to a prompt."""
+
     container: Required[CodeInterpreterContainer]
     """The code interpreter container.
 
     Can be a container ID or an object that specifies uploaded file IDs to make
-    available to your code.
+    available to your code, along with an optional `memory_limit` setting.
     """
 
     type: Required[Literal["code_interpreter"]]
@@ -108,6 +225,12 @@ class CodeInterpreter(TypedDict, total=False):
 
 
 class ImageGenerationInputImageMask(TypedDict, total=False):
+    """Optional mask for inpainting.
+
+    Contains `image_url`
+    (string, optional) and `file_id` (string, optional).
+    """
+
     file_id: str
     """File ID for the mask image."""
 
@@ -116,8 +239,13 @@ class ImageGenerationInputImageMask(TypedDict, total=False):
 
 
 class ImageGeneration(TypedDict, total=False):
+    """A tool that generates images using the GPT image models."""
+
     type: Required[Literal["image_generation"]]
     """The type of the image generation tool. Always `image_generation`."""
+
+    action: Literal["generate", "edit", "auto"]
+    """Whether to generate a new image or edit an existing image. Default: `auto`."""
 
     background: Literal["transparent", "opaque", "auto"]
     """Background type for the generated image.
@@ -129,7 +257,8 @@ class ImageGeneration(TypedDict, total=False):
     """
     Control how much effort the model will exert to match the style and features,
     especially facial features, of input images. This parameter is only supported
-    for `gpt-image-1`. Supports `high` and `low`. Defaults to `low`.
+    for `gpt-image-1` and `gpt-image-1.5` and later models, unsupported for
+    `gpt-image-1-mini`. Supports `high` and `low`. Defaults to `low`.
     """
 
     input_image_mask: ImageGenerationInputImageMask
@@ -138,7 +267,7 @@ class ImageGeneration(TypedDict, total=False):
     Contains `image_url` (string, optional) and `file_id` (string, optional).
     """
 
-    model: Literal["gpt-image-1"]
+    model: Union[str, Literal["gpt-image-1", "gpt-image-1-mini", "gpt-image-1.5"]]
     """The image generation model to use. Default: `gpt-image-1`."""
 
     moderation: Literal["auto", "low"]
@@ -173,6 +302,8 @@ class ImageGeneration(TypedDict, total=False):
 
 
 class LocalShell(TypedDict, total=False):
+    """A tool that allows the model to execute shell commands in a local environment."""
+
     type: Required[Literal["local_shell"]]
     """The type of the local shell tool. Always `local_shell`."""
 
@@ -180,13 +311,20 @@ class LocalShell(TypedDict, total=False):
 ToolParam: TypeAlias = Union[
     FunctionToolParam,
     FileSearchToolParam,
-    WebSearchToolParam,
     ComputerToolParam,
+    ComputerUsePreviewToolParam,
+    WebSearchToolParam,
     Mcp,
     CodeInterpreter,
     ImageGeneration,
     LocalShell,
+    FunctionShellToolParam,
+    CustomToolParam,
+    NamespaceToolParam,
+    ToolSearchToolParam,
+    WebSearchPreviewToolParam,
+    ApplyPatchToolParam,
 ]
 
 
-ParseableToolParam: TypeAlias = Union[ToolParam, ChatCompletionToolParam]
+ParseableToolParam: TypeAlias = Union[ToolParam, ChatCompletionFunctionToolParam]

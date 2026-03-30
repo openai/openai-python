@@ -26,15 +26,27 @@ class TestFiles:
     @parametrize
     def test_method_create(self, client: OpenAI) -> None:
         file = client.files.create(
-            file=b"raw file contents",
+            file=b"Example data",
             purpose="assistants",
+        )
+        assert_matches_type(FileObject, file, path=["response"])
+
+    @parametrize
+    def test_method_create_with_all_params(self, client: OpenAI) -> None:
+        file = client.files.create(
+            file=b"Example data",
+            purpose="assistants",
+            expires_after={
+                "anchor": "created_at",
+                "seconds": 3600,
+            },
         )
         assert_matches_type(FileObject, file, path=["response"])
 
     @parametrize
     def test_raw_response_create(self, client: OpenAI) -> None:
         response = client.files.with_raw_response.create(
-            file=b"raw file contents",
+            file=b"Example data",
             purpose="assistants",
         )
 
@@ -46,7 +58,7 @@ class TestFiles:
     @parametrize
     def test_streaming_response_create(self, client: OpenAI) -> None:
         with client.files.with_streaming_response.create(
-            file=b"raw file contents",
+            file=b"Example data",
             purpose="assistants",
         ) as response:
             assert not response.is_closed
@@ -267,15 +279,27 @@ class TestAsyncFiles:
     @parametrize
     async def test_method_create(self, async_client: AsyncOpenAI) -> None:
         file = await async_client.files.create(
-            file=b"raw file contents",
+            file=b"Example data",
             purpose="assistants",
+        )
+        assert_matches_type(FileObject, file, path=["response"])
+
+    @parametrize
+    async def test_method_create_with_all_params(self, async_client: AsyncOpenAI) -> None:
+        file = await async_client.files.create(
+            file=b"Example data",
+            purpose="assistants",
+            expires_after={
+                "anchor": "created_at",
+                "seconds": 3600,
+            },
         )
         assert_matches_type(FileObject, file, path=["response"])
 
     @parametrize
     async def test_raw_response_create(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.files.with_raw_response.create(
-            file=b"raw file contents",
+            file=b"Example data",
             purpose="assistants",
         )
 
@@ -287,7 +311,7 @@ class TestAsyncFiles:
     @parametrize
     async def test_streaming_response_create(self, async_client: AsyncOpenAI) -> None:
         async with async_client.files.with_streaming_response.create(
-            file=b"raw file contents",
+            file=b"Example data",
             purpose="assistants",
         ) as response:
             assert not response.is_closed

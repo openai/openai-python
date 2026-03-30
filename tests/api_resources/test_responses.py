@@ -12,6 +12,7 @@ from tests.utils import assert_matches_type
 from openai._utils import assert_signatures_in_sync
 from openai.types.responses import (
     Response,
+    CompactedResponse,
 )
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
@@ -29,13 +30,20 @@ class TestResponses:
     def test_method_create_with_all_params_overload_1(self, client: OpenAI) -> None:
         response = client.responses.create(
             background=True,
-            include=["code_interpreter_call.outputs"],
+            context_management=[
+                {
+                    "type": "type",
+                    "compact_threshold": 1000,
+                }
+            ],
+            conversation="string",
+            include=["file_search_call.results"],
             input="string",
             instructions="instructions",
             max_output_tokens=0,
             max_tool_calls=0,
             metadata={"foo": "string"},
-            model="gpt-4o",
+            model="gpt-5.1",
             parallel_tool_calls=True,
             previous_response_id="previous_response_id",
             prompt={
@@ -43,16 +51,23 @@ class TestResponses:
                 "variables": {"foo": "string"},
                 "version": "version",
             },
+            prompt_cache_key="prompt-cache-key-1234",
+            prompt_cache_retention="in-memory",
             reasoning={
-                "effort": "low",
+                "effort": "none",
                 "generate_summary": "auto",
                 "summary": "auto",
             },
+            safety_identifier="safety-identifier-1234",
             service_tier="auto",
             store=True,
             stream=False,
+            stream_options={"include_obfuscation": True},
             temperature=1,
-            text={"format": {"type": "text"}},
+            text={
+                "format": {"type": "text"},
+                "verbosity": "low",
+            },
             tool_choice="none",
             tools=[
                 {
@@ -60,6 +75,7 @@ class TestResponses:
                     "parameters": {"foo": "bar"},
                     "strict": True,
                     "type": "function",
+                    "defer_loading": True,
                     "description": "description",
                 }
             ],
@@ -102,13 +118,20 @@ class TestResponses:
         response_stream = client.responses.create(
             stream=True,
             background=True,
-            include=["code_interpreter_call.outputs"],
+            context_management=[
+                {
+                    "type": "type",
+                    "compact_threshold": 1000,
+                }
+            ],
+            conversation="string",
+            include=["file_search_call.results"],
             input="string",
             instructions="instructions",
             max_output_tokens=0,
             max_tool_calls=0,
             metadata={"foo": "string"},
-            model="gpt-4o",
+            model="gpt-5.1",
             parallel_tool_calls=True,
             previous_response_id="previous_response_id",
             prompt={
@@ -116,15 +139,22 @@ class TestResponses:
                 "variables": {"foo": "string"},
                 "version": "version",
             },
+            prompt_cache_key="prompt-cache-key-1234",
+            prompt_cache_retention="in-memory",
             reasoning={
-                "effort": "low",
+                "effort": "none",
                 "generate_summary": "auto",
                 "summary": "auto",
             },
+            safety_identifier="safety-identifier-1234",
             service_tier="auto",
             store=True,
+            stream_options={"include_obfuscation": True},
             temperature=1,
-            text={"format": {"type": "text"}},
+            text={
+                "format": {"type": "text"},
+                "verbosity": "low",
+            },
             tool_choice="none",
             tools=[
                 {
@@ -132,6 +162,7 @@ class TestResponses:
                     "parameters": {"foo": "bar"},
                     "strict": True,
                     "type": "function",
+                    "defer_loading": True,
                     "description": "description",
                 }
             ],
@@ -176,7 +207,8 @@ class TestResponses:
     def test_method_retrieve_with_all_params_overload_1(self, client: OpenAI) -> None:
         response = client.responses.retrieve(
             response_id="resp_677efb5139a88190b512bc3fef8e535d",
-            include=["code_interpreter_call.outputs"],
+            include=["file_search_call.results"],
+            include_obfuscation=True,
             starting_after=0,
             stream=False,
         )
@@ -226,7 +258,8 @@ class TestResponses:
         response_stream = client.responses.retrieve(
             response_id="resp_677efb5139a88190b512bc3fef8e535d",
             stream=True,
-            include=["code_interpreter_call.outputs"],
+            include=["file_search_call.results"],
+            include_obfuscation=True,
             starting_after=0,
         )
         response_stream.response.close()
@@ -340,6 +373,48 @@ class TestResponses:
                 "",
             )
 
+    @parametrize
+    def test_method_compact(self, client: OpenAI) -> None:
+        response = client.responses.compact(
+            model="gpt-5.4",
+        )
+        assert_matches_type(CompactedResponse, response, path=["response"])
+
+    @parametrize
+    def test_method_compact_with_all_params(self, client: OpenAI) -> None:
+        response = client.responses.compact(
+            model="gpt-5.4",
+            input="string",
+            instructions="instructions",
+            previous_response_id="resp_123",
+            prompt_cache_key="prompt_cache_key",
+        )
+        assert_matches_type(CompactedResponse, response, path=["response"])
+
+    @parametrize
+    def test_raw_response_compact(self, client: OpenAI) -> None:
+        http_response = client.responses.with_raw_response.compact(
+            model="gpt-5.4",
+        )
+
+        assert http_response.is_closed is True
+        assert http_response.http_request.headers.get("X-Stainless-Lang") == "python"
+        response = http_response.parse()
+        assert_matches_type(CompactedResponse, response, path=["response"])
+
+    @parametrize
+    def test_streaming_response_compact(self, client: OpenAI) -> None:
+        with client.responses.with_streaming_response.compact(
+            model="gpt-5.4",
+        ) as http_response:
+            assert not http_response.is_closed
+            assert http_response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            response = http_response.parse()
+            assert_matches_type(CompactedResponse, response, path=["response"])
+
+        assert cast(Any, http_response.is_closed) is True
+
 
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
 def test_parse_method_in_sync(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
@@ -366,13 +441,20 @@ class TestAsyncResponses:
     async def test_method_create_with_all_params_overload_1(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.responses.create(
             background=True,
-            include=["code_interpreter_call.outputs"],
+            context_management=[
+                {
+                    "type": "type",
+                    "compact_threshold": 1000,
+                }
+            ],
+            conversation="string",
+            include=["file_search_call.results"],
             input="string",
             instructions="instructions",
             max_output_tokens=0,
             max_tool_calls=0,
             metadata={"foo": "string"},
-            model="gpt-4o",
+            model="gpt-5.1",
             parallel_tool_calls=True,
             previous_response_id="previous_response_id",
             prompt={
@@ -380,16 +462,23 @@ class TestAsyncResponses:
                 "variables": {"foo": "string"},
                 "version": "version",
             },
+            prompt_cache_key="prompt-cache-key-1234",
+            prompt_cache_retention="in-memory",
             reasoning={
-                "effort": "low",
+                "effort": "none",
                 "generate_summary": "auto",
                 "summary": "auto",
             },
+            safety_identifier="safety-identifier-1234",
             service_tier="auto",
             store=True,
             stream=False,
+            stream_options={"include_obfuscation": True},
             temperature=1,
-            text={"format": {"type": "text"}},
+            text={
+                "format": {"type": "text"},
+                "verbosity": "low",
+            },
             tool_choice="none",
             tools=[
                 {
@@ -397,6 +486,7 @@ class TestAsyncResponses:
                     "parameters": {"foo": "bar"},
                     "strict": True,
                     "type": "function",
+                    "defer_loading": True,
                     "description": "description",
                 }
             ],
@@ -439,13 +529,20 @@ class TestAsyncResponses:
         response_stream = await async_client.responses.create(
             stream=True,
             background=True,
-            include=["code_interpreter_call.outputs"],
+            context_management=[
+                {
+                    "type": "type",
+                    "compact_threshold": 1000,
+                }
+            ],
+            conversation="string",
+            include=["file_search_call.results"],
             input="string",
             instructions="instructions",
             max_output_tokens=0,
             max_tool_calls=0,
             metadata={"foo": "string"},
-            model="gpt-4o",
+            model="gpt-5.1",
             parallel_tool_calls=True,
             previous_response_id="previous_response_id",
             prompt={
@@ -453,15 +550,22 @@ class TestAsyncResponses:
                 "variables": {"foo": "string"},
                 "version": "version",
             },
+            prompt_cache_key="prompt-cache-key-1234",
+            prompt_cache_retention="in-memory",
             reasoning={
-                "effort": "low",
+                "effort": "none",
                 "generate_summary": "auto",
                 "summary": "auto",
             },
+            safety_identifier="safety-identifier-1234",
             service_tier="auto",
             store=True,
+            stream_options={"include_obfuscation": True},
             temperature=1,
-            text={"format": {"type": "text"}},
+            text={
+                "format": {"type": "text"},
+                "verbosity": "low",
+            },
             tool_choice="none",
             tools=[
                 {
@@ -469,6 +573,7 @@ class TestAsyncResponses:
                     "parameters": {"foo": "bar"},
                     "strict": True,
                     "type": "function",
+                    "defer_loading": True,
                     "description": "description",
                 }
             ],
@@ -513,7 +618,8 @@ class TestAsyncResponses:
     async def test_method_retrieve_with_all_params_overload_1(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.responses.retrieve(
             response_id="resp_677efb5139a88190b512bc3fef8e535d",
-            include=["code_interpreter_call.outputs"],
+            include=["file_search_call.results"],
+            include_obfuscation=True,
             starting_after=0,
             stream=False,
         )
@@ -563,7 +669,8 @@ class TestAsyncResponses:
         response_stream = await async_client.responses.retrieve(
             response_id="resp_677efb5139a88190b512bc3fef8e535d",
             stream=True,
-            include=["code_interpreter_call.outputs"],
+            include=["file_search_call.results"],
+            include_obfuscation=True,
             starting_after=0,
         )
         await response_stream.response.aclose()
@@ -676,3 +783,45 @@ class TestAsyncResponses:
             await async_client.responses.with_raw_response.cancel(
                 "",
             )
+
+    @parametrize
+    async def test_method_compact(self, async_client: AsyncOpenAI) -> None:
+        response = await async_client.responses.compact(
+            model="gpt-5.4",
+        )
+        assert_matches_type(CompactedResponse, response, path=["response"])
+
+    @parametrize
+    async def test_method_compact_with_all_params(self, async_client: AsyncOpenAI) -> None:
+        response = await async_client.responses.compact(
+            model="gpt-5.4",
+            input="string",
+            instructions="instructions",
+            previous_response_id="resp_123",
+            prompt_cache_key="prompt_cache_key",
+        )
+        assert_matches_type(CompactedResponse, response, path=["response"])
+
+    @parametrize
+    async def test_raw_response_compact(self, async_client: AsyncOpenAI) -> None:
+        http_response = await async_client.responses.with_raw_response.compact(
+            model="gpt-5.4",
+        )
+
+        assert http_response.is_closed is True
+        assert http_response.http_request.headers.get("X-Stainless-Lang") == "python"
+        response = http_response.parse()
+        assert_matches_type(CompactedResponse, response, path=["response"])
+
+    @parametrize
+    async def test_streaming_response_compact(self, async_client: AsyncOpenAI) -> None:
+        async with async_client.responses.with_streaming_response.compact(
+            model="gpt-5.4",
+        ) as http_response:
+            assert not http_response.is_closed
+            assert http_response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            response = await http_response.parse()
+            assert_matches_type(CompactedResponse, response, path=["response"])
+
+        assert cast(Any, http_response.is_closed) is True

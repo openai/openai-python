@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from typing import List, Union, Iterable, Optional
+from typing import Union, Iterable, Optional
 from typing_extensions import Literal, TypedDict
 
+from ..._types import SequenceNotStr
 from .assistant_tool_param import AssistantToolParam
 from ..shared_params.metadata import Metadata
 from ..shared.reasoning_effort import ReasoningEffort
@@ -36,6 +37,12 @@ class AssistantUpdateParams(TypedDict, total=False):
     model: Union[
         str,
         Literal[
+            "gpt-5",
+            "gpt-5-mini",
+            "gpt-5-nano",
+            "gpt-5-2025-08-07",
+            "gpt-5-mini-2025-08-07",
+            "gpt-5-nano-2025-08-07",
             "gpt-4.1",
             "gpt-4.1-mini",
             "gpt-4.1-nano",
@@ -87,12 +94,20 @@ class AssistantUpdateParams(TypedDict, total=False):
     """The name of the assistant. The maximum length is 256 characters."""
 
     reasoning_effort: Optional[ReasoningEffort]
-    """**o-series models only**
-
+    """
     Constrains effort on reasoning for
     [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
-    supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
-    result in faster responses and fewer tokens used on reasoning in a response.
+    supported values are `none`, `minimal`, `low`, `medium`, `high`, and `xhigh`.
+    Reducing reasoning effort can result in faster responses and fewer tokens used
+    on reasoning in a response.
+
+    - `gpt-5.1` defaults to `none`, which does not perform reasoning. The supported
+      reasoning values for `gpt-5.1` are `none`, `low`, `medium`, and `high`. Tool
+      calls are supported for all reasoning values in gpt-5.1.
+    - All models before `gpt-5.1` default to `medium` reasoning effort, and do not
+      support `none`.
+    - The `gpt-5-pro` model defaults to (and only supports) `high` reasoning effort.
+    - `xhigh` is supported for all models after `gpt-5.1-codex-max`.
     """
 
     response_format: Optional[AssistantResponseFormatOptionParam]
@@ -152,7 +167,7 @@ class AssistantUpdateParams(TypedDict, total=False):
 
 
 class ToolResourcesCodeInterpreter(TypedDict, total=False):
-    file_ids: List[str]
+    file_ids: SequenceNotStr[str]
     """
     Overrides the list of
     [file](https://platform.openai.com/docs/api-reference/files) IDs made available
@@ -162,7 +177,7 @@ class ToolResourcesCodeInterpreter(TypedDict, total=False):
 
 
 class ToolResourcesFileSearch(TypedDict, total=False):
-    vector_store_ids: List[str]
+    vector_store_ids: SequenceNotStr[str]
     """
     Overrides the
     [vector store](https://platform.openai.com/docs/api-reference/vector-stores/object)
@@ -172,6 +187,11 @@ class ToolResourcesFileSearch(TypedDict, total=False):
 
 
 class ToolResources(TypedDict, total=False):
+    """A set of resources that are used by the assistant's tools.
+
+    The resources are specific to the type of tool. For example, the `code_interpreter` tool requires a list of file IDs, while the `file_search` tool requires a list of vector store IDs.
+    """
+
     code_interpreter: ToolResourcesCodeInterpreter
 
     file_search: ToolResourcesFileSearch

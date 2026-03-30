@@ -1,16 +1,28 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import Optional
+from typing import List, Optional
 from typing_extensions import Literal
 
 from ..._models import BaseModel
 
-__all__ = ["WebSearchTool", "UserLocation"]
+__all__ = ["WebSearchTool", "Filters", "UserLocation"]
+
+
+class Filters(BaseModel):
+    """Filters for the search."""
+
+    allowed_domains: Optional[List[str]] = None
+    """Allowed domains for the search.
+
+    If not provided, all domains are allowed. Subdomains of the provided domains are
+    allowed as well.
+
+    Example: `["pubmed.ncbi.nlm.nih.gov"]`
+    """
 
 
 class UserLocation(BaseModel):
-    type: Literal["approximate"]
-    """The type of location approximation. Always `approximate`."""
+    """The approximate location of the user."""
 
     city: Optional[str] = None
     """Free text input for the city of the user, e.g. `San Francisco`."""
@@ -30,13 +42,25 @@ class UserLocation(BaseModel):
     user, e.g. `America/Los_Angeles`.
     """
 
+    type: Optional[Literal["approximate"]] = None
+    """The type of location approximation. Always `approximate`."""
+
 
 class WebSearchTool(BaseModel):
-    type: Literal["web_search_preview", "web_search_preview_2025_03_11"]
+    """Search the Internet for sources related to the prompt.
+
+    Learn more about the
+    [web search tool](https://platform.openai.com/docs/guides/tools-web-search).
+    """
+
+    type: Literal["web_search", "web_search_2025_08_26"]
     """The type of the web search tool.
 
-    One of `web_search_preview` or `web_search_preview_2025_03_11`.
+    One of `web_search` or `web_search_2025_08_26`.
     """
+
+    filters: Optional[Filters] = None
+    """Filters for the search."""
 
     search_context_size: Optional[Literal["low", "medium", "high"]] = None
     """High level guidance for the amount of context window space to use for the
@@ -46,4 +70,4 @@ class WebSearchTool(BaseModel):
     """
 
     user_location: Optional[UserLocation] = None
-    """The user's location."""
+    """The approximate location of the user."""

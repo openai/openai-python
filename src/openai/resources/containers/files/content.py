@@ -5,7 +5,8 @@ from __future__ import annotations
 import httpx
 
 from .... import _legacy_response
-from ...._types import NOT_GIVEN, Body, Query, Headers, NotGiven
+from ...._types import Body, Query, Headers, NotGiven, not_given
+from ...._utils import path_template
 from ...._compat import cached_property
 from ...._resource import SyncAPIResource, AsyncAPIResource
 from ...._response import (
@@ -49,7 +50,7 @@ class Content(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> _legacy_response.HttpxBinaryResponseContent:
         """
         Retrieve Container File Content
@@ -69,7 +70,9 @@ class Content(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `file_id` but received {file_id!r}")
         extra_headers = {"Accept": "application/binary", **(extra_headers or {})}
         return self._get(
-            f"/containers/{container_id}/files/{file_id}/content",
+            path_template(
+                "/containers/{container_id}/files/{file_id}/content", container_id=container_id, file_id=file_id
+            ),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -107,7 +110,7 @@ class AsyncContent(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> _legacy_response.HttpxBinaryResponseContent:
         """
         Retrieve Container File Content
@@ -127,7 +130,9 @@ class AsyncContent(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `file_id` but received {file_id!r}")
         extra_headers = {"Accept": "application/binary", **(extra_headers or {})}
         return await self._get(
-            f"/containers/{container_id}/files/{file_id}/content",
+            path_template(
+                "/containers/{container_id}/files/{file_id}/content", container_id=container_id, file_id=file_id
+            ),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
