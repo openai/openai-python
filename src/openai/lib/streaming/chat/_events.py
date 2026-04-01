@@ -8,6 +8,8 @@ from ....types.chat import ChatCompletionChunk, ChatCompletionTokenLogprob
 
 
 class ChunkEvent(BaseModel):
+    """Emitted for every raw chunk received from the Chat Completions streaming API."""
+
     type: Literal["chunk"]
 
     chunk: ChatCompletionChunk
@@ -28,6 +30,8 @@ class ContentDeltaEvent(BaseModel):
 
 
 class ContentDoneEvent(GenericModel, Generic[ResponseFormatT]):
+    """Emitted when the full content string for a choice is complete."""
+
     type: Literal["content.done"]
 
     content: str
@@ -36,6 +40,8 @@ class ContentDoneEvent(GenericModel, Generic[ResponseFormatT]):
 
 
 class RefusalDeltaEvent(BaseModel):
+    """Emitted when a new refusal text delta is received."""
+
     type: Literal["refusal.delta"]
 
     delta: str
@@ -44,12 +50,16 @@ class RefusalDeltaEvent(BaseModel):
 
 
 class RefusalDoneEvent(BaseModel):
+    """Emitted when the full refusal string for a choice is complete."""
+
     type: Literal["refusal.done"]
 
     refusal: str
 
 
 class FunctionToolCallArgumentsDeltaEvent(BaseModel):
+    """Emitted when a new function tool call arguments delta is received."""
+
     type: Literal["tool_calls.function.arguments.delta"]
 
     name: str
@@ -67,6 +77,8 @@ class FunctionToolCallArgumentsDeltaEvent(BaseModel):
 
 
 class FunctionToolCallArgumentsDoneEvent(BaseModel):
+    """Emitted when the function tool call arguments string is complete."""
+
     type: Literal["tool_calls.function.arguments.done"]
 
     name: str
@@ -81,6 +93,8 @@ class FunctionToolCallArgumentsDoneEvent(BaseModel):
 
 
 class LogprobsContentDeltaEvent(BaseModel):
+    """Emitted when new content logprob tokens are received."""
+
     type: Literal["logprobs.content.delta"]
 
     content: List[ChatCompletionTokenLogprob]
@@ -89,12 +103,16 @@ class LogprobsContentDeltaEvent(BaseModel):
 
 
 class LogprobsContentDoneEvent(BaseModel):
+    """Emitted when the full content logprobs list is complete."""
+
     type: Literal["logprobs.content.done"]
 
     content: List[ChatCompletionTokenLogprob]
 
 
 class LogprobsRefusalDeltaEvent(BaseModel):
+    """Emitted when new refusal logprob tokens are received."""
+
     type: Literal["logprobs.refusal.delta"]
 
     refusal: List[ChatCompletionTokenLogprob]
@@ -103,6 +121,8 @@ class LogprobsRefusalDeltaEvent(BaseModel):
 
 
 class LogprobsRefusalDoneEvent(BaseModel):
+    """Emitted when the full refusal logprobs list is complete."""
+
     type: Literal["logprobs.refusal.done"]
 
     refusal: List[ChatCompletionTokenLogprob]

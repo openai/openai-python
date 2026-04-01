@@ -27,6 +27,8 @@ class PydanticFunctionTool(Dict[str, Any]):
 
 
 class ResponsesPydanticFunctionTool(Dict[str, Any]):
+    """Dictionary wrapper that carries a Pydantic model for Responses API function tools."""
+
     model: type[pydantic.BaseModel]
 
     def __init__(self, tool: ResponsesFunctionToolParam, model: type[pydantic.BaseModel]) -> None:
@@ -43,6 +45,12 @@ def pydantic_function_tool(
     name: str | None = None,  # inferred from class name by default
     description: str | None = None,  # inferred from class docstring by default
 ) -> ChatCompletionFunctionToolParam:
+    """Create a :class:`ChatCompletionFunctionToolParam` from a Pydantic model.
+
+    The tool ``name`` defaults to the model class name and ``description``
+    defaults to the model's docstring.  A strict JSON schema is generated
+    automatically from the model.
+    """
     if description is None:
         # note: we intentionally don't use `.getdoc()` to avoid
         # including pydantic's docstrings

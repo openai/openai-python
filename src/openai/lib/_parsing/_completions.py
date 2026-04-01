@@ -65,6 +65,11 @@ def select_strict_chat_completion_tools(
 def validate_input_tools(
     tools: Iterable[ChatCompletionToolUnionParam] | Omit = omit,
 ) -> Iterable[ChatCompletionFunctionToolParam] | Omit:
+    """Validate that all *tools* are strict function tools suitable for auto-parsing.
+
+    Raises :class:`ValueError` if any tool is not of type ``function`` or does not
+    have ``strict`` set to ``True``.
+    """
     if not is_given(tools):
         return omit
 
@@ -89,6 +94,16 @@ def parse_chat_completion(
     input_tools: Iterable[ChatCompletionToolUnionParam] | Omit,
     chat_completion: ChatCompletion | ParsedChatCompletion[object],
 ) -> ParsedChatCompletion[ResponseFormatT]:
+    """Parse a raw :class:`ChatCompletion` into a :class:`ParsedChatCompletion`.
+
+    Tool call arguments are deserialized using the corresponding *input_tools*
+    definitions, and ``message.content`` is parsed according to *response_format*
+    when a rich (class) format is provided.
+
+    Raises :class:`~openai.LengthFinishReasonError` if any choice has
+    ``finish_reason="length"`` and :class:`~openai.ContentFilterFinishReasonError`
+    if ``finish_reason="content_filter"``.
+    """
     if is_given(input_tools):
         input_tools = [t for t in input_tools]
     else:
@@ -165,12 +180,23 @@ def parse_chat_completion(
 def get_input_tool_by_name(
     *, input_tools: list[ChatCompletionToolUnionParam], name: str
 ) -> ChatCompletionFunctionToolParam | None:
+    """Look up the first function tool in *input_tools* whose name matches *name*.
+
+    Returns ``None`` if no matching tool is found.
+    """
     return next((t for t in input_tools if t["type"] == "function" and t.get("function", {}).get("name") == name), None)
 
 
 def parse_function_tool_arguments(
     *, input_tools: list[ChatCompletionToolUnionParam], function: Function | ParsedFunction
 ) -> object | None:
+    """Deserialize the JSON ``arguments`` of a function tool call.
+
+    If the matching input tool wraps a Pydantic model, the arguments are
+    validated and returned as a model instance.  For other strict tools the
+    raw JSON is decoded.  Returns ``None`` when no matching tool is found or
+    the tool is not strict.
+    """
     input_tool = get_input_tool_by_name(input_tools=input_tools, name=function.name)
     if not input_tool:
         return None
@@ -192,6 +218,11 @@ def maybe_parse_content(
     response_format: type[ResponseFormatT] | ResponseFormatParam | Omit,
     message: ChatCompletionMessage | ParsedChatCompletionMessage[object],
 ) -> ResponseFormatT | None:
+    """Parse the message content into *response_format* if applicable.
+
+    Returns ``None`` when *response_format* is not a rich type, the message
+    has no content, or the message contains a refusal.
+    """
     if has_rich_response_format(response_format) and message.content and not message.refusal:
         return _parse_content(response_format, message.content)
 
@@ -203,6 +234,11 @@ def has_parseable_input(
     response_format: type | ResponseFormatParam | Omit,
     input_tools: Iterable[ChatCompletionToolUnionParam] | Omit = omit,
 ) -> bool:
+    """Return ``True`` if the request configuration contains anything that can be auto-parsed.
+
+    This is the case when *response_format* is a rich type (e.g. a Pydantic model)
+    or at least one of the *input_tools* is a parseable strict function tool.
+    """
     if has_rich_response_format(response_format):
         return True
 
@@ -216,6 +252,7 @@ def has_parseable_input(
 def has_rich_response_format(
     response_format: type[ResponseFormatT] | ResponseFormatParam | Omit,
 ) -> TypeGuard[type[ResponseFormatT]]:
+    """Return ``True`` if *response_format* is a class type (not a dict param or omitted)."""
     if not is_given(response_format):
         return False
 
@@ -226,10 +263,12 @@ def has_rich_response_format(
 
 
 def is_response_format_param(response_format: object) -> TypeGuard[ResponseFormatParam]:
+    """Return ``True`` if *response_format* is a dictionary-style response format parameter."""
     return is_dict(response_format)
 
 
 def is_parseable_tool(input_tool: ChatCompletionToolUnionParam) -> bool:
+    """Return ``True`` if *input_tool* is a strict function tool that can be auto-parsed."""
     if input_tool["type"] != "function":
         return False
 
@@ -256,6 +295,11 @@ def _parse_content(response_format: type[ResponseFormatT], content: str) -> Resp
 def type_to_response_format_param(
     response_format: type | completion_create_params.ResponseFormat | Omit,
 ) -> ResponseFormatParam | Omit:
+    """Convert a *response_format* type into the ``json_schema`` parameter dict expected by the API.
+
+    If *response_format* is already a dict parameter it is returned as-is. Pydantic models
+    and ``@pydantic.dataclass`` types are converted to a strict JSON schema.
+    """
     if not is_given(response_format):
         return omit
 

@@ -4,6 +4,15 @@ from ..._utils import is_dict, is_list
 
 
 def accumulate_delta(acc: dict[object, object], delta: dict[object, object]) -> dict[object, object]:
+    """Merge a server-sent *delta* dict into the accumulated *acc* dict in place.
+
+    Strings and numbers are concatenated/summed, nested dicts are merged
+    recursively, and list entries are matched by their ``index`` key.
+    The ``index`` and ``type`` keys are always overwritten rather than
+    accumulated.
+
+    Returns the mutated *acc*.
+    """
     for key, delta_value in delta.items():
         if key not in acc:
             acc[key] = delta_value

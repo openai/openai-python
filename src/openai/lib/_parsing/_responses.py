@@ -36,6 +36,12 @@ TextFormatT = TypeVar(
 
 
 def type_to_text_format_param(type_: type) -> ResponseFormatTextConfigParam:
+    """Convert a Python type into a :class:`ResponseFormatTextConfigParam` for the Responses API.
+
+    Delegates to :func:`type_to_response_format_param` and reshapes the resulting
+    ``json_schema`` dict into the text-format configuration expected by the
+    Responses API.
+    """
     response_format_dict = type_to_response_format_param(type_)
     assert is_given(response_format_dict)
     response_format_dict = cast(ResponseFormat, response_format_dict)  # pyright: ignore[reportUnnecessaryCast]
@@ -56,6 +62,12 @@ def parse_response(
     input_tools: Iterable[ToolParam] | Omit | None,
     response: Response | ParsedResponse[object],
 ) -> ParsedResponse[TextFormatT]:
+    """Parse a raw :class:`Response` into a :class:`ParsedResponse`.
+
+    Text output items are parsed according to *text_format* (when it is a
+    class type), and function call arguments are deserialized using the
+    matching definitions in *input_tools*.
+    """
     output_list: List[ParsedResponseOutputItem[TextFormatT]] = []
 
     for output in response.output:
@@ -139,6 +151,12 @@ def parse_response(
 
 
 def parse_text(text: str, text_format: type[TextFormatT] | Omit) -> TextFormatT | None:
+    """Deserialize *text* as JSON into an instance of *text_format*.
+
+    Returns ``None`` when *text_format* is not given. Supports both
+    :class:`pydantic.BaseModel` subclasses and ``@pydantic.dataclass`` types
+    (Pydantic v2 only for the latter).
+    """
     if not is_given(text_format):
         return None
 
@@ -155,6 +173,10 @@ def parse_text(text: str, text_format: type[TextFormatT] | Omit) -> TextFormatT 
 
 
 def get_input_tool_by_name(*, input_tools: Iterable[ToolParam], name: str) -> FunctionToolParam | None:
+    """Look up the first function tool in *input_tools* whose name matches *name*.
+
+    Returns ``None`` if no matching tool is found.
+    """
     for tool in input_tools:
         if tool["type"] == "function" and tool.get("name") == name:
             return tool
@@ -167,6 +189,13 @@ def parse_function_tool_arguments(
     input_tools: Iterable[ToolParam] | Omit | None,
     function_call: ParsedResponseFunctionToolCall | ResponseFunctionToolCall,
 ) -> object:
+    """Deserialize the JSON ``arguments`` of a Responses API function call.
+
+    If the matching input tool wraps a Pydantic model, the arguments are
+    validated and returned as a model instance.  For other strict tools the
+    raw JSON is decoded.  Returns ``None`` when no matching tool is found or
+    the tool is not strict.
+    """
     if input_tools is None or not is_given(input_tools):
         return None
 

@@ -14,6 +14,12 @@ _T = TypeVar("_T")
 
 
 def to_strict_json_schema(model: type[pydantic.BaseModel] | pydantic.TypeAdapter[Any]) -> dict[str, Any]:
+    """Convert a pydantic model or TypeAdapter into a strict JSON schema.
+
+    The resulting schema is mutated in place to conform to the ``strict`` format
+    required by the API (e.g. ``additionalProperties: false``, all properties
+    listed in ``required``).
+    """
     if inspect.isclass(model) and is_basemodel_type(model):
         schema = model_json_schema(model)
     elif (not PYDANTIC_V1) and isinstance(model, pydantic.TypeAdapter):
@@ -116,6 +122,10 @@ def _ensure_strict_json_schema(
 
 
 def resolve_ref(*, root: dict[str, object], ref: str) -> object:
+    """Resolve a JSON ``$ref`` pointer (e.g. ``#/definitions/Foo``) against *root*.
+
+    Only local references starting with ``#/`` are supported.
+    """
     if not ref.startswith("#/"):
         raise ValueError(f"Unexpected $ref format {ref!r}; Does not start with #/")
 
@@ -130,6 +140,7 @@ def resolve_ref(*, root: dict[str, object], ref: str) -> object:
 
 
 def is_basemodel_type(typ: type) -> TypeGuard[type[pydantic.BaseModel]]:
+    """Return ``True`` if *typ* is a class that is a subclass of :class:`pydantic.BaseModel`."""
     if not inspect.isclass(typ):
         return False
     return issubclass(typ, pydantic.BaseModel)
@@ -147,6 +158,7 @@ def is_dict(obj: object) -> TypeGuard[dict[str, object]]:
 
 
 def has_more_than_n_keys(obj: dict[str, object], n: int) -> bool:
+    """Check if *obj* contains more than *n* keys without iterating the entire dict."""
     i = 0
     for _ in obj.keys():
         i += 1
