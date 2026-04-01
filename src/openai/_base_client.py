@@ -1000,6 +1000,10 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
 
             log.debug("Sending HTTP Request: %s %s", request.method, request.url)
 
+            if log.isEnabledFor(logging.DEBUG):
+                if request.content:
+                    log.debug("Request body: %s", request.content.decode("utf-8", errors="replace"))
+
             response = None
             try:
                 response = self._client.send(
@@ -1045,6 +1049,10 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
                 response.headers,
             )
             log.debug("request_id: %s", response.headers.get("x-request-id"))
+
+            if log.isEnabledFor(logging.DEBUG):
+                if not stream and not self._should_stream_response_body(request=request):
+                    log.debug("Response body: %s", response.text)
 
             try:
                 response.raise_for_status()
@@ -1599,6 +1607,10 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
 
             log.debug("Sending HTTP Request: %s %s", request.method, request.url)
 
+            if log.isEnabledFor(logging.DEBUG):
+                if request.content:
+                    log.debug("Request body: %s", request.content.decode("utf-8", errors="replace"))
+
             response = None
             try:
                 response = await self._client.send(
@@ -1644,6 +1656,10 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
                 response.headers,
             )
             log.debug("request_id: %s", response.headers.get("x-request-id"))
+
+            if log.isEnabledFor(logging.DEBUG):
+                if not stream and not self._should_stream_response_body(request=request):
+                    log.debug("Response body: %s", response.text)
 
             try:
                 response.raise_for_status()
