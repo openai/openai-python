@@ -310,12 +310,13 @@ class Response(BaseModel):
         """Convenience property that aggregates all `output_text` items from the `output` list.
 
         If no `output_text` content blocks exist, then an empty string is returned.
+        Content items with a null `text` field are silently skipped.
         """
         texts: List[str] = []
         for output in self.output:
             if output.type == "message":
                 for content in output.content:
-                    if content.type == "output_text":
+                    if content.type == "output_text" and content.text is not None:
                         texts.append(content.text)
 
         return "".join(texts)

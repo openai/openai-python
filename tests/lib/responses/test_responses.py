@@ -41,6 +41,48 @@ def test_output_text(client: OpenAI, respx_mock: MockRouter) -> None:
     )
 
 
+@pytest.mark.respx(base_url=base_url)
+def test_output_text_with_null_text(client: OpenAI, respx_mock: MockRouter) -> None:
+    """Regression test: output_text should handle null text values in content items.
+
+    See: https://github.com/openai/openai-python/issues/3011
+    """
+    response = make_snapshot_request(
+        lambda c: c.responses.create(
+            model="gpt-4o-mini",
+            input="test",
+        ),
+        content_snapshot=snapshot(
+            '{"id": "resp_test", "object": "response", "created_at": 1754925861, "status": "completed", "background": false, "error": null, "incomplete_details": null, "instructions": null, "max_output_tokens": null, "max_tool_calls": null, "model": "gpt-4o-mini-2024-07-18", "output": [{"id": "msg_test", "type": "message", "status": "completed", "content": [{"type": "output_text", "annotations": [], "logprobs": [], "text": null}], "role": "assistant"}], "parallel_tool_calls": true, "previous_response_id": null, "prompt_cache_key": null, "reasoning": {"effort": null, "summary": null}, "safety_identifier": null, "service_tier": "default", "store": true, "temperature": 1.0, "text": {"format": {"type": "text"}, "verbosity": "medium"}, "tool_choice": "auto", "tools": [], "top_logprobs": 0, "top_p": 1.0, "truncation": "disabled", "usage": {"input_tokens": 5, "input_tokens_details": {"cached_tokens": 0}, "output_tokens": 0, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 5}, "user": null, "metadata": {}}'
+        ),
+        path="/responses",
+        mock_client=client,
+        respx_mock=respx_mock,
+    )
+
+    # Should not raise TypeError when text is null
+    assert response.output_text == snapshot("")
+
+
+@pytest.mark.respx(base_url=base_url)
+def test_output_text_mixed_null_and_text(client: OpenAI, respx_mock: MockRouter) -> None:
+    """output_text should skip null text items and concatenate valid ones."""
+    response = make_snapshot_request(
+        lambda c: c.responses.create(
+            model="gpt-4o-mini",
+            input="test",
+        ),
+        content_snapshot=snapshot(
+            '{"id": "resp_test2", "object": "response", "created_at": 1754925861, "status": "completed", "background": false, "error": null, "incomplete_details": null, "instructions": null, "max_output_tokens": null, "max_tool_calls": null, "model": "gpt-4o-mini-2024-07-18", "output": [{"id": "msg_test2a", "type": "message", "status": "completed", "content": [{"type": "output_text", "annotations": [], "logprobs": [], "text": "Hello "}], "role": "assistant"}, {"id": "msg_test2b", "type": "message", "status": "completed", "content": [{"type": "output_text", "annotations": [], "logprobs": [], "text": null}], "role": "assistant"}, {"id": "msg_test2c", "type": "message", "status": "completed", "content": [{"type": "output_text", "annotations": [], "logprobs": [], "text": "world!"}], "role": "assistant"}], "parallel_tool_calls": true, "previous_response_id": null, "prompt_cache_key": null, "reasoning": {"effort": null, "summary": null}, "safety_identifier": null, "service_tier": "default", "store": true, "temperature": 1.0, "text": {"format": {"type": "text"}, "verbosity": "medium"}, "tool_choice": "auto", "tools": [], "top_logprobs": 0, "top_p": 1.0, "truncation": "disabled", "usage": {"input_tokens": 5, "input_tokens_details": {"cached_tokens": 0}, "output_tokens": 10, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 15}, "user": null, "metadata": {}}'
+        ),
+        path="/responses",
+        mock_client=client,
+        respx_mock=respx_mock,
+    )
+
+    assert response.output_text == snapshot("Hello world!")
+
+
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
 def test_stream_method_definition_in_sync(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
     checking_client: OpenAI | AsyncOpenAI = client if sync else async_client
