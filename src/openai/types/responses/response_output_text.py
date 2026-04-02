@@ -122,7 +122,7 @@ class ResponseOutputText(BaseModel):
     annotations: List[Annotation]
     """The annotations of the text output."""
 
-    text: Optional[str] = None
+    text: str
     """The text output from the model."""
 
     type: Literal["output_text"]
