@@ -1,6 +1,6 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import List, Union, Optional
+from typing import Any, Dict, List, Union, Optional
 from typing_extensions import Literal, TypeAlias
 
 from .tool import Tool
@@ -319,3 +319,31 @@ class Response(BaseModel):
                         texts.append(content.text)
 
         return "".join(texts)
+
+    def output_as_input(self) -> List[Dict[str, Any]]:
+        """Return the response output items as a list of input-ready dicts for use in a subsequent turn.
+
+        This is the recommended way to build multi-turn conversations manually.
+        It calls ``as_input()`` on items that have that method (e.g.
+        :class:`ResponseOutputMessage`, :class:`ResponseReasoningItem`,
+        :class:`ResponseFunctionToolCall`), stripping output-only fields like
+        ``status`` and ``encrypted_content`` that the API rejects as input.
+        For all other output item types, ``to_dict()`` is used as a fallback.
+
+        Example::
+
+            conversation: list[dict] = []
+            for msg in ["What is the capital of France?", "And Germany?"]:
+                conversation.append({"role": "user", "content": msg})
+                response = client.responses.create(
+                    model="o4-mini", input=conversation, max_output_tokens=200,
+                )
+                conversation.extend(response.output_as_input())
+        """
+        result: List[Dict[str, Any]] = []
+        for item in self.output:
+            if hasattr(item, "as_input"):
+                result.append(item.as_input())
+            else:
+                result.append(item.to_dict())
+        return result
