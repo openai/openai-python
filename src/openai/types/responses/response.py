@@ -324,10 +324,9 @@ class Response(BaseModel):
         """Return the response output items as a list of input-ready dicts for use in a subsequent turn.
 
         This is the recommended way to build multi-turn conversations manually.
-        It calls ``as_input()`` on each output item, stripping output-only fields
-        like ``status``, ``created_by``, and ``encrypted_content`` that the API
-        rejects as input. For any item type that does not implement ``as_input()``,
-        ``to_dict()`` is used as a fallback.
+        Each output item's ``as_input()`` method is called, which strips output-only
+        fields like ``status``, ``created_by``, and ``encrypted_content`` that the
+        API rejects as input.
 
         Example::
 
@@ -339,10 +338,4 @@ class Response(BaseModel):
                 )
                 conversation.extend(response.output_as_input())
         """
-        result: List[Dict[str, Any]] = []
-        for item in self.output:
-            if hasattr(item, "as_input"):
-                result.append(item.as_input())
-            else:
-                result.append(item.to_dict())
-        return result
+        return [item.as_input() for item in self.output]
