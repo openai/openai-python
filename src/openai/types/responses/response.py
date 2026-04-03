@@ -324,11 +324,10 @@ class Response(BaseModel):
         """Return the response output items as a list of input-ready dicts for use in a subsequent turn.
 
         This is the recommended way to build multi-turn conversations manually.
-        It calls ``as_input()`` on items that have that method (e.g.
-        :class:`ResponseOutputMessage`, :class:`ResponseReasoningItem`,
-        :class:`ResponseFunctionToolCall`), stripping output-only fields like
-        ``status`` and ``encrypted_content`` that the API rejects as input.
-        For all other output item types, ``to_dict()`` is used as a fallback.
+        It calls ``as_input()`` on each output item, stripping output-only fields
+        like ``status``, ``created_by``, and ``encrypted_content`` that the API
+        rejects as input. For any item type that does not implement ``as_input()``,
+        ``to_dict()`` is used as a fallback.
 
         Example::
 
