@@ -8,6 +8,7 @@ from inline_snapshot import snapshot
 
 from openai import OpenAI, AsyncOpenAI
 from openai._utils import assert_signatures_in_sync
+from openai.types.responses.response import Response
 
 from ...conftest import base_url
 from ..snapshots import make_snapshot_request
@@ -39,6 +40,66 @@ def test_output_text(client: OpenAI, respx_mock: MockRouter) -> None:
     assert response.output_text == snapshot(
         "I can't provide real-time updates, but you can easily check the current weather in San Francisco using a weather website or app. Typically, San Francisco has cool, foggy summers and mild winters, so it's good to be prepared for variable weather!"
     )
+
+
+def test_output_text_with_null_text() -> None:
+    """Test that output_text handles null text values without raising TypeError.
+
+    Regression test for https://github.com/openai/openai-python/issues/3011.
+    Some models return output_text content items where the text field is null.
+    """
+    response = Response.construct(
+        id="resp_test",
+        object="response",
+        created_at=1700000000.0,
+        model="gpt-4o",
+        output=[
+            {
+                "id": "msg_test",
+                "type": "message",
+                "status": "completed",
+                "role": "assistant",
+                "content": [
+                    {"type": "output_text", "annotations": [], "text": None},
+                    {"type": "output_text", "annotations": [], "text": "Hello"},
+                ],
+            }
+        ],
+        parallel_tool_calls=True,
+        tool_choice="auto",
+        tools=[],
+        status="completed",
+    )
+
+    # Should not raise TypeError and should skip null text values
+    assert response.output_text == "Hello"
+
+
+def test_output_text_all_null_text() -> None:
+    """Test that output_text returns empty string when all text values are null."""
+    response = Response.construct(
+        id="resp_test",
+        object="response",
+        created_at=1700000000.0,
+        model="gpt-4o",
+        output=[
+            {
+                "id": "msg_test",
+                "type": "message",
+                "status": "completed",
+                "role": "assistant",
+                "content": [
+                    {"type": "output_text", "annotations": [], "text": None},
+                ],
+            }
+        ],
+        parallel_tool_calls=True,
+        tool_choice="auto",
+        tools=[],
+        status="completed",
+    )
+
+    assert response.output_text == ""
 
 
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
