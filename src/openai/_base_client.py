@@ -541,6 +541,10 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
                 files = cast(HttpxRequestFiles, ForceMultipartDict())
 
         prepared_url = self._prepare_url(options.url)
+        # preserve hard-coded query params from the url
+        if params and prepared_url.query:
+            params = {**dict(prepared_url.params.items()), **params}
+            prepared_url = prepared_url.copy_with(raw_path=prepared_url.raw_path.split(b"?", 1)[0])
         if "_" in prepared_url.host:
             # work around https://github.com/encode/httpx/discussions/2880
             kwargs["extensions"] = {"sni_hostname": prepared_url.host.replace("_", "-")}
