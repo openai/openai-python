@@ -4,18 +4,20 @@ from __future__ import annotations
 
 import os
 from typing import TYPE_CHECKING, Any, Mapping, Callable, Awaitable
-from typing_extensions import Self, override
+from typing_extensions import Self, Unpack, override
 
 import httpx
 
 from . import _exceptions
 from ._qs import Querystring
+from .auth import WorkloadIdentity, WorkloadIdentityAuth
 from ._types import (
     Omit,
     Timeout,
     NotGiven,
     Transport,
     ProxiesTypes,
+    HttpxSendArgs,
     RequestOptions,
     not_given,
 )
@@ -82,13 +84,17 @@ if TYPE_CHECKING:
 
 __all__ = ["Timeout", "Transport", "ProxiesTypes", "RequestOptions", "OpenAI", "AsyncOpenAI", "Client", "AsyncClient"]
 
+WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER = "workload-identity-auth"
+
 
 class OpenAI(SyncAPIClient):
     # client options
     api_key: str
+    workload_identity: WorkloadIdentity | None
     organization: str | None
     project: str | None
     webhook_secret: str | None
+    _workload_identity_auth: WorkloadIdentityAuth | None
 
     websocket_base_url: str | httpx.URL | None
     """Base URL for WebSocket connections.
@@ -102,6 +108,7 @@ class OpenAI(SyncAPIClient):
         self,
         *,
         api_key: str | None | Callable[[], str] = None,
+        workload_identity: WorkloadIdentity | None = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -133,18 +140,31 @@ class OpenAI(SyncAPIClient):
         - `project` from `OPENAI_PROJECT_ID`
         - `webhook_secret` from `OPENAI_WEBHOOK_SECRET`
         """
-        if api_key is None:
-            api_key = os.environ.get("OPENAI_API_KEY")
-        if api_key is None:
-            raise OpenAIError(
-                "The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable"
-            )
-        if callable(api_key):
-            self.api_key = ""
-            self._api_key_provider: Callable[[], str] | None = api_key
-        else:
-            self.api_key = api_key
+        if api_key is not None and api_key != WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER and workload_identity is not None:
+            raise OpenAIError("The `api_key` and `workload_identity` arguments are mutually exclusive")
+
+        self.workload_identity = workload_identity
+
+        if workload_identity is not None:
+            self.api_key = WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER
             self._api_key_provider = None
+            self._workload_identity_auth = WorkloadIdentityAuth(
+                workload_identity=workload_identity,
+            )
+        else:
+            if api_key is None:
+                api_key = os.environ.get("OPENAI_API_KEY")
+            if api_key is None:
+                raise OpenAIError(
+                    "The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable"
+                )
+            if callable(api_key):
+                self.api_key = ""
+                self._api_key_provider: Callable[[], str] | None = api_key  # type: ignore[no-redef]
+            else:
+                self.api_key = api_key
+                self._api_key_provider = None
+            self._workload_identity_auth = None
 
         if organization is None:
             organization = os.environ.get("OPENAI_ORG_ID")
@@ -344,11 +364,46 @@ class OpenAI(SyncAPIClient):
         self._refresh_api_key()
         return super()._prepare_options(options)
 
+    def _send_with_auth_retry(
+        self,
+        request: httpx.Request,
+        *,
+        stream: bool,
+        retried: bool = False,
+        **kwargs: Unpack[HttpxSendArgs],
+    ) -> httpx.Response:
+        if self._workload_identity_auth:
+            request.headers["Authorization"] = f"Bearer {self._workload_identity_auth.get_token()}"
+
+        response = super()._send_request(request, stream=stream, **kwargs)
+
+        if not retried and response.status_code == 401 and self._workload_identity_auth:
+            response.close()
+
+            self._workload_identity_auth.invalidate_token()
+            fresh_token = self._workload_identity_auth.get_token()
+
+            request.headers["Authorization"] = f"Bearer {fresh_token}"
+
+            return self._send_with_auth_retry(request, stream=stream, retried=True, **kwargs)
+
+        return response
+
+    @override
+    def _send_request(
+        self,
+        request: httpx.Request,
+        *,
+        stream: bool,
+        **kwargs: Unpack[HttpxSendArgs],
+    ) -> httpx.Response:
+        return self._send_with_auth_retry(request, stream=stream, **kwargs)
+
     @property
     @override
     def auth_headers(self) -> dict[str, str]:
         api_key = self.api_key
-        if not api_key:
+        if not api_key or api_key == WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER:
             # if the api key is an empty string, encoding the header will fail
             return {}
         return {"Authorization": f"Bearer {api_key}"}
@@ -368,6 +423,7 @@ class OpenAI(SyncAPIClient):
         self,
         *,
         api_key: str | Callable[[], str] | None = None,
+        workload_identity: WorkloadIdentity | None = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -404,8 +460,10 @@ class OpenAI(SyncAPIClient):
             params = set_default_query
 
         http_client = http_client or self._client
+
         return self.__class__(
             api_key=api_key or self._api_key_provider or self.api_key,
+            workload_identity=workload_identity or self.workload_identity,
             organization=organization or self.organization,
             project=project or self.project,
             webhook_secret=webhook_secret or self.webhook_secret,
@@ -461,9 +519,11 @@ class OpenAI(SyncAPIClient):
 class AsyncOpenAI(AsyncAPIClient):
     # client options
     api_key: str
+    workload_identity: WorkloadIdentity | None
     organization: str | None
     project: str | None
     webhook_secret: str | None
+    _workload_identity_auth: WorkloadIdentityAuth | None
 
     websocket_base_url: str | httpx.URL | None
     """Base URL for WebSocket connections.
@@ -476,7 +536,8 @@ class AsyncOpenAI(AsyncAPIClient):
     def __init__(
         self,
         *,
-        api_key: str | Callable[[], Awaitable[str]] | None = None,
+        api_key: str | None | Callable[[], Awaitable[str]] = None,
+        workload_identity: WorkloadIdentity | None = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -508,18 +569,31 @@ class AsyncOpenAI(AsyncAPIClient):
         - `project` from `OPENAI_PROJECT_ID`
         - `webhook_secret` from `OPENAI_WEBHOOK_SECRET`
         """
-        if api_key is None:
-            api_key = os.environ.get("OPENAI_API_KEY")
-        if api_key is None:
-            raise OpenAIError(
-                "The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable"
-            )
-        if callable(api_key):
-            self.api_key = ""
-            self._api_key_provider: Callable[[], Awaitable[str]] | None = api_key
-        else:
-            self.api_key = api_key
+        if api_key is not None and api_key != WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER and workload_identity is not None:
+            raise OpenAIError("The `api_key` and `workload_identity` arguments are mutually exclusive")
+
+        self.workload_identity = workload_identity
+
+        if workload_identity is not None:
+            self.api_key = WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER
             self._api_key_provider = None
+            self._workload_identity_auth = WorkloadIdentityAuth(
+                workload_identity=workload_identity,
+            )
+        else:
+            if api_key is None:
+                api_key = os.environ.get("OPENAI_API_KEY")
+            if api_key is None:
+                raise OpenAIError(
+                    "The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable"
+                )
+            if callable(api_key):
+                self.api_key = ""
+                self._api_key_provider: Callable[[], Awaitable[str]] | None = api_key  # type: ignore[no-redef]
+            else:
+                self.api_key = api_key
+                self._api_key_provider = None
+            self._workload_identity_auth = None
 
         if organization is None:
             organization = os.environ.get("OPENAI_ORG_ID")
@@ -719,11 +793,46 @@ class AsyncOpenAI(AsyncAPIClient):
         await self._refresh_api_key()
         return await super()._prepare_options(options)
 
+    async def _send_with_auth_retry(
+        self,
+        request: httpx.Request,
+        *,
+        stream: bool,
+        retried: bool = False,
+        **kwargs: Unpack[HttpxSendArgs],
+    ) -> httpx.Response:
+        if self._workload_identity_auth:
+            request.headers["Authorization"] = f"Bearer {await self._workload_identity_auth.get_token_async()}"
+
+        response = await super()._send_request(request, stream=stream, **kwargs)
+
+        if not retried and response.status_code == 401 and self._workload_identity_auth:
+            await response.aclose()
+
+            self._workload_identity_auth.invalidate_token()
+            fresh_token = await self._workload_identity_auth.get_token_async()
+
+            request.headers["Authorization"] = f"Bearer {fresh_token}"
+
+            return await self._send_with_auth_retry(request, stream=stream, retried=True, **kwargs)
+
+        return response
+
+    @override
+    async def _send_request(
+        self,
+        request: httpx.Request,
+        *,
+        stream: bool,
+        **kwargs: Unpack[HttpxSendArgs],
+    ) -> httpx.Response:
+        return await self._send_with_auth_retry(request, stream=stream, **kwargs)
+
     @property
     @override
     def auth_headers(self) -> dict[str, str]:
         api_key = self.api_key
-        if not api_key:
+        if not api_key or api_key == WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER:
             # if the api key is an empty string, encoding the header will fail
             return {}
         return {"Authorization": f"Bearer {api_key}"}
@@ -743,6 +852,7 @@ class AsyncOpenAI(AsyncAPIClient):
         self,
         *,
         api_key: str | Callable[[], Awaitable[str]] | None = None,
+        workload_identity: WorkloadIdentity | None = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -781,6 +891,7 @@ class AsyncOpenAI(AsyncAPIClient):
         http_client = http_client or self._client
         return self.__class__(
             api_key=api_key or self._api_key_provider or self.api_key,
+            workload_identity=workload_identity or self.workload_identity,
             organization=organization or self.organization,
             project=project or self.project,
             webhook_secret=webhook_secret or self.webhook_secret,
