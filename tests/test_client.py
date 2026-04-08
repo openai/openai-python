@@ -20,6 +20,7 @@ from respx import MockRouter
 from pydantic import ValidationError
 
 from openai import OpenAI, AsyncOpenAI, APIResponseValidationError
+from openai.auth import WorkloadIdentity
 from openai._types import Omit
 from openai._utils import asyncify
 from openai._models import BaseModel, FinalRequestOptions
@@ -41,6 +42,15 @@ from .utils import update_env
 T = TypeVar("T")
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 api_key = "My API Key"
+workload_identity: WorkloadIdentity = {
+    "client_id": "client-id",
+    "identity_provider_id": "identity-provider-id",
+    "service_account_id": "service-account-id",
+    "provider": {
+        "token_type": "jwt",
+        "get_token": lambda: "external-subject-token",
+    },
+}
 
 
 class MockRequestCall(Protocol):
@@ -413,6 +423,19 @@ class TestOpenAI:
             with update_env(**{"OPENAI_API_KEY": Omit()}):
                 client2 = OpenAI(base_url=base_url, api_key=None, _strict_response_validation=True)
             _ = client2
+
+    def test_workload_identity_is_mutually_exclusive_with_api_key(self) -> None:
+        with pytest.raises(
+            OpenAIError,
+            match="The `api_key` and `workload_identity` arguments are mutually exclusive",
+        ):
+            OpenAI(
+                base_url=base_url,
+                api_key=api_key,
+                workload_identity=workload_identity,  # type: ignore[reportArgumentType]
+                organization="org_123",
+                _strict_response_validation=True,
+            )
 
     def test_default_query_option(self) -> None:
         client = OpenAI(
@@ -2189,7 +2212,6 @@ class TestAsyncOpenAI:
         assert exc_info.value.response.status_code == 302
         assert exc_info.value.response.headers["Location"] == f"{base_url}/redirected"
 
-    @pytest.mark.asyncio
     async def test_api_key_before_after_refresh_provider(self) -> None:
         async def mock_api_key_provider():
             return "test_bearer_token"
@@ -2204,7 +2226,6 @@ class TestAsyncOpenAI:
         assert client.api_key == "test_bearer_token"
         assert client.auth_headers.get("Authorization") == "Bearer test_bearer_token"
 
-    @pytest.mark.asyncio
     async def test_api_key_before_after_refresh_str(self) -> None:
         client = AsyncOpenAI(base_url=base_url, api_key="test_api_key")
 
@@ -2213,7 +2234,6 @@ class TestAsyncOpenAI:
 
         assert client.auth_headers.get("Authorization") == "Bearer test_api_key"
 
-    @pytest.mark.asyncio
     @pytest.mark.respx()
     async def test_bearer_token_refresh_async(self, respx_mock: MockRouter) -> None:
         respx_mock.post(base_url + "/chat/completions").mock(
@@ -2244,7 +2264,6 @@ class TestAsyncOpenAI:
         assert calls[0].request.headers.get("Authorization") == "Bearer first"
         assert calls[1].request.headers.get("Authorization") == "Bearer second"
 
-    @pytest.mark.asyncio
     async def test_copy_auth(self) -> None:
         async def token_provider_1() -> str:
             return "test_bearer_token_1"
@@ -2255,3 +2274,299 @@ class TestAsyncOpenAI:
         client = AsyncOpenAI(base_url=base_url, api_key=token_provider_1).copy(api_key=token_provider_2)
         await client._refresh_api_key()
         assert client.auth_headers == {"Authorization": "Bearer test_bearer_token_2"}
+
+
+class TestWorkloadIdentity401Retry:
+    @pytest.mark.respx()
+    def test_workload_identity_401_retry(self, respx_mock: MockRouter) -> None:
+        provider_call_count = 0
+
+        def provider() -> str:
+            nonlocal provider_call_count
+            provider_call_count += 1
+            return f"external-subject-token-{provider_call_count}"
+
+        respx_mock.post("https://auth.openai.com/oauth/token").mock(
+            side_effect=[
+                httpx.Response(
+                    200,
+                    json={
+                        "access_token": "openai-access-token-1",
+                        "issued_token_type": "urn:ietf:params:oauth:token-type:access_token",
+                        "token_type": "Bearer",
+                        "expires_in": 3600,
+                    },
+                ),
+                httpx.Response(
+                    200,
+                    json={
+                        "access_token": "openai-access-token-2",
+                        "issued_token_type": "urn:ietf:params:oauth:token-type:access_token",
+                        "token_type": "Bearer",
+                        "expires_in": 3600,
+                    },
+                ),
+            ]
+        )
+
+        respx_mock.post(base_url + "/chat/completions").mock(
+            side_effect=[
+                httpx.Response(401, json={"error": {"message": "Unauthorized", "type": "invalid_request_error"}}),
+                httpx.Response(
+                    200,
+                    json={
+                        "id": "chatcmpl-123",
+                        "object": "chat.completion",
+                        "created": 1234567890,
+                        "model": "gpt-4",
+                        "choices": [],
+                    },
+                ),
+            ]
+        )
+
+        with OpenAI(
+            base_url=base_url,
+            workload_identity={
+                **workload_identity,
+                "provider": {
+                    "get_token": provider,
+                    "token_type": "jwt",
+                },
+            },
+            organization="org_123",
+            project="proj_123",
+            _strict_response_validation=True,
+        ) as client:
+            client.chat.completions.create(messages=[], model="gpt-4")
+
+            calls = cast("list[MockRequestCall]", respx_mock.calls)
+            assert len(calls) == 4
+
+            assert calls[0].request.url == httpx.URL("https://auth.openai.com/oauth/token")
+            assert calls[1].request.url == httpx.URL(base_url + "/chat/completions")
+            assert calls[1].request.headers.get("Authorization") == "Bearer openai-access-token-1"
+
+            assert calls[2].request.url == httpx.URL("https://auth.openai.com/oauth/token")
+
+            assert calls[3].request.url == httpx.URL(base_url + "/chat/completions")
+            assert calls[3].request.headers.get("Authorization") == "Bearer openai-access-token-2"
+
+            assert provider_call_count == 2
+
+    @pytest.mark.respx()
+    def test_401_without_workload_identity_no_retry(self, respx_mock: MockRouter) -> None:
+        respx_mock.post(base_url + "/chat/completions").mock(
+            return_value=httpx.Response(
+                401, json={"error": {"message": "Unauthorized", "type": "invalid_request_error"}}
+            )
+        )
+
+        with OpenAI(
+            base_url=base_url,
+            api_key="test-api-key",
+            _strict_response_validation=True,
+        ) as client:
+            with pytest.raises(APIStatusError) as exc_info:
+                client.chat.completions.create(messages=[], model="gpt-4")
+
+            assert exc_info.value.status_code == 401
+
+            calls = cast("list[MockRequestCall]", respx_mock.calls)
+            assert len(calls) == 1
+
+    @pytest.mark.respx()
+    def test_non_401_errors_no_retry(self, respx_mock: MockRouter) -> None:
+        provider_call_count = 0
+
+        def provider() -> str:
+            nonlocal provider_call_count
+            provider_call_count += 1
+            return "external-subject-token"
+
+        respx_mock.post("https://auth.openai.com/oauth/token").mock(
+            return_value=httpx.Response(
+                200,
+                json={
+                    "access_token": "openai-access-token-1",
+                    "issued_token_type": "urn:ietf:params:oauth:token-type:access_token",
+                    "token_type": "Bearer",
+                    "expires_in": 3600,
+                },
+            )
+        )
+
+        respx_mock.post(base_url + "/chat/completions").mock(
+            return_value=httpx.Response(403, json={"error": {"message": "Forbidden", "type": "invalid_request_error"}})
+        )
+
+        with OpenAI(
+            base_url=base_url,
+            workload_identity={
+                **workload_identity,
+                "provider": {
+                    "get_token": provider,
+                    "token_type": "jwt",
+                },
+            },
+            organization="org_123",
+            project="proj_123",
+            _strict_response_validation=True,
+        ) as client:
+            with pytest.raises(APIStatusError) as exc_info:
+                client.chat.completions.create(messages=[], model="gpt-4")
+
+            assert exc_info.value.status_code == 403
+
+            calls = cast("list[MockRequestCall]", respx_mock.calls)
+            assert len(calls) == 2
+
+            assert provider_call_count == 1
+
+
+class TestAsyncWorkloadIdentity401Retry:
+    @pytest.mark.respx()
+    async def test_workload_identity_401_retry(self, respx_mock: MockRouter) -> None:
+        provider_call_count = 0
+
+        def provider() -> str:
+            nonlocal provider_call_count
+            provider_call_count += 1
+            return f"external-subject-token-{provider_call_count}"
+
+        respx_mock.post("https://auth.openai.com/oauth/token").mock(
+            side_effect=[
+                httpx.Response(
+                    200,
+                    json={
+                        "access_token": "openai-access-token-1",
+                        "issued_token_type": "urn:ietf:params:oauth:token-type:access_token",
+                        "token_type": "Bearer",
+                        "expires_in": 3600,
+                    },
+                ),
+                httpx.Response(
+                    200,
+                    json={
+                        "access_token": "openai-access-token-2",
+                        "issued_token_type": "urn:ietf:params:oauth:token-type:access_token",
+                        "token_type": "Bearer",
+                        "expires_in": 3600,
+                    },
+                ),
+            ]
+        )
+
+        respx_mock.post(base_url + "/chat/completions").mock(
+            side_effect=[
+                httpx.Response(401, json={"error": {"message": "Unauthorized", "type": "invalid_request_error"}}),
+                httpx.Response(
+                    200,
+                    json={
+                        "id": "chatcmpl-123",
+                        "object": "chat.completion",
+                        "created": 1234567890,
+                        "model": "gpt-4",
+                        "choices": [],
+                    },
+                ),
+            ]
+        )
+
+        async with AsyncOpenAI(
+            base_url=base_url,
+            workload_identity={
+                **workload_identity,
+                "provider": {
+                    "get_token": provider,
+                    "token_type": "jwt",
+                },
+            },
+            organization="org_123",
+            project="proj_123",
+            _strict_response_validation=True,
+        ) as client:
+            await client.chat.completions.create(messages=[], model="gpt-4")
+
+            calls = cast("list[MockRequestCall]", respx_mock.calls)
+            assert len(calls) == 4
+
+            assert calls[0].request.url == httpx.URL("https://auth.openai.com/oauth/token")
+            assert calls[1].request.url == httpx.URL(base_url + "/chat/completions")
+            assert calls[1].request.headers.get("Authorization") == "Bearer openai-access-token-1"
+
+            assert calls[2].request.url == httpx.URL("https://auth.openai.com/oauth/token")
+
+            assert calls[3].request.url == httpx.URL(base_url + "/chat/completions")
+            assert calls[3].request.headers.get("Authorization") == "Bearer openai-access-token-2"
+
+            assert provider_call_count == 2
+
+    @pytest.mark.respx()
+    async def test_401_without_workload_identity_no_retry(self, respx_mock: MockRouter) -> None:
+        respx_mock.post(base_url + "/chat/completions").mock(
+            return_value=httpx.Response(
+                401, json={"error": {"message": "Unauthorized", "type": "invalid_request_error"}}
+            )
+        )
+
+        async with AsyncOpenAI(
+            base_url=base_url,
+            api_key="test-api-key",
+            _strict_response_validation=True,
+        ) as client:
+            with pytest.raises(APIStatusError) as exc_info:
+                await client.chat.completions.create(messages=[], model="gpt-4")
+
+            assert exc_info.value.status_code == 401
+
+            calls = cast("list[MockRequestCall]", respx_mock.calls)
+            assert len(calls) == 1
+
+    @pytest.mark.respx()
+    async def test_non_401_errors_no_retry(self, respx_mock: MockRouter) -> None:
+        provider_call_count = 0
+
+        def provider() -> str:
+            nonlocal provider_call_count
+            provider_call_count += 1
+            return "external-subject-token"
+
+        respx_mock.post("https://auth.openai.com/oauth/token").mock(
+            return_value=httpx.Response(
+                200,
+                json={
+                    "access_token": "openai-access-token-1",
+                    "issued_token_type": "urn:ietf:params:oauth:token-type:access_token",
+                    "token_type": "Bearer",
+                    "expires_in": 3600,
+                },
+            )
+        )
+
+        respx_mock.post(base_url + "/chat/completions").mock(
+            return_value=httpx.Response(403, json={"error": {"message": "Forbidden", "type": "invalid_request_error"}})
+        )
+
+        async with AsyncOpenAI(
+            base_url=base_url,
+            workload_identity={
+                **workload_identity,
+                "provider": {
+                    "get_token": provider,
+                    "token_type": "jwt",
+                },
+            },
+            organization="org_123",
+            project="proj_123",
+            _strict_response_validation=True,
+        ) as client:
+            with pytest.raises(APIStatusError) as exc_info:
+                await client.chat.completions.create(messages=[], model="gpt-4")
+
+            assert exc_info.value.status_code == 403
+
+            calls = cast("list[MockRequestCall]", respx_mock.calls)
+            assert len(calls) == 2
+
+            assert provider_call_count == 1
