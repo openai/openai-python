@@ -1,5 +1,34 @@
 # Changelog
 
+## 2.31.0 (2026-04-08)
+
+Full Changelog: [v2.30.0...v2.31.0](https://github.com/openai/openai-python/compare/v2.30.0...v2.31.0)
+
+### Features
+
+* **api:** add phase field to conversations message ([3e5834e](https://github.com/openai/openai-python/commit/3e5834efb39b24e019a29dc54d890c67d18cbb54))
+* **api:** add web_search_call.results to ResponseIncludable type ([ffd8741](https://github.com/openai/openai-python/commit/ffd8741dd38609a5af0159ceb800d8ddba7925f8))
+* **client:** add support for short-lived tokens ([#1608](https://github.com/openai/openai-python/issues/1608)) ([22fe722](https://github.com/openai/openai-python/commit/22fe7228d4990c197cd721b3ad7931ad05cca5dd))
+* **client:** support sending raw data over websockets ([f1bc52e](https://github.com/openai/openai-python/commit/f1bc52ef641dfca6fdf2a5b00ce3b09bff2552f5))
+* **internal:** implement indices array format for query and form serialization ([49194cf](https://github.com/openai/openai-python/commit/49194cfa711328216ff131d6f65c9298822a7c51))
+
+
+### Bug Fixes
+
+* **client:** preserve hardcoded query params when merging with user params ([92e109c](https://github.com/openai/openai-python/commit/92e109c3d9569a942e1919e75977dc13fa015f9a))
+* **types:** remove web_search_call.results from ResponseIncludable ([d3cc401](https://github.com/openai/openai-python/commit/d3cc40165cd86015833d15167cc7712b4102f932))
+
+
+### Chores
+
+* **tests:** bump steady to v0.20.1 ([d60e2ee](https://github.com/openai/openai-python/commit/d60e2eea7f6916540cd4ba901dceb07051119da4))
+* **tests:** bump steady to v0.20.2 ([6508d47](https://github.com/openai/openai-python/commit/6508d474332d4e82d9615c0a9a77379f9b5e4412))
+
+
+### Documentation
+
+* **api:** update file parameter descriptions in vector_stores files and file_batches ([a9e7ebd](https://github.com/openai/openai-python/commit/a9e7ebd505b9ae90514339aa63c6f1984a08cf6b))
+
 ## 2.30.0 (2026-03-25)
 
 Full Changelog: [v2.29.0...v2.30.0](https://github.com/openai/openai-python/compare/v2.29.0...v2.30.0)
