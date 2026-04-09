@@ -7,6 +7,7 @@ from typing_extensions import Self, override
 
 import httpx
 
+from ..auth import WorkloadIdentity
 from .._types import NOT_GIVEN, Omit, Query, Timeout, NotGiven
 from .._utils import is_given, is_mapping
 from .._client import OpenAI, AsyncOpenAI
@@ -155,6 +156,8 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         azure_endpoint: str | None = None,
         azure_deployment: str | None = None,
         api_key: str | Callable[[], str] | None = None,
+        # workload_identity is not functional in the Azure client
+        workload_identity: WorkloadIdentity | None = None,  # noqa: ARG002
         azure_ad_token: str | None = None,
         azure_ad_token_provider: AzureADTokenProvider | None = None,
         organization: str | None = None,
@@ -259,6 +262,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         self,
         *,
         api_key: str | Callable[[], str] | None = None,
+        workload_identity: WorkloadIdentity | None = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -281,6 +285,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         """
         return super().copy(
             api_key=api_key,
+            workload_identity=workload_identity,
             organization=organization,
             project=project,
             webhook_secret=webhook_secret,
@@ -436,6 +441,8 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         azure_deployment: str | None = None,
         api_version: str | None = None,
         api_key: str | Callable[[], Awaitable[str]] | None = None,
+        # workload_identity is not functional in the Azure client
+        workload_identity: WorkloadIdentity | None = None,  # noqa: ARG002
         azure_ad_token: str | None = None,
         azure_ad_token_provider: AsyncAzureADTokenProvider | None = None,
         organization: str | None = None,
@@ -540,6 +547,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         self,
         *,
         api_key: str | Callable[[], Awaitable[str]] | None = None,
+        workload_identity: WorkloadIdentity | None = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -562,6 +570,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         """
         return super().copy(
             api_key=api_key,
+            workload_identity=workload_identity,
             organization=organization,
             project=project,
             webhook_secret=webhook_secret,
