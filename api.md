@@ -11,6 +11,7 @@ from openai.types import (
     FunctionDefinition,
     FunctionParameters,
     Metadata,
+    OAuthErrorCode,
     Reasoning,
     ReasoningEffort,
     ResponseFormatJSONObject,

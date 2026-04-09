@@ -14,6 +14,7 @@ from .shared import (
     Reasoning as Reasoning,
     ErrorObject as ErrorObject,
     CompoundFilter as CompoundFilter,
+    OAuthErrorCode as OAuthErrorCode,
     ResponsesModel as ResponsesModel,
     ReasoningEffort as ReasoningEffort,
     ComparisonFilter as ComparisonFilter,
