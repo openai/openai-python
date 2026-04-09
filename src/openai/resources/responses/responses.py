@@ -3,10 +3,25 @@
 from __future__ import annotations
 
 import json
+import time
+import random
 import logging
 from copy import copy
 from types import TracebackType
-from typing import TYPE_CHECKING, Any, List, Type, Union, Iterable, Iterator, Optional, AsyncIterator, cast
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    List,
+    Type,
+    Union,
+    Callable,
+    Iterable,
+    Iterator,
+    Optional,
+    Awaitable,
+    AsyncIterator,
+    cast,
+)
 from functools import partial
 from typing_extensions import Literal, overload
 
@@ -54,6 +69,7 @@ from ...lib._parsing._responses import (
 from ...types.responses.response import Response
 from ...types.responses.tool_param import ToolParam, ParseableToolParam
 from ...types.shared_params.metadata import Metadata
+from ...types.websocket_reconnection import ReconnectingEvent, ReconnectingOverrides, is_recoverable_close
 from ...types.shared_params.reasoning import Reasoning
 from ...types.responses.parsed_response import ParsedResponse
 from ...lib.streaming.responses._responses import ResponseStreamManager, AsyncResponseStreamManager
@@ -1735,6 +1751,10 @@ class Responses(SyncAPIResource):
         extra_query: Query = {},
         extra_headers: Headers = {},
         websocket_connection_options: WebSocketConnectionOptions = {},
+        on_reconnecting: Callable[[ReconnectingEvent], ReconnectingOverrides | None] | None = None,
+        max_retries: int = 5,
+        initial_delay: float = 0.5,
+        max_delay: float = 8.0,
     ) -> ResponsesConnectionManager:
         """Connect to a persistent Responses API WebSocket.
 
@@ -1745,6 +1765,10 @@ class Responses(SyncAPIResource):
             extra_query=extra_query,
             extra_headers=extra_headers,
             websocket_connection_options=websocket_connection_options,
+            on_reconnecting=on_reconnecting,
+            max_retries=max_retries,
+            initial_delay=initial_delay,
+            max_delay=max_delay,
         )
 
 
@@ -3406,6 +3430,10 @@ class AsyncResponses(AsyncAPIResource):
         extra_query: Query = {},
         extra_headers: Headers = {},
         websocket_connection_options: WebSocketConnectionOptions = {},
+        on_reconnecting: Callable[[ReconnectingEvent], ReconnectingOverrides | None] | None = None,
+        max_retries: int = 5,
+        initial_delay: float = 0.5,
+        max_delay: float = 8.0,
     ) -> AsyncResponsesConnectionManager:
         """Connect to a persistent Responses API WebSocket.
 
@@ -3416,6 +3444,10 @@ class AsyncResponses(AsyncAPIResource):
             extra_query=extra_query,
             extra_headers=extra_headers,
             websocket_connection_options=websocket_connection_options,
+            on_reconnecting=on_reconnecting,
+            max_retries=max_retries,
+            initial_delay=initial_delay,
+            max_delay=max_delay,
         )
 
 
@@ -3586,8 +3618,27 @@ class AsyncResponsesConnection:
 
     _connection: AsyncWebSocketConnection
 
-    def __init__(self, connection: AsyncWebSocketConnection) -> None:
+    def __init__(
+        self,
+        connection: AsyncWebSocketConnection,
+        *,
+        make_ws: Callable[[Query, Headers], Awaitable[AsyncWebSocketConnection]] | None = None,
+        on_reconnecting: Callable[[ReconnectingEvent], ReconnectingOverrides | None] | None = None,
+        max_retries: int = 5,
+        initial_delay: float = 0.5,
+        max_delay: float = 8.0,
+        extra_query: Query = {},
+        extra_headers: Headers = {},
+    ) -> None:
         self._connection = connection
+        self._make_ws = make_ws
+        self._on_reconnecting = on_reconnecting
+        self._max_retries = max_retries
+        self._initial_delay = initial_delay
+        self._max_delay = max_delay
+        self._extra_query = extra_query
+        self._extra_headers = extra_headers
+        self._intentionally_closed = False
 
         self.response = AsyncResponsesResponseResource(self)
 
@@ -3596,13 +3647,16 @@ class AsyncResponsesConnection:
         An infinite-iterator that will continue to yield events until
         the connection is closed.
         """
-        from websockets.exceptions import ConnectionClosedOK
+        from websockets.exceptions import ConnectionClosedOK, ConnectionClosedError
 
-        try:
-            while True:
+        while True:
+            try:
                 yield await self.recv()
-        except ConnectionClosedOK:
-            return
+            except ConnectionClosedOK:
+                return
+            except ConnectionClosedError as exc:
+                if not await self._reconnect(exc):
+                    raise
 
     async def recv(self) -> ResponsesServerEvent:
         """
@@ -3636,6 +3690,7 @@ class AsyncResponsesConnection:
         await self._connection.send(data)
 
     async def close(self, *, code: int = 1000, reason: str = "") -> None:
+        self._intentionally_closed = True
         await self._connection.close(code=code, reason=reason)
 
     def parse_event(self, data: str | bytes) -> ResponsesServerEvent:
@@ -3648,6 +3703,74 @@ class AsyncResponsesConnection:
             ResponsesServerEvent,
             construct_type_unchecked(value=json.loads(data), type_=cast(Any, ResponsesServerEvent)),
         )
+
+    async def _reconnect(self, exc: Exception) -> bool:
+        """Attempt to reconnect after a connection failure.
+
+        Returns ``True`` if a new connection was established, ``False`` if the
+        caller should re-raise the original exception.
+        """
+        import asyncio
+
+        if self._on_reconnecting is None or self._make_ws is None:
+            return False
+
+        from websockets.exceptions import ConnectionClosedError
+
+        close_code = 1006
+        if isinstance(exc, ConnectionClosedError) and exc.rcvd is not None:
+            close_code = exc.rcvd.code
+
+        if not is_recoverable_close(close_code):
+            return False
+
+        for attempt in range(1, self._max_retries + 1):
+            base_delay = min(self._initial_delay * (2 ** (attempt - 1)), self._max_delay)
+            jitter = 0.75 + random.random() * 0.25
+            delay = base_delay * jitter
+
+            event = ReconnectingEvent(
+                attempt=attempt,
+                max_attempts=self._max_retries,
+                delay=delay,
+                close_code=close_code,
+                extra_query=self._extra_query,
+                extra_headers=self._extra_headers,
+            )
+
+            try:
+                result = self._on_reconnecting(event)
+            except Exception:
+                return False
+
+            if result is not None and result.get("abort"):
+                return False
+
+            if result is not None:
+                if "extra_query" in result:
+                    self._extra_query = result["extra_query"]
+                if "extra_headers" in result:
+                    self._extra_headers = result["extra_headers"]
+
+            log.info(
+                "Reconnecting to WebSocket API (attempt %d/%d) after %.1fs delay",
+                attempt,
+                self._max_retries,
+                delay,
+            )
+            await asyncio.sleep(delay)
+
+            if self._intentionally_closed:
+                return False
+
+            try:
+                self._connection = await self._make_ws(self._extra_query, self._extra_headers)
+                log.info("Reconnected to WebSocket API")
+                return True
+            except Exception:
+                pass
+
+        return False
 
 
 class AsyncResponsesConnectionManager:
@@ -3677,12 +3800,20 @@ class AsyncResponsesConnectionManager:
         extra_query: Query,
         extra_headers: Headers,
         websocket_connection_options: WebSocketConnectionOptions,
+        on_reconnecting: Callable[[ReconnectingEvent], ReconnectingOverrides | None] | None = None,
+        max_retries: int = 5,
+        initial_delay: float = 0.5,
+        max_delay: float = 8.0,
     ) -> None:
         self.__client = client
         self.__connection: AsyncResponsesConnection | None = None
         self.__extra_query = extra_query
         self.__extra_headers = extra_headers
         self.__websocket_connection_options = websocket_connection_options
+        self.__on_reconnecting = on_reconnecting
+        self.__max_retries = max_retries
+        self.__initial_delay = initial_delay
+        self.__max_delay = max_delay
 
     async def __aenter__(self) -> AsyncResponsesConnection:
         """
@@ -3697,6 +3828,24 @@ class AsyncResponsesConnectionManager:
         await connection.close()
         ```
         """
+        ws = await self._connect_ws(self.__extra_query, self.__extra_headers)
+
+        self.__connection = AsyncResponsesConnection(
+            ws,
+            make_ws=self._connect_ws if self.__on_reconnecting is not None else None,
+            on_reconnecting=self.__on_reconnecting,
+            max_retries=self.__max_retries,
+            initial_delay=self.__initial_delay,
+            max_delay=self.__max_delay,
+            extra_query=self.__extra_query,
+            extra_headers=self.__extra_headers,
+        )
+
+        return self.__connection
+
+    enter = __aenter__
+
+    async def _connect_ws(self, extra_query: Query, extra_headers: Headers) -> AsyncWebSocketConnection:
         try:
             from websockets.asyncio.client import connect
         except ImportError as exc:
@@ -3705,30 +3854,24 @@ class AsyncResponsesConnectionManager:
         url = self._prepare_url().copy_with(
             params={
                 **self.__client.base_url.params,
-                **self.__extra_query,
+                **extra_query,
             },
         )
         log.debug("Connecting to %s", url)
         if self.__websocket_connection_options:
             log.debug("Connection options: %s", self.__websocket_connection_options)
 
-        self.__connection = AsyncResponsesConnection(
-            await connect(
-                str(url),
-                user_agent_header=self.__client.user_agent,
-                additional_headers=_merge_mappings(
-                    {
-                        **self.__client.auth_headers,
-                    },
-                    self.__extra_headers,
-                ),
-                **self.__websocket_connection_options,
-            )
+        return await connect(
+            str(url),
+            user_agent_header=self.__client.user_agent,
+            additional_headers=_merge_mappings(
+                {
+                    **self.__client.auth_headers,
+                },
+                extra_headers,
+            ),
+            **self.__websocket_connection_options,
         )
-
-        return self.__connection
-
-    enter = __aenter__
 
     def _prepare_url(self) -> httpx.URL:
         if self.__client.websocket_base_url is not None:
@@ -3755,8 +3898,27 @@ class ResponsesConnection:
 
     _connection: WebSocketConnection
 
-    def __init__(self, connection: WebSocketConnection) -> None:
+    def __init__(
+        self,
+        connection: WebSocketConnection,
+        *,
+        make_ws: Callable[[Query, Headers], WebSocketConnection] | None = None,
+        on_reconnecting: Callable[[ReconnectingEvent], ReconnectingOverrides | None] | None = None,
+        max_retries: int = 5,
+        initial_delay: float = 0.5,
+        max_delay: float = 8.0,
+        extra_query: Query = {},
+        extra_headers: Headers = {},
+    ) -> None:
         self._connection = connection
+        self._make_ws = make_ws
+        self._on_reconnecting = on_reconnecting
+        self._max_retries = max_retries
+        self._initial_delay = initial_delay
+        self._max_delay = max_delay
+        self._extra_query = extra_query
+        self._extra_headers = extra_headers
+        self._intentionally_closed = False
 
         self.response = ResponsesResponseResource(self)
 
@@ -3765,13 +3927,16 @@ class ResponsesConnection:
         An infinite-iterator that will continue to yield events until
         the connection is closed.
         """
-        from websockets.exceptions import ConnectionClosedOK
+        from websockets.exceptions import ConnectionClosedOK, ConnectionClosedError
 
-        try:
-            while True:
+        while True:
+            try:
                 yield self.recv()
-        except ConnectionClosedOK:
-            return
+            except ConnectionClosedOK:
+                return
+            except ConnectionClosedError as exc:
+                if not self._reconnect(exc):
+                    raise
 
     def recv(self) -> ResponsesServerEvent:
         """
@@ -3805,6 +3970,7 @@ class ResponsesConnection:
         self._connection.send(data)
 
     def close(self, *, code: int = 1000, reason: str = "") -> None:
+        self._intentionally_closed = True
         self._connection.close(code=code, reason=reason)
 
     def parse_event(self, data: str | bytes) -> ResponsesServerEvent:
@@ -3817,6 +3983,72 @@ class ResponsesConnection:
             ResponsesServerEvent,
             construct_type_unchecked(value=json.loads(data), type_=cast(Any, ResponsesServerEvent)),
         )
+
+    def _reconnect(self, exc: Exception) -> bool:
+        """Attempt to reconnect after a connection failure.
+
+        Returns ``True`` if a new connection was established, ``False`` if the
+        caller should re-raise the original exception.
+        """
+        if self._on_reconnecting is None or self._make_ws is None:
+            return False
+
+        from websockets.exceptions import ConnectionClosedError
+
+        close_code = 1006
+        if isinstance(exc, ConnectionClosedError) and exc.rcvd is not None:
+            close_code = exc.rcvd.code
+
+        if not is_recoverable_close(close_code):
+            return False
+
+        for attempt in range(1, self._max_retries + 1):
+            base_delay = min(self._initial_delay * (2 ** (attempt - 1)), self._max_delay)
+            jitter = 0.75 + random.random() * 0.25
+            delay = base_delay * jitter
+
+            event = ReconnectingEvent(
+                attempt=attempt,
+                max_attempts=self._max_retries,
+                delay=delay,
+                close_code=close_code,
+                extra_query=self._extra_query,
+                extra_headers=self._extra_headers,
+            )
+
+            try:
+                result = self._on_reconnecting(event)
+            except Exception:
+                return False
+
+            if result is not None and result.get("abort"):
+                return False
+
+            if result is not None:
+                if "extra_query" in result:
+                    self._extra_query = result["extra_query"]
+                if "extra_headers" in result:
+                    self._extra_headers = result["extra_headers"]
+
+            log.info(
+                "Reconnecting to WebSocket API (attempt %d/%d) after %.1fs delay",
+                attempt,
+                self._max_retries,
+                delay,
+            )
+            time.sleep(delay)
+
+            if self._intentionally_closed:
+                return False
+
+            try:
+                self._connection = self._make_ws(self._extra_query, self._extra_headers)
+                log.info("Reconnected to WebSocket API")
+                return True
+            except Exception:
+                pass
+
+        return False
 
 
 class ResponsesConnectionManager:
@@ -3846,12 +4078,20 @@ class ResponsesConnectionManager:
         extra_query: Query,
         extra_headers: Headers,
         websocket_connection_options: WebSocketConnectionOptions,
+        on_reconnecting: Callable[[ReconnectingEvent], ReconnectingOverrides | None] | None = None,
+        max_retries: int = 5,
+        initial_delay: float = 0.5,
+        max_delay: float = 8.0,
     ) -> None:
         self.__client = client
         self.__connection: ResponsesConnection | None = None
         self.__extra_query = extra_query
         self.__extra_headers = extra_headers
         self.__websocket_connection_options = websocket_connection_options
+        self.__on_reconnecting = on_reconnecting
+        self.__max_retries = max_retries
+        self.__initial_delay = initial_delay
+        self.__max_delay = max_delay
 
     def __enter__(self) -> ResponsesConnection:
         """
@@ -3866,6 +4106,24 @@ class ResponsesConnectionManager:
         connection.close()
         ```
         """
+        ws = self._connect_ws(self.__extra_query, self.__extra_headers)
+
+        self.__connection = ResponsesConnection(
+            ws,
+            make_ws=self._connect_ws if self.__on_reconnecting is not None else None,
+            on_reconnecting=self.__on_reconnecting,
+            max_retries=self.__max_retries,
+            initial_delay=self.__initial_delay,
+            max_delay=self.__max_delay,
+            extra_query=self.__extra_query,
+            extra_headers=self.__extra_headers,
+        )
+
+        return self.__connection
+
+    enter = __enter__
+
+    def _connect_ws(self, extra_query: Query, extra_headers: Headers) -> WebSocketConnection:
         try:
             from websockets.sync.client import connect
         except ImportError as exc:
@@ -3874,30 +4132,24 @@ class ResponsesConnectionManager:
         url = self._prepare_url().copy_with(
             params={
                 **self.__client.base_url.params,
-                **self.__extra_query,
+                **extra_query,
             },
         )
         log.debug("Connecting to %s", url)
         if self.__websocket_connection_options:
             log.debug("Connection options: %s", self.__websocket_connection_options)
 
-        self.__connection = ResponsesConnection(
-            connect(
-                str(url),
-                user_agent_header=self.__client.user_agent,
-                additional_headers=_merge_mappings(
-                    {
-                        **self.__client.auth_headers,
-                    },
-                    self.__extra_headers,
-                ),
-                **self.__websocket_connection_options,
-            )
+        return connect(
+            str(url),
+            user_agent_header=self.__client.user_agent,
+            additional_headers=_merge_mappings(
+                {
+                    **self.__client.auth_headers,
+                },
+                extra_headers,
+            ),
+            **self.__websocket_connection_options,
         )
-
-        return self.__connection
-
-    enter = __enter__
 
     def _prepare_url(self) -> httpx.URL:
         if self.__client.websocket_base_url is not None:
