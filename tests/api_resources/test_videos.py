@@ -41,7 +41,7 @@ class TestVideos:
         video = client.videos.create(
             prompt="x",
             input_reference=b"Example data",
-            model="string",
+            model="sora-2",
             seconds="4",
             size="720x1280",
         )
@@ -442,7 +442,7 @@ class TestAsyncVideos:
         video = await async_client.videos.create(
             prompt="x",
             input_reference=b"Example data",
-            model="string",
+            model="sora-2",
             seconds="4",
             size="720x1280",
         )
