@@ -35,6 +35,15 @@ def test_multiple_files() -> None:
     assert query == {"documents": [{}, {}]}
 
 
+def test_top_level_file_array() -> None:
+    query = {"files": [b"file one", b"file two"], "title": "hello"}
+    assert extract_files(query, paths=[["files", "<array>"]]) == [
+        ("files[]", b"file one"),
+        ("files[]", b"file two"),
+    ]
+    assert query == {"title": "hello"}
+
+
 @pytest.mark.parametrize(
     "query,paths,expected",
     [
