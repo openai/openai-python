@@ -27,8 +27,8 @@ class TestSpeech:
         respx_mock.post("/audio/speech").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
         speech = client.audio.speech.create(
             input="input",
-            model="string",
-            voice="string",
+            model="tts-1",
+            voice="alloy",
         )
         assert isinstance(speech, _legacy_response.HttpxBinaryResponseContent)
         assert speech.json() == {"foo": "bar"}
@@ -39,8 +39,8 @@ class TestSpeech:
         respx_mock.post("/audio/speech").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
         speech = client.audio.speech.create(
             input="input",
-            model="string",
-            voice="string",
+            model="tts-1",
+            voice="alloy",
             instructions="instructions",
             response_format="mp3",
             speed=0.25,
@@ -56,8 +56,8 @@ class TestSpeech:
 
         response = client.audio.speech.with_raw_response.create(
             input="input",
-            model="string",
-            voice="string",
+            model="tts-1",
+            voice="alloy",
         )
 
         assert response.is_closed is True
@@ -71,8 +71,8 @@ class TestSpeech:
         respx_mock.post("/audio/speech").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
         with client.audio.speech.with_streaming_response.create(
             input="input",
-            model="string",
-            voice="string",
+            model="tts-1",
+            voice="alloy",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -94,8 +94,8 @@ class TestAsyncSpeech:
         respx_mock.post("/audio/speech").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
         speech = await async_client.audio.speech.create(
             input="input",
-            model="string",
-            voice="string",
+            model="tts-1",
+            voice="alloy",
         )
         assert isinstance(speech, _legacy_response.HttpxBinaryResponseContent)
         assert speech.json() == {"foo": "bar"}
@@ -106,8 +106,8 @@ class TestAsyncSpeech:
         respx_mock.post("/audio/speech").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
         speech = await async_client.audio.speech.create(
             input="input",
-            model="string",
-            voice="string",
+            model="tts-1",
+            voice="alloy",
             instructions="instructions",
             response_format="mp3",
             speed=0.25,
@@ -123,8 +123,8 @@ class TestAsyncSpeech:
 
         response = await async_client.audio.speech.with_raw_response.create(
             input="input",
-            model="string",
-            voice="string",
+            model="tts-1",
+            voice="alloy",
         )
 
         assert response.is_closed is True
@@ -138,8 +138,8 @@ class TestAsyncSpeech:
         respx_mock.post("/audio/speech").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
         async with async_client.audio.speech.with_streaming_response.create(
             input="input",
-            model="string",
-            voice="string",
+            model="tts-1",
+            voice="alloy",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
