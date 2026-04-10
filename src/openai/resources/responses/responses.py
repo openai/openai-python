@@ -39,6 +39,7 @@ from .input_tokens import (
 )
 from ..._exceptions import OpenAIError
 from ..._base_client import _merge_mappings, make_request_options
+from ..._event_handler import EventHandlerRegistry
 from ...types.responses import (
     response_create_params,
     response_compact_params,
@@ -54,6 +55,7 @@ from ...types.responses.compacted_response import CompactedResponse
 from ...types.websocket_connection_options import WebSocketConnectionOptions
 from ...types.responses.response_includable import ResponseIncludable
 from ...types.shared_params.responses_model import ResponsesModel
+from ...types.responses.response_error_event import ResponseErrorEvent
 from ...types.responses.response_input_param import ResponseInputParam
 from ...types.responses.response_prompt_param import ResponsePromptParam
 from ...types.responses.response_stream_event import ResponseStreamEvent
@@ -2838,6 +2840,7 @@ class AsyncResponsesConnection:
         self._extra_query = extra_query
         self._extra_headers = extra_headers
         self._intentionally_closed = False
+        self._event_handler_registry = EventHandlerRegistry(use_lock=False)
 
         self.response = AsyncResponsesResponseResource(self)
 
@@ -2971,6 +2974,86 @@ class AsyncResponsesConnection:
 
         return False
 
+    def on(
+        self, event_type: str, handler: Callable[..., Any] | None = None
+    ) -> Union[AsyncResponsesConnection, Callable[[Callable[..., Any]], Callable[..., Any]]]:
+        """Adds the handler to the end of the handlers list for the given event type.
+
+        No checks are made to see if the handler has already been added. Multiple calls
+        passing the same combination of event type and handler will result in the handler
+        being added, and called, multiple times.
+
+        Can be used as a method (returns ``self`` for chaining)::
+
+            connection.on("response.audio.delta", my_handler)
+
+        Or as a decorator::
+
+            @connection.on("response.audio.delta")
+            async def my_handler(event): ...
+        """
+        if handler is not None:
+            self._event_handler_registry.add(event_type, handler)
+            return self
+
+        def decorator(fn: Callable[..., Any]) -> Callable[..., Any]:
+            self._event_handler_registry.add(event_type, fn)
+            return fn
+
+        return decorator
+
+    def off(self, event_type: str, handler: Callable[..., Any]) -> AsyncResponsesConnection:
+        """Remove a previously registered event handler."""
+        self._event_handler_registry.remove(event_type, handler)
+        return self
+
+    def once(
+        self, event_type: str, handler: Callable[..., Any] | None = None
+    ) -> Union[AsyncResponsesConnection, Callable[[Callable[..., Any]], Callable[..., Any]]]:
+        """Register a one-time event handler.
+
+        Automatically removed after first invocation.
+        """
+        if handler is not None:
+            self._event_handler_registry.add(event_type, handler, once=True)
+            return self
+
+        def decorator(fn: Callable[..., Any]) -> Callable[..., Any]:
+            self._event_handler_registry.add(event_type, fn, once=True)
+            return fn
+
+        return decorator
+
+    async def dispatch_events(self) -> None:
+        """Run the event loop, dispatching received events to registered handlers.
+
+        Blocks until the connection is closed. This is the push-based
+        alternative to iterating with ``async for event in connection``.
+
+        If an ``"error"`` event arrives and no handler is registered for
+        ``"error"`` or ``"event"``, an ``OpenAIError`` is raised.
+        """
+        import asyncio
+
+        async for event in self:
+            event_type = event.type
+            specific = self._event_handler_registry.get_handlers(event_type)
+            generic = self._event_handler_registry.get_handlers("event")
+
+            if event_type == "error" and not specific and not generic:
+                if isinstance(event, ResponseErrorEvent):
+                    raise OpenAIError(f"WebSocket error: {event}")
+
+            for handler in specific:
+                result = handler(event)
+                if asyncio.iscoroutine(result):
+                    await result
+
+            for handler in generic:
+                result = handler(event)
+                if asyncio.iscoroutine(result):
+                    await result
+
 
 class AsyncResponsesConnectionManager:
     """
@@ -3016,7 +3099,7 @@ class AsyncResponsesConnectionManager:
 
     async def __aenter__(self) -> AsyncResponsesConnection:
         """
-        👋 If your application doesn't work well with the context manager approach then you
+        If your application doesn't work well with the context manager approach then you
         can call this method directly to initiate a connection.
 
         **Warning**: You must remember to close the connection with `.close()`.
@@ -3118,6 +3201,7 @@ class ResponsesConnection:
         self._extra_query = extra_query
         self._extra_headers = extra_headers
         self._intentionally_closed = False
+        self._event_handler_registry = EventHandlerRegistry(use_lock=True)
 
         self.response = ResponsesResponseResource(self)
 
@@ -3249,6 +3333,80 @@ class ResponsesConnection:
 
         return False
 
+    def on(
+        self, event_type: str, handler: Callable[..., Any] | None = None
+    ) -> Union[ResponsesConnection, Callable[[Callable[..., Any]], Callable[..., Any]]]:
+        """Adds the handler to the end of the handlers list for the given event type.
+
+        No checks are made to see if the handler has already been added. Multiple calls
+        passing the same combination of event type and handler will result in the handler
+        being added, and called, multiple times.
+
+        Can be used as a method (returns ``self`` for chaining)::
+
+            connection.on("response.audio.delta", my_handler)
+
+        Or as a decorator::
+
+            @connection.on("response.audio.delta")
+            def my_handler(event): ...
+        """
+        if handler is not None:
+            self._event_handler_registry.add(event_type, handler)
+            return self
+
+        def decorator(fn: Callable[..., Any]) -> Callable[..., Any]:
+            self._event_handler_registry.add(event_type, fn)
+            return fn
+
+        return decorator
+
+    def off(self, event_type: str, handler: Callable[..., Any]) -> ResponsesConnection:
+        """Remove a previously registered event handler."""
+        self._event_handler_registry.remove(event_type, handler)
+        return self
+
+    def once(
+        self, event_type: str, handler: Callable[..., Any] | None = None
+    ) -> Union[ResponsesConnection, Callable[[Callable[..., Any]], Callable[..., Any]]]:
+        """Register a one-time event handler.
+
+        Automatically removed after first invocation.
+        """
+        if handler is not None:
+            self._event_handler_registry.add(event_type, handler, once=True)
+            return self
+
+        def decorator(fn: Callable[..., Any]) -> Callable[..., Any]:
+            self._event_handler_registry.add(event_type, fn, once=True)
+            return fn
+
+        return decorator
+
+    def dispatch_events(self) -> None:
+        """Run the event loop, dispatching received events to registered handlers.
+
+        Blocks the current thread until the connection is closed. This is the push-based
+        alternative to iterating with ``for event in connection``.
+
+        If an ``"error"`` event arrives and no handler is registered for
+        ``"error"`` or ``"event"``, an ``OpenAIError`` is raised.
+        """
+        for event in self:
+            event_type = event.type
+            specific = self._event_handler_registry.get_handlers(event_type)
+            generic = self._event_handler_registry.get_handlers("event")
+
+            if event_type == "error" and not specific and not generic:
+                if isinstance(event, ResponseErrorEvent):
+                    raise OpenAIError(f"WebSocket error: {event}")
+
+            for handler in specific:
+                handler(event)
+
+            for handler in generic:
+                handler(event)
+
 
 class ResponsesConnectionManager:
     """
@@ -3294,7 +3452,7 @@ class ResponsesConnectionManager:
 
     def __enter__(self) -> ResponsesConnection:
         """
-        👋 If your application doesn't work well with the context manager approach then you
+        If your application doesn't work well with the context manager approach then you
         can call this method directly to initiate a connection.
 
         **Warning**: You must remember to close the connection with `.close()`.

@@ -7,7 +7,7 @@ import time
 import random
 import logging
 from types import TracebackType
-from typing import TYPE_CHECKING, Any, Callable, Iterator, Awaitable, cast
+from typing import TYPE_CHECKING, Any, Union, Callable, Iterator, Awaitable, cast
 from typing_extensions import AsyncIterator
 
 import httpx
@@ -36,9 +36,11 @@ from .client_secrets import (
     ClientSecretsWithStreamingResponse,
     AsyncClientSecretsWithStreamingResponse,
 )
+from ..._event_handler import EventHandlerRegistry
 from ...types.realtime import session_update_event_param
 from ...types.websocket_reconnection import ReconnectingEvent, ReconnectingOverrides, is_recoverable_close
 from ...types.websocket_connection_options import WebSocketConnectionOptions
+from ...types.realtime.realtime_error_event import RealtimeErrorEvent
 from ...types.realtime.realtime_client_event import RealtimeClientEvent
 from ...types.realtime.realtime_server_event import RealtimeServerEvent
 from ...types.realtime.conversation_item_param import ConversationItemParam
@@ -272,6 +274,7 @@ class AsyncRealtimeConnection:
         self._extra_query = extra_query
         self._extra_headers = extra_headers
         self._intentionally_closed = False
+        self._event_handler_registry = EventHandlerRegistry(use_lock=False)
 
         self.session = AsyncRealtimeSessionResource(self)
         self.response = AsyncRealtimeResponseResource(self)
@@ -408,6 +411,86 @@ class AsyncRealtimeConnection:
 
         return False
 
+    def on(
+        self, event_type: str, handler: Callable[..., Any] | None = None
+    ) -> Union[AsyncRealtimeConnection, Callable[[Callable[..., Any]], Callable[..., Any]]]:
+        """Adds the handler to the end of the handlers list for the given event type.
+
+        No checks are made to see if the handler has already been added. Multiple calls
+        passing the same combination of event type and handler will result in the handler
+        being added, and called, multiple times.
+
+        Can be used as a method (returns ``self`` for chaining)::
+
+            connection.on("conversation.created", my_handler)
+
+        Or as a decorator::
+
+            @connection.on("conversation.created")
+            async def my_handler(event): ...
+        """
+        if handler is not None:
+            self._event_handler_registry.add(event_type, handler)
+            return self
+
+        def decorator(fn: Callable[..., Any]) -> Callable[..., Any]:
+            self._event_handler_registry.add(event_type, fn)
+            return fn
+
+        return decorator
+
+    def off(self, event_type: str, handler: Callable[..., Any]) -> AsyncRealtimeConnection:
+        """Remove a previously registered event handler."""
+        self._event_handler_registry.remove(event_type, handler)
+        return self
+
+    def once(
+        self, event_type: str, handler: Callable[..., Any] | None = None
+    ) -> Union[AsyncRealtimeConnection, Callable[[Callable[..., Any]], Callable[..., Any]]]:
+        """Register a one-time event handler.
+
+        Automatically removed after first invocation.
+        """
+        if handler is not None:
+            self._event_handler_registry.add(event_type, handler, once=True)
+            return self
+
+        def decorator(fn: Callable[..., Any]) -> Callable[..., Any]:
+            self._event_handler_registry.add(event_type, fn, once=True)
+            return fn
+
+        return decorator
+
+    async def dispatch_events(self) -> None:
+        """Run the event loop, dispatching received events to registered handlers.
+
+        Blocks until the connection is closed. This is the push-based
+        alternative to iterating with ``async for event in connection``.
+
+        If an ``"error"`` event arrives and no handler is registered for
+        ``"error"`` or ``"event"``, an ``OpenAIError`` is raised.
+        """
+        import asyncio
+
+        async for event in self:
+            event_type = event.type
+            specific = self._event_handler_registry.get_handlers(event_type)
+            generic = self._event_handler_registry.get_handlers("event")
+
+            if event_type == "error" and not specific and not generic:
+                if isinstance(event, RealtimeErrorEvent):
+                    raise OpenAIError(f"WebSocket error: {event}")
+
+            for handler in specific:
+                result = handler(event)
+                if asyncio.iscoroutine(result):
+                    await result
+
+            for handler in generic:
+                result = handler(event)
+                if asyncio.iscoroutine(result):
+                    await result
+
 
 class AsyncRealtimeConnectionManager:
     """
@@ -457,7 +540,7 @@ class AsyncRealtimeConnectionManager:
 
     async def __aenter__(self) -> AsyncRealtimeConnection:
         """
-        👋 If your application doesn't work well with the context manager approach then you
+        If your application doesn't work well with the context manager approach then you
         can call this method directly to initiate a connection.
 
         **Warning**: You must remember to close the connection with `.close()`.
@@ -565,6 +648,7 @@ class RealtimeConnection:
         self._extra_query = extra_query
         self._extra_headers = extra_headers
         self._intentionally_closed = False
+        self._event_handler_registry = EventHandlerRegistry(use_lock=True)
 
         self.session = RealtimeSessionResource(self)
         self.response = RealtimeResponseResource(self)
@@ -699,6 +783,80 @@ class RealtimeConnection:
 
         return False
 
+    def on(
+        self, event_type: str, handler: Callable[..., Any] | None = None
+    ) -> Union[RealtimeConnection, Callable[[Callable[..., Any]], Callable[..., Any]]]:
+        """Adds the handler to the end of the handlers list for the given event type.
+
+        No checks are made to see if the handler has already been added. Multiple calls
+        passing the same combination of event type and handler will result in the handler
+        being added, and called, multiple times.
+
+        Can be used as a method (returns ``self`` for chaining)::
+
+            connection.on("conversation.created", my_handler)
+
+        Or as a decorator::
+
+            @connection.on("conversation.created")
+            def my_handler(event): ...
+        """
+        if handler is not None:
+            self._event_handler_registry.add(event_type, handler)
+            return self
+
+        def decorator(fn: Callable[..., Any]) -> Callable[..., Any]:
+            self._event_handler_registry.add(event_type, fn)
+            return fn
+
+        return decorator
+
+    def off(self, event_type: str, handler: Callable[..., Any]) -> RealtimeConnection:
+        """Remove a previously registered event handler."""
+        self._event_handler_registry.remove(event_type, handler)
+        return self
+
+    def once(
+        self, event_type: str, handler: Callable[..., Any] | None = None
+    ) -> Union[RealtimeConnection, Callable[[Callable[..., Any]], Callable[..., Any]]]:
+        """Register a one-time event handler.
+
+        Automatically removed after first invocation.
+        """
+        if handler is not None:
+            self._event_handler_registry.add(event_type, handler, once=True)
+            return self
+
+        def decorator(fn: Callable[..., Any]) -> Callable[..., Any]:
+            self._event_handler_registry.add(event_type, fn, once=True)
+            return fn
+
+        return decorator
+
+    def dispatch_events(self) -> None:
+        """Run the event loop, dispatching received events to registered handlers.
+
+        Blocks the current thread until the connection is closed. This is the push-based
+        alternative to iterating with ``for event in connection``.
+
+        If an ``"error"`` event arrives and no handler is registered for
+        ``"error"`` or ``"event"``, an ``OpenAIError`` is raised.
+        """
+        for event in self:
+            event_type = event.type
+            specific = self._event_handler_registry.get_handlers(event_type)
+            generic = self._event_handler_registry.get_handlers("event")
+
+            if event_type == "error" and not specific and not generic:
+                if isinstance(event, RealtimeErrorEvent):
+                    raise OpenAIError(f"WebSocket error: {event}")
+
+            for handler in specific:
+                handler(event)
+
+            for handler in generic:
+                handler(event)
+
 
 class RealtimeConnectionManager:
     """
@@ -748,7 +906,7 @@ class RealtimeConnectionManager:
 
     def __enter__(self) -> RealtimeConnection:
         """
-        👋 If your application doesn't work well with the context manager approach then you
+        If your application doesn't work well with the context manager approach then you
         can call this method directly to initiate a connection.
 
         **Warning**: You must remember to close the connection with `.close()`.
