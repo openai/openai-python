@@ -276,8 +276,8 @@ def required_args(*variants: Sequence[str]) -> Callable[[CallableT], CallableT]:
                 else:
                     assert len(variants) > 0
 
-                    # TODO: this error message is not deterministic
-                    missing = list(set(variants[0]) - given_params)
+                    # preserve declaration order for deterministic error messages
+                    missing = [param for param in variants[0] if param not in given_params]
                     if len(missing) > 1:
                         msg = f"Missing required arguments: {human_join([quote(arg) for arg in missing])}"
                     else:
