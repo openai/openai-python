@@ -70,3 +70,16 @@ class EventHandlerRegistry:
             return bool(handlers)
         finally:
             self._release()
+
+    def merge_into(self, target: EventHandlerRegistry) -> None:
+        """Move all handlers from this registry into *target*, then clear self."""
+        self._acquire()
+        try:
+            for event_type, handlers in self._handlers.items():
+                for handler in handlers:
+                    once = id(handler) in self._once_ids
+                    target.add(event_type, handler, once=once)
+            self._handlers.clear()
+            self._once_ids.clear()
+        finally:
+            self._release()
