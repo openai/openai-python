@@ -20,13 +20,11 @@ jobs:
           # Ensure we can check out the pull request base in the script below.
           fetch-depth: ${{ env.FETCH_DEPTH }}
 
-      - name: Install Rye
-        run: |
-          curl -sSf https://rye.astral.sh/get | bash
-          echo "$HOME/.rye/shims" >> $GITHUB_PATH
-        env:
-          RYE_VERSION: '0.44.0'
-          RYE_INSTALL_OPTION: '--yes'
+      - name: Set up Rye
+        uses: eifinger/setup-rye@c694239a43768373e87d0103d7f547027a23f3c8
+        with:
+          version: '0.44.0'
+          enable-cache: true
       - name: Install dependencies
         run: |
           rye sync --all-features
@@ -49,14 +47,12 @@ jobs:
         with:
           path: openai-python
 
-      - name: Install Rye
-        working-directory: openai-python
-        run: |
-          curl -sSf https://rye.astral.sh/get | bash
-          echo "$HOME/.rye/shims" >> $GITHUB_PATH
-        env:
-          RYE_VERSION: '0.44.0'
-          RYE_INSTALL_OPTION: '--yes'
+      - name: Set up Rye
+        uses: eifinger/setup-rye@c694239a43768373e87d0103d7f547027a23f3c8
+        with:
+          version: '0.44.0'
+          enable-cache: true
+          working-directory: openai-python
 
       - name: Install dependencies
         working-directory: openai-python
@@ -85,4 +81,3 @@ jobs:
       - name: Run integration type checks
         working-directory: openai-agents-python
         run: make mypy
-
