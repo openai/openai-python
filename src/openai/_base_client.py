@@ -1443,13 +1443,28 @@ else:
 
 
 class AsyncHttpxClientWrapper(DefaultAsyncHttpxClient):
+    def __init__(self, **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+
+        try:
+            self._event_loop: asyncio.AbstractEventLoop | None = asyncio.get_running_loop()
+        except RuntimeError:
+            self._event_loop = None
+
     def __del__(self) -> None:
         if self.is_closed:
             return
 
         try:
             # TODO(someday): support non asyncio runtimes here
-            asyncio.get_running_loop().create_task(self.aclose())
+            loop = self._event_loop
+            if loop is None:
+                loop = asyncio.get_running_loop()
+
+            if loop.is_closed():
+                return
+
+            loop.call_soon_threadsafe(lambda: loop.create_task(self.aclose()))
         except Exception:
             pass
 
