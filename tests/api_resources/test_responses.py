@@ -388,6 +388,7 @@ class TestResponses:
             instructions="instructions",
             previous_response_id="resp_123",
             prompt_cache_key="prompt_cache_key",
+            prompt_cache_retention="in_memory",
         )
         assert_matches_type(CompactedResponse, response, path=["response"])
 
@@ -799,6 +800,7 @@ class TestAsyncResponses:
             instructions="instructions",
             previous_response_id="resp_123",
             prompt_cache_key="prompt_cache_key",
+            prompt_cache_retention="in_memory",
         )
         assert_matches_type(CompactedResponse, response, path=["response"])
 
