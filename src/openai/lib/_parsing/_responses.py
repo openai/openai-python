@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from typing import TYPE_CHECKING, List, Iterable, cast
+from typing import TYPE_CHECKING, Any, List, Iterable, cast
 from typing_extensions import TypeVar, assert_never
 
 import pydantic
@@ -67,22 +67,28 @@ def parse_response(
                     continue
 
                 content_list.append(
-                    construct_type_unchecked(
-                        type_=ParsedResponseOutputText[TextFormatT],
-                        value={
-                            **item.to_dict(),
-                            "parsed": parse_text(item.text, text_format=text_format),
-                        },
+                    cast(
+                        Any,
+                        construct_type_unchecked(
+                            type_=ParsedResponseOutputText,
+                            value={
+                                **item.to_dict(),
+                                "parsed": parse_text(item.text, text_format=text_format),
+                            },
+                        ),
                     )
                 )
 
             output_list.append(
-                construct_type_unchecked(
-                    type_=ParsedResponseOutputMessage[TextFormatT],
-                    value={
-                        **output.to_dict(),
-                        "content": content_list,
-                    },
+                cast(
+                    Any,
+                    construct_type_unchecked(
+                        type_=ParsedResponseOutputMessage,
+                        value={
+                            **output.to_dict(),
+                            "content": content_list,
+                        },
+                    ),
                 )
             )
         elif output.type == "function_call":
@@ -129,12 +135,15 @@ def parse_response(
         else:
             output_list.append(output)
 
-    return construct_type_unchecked(
-        type_=ParsedResponse[TextFormatT],
-        value={
-            **response.to_dict(),
-            "output": output_list,
-        },
+    return cast(
+        ParsedResponse[TextFormatT],
+        construct_type_unchecked(
+            type_=ParsedResponse,
+            value={
+                **response.to_dict(),
+                "output": output_list,
+            },
+        ),
     )
 
 
