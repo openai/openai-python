@@ -29,14 +29,17 @@ from ._exceptions import (
     InternalServerError,
     PermissionDeniedError,
     LengthFinishReasonError,
+    WebSocketQueueFullError,
     UnprocessableEntityError,
     APIResponseValidationError,
     InvalidWebhookSignatureError,
     ContentFilterFinishReasonError,
+    WebSocketConnectionClosedError,
 )
 from ._base_client import DefaultHttpxClient, DefaultAioHttpClient, DefaultAsyncHttpxClient
 from ._utils._logs import setup_logging as _setup_logging
 from ._legacy_response import HttpxBinaryResponseContent as HttpxBinaryResponseContent
+from .types.websocket_reconnection import ReconnectingEvent, ReconnectingOverrides
 
 __all__ = [
     "types",
@@ -84,6 +87,10 @@ __all__ = [
     "DefaultHttpxClient",
     "DefaultAsyncHttpxClient",
     "DefaultAioHttpClient",
+    "ReconnectingEvent",
+    "ReconnectingOverrides",
+    "WebSocketQueueFullError",
+    "WebSocketConnectionClosedError",
 ]
 
 if not _t.TYPE_CHECKING:

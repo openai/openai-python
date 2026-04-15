@@ -13,13 +13,11 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-      - name: Install Rye
-        run: |
-          curl -sSf https://rye.astral.sh/get | bash
-          echo "$HOME/.rye/shims" >> $GITHUB_PATH
-        env:
-          RYE_VERSION: '0.44.0'
-          RYE_INSTALL_OPTION: '--yes'
+      - name: Set up Rye
+        uses: eifinger/setup-rye@c694239a43768373e87d0103d7f547027a23f3c8
+        with:
+          version: '0.44.0'
+          enable-cache: true
 
       - name: Publish to PyPI
         run: |

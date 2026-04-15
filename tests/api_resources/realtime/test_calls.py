@@ -48,7 +48,7 @@ class TestCalls:
                         "noise_reduction": {"type": "near_field"},
                         "transcription": {
                             "language": "language",
-                            "model": "string",
+                            "model": "whisper-1",
                             "prompt": "prompt",
                         },
                         "turn_detection": {
@@ -67,13 +67,13 @@ class TestCalls:
                             "type": "audio/pcm",
                         },
                         "speed": 0.25,
-                        "voice": "string",
+                        "voice": "alloy",
                     },
                 },
                 "include": ["item.input_audio_transcription.logprobs"],
                 "instructions": "instructions",
-                "max_output_tokens": 0,
-                "model": "string",
+                "max_output_tokens": "inf",
+                "model": "gpt-realtime",
                 "output_modalities": ["text"],
                 "prompt": {
                     "id": "id",
@@ -147,7 +147,7 @@ class TestCalls:
                     "noise_reduction": {"type": "near_field"},
                     "transcription": {
                         "language": "language",
-                        "model": "string",
+                        "model": "whisper-1",
                         "prompt": "prompt",
                     },
                     "turn_detection": {
@@ -166,13 +166,13 @@ class TestCalls:
                         "type": "audio/pcm",
                     },
                     "speed": 0.25,
-                    "voice": "string",
+                    "voice": "alloy",
                 },
             },
             include=["item.input_audio_transcription.logprobs"],
             instructions="instructions",
-            max_output_tokens=0,
-            model="string",
+            max_output_tokens="inf",
+            model="gpt-realtime",
             output_modalities=["text"],
             prompt={
                 "id": "id",
@@ -386,7 +386,7 @@ class TestAsyncCalls:
                         "noise_reduction": {"type": "near_field"},
                         "transcription": {
                             "language": "language",
-                            "model": "string",
+                            "model": "whisper-1",
                             "prompt": "prompt",
                         },
                         "turn_detection": {
@@ -405,13 +405,13 @@ class TestAsyncCalls:
                             "type": "audio/pcm",
                         },
                         "speed": 0.25,
-                        "voice": "string",
+                        "voice": "alloy",
                     },
                 },
                 "include": ["item.input_audio_transcription.logprobs"],
                 "instructions": "instructions",
-                "max_output_tokens": 0,
-                "model": "string",
+                "max_output_tokens": "inf",
+                "model": "gpt-realtime",
                 "output_modalities": ["text"],
                 "prompt": {
                     "id": "id",
@@ -485,7 +485,7 @@ class TestAsyncCalls:
                     "noise_reduction": {"type": "near_field"},
                     "transcription": {
                         "language": "language",
-                        "model": "string",
+                        "model": "whisper-1",
                         "prompt": "prompt",
                     },
                     "turn_detection": {
@@ -504,13 +504,13 @@ class TestAsyncCalls:
                         "type": "audio/pcm",
                     },
                     "speed": 0.25,
-                    "voice": "string",
+                    "voice": "alloy",
                 },
             },
             include=["item.input_audio_transcription.logprobs"],
             instructions="instructions",
-            max_output_tokens=0,
-            model="string",
+            max_output_tokens="inf",
+            model="gpt-realtime",
             output_modalities=["text"],
             prompt={
                 "id": "id",
