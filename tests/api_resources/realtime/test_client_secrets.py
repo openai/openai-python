@@ -40,7 +40,7 @@ class TestClientSecrets:
                         "noise_reduction": {"type": "near_field"},
                         "transcription": {
                             "language": "language",
-                            "model": "string",
+                            "model": "whisper-1",
                             "prompt": "prompt",
                         },
                         "turn_detection": {
@@ -59,13 +59,13 @@ class TestClientSecrets:
                             "type": "audio/pcm",
                         },
                         "speed": 0.25,
-                        "voice": "string",
+                        "voice": "alloy",
                     },
                 },
                 "include": ["item.input_audio_transcription.logprobs"],
                 "instructions": "instructions",
-                "max_output_tokens": 0,
-                "model": "string",
+                "max_output_tokens": "inf",
+                "model": "gpt-realtime",
                 "output_modalities": ["text"],
                 "prompt": {
                     "id": "id",
@@ -136,7 +136,7 @@ class TestAsyncClientSecrets:
                         "noise_reduction": {"type": "near_field"},
                         "transcription": {
                             "language": "language",
-                            "model": "string",
+                            "model": "whisper-1",
                             "prompt": "prompt",
                         },
                         "turn_detection": {
@@ -155,13 +155,13 @@ class TestAsyncClientSecrets:
                             "type": "audio/pcm",
                         },
                         "speed": 0.25,
-                        "voice": "string",
+                        "voice": "alloy",
                     },
                 },
                 "include": ["item.input_audio_transcription.logprobs"],
                 "instructions": "instructions",
-                "max_output_tokens": 0,
-                "model": "string",
+                "max_output_tokens": "inf",
+                "model": "gpt-realtime",
                 "output_modalities": ["text"],
                 "prompt": {
                     "id": "id",
