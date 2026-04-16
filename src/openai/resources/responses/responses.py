@@ -1511,6 +1511,80 @@ class Responses(SyncAPIResource):
             stream_cls=Stream[ResponseStreamEvent],
         )
 
+    def retrieve_parsed(
+        self,
+        response_id: str,
+        *,
+        text_format: type[TextFormatT] | Omit = omit,
+        tools: Iterable[ParseableToolParam] | Omit = omit,
+        include: List[ResponseIncludable] | Omit = omit,
+        include_obfuscation: bool | Omit = omit,
+        starting_after: int | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> ParsedResponse[TextFormatT]:
+        """Retrieves a model response and parses the output.
+
+        This is useful for polling background responses created with `parse()`.
+
+        Args:
+          text_format: A type to parse the text output into, e.g. a Pydantic model class.
+
+          tools: The tools used in the original request, needed for parsing function tool
+              call arguments.
+
+          include: Additional fields to include in the response.
+
+          include_obfuscation: When true, stream obfuscation will be enabled.
+
+          starting_after: The sequence number of the event after which to start streaming.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not response_id:
+            raise ValueError(f"Expected a non-empty value for `response_id` but received {response_id!r}")
+
+        tools = _make_tools(tools)
+
+        def parser(raw_response: Response) -> ParsedResponse[TextFormatT]:
+            return parse_response(
+                input_tools=tools,
+                text_format=text_format,
+                response=raw_response,
+            )
+
+        return self._get(
+            f"/responses/{response_id}",
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                query=maybe_transform(
+                    {
+                        "include": include,
+                        "include_obfuscation": include_obfuscation,
+                        "starting_after": starting_after,
+                    },
+                    response_retrieve_params.ResponseRetrieveParams,
+                ),
+                post_parser=parser,
+            ),
+            # we turn the `Response` instance into a `ParsedResponse`
+            # in the `parser` function above
+            cast_to=cast(Type[ParsedResponse[TextFormatT]], Response),
+        )
+
     def delete(
         self,
         response_id: str,
@@ -3192,6 +3266,80 @@ class AsyncResponses(AsyncAPIResource):
             stream_cls=AsyncStream[ResponseStreamEvent],
         )
 
+    async def retrieve_parsed(
+        self,
+        response_id: str,
+        *,
+        text_format: type[TextFormatT] | Omit = omit,
+        tools: Iterable[ParseableToolParam] | Omit = omit,
+        include: List[ResponseIncludable] | Omit = omit,
+        include_obfuscation: bool | Omit = omit,
+        starting_after: int | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> ParsedResponse[TextFormatT]:
+        """Retrieves a model response and parses the output.
+
+        This is useful for polling background responses created with `parse()`.
+
+        Args:
+          text_format: A type to parse the text output into, e.g. a Pydantic model class.
+
+          tools: The tools used in the original request, needed for parsing function tool
+              call arguments.
+
+          include: Additional fields to include in the response.
+
+          include_obfuscation: When true, stream obfuscation will be enabled.
+
+          starting_after: The sequence number of the event after which to start streaming.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not response_id:
+            raise ValueError(f"Expected a non-empty value for `response_id` but received {response_id!r}")
+
+        tools = _make_tools(tools)
+
+        def parser(raw_response: Response) -> ParsedResponse[TextFormatT]:
+            return parse_response(
+                input_tools=tools,
+                text_format=text_format,
+                response=raw_response,
+            )
+
+        return await self._get(
+            f"/responses/{response_id}",
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                query=await async_maybe_transform(
+                    {
+                        "include": include,
+                        "include_obfuscation": include_obfuscation,
+                        "starting_after": starting_after,
+                    },
+                    response_retrieve_params.ResponseRetrieveParams,
+                ),
+                post_parser=parser,
+            ),
+            # we turn the `Response` instance into a `ParsedResponse`
+            # in the `parser` function above
+            cast_to=cast(Type[ParsedResponse[TextFormatT]], Response),
+        )
+
     async def delete(
         self,
         response_id: str,
@@ -3480,6 +3628,9 @@ class ResponsesWithRawResponse:
         self.parse = _legacy_response.to_raw_response_wrapper(
             responses.parse,
         )
+        self.retrieve_parsed = _legacy_response.to_raw_response_wrapper(
+            responses.retrieve_parsed,
+        )
 
     @cached_property
     def input_items(self) -> InputItemsWithRawResponse:
@@ -3511,6 +3662,9 @@ class AsyncResponsesWithRawResponse:
         )
         self.parse = _legacy_response.async_to_raw_response_wrapper(
             responses.parse,
+        )
+        self.retrieve_parsed = _legacy_response.async_to_raw_response_wrapper(
+            responses.retrieve_parsed,
         )
 
     @cached_property
