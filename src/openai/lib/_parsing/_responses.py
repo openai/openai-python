@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from typing import TYPE_CHECKING, List, Iterable, cast
+from typing import TYPE_CHECKING, Any, List, Iterable, cast
 from typing_extensions import TypeVar, assert_never
 
 import pydantic
@@ -68,7 +68,7 @@ def parse_response(
 
                 content_list.append(
                     construct_type_unchecked(
-                        type_=ParsedResponseOutputText[TextFormatT],
+                        type_=cast(Any, ParsedResponseOutputText),
                         value={
                             **item.to_dict(),
                             "parsed": parse_text(item.text, text_format=text_format),
@@ -78,7 +78,7 @@ def parse_response(
 
             output_list.append(
                 construct_type_unchecked(
-                    type_=ParsedResponseOutputMessage[TextFormatT],
+                    type_=cast(Any, ParsedResponseOutputMessage),
                     value={
                         **output.to_dict(),
                         "content": content_list,
@@ -130,7 +130,7 @@ def parse_response(
             output_list.append(output)
 
     return construct_type_unchecked(
-        type_=ParsedResponse[TextFormatT],
+        type_=cast(Any, ParsedResponse),
         value={
             **response.to_dict(),
             "output": output_list,
