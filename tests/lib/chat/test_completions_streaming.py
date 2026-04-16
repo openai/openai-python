@@ -396,6 +396,41 @@ def test_parse_max_tokens_reached(client: OpenAI, respx_mock: MockRouter) -> Non
         )
 
 
+def test_parse_content_filter_reached() -> None:
+    class Location(BaseModel):
+        city: str
+        temperature: float
+        units: Literal["c", "f"]
+
+    state = ChatCompletionStreamState(response_format=Location)
+    chunk = ChatCompletionChunk.model_validate(
+        {
+            "id": "chatcmpl-ABfvvX7eB1KsfeZj8VcF3z7G7SbaA",
+            "object": "chat.completion.chunk",
+            "created": 1727346163,
+            "model": "gpt-4o-2024-08-06",
+            "choices": [
+                {
+                    "index": 0,
+                    "delta": {"role": "assistant"},
+                    "logprobs": None,
+                    "finish_reason": "content_filter",
+                }
+            ],
+        }
+    )
+
+    list(state.handle_chunk(chunk))
+
+    with pytest.raises(openai.ContentFilterFinishReasonError) as exc_info:
+        state.get_final_completion()
+
+    err = exc_info.value
+    assert err.completion.choices[0].finish_reason == "content_filter"
+    assert err.completion.usage is None
+    assert err.completion.choices[0].message.content is None
+
+
 @pytest.mark.respx(base_url=base_url)
 def test_parse_pydantic_model_refusal(client: OpenAI, respx_mock: MockRouter, monkeypatch: pytest.MonkeyPatch) -> None:
     class Location(BaseModel):
