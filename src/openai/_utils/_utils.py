@@ -177,21 +177,6 @@ def is_iterable(obj: object) -> TypeGuard[Iterable[object]]:
     return isinstance(obj, Iterable)
 
 
-def deepcopy_minimal(item: _T) -> _T:
-    """Minimal reimplementation of copy.deepcopy() that will only copy certain object types:
-
-    - mappings, e.g. `dict`
-    - list
-
-    This is done for performance reasons.
-    """
-    if is_mapping(item):
-        return cast(_T, {k: deepcopy_minimal(v) for k, v in item.items()})
-    if is_list(item):
-        return cast(_T, [deepcopy_minimal(entry) for entry in item])
-    return item
-
-
 # copied from https://github.com/Rapptz/RoboDanny
 def human_join(seq: Sequence[str], *, delim: str = ", ", final: str = "or") -> str:
     size = len(seq)
