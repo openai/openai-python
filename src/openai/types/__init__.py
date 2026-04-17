@@ -85,6 +85,10 @@ from .eval_retrieve_response import EvalRetrieveResponse as EvalRetrieveResponse
 from .file_chunking_strategy import FileChunkingStrategy as FileChunkingStrategy
 from .image_gen_stream_event import ImageGenStreamEvent as ImageGenStreamEvent
 from .upload_complete_params import UploadCompleteParams as UploadCompleteParams
+from .websocket_reconnection import (
+    ReconnectingEvent as ReconnectingEvent,
+    ReconnectingOverrides as ReconnectingOverrides,
+)
 from .container_create_params import ContainerCreateParams as ContainerCreateParams
 from .container_list_response import ContainerListResponse as ContainerListResponse
 from .embedding_create_params import EmbeddingCreateParams as EmbeddingCreateParams

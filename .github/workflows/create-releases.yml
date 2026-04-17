@@ -22,14 +22,12 @@ jobs:
           repo: ${{ github.event.repository.full_name }}
           stainless-api-key: ${{ secrets.STAINLESS_API_KEY }}
 
-      - name: Install Rye
+      - name: Set up Rye
         if: ${{ steps.release.outputs.releases_created }}
-        run: |
-          curl -sSf https://rye.astral.sh/get | bash
-          echo "$HOME/.rye/shims" >> $GITHUB_PATH
-        env:
-          RYE_VERSION: '0.44.0'
-          RYE_INSTALL_OPTION: '--yes'
+        uses: eifinger/setup-rye@c694239a43768373e87d0103d7f547027a23f3c8
+        with:
+          version: '0.44.0'
+          enable-cache: true
 
       - name: Publish to PyPI
         if: ${{ steps.release.outputs.releases_created }}
