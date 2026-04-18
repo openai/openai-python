@@ -65,6 +65,9 @@ class BaseAzureClient(BaseClient[_HttpxClientT, _DefaultStreamT]):
             model = options.json_data.get("model")
             if model is not None and "/deployments" not in str(self.base_url.path):
                 options.url = f"/deployments/{model}{options.url}"
+                # Remove model from request body for Azure deployments
+                # Azure uses URL-based routing, not body-based model specification
+                del options.json_data["model"]
 
         return super()._build_request(options, retries_taken=retries_taken)
 
