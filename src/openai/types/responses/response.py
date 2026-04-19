@@ -1,6 +1,6 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import List, Union, Optional
+from typing import Any, List, Union, Optional, cast
 from typing_extensions import Literal, TypeAlias
 
 from .tool import Tool
@@ -23,6 +23,7 @@ from .response_text_config import ResponseTextConfig
 from .tool_choice_function import ToolChoiceFunction
 from ..shared.responses_model import ResponsesModel
 from .tool_choice_apply_patch import ToolChoiceApplyPatch
+from .response_input_item_param import ResponseInputItemParam
 
 __all__ = ["Response", "IncompleteDetails", "ToolChoice", "Conversation"]
 
@@ -319,3 +320,16 @@ class Response(BaseModel):
                         texts.append(content.text)
 
         return "".join(texts)
+
+    @property
+    def output_as_input(self) -> List[ResponseInputItemParam]:
+        """Convenience property that converts `output` items into follow-up `input` items.
+
+        This omits unset and `None` fields so the returned items can be passed back
+        to `responses.create(..., input=...)` for a subsequent turn.
+        """
+
+        return [
+            cast(ResponseInputItemParam, output.to_dict(mode="json", exclude_none=True))
+            for output in cast(List[Any], self.output)
+        ]
