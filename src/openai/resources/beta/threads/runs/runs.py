@@ -1047,7 +1047,7 @@ class Runs(SyncAPIResource):
         information on Run lifecycles can be found here:
         https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps
         """
-        extra_headers = {"X-Stainless-Poll-Helper": "true", **(extra_headers or {})}
+        extra_headers = {"X-Stainless-Poll-Helper": "true", "Cache-Control": "no-cache", **(extra_headers or {})}
 
         if is_given(poll_interval_ms):
             extra_headers["X-Stainless-Custom-Poll-Interval"] = str(poll_interval_ms)
@@ -2508,7 +2508,7 @@ class AsyncRuns(AsyncAPIResource):
         information on Run lifecycles can be found here:
         https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps
         """
-        extra_headers = {"X-Stainless-Poll-Helper": "true", **(extra_headers or {})}
+        extra_headers = {"X-Stainless-Poll-Helper": "true", "Cache-Control": "no-cache", **(extra_headers or {})}
 
         if is_given(poll_interval_ms):
             extra_headers["X-Stainless-Custom-Poll-Interval"] = str(poll_interval_ms)
