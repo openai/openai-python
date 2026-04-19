@@ -238,6 +238,20 @@ class AsyncStream(Generic[_T]):
         """
         await self.response.aclose()
 
+    async def aclose(self) -> None:
+        """Alias for `close()` to match async cleanup conventions."""
+        await self.close()
+
+
+async def _aclose_stream(stream: Any) -> None:
+    """Prefer wrapper-level async cleanup before falling back to `.response`."""
+    aclose = getattr(stream, "aclose", None)
+    if callable(aclose):
+        await aclose()
+        return
+
+    await stream.response.aclose()
+
 
 class ServerSentEvent:
     def __init__(

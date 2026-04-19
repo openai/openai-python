@@ -16,7 +16,7 @@ from ._events import (
 from ...._types import Omit, omit
 from ...._utils import is_given, consume_sync_iterator, consume_async_iterator
 from ...._models import build, construct_type_unchecked
-from ...._streaming import Stream, AsyncStream
+from ...._streaming import Stream, AsyncStream, _aclose_stream
 from ....types.responses import ParsedResponse, ResponseStreamEvent as RawResponseStreamEvent
 from ..._parsing._responses import TextFormatT, parse_text, parse_response
 from ....types.responses.tool_param import ToolParam
@@ -175,7 +175,11 @@ class AsyncResponseStream(Generic[TextFormatT]):
 
         Automatically called if the response body is read to completion.
         """
-        await self._response.aclose()
+        await _aclose_stream(self._raw_stream)
+
+    async def aclose(self) -> None:
+        """Alias for `close()` to match async cleanup conventions."""
+        await self.close()
 
     async def get_final_response(self) -> ParsedResponse[TextFormatT]:
         """Waits until the stream has been read to completion and returns
