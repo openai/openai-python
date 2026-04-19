@@ -15,7 +15,7 @@ dependencies = [
   "anyio>=3.5.0, <5",
   "distro>=1.7.0, <2",
   "sniffio",
-    "tqdm > 4",
+    "tqdm>=4.67.1",
     "jiter>=0.10.0, <1",
 ]
 
@@ -68,7 +68,7 @@ dev-dependencies = [
     "rich>=13.7.1",
     "inline-snapshot>=0.28.0",
     "azure-identity >=1.14.1",
-    "types-tqdm > 4",
+    "types-tqdm>=4.67.1",
     "types-pyaudio > 0",
     "trio >=0.22.2",
     "nest_asyncio==1.6.0",
