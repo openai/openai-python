@@ -17,6 +17,7 @@ from .shared import (
     OAuthErrorCode as OAuthErrorCode,
     ResponsesModel as ResponsesModel,
     ReasoningEffort as ReasoningEffort,
+    ImageDetail as ImageDetail,
     ComparisonFilter as ComparisonFilter,
     FunctionDefinition as FunctionDefinition,
     FunctionParameters as FunctionParameters,
