@@ -372,6 +372,8 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
     _strict_response_validation: bool
     _idempotency_header: str | None
     _default_stream_cls: type[_DefaultStreamT] | None = None
+    _backoff_factor: float
+    _max_backoff: float
 
     def __init__(
         self,
@@ -383,6 +385,8 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         timeout: float | Timeout | None = DEFAULT_TIMEOUT,
         custom_headers: Mapping[str, str] | None = None,
         custom_query: Mapping[str, object] | None = None,
+        backoff_factor: float | None = None,
+        max_backoff: float | None = None,
     ) -> None:
         self._version = version
         self._base_url = self._enforce_trailing_slash(URL(base_url))
@@ -393,6 +397,8 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         self._strict_response_validation = _strict_response_validation
         self._idempotency_header = None
         self._platform: Platform | None = None
+        self._backoff_factor = backoff_factor if backoff_factor is not None else INITIAL_RETRY_DELAY
+        self._max_backoff = max_backoff if max_backoff is not None else MAX_RETRY_DELAY
 
         if max_retries is None:  # pyright: ignore[reportUnnecessaryComparison]
             raise TypeError(
@@ -768,7 +774,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         nb_retries = min(max_retries - remaining_retries, 1000)
 
         # Apply exponential backoff, but not more than the max.
-        sleep_seconds = min(INITIAL_RETRY_DELAY * pow(2.0, nb_retries), MAX_RETRY_DELAY)
+        sleep_seconds = min(self._backoff_factor * pow(2.0, nb_retries), self._max_backoff)
 
         # Apply some jitter, plus-or-minus half a second.
         jitter = 1 - 0.25 * random()
@@ -860,6 +866,8 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
         custom_headers: Mapping[str, str] | None = None,
         custom_query: Mapping[str, object] | None = None,
         _strict_response_validation: bool,
+        backoff_factor: float | None = None,
+        max_backoff: float | None = None,
     ) -> None:
         if not is_given(timeout):
             # if the user passed in a custom http client with a non-default
@@ -888,6 +896,8 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
             custom_query=custom_query,
             custom_headers=custom_headers,
             _strict_response_validation=_strict_response_validation,
+            backoff_factor=backoff_factor,
+            max_backoff=max_backoff,
         )
         self._client = http_client or SyncHttpxClientWrapper(
             base_url=base_url,
@@ -1469,6 +1479,8 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
         http_client: httpx.AsyncClient | None = None,
         custom_headers: Mapping[str, str] | None = None,
         custom_query: Mapping[str, object] | None = None,
+        backoff_factor: float | None = None,
+        max_backoff: float | None = None,
     ) -> None:
         if not is_given(timeout):
             # if the user passed in a custom http client with a non-default
@@ -1497,6 +1509,8 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
             custom_query=custom_query,
             custom_headers=custom_headers,
             _strict_response_validation=_strict_response_validation,
+            backoff_factor=backoff_factor,
+            max_backoff=max_backoff,
         )
         self._client = http_client or AsyncHttpxClientWrapper(
             base_url=base_url,

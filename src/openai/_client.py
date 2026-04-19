@@ -116,6 +116,8 @@ class OpenAI(SyncAPIClient):
         websocket_base_url: str | httpx.URL | None = None,
         timeout: float | Timeout | None | NotGiven = not_given,
         max_retries: int = DEFAULT_MAX_RETRIES,
+        backoff_factor: float | None = None,
+        max_backoff: float | None = None,
         default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
         # Configure a custom httpx client.
@@ -194,6 +196,8 @@ class OpenAI(SyncAPIClient):
             custom_headers=default_headers,
             custom_query=default_query,
             _strict_response_validation=_strict_response_validation,
+            backoff_factor=backoff_factor,
+            max_backoff=max_backoff,
         )
 
         self._default_stream_cls = Stream
@@ -432,6 +436,8 @@ class OpenAI(SyncAPIClient):
         timeout: float | Timeout | None | NotGiven = not_given,
         http_client: httpx.Client | None = None,
         max_retries: int | NotGiven = not_given,
+        backoff_factor: float | None = None,
+        max_backoff: float | None = None,
         default_headers: Mapping[str, str] | None = None,
         set_default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
@@ -472,6 +478,8 @@ class OpenAI(SyncAPIClient):
             timeout=self.timeout if isinstance(timeout, NotGiven) else timeout,
             http_client=http_client,
             max_retries=max_retries if is_given(max_retries) else self.max_retries,
+            backoff_factor=backoff_factor if backoff_factor is not None else self._backoff_factor,
+            max_backoff=max_backoff if max_backoff is not None else self._max_backoff,
             default_headers=headers,
             default_query=params,
             **_extra_kwargs,
@@ -545,6 +553,8 @@ class AsyncOpenAI(AsyncAPIClient):
         websocket_base_url: str | httpx.URL | None = None,
         timeout: float | Timeout | None | NotGiven = not_given,
         max_retries: int = DEFAULT_MAX_RETRIES,
+        backoff_factor: float | None = None,
+        max_backoff: float | None = None,
         default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
         # Configure a custom httpx client.
@@ -623,6 +633,8 @@ class AsyncOpenAI(AsyncAPIClient):
             custom_headers=default_headers,
             custom_query=default_query,
             _strict_response_validation=_strict_response_validation,
+            backoff_factor=backoff_factor,
+            max_backoff=max_backoff,
         )
 
         self._default_stream_cls = AsyncStream
@@ -861,6 +873,8 @@ class AsyncOpenAI(AsyncAPIClient):
         timeout: float | Timeout | None | NotGiven = not_given,
         http_client: httpx.AsyncClient | None = None,
         max_retries: int | NotGiven = not_given,
+        backoff_factor: float | None = None,
+        max_backoff: float | None = None,
         default_headers: Mapping[str, str] | None = None,
         set_default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
@@ -900,6 +914,8 @@ class AsyncOpenAI(AsyncAPIClient):
             timeout=self.timeout if isinstance(timeout, NotGiven) else timeout,
             http_client=http_client,
             max_retries=max_retries if is_given(max_retries) else self.max_retries,
+            backoff_factor=backoff_factor if backoff_factor is not None else self._backoff_factor,
+            max_backoff=max_backoff if max_backoff is not None else self._max_backoff,
             default_headers=headers,
             default_query=params,
             **_extra_kwargs,
