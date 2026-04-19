@@ -174,6 +174,15 @@ class BaseModel(pydantic.BaseModel):
             warnings=warnings,
         )
 
+    def as_input(self) -> dict[str, object]:
+        """Return a dict representation of this model suitable for use as input in a subsequent API request.
+
+        By default this is equivalent to :meth:`to_dict`. Subclasses that include
+        output-only fields (e.g. ``status``, ``created_by``, ``encrypted_content``)
+        override this method to strip those fields before returning.
+        """
+        return self.to_dict()
+
     def to_json(
         self,
         *,

@@ -1,6 +1,6 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import Optional
+from typing import Any, Dict, Optional
 from typing_extensions import Literal
 
 from ..._models import BaseModel
@@ -24,3 +24,12 @@ class ResponseCompactionItem(BaseModel):
 
     created_by: Optional[str] = None
     """The identifier of the actor that created the item."""
+
+    def as_input(self) -> Dict[str, Any]:
+        """Return a dict representation of this item suitable for use as input in a subsequent response.
+
+        Strips output-only fields (``created_by``) that the API does not accept as input.
+        """
+        data = self.to_dict()
+        data.pop("created_by", None)
+        return data

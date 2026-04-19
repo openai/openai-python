@@ -1,6 +1,6 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import List, Union, Optional
+from typing import Any, Dict, List, Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
 
 from ..._utils import PropertyInfo
@@ -42,3 +42,12 @@ class ResponseOutputMessage(BaseModel):
     sending follow-up requests, preserve and resend phase on all assistant messages
     — dropping it can degrade performance. Not used for user messages.
     """
+
+    def as_input(self) -> Dict[str, Any]:
+        """Return a dict representation of this item suitable for use as input in a subsequent response.
+
+        This strips output-only fields that the API does not accept as input.
+        """
+        data = self.to_dict()
+        data.pop("status", None)
+        return data
