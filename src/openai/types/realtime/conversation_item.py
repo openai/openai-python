@@ -13,6 +13,7 @@ from .realtime_conversation_item_function_call import RealtimeConversationItemFu
 from .realtime_conversation_item_system_message import RealtimeConversationItemSystemMessage
 from .realtime_conversation_item_assistant_message import RealtimeConversationItemAssistantMessage
 from .realtime_conversation_item_function_call_output import RealtimeConversationItemFunctionCallOutput
+from .realtime_conversation_item_reference import RealtimeConversationItemReference
 
 __all__ = ["ConversationItem"]
 
@@ -23,6 +24,7 @@ ConversationItem: TypeAlias = Annotated[
         RealtimeConversationItemAssistantMessage,
         RealtimeConversationItemFunctionCall,
         RealtimeConversationItemFunctionCallOutput,
+        RealtimeConversationItemReference,
         RealtimeMcpApprovalResponse,
         RealtimeMcpListTools,
         RealtimeMcpToolCall,
