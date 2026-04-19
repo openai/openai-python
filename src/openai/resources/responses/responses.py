@@ -3618,6 +3618,33 @@ def _make_tools(tools: Iterable[ParseableToolParam] | Omit) -> List[ToolParam] |
     return converted_tools
 
 
+def _coerce_ws_numeric_params(params: dict[str, Any]) -> None:
+    """Coerce ``temperature`` and ``top_p`` to ``int`` for the WebSocket Responses API.
+
+    The OpenAI Responses WebSocket server silently closes the connection with
+    code 1000 and emits no events when ``temperature`` or ``top_p`` are sent as
+    JSON decimal values (e.g. ``0.2``, ``1.0``).  Integer JSON values (e.g. ``1``)
+    work correctly.  Whole-number floats such as ``1.0`` are coerced to ``int``
+    automatically; non-integer decimal values raise ``ValueError`` because the
+    server cannot process them.
+
+    See: https://github.com/openai/openai-python/issues/2919
+    """
+    for key in ("temperature", "top_p"):
+        val = params.get(key)
+        if isinstance(val, float):
+            if val == int(val):
+                params[key] = int(val)
+            else:
+                raise ValueError(
+                    f"The WebSocket Responses API requires '{key}' to be an integer value, "
+                    f"but received {val!r}. Sending a decimal float causes the server to close "
+                    f"the connection silently (code 1000) without emitting any events. "
+                    f"Use an integer value (e.g. 1) or omit the parameter to use the API default. "
+                    f"See https://github.com/openai/openai-python/issues/2919"
+                )
+
+
 class AsyncResponsesConnection:
     """Represents a live WebSocket connection to the Responses API"""
 
@@ -3696,11 +3723,14 @@ class AsyncResponsesConnection:
         return message
 
     async def send(self, event: ResponsesClientEvent | ResponsesClientEventParam) -> None:
-        data = (
-            event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
-            if isinstance(event, BaseModel)
-            else json.dumps(await async_maybe_transform(event, ResponsesClientEventParam))
-        )
+        if isinstance(event, BaseModel):
+            params: dict[str, Any] = json.loads(
+                event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
+            )
+        else:
+            params = await async_maybe_transform(event, ResponsesClientEventParam)
+        _coerce_ws_numeric_params(params)
+        data = json.dumps(params)
         if self._is_reconnecting:
             self._send_queue.enqueue(data)
             return
@@ -3951,11 +3981,14 @@ class AsyncResponsesConnectionManager:
         This can be called before entering the context manager. Queued messages
         are automatically sent once the WebSocket connection opens.
         """
-        data = (
-            event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
-            if isinstance(event, BaseModel)
-            else json.dumps(event)
-        )
+        if isinstance(event, BaseModel):
+            params: dict[str, Any] = json.loads(
+                event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
+            )
+        else:
+            params = dict(event)  # type: ignore[arg-type]
+        _coerce_ws_numeric_params(params)
+        data = json.dumps(params)
         self.__send_queue.enqueue(data)
 
     def on(
@@ -4153,11 +4186,14 @@ class ResponsesConnection:
         return message
 
     def send(self, event: ResponsesClientEvent | ResponsesClientEventParam) -> None:
-        data = (
-            event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
-            if isinstance(event, BaseModel)
-            else json.dumps(maybe_transform(event, ResponsesClientEventParam))
-        )
+        if isinstance(event, BaseModel):
+            params: dict[str, Any] = json.loads(
+                event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
+            )
+        else:
+            params = maybe_transform(event, ResponsesClientEventParam)
+        _coerce_ws_numeric_params(params)
+        data = json.dumps(params)
         if self._is_reconnecting:
             self._send_queue.enqueue(data)
             return
@@ -4396,11 +4432,14 @@ class ResponsesConnectionManager:
         This can be called before entering the context manager. Queued messages
         are automatically sent once the WebSocket connection opens.
         """
-        data = (
-            event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
-            if isinstance(event, BaseModel)
-            else json.dumps(event)
-        )
+        if isinstance(event, BaseModel):
+            params: dict[str, Any] = json.loads(
+                event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
+            )
+        else:
+            params = dict(event)  # type: ignore[arg-type]
+        _coerce_ws_numeric_params(params)
+        data = json.dumps(params)
         self.__send_queue.enqueue(data)
 
     def on(
