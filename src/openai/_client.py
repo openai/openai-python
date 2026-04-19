@@ -509,6 +509,8 @@ class OpenAI(SyncAPIClient):
             return _exceptions.UnprocessableEntityError(err_msg, response=response, body=data)
 
         if response.status_code == 429:
+            if is_mapping(data) and data.get("code") == "insufficient_quota":
+                return _exceptions.InsufficientQuotaError(err_msg, response=response, body=data)
             return _exceptions.RateLimitError(err_msg, response=response, body=data)
 
         if response.status_code >= 500:
@@ -937,6 +939,8 @@ class AsyncOpenAI(AsyncAPIClient):
             return _exceptions.UnprocessableEntityError(err_msg, response=response, body=data)
 
         if response.status_code == 429:
+            if is_mapping(data) and data.get("code") == "insufficient_quota":
+                return _exceptions.InsufficientQuotaError(err_msg, response=response, body=data)
             return _exceptions.RateLimitError(err_msg, response=response, body=data)
 
         if response.status_code >= 500:
