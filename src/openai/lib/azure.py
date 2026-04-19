@@ -65,6 +65,7 @@ class BaseAzureClient(BaseClient[_HttpxClientT, _DefaultStreamT]):
             model = options.json_data.get("model")
             if model is not None and "/deployments" not in str(self.base_url.path):
                 options.url = f"/deployments/{model}{options.url}"
+                options.json_data = {k: v for k, v in options.json_data.items() if k != "model"}
 
         return super()._build_request(options, retries_taken=retries_taken)
 
