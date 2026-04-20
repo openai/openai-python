@@ -8,6 +8,7 @@ from inline_snapshot import snapshot
 
 from openai import OpenAI, AsyncOpenAI
 from openai._utils import assert_signatures_in_sync
+from openai.types.responses.response import Response
 
 from ...conftest import base_url
 from ..snapshots import make_snapshot_request
@@ -39,6 +40,76 @@ def test_output_text(client: OpenAI, respx_mock: MockRouter) -> None:
     assert response.output_text == snapshot(
         "I can't provide real-time updates, but you can easily check the current weather in San Francisco using a weather website or app. Typically, San Francisco has cool, foggy summers and mild winters, so it's good to be prepared for variable weather!"
     )
+
+
+def test_output_text_with_null_text_field() -> None:
+    """Regression test for https://github.com/openai/openai-python/issues/3063.
+
+    The API can return output_text items with text: null. model_validate should
+    not raise, and output_text should skip null entries rather than failing.
+    """
+    data = {
+        "id": "resp_null_output_text",
+        "object": "response",
+        "created_at": 0,
+        "status": "completed",
+        "background": False,
+        "error": None,
+        "incomplete_details": None,
+        "instructions": None,
+        "max_output_tokens": None,
+        "max_tool_calls": None,
+        "model": "gpt-4o-mini",
+        "output": [
+            {
+                "id": "msg_null_output_text",
+                "type": "message",
+                "status": "completed",
+                "role": "assistant",
+                "content": [
+                    {
+                        "type": "output_text",
+                        "annotations": [],
+                        "logprobs": [],
+                        "text": None,
+                    },
+                    {
+                        "type": "output_text",
+                        "annotations": [],
+                        "logprobs": [],
+                        "text": '{"message":"hello"}',
+                    },
+                ],
+            }
+        ],
+        "parallel_tool_calls": True,
+        "previous_response_id": None,
+        "prompt_cache_key": None,
+        "reasoning": {"effort": None, "summary": None},
+        "safety_identifier": None,
+        "service_tier": "default",
+        "store": True,
+        "temperature": 1.0,
+        "text": {"format": {"type": "text"}, "verbosity": "medium"},
+        "tool_choice": "auto",
+        "tools": [],
+        "top_logprobs": 0,
+        "top_p": 1.0,
+        "truncation": "disabled",
+        "usage": {
+            "input_tokens": 1,
+            "input_tokens_details": {"cached_tokens": 0},
+            "output_tokens": 1,
+            "output_tokens_details": {"reasoning_tokens": 0},
+            "total_tokens": 2,
+        },
+        "user": None,
+        "metadata": {},
+    }
+
+    response = Response.model_validate(data)
+
+    assert response.output_text == '{"message":"hello"}'
 
 
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
