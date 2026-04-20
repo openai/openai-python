@@ -9,7 +9,7 @@ import httpx
 
 from .... import _legacy_response
 from ...._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
-from ...._utils import maybe_transform, async_maybe_transform
+from ...._utils import path_template, maybe_transform, async_maybe_transform
 from ...._compat import cached_property
 from ...._resource import SyncAPIResource, AsyncAPIResource
 from ...._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -35,8 +35,11 @@ __all__ = ["Runs", "AsyncRuns"]
 
 
 class Runs(SyncAPIResource):
+    """Manage and run evals in the OpenAI platform."""
+
     @cached_property
     def output_items(self) -> OutputItems:
+        """Manage and run evals in the OpenAI platform."""
         return OutputItems(self._client)
 
     @cached_property
@@ -100,7 +103,7 @@ class Runs(SyncAPIResource):
         if not eval_id:
             raise ValueError(f"Expected a non-empty value for `eval_id` but received {eval_id!r}")
         return self._post(
-            f"/evals/{eval_id}/runs",
+            path_template("/evals/{eval_id}/runs", eval_id=eval_id),
             body=maybe_transform(
                 {
                     "data_source": data_source,
@@ -144,7 +147,7 @@ class Runs(SyncAPIResource):
         if not run_id:
             raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
         return self._get(
-            f"/evals/{eval_id}/runs/{run_id}",
+            path_template("/evals/{eval_id}/runs/{run_id}", eval_id=eval_id, run_id=run_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -191,7 +194,7 @@ class Runs(SyncAPIResource):
         if not eval_id:
             raise ValueError(f"Expected a non-empty value for `eval_id` but received {eval_id!r}")
         return self._get_api_list(
-            f"/evals/{eval_id}/runs",
+            path_template("/evals/{eval_id}/runs", eval_id=eval_id),
             page=SyncCursorPage[RunListResponse],
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -240,7 +243,7 @@ class Runs(SyncAPIResource):
         if not run_id:
             raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
         return self._delete(
-            f"/evals/{eval_id}/runs/{run_id}",
+            path_template("/evals/{eval_id}/runs/{run_id}", eval_id=eval_id, run_id=run_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -276,7 +279,7 @@ class Runs(SyncAPIResource):
         if not run_id:
             raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
         return self._post(
-            f"/evals/{eval_id}/runs/{run_id}",
+            path_template("/evals/{eval_id}/runs/{run_id}", eval_id=eval_id, run_id=run_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -285,8 +288,11 @@ class Runs(SyncAPIResource):
 
 
 class AsyncRuns(AsyncAPIResource):
+    """Manage and run evals in the OpenAI platform."""
+
     @cached_property
     def output_items(self) -> AsyncOutputItems:
+        """Manage and run evals in the OpenAI platform."""
         return AsyncOutputItems(self._client)
 
     @cached_property
@@ -350,7 +356,7 @@ class AsyncRuns(AsyncAPIResource):
         if not eval_id:
             raise ValueError(f"Expected a non-empty value for `eval_id` but received {eval_id!r}")
         return await self._post(
-            f"/evals/{eval_id}/runs",
+            path_template("/evals/{eval_id}/runs", eval_id=eval_id),
             body=await async_maybe_transform(
                 {
                     "data_source": data_source,
@@ -394,7 +400,7 @@ class AsyncRuns(AsyncAPIResource):
         if not run_id:
             raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
         return await self._get(
-            f"/evals/{eval_id}/runs/{run_id}",
+            path_template("/evals/{eval_id}/runs/{run_id}", eval_id=eval_id, run_id=run_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -441,7 +447,7 @@ class AsyncRuns(AsyncAPIResource):
         if not eval_id:
             raise ValueError(f"Expected a non-empty value for `eval_id` but received {eval_id!r}")
         return self._get_api_list(
-            f"/evals/{eval_id}/runs",
+            path_template("/evals/{eval_id}/runs", eval_id=eval_id),
             page=AsyncCursorPage[RunListResponse],
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -490,7 +496,7 @@ class AsyncRuns(AsyncAPIResource):
         if not run_id:
             raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
         return await self._delete(
-            f"/evals/{eval_id}/runs/{run_id}",
+            path_template("/evals/{eval_id}/runs/{run_id}", eval_id=eval_id, run_id=run_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -526,7 +532,7 @@ class AsyncRuns(AsyncAPIResource):
         if not run_id:
             raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
         return await self._post(
-            f"/evals/{eval_id}/runs/{run_id}",
+            path_template("/evals/{eval_id}/runs/{run_id}", eval_id=eval_id, run_id=run_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -556,6 +562,7 @@ class RunsWithRawResponse:
 
     @cached_property
     def output_items(self) -> OutputItemsWithRawResponse:
+        """Manage and run evals in the OpenAI platform."""
         return OutputItemsWithRawResponse(self._runs.output_items)
 
 
@@ -581,6 +588,7 @@ class AsyncRunsWithRawResponse:
 
     @cached_property
     def output_items(self) -> AsyncOutputItemsWithRawResponse:
+        """Manage and run evals in the OpenAI platform."""
         return AsyncOutputItemsWithRawResponse(self._runs.output_items)
 
 
@@ -606,6 +614,7 @@ class RunsWithStreamingResponse:
 
     @cached_property
     def output_items(self) -> OutputItemsWithStreamingResponse:
+        """Manage and run evals in the OpenAI platform."""
         return OutputItemsWithStreamingResponse(self._runs.output_items)
 
 
@@ -631,4 +640,5 @@ class AsyncRunsWithStreamingResponse:
 
     @cached_property
     def output_items(self) -> AsyncOutputItemsWithStreamingResponse:
+        """Manage and run evals in the OpenAI platform."""
         return AsyncOutputItemsWithStreamingResponse(self._runs.output_items)

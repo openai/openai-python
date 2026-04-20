@@ -20,7 +20,7 @@ from .messages import (
     AsyncMessagesWithStreamingResponse,
 )
 from ...._types import Body, Omit, Query, Headers, NotGiven, SequenceNotStr, omit, not_given
-from ...._utils import required_args, maybe_transform, async_maybe_transform
+from ...._utils import path_template, required_args, maybe_transform, async_maybe_transform
 from ...._compat import cached_property
 from ...._resource import SyncAPIResource, AsyncAPIResource
 from ...._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -58,8 +58,15 @@ __all__ = ["Completions", "AsyncCompletions"]
 
 
 class Completions(SyncAPIResource):
+    """
+    Given a list of messages comprising a conversation, the model will return a response.
+    """
+
     @cached_property
     def messages(self) -> Messages:
+        """
+        Given a list of messages comprising a conversation, the model will return a response.
+        """
         return Messages(self._client)
 
     @cached_property
@@ -301,6 +308,9 @@ class Completions(SyncAPIResource):
         unsupported parameters in reasoning models,
         [refer to the reasoning guide](https://platform.openai.com/docs/guides/reasoning).
 
+        Returns a chat completion object, or a streamed sequence of chat completion
+        chunk objects if the request is streamed.
+
         Args:
           messages: A list of messages comprising the conversation so far. Depending on the
               [model](https://platform.openai.com/docs/models) you use, different message
@@ -436,8 +446,9 @@ class Completions(SyncAPIResource):
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
-              identifies each user. We recommend hashing their username or email address, in
-              order to avoid sending us any identifying information.
+              identifies each user, with a maximum length of 64 characters. We recommend
+              hashing their username or email address, in order to avoid sending us any
+              identifying information.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           seed: This feature is in Beta. If specified, our system will make a best effort to
@@ -603,6 +614,9 @@ class Completions(SyncAPIResource):
         unsupported parameters in reasoning models,
         [refer to the reasoning guide](https://platform.openai.com/docs/guides/reasoning).
 
+        Returns a chat completion object, or a streamed sequence of chat completion
+        chunk objects if the request is streamed.
+
         Args:
           messages: A list of messages comprising the conversation so far. Depending on the
               [model](https://platform.openai.com/docs/models) you use, different message
@@ -747,8 +761,9 @@ class Completions(SyncAPIResource):
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
-              identifies each user. We recommend hashing their username or email address, in
-              order to avoid sending us any identifying information.
+              identifies each user, with a maximum length of 64 characters. We recommend
+              hashing their username or email address, in order to avoid sending us any
+              identifying information.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           seed: This feature is in Beta. If specified, our system will make a best effort to
@@ -905,6 +920,9 @@ class Completions(SyncAPIResource):
         unsupported parameters in reasoning models,
         [refer to the reasoning guide](https://platform.openai.com/docs/guides/reasoning).
 
+        Returns a chat completion object, or a streamed sequence of chat completion
+        chunk objects if the request is streamed.
+
         Args:
           messages: A list of messages comprising the conversation so far. Depending on the
               [model](https://platform.openai.com/docs/models) you use, different message
@@ -1049,8 +1067,9 @@ class Completions(SyncAPIResource):
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
-              identifies each user. We recommend hashing their username or email address, in
-              order to avoid sending us any identifying information.
+              identifies each user, with a maximum length of 64 characters. We recommend
+              hashing their username or email address, in order to avoid sending us any
+              identifying information.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           seed: This feature is in Beta. If specified, our system will make a best effort to
@@ -1269,7 +1288,7 @@ class Completions(SyncAPIResource):
         if not completion_id:
             raise ValueError(f"Expected a non-empty value for `completion_id` but received {completion_id!r}")
         return self._get(
-            f"/chat/completions/{completion_id}",
+            path_template("/chat/completions/{completion_id}", completion_id=completion_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -1313,7 +1332,7 @@ class Completions(SyncAPIResource):
         if not completion_id:
             raise ValueError(f"Expected a non-empty value for `completion_id` but received {completion_id!r}")
         return self._post(
-            f"/chat/completions/{completion_id}",
+            path_template("/chat/completions/{completion_id}", completion_id=completion_id),
             body=maybe_transform({"metadata": metadata}, completion_update_params.CompletionUpdateParams),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
@@ -1414,7 +1433,7 @@ class Completions(SyncAPIResource):
         if not completion_id:
             raise ValueError(f"Expected a non-empty value for `completion_id` but received {completion_id!r}")
         return self._delete(
-            f"/chat/completions/{completion_id}",
+            path_template("/chat/completions/{completion_id}", completion_id=completion_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -1542,8 +1561,15 @@ class Completions(SyncAPIResource):
 
 
 class AsyncCompletions(AsyncAPIResource):
+    """
+    Given a list of messages comprising a conversation, the model will return a response.
+    """
+
     @cached_property
     def messages(self) -> AsyncMessages:
+        """
+        Given a list of messages comprising a conversation, the model will return a response.
+        """
         return AsyncMessages(self._client)
 
     @cached_property
@@ -1785,6 +1811,9 @@ class AsyncCompletions(AsyncAPIResource):
         unsupported parameters in reasoning models,
         [refer to the reasoning guide](https://platform.openai.com/docs/guides/reasoning).
 
+        Returns a chat completion object, or a streamed sequence of chat completion
+        chunk objects if the request is streamed.
+
         Args:
           messages: A list of messages comprising the conversation so far. Depending on the
               [model](https://platform.openai.com/docs/models) you use, different message
@@ -1920,8 +1949,9 @@ class AsyncCompletions(AsyncAPIResource):
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
-              identifies each user. We recommend hashing their username or email address, in
-              order to avoid sending us any identifying information.
+              identifies each user, with a maximum length of 64 characters. We recommend
+              hashing their username or email address, in order to avoid sending us any
+              identifying information.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           seed: This feature is in Beta. If specified, our system will make a best effort to
@@ -2087,6 +2117,9 @@ class AsyncCompletions(AsyncAPIResource):
         unsupported parameters in reasoning models,
         [refer to the reasoning guide](https://platform.openai.com/docs/guides/reasoning).
 
+        Returns a chat completion object, or a streamed sequence of chat completion
+        chunk objects if the request is streamed.
+
         Args:
           messages: A list of messages comprising the conversation so far. Depending on the
               [model](https://platform.openai.com/docs/models) you use, different message
@@ -2231,8 +2264,9 @@ class AsyncCompletions(AsyncAPIResource):
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
-              identifies each user. We recommend hashing their username or email address, in
-              order to avoid sending us any identifying information.
+              identifies each user, with a maximum length of 64 characters. We recommend
+              hashing their username or email address, in order to avoid sending us any
+              identifying information.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           seed: This feature is in Beta. If specified, our system will make a best effort to
@@ -2389,6 +2423,9 @@ class AsyncCompletions(AsyncAPIResource):
         unsupported parameters in reasoning models,
         [refer to the reasoning guide](https://platform.openai.com/docs/guides/reasoning).
 
+        Returns a chat completion object, or a streamed sequence of chat completion
+        chunk objects if the request is streamed.
+
         Args:
           messages: A list of messages comprising the conversation so far. Depending on the
               [model](https://platform.openai.com/docs/models) you use, different message
@@ -2533,8 +2570,9 @@ class AsyncCompletions(AsyncAPIResource):
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
-              identifies each user. We recommend hashing their username or email address, in
-              order to avoid sending us any identifying information.
+              identifies each user, with a maximum length of 64 characters. We recommend
+              hashing their username or email address, in order to avoid sending us any
+              identifying information.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           seed: This feature is in Beta. If specified, our system will make a best effort to
@@ -2753,7 +2791,7 @@ class AsyncCompletions(AsyncAPIResource):
         if not completion_id:
             raise ValueError(f"Expected a non-empty value for `completion_id` but received {completion_id!r}")
         return await self._get(
-            f"/chat/completions/{completion_id}",
+            path_template("/chat/completions/{completion_id}", completion_id=completion_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -2797,7 +2835,7 @@ class AsyncCompletions(AsyncAPIResource):
         if not completion_id:
             raise ValueError(f"Expected a non-empty value for `completion_id` but received {completion_id!r}")
         return await self._post(
-            f"/chat/completions/{completion_id}",
+            path_template("/chat/completions/{completion_id}", completion_id=completion_id),
             body=await async_maybe_transform({"metadata": metadata}, completion_update_params.CompletionUpdateParams),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
@@ -2898,7 +2936,7 @@ class AsyncCompletions(AsyncAPIResource):
         if not completion_id:
             raise ValueError(f"Expected a non-empty value for `completion_id` but received {completion_id!r}")
         return await self._delete(
-            f"/chat/completions/{completion_id}",
+            path_template("/chat/completions/{completion_id}", completion_id=completion_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -3051,6 +3089,9 @@ class CompletionsWithRawResponse:
 
     @cached_property
     def messages(self) -> MessagesWithRawResponse:
+        """
+        Given a list of messages comprising a conversation, the model will return a response.
+        """
         return MessagesWithRawResponse(self._completions.messages)
 
 
@@ -3079,6 +3120,9 @@ class AsyncCompletionsWithRawResponse:
 
     @cached_property
     def messages(self) -> AsyncMessagesWithRawResponse:
+        """
+        Given a list of messages comprising a conversation, the model will return a response.
+        """
         return AsyncMessagesWithRawResponse(self._completions.messages)
 
 
@@ -3107,6 +3151,9 @@ class CompletionsWithStreamingResponse:
 
     @cached_property
     def messages(self) -> MessagesWithStreamingResponse:
+        """
+        Given a list of messages comprising a conversation, the model will return a response.
+        """
         return MessagesWithStreamingResponse(self._completions.messages)
 
 
@@ -3135,6 +3182,9 @@ class AsyncCompletionsWithStreamingResponse:
 
     @cached_property
     def messages(self) -> AsyncMessagesWithStreamingResponse:
+        """
+        Given a list of messages comprising a conversation, the model will return a response.
+        """
         return AsyncMessagesWithStreamingResponse(self._completions.messages)
 
 

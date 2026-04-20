@@ -71,6 +71,109 @@ to add `OPENAI_API_KEY="My API Key"` to your `.env` file
 so that your API key is not stored in source control.
 [Get an API key here](https://platform.openai.com/settings/organization/api-keys).
 
+### Workload Identity Authentication
+
+For secure, automated environments like cloud-managed Kubernetes, Azure, and Google Cloud Platform, you can use workload identity authentication with short-lived tokens from cloud identity providers instead of long-lived API keys.
+
+#### Kubernetes (service account tokens)
+
+```python
+from openai import OpenAI
+from openai.auth import k8s_service_account_token_provider
+
+client = OpenAI(
+    workload_identity={
+        "client_id": "your-client-id",
+        "identity_provider_id": "idp-123",
+        "service_account_id": "sa-456",
+        "provider": k8s_service_account_token_provider(
+            "/var/run/secrets/kubernetes.io/serviceaccount/token"
+        ),
+    },
+    organization="org-xyz",
+    project="proj-abc",
+)
+
+response = client.chat.completions.create(
+    model="gpt-4",
+    messages=[{"role": "user", "content": "Hello!"}],
+)
+```
+
+#### Azure (managed identity)
+
+```python
+from openai import OpenAI
+from openai.auth import azure_managed_identity_token_provider
+
+client = OpenAI(
+    workload_identity={
+        "client_id": "your-client-id",
+        "identity_provider_id": "idp-123",
+        "service_account_id": "sa-456",
+        "provider": azure_managed_identity_token_provider(
+            resource="https://management.azure.com/",
+        ),
+    },
+)
+```
+
+#### Google Cloud Platform (compute engine metadata)
+
+```python
+from openai import OpenAI
+from openai.auth import gcp_id_token_provider
+
+client = OpenAI(
+    workload_identity={
+        "client_id": "your-client-id",
+        "identity_provider_id": "idp-123",
+        "service_account_id": "sa-456",
+        "provider": gcp_id_token_provider(audience="https://api.openai.com/v1"),
+    },
+)
+```
+
+#### Custom subject token provider
+
+```python
+from openai import OpenAI
+
+
+def get_custom_token() -> str:
+    return "your-jwt-token"
+
+
+client = OpenAI(
+    workload_identity={
+        "client_id": "your-client-id",
+        "identity_provider_id": "idp-123",
+        "service_account_id": "sa-456",
+        "provider": {
+            "token_type": "jwt",
+            "get_token": get_custom_token,
+        },
+    }
+)
+```
+
+You can also customize the token refresh buffer (default is 1200 seconds (20 minutes) before expiration):
+
+```python
+from openai import OpenAI
+from openai.auth import k8s_service_account_token_provider
+
+client = OpenAI(
+    workload_identity={
+        "client_id": "your-client-id",
+        "identity_provider_id": "idp-123",
+        "service_account_id": "sa-456",
+        "provider": k8s_service_account_token_provider("/var/token"),
+        "refresh_buffer_seconds": 120.0,
+    }
+)
+```
+
 ### Vision
 
 With an image URL:

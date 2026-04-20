@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Union
+from typing import Union, Optional
 from typing_extensions import Literal, Required, TypedDict
 
 from .response_input_message_content_list_param import ResponseInputMessageContentListParam
@@ -29,6 +29,14 @@ class EasyInputMessageParam(TypedDict, total=False):
     """The role of the message input.
 
     One of `user`, `assistant`, `system`, or `developer`.
+    """
+
+    phase: Optional[Literal["commentary", "final_answer"]]
+    """
+    Labels an `assistant` message as intermediate commentary (`commentary`) or the
+    final answer (`final_answer`). For models like `gpt-5.3-codex` and beyond, when
+    sending follow-up requests, preserve and resend phase on all assistant messages
+    — dropping it can degrade performance. Not used for user messages.
     """
 
     type: Literal["message"]

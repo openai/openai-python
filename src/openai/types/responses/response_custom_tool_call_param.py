@@ -24,3 +24,6 @@ class ResponseCustomToolCallParam(TypedDict, total=False):
 
     id: str
     """The unique ID of the custom tool call in the OpenAI platform."""
+
+    namespace: str
+    """The namespace of the custom tool being called."""

@@ -9,7 +9,7 @@ import httpx
 
 from ... import _legacy_response
 from ..._types import Body, Omit, Query, Headers, NoneType, NotGiven, omit, not_given
-from ..._utils import maybe_transform, async_maybe_transform
+from ..._utils import path_template, maybe_transform, async_maybe_transform
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import (
@@ -116,6 +116,7 @@ class Calls(SyncAPIResource):
             str,
             Literal[
                 "gpt-realtime",
+                "gpt-realtime-1.5",
                 "gpt-realtime-2025-08-28",
                 "gpt-4o-realtime-preview",
                 "gpt-4o-realtime-preview-2024-10-01",
@@ -126,6 +127,7 @@ class Calls(SyncAPIResource):
                 "gpt-realtime-mini",
                 "gpt-realtime-mini-2025-10-06",
                 "gpt-realtime-mini-2025-12-15",
+                "gpt-audio-1.5",
                 "gpt-audio-mini",
                 "gpt-audio-mini-2025-10-06",
                 "gpt-audio-mini-2025-12-15",
@@ -191,8 +193,9 @@ class Calls(SyncAPIResource):
           tools: Tools available to the model.
 
           tracing: Realtime API can write session traces to the
-              [Traces Dashboard](/logs?api=traces). Set to null to disable tracing. Once
-              tracing is enabled for a session, the configuration cannot be modified.
+              [Traces Dashboard](https://platform.openai.com/logs?api=traces). Set to null to
+              disable tracing. Once tracing is enabled for a session, the configuration cannot
+              be modified.
 
               `auto` will create a trace for the session with default values for the workflow
               name, group id, and metadata.
@@ -228,7 +231,7 @@ class Calls(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `call_id` but received {call_id!r}")
         extra_headers = {"Accept": "*/*", **(extra_headers or {})}
         return self._post(
-            f"/realtime/calls/{call_id}/accept",
+            path_template("/realtime/calls/{call_id}/accept", call_id=call_id),
             body=maybe_transform(
                 {
                     "type": type,
@@ -279,7 +282,7 @@ class Calls(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `call_id` but received {call_id!r}")
         extra_headers = {"Accept": "*/*", **(extra_headers or {})}
         return self._post(
-            f"/realtime/calls/{call_id}/hangup",
+            path_template("/realtime/calls/{call_id}/hangup", call_id=call_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -317,7 +320,7 @@ class Calls(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `call_id` but received {call_id!r}")
         extra_headers = {"Accept": "*/*", **(extra_headers or {})}
         return self._post(
-            f"/realtime/calls/{call_id}/refer",
+            path_template("/realtime/calls/{call_id}/refer", call_id=call_id),
             body=maybe_transform({"target_uri": target_uri}, call_refer_params.CallReferParams),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
@@ -356,7 +359,7 @@ class Calls(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `call_id` but received {call_id!r}")
         extra_headers = {"Accept": "*/*", **(extra_headers or {})}
         return self._post(
-            f"/realtime/calls/{call_id}/reject",
+            path_template("/realtime/calls/{call_id}/reject", call_id=call_id),
             body=maybe_transform({"status_code": status_code}, call_reject_params.CallRejectParams),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
@@ -443,6 +446,7 @@ class AsyncCalls(AsyncAPIResource):
             str,
             Literal[
                 "gpt-realtime",
+                "gpt-realtime-1.5",
                 "gpt-realtime-2025-08-28",
                 "gpt-4o-realtime-preview",
                 "gpt-4o-realtime-preview-2024-10-01",
@@ -453,6 +457,7 @@ class AsyncCalls(AsyncAPIResource):
                 "gpt-realtime-mini",
                 "gpt-realtime-mini-2025-10-06",
                 "gpt-realtime-mini-2025-12-15",
+                "gpt-audio-1.5",
                 "gpt-audio-mini",
                 "gpt-audio-mini-2025-10-06",
                 "gpt-audio-mini-2025-12-15",
@@ -518,8 +523,9 @@ class AsyncCalls(AsyncAPIResource):
           tools: Tools available to the model.
 
           tracing: Realtime API can write session traces to the
-              [Traces Dashboard](/logs?api=traces). Set to null to disable tracing. Once
-              tracing is enabled for a session, the configuration cannot be modified.
+              [Traces Dashboard](https://platform.openai.com/logs?api=traces). Set to null to
+              disable tracing. Once tracing is enabled for a session, the configuration cannot
+              be modified.
 
               `auto` will create a trace for the session with default values for the workflow
               name, group id, and metadata.
@@ -555,7 +561,7 @@ class AsyncCalls(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `call_id` but received {call_id!r}")
         extra_headers = {"Accept": "*/*", **(extra_headers or {})}
         return await self._post(
-            f"/realtime/calls/{call_id}/accept",
+            path_template("/realtime/calls/{call_id}/accept", call_id=call_id),
             body=await async_maybe_transform(
                 {
                     "type": type,
@@ -606,7 +612,7 @@ class AsyncCalls(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `call_id` but received {call_id!r}")
         extra_headers = {"Accept": "*/*", **(extra_headers or {})}
         return await self._post(
-            f"/realtime/calls/{call_id}/hangup",
+            path_template("/realtime/calls/{call_id}/hangup", call_id=call_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -644,7 +650,7 @@ class AsyncCalls(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `call_id` but received {call_id!r}")
         extra_headers = {"Accept": "*/*", **(extra_headers or {})}
         return await self._post(
-            f"/realtime/calls/{call_id}/refer",
+            path_template("/realtime/calls/{call_id}/refer", call_id=call_id),
             body=await async_maybe_transform({"target_uri": target_uri}, call_refer_params.CallReferParams),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
@@ -683,7 +689,7 @@ class AsyncCalls(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `call_id` but received {call_id!r}")
         extra_headers = {"Accept": "*/*", **(extra_headers or {})}
         return await self._post(
-            f"/realtime/calls/{call_id}/reject",
+            path_template("/realtime/calls/{call_id}/reject", call_id=call_id),
             body=await async_maybe_transform({"status_code": status_code}, call_reject_params.CallRejectParams),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout

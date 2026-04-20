@@ -28,7 +28,7 @@ from ..._types import (
     omit,
     not_given,
 )
-from ..._utils import extract_files, maybe_transform, deepcopy_minimal, async_maybe_transform
+from ..._utils import extract_files, path_template, maybe_transform, deepcopy_minimal, async_maybe_transform
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -88,7 +88,7 @@ class Skills(SyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Skill:
         """
-        Create Skill
+        Create a new skill.
 
         Args:
           files: Skill files to upload (directory upload) or a single zip file.
@@ -130,7 +130,7 @@ class Skills(SyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Skill:
         """
-        Get Skill
+        Get a skill by its ID.
 
         Args:
           extra_headers: Send extra headers
@@ -144,7 +144,7 @@ class Skills(SyncAPIResource):
         if not skill_id:
             raise ValueError(f"Expected a non-empty value for `skill_id` but received {skill_id!r}")
         return self._get(
-            f"/skills/{skill_id}",
+            path_template("/skills/{skill_id}", skill_id=skill_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -164,7 +164,7 @@ class Skills(SyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Skill:
         """
-        Update Skill Default Version
+        Update the default version pointer for a skill.
 
         Args:
           default_version: The skill version number to set as default.
@@ -180,7 +180,7 @@ class Skills(SyncAPIResource):
         if not skill_id:
             raise ValueError(f"Expected a non-empty value for `skill_id` but received {skill_id!r}")
         return self._post(
-            f"/skills/{skill_id}",
+            path_template("/skills/{skill_id}", skill_id=skill_id),
             body=maybe_transform({"default_version": default_version}, skill_update_params.SkillUpdateParams),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
@@ -202,7 +202,7 @@ class Skills(SyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> SyncCursorPage[Skill]:
         """
-        List Skills
+        List all skills for the current project.
 
         Args:
           after: Identifier for the last item from the previous pagination request
@@ -252,7 +252,7 @@ class Skills(SyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> DeletedSkill:
         """
-        Delete Skill
+        Delete a skill by its ID.
 
         Args:
           extra_headers: Send extra headers
@@ -266,7 +266,7 @@ class Skills(SyncAPIResource):
         if not skill_id:
             raise ValueError(f"Expected a non-empty value for `skill_id` but received {skill_id!r}")
         return self._delete(
-            f"/skills/{skill_id}",
+            path_template("/skills/{skill_id}", skill_id=skill_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -314,7 +314,7 @@ class AsyncSkills(AsyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Skill:
         """
-        Create Skill
+        Create a new skill.
 
         Args:
           files: Skill files to upload (directory upload) or a single zip file.
@@ -356,7 +356,7 @@ class AsyncSkills(AsyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Skill:
         """
-        Get Skill
+        Get a skill by its ID.
 
         Args:
           extra_headers: Send extra headers
@@ -370,7 +370,7 @@ class AsyncSkills(AsyncAPIResource):
         if not skill_id:
             raise ValueError(f"Expected a non-empty value for `skill_id` but received {skill_id!r}")
         return await self._get(
-            f"/skills/{skill_id}",
+            path_template("/skills/{skill_id}", skill_id=skill_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -390,7 +390,7 @@ class AsyncSkills(AsyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Skill:
         """
-        Update Skill Default Version
+        Update the default version pointer for a skill.
 
         Args:
           default_version: The skill version number to set as default.
@@ -406,7 +406,7 @@ class AsyncSkills(AsyncAPIResource):
         if not skill_id:
             raise ValueError(f"Expected a non-empty value for `skill_id` but received {skill_id!r}")
         return await self._post(
-            f"/skills/{skill_id}",
+            path_template("/skills/{skill_id}", skill_id=skill_id),
             body=await async_maybe_transform(
                 {"default_version": default_version}, skill_update_params.SkillUpdateParams
             ),
@@ -430,7 +430,7 @@ class AsyncSkills(AsyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[Skill, AsyncCursorPage[Skill]]:
         """
-        List Skills
+        List all skills for the current project.
 
         Args:
           after: Identifier for the last item from the previous pagination request
@@ -480,7 +480,7 @@ class AsyncSkills(AsyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> DeletedSkill:
         """
-        Delete Skill
+        Delete a skill by its ID.
 
         Args:
           extra_headers: Send extra headers
@@ -494,7 +494,7 @@ class AsyncSkills(AsyncAPIResource):
         if not skill_id:
             raise ValueError(f"Expected a non-empty value for `skill_id` but received {skill_id!r}")
         return await self._delete(
-            f"/skills/{skill_id}",
+            path_template("/skills/{skill_id}", skill_id=skill_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),

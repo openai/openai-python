@@ -11,11 +11,14 @@ from ..._types import SequenceNotStr
 from .custom_tool_param import CustomToolParam
 from .computer_tool_param import ComputerToolParam
 from .function_tool_param import FunctionToolParam
+from .namespace_tool_param import NamespaceToolParam
 from .web_search_tool_param import WebSearchToolParam
 from .apply_patch_tool_param import ApplyPatchToolParam
 from .file_search_tool_param import FileSearchToolParam
+from .tool_search_tool_param import ToolSearchToolParam
 from .function_shell_tool_param import FunctionShellToolParam
 from .web_search_preview_tool_param import WebSearchPreviewToolParam
+from .computer_use_preview_tool_param import ComputerUsePreviewToolParam
 from .container_network_policy_disabled_param import ContainerNetworkPolicyDisabledParam
 from .container_network_policy_allowlist_param import ContainerNetworkPolicyAllowlistParam
 
@@ -157,6 +160,9 @@ class Mcp(TypedDict, total=False):
     - Outlook Email: `connector_outlookemail`
     - SharePoint: `connector_sharepoint`
     """
+
+    defer_loading: bool
+    """Whether this MCP tool is deferred and discovered via tool search."""
 
     headers: Optional[Dict[str, str]]
     """Optional HTTP headers to send to the MCP server.
@@ -306,6 +312,7 @@ ToolParam: TypeAlias = Union[
     FunctionToolParam,
     FileSearchToolParam,
     ComputerToolParam,
+    ComputerUsePreviewToolParam,
     WebSearchToolParam,
     Mcp,
     CodeInterpreter,
@@ -313,6 +320,8 @@ ToolParam: TypeAlias = Union[
     LocalShell,
     FunctionShellToolParam,
     CustomToolParam,
+    NamespaceToolParam,
+    ToolSearchToolParam,
     WebSearchPreviewToolParam,
     ApplyPatchToolParam,
 ]

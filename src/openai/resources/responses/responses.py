@@ -2,17 +2,37 @@
 
 from __future__ import annotations
 
+import json
+import time
+import random
+import logging
 from copy import copy
-from typing import Any, List, Type, Union, Iterable, Optional, cast
+from types import TracebackType
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    List,
+    Type,
+    Union,
+    Callable,
+    Iterable,
+    Iterator,
+    Optional,
+    Awaitable,
+    AsyncIterator,
+    cast,
+)
 from functools import partial
 from typing_extensions import Literal, overload
 
 import httpx
+from pydantic import BaseModel
 
 from ... import _legacy_response
 from ..._types import NOT_GIVEN, Body, Omit, Query, Headers, NoneType, NotGiven, omit, not_given
-from ..._utils import is_given, maybe_transform, async_maybe_transform
+from ..._utils import is_given, path_template, maybe_transform, strip_not_given, async_maybe_transform
 from ..._compat import cached_property
+from ..._models import construct_type_unchecked
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from .input_items import (
@@ -33,11 +53,15 @@ from .input_tokens import (
     InputTokensWithStreamingResponse,
     AsyncInputTokensWithStreamingResponse,
 )
-from ..._base_client import make_request_options
+from ..._exceptions import OpenAIError, WebSocketConnectionClosedError
+from ..._send_queue import SendQueue
+from ..._base_client import _merge_mappings, make_request_options
+from ..._event_handler import EventHandlerRegistry
 from ...types.responses import (
     response_create_params,
     response_compact_params,
     response_retrieve_params,
+    responses_client_event_param,
 )
 from ...lib._parsing._responses import (
     TextFormatT,
@@ -47,19 +71,33 @@ from ...lib._parsing._responses import (
 from ...types.responses.response import Response
 from ...types.responses.tool_param import ToolParam, ParseableToolParam
 from ...types.shared_params.metadata import Metadata
+from ...types.websocket_reconnection import ReconnectingEvent, ReconnectingOverrides, is_recoverable_close
 from ...types.shared_params.reasoning import Reasoning
 from ...types.responses.parsed_response import ParsedResponse
 from ...lib.streaming.responses._responses import ResponseStreamManager, AsyncResponseStreamManager
 from ...types.responses.compacted_response import CompactedResponse
+from ...types.websocket_connection_options import WebSocketConnectionOptions
 from ...types.responses.response_includable import ResponseIncludable
 from ...types.shared_params.responses_model import ResponsesModel
+from ...types.responses.response_error_event import ResponseErrorEvent
 from ...types.responses.response_input_param import ResponseInputParam
 from ...types.responses.response_prompt_param import ResponsePromptParam
 from ...types.responses.response_stream_event import ResponseStreamEvent
+from ...types.responses.responses_client_event import ResponsesClientEvent
+from ...types.responses.responses_server_event import ResponsesServerEvent
 from ...types.responses.response_input_item_param import ResponseInputItemParam
 from ...types.responses.response_text_config_param import ResponseTextConfigParam
+from ...types.responses.responses_client_event_param import ResponsesClientEventParam
+
+if TYPE_CHECKING:
+    from websockets.sync.client import ClientConnection as WebSocketConnection
+    from websockets.asyncio.client import ClientConnection as AsyncWebSocketConnection
+
+    from ..._client import OpenAI, AsyncOpenAI
 
 __all__ = ["Responses", "AsyncResponses"]
+
+log: logging.Logger = logging.getLogger(__name__)
 
 
 class Responses(SyncAPIResource):
@@ -238,8 +276,9 @@ class Responses(SyncAPIResource):
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
-              identifies each user. We recommend hashing their username or email address, in
-              order to avoid sending us any identifying information.
+              identifies each user, with a maximum length of 64 characters. We recommend
+              hashing their username or email address, in order to avoid sending us any
+              identifying information.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           service_tier: Specifies the processing type used for serving the request.
@@ -493,8 +532,9 @@ class Responses(SyncAPIResource):
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
-              identifies each user. We recommend hashing their username or email address, in
-              order to avoid sending us any identifying information.
+              identifies each user, with a maximum length of 64 characters. We recommend
+              hashing their username or email address, in order to avoid sending us any
+              identifying information.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           service_tier: Specifies the processing type used for serving the request.
@@ -741,8 +781,9 @@ class Responses(SyncAPIResource):
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
-              identifies each user. We recommend hashing their username or email address, in
-              order to avoid sending us any identifying information.
+              identifies each user, with a maximum length of 64 characters. We recommend
+              hashing their username or email address, in order to avoid sending us any
+              identifying information.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           service_tier: Specifies the processing type used for serving the request.
@@ -1449,7 +1490,7 @@ class Responses(SyncAPIResource):
         if not response_id:
             raise ValueError(f"Expected a non-empty value for `response_id` but received {response_id!r}")
         return self._get(
-            f"/responses/{response_id}",
+            path_template("/responses/{response_id}", response_id=response_id),
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -1497,7 +1538,7 @@ class Responses(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `response_id` but received {response_id!r}")
         extra_headers = {"Accept": "*/*", **(extra_headers or {})}
         return self._delete(
-            f"/responses/{response_id}",
+            path_template("/responses/{response_id}", response_id=response_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -1533,7 +1574,7 @@ class Responses(SyncAPIResource):
         if not response_id:
             raise ValueError(f"Expected a non-empty value for `response_id` but received {response_id!r}")
         return self._post(
-            f"/responses/{response_id}/cancel",
+            path_template("/responses/{response_id}/cancel", response_id=response_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -1545,6 +1586,12 @@ class Responses(SyncAPIResource):
         *,
         model: Union[
             Literal[
+                "gpt-5.4",
+                "gpt-5.4-mini",
+                "gpt-5.4-nano",
+                "gpt-5.4-mini-2026-03-17",
+                "gpt-5.4-nano-2026-03-17",
+                "gpt-5.3-chat-latest",
                 "gpt-5.2",
                 "gpt-5.2-2025-12-11",
                 "gpt-5.2-chat-latest",
@@ -1638,6 +1685,7 @@ class Responses(SyncAPIResource):
         input: Union[str, Iterable[ResponseInputItemParam], None] | Omit = omit,
         instructions: Optional[str] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -1645,8 +1693,14 @@ class Responses(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> CompactedResponse:
-        """
-        Compact conversation
+        """Compact a conversation.
+
+        Returns a compacted response object.
+
+        Learn when and how to compact long-running conversations in the
+        [conversation state guide](https://platform.openai.com/docs/guides/conversation-state#managing-the-context-window).
+        For ZDR-compatible compaction details, see
+        [Compaction (advanced)](https://platform.openai.com/docs/guides/conversation-state#compaction-advanced).
 
         Args:
           model: Model ID used to generate the response, like `gpt-5` or `o3`. OpenAI offers a
@@ -1667,6 +1721,8 @@ class Responses(SyncAPIResource):
               [conversation state](https://platform.openai.com/docs/guides/conversation-state).
               Cannot be used in conjunction with `conversation`.
 
+          prompt_cache_key: A key to use when reading from or writing to the prompt cache.
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -1683,6 +1739,7 @@ class Responses(SyncAPIResource):
                     "input": input,
                     "instructions": instructions,
                     "previous_response_id": previous_response_id,
+                    "prompt_cache_key": prompt_cache_key,
                 },
                 response_compact_params.ResponseCompactParams,
             ),
@@ -1690,6 +1747,33 @@ class Responses(SyncAPIResource):
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
             cast_to=CompactedResponse,
+        )
+
+    def connect(
+        self,
+        extra_query: Query = {},
+        extra_headers: Headers = {},
+        websocket_connection_options: WebSocketConnectionOptions = {},
+        on_reconnecting: Callable[[ReconnectingEvent], ReconnectingOverrides | None] | None = None,
+        max_retries: int = 5,
+        initial_delay: float = 0.5,
+        max_delay: float = 8.0,
+        max_queue_size: int = 1_048_576,
+    ) -> ResponsesConnectionManager:
+        """Connect to a persistent Responses API WebSocket.
+
+        Send `response.create` events and receive response stream events over the socket.
+        """
+        return ResponsesConnectionManager(
+            client=self._client,
+            extra_query=extra_query,
+            extra_headers=extra_headers,
+            websocket_connection_options=websocket_connection_options,
+            on_reconnecting=on_reconnecting,
+            max_retries=max_retries,
+            initial_delay=initial_delay,
+            max_delay=max_delay,
+            max_queue_size=max_queue_size,
         )
 
 
@@ -1869,8 +1953,9 @@ class AsyncResponses(AsyncAPIResource):
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
-              identifies each user. We recommend hashing their username or email address, in
-              order to avoid sending us any identifying information.
+              identifies each user, with a maximum length of 64 characters. We recommend
+              hashing their username or email address, in order to avoid sending us any
+              identifying information.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           service_tier: Specifies the processing type used for serving the request.
@@ -2124,8 +2209,9 @@ class AsyncResponses(AsyncAPIResource):
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
-              identifies each user. We recommend hashing their username or email address, in
-              order to avoid sending us any identifying information.
+              identifies each user, with a maximum length of 64 characters. We recommend
+              hashing their username or email address, in order to avoid sending us any
+              identifying information.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           service_tier: Specifies the processing type used for serving the request.
@@ -2372,8 +2458,9 @@ class AsyncResponses(AsyncAPIResource):
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
-              identifies each user. We recommend hashing their username or email address, in
-              order to avoid sending us any identifying information.
+              identifies each user, with a maximum length of 64 characters. We recommend
+              hashing their username or email address, in order to avoid sending us any
+              identifying information.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           service_tier: Specifies the processing type used for serving the request.
@@ -3084,7 +3171,7 @@ class AsyncResponses(AsyncAPIResource):
         if not response_id:
             raise ValueError(f"Expected a non-empty value for `response_id` but received {response_id!r}")
         return await self._get(
-            f"/responses/{response_id}",
+            path_template("/responses/{response_id}", response_id=response_id),
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -3132,7 +3219,7 @@ class AsyncResponses(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `response_id` but received {response_id!r}")
         extra_headers = {"Accept": "*/*", **(extra_headers or {})}
         return await self._delete(
-            f"/responses/{response_id}",
+            path_template("/responses/{response_id}", response_id=response_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -3168,7 +3255,7 @@ class AsyncResponses(AsyncAPIResource):
         if not response_id:
             raise ValueError(f"Expected a non-empty value for `response_id` but received {response_id!r}")
         return await self._post(
-            f"/responses/{response_id}/cancel",
+            path_template("/responses/{response_id}/cancel", response_id=response_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -3180,6 +3267,12 @@ class AsyncResponses(AsyncAPIResource):
         *,
         model: Union[
             Literal[
+                "gpt-5.4",
+                "gpt-5.4-mini",
+                "gpt-5.4-nano",
+                "gpt-5.4-mini-2026-03-17",
+                "gpt-5.4-nano-2026-03-17",
+                "gpt-5.3-chat-latest",
                 "gpt-5.2",
                 "gpt-5.2-2025-12-11",
                 "gpt-5.2-chat-latest",
@@ -3273,6 +3366,7 @@ class AsyncResponses(AsyncAPIResource):
         input: Union[str, Iterable[ResponseInputItemParam], None] | Omit = omit,
         instructions: Optional[str] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -3280,8 +3374,14 @@ class AsyncResponses(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> CompactedResponse:
-        """
-        Compact conversation
+        """Compact a conversation.
+
+        Returns a compacted response object.
+
+        Learn when and how to compact long-running conversations in the
+        [conversation state guide](https://platform.openai.com/docs/guides/conversation-state#managing-the-context-window).
+        For ZDR-compatible compaction details, see
+        [Compaction (advanced)](https://platform.openai.com/docs/guides/conversation-state#compaction-advanced).
 
         Args:
           model: Model ID used to generate the response, like `gpt-5` or `o3`. OpenAI offers a
@@ -3302,6 +3402,8 @@ class AsyncResponses(AsyncAPIResource):
               [conversation state](https://platform.openai.com/docs/guides/conversation-state).
               Cannot be used in conjunction with `conversation`.
 
+          prompt_cache_key: A key to use when reading from or writing to the prompt cache.
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -3318,6 +3420,7 @@ class AsyncResponses(AsyncAPIResource):
                     "input": input,
                     "instructions": instructions,
                     "previous_response_id": previous_response_id,
+                    "prompt_cache_key": prompt_cache_key,
                 },
                 response_compact_params.ResponseCompactParams,
             ),
@@ -3325,6 +3428,33 @@ class AsyncResponses(AsyncAPIResource):
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
             cast_to=CompactedResponse,
+        )
+
+    def connect(
+        self,
+        extra_query: Query = {},
+        extra_headers: Headers = {},
+        websocket_connection_options: WebSocketConnectionOptions = {},
+        on_reconnecting: Callable[[ReconnectingEvent], ReconnectingOverrides | None] | None = None,
+        max_retries: int = 5,
+        initial_delay: float = 0.5,
+        max_delay: float = 8.0,
+        max_queue_size: int = 1_048_576,
+    ) -> AsyncResponsesConnectionManager:
+        """Connect to a persistent Responses API WebSocket.
+
+        Send `response.create` events and receive response stream events over the socket.
+        """
+        return AsyncResponsesConnectionManager(
+            client=self._client,
+            extra_query=extra_query,
+            extra_headers=extra_headers,
+            websocket_connection_options=websocket_connection_options,
+            on_reconnecting=on_reconnecting,
+            max_retries=max_retries,
+            initial_delay=initial_delay,
+            max_delay=max_delay,
+            max_queue_size=max_queue_size,
         )
 
 
@@ -3486,3 +3616,1065 @@ def _make_tools(tools: Iterable[ParseableToolParam] | Omit) -> List[ToolParam] |
         converted_tools.append(new_tool.cast())
 
     return converted_tools
+
+
+class AsyncResponsesConnection:
+    """Represents a live WebSocket connection to the Responses API"""
+
+    response: AsyncResponsesResponseResource
+
+    _connection: AsyncWebSocketConnection
+
+    def __init__(
+        self,
+        connection: AsyncWebSocketConnection,
+        *,
+        make_ws: Callable[[Query, Headers], Awaitable[AsyncWebSocketConnection]] | None = None,
+        on_reconnecting: Callable[[ReconnectingEvent], ReconnectingOverrides | None] | None = None,
+        max_retries: int = 5,
+        initial_delay: float = 0.5,
+        max_delay: float = 8.0,
+        extra_query: Query = {},
+        extra_headers: Headers = {},
+        send_queue: SendQueue | None = None,
+    ) -> None:
+        self._connection = connection
+        self._make_ws = make_ws
+        self._on_reconnecting = on_reconnecting
+        self._max_retries = max_retries
+        self._initial_delay = initial_delay
+        self._max_delay = max_delay
+        self._extra_query = extra_query
+        self._extra_headers = extra_headers
+        self._intentionally_closed = False
+        self._is_reconnecting = False
+        self._send_queue = send_queue or SendQueue()
+        self._event_handler_registry = EventHandlerRegistry(use_lock=False)
+
+        self.response = AsyncResponsesResponseResource(self)
+
+    async def __aiter__(self) -> AsyncIterator[ResponsesServerEvent]:
+        """
+        An infinite-iterator that will continue to yield events until
+        the connection is closed.
+        """
+        from websockets.exceptions import ConnectionClosedOK, ConnectionClosedError
+
+        while True:
+            try:
+                yield await self.recv()
+            except ConnectionClosedOK:
+                return
+            except ConnectionClosedError as exc:
+                if not await self._reconnect(exc):
+                    unsent = self._send_queue.drain()
+                    if unsent:
+                        raise WebSocketConnectionClosedError(
+                            "WebSocket connection closed with unsent messages",
+                            unsent_messages=unsent,
+                        ) from exc
+                    raise
+
+    async def recv(self) -> ResponsesServerEvent:
+        """
+        Receive the next message from the connection and parses it into a `ResponsesServerEvent` object.
+
+        Canceling this method is safe. There's no risk of losing data.
+        """
+        return self.parse_event(await self.recv_bytes())
+
+    async def recv_bytes(self) -> bytes:
+        """Receive the next message from the connection as raw bytes.
+
+        Canceling this method is safe. There's no risk of losing data.
+
+        If you want to parse the message into a `ResponsesServerEvent` object like `.recv()` does,
+        then you can call `.parse_event(data)`.
+        """
+        message = await self._connection.recv(decode=False)
+        log.debug(f"Received WebSocket message: %s", message)
+        return message
+
+    async def send(self, event: ResponsesClientEvent | ResponsesClientEventParam) -> None:
+        data = (
+            event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
+            if isinstance(event, BaseModel)
+            else json.dumps(await async_maybe_transform(event, ResponsesClientEventParam))
+        )
+        if self._is_reconnecting:
+            self._send_queue.enqueue(data)
+            return
+        try:
+            await self._connection.send(data)
+        except Exception:
+            self._send_queue.enqueue(data)
+            raise
+
+    async def send_raw(self, data: bytes | str) -> None:
+        if self._is_reconnecting:
+            raw = data if isinstance(data, str) else data.decode("utf-8")
+            self._send_queue.enqueue(raw)
+            return
+        await self._connection.send(data)
+
+    async def close(self, *, code: int = 1000, reason: str = "") -> None:
+        self._intentionally_closed = True
+        await self._connection.close(code=code, reason=reason)
+
+    def parse_event(self, data: str | bytes) -> ResponsesServerEvent:
+        """
+        Converts a raw `str` or `bytes` message into a `ResponsesServerEvent` object.
+
+        This is helpful if you're using `.recv_bytes()`.
+        """
+        return cast(
+            ResponsesServerEvent,
+            construct_type_unchecked(value=json.loads(data), type_=cast(Any, ResponsesServerEvent)),
+        )
+
+    async def _reconnect(self, exc: Exception) -> bool:
+        """Attempt to reconnect after a connection failure.
+
+        Returns ``True`` if a new connection was established, ``False`` if the
+        caller should re-raise the original exception.
+        """
+        import asyncio
+
+        if self._on_reconnecting is None or self._make_ws is None:
+            return False
+
+        from websockets.exceptions import ConnectionClosedError
+
+        close_code = 1006
+        if isinstance(exc, ConnectionClosedError) and exc.rcvd is not None:
+            close_code = exc.rcvd.code
+
+        if not is_recoverable_close(close_code):
+            return False
+
+        self._is_reconnecting = True
+
+        for attempt in range(1, self._max_retries + 1):
+            base_delay = min(self._initial_delay * (2 ** (attempt - 1)), self._max_delay)
+            jitter = 0.75 + random.random() * 0.25
+            delay = base_delay * jitter
+
+            event = ReconnectingEvent(
+                attempt=attempt,
+                max_attempts=self._max_retries,
+                delay=delay,
+                close_code=close_code,
+                extra_query=self._extra_query,
+                extra_headers=self._extra_headers,
+            )
+
+            try:
+                result = self._on_reconnecting(event)
+            except Exception:
+                self._is_reconnecting = False
+                return False
+
+            if result is not None and result.get("abort"):
+                self._is_reconnecting = False
+                return False
+
+            if result is not None:
+                if "extra_query" in result:
+                    self._extra_query = result["extra_query"]
+                if "extra_headers" in result:
+                    self._extra_headers = result["extra_headers"]
+
+            log.info(
+                "Reconnecting to WebSocket API (attempt %d/%d) after %.1fs delay",
+                attempt,
+                self._max_retries,
+                delay,
+            )
+            await asyncio.sleep(delay)
+
+            if self._intentionally_closed:
+                self._is_reconnecting = False
+                return False
+
+            try:
+                self._connection = await self._make_ws(self._extra_query, self._extra_headers)
+                log.info("Reconnected to WebSocket API")
+                self._is_reconnecting = False
+                await self._flush_send_queue()
+                return True
+            except Exception:
+                pass
+
+        self._is_reconnecting = False
+        return False
+
+    async def _flush_send_queue(self) -> None:
+        """Send all queued messages over the current connection."""
+
+        async def _send(data: str) -> None:
+            await self._connection.send(data)
+
+        try:
+            await self._send_queue.flush_async(_send)
+        except Exception:
+            log.warning("Failed to flush send queue after reconnect", exc_info=True)
+
+    def on(
+        self, event_type: str, handler: Callable[..., Any] | None = None
+    ) -> Union[AsyncResponsesConnection, Callable[[Callable[..., Any]], Callable[..., Any]]]:
+        """Adds the handler to the end of the handlers list for the given event type.
+
+        No checks are made to see if the handler has already been added. Multiple calls
+        passing the same combination of event type and handler will result in the handler
+        being added, and called, multiple times.
+
+        Can be used as a method (returns ``self`` for chaining)::
+
+            connection.on("response.audio.delta", my_handler)
+
+        Or as a decorator::
+
+            @connection.on("response.audio.delta")
+            async def my_handler(event): ...
+        """
+        if handler is not None:
+            self._event_handler_registry.add(event_type, handler)
+            return self
+
+        def decorator(fn: Callable[..., Any]) -> Callable[..., Any]:
+            self._event_handler_registry.add(event_type, fn)
+            return fn
+
+        return decorator
+
+    def off(self, event_type: str, handler: Callable[..., Any]) -> AsyncResponsesConnection:
+        """Remove a previously registered event handler."""
+        self._event_handler_registry.remove(event_type, handler)
+        return self
+
+    def once(
+        self, event_type: str, handler: Callable[..., Any] | None = None
+    ) -> Union[AsyncResponsesConnection, Callable[[Callable[..., Any]], Callable[..., Any]]]:
+        """Register a one-time event handler.
+
+        Automatically removed after first invocation.
+        """
+        if handler is not None:
+            self._event_handler_registry.add(event_type, handler, once=True)
+            return self
+
+        def decorator(fn: Callable[..., Any]) -> Callable[..., Any]:
+            self._event_handler_registry.add(event_type, fn, once=True)
+            return fn
+
+        return decorator
+
+    async def dispatch_events(self) -> None:
+        """Run the event loop, dispatching received events to registered handlers.
+
+        Blocks until the connection is closed. This is the push-based
+        alternative to iterating with ``async for event in connection``.
+
+        If an ``"error"`` event arrives and no handler is registered for
+        ``"error"`` or ``"event"``, an ``OpenAIError`` is raised.
+        """
+        import asyncio
+
+        async for event in self:
+            event_type = event.type
+            specific = self._event_handler_registry.get_handlers(event_type)
+            generic = self._event_handler_registry.get_handlers("event")
+
+            if event_type == "error" and not specific and not generic:
+                if isinstance(event, ResponseErrorEvent):
+                    raise OpenAIError(f"WebSocket error: {event}")
+
+            for handler in specific:
+                result = handler(event)
+                if asyncio.iscoroutine(result):
+                    await result
+
+            for handler in generic:
+                result = handler(event)
+                if asyncio.iscoroutine(result):
+                    await result
+
+
+class AsyncResponsesConnectionManager:
+    """
+    Context manager over a `AsyncResponsesConnection` that is returned by `responses.connect()`
+
+    This context manager ensures that the connection will be closed when it exits.
+
+    ---
+
+    Note that if your application doesn't work well with the context manager approach then you
+    can call the `.enter()` method directly to initiate a connection.
+
+    **Warning**: You must remember to close the connection with `.close()`.
+
+    ```py
+    connection = await client.responses.connect(...).enter()
+    # ...
+    await connection.close()
+    ```
+    """
+
+    def __init__(
+        self,
+        *,
+        client: AsyncOpenAI,
+        extra_query: Query,
+        extra_headers: Headers,
+        websocket_connection_options: WebSocketConnectionOptions,
+        on_reconnecting: Callable[[ReconnectingEvent], ReconnectingOverrides | None] | None = None,
+        max_retries: int = 5,
+        initial_delay: float = 0.5,
+        max_delay: float = 8.0,
+        max_queue_size: int = 1_048_576,
+    ) -> None:
+        self.__client = client
+        self.__connection: AsyncResponsesConnection | None = None
+        self.__extra_query = extra_query
+        self.__extra_headers = extra_headers
+        self.__websocket_connection_options = websocket_connection_options
+        self.__on_reconnecting = on_reconnecting
+        self.__max_retries = max_retries
+        self.__initial_delay = initial_delay
+        self.__max_delay = max_delay
+        self.__send_queue = SendQueue(max_bytes=max_queue_size)
+        self.__event_handler_registry = EventHandlerRegistry(use_lock=False)
+
+    def send(self, event: ResponsesClientEvent | ResponsesClientEventParam) -> None:
+        """Queue a message to be sent when the connection is established.
+
+        This can be called before entering the context manager. Queued messages
+        are automatically sent once the WebSocket connection opens.
+        """
+        data = (
+            event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
+            if isinstance(event, BaseModel)
+            else json.dumps(event)
+        )
+        self.__send_queue.enqueue(data)
+
+    def on(
+        self, event_type: str, handler: Callable[..., Any] | None = None
+    ) -> Union[AsyncResponsesConnectionManager, Callable[[Callable[..., Any]], Callable[..., Any]]]:
+        """Register an event handler before the connection is established.
+
+        Handlers are transferred to the connection on enter. Supports the
+        same method and decorator forms as ``AsyncResponsesConnection.on``.
+        """
+        if handler is not None:
+            self.__event_handler_registry.add(event_type, handler)
+            return self
+
+        def decorator(fn: Callable[..., Any]) -> Callable[..., Any]:
+            self.__event_handler_registry.add(event_type, fn)
+            return fn
+
+        return decorator
+
+    def off(self, event_type: str, handler: Callable[..., Any]) -> AsyncResponsesConnectionManager:
+        """Remove a previously registered event handler."""
+        self.__event_handler_registry.remove(event_type, handler)
+        return self
+
+    def once(
+        self, event_type: str, handler: Callable[..., Any] | None = None
+    ) -> Union[AsyncResponsesConnectionManager, Callable[[Callable[..., Any]], Callable[..., Any]]]:
+        """Register a one-time event handler before the connection is established."""
+        if handler is not None:
+            self.__event_handler_registry.add(event_type, handler, once=True)
+            return self
+
+        def decorator(fn: Callable[..., Any]) -> Callable[..., Any]:
+            self.__event_handler_registry.add(event_type, fn, once=True)
+            return fn
+
+        return decorator
+
+    async def __aenter__(self) -> AsyncResponsesConnection:
+        """
+        If your application doesn't work well with the context manager approach then you
+        can call this method directly to initiate a connection.
+
+        **Warning**: You must remember to close the connection with `.close()`.
+
+        ```py
+        connection = await client.responses.connect(...).enter()
+        # ...
+        await connection.close()
+        ```
+        """
+        ws = await self._connect_ws(self.__extra_query, self.__extra_headers)
+
+        self.__connection = AsyncResponsesConnection(
+            ws,
+            make_ws=self._connect_ws if self.__on_reconnecting is not None else None,
+            on_reconnecting=self.__on_reconnecting,
+            max_retries=self.__max_retries,
+            initial_delay=self.__initial_delay,
+            max_delay=self.__max_delay,
+            extra_query=self.__extra_query,
+            extra_headers=self.__extra_headers,
+            send_queue=self.__send_queue,
+        )
+
+        self.__event_handler_registry.merge_into(self.__connection._event_handler_registry)
+        await self.__connection._flush_send_queue()
+
+        return self.__connection
+
+    enter = __aenter__
+
+    async def _connect_ws(self, extra_query: Query, extra_headers: Headers) -> AsyncWebSocketConnection:
+        try:
+            from websockets.asyncio.client import connect
+        except ImportError as exc:
+            raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
+
+        url = self._prepare_url().copy_with(
+            params={
+                **self.__client.base_url.params,
+                **extra_query,
+            },
+        )
+        log.debug("Connecting to %s", url)
+        if self.__websocket_connection_options:
+            log.debug("Connection options: %s", self.__websocket_connection_options)
+
+        return await connect(
+            str(url),
+            user_agent_header=self.__client.user_agent,
+            additional_headers=_merge_mappings(
+                {
+                    **self.__client.auth_headers,
+                },
+                extra_headers,
+            ),
+            **self.__websocket_connection_options,
+        )
+
+    def _prepare_url(self) -> httpx.URL:
+        if self.__client.websocket_base_url is not None:
+            base_url = httpx.URL(self.__client.websocket_base_url)
+        else:
+            scheme = self.__client._base_url.scheme
+            ws_scheme = "ws" if scheme == "http" else "wss"
+            base_url = self.__client._base_url.copy_with(scheme=ws_scheme)
+
+        merge_raw_path = base_url.raw_path.rstrip(b"/") + b"/responses"
+        return base_url.copy_with(raw_path=merge_raw_path)
+
+    async def __aexit__(
+        self, exc_type: type[BaseException] | None, exc: BaseException | None, exc_tb: TracebackType | None
+    ) -> None:
+        if self.__connection is not None:
+            await self.__connection.close()
+
+
+class ResponsesConnection:
+    """Represents a live WebSocket connection to the Responses API"""
+
+    response: ResponsesResponseResource
+
+    _connection: WebSocketConnection
+
+    def __init__(
+        self,
+        connection: WebSocketConnection,
+        *,
+        make_ws: Callable[[Query, Headers], WebSocketConnection] | None = None,
+        on_reconnecting: Callable[[ReconnectingEvent], ReconnectingOverrides | None] | None = None,
+        max_retries: int = 5,
+        initial_delay: float = 0.5,
+        max_delay: float = 8.0,
+        extra_query: Query = {},
+        extra_headers: Headers = {},
+        send_queue: SendQueue | None = None,
+    ) -> None:
+        self._connection = connection
+        self._make_ws = make_ws
+        self._on_reconnecting = on_reconnecting
+        self._max_retries = max_retries
+        self._initial_delay = initial_delay
+        self._max_delay = max_delay
+        self._extra_query = extra_query
+        self._extra_headers = extra_headers
+        self._intentionally_closed = False
+        self._is_reconnecting = False
+        self._send_queue = send_queue or SendQueue()
+        self._event_handler_registry = EventHandlerRegistry(use_lock=True)
+
+        self.response = ResponsesResponseResource(self)
+
+    def __iter__(self) -> Iterator[ResponsesServerEvent]:
+        """
+        An infinite-iterator that will continue to yield events until
+        the connection is closed.
+        """
+        from websockets.exceptions import ConnectionClosedOK, ConnectionClosedError
+
+        while True:
+            try:
+                yield self.recv()
+            except ConnectionClosedOK:
+                return
+            except ConnectionClosedError as exc:
+                if not self._reconnect(exc):
+                    unsent = self._send_queue.drain()
+                    if unsent:
+                        raise WebSocketConnectionClosedError(
+                            "WebSocket connection closed with unsent messages",
+                            unsent_messages=unsent,
+                        ) from exc
+                    raise
+
+    def recv(self) -> ResponsesServerEvent:
+        """
+        Receive the next message from the connection and parses it into a `ResponsesServerEvent` object.
+
+        Canceling this method is safe. There's no risk of losing data.
+        """
+        return self.parse_event(self.recv_bytes())
+
+    def recv_bytes(self) -> bytes:
+        """Receive the next message from the connection as raw bytes.
+
+        Canceling this method is safe. There's no risk of losing data.
+
+        If you want to parse the message into a `ResponsesServerEvent` object like `.recv()` does,
+        then you can call `.parse_event(data)`.
+        """
+        message = self._connection.recv(decode=False)
+        log.debug(f"Received WebSocket message: %s", message)
+        return message
+
+    def send(self, event: ResponsesClientEvent | ResponsesClientEventParam) -> None:
+        data = (
+            event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
+            if isinstance(event, BaseModel)
+            else json.dumps(maybe_transform(event, ResponsesClientEventParam))
+        )
+        if self._is_reconnecting:
+            self._send_queue.enqueue(data)
+            return
+        try:
+            self._connection.send(data)
+        except Exception:
+            self._send_queue.enqueue(data)
+            raise
+
+    def send_raw(self, data: bytes | str) -> None:
+        if self._is_reconnecting:
+            raw = data if isinstance(data, str) else data.decode("utf-8")
+            self._send_queue.enqueue(raw)
+            return
+        self._connection.send(data)
+
+    def close(self, *, code: int = 1000, reason: str = "") -> None:
+        self._intentionally_closed = True
+        self._connection.close(code=code, reason=reason)
+
+    def parse_event(self, data: str | bytes) -> ResponsesServerEvent:
+        """
+        Converts a raw `str` or `bytes` message into a `ResponsesServerEvent` object.
+
+        This is helpful if you're using `.recv_bytes()`.
+        """
+        return cast(
+            ResponsesServerEvent,
+            construct_type_unchecked(value=json.loads(data), type_=cast(Any, ResponsesServerEvent)),
+        )
+
+    def _reconnect(self, exc: Exception) -> bool:
+        """Attempt to reconnect after a connection failure.
+
+        Returns ``True`` if a new connection was established, ``False`` if the
+        caller should re-raise the original exception.
+        """
+        if self._on_reconnecting is None or self._make_ws is None:
+            return False
+
+        from websockets.exceptions import ConnectionClosedError
+
+        close_code = 1006
+        if isinstance(exc, ConnectionClosedError) and exc.rcvd is not None:
+            close_code = exc.rcvd.code
+
+        if not is_recoverable_close(close_code):
+            return False
+
+        self._is_reconnecting = True
+
+        for attempt in range(1, self._max_retries + 1):
+            base_delay = min(self._initial_delay * (2 ** (attempt - 1)), self._max_delay)
+            jitter = 0.75 + random.random() * 0.25
+            delay = base_delay * jitter
+
+            event = ReconnectingEvent(
+                attempt=attempt,
+                max_attempts=self._max_retries,
+                delay=delay,
+                close_code=close_code,
+                extra_query=self._extra_query,
+                extra_headers=self._extra_headers,
+            )
+
+            try:
+                result = self._on_reconnecting(event)
+            except Exception:
+                self._is_reconnecting = False
+                return False
+
+            if result is not None and result.get("abort"):
+                self._is_reconnecting = False
+                return False
+
+            if result is not None:
+                if "extra_query" in result:
+                    self._extra_query = result["extra_query"]
+                if "extra_headers" in result:
+                    self._extra_headers = result["extra_headers"]
+
+            log.info(
+                "Reconnecting to WebSocket API (attempt %d/%d) after %.1fs delay",
+                attempt,
+                self._max_retries,
+                delay,
+            )
+            time.sleep(delay)
+
+            if self._intentionally_closed:
+                self._is_reconnecting = False
+                return False
+
+            try:
+                self._connection = self._make_ws(self._extra_query, self._extra_headers)
+                log.info("Reconnected to WebSocket API")
+                self._is_reconnecting = False
+                self._flush_send_queue()
+                return True
+            except Exception:
+                pass
+
+        self._is_reconnecting = False
+        return False
+
+    def _flush_send_queue(self) -> None:
+        """Send all queued messages over the current connection."""
+        try:
+            self._send_queue.flush_sync(lambda data: self._connection.send(data))
+        except Exception:
+            log.warning("Failed to flush send queue after reconnect", exc_info=True)
+
+    def on(
+        self, event_type: str, handler: Callable[..., Any] | None = None
+    ) -> Union[ResponsesConnection, Callable[[Callable[..., Any]], Callable[..., Any]]]:
+        """Adds the handler to the end of the handlers list for the given event type.
+
+        No checks are made to see if the handler has already been added. Multiple calls
+        passing the same combination of event type and handler will result in the handler
+        being added, and called, multiple times.
+
+        Can be used as a method (returns ``self`` for chaining)::
+
+            connection.on("response.audio.delta", my_handler)
+
+        Or as a decorator::
+
+            @connection.on("response.audio.delta")
+            def my_handler(event): ...
+        """
+        if handler is not None:
+            self._event_handler_registry.add(event_type, handler)
+            return self
+
+        def decorator(fn: Callable[..., Any]) -> Callable[..., Any]:
+            self._event_handler_registry.add(event_type, fn)
+            return fn
+
+        return decorator
+
+    def off(self, event_type: str, handler: Callable[..., Any]) -> ResponsesConnection:
+        """Remove a previously registered event handler."""
+        self._event_handler_registry.remove(event_type, handler)
+        return self
+
+    def once(
+        self, event_type: str, handler: Callable[..., Any] | None = None
+    ) -> Union[ResponsesConnection, Callable[[Callable[..., Any]], Callable[..., Any]]]:
+        """Register a one-time event handler.
+
+        Automatically removed after first invocation.
+        """
+        if handler is not None:
+            self._event_handler_registry.add(event_type, handler, once=True)
+            return self
+
+        def decorator(fn: Callable[..., Any]) -> Callable[..., Any]:
+            self._event_handler_registry.add(event_type, fn, once=True)
+            return fn
+
+        return decorator
+
+    def dispatch_events(self) -> None:
+        """Run the event loop, dispatching received events to registered handlers.
+
+        Blocks the current thread until the connection is closed. This is the push-based
+        alternative to iterating with ``for event in connection``.
+
+        If an ``"error"`` event arrives and no handler is registered for
+        ``"error"`` or ``"event"``, an ``OpenAIError`` is raised.
+        """
+        for event in self:
+            event_type = event.type
+            specific = self._event_handler_registry.get_handlers(event_type)
+            generic = self._event_handler_registry.get_handlers("event")
+
+            if event_type == "error" and not specific and not generic:
+                if isinstance(event, ResponseErrorEvent):
+                    raise OpenAIError(f"WebSocket error: {event}")
+
+            for handler in specific:
+                handler(event)
+
+            for handler in generic:
+                handler(event)
+
+
+class ResponsesConnectionManager:
+    """
+    Context manager over a `ResponsesConnection` that is returned by `responses.connect()`
+
+    This context manager ensures that the connection will be closed when it exits.
+
+    ---
+
+    Note that if your application doesn't work well with the context manager approach then you
+    can call the `.enter()` method directly to initiate a connection.
+
+    **Warning**: You must remember to close the connection with `.close()`.
+
+    ```py
+    connection = client.responses.connect(...).enter()
+    # ...
+    connection.close()
+    ```
+    """
+
+    def __init__(
+        self,
+        *,
+        client: OpenAI,
+        extra_query: Query,
+        extra_headers: Headers,
+        websocket_connection_options: WebSocketConnectionOptions,
+        on_reconnecting: Callable[[ReconnectingEvent], ReconnectingOverrides | None] | None = None,
+        max_retries: int = 5,
+        initial_delay: float = 0.5,
+        max_delay: float = 8.0,
+        max_queue_size: int = 1_048_576,
+    ) -> None:
+        self.__client = client
+        self.__connection: ResponsesConnection | None = None
+        self.__extra_query = extra_query
+        self.__extra_headers = extra_headers
+        self.__websocket_connection_options = websocket_connection_options
+        self.__on_reconnecting = on_reconnecting
+        self.__max_retries = max_retries
+        self.__initial_delay = initial_delay
+        self.__max_delay = max_delay
+        self.__send_queue = SendQueue(max_bytes=max_queue_size)
+        self.__event_handler_registry = EventHandlerRegistry(use_lock=True)
+
+    def send(self, event: ResponsesClientEvent | ResponsesClientEventParam) -> None:
+        """Queue a message to be sent when the connection is established.
+
+        This can be called before entering the context manager. Queued messages
+        are automatically sent once the WebSocket connection opens.
+        """
+        data = (
+            event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
+            if isinstance(event, BaseModel)
+            else json.dumps(event)
+        )
+        self.__send_queue.enqueue(data)
+
+    def on(
+        self, event_type: str, handler: Callable[..., Any] | None = None
+    ) -> Union[ResponsesConnectionManager, Callable[[Callable[..., Any]], Callable[..., Any]]]:
+        """Register an event handler before the connection is established.
+
+        Handlers are transferred to the connection on enter. Supports the
+        same method and decorator forms as ``ResponsesConnection.on``.
+        """
+        if handler is not None:
+            self.__event_handler_registry.add(event_type, handler)
+            return self
+
+        def decorator(fn: Callable[..., Any]) -> Callable[..., Any]:
+            self.__event_handler_registry.add(event_type, fn)
+            return fn
+
+        return decorator
+
+    def off(self, event_type: str, handler: Callable[..., Any]) -> ResponsesConnectionManager:
+        """Remove a previously registered event handler."""
+        self.__event_handler_registry.remove(event_type, handler)
+        return self
+
+    def once(
+        self, event_type: str, handler: Callable[..., Any] | None = None
+    ) -> Union[ResponsesConnectionManager, Callable[[Callable[..., Any]], Callable[..., Any]]]:
+        """Register a one-time event handler before the connection is established."""
+        if handler is not None:
+            self.__event_handler_registry.add(event_type, handler, once=True)
+            return self
+
+        def decorator(fn: Callable[..., Any]) -> Callable[..., Any]:
+            self.__event_handler_registry.add(event_type, fn, once=True)
+            return fn
+
+        return decorator
+
+    def __enter__(self) -> ResponsesConnection:
+        """
+        If your application doesn't work well with the context manager approach then you
+        can call this method directly to initiate a connection.
+
+        **Warning**: You must remember to close the connection with `.close()`.
+
+        ```py
+        connection = client.responses.connect(...).enter()
+        # ...
+        connection.close()
+        ```
+        """
+        ws = self._connect_ws(self.__extra_query, self.__extra_headers)
+
+        self.__connection = ResponsesConnection(
+            ws,
+            make_ws=self._connect_ws if self.__on_reconnecting is not None else None,
+            on_reconnecting=self.__on_reconnecting,
+            max_retries=self.__max_retries,
+            initial_delay=self.__initial_delay,
+            max_delay=self.__max_delay,
+            extra_query=self.__extra_query,
+            extra_headers=self.__extra_headers,
+            send_queue=self.__send_queue,
+        )
+
+        self.__event_handler_registry.merge_into(self.__connection._event_handler_registry)
+        self.__connection._flush_send_queue()
+
+        return self.__connection
+
+    enter = __enter__
+
+    def _connect_ws(self, extra_query: Query, extra_headers: Headers) -> WebSocketConnection:
+        try:
+            from websockets.sync.client import connect
+        except ImportError as exc:
+            raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
+
+        url = self._prepare_url().copy_with(
+            params={
+                **self.__client.base_url.params,
+                **extra_query,
+            },
+        )
+        log.debug("Connecting to %s", url)
+        if self.__websocket_connection_options:
+            log.debug("Connection options: %s", self.__websocket_connection_options)
+
+        return connect(
+            str(url),
+            user_agent_header=self.__client.user_agent,
+            additional_headers=_merge_mappings(
+                {
+                    **self.__client.auth_headers,
+                },
+                extra_headers,
+            ),
+            **self.__websocket_connection_options,
+        )
+
+    def _prepare_url(self) -> httpx.URL:
+        if self.__client.websocket_base_url is not None:
+            base_url = httpx.URL(self.__client.websocket_base_url)
+        else:
+            scheme = self.__client._base_url.scheme
+            ws_scheme = "ws" if scheme == "http" else "wss"
+            base_url = self.__client._base_url.copy_with(scheme=ws_scheme)
+
+        merge_raw_path = base_url.raw_path.rstrip(b"/") + b"/responses"
+        return base_url.copy_with(raw_path=merge_raw_path)
+
+    def __exit__(
+        self, exc_type: type[BaseException] | None, exc: BaseException | None, exc_tb: TracebackType | None
+    ) -> None:
+        if self.__connection is not None:
+            self.__connection.close()
+
+
+class BaseResponsesConnectionResource:
+    def __init__(self, connection: ResponsesConnection) -> None:
+        self._connection = connection
+
+
+class ResponsesResponseResource(BaseResponsesConnectionResource):
+    def create(
+        self,
+        *,
+        background: Optional[bool] | Omit = omit,
+        context_management: Optional[Iterable[responses_client_event_param.ContextManagement]] | Omit = omit,
+        conversation: Optional[responses_client_event_param.Conversation] | Omit = omit,
+        include: Optional[List[ResponseIncludable]] | Omit = omit,
+        input: Union[str, ResponseInputParam] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_output_tokens: Optional[int] | Omit = omit,
+        max_tool_calls: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: ResponsesModel | Omit = omit,
+        parallel_tool_calls: Optional[bool] | Omit = omit,
+        previous_response_id: Optional[str] | Omit = omit,
+        prompt: Optional[ResponsePromptParam] | Omit = omit,
+        prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
+        reasoning: Optional[Reasoning] | Omit = omit,
+        safety_identifier: str | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        store: Optional[bool] | Omit = omit,
+        stream: Optional[bool] | Omit = omit,
+        stream_options: Optional[responses_client_event_param.StreamOptions] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        text: ResponseTextConfigParam | Omit = omit,
+        tool_choice: responses_client_event_param.ToolChoice | Omit = omit,
+        tools: Iterable[ToolParam] | Omit = omit,
+        top_logprobs: Optional[int] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation: Optional[Literal["auto", "disabled"]] | Omit = omit,
+        user: str | Omit = omit,
+    ) -> None:
+        self._connection.send(
+            cast(
+                ResponsesClientEventParam,
+                strip_not_given(
+                    {
+                        "type": "response.create",
+                        "background": background,
+                        "context_management": context_management,
+                        "conversation": conversation,
+                        "include": include,
+                        "input": input,
+                        "instructions": instructions,
+                        "max_output_tokens": max_output_tokens,
+                        "max_tool_calls": max_tool_calls,
+                        "metadata": metadata,
+                        "model": model,
+                        "parallel_tool_calls": parallel_tool_calls,
+                        "previous_response_id": previous_response_id,
+                        "prompt": prompt,
+                        "prompt_cache_key": prompt_cache_key,
+                        "prompt_cache_retention": prompt_cache_retention,
+                        "reasoning": reasoning,
+                        "safety_identifier": safety_identifier,
+                        "service_tier": service_tier,
+                        "store": store,
+                        "stream": stream,
+                        "stream_options": stream_options,
+                        "temperature": temperature,
+                        "text": text,
+                        "tool_choice": tool_choice,
+                        "tools": tools,
+                        "top_logprobs": top_logprobs,
+                        "top_p": top_p,
+                        "truncation": truncation,
+                        "user": user,
+                    }
+                ),
+            )
+        )
+
+
+class BaseAsyncResponsesConnectionResource:
+    def __init__(self, connection: AsyncResponsesConnection) -> None:
+        self._connection = connection
+
+
+class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
+    async def create(
+        self,
+        *,
+        background: Optional[bool] | Omit = omit,
+        context_management: Optional[Iterable[responses_client_event_param.ContextManagement]] | Omit = omit,
+        conversation: Optional[responses_client_event_param.Conversation] | Omit = omit,
+        include: Optional[List[ResponseIncludable]] | Omit = omit,
+        input: Union[str, ResponseInputParam] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_output_tokens: Optional[int] | Omit = omit,
+        max_tool_calls: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: ResponsesModel | Omit = omit,
+        parallel_tool_calls: Optional[bool] | Omit = omit,
+        previous_response_id: Optional[str] | Omit = omit,
+        prompt: Optional[ResponsePromptParam] | Omit = omit,
+        prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
+        reasoning: Optional[Reasoning] | Omit = omit,
+        safety_identifier: str | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        store: Optional[bool] | Omit = omit,
+        stream: Optional[bool] | Omit = omit,
+        stream_options: Optional[responses_client_event_param.StreamOptions] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        text: ResponseTextConfigParam | Omit = omit,
+        tool_choice: responses_client_event_param.ToolChoice | Omit = omit,
+        tools: Iterable[ToolParam] | Omit = omit,
+        top_logprobs: Optional[int] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation: Optional[Literal["auto", "disabled"]] | Omit = omit,
+        user: str | Omit = omit,
+    ) -> None:
+        await self._connection.send(
+            cast(
+                ResponsesClientEventParam,
+                strip_not_given(
+                    {
+                        "type": "response.create",
+                        "background": background,
+                        "context_management": context_management,
+                        "conversation": conversation,
+                        "include": include,
+                        "input": input,
+                        "instructions": instructions,
+                        "max_output_tokens": max_output_tokens,
+                        "max_tool_calls": max_tool_calls,
+                        "metadata": metadata,
+                        "model": model,
+                        "parallel_tool_calls": parallel_tool_calls,
+                        "previous_response_id": previous_response_id,
+                        "prompt": prompt,
+                        "prompt_cache_key": prompt_cache_key,
+                        "prompt_cache_retention": prompt_cache_retention,
+                        "reasoning": reasoning,
+                        "safety_identifier": safety_identifier,
+                        "service_tier": service_tier,
+                        "store": store,
+                        "stream": stream,
+                        "stream_options": stream_options,
+                        "temperature": temperature,
+                        "text": text,
+                        "tool_choice": tool_choice,
+                        "tools": tools,
+                        "top_logprobs": top_logprobs,
+                        "top_p": top_p,
+                        "truncation": truncation,
+                        "user": user,
+                    }
+                ),
+            )
+        )

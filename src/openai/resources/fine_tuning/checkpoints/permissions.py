@@ -2,19 +2,25 @@
 
 from __future__ import annotations
 
+import typing_extensions
 from typing_extensions import Literal
 
 import httpx
 
 from .... import _legacy_response
 from ...._types import Body, Omit, Query, Headers, NotGiven, SequenceNotStr, omit, not_given
-from ...._utils import maybe_transform, async_maybe_transform
+from ...._utils import path_template, maybe_transform, async_maybe_transform
 from ...._compat import cached_property
 from ...._resource import SyncAPIResource, AsyncAPIResource
 from ...._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
-from ....pagination import SyncPage, AsyncPage
+from ....pagination import SyncPage, AsyncPage, SyncConversationCursorPage, AsyncConversationCursorPage
 from ...._base_client import AsyncPaginator, make_request_options
-from ....types.fine_tuning.checkpoints import permission_create_params, permission_retrieve_params
+from ....types.fine_tuning.checkpoints import (
+    permission_list_params,
+    permission_create_params,
+    permission_retrieve_params,
+)
+from ....types.fine_tuning.checkpoints.permission_list_response import PermissionListResponse
 from ....types.fine_tuning.checkpoints.permission_create_response import PermissionCreateResponse
 from ....types.fine_tuning.checkpoints.permission_delete_response import PermissionDeleteResponse
 from ....types.fine_tuning.checkpoints.permission_retrieve_response import PermissionRetrieveResponse
@@ -23,6 +29,8 @@ __all__ = ["Permissions", "AsyncPermissions"]
 
 
 class Permissions(SyncAPIResource):
+    """Manage fine-tuning jobs to tailor a model to your specific training data."""
+
     @cached_property
     def with_raw_response(self) -> PermissionsWithRawResponse:
         """
@@ -76,7 +84,10 @@ class Permissions(SyncAPIResource):
                 f"Expected a non-empty value for `fine_tuned_model_checkpoint` but received {fine_tuned_model_checkpoint!r}"
             )
         return self._get_api_list(
-            f"/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions",
+            path_template(
+                "/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions",
+                fine_tuned_model_checkpoint=fine_tuned_model_checkpoint,
+            ),
             page=SyncPage[PermissionCreateResponse],
             body=maybe_transform({"project_ids": project_ids}, permission_create_params.PermissionCreateParams),
             options=make_request_options(
@@ -86,6 +97,7 @@ class Permissions(SyncAPIResource):
             method="post",
         )
 
+    @typing_extensions.deprecated("Retrieve is deprecated. Please swap to the paginated list method instead.")
     def retrieve(
         self,
         fine_tuned_model_checkpoint: str,
@@ -129,7 +141,10 @@ class Permissions(SyncAPIResource):
                 f"Expected a non-empty value for `fine_tuned_model_checkpoint` but received {fine_tuned_model_checkpoint!r}"
             )
         return self._get(
-            f"/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions",
+            path_template(
+                "/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions",
+                fine_tuned_model_checkpoint=fine_tuned_model_checkpoint,
+            ),
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -146,6 +161,72 @@ class Permissions(SyncAPIResource):
                 ),
             ),
             cast_to=PermissionRetrieveResponse,
+        )
+
+    def list(
+        self,
+        fine_tuned_model_checkpoint: str,
+        *,
+        after: str | Omit = omit,
+        limit: int | Omit = omit,
+        order: Literal["ascending", "descending"] | Omit = omit,
+        project_id: str | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> SyncConversationCursorPage[PermissionListResponse]:
+        """
+        **NOTE:** This endpoint requires an [admin API key](../admin-api-keys).
+
+        Organization owners can use this endpoint to view all permissions for a
+        fine-tuned model checkpoint.
+
+        Args:
+          after: Identifier for the last permission ID from the previous pagination request.
+
+          limit: Number of permissions to retrieve.
+
+          order: The order in which to retrieve permissions.
+
+          project_id: The ID of the project to get permissions for.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not fine_tuned_model_checkpoint:
+            raise ValueError(
+                f"Expected a non-empty value for `fine_tuned_model_checkpoint` but received {fine_tuned_model_checkpoint!r}"
+            )
+        return self._get_api_list(
+            path_template(
+                "/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions",
+                fine_tuned_model_checkpoint=fine_tuned_model_checkpoint,
+            ),
+            page=SyncConversationCursorPage[PermissionListResponse],
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                query=maybe_transform(
+                    {
+                        "after": after,
+                        "limit": limit,
+                        "order": order,
+                        "project_id": project_id,
+                    },
+                    permission_list_params.PermissionListParams,
+                ),
+            ),
+            model=PermissionListResponse,
         )
 
     def delete(
@@ -182,7 +263,11 @@ class Permissions(SyncAPIResource):
         if not permission_id:
             raise ValueError(f"Expected a non-empty value for `permission_id` but received {permission_id!r}")
         return self._delete(
-            f"/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions/{permission_id}",
+            path_template(
+                "/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions/{permission_id}",
+                fine_tuned_model_checkpoint=fine_tuned_model_checkpoint,
+                permission_id=permission_id,
+            ),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -191,6 +276,8 @@ class Permissions(SyncAPIResource):
 
 
 class AsyncPermissions(AsyncAPIResource):
+    """Manage fine-tuning jobs to tailor a model to your specific training data."""
+
     @cached_property
     def with_raw_response(self) -> AsyncPermissionsWithRawResponse:
         """
@@ -244,7 +331,10 @@ class AsyncPermissions(AsyncAPIResource):
                 f"Expected a non-empty value for `fine_tuned_model_checkpoint` but received {fine_tuned_model_checkpoint!r}"
             )
         return self._get_api_list(
-            f"/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions",
+            path_template(
+                "/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions",
+                fine_tuned_model_checkpoint=fine_tuned_model_checkpoint,
+            ),
             page=AsyncPage[PermissionCreateResponse],
             body=maybe_transform({"project_ids": project_ids}, permission_create_params.PermissionCreateParams),
             options=make_request_options(
@@ -254,6 +344,7 @@ class AsyncPermissions(AsyncAPIResource):
             method="post",
         )
 
+    @typing_extensions.deprecated("Retrieve is deprecated. Please swap to the paginated list method instead.")
     async def retrieve(
         self,
         fine_tuned_model_checkpoint: str,
@@ -297,7 +388,10 @@ class AsyncPermissions(AsyncAPIResource):
                 f"Expected a non-empty value for `fine_tuned_model_checkpoint` but received {fine_tuned_model_checkpoint!r}"
             )
         return await self._get(
-            f"/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions",
+            path_template(
+                "/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions",
+                fine_tuned_model_checkpoint=fine_tuned_model_checkpoint,
+            ),
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -314,6 +408,72 @@ class AsyncPermissions(AsyncAPIResource):
                 ),
             ),
             cast_to=PermissionRetrieveResponse,
+        )
+
+    def list(
+        self,
+        fine_tuned_model_checkpoint: str,
+        *,
+        after: str | Omit = omit,
+        limit: int | Omit = omit,
+        order: Literal["ascending", "descending"] | Omit = omit,
+        project_id: str | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> AsyncPaginator[PermissionListResponse, AsyncConversationCursorPage[PermissionListResponse]]:
+        """
+        **NOTE:** This endpoint requires an [admin API key](../admin-api-keys).
+
+        Organization owners can use this endpoint to view all permissions for a
+        fine-tuned model checkpoint.
+
+        Args:
+          after: Identifier for the last permission ID from the previous pagination request.
+
+          limit: Number of permissions to retrieve.
+
+          order: The order in which to retrieve permissions.
+
+          project_id: The ID of the project to get permissions for.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not fine_tuned_model_checkpoint:
+            raise ValueError(
+                f"Expected a non-empty value for `fine_tuned_model_checkpoint` but received {fine_tuned_model_checkpoint!r}"
+            )
+        return self._get_api_list(
+            path_template(
+                "/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions",
+                fine_tuned_model_checkpoint=fine_tuned_model_checkpoint,
+            ),
+            page=AsyncConversationCursorPage[PermissionListResponse],
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                query=maybe_transform(
+                    {
+                        "after": after,
+                        "limit": limit,
+                        "order": order,
+                        "project_id": project_id,
+                    },
+                    permission_list_params.PermissionListParams,
+                ),
+            ),
+            model=PermissionListResponse,
         )
 
     async def delete(
@@ -350,7 +510,11 @@ class AsyncPermissions(AsyncAPIResource):
         if not permission_id:
             raise ValueError(f"Expected a non-empty value for `permission_id` but received {permission_id!r}")
         return await self._delete(
-            f"/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions/{permission_id}",
+            path_template(
+                "/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions/{permission_id}",
+                fine_tuned_model_checkpoint=fine_tuned_model_checkpoint,
+                permission_id=permission_id,
+            ),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -365,8 +529,13 @@ class PermissionsWithRawResponse:
         self.create = _legacy_response.to_raw_response_wrapper(
             permissions.create,
         )
-        self.retrieve = _legacy_response.to_raw_response_wrapper(
-            permissions.retrieve,
+        self.retrieve = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.to_raw_response_wrapper(
+                permissions.retrieve,  # pyright: ignore[reportDeprecated],
+            )
+        )
+        self.list = _legacy_response.to_raw_response_wrapper(
+            permissions.list,
         )
         self.delete = _legacy_response.to_raw_response_wrapper(
             permissions.delete,
@@ -380,8 +549,13 @@ class AsyncPermissionsWithRawResponse:
         self.create = _legacy_response.async_to_raw_response_wrapper(
             permissions.create,
         )
-        self.retrieve = _legacy_response.async_to_raw_response_wrapper(
-            permissions.retrieve,
+        self.retrieve = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.async_to_raw_response_wrapper(
+                permissions.retrieve,  # pyright: ignore[reportDeprecated],
+            )
+        )
+        self.list = _legacy_response.async_to_raw_response_wrapper(
+            permissions.list,
         )
         self.delete = _legacy_response.async_to_raw_response_wrapper(
             permissions.delete,
@@ -395,8 +569,13 @@ class PermissionsWithStreamingResponse:
         self.create = to_streamed_response_wrapper(
             permissions.create,
         )
-        self.retrieve = to_streamed_response_wrapper(
-            permissions.retrieve,
+        self.retrieve = (  # pyright: ignore[reportDeprecated]
+            to_streamed_response_wrapper(
+                permissions.retrieve,  # pyright: ignore[reportDeprecated],
+            )
+        )
+        self.list = to_streamed_response_wrapper(
+            permissions.list,
         )
         self.delete = to_streamed_response_wrapper(
             permissions.delete,
@@ -410,8 +589,13 @@ class AsyncPermissionsWithStreamingResponse:
         self.create = async_to_streamed_response_wrapper(
             permissions.create,
         )
-        self.retrieve = async_to_streamed_response_wrapper(
-            permissions.retrieve,
+        self.retrieve = (  # pyright: ignore[reportDeprecated]
+            async_to_streamed_response_wrapper(
+                permissions.retrieve,  # pyright: ignore[reportDeprecated],
+            )
+        )
+        self.list = async_to_streamed_response_wrapper(
+            permissions.list,
         )
         self.delete = async_to_streamed_response_wrapper(
             permissions.delete,

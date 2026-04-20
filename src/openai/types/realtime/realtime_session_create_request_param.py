@@ -58,6 +58,7 @@ class RealtimeSessionCreateRequestParam(TypedDict, total=False):
         str,
         Literal[
             "gpt-realtime",
+            "gpt-realtime-1.5",
             "gpt-realtime-2025-08-28",
             "gpt-4o-realtime-preview",
             "gpt-4o-realtime-preview-2024-10-01",
@@ -68,6 +69,7 @@ class RealtimeSessionCreateRequestParam(TypedDict, total=False):
             "gpt-realtime-mini",
             "gpt-realtime-mini-2025-10-06",
             "gpt-realtime-mini-2025-12-15",
+            "gpt-audio-1.5",
             "gpt-audio-mini",
             "gpt-audio-mini-2025-10-06",
             "gpt-audio-mini-2025-12-15",
@@ -101,8 +103,9 @@ class RealtimeSessionCreateRequestParam(TypedDict, total=False):
     tracing: Optional[RealtimeTracingConfigParam]
     """
     Realtime API can write session traces to the
-    [Traces Dashboard](/logs?api=traces). Set to null to disable tracing. Once
-    tracing is enabled for a session, the configuration cannot be modified.
+    [Traces Dashboard](https://platform.openai.com/logs?api=traces). Set to null to
+    disable tracing. Once tracing is enabled for a session, the configuration cannot
+    be modified.
 
     `auto` will create a trace for the session with default values for the workflow
     name, group id, and metadata.

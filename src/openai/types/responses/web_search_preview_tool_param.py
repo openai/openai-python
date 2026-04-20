@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import List, Optional
 from typing_extensions import Literal, Required, TypedDict
 
 __all__ = ["WebSearchPreviewToolParam", "UserLocation"]
@@ -44,6 +44,8 @@ class WebSearchPreviewToolParam(TypedDict, total=False):
 
     One of `web_search_preview` or `web_search_preview_2025_03_11`.
     """
+
+    search_content_types: List[Literal["text", "image"]]
 
     search_context_size: Literal["low", "medium", "high"]
     """High level guidance for the amount of context window space to use for the

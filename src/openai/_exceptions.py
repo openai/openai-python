@@ -9,6 +9,7 @@ import httpx
 
 from ._utils import is_dict
 from ._models import construct_type
+from .types.shared.oauth_error_code import OAuthErrorCode
 
 if TYPE_CHECKING:
     from .types.chat import ChatCompletion
@@ -16,6 +17,7 @@ if TYPE_CHECKING:
 __all__ = [
     "BadRequestError",
     "AuthenticationError",
+    "OAuthError",
     "PermissionDeniedError",
     "NotFoundError",
     "ConflictError",
@@ -25,11 +27,22 @@ __all__ = [
     "LengthFinishReasonError",
     "ContentFilterFinishReasonError",
     "InvalidWebhookSignatureError",
+    "SubjectTokenProviderError",
+    "WebSocketConnectionClosedError",
+    "WebSocketQueueFullError",
 ]
 
 
 class OpenAIError(Exception):
     pass
+
+
+class SubjectTokenProviderError(OpenAIError):
+    response: httpx.Response | None
+
+    def __init__(self, message: str, *, response: httpx.Response | None = None) -> None:
+        super().__init__(message)
+        self.response = response
 
 
 class APIError(OpenAIError):
@@ -109,6 +122,23 @@ class AuthenticationError(APIStatusError):
     status_code: Literal[401] = 401  # pyright: ignore[reportIncompatibleVariableOverride]
 
 
+class OAuthError(AuthenticationError):
+    error: Optional[OAuthErrorCode]
+
+    def __init__(self, *, response: httpx.Response, body: object | None) -> None:
+        message = "OAuth authentication error."
+        error = None
+
+        if is_dict(body):
+            error = body.get("error")
+            description = body.get("error_description")
+            if description and isinstance(description, str):
+                message = description
+
+        super().__init__(message, response=response, body=body)
+        self.error = cast(Optional[OAuthErrorCode], error)
+
+
 class PermissionDeniedError(APIStatusError):
     status_code: Literal[403] = 403  # pyright: ignore[reportIncompatibleVariableOverride]
 
@@ -159,3 +189,19 @@ class ContentFilterFinishReasonError(OpenAIError):
 
 class InvalidWebhookSignatureError(ValueError):
     """Raised when a webhook signature is invalid, meaning the computed signature does not match the expected signature."""
+
+
+class WebSocketConnectionClosedError(OpenAIError):
+    """Raised when a WebSocket connection closes with unsent messages."""
+
+    unsent_messages: list[str]
+
+    def __init__(self, message: str, *, unsent_messages: list[str]) -> None:
+        super().__init__(message)
+        self.unsent_messages = unsent_messages
+
+
+class WebSocketQueueFullError(OpenAIError):
+    """Raised when the outgoing WebSocket message queue exceeds its byte-size limit."""
+
+    pass

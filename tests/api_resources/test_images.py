@@ -20,15 +20,15 @@ class TestImages:
     @parametrize
     def test_method_create_variation(self, client: OpenAI) -> None:
         image = client.images.create_variation(
-            image=b"raw file contents",
+            image=b"Example data",
         )
         assert_matches_type(ImagesResponse, image, path=["response"])
 
     @parametrize
     def test_method_create_variation_with_all_params(self, client: OpenAI) -> None:
         image = client.images.create_variation(
-            image=b"raw file contents",
-            model="string",
+            image=b"Example data",
+            model="gpt-image-1.5",
             n=1,
             response_format="url",
             size="1024x1024",
@@ -39,7 +39,7 @@ class TestImages:
     @parametrize
     def test_raw_response_create_variation(self, client: OpenAI) -> None:
         response = client.images.with_raw_response.create_variation(
-            image=b"raw file contents",
+            image=b"Example data",
         )
 
         assert response.is_closed is True
@@ -50,7 +50,7 @@ class TestImages:
     @parametrize
     def test_streaming_response_create_variation(self, client: OpenAI) -> None:
         with client.images.with_streaming_response.create_variation(
-            image=b"raw file contents",
+            image=b"Example data",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -63,7 +63,7 @@ class TestImages:
     @parametrize
     def test_method_edit_overload_1(self, client: OpenAI) -> None:
         image = client.images.edit(
-            image=b"raw file contents",
+            image=b"Example data",
             prompt="A cute baby sea otter wearing a beret",
         )
         assert_matches_type(ImagesResponse, image, path=["response"])
@@ -71,12 +71,12 @@ class TestImages:
     @parametrize
     def test_method_edit_with_all_params_overload_1(self, client: OpenAI) -> None:
         image = client.images.edit(
-            image=b"raw file contents",
+            image=b"Example data",
             prompt="A cute baby sea otter wearing a beret",
             background="transparent",
             input_fidelity="high",
-            mask=b"raw file contents",
-            model="string",
+            mask=b"Example data",
+            model="gpt-image-1.5",
             n=1,
             output_compression=100,
             output_format="png",
@@ -92,7 +92,7 @@ class TestImages:
     @parametrize
     def test_raw_response_edit_overload_1(self, client: OpenAI) -> None:
         response = client.images.with_raw_response.edit(
-            image=b"raw file contents",
+            image=b"Example data",
             prompt="A cute baby sea otter wearing a beret",
         )
 
@@ -104,7 +104,7 @@ class TestImages:
     @parametrize
     def test_streaming_response_edit_overload_1(self, client: OpenAI) -> None:
         with client.images.with_streaming_response.edit(
-            image=b"raw file contents",
+            image=b"Example data",
             prompt="A cute baby sea otter wearing a beret",
         ) as response:
             assert not response.is_closed
@@ -118,7 +118,7 @@ class TestImages:
     @parametrize
     def test_method_edit_overload_2(self, client: OpenAI) -> None:
         image_stream = client.images.edit(
-            image=b"raw file contents",
+            image=b"Example data",
             prompt="A cute baby sea otter wearing a beret",
             stream=True,
         )
@@ -127,13 +127,13 @@ class TestImages:
     @parametrize
     def test_method_edit_with_all_params_overload_2(self, client: OpenAI) -> None:
         image_stream = client.images.edit(
-            image=b"raw file contents",
+            image=b"Example data",
             prompt="A cute baby sea otter wearing a beret",
             stream=True,
             background="transparent",
             input_fidelity="high",
-            mask=b"raw file contents",
-            model="string",
+            mask=b"Example data",
+            model="gpt-image-1.5",
             n=1,
             output_compression=100,
             output_format="png",
@@ -148,7 +148,7 @@ class TestImages:
     @parametrize
     def test_raw_response_edit_overload_2(self, client: OpenAI) -> None:
         response = client.images.with_raw_response.edit(
-            image=b"raw file contents",
+            image=b"Example data",
             prompt="A cute baby sea otter wearing a beret",
             stream=True,
         )
@@ -160,7 +160,7 @@ class TestImages:
     @parametrize
     def test_streaming_response_edit_overload_2(self, client: OpenAI) -> None:
         with client.images.with_streaming_response.edit(
-            image=b"raw file contents",
+            image=b"Example data",
             prompt="A cute baby sea otter wearing a beret",
             stream=True,
         ) as response:
@@ -184,7 +184,7 @@ class TestImages:
         image = client.images.generate(
             prompt="A cute baby sea otter",
             background="transparent",
-            model="string",
+            model="gpt-image-1.5",
             moderation="low",
             n=1,
             output_compression=100,
@@ -237,7 +237,7 @@ class TestImages:
             prompt="A cute baby sea otter",
             stream=True,
             background="transparent",
-            model="string",
+            model="gpt-image-1.5",
             moderation="low",
             n=1,
             output_compression=100,
@@ -285,15 +285,15 @@ class TestAsyncImages:
     @parametrize
     async def test_method_create_variation(self, async_client: AsyncOpenAI) -> None:
         image = await async_client.images.create_variation(
-            image=b"raw file contents",
+            image=b"Example data",
         )
         assert_matches_type(ImagesResponse, image, path=["response"])
 
     @parametrize
     async def test_method_create_variation_with_all_params(self, async_client: AsyncOpenAI) -> None:
         image = await async_client.images.create_variation(
-            image=b"raw file contents",
-            model="string",
+            image=b"Example data",
+            model="gpt-image-1.5",
             n=1,
             response_format="url",
             size="1024x1024",
@@ -304,7 +304,7 @@ class TestAsyncImages:
     @parametrize
     async def test_raw_response_create_variation(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.images.with_raw_response.create_variation(
-            image=b"raw file contents",
+            image=b"Example data",
         )
 
         assert response.is_closed is True
@@ -315,7 +315,7 @@ class TestAsyncImages:
     @parametrize
     async def test_streaming_response_create_variation(self, async_client: AsyncOpenAI) -> None:
         async with async_client.images.with_streaming_response.create_variation(
-            image=b"raw file contents",
+            image=b"Example data",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -328,7 +328,7 @@ class TestAsyncImages:
     @parametrize
     async def test_method_edit_overload_1(self, async_client: AsyncOpenAI) -> None:
         image = await async_client.images.edit(
-            image=b"raw file contents",
+            image=b"Example data",
             prompt="A cute baby sea otter wearing a beret",
         )
         assert_matches_type(ImagesResponse, image, path=["response"])
@@ -336,12 +336,12 @@ class TestAsyncImages:
     @parametrize
     async def test_method_edit_with_all_params_overload_1(self, async_client: AsyncOpenAI) -> None:
         image = await async_client.images.edit(
-            image=b"raw file contents",
+            image=b"Example data",
             prompt="A cute baby sea otter wearing a beret",
             background="transparent",
             input_fidelity="high",
-            mask=b"raw file contents",
-            model="string",
+            mask=b"Example data",
+            model="gpt-image-1.5",
             n=1,
             output_compression=100,
             output_format="png",
@@ -357,7 +357,7 @@ class TestAsyncImages:
     @parametrize
     async def test_raw_response_edit_overload_1(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.images.with_raw_response.edit(
-            image=b"raw file contents",
+            image=b"Example data",
             prompt="A cute baby sea otter wearing a beret",
         )
 
@@ -369,7 +369,7 @@ class TestAsyncImages:
     @parametrize
     async def test_streaming_response_edit_overload_1(self, async_client: AsyncOpenAI) -> None:
         async with async_client.images.with_streaming_response.edit(
-            image=b"raw file contents",
+            image=b"Example data",
             prompt="A cute baby sea otter wearing a beret",
         ) as response:
             assert not response.is_closed
@@ -383,7 +383,7 @@ class TestAsyncImages:
     @parametrize
     async def test_method_edit_overload_2(self, async_client: AsyncOpenAI) -> None:
         image_stream = await async_client.images.edit(
-            image=b"raw file contents",
+            image=b"Example data",
             prompt="A cute baby sea otter wearing a beret",
             stream=True,
         )
@@ -392,13 +392,13 @@ class TestAsyncImages:
     @parametrize
     async def test_method_edit_with_all_params_overload_2(self, async_client: AsyncOpenAI) -> None:
         image_stream = await async_client.images.edit(
-            image=b"raw file contents",
+            image=b"Example data",
             prompt="A cute baby sea otter wearing a beret",
             stream=True,
             background="transparent",
             input_fidelity="high",
-            mask=b"raw file contents",
-            model="string",
+            mask=b"Example data",
+            model="gpt-image-1.5",
             n=1,
             output_compression=100,
             output_format="png",
@@ -413,7 +413,7 @@ class TestAsyncImages:
     @parametrize
     async def test_raw_response_edit_overload_2(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.images.with_raw_response.edit(
-            image=b"raw file contents",
+            image=b"Example data",
             prompt="A cute baby sea otter wearing a beret",
             stream=True,
         )
@@ -425,7 +425,7 @@ class TestAsyncImages:
     @parametrize
     async def test_streaming_response_edit_overload_2(self, async_client: AsyncOpenAI) -> None:
         async with async_client.images.with_streaming_response.edit(
-            image=b"raw file contents",
+            image=b"Example data",
             prompt="A cute baby sea otter wearing a beret",
             stream=True,
         ) as response:
@@ -449,7 +449,7 @@ class TestAsyncImages:
         image = await async_client.images.generate(
             prompt="A cute baby sea otter",
             background="transparent",
-            model="string",
+            model="gpt-image-1.5",
             moderation="low",
             n=1,
             output_compression=100,
@@ -502,7 +502,7 @@ class TestAsyncImages:
             prompt="A cute baby sea otter",
             stream=True,
             background="transparent",
-            model="string",
+            model="gpt-image-1.5",
             moderation="low",
             n=1,
             output_compression=100,

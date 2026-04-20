@@ -19,7 +19,7 @@ from .messages import (
     AsyncMessagesWithStreamingResponse,
 )
 from ...._types import NOT_GIVEN, Body, Omit, Query, Headers, NotGiven, omit, not_given
-from ...._utils import required_args, maybe_transform, async_maybe_transform
+from ...._utils import path_template, required_args, maybe_transform, async_maybe_transform
 from .runs.runs import (
     Runs,
     AsyncRuns,
@@ -60,12 +60,16 @@ __all__ = ["Threads", "AsyncThreads"]
 
 
 class Threads(SyncAPIResource):
+    """Build Assistants that can call models and use tools."""
+
     @cached_property
     def runs(self) -> Runs:
+        """Build Assistants that can call models and use tools."""
         return Runs(self._client)
 
     @cached_property
     def messages(self) -> Messages:
+        """Build Assistants that can call models and use tools."""
         return Messages(self._client)
 
     @cached_property
@@ -173,7 +177,7 @@ class Threads(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._get(
-            f"/threads/{thread_id}",
+            path_template("/threads/{thread_id}", thread_id=thread_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -222,7 +226,7 @@ class Threads(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._post(
-            f"/threads/{thread_id}",
+            path_template("/threads/{thread_id}", thread_id=thread_id),
             body=maybe_transform(
                 {
                     "metadata": metadata,
@@ -264,7 +268,7 @@ class Threads(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._delete(
-            f"/threads/{thread_id}",
+            path_template("/threads/{thread_id}", thread_id=thread_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -729,7 +733,11 @@ class Threads(SyncAPIResource):
                 else thread_create_and_run_params.ThreadCreateAndRunParamsNonStreaming,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                synthesize_event_and_data=True,
             ),
             cast_to=Run,
             stream=stream or False,
@@ -918,12 +926,16 @@ class Threads(SyncAPIResource):
 
 
 class AsyncThreads(AsyncAPIResource):
+    """Build Assistants that can call models and use tools."""
+
     @cached_property
     def runs(self) -> AsyncRuns:
+        """Build Assistants that can call models and use tools."""
         return AsyncRuns(self._client)
 
     @cached_property
     def messages(self) -> AsyncMessages:
+        """Build Assistants that can call models and use tools."""
         return AsyncMessages(self._client)
 
     @cached_property
@@ -1031,7 +1043,7 @@ class AsyncThreads(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._get(
-            f"/threads/{thread_id}",
+            path_template("/threads/{thread_id}", thread_id=thread_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -1080,7 +1092,7 @@ class AsyncThreads(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._post(
-            f"/threads/{thread_id}",
+            path_template("/threads/{thread_id}", thread_id=thread_id),
             body=await async_maybe_transform(
                 {
                     "metadata": metadata,
@@ -1122,7 +1134,7 @@ class AsyncThreads(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._delete(
-            f"/threads/{thread_id}",
+            path_template("/threads/{thread_id}", thread_id=thread_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -1587,7 +1599,11 @@ class AsyncThreads(AsyncAPIResource):
                 else thread_create_and_run_params.ThreadCreateAndRunParamsNonStreaming,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                synthesize_event_and_data=True,
             ),
             cast_to=Run,
             stream=stream or False,
@@ -1811,10 +1827,12 @@ class ThreadsWithRawResponse:
 
     @cached_property
     def runs(self) -> RunsWithRawResponse:
+        """Build Assistants that can call models and use tools."""
         return RunsWithRawResponse(self._threads.runs)
 
     @cached_property
     def messages(self) -> MessagesWithRawResponse:
+        """Build Assistants that can call models and use tools."""
         return MessagesWithRawResponse(self._threads.messages)
 
 
@@ -1850,10 +1868,12 @@ class AsyncThreadsWithRawResponse:
 
     @cached_property
     def runs(self) -> AsyncRunsWithRawResponse:
+        """Build Assistants that can call models and use tools."""
         return AsyncRunsWithRawResponse(self._threads.runs)
 
     @cached_property
     def messages(self) -> AsyncMessagesWithRawResponse:
+        """Build Assistants that can call models and use tools."""
         return AsyncMessagesWithRawResponse(self._threads.messages)
 
 
@@ -1889,10 +1909,12 @@ class ThreadsWithStreamingResponse:
 
     @cached_property
     def runs(self) -> RunsWithStreamingResponse:
+        """Build Assistants that can call models and use tools."""
         return RunsWithStreamingResponse(self._threads.runs)
 
     @cached_property
     def messages(self) -> MessagesWithStreamingResponse:
+        """Build Assistants that can call models and use tools."""
         return MessagesWithStreamingResponse(self._threads.messages)
 
 
@@ -1928,8 +1950,10 @@ class AsyncThreadsWithStreamingResponse:
 
     @cached_property
     def runs(self) -> AsyncRunsWithStreamingResponse:
+        """Build Assistants that can call models and use tools."""
         return AsyncRunsWithStreamingResponse(self._threads.runs)
 
     @cached_property
     def messages(self) -> AsyncMessagesWithStreamingResponse:
+        """Build Assistants that can call models and use tools."""
         return AsyncMessagesWithStreamingResponse(self._threads.messages)

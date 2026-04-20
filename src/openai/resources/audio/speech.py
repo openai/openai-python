@@ -26,6 +26,8 @@ __all__ = ["Speech", "AsyncSpeech"]
 
 
 class Speech(SyncAPIResource):
+    """Turn audio into text or text into audio."""
+
     @cached_property
     def with_raw_response(self) -> SpeechWithRawResponse:
         """
@@ -50,9 +52,7 @@ class Speech(SyncAPIResource):
         *,
         input: str,
         model: Union[str, SpeechModel],
-        voice: Union[
-            str, Literal["alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse", "marin", "cedar"]
-        ],
+        voice: speech_create_params.Voice,
         instructions: str | Omit = omit,
         response_format: Literal["mp3", "opus", "aac", "flac", "wav", "pcm"] | Omit = omit,
         speed: float | Omit = omit,
@@ -67,6 +67,8 @@ class Speech(SyncAPIResource):
         """
         Generates audio from the input text.
 
+        Returns the audio file content, or a stream of audio events.
+
         Args:
           input: The text to generate audio for. The maximum length is 4096 characters.
 
@@ -76,8 +78,9 @@ class Speech(SyncAPIResource):
 
           voice: The voice to use when generating the audio. Supported built-in voices are
               `alloy`, `ash`, `ballad`, `coral`, `echo`, `fable`, `onyx`, `nova`, `sage`,
-              `shimmer`, `verse`, `marin`, and `cedar`. Previews of the voices are available
-              in the
+              `shimmer`, `verse`, `marin`, and `cedar`. You may also provide a custom voice
+              object with an `id`, for example `{ "id": "voice_1234" }`. Previews of the
+              voices are available in the
               [Text to speech guide](https://platform.openai.com/docs/guides/text-to-speech#voice-options).
 
           instructions: Control the voice of your generated audio with additional instructions. Does not
@@ -123,6 +126,8 @@ class Speech(SyncAPIResource):
 
 
 class AsyncSpeech(AsyncAPIResource):
+    """Turn audio into text or text into audio."""
+
     @cached_property
     def with_raw_response(self) -> AsyncSpeechWithRawResponse:
         """
@@ -147,9 +152,7 @@ class AsyncSpeech(AsyncAPIResource):
         *,
         input: str,
         model: Union[str, SpeechModel],
-        voice: Union[
-            str, Literal["alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse", "marin", "cedar"]
-        ],
+        voice: speech_create_params.Voice,
         instructions: str | Omit = omit,
         response_format: Literal["mp3", "opus", "aac", "flac", "wav", "pcm"] | Omit = omit,
         speed: float | Omit = omit,
@@ -164,6 +167,8 @@ class AsyncSpeech(AsyncAPIResource):
         """
         Generates audio from the input text.
 
+        Returns the audio file content, or a stream of audio events.
+
         Args:
           input: The text to generate audio for. The maximum length is 4096 characters.
 
@@ -173,8 +178,9 @@ class AsyncSpeech(AsyncAPIResource):
 
           voice: The voice to use when generating the audio. Supported built-in voices are
               `alloy`, `ash`, `ballad`, `coral`, `echo`, `fable`, `onyx`, `nova`, `sage`,
-              `shimmer`, `verse`, `marin`, and `cedar`. Previews of the voices are available
-              in the
+              `shimmer`, `verse`, `marin`, and `cedar`. You may also provide a custom voice
+              object with an `id`, for example `{ "id": "voice_1234" }`. Previews of the
+              voices are available in the
               [Text to speech guide](https://platform.openai.com/docs/guides/text-to-speech#voice-options).
 
           instructions: Control the voice of your generated audio with additional instructions. Does not

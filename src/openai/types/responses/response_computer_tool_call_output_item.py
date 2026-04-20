@@ -32,6 +32,13 @@ class ResponseComputerToolCallOutputItem(BaseModel):
     output: ResponseComputerToolCallOutputScreenshot
     """A computer screenshot image used with the computer use tool."""
 
+    status: Literal["completed", "incomplete", "failed", "in_progress"]
+    """The status of the message input.
+
+    One of `in_progress`, `completed`, or `incomplete`. Populated when input items
+    are returned via API.
+    """
+
     type: Literal["computer_call_output"]
     """The type of the computer tool call output. Always `computer_call_output`."""
 
@@ -41,9 +48,5 @@ class ResponseComputerToolCallOutputItem(BaseModel):
     developer.
     """
 
-    status: Optional[Literal["in_progress", "completed", "incomplete"]] = None
-    """The status of the message input.
-
-    One of `in_progress`, `completed`, or `incomplete`. Populated when input items
-    are returned via API.
-    """
+    created_by: Optional[str] = None
+    """The identifier of the actor that created the item."""

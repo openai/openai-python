@@ -16,6 +16,7 @@ from ._response import APIResponse as APIResponse, AsyncAPIResponse as AsyncAPIR
 from ._constants import DEFAULT_TIMEOUT, DEFAULT_MAX_RETRIES, DEFAULT_CONNECTION_LIMITS
 from ._exceptions import (
     APIError,
+    OAuthError,
     OpenAIError,
     ConflictError,
     NotFoundError,
@@ -28,14 +29,17 @@ from ._exceptions import (
     InternalServerError,
     PermissionDeniedError,
     LengthFinishReasonError,
+    WebSocketQueueFullError,
     UnprocessableEntityError,
     APIResponseValidationError,
     InvalidWebhookSignatureError,
     ContentFilterFinishReasonError,
+    WebSocketConnectionClosedError,
 )
 from ._base_client import DefaultHttpxClient, DefaultAioHttpClient, DefaultAsyncHttpxClient
 from ._utils._logs import setup_logging as _setup_logging
 from ._legacy_response import HttpxBinaryResponseContent as HttpxBinaryResponseContent
+from .types.websocket_reconnection import ReconnectingEvent, ReconnectingOverrides
 
 __all__ = [
     "types",
@@ -57,6 +61,7 @@ __all__ = [
     "APIResponseValidationError",
     "BadRequestError",
     "AuthenticationError",
+    "OAuthError",
     "PermissionDeniedError",
     "NotFoundError",
     "ConflictError",
@@ -82,6 +87,10 @@ __all__ = [
     "DefaultHttpxClient",
     "DefaultAsyncHttpxClient",
     "DefaultAioHttpClient",
+    "ReconnectingEvent",
+    "ReconnectingOverrides",
+    "WebSocketQueueFullError",
+    "WebSocketConnectionClosedError",
 ]
 
 if not _t.TYPE_CHECKING:

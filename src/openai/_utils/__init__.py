@@ -1,4 +1,5 @@
 from ._logs import SensitiveHeadersFilter as SensitiveHeadersFilter
+from ._path import path_template as path_template
 from ._sync import asyncify as asyncify
 from ._proxy import LazyProxy as LazyProxy
 from ._utils import (

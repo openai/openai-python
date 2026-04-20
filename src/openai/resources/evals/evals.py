@@ -10,7 +10,7 @@ import httpx
 from ... import _legacy_response
 from ...types import eval_list_params, eval_create_params, eval_update_params
 from ..._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
-from ..._utils import maybe_transform, async_maybe_transform
+from ..._utils import path_template, maybe_transform, async_maybe_transform
 from ..._compat import cached_property
 from .runs.runs import (
     Runs,
@@ -35,8 +35,11 @@ __all__ = ["Evals", "AsyncEvals"]
 
 
 class Evals(SyncAPIResource):
+    """Manage and run evals in the OpenAI platform."""
+
     @cached_property
     def runs(self) -> Runs:
+        """Manage and run evals in the OpenAI platform."""
         return Runs(self._client)
 
     @cached_property
@@ -149,7 +152,7 @@ class Evals(SyncAPIResource):
         if not eval_id:
             raise ValueError(f"Expected a non-empty value for `eval_id` but received {eval_id!r}")
         return self._get(
-            f"/evals/{eval_id}",
+            path_template("/evals/{eval_id}", eval_id=eval_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -193,7 +196,7 @@ class Evals(SyncAPIResource):
         if not eval_id:
             raise ValueError(f"Expected a non-empty value for `eval_id` but received {eval_id!r}")
         return self._post(
-            f"/evals/{eval_id}",
+            path_template("/evals/{eval_id}", eval_id=eval_id),
             body=maybe_transform(
                 {
                     "metadata": metadata,
@@ -290,7 +293,7 @@ class Evals(SyncAPIResource):
         if not eval_id:
             raise ValueError(f"Expected a non-empty value for `eval_id` but received {eval_id!r}")
         return self._delete(
-            f"/evals/{eval_id}",
+            path_template("/evals/{eval_id}", eval_id=eval_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -299,8 +302,11 @@ class Evals(SyncAPIResource):
 
 
 class AsyncEvals(AsyncAPIResource):
+    """Manage and run evals in the OpenAI platform."""
+
     @cached_property
     def runs(self) -> AsyncRuns:
+        """Manage and run evals in the OpenAI platform."""
         return AsyncRuns(self._client)
 
     @cached_property
@@ -413,7 +419,7 @@ class AsyncEvals(AsyncAPIResource):
         if not eval_id:
             raise ValueError(f"Expected a non-empty value for `eval_id` but received {eval_id!r}")
         return await self._get(
-            f"/evals/{eval_id}",
+            path_template("/evals/{eval_id}", eval_id=eval_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -457,7 +463,7 @@ class AsyncEvals(AsyncAPIResource):
         if not eval_id:
             raise ValueError(f"Expected a non-empty value for `eval_id` but received {eval_id!r}")
         return await self._post(
-            f"/evals/{eval_id}",
+            path_template("/evals/{eval_id}", eval_id=eval_id),
             body=await async_maybe_transform(
                 {
                     "metadata": metadata,
@@ -554,7 +560,7 @@ class AsyncEvals(AsyncAPIResource):
         if not eval_id:
             raise ValueError(f"Expected a non-empty value for `eval_id` but received {eval_id!r}")
         return await self._delete(
-            f"/evals/{eval_id}",
+            path_template("/evals/{eval_id}", eval_id=eval_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -584,6 +590,7 @@ class EvalsWithRawResponse:
 
     @cached_property
     def runs(self) -> RunsWithRawResponse:
+        """Manage and run evals in the OpenAI platform."""
         return RunsWithRawResponse(self._evals.runs)
 
 
@@ -609,6 +616,7 @@ class AsyncEvalsWithRawResponse:
 
     @cached_property
     def runs(self) -> AsyncRunsWithRawResponse:
+        """Manage and run evals in the OpenAI platform."""
         return AsyncRunsWithRawResponse(self._evals.runs)
 
 
@@ -634,6 +642,7 @@ class EvalsWithStreamingResponse:
 
     @cached_property
     def runs(self) -> RunsWithStreamingResponse:
+        """Manage and run evals in the OpenAI platform."""
         return RunsWithStreamingResponse(self._evals.runs)
 
 
@@ -659,4 +668,5 @@ class AsyncEvalsWithStreamingResponse:
 
     @cached_property
     def runs(self) -> AsyncRunsWithStreamingResponse:
+        """Manage and run evals in the OpenAI platform."""
         return AsyncRunsWithStreamingResponse(self._evals.runs)

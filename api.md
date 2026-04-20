@@ -11,6 +11,7 @@ from openai.types import (
     FunctionDefinition,
     FunctionParameters,
     Metadata,
+    OAuthErrorCode,
     Reasoning,
     ReasoningEffort,
     ResponseFormatJSONObject,
@@ -309,6 +310,7 @@ Types:
 from openai.types.fine_tuning.checkpoints import (
     PermissionCreateResponse,
     PermissionRetrieveResponse,
+    PermissionListResponse,
     PermissionDeleteResponse,
 )
 ```
@@ -317,6 +319,7 @@ Methods:
 
 - <code title="post /fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions">client.fine_tuning.checkpoints.permissions.<a href="./src/openai/resources/fine_tuning/checkpoints/permissions.py">create</a>(fine_tuned_model_checkpoint, \*\*<a href="src/openai/types/fine_tuning/checkpoints/permission_create_params.py">params</a>) -> <a href="./src/openai/types/fine_tuning/checkpoints/permission_create_response.py">SyncPage[PermissionCreateResponse]</a></code>
 - <code title="get /fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions">client.fine_tuning.checkpoints.permissions.<a href="./src/openai/resources/fine_tuning/checkpoints/permissions.py">retrieve</a>(fine_tuned_model_checkpoint, \*\*<a href="src/openai/types/fine_tuning/checkpoints/permission_retrieve_params.py">params</a>) -> <a href="./src/openai/types/fine_tuning/checkpoints/permission_retrieve_response.py">PermissionRetrieveResponse</a></code>
+- <code title="get /fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions">client.fine_tuning.checkpoints.permissions.<a href="./src/openai/resources/fine_tuning/checkpoints/permissions.py">list</a>(fine_tuned_model_checkpoint, \*\*<a href="src/openai/types/fine_tuning/checkpoints/permission_list_params.py">params</a>) -> <a href="./src/openai/types/fine_tuning/checkpoints/permission_list_response.py">SyncConversationCursorPage[PermissionListResponse]</a></code>
 - <code title="delete /fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions/{permission_id}">client.fine_tuning.checkpoints.permissions.<a href="./src/openai/resources/fine_tuning/checkpoints/permissions.py">delete</a>(permission_id, \*, fine_tuned_model_checkpoint) -> <a href="./src/openai/types/fine_tuning/checkpoints/permission_delete_response.py">PermissionDeleteResponse</a></code>
 
 ## Alpha
@@ -857,12 +860,15 @@ Types:
 
 ```python
 from openai.types import (
+    ImageInputReferenceParam,
     Video,
     VideoCreateError,
     VideoModel,
     VideoSeconds,
     VideoSize,
     VideoDeleteResponse,
+    VideoCreateCharacterResponse,
+    VideoGetCharacterResponse,
 )
 ```
 
@@ -872,7 +878,11 @@ Methods:
 - <code title="get /videos/{video_id}">client.videos.<a href="./src/openai/resources/videos.py">retrieve</a>(video_id) -> <a href="./src/openai/types/video.py">Video</a></code>
 - <code title="get /videos">client.videos.<a href="./src/openai/resources/videos.py">list</a>(\*\*<a href="src/openai/types/video_list_params.py">params</a>) -> <a href="./src/openai/types/video.py">SyncConversationCursorPage[Video]</a></code>
 - <code title="delete /videos/{video_id}">client.videos.<a href="./src/openai/resources/videos.py">delete</a>(video_id) -> <a href="./src/openai/types/video_delete_response.py">VideoDeleteResponse</a></code>
+- <code title="post /videos/characters">client.videos.<a href="./src/openai/resources/videos.py">create_character</a>(\*\*<a href="src/openai/types/video_create_character_params.py">params</a>) -> <a href="./src/openai/types/video_create_character_response.py">VideoCreateCharacterResponse</a></code>
 - <code title="get /videos/{video_id}/content">client.videos.<a href="./src/openai/resources/videos.py">download_content</a>(video_id, \*\*<a href="src/openai/types/video_download_content_params.py">params</a>) -> HttpxBinaryResponseContent</code>
+- <code title="post /videos/edits">client.videos.<a href="./src/openai/resources/videos.py">edit</a>(\*\*<a href="src/openai/types/video_edit_params.py">params</a>) -> <a href="./src/openai/types/video.py">Video</a></code>
+- <code title="post /videos/extensions">client.videos.<a href="./src/openai/resources/videos.py">extend</a>(\*\*<a href="src/openai/types/video_extend_params.py">params</a>) -> <a href="./src/openai/types/video.py">Video</a></code>
+- <code title="get /videos/characters/{character_id}">client.videos.<a href="./src/openai/resources/videos.py">get_character</a>(character_id) -> <a href="./src/openai/types/video_get_character_response.py">VideoGetCharacterResponse</a></code>
 - <code title="post /videos/{video_id}/remix">client.videos.<a href="./src/openai/resources/videos.py">remix</a>(video_id, \*\*<a href="src/openai/types/video_remix_params.py">params</a>) -> <a href="./src/openai/types/video.py">Video</a></code>
 - <code>client.videos.<a href="./src/openai/resources/videos.py">create_and_poll</a>(\*args) -> Video</code>
-
+- <code>client.videos.<a href="./src/openai/resources/videos.py">poll</a>(\*args) -> Video</code>

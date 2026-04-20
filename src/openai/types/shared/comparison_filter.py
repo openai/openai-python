@@ -16,7 +16,7 @@ class ComparisonFilter(BaseModel):
     key: str
     """The key to compare against the value."""
 
-    type: Literal["eq", "ne", "gt", "gte", "lt", "lte"]
+    type: Literal["eq", "ne", "gt", "gte", "lt", "lte", "in", "nin"]
     """
     Specifies the comparison operator: `eq`, `ne`, `gt`, `gte`, `lt`, `lte`, `in`,
     `nin`.

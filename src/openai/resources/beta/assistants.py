@@ -10,7 +10,7 @@ import httpx
 
 from ... import _legacy_response
 from ..._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
-from ..._utils import maybe_transform, async_maybe_transform
+from ..._utils import path_template, maybe_transform, async_maybe_transform
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -33,6 +33,8 @@ __all__ = ["Assistants", "AsyncAssistants"]
 
 
 class Assistants(SyncAPIResource):
+    """Build Assistants that can call models and use tools."""
+
     @cached_property
     def with_raw_response(self) -> AssistantsWithRawResponse:
         """
@@ -213,7 +215,7 @@ class Assistants(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `assistant_id` but received {assistant_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._get(
-            f"/assistants/{assistant_id}",
+            path_template("/assistants/{assistant_id}", assistant_id=assistant_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -381,7 +383,7 @@ class Assistants(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `assistant_id` but received {assistant_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._post(
-            f"/assistants/{assistant_id}",
+            path_template("/assistants/{assistant_id}", assistant_id=assistant_id),
             body=maybe_transform(
                 {
                     "description": description,
@@ -498,7 +500,7 @@ class Assistants(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `assistant_id` but received {assistant_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._delete(
-            f"/assistants/{assistant_id}",
+            path_template("/assistants/{assistant_id}", assistant_id=assistant_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -507,6 +509,8 @@ class Assistants(SyncAPIResource):
 
 
 class AsyncAssistants(AsyncAPIResource):
+    """Build Assistants that can call models and use tools."""
+
     @cached_property
     def with_raw_response(self) -> AsyncAssistantsWithRawResponse:
         """
@@ -687,7 +691,7 @@ class AsyncAssistants(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `assistant_id` but received {assistant_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._get(
-            f"/assistants/{assistant_id}",
+            path_template("/assistants/{assistant_id}", assistant_id=assistant_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -855,7 +859,7 @@ class AsyncAssistants(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `assistant_id` but received {assistant_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._post(
-            f"/assistants/{assistant_id}",
+            path_template("/assistants/{assistant_id}", assistant_id=assistant_id),
             body=await async_maybe_transform(
                 {
                     "description": description,
@@ -972,7 +976,7 @@ class AsyncAssistants(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `assistant_id` but received {assistant_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._delete(
-            f"/assistants/{assistant_id}",
+            path_template("/assistants/{assistant_id}", assistant_id=assistant_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),

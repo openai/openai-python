@@ -12,7 +12,7 @@ import httpx
 from .. import _legacy_response
 from ..types import FilePurpose, file_list_params, file_create_params
 from .._types import Body, Omit, Query, Headers, NotGiven, FileTypes, omit, not_given
-from .._utils import extract_files, maybe_transform, deepcopy_minimal, async_maybe_transform
+from .._utils import extract_files, path_template, maybe_transform, deepcopy_minimal, async_maybe_transform
 from .._compat import cached_property
 from .._resource import SyncAPIResource, AsyncAPIResource
 from .._response import (
@@ -33,6 +33,10 @@ __all__ = ["Files", "AsyncFiles"]
 
 
 class Files(SyncAPIResource):
+    """
+    Files are used to upload documents that can be used with features like Assistants and Fine-tuning.
+    """
+
     @cached_property
     def with_raw_response(self) -> FilesWithRawResponse:
         """
@@ -160,7 +164,7 @@ class Files(SyncAPIResource):
         if not file_id:
             raise ValueError(f"Expected a non-empty value for `file_id` but received {file_id!r}")
         return self._get(
-            f"/files/{file_id}",
+            path_template("/files/{file_id}", file_id=file_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -254,7 +258,7 @@ class Files(SyncAPIResource):
         if not file_id:
             raise ValueError(f"Expected a non-empty value for `file_id` but received {file_id!r}")
         return self._delete(
-            f"/files/{file_id}",
+            path_template("/files/{file_id}", file_id=file_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -288,7 +292,7 @@ class Files(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `file_id` but received {file_id!r}")
         extra_headers = {"Accept": "application/binary", **(extra_headers or {})}
         return self._get(
-            f"/files/{file_id}/content",
+            path_template("/files/{file_id}/content", file_id=file_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -322,7 +326,7 @@ class Files(SyncAPIResource):
         if not file_id:
             raise ValueError(f"Expected a non-empty value for `file_id` but received {file_id!r}")
         return self._get(
-            f"/files/{file_id}/content",
+            path_template("/files/{file_id}/content", file_id=file_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -354,6 +358,10 @@ class Files(SyncAPIResource):
 
 
 class AsyncFiles(AsyncAPIResource):
+    """
+    Files are used to upload documents that can be used with features like Assistants and Fine-tuning.
+    """
+
     @cached_property
     def with_raw_response(self) -> AsyncFilesWithRawResponse:
         """
@@ -481,7 +489,7 @@ class AsyncFiles(AsyncAPIResource):
         if not file_id:
             raise ValueError(f"Expected a non-empty value for `file_id` but received {file_id!r}")
         return await self._get(
-            f"/files/{file_id}",
+            path_template("/files/{file_id}", file_id=file_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -575,7 +583,7 @@ class AsyncFiles(AsyncAPIResource):
         if not file_id:
             raise ValueError(f"Expected a non-empty value for `file_id` but received {file_id!r}")
         return await self._delete(
-            f"/files/{file_id}",
+            path_template("/files/{file_id}", file_id=file_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -609,7 +617,7 @@ class AsyncFiles(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `file_id` but received {file_id!r}")
         extra_headers = {"Accept": "application/binary", **(extra_headers or {})}
         return await self._get(
-            f"/files/{file_id}/content",
+            path_template("/files/{file_id}/content", file_id=file_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -643,7 +651,7 @@ class AsyncFiles(AsyncAPIResource):
         if not file_id:
             raise ValueError(f"Expected a non-empty value for `file_id` but received {file_id!r}")
         return await self._get(
-            f"/files/{file_id}/content",
+            path_template("/files/{file_id}/content", file_id=file_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
