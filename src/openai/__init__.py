@@ -97,7 +97,16 @@ if not _t.TYPE_CHECKING:
 
 if _t.TYPE_CHECKING:
     from . import types as types
-    from .lib.azure import AzureADTokenProvider, AzureOpenAI, AsyncAzureOpenAI
+    from .lib.azure import (
+        AzureOpenAI as AzureOpenAI,
+        AsyncAzureOpenAI as AsyncAzureOpenAI,
+        AzureADTokenProvider,
+    )
+    from .lib._tools import pydantic_function_tool as pydantic_function_tool
+    from .lib.streaming import (
+        AssistantEventHandler as AssistantEventHandler,
+        AsyncAssistantEventHandler as AsyncAssistantEventHandler,
+    )
 
 from .version import VERSION as VERSION
 from .lib._old_api import *
@@ -332,25 +341,25 @@ class _ModuleClient(OpenAI):
         http_client = value
 
 
-def _create_azure_module_client_class() -> type[OpenAI]:
+def _create_azure_module_client_class() -> type[AzureOpenAI]:
     from .lib.azure import AzureOpenAI
 
     class _AzureModuleClient(_ModuleClient, AzureOpenAI):  # type: ignore
         ...
 
-    return _AzureModuleClient
+    return _AzureModuleClient  # type: ignore[return-value]
 
 
-_AZURE_MODULE_CLIENT_CLASS: type[OpenAI] | None = None
+_azure_module_client_class_cache: type[AzureOpenAI] | None = None
 
 
-def _azure_module_client_class() -> type[OpenAI]:
-    global _AZURE_MODULE_CLIENT_CLASS
+def _azure_module_client_class() -> type[AzureOpenAI]:
+    global _azure_module_client_class_cache
 
-    if _AZURE_MODULE_CLIENT_CLASS is None:
-        _AZURE_MODULE_CLIENT_CLASS = _create_azure_module_client_class()
+    if _azure_module_client_class_cache is None:
+        _azure_module_client_class_cache = _create_azure_module_client_class()
 
-    return _AZURE_MODULE_CLIENT_CLASS
+    return _azure_module_client_class_cache
 
 
 class _AmbiguousModuleClientUsageError(OpenAIError):

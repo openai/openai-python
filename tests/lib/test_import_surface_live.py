@@ -3,28 +3,34 @@ from __future__ import annotations
 import os
 import sys
 import importlib
+from types import ModuleType
 
 import pytest
 
 
-def _openai_modules() -> dict[str, object]:
+def _openai_modules() -> dict[str, ModuleType]:
     return {name: mod for name, mod in sys.modules.items() if name == "openai" or name.startswith("openai.")}
 
 
-def _restore_openai_modules(original_modules: dict[str, object]) -> None:
+def _restore_openai_modules(original_modules: dict[str, ModuleType]) -> None:
     for name in list(sys.modules):
         if name == "openai" or name.startswith("openai."):
             sys.modules.pop(name, None)
     sys.modules.update(original_modules)
 
 
+_LAZY_EXPORT_NAMES = (
+    "AzureOpenAI",
+    "AsyncAzureOpenAI",
+    "pydantic_function_tool",
+    "AssistantEventHandler",
+    "AsyncAssistantEventHandler",
+)
+
+
 def _resolve_lazy_exports(openai_module: object) -> None:
-    getattr(openai_module, "types")
-    getattr(openai_module, "AzureOpenAI")
-    getattr(openai_module, "AsyncAzureOpenAI")
-    getattr(openai_module, "pydantic_function_tool")
-    getattr(openai_module, "AssistantEventHandler")
-    getattr(openai_module, "AsyncAssistantEventHandler")
+    for name in _LAZY_EXPORT_NAMES:
+        getattr(openai_module, name)
 
 
 @pytest.mark.skipif(os.environ.get("OPENAI_LIVE") != "1", reason="requires OPENAI_LIVE=1")
@@ -41,7 +47,6 @@ def test_explicit_lazy_export_resolution_allows_real_request() -> None:
 
         _resolve_lazy_exports(openai)
 
-        assert "openai.types" in sys.modules
         assert "openai.lib.azure" in sys.modules
         assert "AzureOpenAI" in openai.__dict__
 

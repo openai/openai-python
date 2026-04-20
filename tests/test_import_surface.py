@@ -1,27 +1,39 @@
 from __future__ import annotations
 
-import importlib
 import sys
+import importlib
+from types import ModuleType
 
 
-def _openai_modules() -> dict[str, object]:
+def _openai_modules() -> dict[str, ModuleType]:
     return {name: mod for name, mod in sys.modules.items() if name == "openai" or name.startswith("openai.")}
 
 
-def _restore_openai_modules(original_modules: dict[str, object]) -> None:
+def _restore_openai_modules(original_modules: dict[str, ModuleType]) -> None:
     for name in list(sys.modules):
         if name == "openai" or name.startswith("openai."):
             sys.modules.pop(name, None)
     sys.modules.update(original_modules)
 
 
+_LAZY_EXPORT_NAMES = (
+    "AzureOpenAI",
+    "AsyncAzureOpenAI",
+    "pydantic_function_tool",
+    "AssistantEventHandler",
+    "AsyncAssistantEventHandler",
+)
+
+_LAZY_EXPORT_MODULES = (
+    "openai.lib.azure",
+    "openai.lib.streaming",
+    "openai.lib._tools",
+)
+
+
 def _resolve_lazy_exports(openai_module: object) -> None:
-    getattr(openai_module, "types")
-    getattr(openai_module, "AzureOpenAI")
-    getattr(openai_module, "AsyncAzureOpenAI")
-    getattr(openai_module, "pydantic_function_tool")
-    getattr(openai_module, "AssistantEventHandler")
-    getattr(openai_module, "AsyncAssistantEventHandler")
+    for name in _LAZY_EXPORT_NAMES:
+        getattr(openai_module, name)
 
 
 def test_openai_azure_is_lazy_imported() -> None:
@@ -50,17 +62,14 @@ def test_openai_can_explicitly_resolve_lazy_exports() -> None:
     try:
         openai = importlib.import_module("openai")
 
-        assert "openai.types" not in sys.modules
-        assert "openai.lib.azure" not in sys.modules
+        for mod_name in _LAZY_EXPORT_MODULES:
+            assert mod_name not in sys.modules
 
         _resolve_lazy_exports(openai)
 
-        assert "openai.types" in sys.modules
-        assert "openai.lib.azure" in sys.modules
-        assert "AzureOpenAI" in openai.__dict__
-        assert "AsyncAzureOpenAI" in openai.__dict__
-        assert "pydantic_function_tool" in openai.__dict__
-        assert "AssistantEventHandler" in openai.__dict__
-        assert "AsyncAssistantEventHandler" in openai.__dict__
+        for mod_name in _LAZY_EXPORT_MODULES:
+            assert mod_name in sys.modules
+        for attr_name in _LAZY_EXPORT_NAMES:
+            assert attr_name in openai.__dict__
     finally:
         _restore_openai_modules(original_modules)

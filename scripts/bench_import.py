@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-import argparse
 import os
-import subprocess
 import sys
 import time
+import argparse
+import subprocess
 from pathlib import Path
 
 
