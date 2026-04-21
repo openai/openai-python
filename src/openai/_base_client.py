@@ -1498,7 +1498,7 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
             custom_headers=custom_headers,
             _strict_response_validation=_strict_response_validation,
         )
-        if http_client is not None and not isinstance(http_client, httpx.AsyncClient):
+        if http_client is not None and not isinstance(cast(Any, http_client), httpx.AsyncClient):
             raise TypeError(
                 f"Expected http_client to be an instance of httpx.AsyncClient, but got {type(http_client)} instead. "
                 "If you are using AsyncOpenAI, you must pass an asynchronous HTTP client."
