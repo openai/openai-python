@@ -351,6 +351,11 @@ class ResponseStreamState(Generic[TextFormatT]):
             if output.type == "message":
                 content = output.content[event.content_index]
                 assert content.type == "output_text"
+                # content_part.added snapshots may carry text=None when the
+                # server streams a not-yet-materialized part. Normalize to ""
+                # so the first delta doesn't raise TypeError on '+='.
+                if content.text is None:
+                    content.text = ""
                 content.text += event.delta
         elif event.type == "response.function_call_arguments.delta":
             output = snapshot.output[event.output_index]
