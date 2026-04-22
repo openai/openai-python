@@ -36,7 +36,13 @@ from typing_extensions import (
 )
 
 import pydantic
-from pydantic.errors import PydanticUserError
+
+try:
+    from pydantic.errors import PydanticUserError
+except ImportError:  # pydantic v1 does not export PydanticUserError
+    class PydanticUserError(Exception):  # type: ignore[no-redef]
+        pass
+
 from pydantic.fields import FieldInfo
 
 from ._types import (
