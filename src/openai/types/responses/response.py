@@ -214,7 +214,7 @@ class Response(BaseModel):
     [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
     """
 
-    prompt_cache_retention: Optional[Literal["in-memory", "24h"]] = None
+    prompt_cache_retention: Optional[Literal["in_memory", "24h"]] = None
     """The retention policy for the prompt cache.
 
     Set to `24h` to enable extended prompt caching, which keeps cached prefixes
@@ -315,7 +315,7 @@ class Response(BaseModel):
         for output in self.output:
             if output.type == "message":
                 for content in output.content:
-                    if content.type == "output_text":
+                    if content.type == "output_text" and content.text is not None:
                         texts.append(content.text)
 
         return "".join(texts)
