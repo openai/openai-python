@@ -116,7 +116,7 @@ jobs:
         run: uv sync --locked --all-extras --group dev
 
       - name: Install steady CLI
-        run: corepack pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Run tests
         run: ./scripts/test
