@@ -122,8 +122,8 @@ class ResponseOutputText(BaseModel):
     annotations: List[Annotation]
     """The annotations of the text output."""
 
-    text: str
-    """The text output from the model."""
+    text: Optional[str] = None
+    """The text output from the model, when present."""
 
     type: Literal["output_text"]
     """The type of the output text. Always `output_text`."""

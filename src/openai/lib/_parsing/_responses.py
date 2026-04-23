@@ -138,8 +138,8 @@ def parse_response(
     )
 
 
-def parse_text(text: str, text_format: type[TextFormatT] | Omit) -> TextFormatT | None:
-    if not is_given(text_format):
+def parse_text(text: str | None, text_format: type[TextFormatT] | Omit) -> TextFormatT | None:
+    if text is None or not is_given(text_format):
         return None
 
     if is_basemodel_type(text_format):
