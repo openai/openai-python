@@ -315,6 +315,7 @@ class Response(BaseModel):
             if output.type == "message":
                 for content in output.content:
                     if content.type == "output_text":
-                        texts.append(content.text)
+                        if content.text is not None:
+                            texts.append(content.text)
 
         return "".join(texts)
