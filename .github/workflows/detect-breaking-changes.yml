@@ -20,17 +20,19 @@ jobs:
           # Ensure we can check out the pull request base in the script below.
           fetch-depth: ${{ env.FETCH_DEPTH }}
 
-      - name: Set up Rye
-        uses: eifinger/setup-rye@c694239a43768373e87d0103d7f547027a23f3c8
+      - name: Set up uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # setup-uv v8.1.0; uv 0.11.7
         with:
-          version: '0.44.0'
+          version: "0.11.7"
           enable-cache: true
+
+      - name: Set up Python
+        run: uv python install
+
       - name: Install dependencies
-        run: |
-          rye sync --all-features
+        run: uv sync --locked --all-extras --group dev
       - name: Detect removed symbols
-        run: |
-          rye run python scripts/detect-breaking-changes.py "${{ github.event.pull_request.base.sha }}"
+        run: uv run python scripts/detect-breaking-changes.py "${{ github.event.pull_request.base.sha }}"
 
       - name: Detect breaking changes
         run: |
@@ -47,17 +49,19 @@ jobs:
         with:
           path: openai-python
 
-      - name: Set up Rye
-        uses: eifinger/setup-rye@c694239a43768373e87d0103d7f547027a23f3c8
+      - name: Set up uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # setup-uv v8.1.0; uv 0.11.7
         with:
-          version: '0.44.0'
+          version: "0.11.7"
           enable-cache: true
-          working-directory: openai-python
+
+      - name: Set up Python
+        working-directory: openai-python
+        run: uv python install
 
       - name: Install dependencies
         working-directory: openai-python
-        run: |
-          rye sync --all-features
+        run: uv sync --locked --all-extras --group dev
 
       # Setup the agents lib
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -66,9 +70,10 @@ jobs:
           path: openai-agents-python
 
       - name: Setup uv
-        uses: astral-sh/setup-uv@e58605a9b6da7c637471fab8847a5e5a6b8df081 # v5
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # setup-uv v8.1.0; uv 0.11.7
         with:
           enable-cache: true
+          version: "0.11.7"
 
       - name: Link to local SDK
         working-directory: openai-agents-python

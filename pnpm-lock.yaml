@@ -1,0 +1,70 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+
+  .:
+    devDependencies:
+      '@stdy/cli':
+        specifier: 0.20.2
+        version: 0.20.2
+
+packages:
+
+  '@stdy/cli-darwin-arm64@0.20.2':
+    resolution: {integrity: sha512-lLhwnAKgcCjuE3c7S6XXz1CM3rNm5v0LsdRPzhBJh+GmYv9YK2rnbCv9TkBeqC1OaGLOA6GQIj2JU5ddw9zyCw==}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@stdy/cli-darwin-x64@0.20.2':
+    resolution: {integrity: sha512-c4sv9Sf1icWET7Nnldu1r8DQVurZ5jEPNjrC1AiQKSh9z5tHIXvgWiP3iC29Uu4aR34lhN5QK4BawZ2wGGyfMw==}
+    cpu: [x64]
+    os: [darwin]
+
+  '@stdy/cli-linux-arm64@0.20.2':
+    resolution: {integrity: sha512-1Gu25gmsrpv4B2/XxUpzFXDawrsWpLDa2S4Oh9+QLECYu45EyH8NwU+Eow6ulUa/uEcRwyEHpn+clagIhAsxPw==}
+    cpu: [arm64]
+    os: [linux]
+
+  '@stdy/cli-linux-x64@0.20.2':
+    resolution: {integrity: sha512-6EQfXgychsbZOlNpGetisc77EuOgY73No3C68ez0tmy+H5zvLfrjCCFckgwvF84m3R4oJXG5UIWzgGPhPZYZfQ==}
+    cpu: [x64]
+    os: [linux]
+
+  '@stdy/cli-win32-x64@0.20.2':
+    resolution: {integrity: sha512-ocs0BybiO1DInSUrwRWURkc/plmy1J5dvusnVFLcWmabJu7dZdRpsqrS42WlIDG7fgrSvHaSaYYXMOwq+KAu5g==}
+    cpu: [x64]
+    os: [win32]
+
+  '@stdy/cli@0.20.2':
+    resolution: {integrity: sha512-mC2rRr0kGb11KthUtaCZBcEbUsWqY/0axuwRiv4SPKcV9Ax0dryBW/Eo8mf3dW0YYYd027Oc+1Y9+7btIw3RNg==}
+    engines: {node: '>=14.0.0'}
+    hasBin: true
+
+snapshots:
+
+  '@stdy/cli-darwin-arm64@0.20.2':
+    optional: true
+
+  '@stdy/cli-darwin-x64@0.20.2':
+    optional: true
+
+  '@stdy/cli-linux-arm64@0.20.2':
+    optional: true
+
+  '@stdy/cli-linux-x64@0.20.2':
+    optional: true
+
+  '@stdy/cli-win32-x64@0.20.2':
+    optional: true
+
+  '@stdy/cli@0.20.2':
+    optionalDependencies:
+      '@stdy/cli-darwin-arm64': 0.20.2
+      '@stdy/cli-darwin-x64': 0.20.2
+      '@stdy/cli-linux-arm64': 0.20.2
+      '@stdy/cli-linux-x64': 0.20.2
+      '@stdy/cli-win32-x64': 0.20.2

@@ -1,35 +1,35 @@
 ## Setting up the environment
 
-### With Rye
+### With uv
 
-We use [Rye](https://rye.astral.sh/) to manage dependencies because it will automatically provision a Python environment with the expected Python version. To set it up, run:
+We use [uv](https://docs.astral.sh/uv/) to manage dependencies because it will automatically provision a Python environment with the expected Python version. To set it up, run:
 
 ```sh
 $ ./scripts/bootstrap
 ```
 
-Or [install Rye manually](https://rye.astral.sh/guide/installation/) and run:
+Or install uv manually and run:
 
 ```sh
-$ rye sync --all-features
+$ uv sync --locked --all-extras --group dev
 ```
 
-You can then run scripts using `rye run python script.py` or by activating the virtual environment:
+You can then run scripts using `uv run python script.py` or by activating the virtual environment:
 
 ```sh
 # Activate the virtual environment - https://docs.python.org/3/library/venv.html#how-venvs-work
 $ source .venv/bin/activate
 
-# now you can omit the `rye run` prefix
+# now you can omit the `uv run` prefix
 $ python script.py
 ```
 
-### Without Rye
+### Compatibility install
 
-Alternatively if you don't want to install `Rye`, you can stick with the standard `pip` setup by ensuring you have the Python version specified in `.python-version`, create a virtual environment however you desire and then install dependencies using this command:
+If you need a `requirements.txt`-style install path for compatibility tooling, create a virtual environment however you desire and then install dependencies using this command:
 
 ```sh
-$ pip install -r requirements-dev.lock
+$ uv pip install -r requirements-dev.lock
 ```
 
 ## Modifying/Adding code
@@ -45,7 +45,7 @@ All files in the `examples/` directory are not modified by the generator and can
 ```py
 # add an example to examples/<your-example>.py
 
-#!/usr/bin/env -S rye run python
+#!/usr/bin/env -S uv run python
 …
 ```
 
@@ -72,7 +72,7 @@ Building this package will create two files in the `dist/` directory, a `.tar.gz
 To create a distributable version of the library, all you have to do is run this command:
 
 ```sh
-$ rye build
+$ uv build
 # or
 $ python -m build
 ```
@@ -88,6 +88,7 @@ $ pip install ./path-to-wheel-file.whl
 Most tests require you to [set up a mock server](https://github.com/dgellow/steady) against the OpenAPI spec to run the tests.
 
 ```sh
+$ corepack pnpm install --frozen-lockfile
 $ ./scripts/mock
 ```
 
