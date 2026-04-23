@@ -6,11 +6,13 @@ cd "$(dirname "$0")/.."
 
 if [ "$1" = "--fix" ]; then
   echo "==> Running lints with --fix"
-  rye run fix:ruff
+  uv run ruff check --fix .
 else
   echo "==> Running lints"
-  rye run lint
+  uv run ruff check .
+  uv run ./scripts/run-pyright
+  uv run mypy .
 fi
 
 echo "==> Making sure it imports"
-rye run python -c 'import openai'
+uv run python -c 'import openai'

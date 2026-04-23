@@ -19,12 +19,17 @@ fi
 
 echo "==> Starting mock server with URL ${URL}"
 
+if [ ! -x "node_modules/.bin/steady" ]; then
+  echo "Error: missing pinned steady CLI. Run 'corepack pnpm install --frozen-lockfile' first."
+  exit 1
+fi
+
 # Run steady mock on the given spec
 if [ "$1" == "--daemon" ]; then
   # Pre-install the package so the download doesn't eat into the startup timeout
-  npm exec --package=@stdy/cli@0.20.2 -- steady --version
+  corepack pnpm exec steady --version
 
-  npm exec --package=@stdy/cli@0.20.2 -- steady --host 127.0.0.1 -p 4010 --validator-query-array-format=brackets --validator-form-array-format=brackets --validator-query-object-format=brackets --validator-form-object-format=brackets "$URL" &> .stdy.log &
+  corepack pnpm exec steady --host 127.0.0.1 -p 4010 --validator-query-array-format=brackets --validator-form-array-format=brackets --validator-query-object-format=brackets --validator-form-object-format=brackets "$URL" &> .stdy.log &
 
   # Wait for server to come online via health endpoint (max 30s)
   echo -n "Waiting for server"
@@ -48,5 +53,5 @@ if [ "$1" == "--daemon" ]; then
 
   echo
 else
-  npm exec --package=@stdy/cli@0.20.2 -- steady --host 127.0.0.1 -p 4010 --validator-query-array-format=brackets --validator-form-array-format=brackets --validator-query-object-format=brackets --validator-form-object-format=brackets "$URL"
+  corepack pnpm exec steady --host 127.0.0.1 -p 4010 --validator-query-array-format=brackets --validator-form-array-format=brackets --validator-query-object-format=brackets --validator-form-object-format=brackets "$URL"
 fi

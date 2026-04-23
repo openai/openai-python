@@ -22,16 +22,23 @@ jobs:
           repo: ${{ github.event.repository.full_name }}
           stainless-api-key: ${{ secrets.STAINLESS_API_KEY }}
 
-      - name: Set up Rye
+      - name: Set up uv
         if: ${{ steps.release.outputs.releases_created }}
-        uses: eifinger/setup-rye@c694239a43768373e87d0103d7f547027a23f3c8
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # setup-uv v8.1.0; uv 0.11.7
         with:
-          version: '0.44.0'
+          version: "0.11.7"
           enable-cache: true
+
+      - name: Set up Python
+        if: ${{ steps.release.outputs.releases_created }}
+        run: uv python install
+
+      - name: Build
+        if: ${{ steps.release.outputs.releases_created }}
+        run: uv build
 
       - name: Publish to PyPI
         if: ${{ steps.release.outputs.releases_created }}
-        run: |
-          bash ./bin/publish-pypi
+        run: uv publish
         env:
-          PYPI_TOKEN: ${{ secrets.OPENAI_PYPI_TOKEN || secrets.PYPI_TOKEN }}
+          UV_PUBLISH_TOKEN: ${{ secrets.OPENAI_PYPI_TOKEN || secrets.PYPI_TOKEN }}
