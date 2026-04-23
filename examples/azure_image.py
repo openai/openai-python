@@ -29,8 +29,12 @@ deployment = os.environ.get("AZURE_OPENAI_IMAGE_DEPLOYMENT", "gpt-image-2")
 
 client = AzureOpenAI(
     api_version=api_version,
-    # AZURE_OPENAI_ENDPOINT (e.g. "https://<resource>.openai.azure.com")
-    # AZURE_OPENAI_API_KEY  -- both read from the environment by default.
+    # Reads credentials from the environment by default:
+    #   AZURE_OPENAI_ENDPOINT  e.g. "https://<resource>.openai.azure.com"
+    #   AZURE_OPENAI_API_KEY
+    # You can also pass them explicitly, e.g.:
+    #   azure_endpoint="https://example-endpoint.openai.azure.com",
+    #   api_key="...",
 )
 
 
@@ -44,9 +48,12 @@ def generate() -> Path:
         quality="low",
     )
 
-    assert result.data and result.data[0].b64_json, "expected base64 image data"
+    image = result.data[0] if result.data else None
+    if image is None or image.b64_json is None:
+        raise RuntimeError("response did not include base64 image data")
+
     out = Path("azure_image_generated.png")
-    out.write_bytes(base64.b64decode(result.data[0].b64_json))
+    out.write_bytes(base64.b64decode(image.b64_json))
     print(f"generated -> {out.resolve()}")
 
     # The GPT-Image family returns token usage details. Older models (dall-e-*)
@@ -72,9 +79,12 @@ def edit(source: Path) -> None:
             n=1,
         )
 
-    assert result.data and result.data[0].b64_json, "expected base64 image data"
+    image = result.data[0] if result.data else None
+    if image is None or image.b64_json is None:
+        raise RuntimeError("response did not include base64 image data")
+
     out = Path("azure_image_edited.png")
-    out.write_bytes(base64.b64decode(result.data[0].b64_json))
+    out.write_bytes(base64.b64decode(image.b64_json))
     print(f"edited    -> {out.resolve()}")
 
 
