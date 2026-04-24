@@ -10,6 +10,7 @@ from pydantic import Field
 from openai._utils import PropertyInfo
 from openai._compat import PYDANTIC_V1, parse_obj, model_dump, model_json
 from openai._models import DISCRIMINATOR_CACHE, BaseModel, construct_type
+from openai.types.responses.response_input_item import FunctionCallOutput
 
 
 class BasicModel(BaseModel):
@@ -961,3 +962,25 @@ def test_extra_properties() -> None:
     assert model.a.prop == 1
     assert isinstance(model.a, Item)
     assert model.other == "foo"
+
+
+def test_function_call_output_str() -> None:
+    """FunctionCallOutput.output accepts a plain string."""
+    item = FunctionCallOutput.model_validate({
+        "call_id": "call_abc123",
+        "output": '{"result": 42}',
+        "type": "function_call_output",
+    })
+    assert item.output == '{"result": 42}'
+
+
+def test_function_call_output_list() -> None:
+    """FunctionCallOutput.output accepts a list of content items (text/image/file)."""
+    content = [{"type": "input_text", "text": "hello from function"}]
+    item = FunctionCallOutput.model_validate({
+        "call_id": "call_abc123",
+        "output": content,
+        "type": "function_call_output",
+    })
+    assert isinstance(item.output, list)
+    assert len(item.output) == 1
