@@ -15,7 +15,7 @@ class ImageEditParamsBase(TypedDict, total=False):
     image: Required[Union[FileTypes, SequenceNotStr[FileTypes]]]
     """The image(s) to edit. Must be a supported image file or an array of images.
 
-    For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`, and
+    For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-2`, and
     `gpt-image-1.5`), each image should be a `png`, `webp`, or `jpg` file less than
     50MB. You can provide up to 16 images. `chatgpt-image-latest` follows the same
     input constraints as GPT image models.
@@ -46,7 +46,7 @@ class ImageEditParamsBase(TypedDict, total=False):
     """
     Control how much effort the model will exert to match the style and features,
     especially facial features, of input images. This parameter is only supported
-    for `gpt-image-1` and `gpt-image-1.5` and later models, unsupported for
+    for `gpt-image-1.5` and later models (including `gpt-image-2`), unsupported for
     `gpt-image-1-mini`. Supports `high` and `low`. Defaults to `low`.
     """
 

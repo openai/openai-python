@@ -257,7 +257,7 @@ class ImageGeneration(BaseModel):
     """
     Control how much effort the model will exert to match the style and features,
     especially facial features, of input images. This parameter is only supported
-    for `gpt-image-1` and `gpt-image-1.5` and later models, unsupported for
+    for `gpt-image-1.5` and later models (including `gpt-image-2`), unsupported for
     `gpt-image-1-mini`. Supports `high` and `low`. Defaults to `low`.
     """
 
@@ -267,7 +267,7 @@ class ImageGeneration(BaseModel):
     Contains `image_url` (string, optional) and `file_id` (string, optional).
     """
 
-    model: Union[str, Literal["gpt-image-1", "gpt-image-1-mini", "gpt-image-1.5"], None] = None
+    model: Union[str, Literal["gpt-image-1", "gpt-image-1-mini", "gpt-image-1.5", "gpt-image-2"], None] = None
     """The image generation model to use. Default: `gpt-image-1`."""
 
     moderation: Optional[Literal["auto", "low"]] = None
