@@ -180,7 +180,7 @@ With an image URL:
 
 ```python
 prompt = "What is in this image?"
-img_url = "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/2023_06_08_Raccoon1.jpg/1599px-2023_06_08_Raccoon1.jpg"
+img_url = "https://httpbin.org/image/jpeg"
 
 response = client.responses.create(
     model="gpt-5.2",
