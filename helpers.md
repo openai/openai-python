@@ -516,3 +516,27 @@ client.beta.vector_stores.file_batches.create_and_poll(...)
 client.beta.vector_stores.file_batches.upload_and_poll(...)
 client.videos.create_and_poll(...)
 ```
+
+# Model Capability Helpers
+
+Different model families accept different request parameters. `temperature` is rejected by gpt-5.x reasoning models, `reasoning.effort` only applies to reasoning models, and the valid set of `effort` values varies between gpt-5, gpt-5.1+, and gpt-5.4+.
+
+The SDK ships a hand-curated capability registry so applications that support multiple models can decide which parameters to send (and which UI controls to render) without prefix-matching model strings themselves:
+
+```python
+from openai import get_model_capabilities
+
+caps = get_model_capabilities("gpt-5.4-mini")
+caps.family                      # "gpt-5.4"
+caps.supports_temperature        # False
+caps.supports_reasoning          # True
+caps.reasoning_effort_options    # ('none', 'minimal', 'low', 'medium', 'high', 'xhigh')
+
+get_model_capabilities("gpt-4.1").supports_reasoning           # False
+get_model_capabilities("gpt-5-chat-latest").supports_temperature  # True (chat variant)
+get_model_capabilities("nonexistent-model")                    # None
+```
+
+Capabilities are matched by longest-prefix and are date-suffix-aware (so `gpt-5.4-mini-2026-03-17` resolves to the `gpt-5.4` family). `*-chat-latest` and `*-search-preview` variants are recognized as non-reasoning chat models.
+
+`get_model_capabilities` returns `None` for unknown models. Treat that as "fall back to the API's own validation": send your default parameters and handle a 400 response if the model rejects them. The registry is updated as new model families ship; pin a specific SDK version if you need a stable view.
