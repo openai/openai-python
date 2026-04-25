@@ -39,49 +39,69 @@ class TestGpt5Family:
 
 
 class TestGpt51Family:
-    def test_gpt_5_1_adds_none_to_effort(self) -> None:
+    def test_gpt_5_1_drops_minimal_adds_none(self) -> None:
+        # Per src/openai/types/shared/reasoning.py the supported gpt-5.1
+        # effort values are none/low/medium/high. `minimal` was removed and
+        # would trigger 400 responses if surfaced in a UI.
         caps = get_model_capabilities("gpt-5.1")
         assert caps is not None
         assert caps.family == "gpt-5.1"
-        assert caps.reasoning_effort_options == (
-            "none",
-            "minimal",
-            "low",
-            "medium",
-            "high",
-        )
+        assert caps.reasoning_effort_options == ("none", "low", "medium", "high")
+        assert "minimal" not in (caps.reasoning_effort_options or ())
 
     def test_gpt_5_1_codex(self) -> None:
         caps = get_model_capabilities("gpt-5.1-codex")
         assert caps is not None
         assert caps.family == "gpt-5.1"
 
-    def test_gpt_5_2_uses_same_effort_scale(self) -> None:
+    def test_gpt_5_1_codex_max(self) -> None:
+        # gpt-5.1-codex-max is the boundary referenced in the SDK docs:
+        # `xhigh` is supported for models *after* this one. So it should
+        # still match the gpt-5.1 family (no xhigh).
+        caps = get_model_capabilities("gpt-5.1-codex-max")
+        assert caps is not None
+        assert caps.family == "gpt-5.1"
+        assert "xhigh" not in (caps.reasoning_effort_options or ())
+
+
+class TestGpt52PlusFamilies:
+    def test_gpt_5_2_supports_xhigh(self) -> None:
+        # Per the SDK docstring, `xhigh` is supported for all models *after*
+        # gpt-5.1-codex-max, which means gpt-5.2 onward.
+        caps = get_model_capabilities("gpt-5.2")
+        assert caps is not None
+        assert caps.family == "gpt-5.2"
+        assert caps.reasoning_effort_options == ("none", "low", "medium", "high", "xhigh")
+
+    def test_gpt_5_2_pro(self) -> None:
         caps = get_model_capabilities("gpt-5.2-pro")
         assert caps is not None
         assert caps.family == "gpt-5.2"
-        assert caps.reasoning_effort_options == (
-            "none",
-            "minimal",
-            "low",
-            "medium",
-            "high",
-        )
+
+
+class TestGpt5ProFamily:
+    def test_gpt_5_pro_only_supports_high(self) -> None:
+        # Per the SDK docs, gpt-5-pro defaults to (and only supports) `high`.
+        caps = get_model_capabilities("gpt-5-pro")
+        assert caps is not None
+        assert caps.family == "gpt-5-pro"
+        assert caps.supports_reasoning is True
+        assert caps.reasoning_effort_options == ("high",)
+
+    def test_gpt_5_pro_dated_snapshot(self) -> None:
+        caps = get_model_capabilities("gpt-5-pro-2025-10-06")
+        assert caps is not None
+        assert caps.family == "gpt-5-pro"
+        assert caps.reasoning_effort_options == ("high",)
 
 
 class TestGpt54Family:
-    def test_gpt_5_4_adds_xhigh(self) -> None:
+    def test_gpt_5_4_full_effort_scale(self) -> None:
         caps = get_model_capabilities("gpt-5.4")
         assert caps is not None
         assert caps.family == "gpt-5.4"
-        assert caps.reasoning_effort_options == (
-            "none",
-            "minimal",
-            "low",
-            "medium",
-            "high",
-            "xhigh",
-        )
+        assert caps.reasoning_effort_options == ("none", "low", "medium", "high", "xhigh")
+        assert "minimal" not in (caps.reasoning_effort_options or ())
 
     def test_gpt_5_4_size_variants(self) -> None:
         for size in ("gpt-5.4", "gpt-5.4-mini", "gpt-5.4-nano"):
@@ -181,6 +201,71 @@ class TestOSeriesFamily:
         assert caps.supports_reasoning is True
 
 
+class TestBoundaryMatching:
+    """Family lookup must respect segment boundaries.
+
+    A registered prefix should only match the model when the prefix either
+    equals the model exactly or is followed by ``-``. Without this, a future
+    model name like ``gpt-5.10`` would silently impersonate ``gpt-5.1``.
+    """
+
+    @pytest.mark.parametrize(
+        "model",
+        [
+            "gpt-5.10",  # version typo / future model: must NOT match gpt-5.1
+            "gpt-5.10-mini",
+            "gpt-5.1foo",
+            "o1-previewed",  # near-typo of o1-preview
+            "o1-previews",
+        ],
+    )
+    def test_boundary_collisions_do_not_misclassify(self, model: str) -> None:
+        # Either we return None (no match) or we match a strictly different
+        # family (e.g. `gpt-5.10` could match `gpt-5` segment-wise -- in that
+        # case we want it to NOT claim to be gpt-5.1).
+        caps = get_model_capabilities(model)
+        if caps is not None:
+            assert caps.family != "gpt-5.1", model
+            assert caps.family != "o1-preview", model
+
+    def test_gpt_5_10_does_not_match_gpt_5_1(self) -> None:
+        # `gpt-5.10` is hypothetical, but the lookup must not classify it as
+        # gpt-5.1 just because of `startswith`. Today we'd expect None until
+        # a 5.10 family is registered.
+        assert get_model_capabilities("gpt-5.10") is None
+
+    def test_o1_previewed_does_not_match_o1_preview(self) -> None:
+        # Without the boundary check, `o1-previewed` would be tagged as
+        # o1-preview (which has supports_reasoning=False), masking what is
+        # really an unknown model.
+        caps = get_model_capabilities("o1-previewed")
+        if caps is not None:
+            assert caps.family != "o1-preview"
+
+    def test_exact_match_still_works(self) -> None:
+        # Sanity: removing collisions must not break the exact-match path.
+        for model in ("gpt-5.1", "o1-preview", "chatgpt-4o-latest", "gpt-5-pro"):
+            assert get_model_capabilities(model) is not None, model
+
+    def test_dated_search_preview_still_recognized_as_chat_variant(self) -> None:
+        # `gpt-4o-search-preview-2025-03-11` should still count as a chat
+        # variant despite the trailing date snapshot. The previous suffix
+        # check (`endswith("-search-preview")`) silently regressed on dated
+        # models.
+        caps = get_model_capabilities("gpt-4o-search-preview-2025-03-11")
+        assert caps is not None
+        assert caps.supports_temperature is True
+        assert caps.supports_reasoning is False
+
+    def test_dated_chat_latest_still_recognized_as_chat_variant(self) -> None:
+        caps = get_model_capabilities("gpt-5.2-chat-latest-2025-12-11")
+        assert caps is not None
+        assert caps.supports_temperature is True
+        assert caps.supports_reasoning is False
+        # Family should still be reported as the underlying gpt-5.2
+        assert caps.family == "gpt-5.2"
+
+
 class TestUnknownAndEdgeCases:
     def test_unknown_model_returns_none(self) -> None:
         assert get_model_capabilities("nonexistent-model") is None
@@ -247,13 +332,14 @@ class TestRealisticUsage:
             return tuple(opt for opt in caps.reasoning_effort_options if opt is not None)
 
         assert effort_options("gpt-5") == ("minimal", "low", "medium", "high")
+        assert effort_options("gpt-5.1") == ("none", "low", "medium", "high")
         assert effort_options("gpt-5.4") == (
             "none",
-            "minimal",
             "low",
             "medium",
             "high",
             "xhigh",
         )
+        assert effort_options("gpt-5-pro") == ("high",)
         assert effort_options("gpt-4.1") == ()
         assert effort_options("o3") == ("low", "medium", "high")
