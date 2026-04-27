@@ -2,16 +2,12 @@ from __future__ import annotations
 
 from typing import Any, List, Tuple, Union, Mapping, TypeVar
 from urllib.parse import parse_qs, urlencode
-from typing_extensions import Literal, get_args
+from typing_extensions import get_args
 
-from ._types import NotGiven, not_given
+from ._types import NotGiven, ArrayFormat, NestedFormat, not_given
 from ._utils import flatten
 
 _T = TypeVar("_T")
-
-
-ArrayFormat = Literal["comma", "repeat", "indices", "brackets"]
-NestedFormat = Literal["dots", "brackets"]
 
 PrimitiveData = Union[str, int, float, bool, None]
 # this should be Data = Union[PrimitiveData, "List[Data]", "Tuple[Data]", "Mapping[str, Data]"]

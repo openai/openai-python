@@ -4,7 +4,7 @@ from typing import Sequence
 
 import pytest
 
-from openai._types import FileTypes
+from openai._types import FileTypes, ArrayFormat
 from openai._utils import extract_files
 
 
@@ -37,10 +37,7 @@ def test_multiple_files() -> None:
 
 def test_top_level_file_array() -> None:
     query = {"files": [b"file one", b"file two"], "title": "hello"}
-    assert extract_files(query, paths=[["files", "<array>"]]) == [
-        ("files[]", b"file one"),
-        ("files[]", b"file two"),
-    ]
+    assert extract_files(query, paths=[["files", "<array>"]]) == [("files[]", b"file one"), ("files[]", b"file two")]
     assert query == {"title": "hello"}
 
 
@@ -71,3 +68,24 @@ def test_ignores_incorrect_paths(
     expected: list[tuple[str, FileTypes]],
 ) -> None:
     assert extract_files(query, paths=paths) == expected
+
+
+@pytest.mark.parametrize(
+    "array_format,expected_top_level,expected_nested",
+    [
+        ("brackets", [("files[]", b"a"), ("files[]", b"b")], [("items[][file]", b"a"), ("items[][file]", b"b")]),
+        ("repeat", [("files", b"a"), ("files", b"b")], [("items[file]", b"a"), ("items[file]", b"b")]),
+        ("comma", [("files", b"a"), ("files", b"b")], [("items[file]", b"a"), ("items[file]", b"b")]),
+        ("indices", [("files[0]", b"a"), ("files[1]", b"b")], [("items[0][file]", b"a"), ("items[1][file]", b"b")]),
+    ],
+)
+def test_array_format_controls_file_field_names(
+    array_format: ArrayFormat,
+    expected_top_level: list[tuple[str, FileTypes]],
+    expected_nested: list[tuple[str, FileTypes]],
+) -> None:
+    top_level = {"files": [b"a", b"b"]}
+    assert extract_files(top_level, paths=[["files", "<array>"]], array_format=array_format) == expected_top_level
+
+    nested = {"items": [{"file": b"a"}, {"file": b"b"}]}
+    assert extract_files(nested, paths=[["items", "<array>", "file"]], array_format=array_format) == expected_nested
