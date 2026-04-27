@@ -933,6 +933,26 @@ In addition to the options provided in the base `OpenAI` client, the following o
 
 An example of using the client with Microsoft Entra ID (formerly known as Azure Active Directory) can be found [here](https://github.com/openai/openai-python/blob/main/examples/azure_ad.py).
 
+## CLI shell completion
+
+The `openai` CLI can generate shell completion scripts without extra dependencies:
+
+```sh
+# Bash
+eval "$(openai completion bash)"
+
+# Zsh
+eval "$(openai completion zsh)"
+
+# Fish
+openai completion fish > ~/.config/fish/completions/openai.fish
+
+# PowerShell
+openai completion powershell | Out-String | Invoke-Expression
+```
+
+To make Bash or Zsh completion persistent, write the generated script to a file loaded by your shell startup configuration.
+
 ## Versioning
 
 This package generally follows [SemVer](https://semver.org/spec/v2.0.0.html) conventions, though certain backwards-incompatible changes may be released as minor versions:
