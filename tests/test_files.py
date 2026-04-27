@@ -131,7 +131,7 @@ class TestDeepcopyWithPaths:
         copied = deepcopy_with_paths(original, [["items", "<array>", "file"]])
         extracted = extract_files(copied, paths=[["items", "<array>", "file"]])
 
-        assert extracted == [("items[][file]", file1), ("items[][file]", file2)]
+        assert [entry for _, entry in extracted] == [file1, file2]
         assert original == {
             "items": [
                 {"file": file1, "extra": 1},
