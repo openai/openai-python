@@ -73,7 +73,7 @@ so that your API key is not stored in source control.
 
 ### Workload Identity Authentication
 
-For secure, automated environments like cloud-managed Kubernetes, Azure, and Google Cloud Platform, you can use workload identity authentication with short-lived tokens from cloud identity providers instead of long-lived API keys.
+For secure, automated environments like cloud-managed Kubernetes, Azure, Google Cloud Platform, and AWS Bedrock, you can use workload identity authentication with short-lived tokens from cloud identity providers instead of long-lived API keys.
 
 #### Kubernetes (service account tokens)
 
@@ -133,6 +133,29 @@ client = OpenAI(
     },
 )
 ```
+
+#### AWS Bedrock
+
+Requires `botocore` (`pip install 'openai[bedrock]'`). Credentials are resolved from the [standard AWS credential chain](https://docs.aws.amazon.com/sdkref/latest/guide/standardized-credentials.html).
+
+```python
+from openai import OpenAI
+from openai.auth import aws_bedrock_token_provider
+
+client = OpenAI(
+    base_url="https://bedrock-runtime.us-east-1.amazonaws.com/openai/v1",
+    api_key=aws_bedrock_token_provider(
+        region="us-east-1",
+        profile="my-profile",  # optional — defaults to the standard AWS credential chain
+    ),
+)
+
+# List models supported by the OpenAI-compatible endpoint
+for model in client.models.list().data:
+    print(model.id)
+```
+
+> **Note:** The OpenAI SDK works only with Bedrock models that have the [OpenAI-compatible API](https://docs.aws.amazon.com/bedrock/latest/userguide/bedrock-mantle.html) enabled. Use `client.models.list()` to see which models are available on your endpoint.
 
 #### Custom subject token provider
 

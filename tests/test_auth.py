@@ -1,6 +1,10 @@
+from __future__ import annotations
+
 import json
+import base64
 from typing import cast
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 import httpx
 import respx
@@ -9,8 +13,10 @@ from respx.models import Call
 from inline_snapshot import snapshot
 
 from openai import OpenAI, OAuthError
+from openai._exceptions import SubjectTokenProviderError
 from openai.auth._workload import (
     gcp_id_token_provider,
+    aws_bedrock_token_provider,
     k8s_service_account_token_provider,
     azure_managed_identity_token_provider,
 )
@@ -188,3 +194,60 @@ def test_gcp_id_token_provider() -> None:
 
     assert provider["token_type"] == "id"
     assert provider["get_token"]() == "gcp-token"
+
+
+def _mock_botocore() -> MagicMock:
+    """Create a minimal mock botocore that stubs SigV4 signing."""
+    mock = MagicMock()
+    mock.session.Session.return_value.get_credentials.return_value.get_frozen_credentials.return_value = MagicMock()
+
+    def _fake_add_auth(request: MagicMock) -> None:
+        request.url += "&X-Amz-Credential=FAKE&X-Amz-Signature=FAKE"
+
+    mock.auth.SigV4QueryAuth.return_value.add_auth = _fake_add_auth
+    mock.awsrequest.AWSRequest.return_value = MagicMock(url="https://bedrock.amazonaws.com/?Action=CallWithBearerToken")
+
+    return mock
+
+
+def _patch_botocore(mock: MagicMock):  # type: ignore[type-arg]
+    return patch.dict(
+        "sys.modules",
+        {
+            "botocore": mock,
+            "botocore.session": mock.session,
+            "botocore.auth": mock.auth,
+            "botocore.awsrequest": mock.awsrequest,
+        },
+    )
+
+
+def test_aws_bedrock_token_provider() -> None:
+    mock = _mock_botocore()
+
+    with _patch_botocore(mock):
+        token = aws_bedrock_token_provider(region="us-east-1")()
+        assert token.startswith("bedrock-api-key-")
+
+        decoded = base64.b64decode(token[len("bedrock-api-key-") :]).decode()
+        assert "bedrock.amazonaws.com" in decoded
+        assert "X-Amz-Signature=" in decoded
+        assert "Action=CallWithBearerToken" in decoded
+        assert "&Version=1" in decoded
+
+
+def test_aws_bedrock_token_provider_no_credentials() -> None:
+    mock = MagicMock()
+    mock.session.Session.return_value.get_credentials.return_value = None
+
+    with _patch_botocore(mock):
+        with pytest.raises(SubjectTokenProviderError, match="No AWS credentials found"):
+            aws_bedrock_token_provider(region="us-east-1")()
+
+
+def test_aws_bedrock_token_provider_no_botocore() -> None:
+    with patch.dict(
+        "sys.modules", {"botocore": None, "botocore.session": None, "botocore.auth": None, "botocore.awsrequest": None}
+    ):
+        with pytest.raises(ImportError, match="botocore is required.*openai\\[bedrock\\]"):
+            aws_bedrock_token_provider(region="us-east-1")()
