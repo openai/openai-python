@@ -68,7 +68,11 @@ def parse_response(
 
                 content_list.append(
                     construct_type_unchecked(
-                        type_=ParsedResponseOutputText[TextFormatT],
+                        # Drop the TextFormatT parameterization: pydantic cannot resolve a free
+                        # TypeVar so model_rebuild() always returns False, which means
+                        # MockCoreSchema._built_memo is never populated and a new Rust-backed
+                        # SchemaValidator is allocated on every call. See issue #3084.
+                        type_=ParsedResponseOutputText,
                         value={
                             **item.to_dict(),
                             "parsed": parse_text(item.text, text_format=text_format),
@@ -78,7 +82,8 @@ def parse_response(
 
             output_list.append(
                 construct_type_unchecked(
-                    type_=ParsedResponseOutputMessage[TextFormatT],
+                    # See note above: non-parameterized generic keeps the schema cache hot.
+                    type_=ParsedResponseOutputMessage,
                     value={
                         **output.to_dict(),
                         "content": content_list,
@@ -130,7 +135,10 @@ def parse_response(
             output_list.append(output)
 
     return construct_type_unchecked(
-        type_=ParsedResponse[TextFormatT],
+        # See note above: non-parameterized generic keeps the schema cache hot.
+        # At runtime Python's generics are erased, so the constructed object's type
+        # is identical either way — only the pydantic schema rebuild path differs.
+        type_=ParsedResponse,
         value={
             **response.to_dict(),
             "output": output_list,
