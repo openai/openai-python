@@ -961,3 +961,33 @@ def test_extra_properties() -> None:
     assert model.a.prop == 1
     assert isinstance(model.a, Item)
     assert model.other == "foo"
+
+
+def test_function_call_output_accepts_string_and_list() -> None:
+    """Regression test: FunctionCallOutput.output should accept both str and list."""
+    from openai.types.responses.response_input_item import FunctionCallOutput
+
+    # string output (original behavior)
+    m_str = construct_type(
+        type_=FunctionCallOutput,
+        value={
+            "call_id": "call_abc123",
+            "output": '{"result": 42}',
+            "type": "function_call_output",
+        },
+    )
+    assert isinstance(m_str, FunctionCallOutput)
+    assert m_str.output == '{"result": 42}'
+
+    # list output (expanded type per API docs)
+    m_list = construct_type(
+        type_=FunctionCallOutput,
+        value={
+            "call_id": "call_abc123",
+            "output": [{"type": "input_text", "text": "hello"}],
+            "type": "function_call_output",
+        },
+    )
+    assert isinstance(m_list, FunctionCallOutput)
+    assert isinstance(m_list.output, list)
+    assert len(m_list.output) == 1
