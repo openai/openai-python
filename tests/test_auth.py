@@ -1,6 +1,10 @@
+from __future__ import annotations
+
 import json
+import base64
 from typing import cast
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 import httpx
 import respx
@@ -9,8 +13,10 @@ from respx.models import Call
 from inline_snapshot import snapshot
 
 from openai import OpenAI, OAuthError
+from openai._exceptions import SubjectTokenProviderError
 from openai.auth._workload import (
     gcp_id_token_provider,
+    aws_bedrock_token_provider,
     k8s_service_account_token_provider,
     azure_managed_identity_token_provider,
 )
@@ -188,3 +194,87 @@ def test_gcp_id_token_provider() -> None:
 
     assert provider["token_type"] == "id"
     assert provider["get_token"]() == "gcp-token"
+
+
+def _make_mock_botocore(
+    access_key: str = "AKIAIOSFODNN7EXAMPLE",
+    secret_key: str = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+    token: str | None = None,
+) -> MagicMock:
+    """Create a mock botocore module with fake credentials."""
+    mock_botocore = MagicMock()
+
+    frozen = MagicMock()
+    frozen.access_key = access_key
+    frozen.secret_key = secret_key
+    frozen.token = token
+
+    creds = MagicMock()
+    creds.get_frozen_credentials.return_value = frozen
+
+    session_instance = MagicMock()
+    session_instance.get_credentials.return_value = creds
+
+    mock_botocore.session.Session.return_value = session_instance
+
+    # Use real SigV4QueryAuth and AWSRequest from botocore
+    import botocore.auth
+    import botocore.awsrequest
+
+    mock_botocore.auth.SigV4QueryAuth = botocore.auth.SigV4QueryAuth
+    mock_botocore.awsrequest.AWSRequest = botocore.awsrequest.AWSRequest
+
+    return mock_botocore
+
+
+def test_aws_bedrock_token_provider() -> None:
+    mock_botocore = _make_mock_botocore()
+
+    with patch.dict("sys.modules", {"botocore": mock_botocore, "botocore.session": mock_botocore.session, "botocore.auth": mock_botocore.auth, "botocore.awsrequest": mock_botocore.awsrequest}):
+        get_token = aws_bedrock_token_provider(region="us-east-1")
+
+        token = get_token()
+        assert token.startswith("bedrock-api-key-")
+
+        encoded_part = token[len("bedrock-api-key-"):]
+        decoded_url = base64.b64decode(encoded_part).decode()
+
+        assert "bedrock.amazonaws.com" in decoded_url
+        assert "X-Amz-Signature=" in decoded_url
+        assert "X-Amz-Credential=" in decoded_url
+        assert "Action=CallWithBearerToken" in decoded_url
+        assert "&Version=1" in decoded_url
+
+
+def test_aws_bedrock_token_provider_custom_region() -> None:
+    mock_botocore = _make_mock_botocore()
+
+    with patch.dict("sys.modules", {"botocore": mock_botocore, "botocore.session": mock_botocore.session, "botocore.auth": mock_botocore.auth, "botocore.awsrequest": mock_botocore.awsrequest}):
+        get_token = aws_bedrock_token_provider(region="eu-west-1")
+        token = get_token()
+
+        encoded_part = token[len("bedrock-api-key-"):]
+        decoded_url = base64.b64decode(encoded_part).decode()
+
+        assert "eu-west-1" in decoded_url
+
+
+def test_aws_bedrock_token_provider_no_credentials() -> None:
+    mock_botocore = MagicMock()
+    session_instance = MagicMock()
+    session_instance.get_credentials.return_value = None
+    mock_botocore.session.Session.return_value = session_instance
+
+    with patch.dict("sys.modules", {"botocore": mock_botocore, "botocore.session": mock_botocore.session, "botocore.auth": mock_botocore.auth, "botocore.awsrequest": mock_botocore.awsrequest}):
+        get_token = aws_bedrock_token_provider(region="us-east-1")
+
+        with pytest.raises(SubjectTokenProviderError, match="No AWS credentials found"):
+            get_token()
+
+
+def test_aws_bedrock_token_provider_no_botocore() -> None:
+    with patch.dict("sys.modules", {"botocore": None, "botocore.session": None, "botocore.auth": None, "botocore.awsrequest": None}):
+        get_token = aws_bedrock_token_provider(region="us-east-1")
+
+        with pytest.raises(ImportError, match="botocore is required.*openai\\[bedrock\\]"):
+            get_token()
