@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import asyncio
 import inspect
 from types import TracebackType
 from typing import TYPE_CHECKING, Any, Generic, TypeVar, Iterator, Optional, AsyncIterator, cast
@@ -10,7 +11,7 @@ from typing_extensions import Self, Protocol, TypeGuard, override, get_origin, r
 import httpx
 
 from ._utils import is_mapping, extract_type_var_from_base
-from ._exceptions import APIError
+from ._exceptions import APIError, APITimeoutError
 
 if TYPE_CHECKING:
     from ._client import OpenAI, AsyncOpenAI
@@ -105,6 +106,8 @@ class Stream(Generic[_T]):
                         cast_to=cast_to,
                         response=response,
                     )
+        except httpx.TimeoutException as err:
+            raise APITimeoutError(request=self.response.request) from err
         finally:
             # Ensure the response is closed even if the consumer doesn't read all data
             response.close()
@@ -215,6 +218,8 @@ class AsyncStream(Generic[_T]):
                         cast_to=cast_to,
                         response=response,
                     )
+        except (httpx.TimeoutException, asyncio.TimeoutError) as err:
+            raise APITimeoutError(request=self.response.request) from err
         finally:
             # Ensure the response is closed even if the consumer doesn't read all data
             await response.aclose()
