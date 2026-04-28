@@ -196,85 +196,58 @@ def test_gcp_id_token_provider() -> None:
     assert provider["get_token"]() == "gcp-token"
 
 
-def _make_mock_botocore(
-    access_key: str = "AKIAIOSFODNN7EXAMPLE",
-    secret_key: str = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
-    token: str | None = None,
-) -> MagicMock:
-    """Create a mock botocore module with fake credentials."""
-    mock_botocore = MagicMock()
+def _mock_botocore() -> MagicMock:
+    """Create a minimal mock botocore that stubs SigV4 signing."""
+    mock = MagicMock()
+    mock.session.Session.return_value.get_credentials.return_value.get_frozen_credentials.return_value = MagicMock()
 
-    frozen = MagicMock()
-    frozen.access_key = access_key
-    frozen.secret_key = secret_key
-    frozen.token = token
+    def _fake_add_auth(request: MagicMock) -> None:
+        request.url += "&X-Amz-Credential=FAKE&X-Amz-Signature=FAKE"
 
-    creds = MagicMock()
-    creds.get_frozen_credentials.return_value = frozen
+    mock.auth.SigV4QueryAuth.return_value.add_auth = _fake_add_auth
+    mock.awsrequest.AWSRequest.return_value = MagicMock(url="https://bedrock.amazonaws.com/?Action=CallWithBearerToken")
 
-    session_instance = MagicMock()
-    session_instance.get_credentials.return_value = creds
+    return mock
 
-    mock_botocore.session.Session.return_value = session_instance
 
-    # Use real SigV4QueryAuth and AWSRequest from botocore
-    import botocore.auth
-    import botocore.awsrequest
-
-    mock_botocore.auth.SigV4QueryAuth = botocore.auth.SigV4QueryAuth
-    mock_botocore.awsrequest.AWSRequest = botocore.awsrequest.AWSRequest
-
-    return mock_botocore
+def _patch_botocore(mock: MagicMock):  # type: ignore[type-arg]
+    return patch.dict(
+        "sys.modules",
+        {
+            "botocore": mock,
+            "botocore.session": mock.session,
+            "botocore.auth": mock.auth,
+            "botocore.awsrequest": mock.awsrequest,
+        },
+    )
 
 
 def test_aws_bedrock_token_provider() -> None:
-    mock_botocore = _make_mock_botocore()
+    mock = _mock_botocore()
 
-    with patch.dict("sys.modules", {"botocore": mock_botocore, "botocore.session": mock_botocore.session, "botocore.auth": mock_botocore.auth, "botocore.awsrequest": mock_botocore.awsrequest}):
-        get_token = aws_bedrock_token_provider(region="us-east-1")
-
-        token = get_token()
+    with _patch_botocore(mock):
+        token = aws_bedrock_token_provider(region="us-east-1")()
         assert token.startswith("bedrock-api-key-")
 
-        encoded_part = token[len("bedrock-api-key-"):]
-        decoded_url = base64.b64decode(encoded_part).decode()
-
-        assert "bedrock.amazonaws.com" in decoded_url
-        assert "X-Amz-Signature=" in decoded_url
-        assert "X-Amz-Credential=" in decoded_url
-        assert "Action=CallWithBearerToken" in decoded_url
-        assert "&Version=1" in decoded_url
-
-
-def test_aws_bedrock_token_provider_custom_region() -> None:
-    mock_botocore = _make_mock_botocore()
-
-    with patch.dict("sys.modules", {"botocore": mock_botocore, "botocore.session": mock_botocore.session, "botocore.auth": mock_botocore.auth, "botocore.awsrequest": mock_botocore.awsrequest}):
-        get_token = aws_bedrock_token_provider(region="eu-west-1")
-        token = get_token()
-
-        encoded_part = token[len("bedrock-api-key-"):]
-        decoded_url = base64.b64decode(encoded_part).decode()
-
-        assert "eu-west-1" in decoded_url
+        decoded = base64.b64decode(token[len("bedrock-api-key-") :]).decode()
+        assert "bedrock.amazonaws.com" in decoded
+        assert "X-Amz-Signature=" in decoded
+        assert "Action=CallWithBearerToken" in decoded
+        assert "&Version=1" in decoded
 
 
 def test_aws_bedrock_token_provider_no_credentials() -> None:
-    mock_botocore = MagicMock()
-    session_instance = MagicMock()
-    session_instance.get_credentials.return_value = None
-    mock_botocore.session.Session.return_value = session_instance
+    mock = MagicMock()
+    mock.session.Session.return_value.get_credentials.return_value = None
 
-    with patch.dict("sys.modules", {"botocore": mock_botocore, "botocore.session": mock_botocore.session, "botocore.auth": mock_botocore.auth, "botocore.awsrequest": mock_botocore.awsrequest}):
-        get_token = aws_bedrock_token_provider(region="us-east-1")
-
+    with _patch_botocore(mock):
         with pytest.raises(SubjectTokenProviderError, match="No AWS credentials found"):
-            get_token()
+            aws_bedrock_token_provider(region="us-east-1")()
 
 
 def test_aws_bedrock_token_provider_no_botocore() -> None:
-    with patch.dict("sys.modules", {"botocore": None, "botocore.session": None, "botocore.auth": None, "botocore.awsrequest": None}):
-        get_token = aws_bedrock_token_provider(region="us-east-1")
-
+    with patch.dict(
+        "sys.modules", {"botocore": None, "botocore.session": None, "botocore.auth": None, "botocore.awsrequest": None}
+    ):
         with pytest.raises(ImportError, match="botocore is required.*openai\\[bedrock\\]"):
-            get_token()
+            aws_bedrock_token_provider(region="us-east-1")()

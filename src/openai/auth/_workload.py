@@ -207,8 +207,7 @@ def aws_bedrock_token_provider(
             from botocore.awsrequest import AWSRequest
         except ImportError as e:
             raise ImportError(
-                "botocore is required for AWS Bedrock token generation. "
-                "Install it with: pip install 'openai[bedrock]'"
+                "botocore is required for AWS Bedrock token generation. Install it with: pip install 'openai[bedrock]'"
             ) from e
 
         try:
@@ -224,10 +223,7 @@ def aws_bedrock_token_provider(
 
             credentials = _session[0].get_credentials()
             if credentials is None:
-                raise SubjectTokenProviderError(
-                    "No AWS credentials found. "
-                    "Ensure your AWS credentials are configured."
-                )
+                raise SubjectTokenProviderError("No AWS credentials found. Ensure your AWS credentials are configured.")
             frozen_credentials = credentials.get_frozen_credentials()
 
             request = AWSRequest(
