@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import sys
 import inspect
 import weakref
 from typing import (
@@ -442,14 +443,35 @@ def _get_extra_fields_type(cls: type[pydantic.BaseModel]) -> type | None:
         # TODO
         return None
 
-    schema = cls.__pydantic_core_schema__
-    if schema["type"] == "model":
-        fields = schema["schema"]
-        if fields["type"] == "model-fields":
-            extras = fields.get("extras_schema")
-            if extras and "cls" in extras:
-                # mypy can't narrow the type
-                return extras["cls"]  # type: ignore[no-any-return]
+    # When defer_build=True, __pydantic_core_schema__ may be a MockCoreSchema whose
+    # __getitem__ triggers a lazy rebuild. That lazy rebuild uses a hardcoded stack
+    # depth (5 frames) to locate forward-reference namespaces, which is unreliable in
+    # multiprocess forkserver workers where the call stack is shallower. In pydantic
+    # >= 2.12 this manifests as a PydanticUserError at runtime.
+    #
+    # Proactively rebuild using the class's own module namespace to bypass the
+    # stack-depth heuristic entirely. The schema is then a real dict on subsequent
+    # accesses and the error cannot occur.
+    if not getattr(cls, "__pydantic_complete__", True):
+        module = sys.modules.get(cls.__module__)
+        try:
+            cls.model_rebuild(_types_namespace=vars(module) if module is not None else None)
+        except Exception:
+            return None
+
+    try:
+        schema = cls.__pydantic_core_schema__
+        if schema["type"] == "model":
+            fields = schema["schema"]
+            if fields["type"] == "model-fields":
+                extras = fields.get("extras_schema")
+                if extras and "cls" in extras:
+                    # mypy can't narrow the type
+                    return extras["cls"]  # type: ignore[no-any-return]
+    except Exception:
+        # Accessing the schema failed (e.g. the deferred rebuild produced an error);
+        # return None so construct() falls back to treating extra fields as untyped.
+        return None
 
     return None
 
