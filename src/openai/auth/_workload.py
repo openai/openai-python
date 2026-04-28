@@ -189,17 +189,18 @@ def aws_bedrock_token_provider(
     Bedrock runtime endpoint. Credentials are resolved from the standard AWS credential chain:
     https://docs.aws.amazon.com/sdkref/latest/guide/standardized-credentials.html
 
-    The token is cached and automatically refreshed before it expires.
+    The botocore session is cached so credential resolution is efficient, while
+    the token itself is regenerated on each call to ensure it always reflects
+    the latest valid credentials (important for short-lived STS/assumed-role sessions).
 
     Args:
         region: AWS region. Defaults to ``AWS_REGION`` or ``AWS_DEFAULT_REGION`` environment variable.
         profile: AWS profile name. If not set, botocore resolves credentials from the standard chain.
-        token_duration: Token expiry in seconds. Defaults to 3600 (1 hour).
+        token_duration: Presigned URL expiry in seconds. Defaults to 3600 (1 hour).
     """
-    _cached_token: list[str | None] = [None]
-    _refresh_at: list[float] = [0.0]
+    _session: list[Any] = [None]
 
-    def _generate_token() -> str:
+    def get_token() -> str:
         try:
             import botocore.session
             from botocore.auth import SigV4QueryAuth
@@ -218,8 +219,10 @@ def aws_bedrock_token_provider(
                     "or the AWS_REGION / AWS_DEFAULT_REGION environment variable."
                 )
 
-            session = botocore.session.Session(profile=profile)
-            credentials = session.get_credentials()
+            if _session[0] is None:
+                _session[0] = botocore.session.Session(profile=profile)
+
+            credentials = _session[0].get_credentials()
             if credentials is None:
                 raise SubjectTokenProviderError(
                     "No AWS credentials found. "
@@ -247,13 +250,6 @@ def aws_bedrock_token_provider(
             raise
         except Exception as e:
             raise SubjectTokenProviderError(f"Failed to generate AWS Bedrock token: {e}") from e
-
-    def get_token() -> str:
-        now = time.monotonic()
-        if _cached_token[0] is None or now >= _refresh_at[0]:
-            _cached_token[0] = _generate_token()
-            _refresh_at[0] = now + max(token_duration - 60, token_duration * 0.9)
-        return _cached_token[0]
 
     return get_token
 
