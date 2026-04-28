@@ -140,3 +140,6 @@ class ResponseCompactParams(TypedDict, total=False):
 
     prompt_cache_key: Optional[str]
     """A key to use when reading from or writing to the prompt cache."""
+
+    prompt_cache_retention: Optional[Literal["in_memory", "24h"]]
+    """How long to retain a prompt cache entry created by this request."""
