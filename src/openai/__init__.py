@@ -6,7 +6,6 @@ import os as _os
 import typing as _t
 from typing_extensions import override
 
-from . import types
 from ._types import NOT_GIVEN, Omit, NoneType, NotGiven, Transport, ProxiesTypes, omit, not_given
 from ._utils import file_from_path
 from ._client import Client, OpenAI, Stream, Timeout, Transport, AsyncClient, AsyncOpenAI, AsyncStream, RequestOptions
@@ -96,14 +95,21 @@ __all__ = [
 if not _t.TYPE_CHECKING:
     from ._utils._resources_proxy import resources as resources
 
-from .lib import azure as _azure, pydantic_function_tool as pydantic_function_tool
+if _t.TYPE_CHECKING:
+    from . import types as types
+    from .lib.azure import (
+        AzureOpenAI as AzureOpenAI,
+        AsyncAzureOpenAI as AsyncAzureOpenAI,
+        AzureADTokenProvider,
+    )
+    from .lib._tools import pydantic_function_tool as pydantic_function_tool
+    from .lib.streaming import (
+        AssistantEventHandler as AssistantEventHandler,
+        AsyncAssistantEventHandler as AsyncAssistantEventHandler,
+    )
+
 from .version import VERSION as VERSION
-from .lib.azure import AzureOpenAI as AzureOpenAI, AsyncAzureOpenAI as AsyncAzureOpenAI
 from .lib._old_api import *
-from .lib.streaming import (
-    AssistantEventHandler as AssistantEventHandler,
-    AsyncAssistantEventHandler as AsyncAssistantEventHandler,
-)
 
 _setup_logging()
 
@@ -114,11 +120,69 @@ _setup_logging()
 __locals = locals()
 for __name in __all__:
     if not __name.startswith("__"):
+        __obj = __locals.get(__name)
+        if __obj is None:
+            continue
         try:
-            __locals[__name].__module__ = "openai"
+            __obj.__module__ = "openai"
         except (TypeError, AttributeError):
             # Some of our exported symbols are builtins which we can't set attributes for.
             pass
+
+
+def _lazy_azure_openai() -> object:
+    from .lib.azure import AzureOpenAI
+
+    return AzureOpenAI
+
+
+def _lazy_types_module() -> object:
+    import importlib
+
+    return importlib.import_module("openai.types")
+
+
+def _lazy_async_azure_openai() -> object:
+    from .lib.azure import AsyncAzureOpenAI
+
+    return AsyncAzureOpenAI
+
+
+def _lazy_pydantic_function_tool() -> object:
+    from .lib._tools import pydantic_function_tool
+
+    return pydantic_function_tool
+
+
+def _lazy_assistant_event_handler() -> object:
+    from .lib.streaming import AssistantEventHandler
+
+    return AssistantEventHandler
+
+
+def _lazy_async_assistant_event_handler() -> object:
+    from .lib.streaming import AsyncAssistantEventHandler
+
+    return AsyncAssistantEventHandler
+
+
+_LAZY_EXPORTS: dict[str, _t.Callable[[], object]] = {
+    "types": _lazy_types_module,
+    "AzureOpenAI": _lazy_azure_openai,
+    "AsyncAzureOpenAI": _lazy_async_azure_openai,
+    "pydantic_function_tool": _lazy_pydantic_function_tool,
+    "AssistantEventHandler": _lazy_assistant_event_handler,
+    "AsyncAssistantEventHandler": _lazy_async_assistant_event_handler,
+}
+
+
+def __getattr__(name: str) -> object:
+    if name in _LAZY_EXPORTS:
+        value = _LAZY_EXPORTS[name]()
+        globals()[name] = value
+        return value
+
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 # ------ Module level client ------
 import typing as _t
@@ -158,7 +222,7 @@ azure_endpoint: str | None = _os.environ.get("AZURE_OPENAI_ENDPOINT")
 
 azure_ad_token: str | None = _os.environ.get("AZURE_OPENAI_AD_TOKEN")
 
-azure_ad_token_provider: _azure.AzureADTokenProvider | None = None
+azure_ad_token_provider: AzureADTokenProvider | None = None
 
 
 class _ModuleClient(OpenAI):
@@ -277,8 +341,25 @@ class _ModuleClient(OpenAI):
         http_client = value
 
 
-class _AzureModuleClient(_ModuleClient, AzureOpenAI):  # type: ignore
-    ...
+def _create_azure_module_client_class() -> type[AzureOpenAI]:
+    from .lib.azure import AzureOpenAI
+
+    class _AzureModuleClient(_ModuleClient, AzureOpenAI):  # type: ignore
+        ...
+
+    return _AzureModuleClient  # type: ignore[return-value]
+
+
+_azure_module_client_class_cache: type[AzureOpenAI] | None = None
+
+
+def _azure_module_client_class() -> type[AzureOpenAI]:
+    global _azure_module_client_class_cache
+
+    if _azure_module_client_class_cache is None:
+        _azure_module_client_class_cache = _create_azure_module_client_class()
+
+    return _azure_module_client_class_cache
 
 
 class _AmbiguousModuleClientUsageError(OpenAIError):
@@ -341,7 +422,7 @@ def _load_client() -> OpenAI:  # type: ignore[reportUnusedFunction]
                 api_type = "openai"
 
         if api_type == "azure":
-            _client = _AzureModuleClient(  # type: ignore
+            _client = _azure_module_client_class()(  # type: ignore
                 api_version=api_version,
                 azure_endpoint=azure_endpoint,
                 api_key=api_key,
