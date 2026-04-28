@@ -7,7 +7,10 @@ from respx import MockRouter
 from inline_snapshot import snapshot
 
 from openai import OpenAI, AsyncOpenAI
+from openai._models import construct_type_unchecked
 from openai._utils import assert_signatures_in_sync
+from openai.lib.streaming.responses._responses import ResponseStreamState
+from openai.types.responses.response_stream_event import ResponseStreamEvent as RawResponseStreamEvent
 
 from ...conftest import base_url
 from ..snapshots import make_snapshot_request
@@ -61,3 +64,63 @@ def test_parse_method_definition_in_sync(sync: bool, client: OpenAI, async_clien
         checking_client.responses.parse,
         exclude_params={"tools"},
     )
+
+
+def test_stream_state_ignores_output_item_added_with_null_item() -> None:
+    state = ResponseStreamState(text_format=None, input_tools=[])
+
+    created = construct_type_unchecked(
+        type_=RawResponseStreamEvent,
+        value={
+            "type": "response.created",
+            "sequence_number": 0,
+            "response": {
+                "id": "resp_123",
+                "object": "response",
+                "created_at": 0,
+                "status": "in_progress",
+                "background": False,
+                "error": None,
+                "incomplete_details": None,
+                "instructions": None,
+                "max_output_tokens": None,
+                "max_tool_calls": None,
+                "model": "gpt-4o-mini",
+                "output": [],
+                "parallel_tool_calls": True,
+                "previous_response_id": None,
+                "prompt_cache_key": None,
+                "reasoning": {"effort": None, "summary": None},
+                "safety_identifier": None,
+                "service_tier": "default",
+                "store": True,
+                "temperature": 1.0,
+                "text": {"format": {"type": "text"}, "verbosity": "medium"},
+                "tool_choice": "auto",
+                "tools": [],
+                "top_logprobs": 0,
+                "top_p": 1.0,
+                "truncation": "disabled",
+                "usage": None,
+                "user": None,
+                "metadata": {},
+            },
+        },
+    )
+    state.handle_event(created)
+
+    added = construct_type_unchecked(
+        type_=RawResponseStreamEvent,
+        value={
+            "type": "response.output_item.added",
+            "sequence_number": 1,
+            "output_index": 0,
+            "item": None,
+        },
+    )
+
+    events = state.handle_event(added)
+
+    assert events == [added]
+    assert state._ResponseStreamState__current_snapshot is not None
+    assert state._ResponseStreamState__current_snapshot.output == []

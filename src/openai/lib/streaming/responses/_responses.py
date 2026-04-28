@@ -328,6 +328,9 @@ class ResponseStreamState(Generic[TextFormatT]):
             return self._create_initial_response(event)
 
         if event.type == "response.output_item.added":
+            if event.item is None:
+                return snapshot
+
             if event.item.type == "function_call":
                 snapshot.output.append(
                     construct_type_unchecked(
