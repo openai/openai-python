@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from typing import TYPE_CHECKING, List, Iterable, cast
+from typing import TYPE_CHECKING, List, Iterable, Optional, cast
 from typing_extensions import TypeVar, assert_never
 
 import pydantic
@@ -138,8 +138,11 @@ def parse_response(
     )
 
 
-def parse_text(text: str, text_format: type[TextFormatT] | Omit) -> TextFormatT | None:
+def parse_text(text: Optional[str], text_format: type[TextFormatT] | Omit) -> TextFormatT | None:
     if not is_given(text_format):
+        return None
+
+    if text is None:
         return None
 
     if is_basemodel_type(text_format):
