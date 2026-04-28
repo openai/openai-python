@@ -5,6 +5,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Dict, Union, Optional
 from typing_extensions import Literal, assert_never
 
+import time
+
 import httpx
 
 from ... import _legacy_response
@@ -314,6 +316,7 @@ class Files(SyncAPIResource):
         vector_store_id: str,
         attributes: Optional[Dict[str, Union[str, float, bool]]] | Omit = omit,
         poll_interval_ms: int | Omit = omit,
+        poll_timeout_ms: float | None | Omit = omit,
         chunking_strategy: FileChunkingStrategyParam | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -338,6 +341,7 @@ class Files(SyncAPIResource):
             file_id,
             vector_store_id=vector_store_id,
             poll_interval_ms=poll_interval_ms,
+            poll_timeout_ms=poll_timeout_ms,
         )
 
     def poll(
@@ -346,6 +350,7 @@ class Files(SyncAPIResource):
         *,
         vector_store_id: str,
         poll_interval_ms: int | Omit = omit,
+        poll_timeout_ms: float | None | Omit = omit,
     ) -> VectorStoreFile:
         """Wait for the vector store file to finish processing.
 
@@ -356,6 +361,7 @@ class Files(SyncAPIResource):
         if is_given(poll_interval_ms):
             headers["X-Stainless-Custom-Poll-Interval"] = str(poll_interval_ms)
 
+        start = time.monotonic()
         while True:
             response = self.with_raw_response.retrieve(
                 file_id,
@@ -371,6 +377,12 @@ class Files(SyncAPIResource):
                         poll_interval_ms = int(from_header)
                     else:
                         poll_interval_ms = 1000
+
+                if is_given(poll_timeout_ms) and poll_timeout_ms is not None:
+                    if (time.monotonic() - start) * 1000 >= poll_timeout_ms:
+                        raise TimeoutError(
+                            f"Vector store file {file_id!r} is still in_progress after {poll_timeout_ms:.0f}ms"
+                        )
 
                 self._sleep(poll_interval_ms / 1000)
             elif file.status == "cancelled" or file.status == "completed" or file.status == "failed":
@@ -403,6 +415,7 @@ class Files(SyncAPIResource):
         file: FileTypes,
         attributes: Optional[Dict[str, Union[str, float, bool]]] | Omit = omit,
         poll_interval_ms: int | Omit = omit,
+        poll_timeout_ms: float | None | Omit = omit,
         chunking_strategy: FileChunkingStrategyParam | Omit = omit,
     ) -> VectorStoreFile:
         """Add a file to a vector store and poll until processing is complete."""
@@ -412,6 +425,7 @@ class Files(SyncAPIResource):
             file_id=file_obj.id,
             chunking_strategy=chunking_strategy,
             poll_interval_ms=poll_interval_ms,
+            poll_timeout_ms=poll_timeout_ms,
             attributes=attributes,
         )
 
@@ -747,6 +761,7 @@ class AsyncFiles(AsyncAPIResource):
         vector_store_id: str,
         attributes: Optional[Dict[str, Union[str, float, bool]]] | Omit = omit,
         poll_interval_ms: int | Omit = omit,
+        poll_timeout_ms: float | None | Omit = omit,
         chunking_strategy: FileChunkingStrategyParam | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -771,6 +786,14 @@ class AsyncFiles(AsyncAPIResource):
             file_id,
             vector_store_id=vector_store_id,
             poll_interval_ms=poll_interval_ms,
+            poll_timeout_ms=poll_timeout_ms,
+        )
+
+        return await self.poll(
+            file_id,
+            vector_store_id=vector_store_id,
+            poll_interval_ms=poll_interval_ms,
+            poll_timeout_ms=poll_timeout_ms,
         )
 
     async def poll(
@@ -779,6 +802,7 @@ class AsyncFiles(AsyncAPIResource):
         *,
         vector_store_id: str,
         poll_interval_ms: int | Omit = omit,
+        poll_timeout_ms: float | None | Omit = omit,
     ) -> VectorStoreFile:
         """Wait for the vector store file to finish processing.
 
@@ -789,6 +813,7 @@ class AsyncFiles(AsyncAPIResource):
         if is_given(poll_interval_ms):
             headers["X-Stainless-Custom-Poll-Interval"] = str(poll_interval_ms)
 
+        start = time.monotonic()
         while True:
             response = await self.with_raw_response.retrieve(
                 file_id,
@@ -804,6 +829,12 @@ class AsyncFiles(AsyncAPIResource):
                         poll_interval_ms = int(from_header)
                     else:
                         poll_interval_ms = 1000
+
+                if is_given(poll_timeout_ms) and poll_timeout_ms is not None:
+                    if (time.monotonic() - start) * 1000 >= poll_timeout_ms:
+                        raise TimeoutError(
+                            f"Vector store file {file_id!r} is still in_progress after {poll_timeout_ms:.0f}ms"
+                        )
 
                 await self._sleep(poll_interval_ms / 1000)
             elif file.status == "cancelled" or file.status == "completed" or file.status == "failed":
@@ -838,6 +869,7 @@ class AsyncFiles(AsyncAPIResource):
         file: FileTypes,
         attributes: Optional[Dict[str, Union[str, float, bool]]] | Omit = omit,
         poll_interval_ms: int | Omit = omit,
+        poll_timeout_ms: float | None | Omit = omit,
         chunking_strategy: FileChunkingStrategyParam | Omit = omit,
     ) -> VectorStoreFile:
         """Add a file to a vector store and poll until processing is complete."""
@@ -846,6 +878,7 @@ class AsyncFiles(AsyncAPIResource):
             vector_store_id=vector_store_id,
             file_id=file_obj.id,
             poll_interval_ms=poll_interval_ms,
+            poll_timeout_ms=poll_timeout_ms,
             chunking_strategy=chunking_strategy,
             attributes=attributes,
         )
