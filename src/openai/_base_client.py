@@ -1498,6 +1498,12 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
             custom_headers=custom_headers,
             _strict_response_validation=_strict_response_validation,
         )
+        if http_client is not None and not isinstance(cast(Any, http_client), httpx.AsyncClient):
+            raise TypeError(
+                f"Expected http_client to be an instance of httpx.AsyncClient, but got {type(http_client)} instead. "
+                "If you are using AsyncOpenAI, you must pass an asynchronous HTTP client."
+            )
+
         self._client = http_client or AsyncHttpxClientWrapper(
             base_url=base_url,
             # cast to a valid type because mypy doesn't understand our type narrowing
