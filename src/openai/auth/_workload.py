@@ -179,7 +179,7 @@ def aws_bedrock_token_provider(
     *,
     region: str | None = None,
     profile: str | None = None,
-    token_duration: int = 43200,
+    token_duration: int = 3600,
 ) -> Callable[[], str]:
     """
     Get a token provider for AWS Bedrock using IAM credentials.
@@ -194,7 +194,7 @@ def aws_bedrock_token_provider(
     Args:
         region: AWS region. Defaults to ``AWS_REGION`` or ``AWS_DEFAULT_REGION`` environment variable.
         profile: AWS profile name. If not set, botocore resolves credentials from the standard chain.
-        token_duration: Token expiry in seconds. Defaults to 43200 (12 hours).
+        token_duration: Token expiry in seconds. Defaults to 3600 (1 hour).
     """
     _cached_token: list[str | None] = [None]
     _refresh_at: list[float] = [0.0]
