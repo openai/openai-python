@@ -328,18 +328,20 @@ class ResponseStreamState(Generic[TextFormatT]):
             return self._create_initial_response(event)
 
         if event.type == "response.output_item.added":
-            if event.item.type == "function_call":
+            item = event.item
+            if item is None:
+                return snapshot
+
+            if item.type == "function_call":
                 snapshot.output.append(
-                    construct_type_unchecked(
-                        type_=cast(Any, ParsedResponseFunctionToolCall), value=event.item.to_dict()
-                    )
+                    construct_type_unchecked(type_=cast(Any, ParsedResponseFunctionToolCall), value=item.to_dict())
                 )
-            elif event.item.type == "message":
+            elif item.type == "message":
                 snapshot.output.append(
-                    construct_type_unchecked(type_=cast(Any, ParsedResponseOutputMessage), value=event.item.to_dict())
+                    construct_type_unchecked(type_=cast(Any, ParsedResponseOutputMessage), value=item.to_dict())
                 )
             else:
-                snapshot.output.append(event.item)
+                snapshot.output.append(item)
         elif event.type == "response.content_part.added":
             output = snapshot.output[event.output_index]
             if output.type == "message":
