@@ -1,5 +1,23 @@
 # Changelog
 
+## 2.33.0 (2026-04-28)
+
+Full Changelog: [v2.32.0...v2.33.0](https://github.com/openai/openai-python/compare/v2.32.0...v2.33.0)
+
+### Features
+
+* **api:** api update ([18f834a](https://github.com/openai/openai-python/commit/18f834a54f92ea827452471a46a4f442f251e2c8))
+
+
+### Bug Fixes
+
+* **api:** correct prompt_cache_retention enum value from in-memory to in_memory ([#1822](https://github.com/openai/openai-python/issues/1822)) ([f9d2d13](https://github.com/openai/openai-python/commit/f9d2d1359688a6247ecba858fc687173c480c9c8))
+
+
+### Chores
+
+* **ci:** remove release-doctor workflow ([00b2091](https://github.com/openai/openai-python/commit/00b20910e3539842f21d86ab5928fb5216d3a765))
+
 ## 2.32.0 (2026-04-15)
 
 Full Changelog: [v2.31.0...v2.32.0](https://github.com/openai/openai-python/compare/v2.31.0...v2.32.0)
