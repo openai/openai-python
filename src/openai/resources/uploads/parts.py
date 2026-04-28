@@ -7,8 +7,9 @@ from typing import Mapping, cast
 import httpx
 
 from ... import _legacy_response
+from ..._files import deepcopy_with_paths
 from ..._types import Body, Query, Headers, NotGiven, FileTypes, not_given
-from ..._utils import extract_files, path_template, maybe_transform, deepcopy_minimal, async_maybe_transform
+from ..._utils import extract_files, path_template, maybe_transform, async_maybe_transform
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -79,7 +80,7 @@ class Parts(SyncAPIResource):
         """
         if not upload_id:
             raise ValueError(f"Expected a non-empty value for `upload_id` but received {upload_id!r}")
-        body = deepcopy_minimal({"data": data})
+        body = deepcopy_with_paths({"data": data}, [["data"]])
         files = extract_files(cast(Mapping[str, object], body), paths=[["data"]])
         # It should be noted that the actual Content-Type header that will be
         # sent to the server will contain a `boundary` parameter, e.g.
@@ -156,7 +157,7 @@ class AsyncParts(AsyncAPIResource):
         """
         if not upload_id:
             raise ValueError(f"Expected a non-empty value for `upload_id` but received {upload_id!r}")
-        body = deepcopy_minimal({"data": data})
+        body = deepcopy_with_paths({"data": data}, [["data"]])
         files = extract_files(cast(Mapping[str, object], body), paths=[["data"]])
         # It should be noted that the actual Content-Type header that will be
         # sent to the server will contain a `boundary` parameter, e.g.

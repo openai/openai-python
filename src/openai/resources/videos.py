@@ -19,8 +19,9 @@ from ..types import (
     video_create_character_params,
     video_download_content_params,
 )
+from .._files import deepcopy_with_paths
 from .._types import Body, Omit, Query, Headers, NotGiven, FileTypes, omit, not_given
-from .._utils import extract_files, path_template, maybe_transform, deepcopy_minimal, async_maybe_transform
+from .._utils import extract_files, path_template, maybe_transform, async_maybe_transform
 from .._compat import cached_property
 from .._resource import SyncAPIResource, AsyncAPIResource
 from .._response import (
@@ -104,14 +105,15 @@ class Videos(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        body = deepcopy_minimal(
+        body = deepcopy_with_paths(
             {
                 "prompt": prompt,
                 "input_reference": input_reference,
                 "model": model,
                 "seconds": seconds,
                 "size": size,
-            }
+            },
+            [["input_reference"]],
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["input_reference"]])
         # It should be noted that the actual Content-Type header that will be
@@ -347,11 +349,12 @@ class Videos(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        body = deepcopy_minimal(
+        body = deepcopy_with_paths(
             {
                 "name": name,
                 "video": video,
-            }
+            },
+            [["video"]],
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["video"]])
         # It should be noted that the actual Content-Type header that will be
@@ -440,11 +443,12 @@ class Videos(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        body = deepcopy_minimal(
+        body = deepcopy_with_paths(
             {
                 "prompt": prompt,
                 "video": video,
-            }
+            },
+            [["video"]],
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["video"]])
         # It should be noted that the actual Content-Type header that will be
@@ -493,12 +497,13 @@ class Videos(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        body = deepcopy_minimal(
+        body = deepcopy_with_paths(
             {
                 "prompt": prompt,
                 "seconds": seconds,
                 "video": video,
-            }
+            },
+            [["video"]],
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["video"]])
         # It should be noted that the actual Content-Type header that will be
@@ -645,14 +650,15 @@ class AsyncVideos(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        body = deepcopy_minimal(
+        body = deepcopy_with_paths(
             {
                 "prompt": prompt,
                 "input_reference": input_reference,
                 "model": model,
                 "seconds": seconds,
                 "size": size,
-            }
+            },
+            [["input_reference"]],
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["input_reference"]])
         # It should be noted that the actual Content-Type header that will be
@@ -888,11 +894,12 @@ class AsyncVideos(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        body = deepcopy_minimal(
+        body = deepcopy_with_paths(
             {
                 "name": name,
                 "video": video,
-            }
+            },
+            [["video"]],
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["video"]])
         # It should be noted that the actual Content-Type header that will be
@@ -983,11 +990,12 @@ class AsyncVideos(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        body = deepcopy_minimal(
+        body = deepcopy_with_paths(
             {
                 "prompt": prompt,
                 "video": video,
-            }
+            },
+            [["video"]],
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["video"]])
         # It should be noted that the actual Content-Type header that will be
@@ -1036,12 +1044,13 @@ class AsyncVideos(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        body = deepcopy_minimal(
+        body = deepcopy_with_paths(
             {
                 "prompt": prompt,
                 "seconds": seconds,
                 "video": video,
-            }
+            },
+            [["video"]],
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["video"]])
         # It should be noted that the actual Content-Type header that will be

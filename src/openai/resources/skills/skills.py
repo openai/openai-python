@@ -17,6 +17,7 @@ from .content import (
     ContentWithStreamingResponse,
     AsyncContentWithStreamingResponse,
 )
+from ..._files import deepcopy_with_paths
 from ..._types import (
     Body,
     Omit,
@@ -28,7 +29,7 @@ from ..._types import (
     omit,
     not_given,
 )
-from ..._utils import extract_files, path_template, maybe_transform, deepcopy_minimal, async_maybe_transform
+from ..._utils import extract_files, path_template, maybe_transform, async_maybe_transform
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -101,7 +102,7 @@ class Skills(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        body = deepcopy_minimal({"files": files})
+        body = deepcopy_with_paths({"files": files}, [["files", "<array>"], ["files"]])
         extracted_files = extract_files(cast(Mapping[str, object], body), paths=[["files", "<array>"], ["files"]])
         if extracted_files:
             # It should be noted that the actual Content-Type header that will be
@@ -327,7 +328,7 @@ class AsyncSkills(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        body = deepcopy_minimal({"files": files})
+        body = deepcopy_with_paths({"files": files}, [["files", "<array>"], ["files"]])
         extracted_files = extract_files(cast(Mapping[str, object], body), paths=[["files", "<array>"], ["files"]])
         if extracted_files:
             # It should be noted that the actual Content-Type header that will be

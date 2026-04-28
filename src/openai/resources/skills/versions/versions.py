@@ -16,6 +16,7 @@ from .content import (
     ContentWithStreamingResponse,
     AsyncContentWithStreamingResponse,
 )
+from ...._files import deepcopy_with_paths
 from ...._types import (
     Body,
     Omit,
@@ -27,7 +28,7 @@ from ...._types import (
     omit,
     not_given,
 )
-from ...._utils import extract_files, path_template, maybe_transform, deepcopy_minimal, async_maybe_transform
+from ...._utils import extract_files, path_template, maybe_transform, async_maybe_transform
 from ...._compat import cached_property
 from ...._resource import SyncAPIResource, AsyncAPIResource
 from ...._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -95,11 +96,12 @@ class Versions(SyncAPIResource):
         """
         if not skill_id:
             raise ValueError(f"Expected a non-empty value for `skill_id` but received {skill_id!r}")
-        body = deepcopy_minimal(
+        body = deepcopy_with_paths(
             {
                 "default": default,
                 "files": files,
-            }
+            },
+            [["files", "<array>"], ["files"]],
         )
         extracted_files = extract_files(cast(Mapping[str, object], body), paths=[["files", "<array>"], ["files"]])
         if extracted_files:
@@ -303,11 +305,12 @@ class AsyncVersions(AsyncAPIResource):
         """
         if not skill_id:
             raise ValueError(f"Expected a non-empty value for `skill_id` but received {skill_id!r}")
-        body = deepcopy_minimal(
+        body = deepcopy_with_paths(
             {
                 "default": default,
                 "files": files,
-            }
+            },
+            [["files", "<array>"], ["files"]],
         )
         extracted_files = extract_files(cast(Mapping[str, object], body), paths=[["files", "<array>"], ["files"]])
         if extracted_files:
