@@ -4,7 +4,7 @@ import os
 import time
 import base64
 import threading
-from typing import Any, Callable, TypedDict, cast
+from typing import Any, Callable, Awaitable, TypedDict, cast
 from pathlib import Path
 from typing_extensions import Literal, NotRequired
 
@@ -175,29 +175,12 @@ def gcp_id_token_provider(
     return {"token_type": "id", "get_token": get_token}
 
 
-def aws_bedrock_token_provider(
+def _make_bedrock_token_generator(
     *,
     region: str | None = None,
     profile: str | None = None,
     token_duration: int = 3600,
 ) -> Callable[[], str]:
-    """
-    Get a token provider for AWS Bedrock using IAM credentials.
-
-    Returns a callable that generates a bearer token from a SigV4 presigned URL.
-    Pass it directly to ``api_key`` when creating an OpenAI client pointed at a
-    Bedrock runtime endpoint. Credentials are resolved from the standard AWS credential chain:
-    https://docs.aws.amazon.com/sdkref/latest/guide/standardized-credentials.html
-
-    The botocore session is cached so credential resolution is efficient, while
-    the token itself is regenerated on each call to ensure it always reflects
-    the latest valid credentials (important for short-lived STS/assumed-role sessions).
-
-    Args:
-        region: AWS region. Defaults to ``AWS_REGION`` or ``AWS_DEFAULT_REGION`` environment variable.
-        profile: AWS profile name. If not set, botocore resolves credentials from the standard chain.
-        token_duration: Presigned URL expiry in seconds. Defaults to 3600 (1 hour).
-    """
     _session: list[Any] = [None]
 
     def get_token() -> str:
@@ -246,6 +229,63 @@ def aws_bedrock_token_provider(
             raise
         except Exception as e:
             raise SubjectTokenProviderError(f"Failed to generate AWS Bedrock token: {e}") from e
+
+    return get_token
+
+
+def aws_bedrock_token_provider(
+    *,
+    region: str | None = None,
+    profile: str | None = None,
+    token_duration: int = 3600,
+) -> Callable[[], str]:
+    """
+    Get a sync token provider for AWS Bedrock. Use with ``OpenAI``.
+
+    Returns a callable that generates a bearer token from a SigV4 presigned URL.
+    Pass it directly to ``api_key`` when creating an OpenAI client pointed at a
+    Bedrock runtime endpoint. Credentials are resolved from the standard AWS credential chain:
+    https://docs.aws.amazon.com/sdkref/latest/guide/standardized-credentials.html
+
+    The botocore session is cached so credential resolution is efficient, while
+    the token itself is regenerated on each call to ensure it always reflects
+    the latest valid credentials (important for short-lived STS/assumed-role sessions).
+
+    For ``AsyncOpenAI``, use :func:`async_aws_bedrock_token_provider` instead.
+
+    Args:
+        region: AWS region. Defaults to ``AWS_REGION`` or ``AWS_DEFAULT_REGION`` environment variable.
+        profile: AWS profile name. If not set, botocore resolves credentials from the standard chain.
+        token_duration: Presigned URL expiry in seconds. Defaults to 3600 (1 hour).
+    """
+    return _make_bedrock_token_generator(region=region, profile=profile, token_duration=token_duration)
+
+
+def async_aws_bedrock_token_provider(
+    *,
+    region: str | None = None,
+    profile: str | None = None,
+    token_duration: int = 3600,
+) -> Callable[[], Awaitable[str]]:
+    """
+    Get an async token provider for AWS Bedrock. Use with ``AsyncOpenAI``.
+
+    Returns an async callable that generates a bearer token from a SigV4 presigned URL.
+    Pass it directly to ``api_key`` when creating an AsyncOpenAI client pointed at a
+    Bedrock runtime endpoint. Credentials are resolved from the standard AWS credential chain:
+    https://docs.aws.amazon.com/sdkref/latest/guide/standardized-credentials.html
+
+    For ``OpenAI`` (sync), use :func:`aws_bedrock_token_provider` instead.
+
+    Args:
+        region: AWS region. Defaults to ``AWS_REGION`` or ``AWS_DEFAULT_REGION`` environment variable.
+        profile: AWS profile name. If not set, botocore resolves credentials from the standard chain.
+        token_duration: Presigned URL expiry in seconds. Defaults to 3600 (1 hour).
+    """
+    _sync = _make_bedrock_token_generator(region=region, profile=profile, token_duration=token_duration)
+
+    async def get_token() -> str:
+        return await to_thread(_sync)
 
     return get_token
 

@@ -17,6 +17,7 @@ from openai._exceptions import SubjectTokenProviderError
 from openai.auth._workload import (
     gcp_id_token_provider,
     aws_bedrock_token_provider,
+    async_aws_bedrock_token_provider,
     k8s_service_account_token_provider,
     azure_managed_identity_token_provider,
 )
@@ -251,3 +252,12 @@ def test_aws_bedrock_token_provider_no_botocore() -> None:
     ):
         with pytest.raises(ImportError, match="botocore is required.*openai\\[bedrock\\]"):
             aws_bedrock_token_provider(region="us-east-1")()
+
+
+@pytest.mark.asyncio
+async def test_async_aws_bedrock_token_provider() -> None:
+    mock = _mock_botocore()
+
+    with _patch_botocore(mock):
+        token = await async_aws_bedrock_token_provider(region="us-east-1")()
+        assert token.startswith("bedrock-api-key-")

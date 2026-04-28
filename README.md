@@ -155,6 +155,20 @@ for model in client.models.list().data:
     print(model.id)
 ```
 
+For `AsyncOpenAI`, use `async_aws_bedrock_token_provider`:
+
+```python
+from openai import AsyncOpenAI
+from openai.auth import async_aws_bedrock_token_provider
+
+client = AsyncOpenAI(
+    base_url="https://bedrock-runtime.us-east-1.amazonaws.com/openai/v1",
+    api_key=async_aws_bedrock_token_provider(
+        region="us-east-1",
+    ),
+)
+```
+
 > **Note:** The OpenAI SDK works only with Bedrock models that have the [OpenAI-compatible API](https://docs.aws.amazon.com/bedrock/latest/userguide/bedrock-mantle.html) enabled. Use `client.models.list()` to see which models are available on your endpoint.
 
 #### Custom subject token provider
