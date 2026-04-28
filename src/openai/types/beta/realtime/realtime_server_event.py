@@ -38,6 +38,14 @@ from .conversation_item_input_audio_transcription_failed_event import Conversati
 from .conversation_item_input_audio_transcription_completed_event import (
     ConversationItemInputAudioTranscriptionCompletedEvent,
 )
+from ...realtime.mcp_list_tools_in_progress import McpListToolsInProgress
+from ...realtime.mcp_list_tools_completed import McpListToolsCompleted
+from ...realtime.mcp_list_tools_failed import McpListToolsFailed
+from ...realtime.response_mcp_call_arguments_delta import ResponseMcpCallArgumentsDelta
+from ...realtime.response_mcp_call_arguments_done import ResponseMcpCallArgumentsDone
+from ...realtime.response_mcp_call_in_progress import ResponseMcpCallInProgress
+from ...realtime.response_mcp_call_completed import ResponseMcpCallCompleted
+from ...realtime.response_mcp_call_failed import ResponseMcpCallFailed
 
 __all__ = [
     "RealtimeServerEvent",
@@ -45,6 +53,14 @@ __all__ = [
     "OutputAudioBufferStarted",
     "OutputAudioBufferStopped",
     "OutputAudioBufferCleared",
+    "McpListToolsInProgress",
+    "McpListToolsCompleted",
+    "McpListToolsFailed",
+    "ResponseMcpCallArgumentsDelta",
+    "ResponseMcpCallArgumentsDone",
+    "ResponseMcpCallInProgress",
+    "ResponseMcpCallCompleted",
+    "ResponseMcpCallFailed",
 ]
 
 
@@ -128,6 +144,14 @@ RealtimeServerEvent: TypeAlias = Annotated[
         OutputAudioBufferStarted,
         OutputAudioBufferStopped,
         OutputAudioBufferCleared,
+        McpListToolsInProgress,
+        McpListToolsCompleted,
+        McpListToolsFailed,
+        ResponseMcpCallArgumentsDelta,
+        ResponseMcpCallArgumentsDone,
+        ResponseMcpCallInProgress,
+        ResponseMcpCallCompleted,
+        ResponseMcpCallFailed,
     ],
     PropertyInfo(discriminator="type"),
 ]
