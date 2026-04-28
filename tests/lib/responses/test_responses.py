@@ -1,13 +1,16 @@
 from __future__ import annotations
 
+import json
 from typing_extensions import TypeVar
 
+import httpx
 import pytest
 from respx import MockRouter
 from inline_snapshot import snapshot
 
 from openai import OpenAI, AsyncOpenAI
 from openai._utils import assert_signatures_in_sync
+from openai.types.responses import ResponseInputTextParam, ResponseInputImageParam
 
 from ...conftest import base_url
 from ..snapshots import make_snapshot_request
@@ -39,6 +42,52 @@ def test_output_text(client: OpenAI, respx_mock: MockRouter) -> None:
     assert response.output_text == snapshot(
         "I can't provide real-time updates, but you can easily check the current weather in San Francisco using a weather website or app. Typically, San Francisco has cool, foggy summers and mild winters, so it's good to be prepared for variable weather!"
     )
+
+
+@pytest.mark.respx(base_url=base_url)
+def test_create_preserves_mini_model_multimodal_input(client: OpenAI, respx_mock: MockRouter) -> None:
+    respx_mock.post("/responses").mock(return_value=httpx.Response(200, json={}))
+
+    text: ResponseInputTextParam = {
+        "type": "input_text",
+        "text": '<attachment_meta id="attachment_123" kind="image" />',
+    }
+    image: ResponseInputImageParam = {
+        "type": "input_image",
+        "detail": "auto",
+        "image_url": "https://example.com/image.png",
+    }
+
+    client.responses.with_raw_response.create(
+        model="gpt-5.4-mini",
+        input=[
+            {
+                "role": "user",
+                "content": [text, image],
+            }
+        ],
+    )
+
+    request = respx_mock.calls.last.request
+    assert json.loads(request.content.decode("utf-8")) == {
+        "model": "gpt-5.4-mini",
+        "input": [
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "input_text",
+                        "text": '<attachment_meta id="attachment_123" kind="image" />',
+                    },
+                    {
+                        "type": "input_image",
+                        "detail": "auto",
+                        "image_url": "https://example.com/image.png",
+                    },
+                ],
+            }
+        ],
+    }
 
 
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
