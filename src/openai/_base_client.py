@@ -1444,11 +1444,10 @@ else:
 
 class AsyncHttpxClientWrapper(DefaultAsyncHttpxClient):
     def __del__(self) -> None:
-        if self.is_closed:
-            return
-
         try:
             # TODO(someday): support non asyncio runtimes here
+            if self.is_closed:
+                return
             asyncio.get_running_loop().create_task(self.aclose())
         except Exception:
             pass
