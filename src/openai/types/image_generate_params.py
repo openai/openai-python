@@ -32,8 +32,7 @@ class ImageGenerateParamsBase(TypedDict, total=False):
     model: Union[str, ImageModel, None]
     """The model to use for image generation.
 
-    One of `dall-e-2`, `dall-e-3`, or a GPT image model (`gpt-image-1`,
-    `gpt-image-1-mini`, `gpt-image-1.5`). Defaults to `dall-e-2` unless a parameter
+    One of `dall-e-2`, `dall-e-3`, or a GPT image model (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`). Defaults to `dall-e-2` unless a parameter
     specific to the GPT image models is used.
     """
 
