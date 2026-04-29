@@ -17,6 +17,8 @@ from openai._utils import (
 )
 from openai._compat import PYDANTIC_V1
 from openai._models import BaseModel
+from openai.types.responses.parsed_response import ParsedResponseFunctionToolCall
+from openai.types.responses.response_create_params import ResponseCreateParamsNonStreaming
 
 _T = TypeVar("_T")
 
@@ -277,6 +279,32 @@ class MyModel(BaseModel):
 async def test_pydantic_model_to_dictionary(use_async: bool) -> None:
     assert cast(Any, await transform(MyModel(foo="hi!"), Any, use_async)) == {"foo": "hi!"}
     assert cast(Any, await transform(MyModel.construct(foo="hi!"), Any, use_async)) == {"foo": "hi!"}
+
+
+@parametrize
+@pytest.mark.asyncio
+async def test_pydantic_model_uses_api_exclude(use_async: bool) -> None:
+    call = ParsedResponseFunctionToolCall(
+        arguments='{"location":"San Francisco"}',
+        call_id="call_123",
+        name="get_weather",
+        type="function_call",
+        parsed_arguments={"location": "San Francisco"},
+    )
+
+    params = await transform({"input": [call], "model": "gpt-5.1"}, ResponseCreateParamsNonStreaming, use_async)
+
+    assert cast(Any, params) == {
+        "input": [
+            {
+                "arguments": '{"location":"San Francisco"}',
+                "call_id": "call_123",
+                "name": "get_weather",
+                "type": "function_call",
+            }
+        ],
+        "model": "gpt-5.1",
+    }
 
 
 @parametrize
