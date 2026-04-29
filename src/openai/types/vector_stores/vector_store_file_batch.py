@@ -38,7 +38,7 @@ class VectorStoreFileBatch(BaseModel):
 
     file_counts: FileCounts
 
-    object: Literal["vector_store.files_batch"]
+    object: Literal["vector_store.file_batch"]
     """The object type, which is always `vector_store.file_batch`."""
 
     status: Literal["in_progress", "completed", "cancelled", "failed"]

@@ -327,7 +327,7 @@ class FileBatches(SyncAPIResource):
         Note: this will return even if one of the files failed to process, you need to
         check batch.file_counts.failed_count to handle this case.
         """
-        headers: dict[str, str] = {"X-Stainless-Poll-Helper": "true"}
+        headers: dict[str, str] = {}
         if is_given(poll_interval_ms):
             headers["X-Stainless-Custom-Poll-Interval"] = str(poll_interval_ms)
 
@@ -702,7 +702,7 @@ class AsyncFileBatches(AsyncAPIResource):
         Note: this will return even if one of the files failed to process, you need to
         check batch.file_counts.failed_count to handle this case.
         """
-        headers: dict[str, str] = {"X-Stainless-Poll-Helper": "true"}
+        headers: dict[str, str] = {}
         if is_given(poll_interval_ms):
             headers["X-Stainless-Custom-Poll-Interval"] = str(poll_interval_ms)
 

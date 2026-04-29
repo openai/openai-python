@@ -5,7 +5,9 @@ from __future__ import annotations
 import os
 from typing import Any, cast
 
+import httpx
 import pytest
+from respx import MockRouter
 
 from openai import OpenAI, AsyncOpenAI
 from tests.utils import assert_matches_type
@@ -234,6 +236,39 @@ class TestFileBatches:
                 vector_store_id="vector_store_id",
             )
 
+    @parametrize
+    @pytest.mark.respx(base_url=base_url)
+    def test_poll_returns_file_batch(self, client: OpenAI, respx_mock: MockRouter) -> None:
+        route = respx_mock.get("/vector_stores/vs_abc123/file_batches/vsfb_abc123").mock(
+            return_value=httpx.Response(
+                200,
+                json={
+                    "id": "vsfb_abc123",
+                    "created_at": 123,
+                    "file_counts": {
+                        "cancelled": 0,
+                        "completed": 1,
+                        "failed": 0,
+                        "in_progress": 0,
+                        "total": 1,
+                    },
+                    "object": "vector_store.file_batch",
+                    "status": "completed",
+                    "vector_store_id": "vs_abc123",
+                },
+            )
+        )
+
+        file_batch = client.vector_stores.file_batches.poll(
+            batch_id="vsfb_abc123",
+            vector_store_id="vs_abc123",
+        )
+
+        request = cast(Any, route.calls[0]).request
+        assert request.headers.get("X-Stainless-Poll-Helper") is None
+        assert file_batch.id == "vsfb_abc123"
+        assert file_batch.vector_store_id == "vs_abc123"
+
 
 class TestAsyncFileBatches:
     parametrize = pytest.mark.parametrize(
@@ -451,6 +486,39 @@ class TestAsyncFileBatches:
                 batch_id="",
                 vector_store_id="vector_store_id",
             )
+
+    @parametrize
+    @pytest.mark.respx(base_url=base_url)
+    async def test_poll_returns_file_batch(self, async_client: AsyncOpenAI, respx_mock: MockRouter) -> None:
+        route = respx_mock.get("/vector_stores/vs_abc123/file_batches/vsfb_abc123").mock(
+            return_value=httpx.Response(
+                200,
+                json={
+                    "id": "vsfb_abc123",
+                    "created_at": 123,
+                    "file_counts": {
+                        "cancelled": 0,
+                        "completed": 1,
+                        "failed": 0,
+                        "in_progress": 0,
+                        "total": 1,
+                    },
+                    "object": "vector_store.file_batch",
+                    "status": "completed",
+                    "vector_store_id": "vs_abc123",
+                },
+            )
+        )
+
+        file_batch = await async_client.vector_stores.file_batches.poll(
+            batch_id="vsfb_abc123",
+            vector_store_id="vs_abc123",
+        )
+
+        request = cast(Any, route.calls[0]).request
+        assert request.headers.get("X-Stainless-Poll-Helper") is None
+        assert file_batch.id == "vsfb_abc123"
+        assert file_batch.vector_store_id == "vs_abc123"
 
 
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
