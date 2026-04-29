@@ -572,6 +572,15 @@ def test_compat_method_no_error_for_warnings() -> None:
     assert isinstance(model_dump(m, warnings=False), dict)
 
 
+def test_compat_model_dump_allows_default_by_alias() -> None:
+    class Model(BaseModel):
+        foo: Optional[str] = Field(alias="FOO", default=None)
+
+    m = Model(FOO="hello")
+
+    assert model_dump(m) == {"foo": "hello"}
+
+
 def test_to_json() -> None:
     class Model(BaseModel):
         foo: Optional[str] = Field(alias="FOO", default=None)
