@@ -8,6 +8,8 @@ from inline_snapshot import snapshot
 
 from openai import OpenAI, AsyncOpenAI
 from openai._utils import assert_signatures_in_sync
+from openai._compat import parse_obj
+from openai.types.responses.response_function_web_search import ActionFind, ResponseFunctionWebSearch
 
 from ...conftest import base_url
 from ..snapshots import make_snapshot_request
@@ -39,6 +41,27 @@ def test_output_text(client: OpenAI, respx_mock: MockRouter) -> None:
     assert response.output_text == snapshot(
         "I can't provide real-time updates, but you can easily check the current weather in San Francisco using a weather website or app. Typically, San Francisco has cool, foggy summers and mild winters, so it's good to be prepared for variable weather!"
     )
+
+
+def test_response_function_web_search_find_in_page_action() -> None:
+    response = parse_obj(
+        ResponseFunctionWebSearch,
+        {
+            "id": "ws_redacted",
+            "type": "web_search_call",
+            "status": "completed",
+            "action": {
+                "type": "find_in_page",
+                "pattern": "USD",
+                "url": "https://www.example.com",
+            },
+        },
+    )
+
+    assert isinstance(response.action, ActionFind)
+    assert response.action.type == "find_in_page"
+    assert response.action.pattern == "USD"
+    assert response.action.url == "https://www.example.com"
 
 
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
