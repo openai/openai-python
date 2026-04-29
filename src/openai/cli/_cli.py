@@ -57,6 +57,7 @@ class Arguments(BaseModel):
     # internal, used so that subparsers can forward unknown arguments
     unknown_args: List[str] = []
     allow_unknown_args: bool = False
+    json_output: bool = False
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -114,6 +115,9 @@ def _build_parser() -> argparse.ArgumentParser:
 
     subparsers = parser.add_subparsers()
     sub_api = subparsers.add_parser("api", help="Direct API calls")
+    sub_api.add_argument(
+        "--json", help="Print supported API responses as JSON.", action="store_true", dest="json_output"
+    )
 
     register_commands(sub_api)
 

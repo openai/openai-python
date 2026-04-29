@@ -93,6 +93,7 @@ Mutually exclusive with `top_p`.""",
 class CLICompletionCreateArgs(BaseModel):
     model: str
     stream: bool = False
+    json_output: bool = False
 
     prompt: Optional[str] = None
     n: Omittable[int] = omit
@@ -114,6 +115,8 @@ class CLICompletions:
     def create(args: CLICompletionCreateArgs) -> None:
         if is_given(args.n) and args.n > 1 and args.stream:
             raise CLIError("Can't stream completions with n>1 with the current CLI")
+        if args.json_output and args.stream:
+            raise CLIError("Can't stream completions as JSON with the current CLI")
 
         make_request = partial(
             get_client().completions.create,
@@ -139,10 +142,14 @@ class CLICompletions:
                 cast(Stream[Completion], make_request(stream=True))  # pyright: ignore[reportUnnecessaryCast]
             )
 
-        return CLICompletions._create(make_request())
+        return CLICompletions._create(make_request(), json_output=args.json_output)
 
     @staticmethod
-    def _create(completion: Completion) -> None:
+    def _create(completion: Completion, *, json_output: bool = False) -> None:
+        if json_output:
+            sys.stdout.write(completion.to_json() + "\n")
+            return
+
         should_print_header = len(completion.choices) > 1
         for choice in completion.choices:
             if should_print_header:
