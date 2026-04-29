@@ -7,9 +7,10 @@ import pytest
 import pydantic
 from pydantic import Field
 
+import openai._models as models
 from openai._utils import PropertyInfo
 from openai._compat import PYDANTIC_V1, parse_obj, model_dump, model_json
-from openai._models import DISCRIMINATOR_CACHE, BaseModel, construct_type
+from openai._models import DISCRIMINATOR_CACHE, BaseModel, validate_type, construct_type
 
 
 class BasicModel(BaseModel):
@@ -20,6 +21,18 @@ class BasicModel(BaseModel):
 def test_basic(value: object) -> None:
     m = BasicModel.construct(foo=value)
     assert m.foo == value
+
+
+@pytest.mark.skipif(PYDANTIC_V1, reason="TypeAdapter is only used for non-model types in Pydantic v2")
+def test_type_adapter_cache_is_bounded() -> None:
+    type_adapter = cast(Any, models.TypeAdapter)
+    type_adapter.cache_clear()
+
+    assert validate_type(type_=List[int], value=["1", 2]) == [1, 2]
+
+    cache_info = type_adapter.cache_info()
+    assert cache_info.maxsize == models._TYPE_ADAPTER_CACHE_SIZE
+    assert cache_info.currsize <= models._TYPE_ADAPTER_CACHE_SIZE
 
 
 def test_directly_nested_model() -> None:
