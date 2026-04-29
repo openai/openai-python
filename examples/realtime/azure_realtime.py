@@ -45,13 +45,6 @@ async def main() -> None:
     async with client.realtime.connect(
         model=deployment_name,
     ) as connection:
-        await connection.session.update(
-            session={
-                "output_modalities": ["text"],
-                "model": deployment_name,
-                "type": "realtime",
-            }
-        )
         while True:
             user_input = input("Enter a message: ")
             if user_input == "q":
@@ -64,7 +57,7 @@ async def main() -> None:
                     "content": [{"type": "input_text", "text": user_input}],
                 }
             )
-            await connection.response.create()
+            await connection.response.create(response={"output_modalities": ["text"]})
             async for event in connection:
                 if event.type == "response.output_text.delta":
                     print(event.delta, flush=True, end="")
