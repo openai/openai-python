@@ -18,6 +18,7 @@ import httpx
 import pytest
 from respx import MockRouter
 from pydantic import ValidationError
+from respx.models import Call as MockRequestCall
 
 from openai import OpenAI, AsyncOpenAI, OpenAIError, APIResponseValidationError
 from openai.auth import WorkloadIdentity

@@ -29,6 +29,7 @@ from ._utils import (
     get_async_library,
 )
 from ._compat import cached_property
+from ._models import SecurityOptions
 from ._version import __version__
 from ._streaming import Stream as Stream, AsyncStream as AsyncStream
 from ._exceptions import OpenAIError, APIStatusError
@@ -534,7 +535,7 @@ class OpenAI(SyncAPIClient):
             max_retries=max_retries if is_given(max_retries) else self.max_retries,
             default_headers=headers,
             default_query=params,
-            _enforce_credentials=_enforce_credentials,
+            _enforce_credentials=True if _enforce_credentials is None else _enforce_credentials,
             **_extra_kwargs,
         )
 
@@ -1022,7 +1023,7 @@ class AsyncOpenAI(AsyncAPIClient):
             max_retries=max_retries if is_given(max_retries) else self.max_retries,
             default_headers=headers,
             default_query=params,
-            _enforce_credentials=_enforce_credentials,
+            _enforce_credentials=True if _enforce_credentials is None else _enforce_credentials,
             **_extra_kwargs,
         )
 
