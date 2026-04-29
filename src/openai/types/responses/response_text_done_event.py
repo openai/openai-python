@@ -42,7 +42,7 @@ class ResponseTextDoneEvent(BaseModel):
     item_id: str
     """The ID of the output item that the text content is finalized."""
 
-    logprobs: List[Logprob]
+    logprobs: Optional[List[Logprob]] = None
     """The log probabilities of the tokens in the delta."""
 
     output_index: int

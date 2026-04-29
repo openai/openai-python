@@ -8,6 +8,8 @@ from inline_snapshot import snapshot
 
 from openai import OpenAI, AsyncOpenAI
 from openai._utils import assert_signatures_in_sync
+from openai._compat import parse_obj
+from openai.types.responses import ResponseTextDoneEvent, ResponseTextDeltaEvent
 
 from ...conftest import base_url
 from ..snapshots import make_snapshot_request
@@ -39,6 +41,34 @@ def test_output_text(client: OpenAI, respx_mock: MockRouter) -> None:
     assert response.output_text == snapshot(
         "I can't provide real-time updates, but you can easily check the current weather in San Francisco using a weather website or app. Typically, San Francisco has cool, foggy summers and mild winters, so it's good to be prepared for variable weather!"
     )
+
+
+def test_response_text_events_allow_missing_logprobs() -> None:
+    delta_event = parse_obj(
+        ResponseTextDeltaEvent,
+        {
+            "type": "response.output_text.delta",
+            "content_index": 0,
+            "delta": "Hello",
+            "item_id": "msg_123",
+            "output_index": 0,
+            "sequence_number": 3,
+        },
+    )
+    done_event = parse_obj(
+        ResponseTextDoneEvent,
+        {
+            "type": "response.output_text.done",
+            "content_index": 0,
+            "item_id": "msg_123",
+            "output_index": 0,
+            "sequence_number": 4,
+            "text": "Hello",
+        },
+    )
+
+    assert delta_event.logprobs is None
+    assert done_event.logprobs is None
 
 
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
