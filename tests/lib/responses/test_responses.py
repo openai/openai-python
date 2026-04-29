@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import json
 from typing_extensions import TypeVar
 
+import httpx
 import pytest
 from respx import MockRouter
 from inline_snapshot import snapshot
@@ -39,6 +41,79 @@ def test_output_text(client: OpenAI, respx_mock: MockRouter) -> None:
     assert response.output_text == snapshot(
         "I can't provide real-time updates, but you can easily check the current weather in San Francisco using a weather website or app. Typically, San Francisco has cool, foggy summers and mild winters, so it's good to be prepared for variable weather!"
     )
+
+
+@pytest.mark.respx(base_url=base_url)
+def test_create_with_function_call_input_items(client: OpenAI, respx_mock: MockRouter) -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert json.loads(request.content) == {
+            "model": "gpt-4o-mini",
+            "input": [
+                {
+                    "role": "developer",
+                    "content": "Use the supplied function results to answer.",
+                },
+                {
+                    "role": "user",
+                    "content": "What is the current order status?",
+                },
+                {
+                    "type": "function_call",
+                    "call_id": "call_123",
+                    "name": "get_order_status",
+                    "arguments": '{"order_id":"order_123"}',
+                },
+                {
+                    "type": "function_call_output",
+                    "call_id": "call_123",
+                    "output": '{"status":"shipped"}',
+                },
+            ],
+        }
+
+        return httpx.Response(
+            200,
+            json={
+                "id": "resp_123",
+                "object": "response",
+                "created_at": 1754925861,
+                "status": "completed",
+                "model": "gpt-4o-mini-2024-07-18",
+                "output": [],
+                "parallel_tool_calls": True,
+                "tool_choice": "auto",
+                "tools": [],
+            },
+        )
+
+    respx_mock.post("/responses").mock(side_effect=handler)
+
+    response = client.responses.create(
+        model="gpt-4o-mini",
+        input=[
+            {
+                "role": "developer",
+                "content": "Use the supplied function results to answer.",
+            },
+            {
+                "role": "user",
+                "content": "What is the current order status?",
+            },
+            {
+                "type": "function_call",
+                "call_id": "call_123",
+                "name": "get_order_status",
+                "arguments": '{"order_id":"order_123"}',
+            },
+            {
+                "type": "function_call_output",
+                "call_id": "call_123",
+                "output": '{"status":"shipped"}',
+            },
+        ],
+    )
+
+    assert response.id == "resp_123"
 
 
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
