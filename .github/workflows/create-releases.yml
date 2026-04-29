@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: stainless-api/trigger-release-please@v1
+      - uses: stainless-api/trigger-release-please@bb6677c5a04578eec1ccfd9e1913b5b78ed64c61 # v1.4.0
         id: release
         with:
           repo: ${{ github.event.repository.full_name }}
