@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import os
+import json
 from typing import Any, cast
 
+import httpx
 import pytest
+from respx import MockRouter
 
 from openai import OpenAI, AsyncOpenAI
 from tests.utils import assert_matches_type
@@ -17,6 +20,36 @@ from openai.types import (
 from openai.pagination import SyncCursorPage, AsyncCursorPage
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
+
+
+def _container_response() -> dict[str, object]:
+    return {
+        "id": "container_123",
+        "created_at": 0,
+        "name": "name",
+        "object": "container",
+        "status": "active",
+    }
+
+
+def _skills_payload() -> list[dict[str, Any]]:
+    return [
+        {
+            "skill_id": "skill_123",
+            "type": "skill_reference",
+            "version": "latest",
+        },
+        {
+            "description": "description",
+            "name": "inline",
+            "source": {
+                "data": "UEsDBAo=",
+                "media_type": "application/zip",
+                "type": "base64",
+            },
+            "type": "inline",
+        },
+    ]
 
 
 class TestContainers:
@@ -49,6 +82,21 @@ class TestContainers:
             ],
         )
         assert_matches_type(ContainerCreateResponse, container, path=["response"])
+
+    @pytest.mark.respx(base_url=base_url)
+    def test_method_create_sends_skills(self, client: OpenAI, respx_mock: MockRouter) -> None:
+        respx_mock.post("/containers").mock(return_value=httpx.Response(200, json=_container_response()))
+
+        client.containers.create(
+            name="name",
+            skills=_skills_payload(),
+        )
+
+        request = cast(Any, respx_mock.calls[0]).request
+        assert json.loads(request.content.decode("utf-8")) == {
+            "name": "name",
+            "skills": _skills_payload(),
+        }
 
     @parametrize
     def test_raw_response_create(self, client: OpenAI) -> None:
@@ -218,6 +266,21 @@ class TestAsyncContainers:
             ],
         )
         assert_matches_type(ContainerCreateResponse, container, path=["response"])
+
+    @pytest.mark.respx(base_url=base_url)
+    async def test_method_create_sends_skills(self, async_client: AsyncOpenAI, respx_mock: MockRouter) -> None:
+        respx_mock.post("/containers").mock(return_value=httpx.Response(200, json=_container_response()))
+
+        await async_client.containers.create(
+            name="name",
+            skills=_skills_payload(),
+        )
+
+        request = cast(Any, respx_mock.calls[0]).request
+        assert json.loads(request.content.decode("utf-8")) == {
+            "name": "name",
+            "skills": _skills_payload(),
+        }
 
     @parametrize
     async def test_raw_response_create(self, async_client: AsyncOpenAI) -> None:
