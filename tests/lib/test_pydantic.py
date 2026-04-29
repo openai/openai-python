@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from enum import Enum
+from typing import Any
 
+import pytest
 from pydantic import Field, BaseModel
 from inline_snapshot import snapshot
 
@@ -236,6 +238,30 @@ def test_enums() -> None:
                 },
             }
         )
+
+
+class ToolCallArguments(BaseModel):
+    arguments: dict[str, Any] = Field(description="The arguments to pass to the tool")
+
+
+@pytest.mark.skipif(PYDANTIC_V1, reason="Pydantic v1 does not preserve arbitrary dictionary values in schemas")
+def test_dictionary_fields_allow_additional_properties() -> None:
+    assert to_strict_json_schema(ToolCallArguments) == snapshot(
+        {
+            "properties": {
+                "arguments": {
+                    "additionalProperties": True,
+                    "description": "The arguments to pass to the tool",
+                    "title": "Arguments",
+                    "type": "object",
+                }
+            },
+            "required": ["arguments"],
+            "title": "ToolCallArguments",
+            "type": "object",
+            "additionalProperties": False,
+        }
+    )
 
 
 class Star(BaseModel):
