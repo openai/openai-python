@@ -43,6 +43,7 @@ if TYPE_CHECKING:
     from .resources import (
         beta,
         chat,
+        admin,
         audio,
         evals,
         files,
@@ -70,6 +71,7 @@ if TYPE_CHECKING:
     from .resources.beta.beta import Beta, AsyncBeta
     from .resources.chat.chat import Chat, AsyncChat
     from .resources.embeddings import Embeddings, AsyncEmbeddings
+    from .resources.admin.admin import Admin, AsyncAdmin
     from .resources.audio.audio import Audio, AsyncAudio
     from .resources.completions import Completions, AsyncCompletions
     from .resources.evals.evals import Evals, AsyncEvals
@@ -323,6 +325,12 @@ class OpenAI(SyncAPIClient):
         from .resources.uploads import Uploads
 
         return Uploads(self)
+
+    @cached_property
+    def admin(self) -> Admin:
+        from .resources.admin import Admin
+
+        return Admin(self)
 
     @cached_property
     def responses(self) -> Responses:
@@ -814,6 +822,12 @@ class AsyncOpenAI(AsyncAPIClient):
         return AsyncUploads(self)
 
     @cached_property
+    def admin(self) -> AsyncAdmin:
+        from .resources.admin import AsyncAdmin
+
+        return AsyncAdmin(self)
+
+    @cached_property
     def responses(self) -> AsyncResponses:
         from .resources.responses import AsyncResponses
 
@@ -1167,6 +1181,12 @@ class OpenAIWithRawResponse:
         return UploadsWithRawResponse(self._client.uploads)
 
     @cached_property
+    def admin(self) -> admin.AdminWithRawResponse:
+        from .resources.admin import AdminWithRawResponse
+
+        return AdminWithRawResponse(self._client.admin)
+
+    @cached_property
     def responses(self) -> responses.ResponsesWithRawResponse:
         from .resources.responses import ResponsesWithRawResponse
 
@@ -1310,6 +1330,12 @@ class AsyncOpenAIWithRawResponse:
         from .resources.uploads import AsyncUploadsWithRawResponse
 
         return AsyncUploadsWithRawResponse(self._client.uploads)
+
+    @cached_property
+    def admin(self) -> admin.AsyncAdminWithRawResponse:
+        from .resources.admin import AsyncAdminWithRawResponse
+
+        return AsyncAdminWithRawResponse(self._client.admin)
 
     @cached_property
     def responses(self) -> responses.AsyncResponsesWithRawResponse:
@@ -1457,6 +1483,12 @@ class OpenAIWithStreamedResponse:
         return UploadsWithStreamingResponse(self._client.uploads)
 
     @cached_property
+    def admin(self) -> admin.AdminWithStreamingResponse:
+        from .resources.admin import AdminWithStreamingResponse
+
+        return AdminWithStreamingResponse(self._client.admin)
+
+    @cached_property
     def responses(self) -> responses.ResponsesWithStreamingResponse:
         from .resources.responses import ResponsesWithStreamingResponse
 
@@ -1600,6 +1632,12 @@ class AsyncOpenAIWithStreamedResponse:
         from .resources.uploads import AsyncUploadsWithStreamingResponse
 
         return AsyncUploadsWithStreamingResponse(self._client.uploads)
+
+    @cached_property
+    def admin(self) -> admin.AsyncAdminWithStreamingResponse:
+        from .resources.admin import AsyncAdminWithStreamingResponse
+
+        return AsyncAdminWithStreamingResponse(self._client.admin)
 
     @cached_property
     def responses(self) -> responses.AsyncResponsesWithStreamingResponse:

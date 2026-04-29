@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from .resources.beta.beta import Beta
     from .resources.chat.chat import Chat
     from .resources.embeddings import Embeddings
+    from .resources.admin.admin import Admin
     from .resources.audio.audio import Audio
     from .resources.completions import Completions
     from .resources.evals.evals import Evals
@@ -54,6 +55,12 @@ class AudioProxy(LazyProxy["Audio"]):
     @override
     def __load__(self) -> Audio:
         return _load_client().audio
+
+
+class AdminProxy(LazyProxy["Admin"]):
+    @override
+    def __load__(self) -> Admin:
+        return _load_client().admin
 
 
 class EvalsProxy(LazyProxy["Evals"]):
@@ -162,6 +169,7 @@ chat: Chat = ChatProxy().__as_proxied__()
 beta: Beta = BetaProxy().__as_proxied__()
 files: Files = FilesProxy().__as_proxied__()
 audio: Audio = AudioProxy().__as_proxied__()
+admin: Admin = AdminProxy().__as_proxied__()
 evals: Evals = EvalsProxy().__as_proxied__()
 images: Images = ImagesProxy().__as_proxied__()
 models: Models = ModelsProxy().__as_proxied__()

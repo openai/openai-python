@@ -707,6 +707,22 @@ Methods:
 
 - <code title="post /uploads/{upload_id}/parts">client.uploads.parts.<a href="./src/openai/resources/uploads/parts.py">create</a>(upload_id, \*\*<a href="src/openai/types/uploads/part_create_params.py">params</a>) -> <a href="./src/openai/types/uploads/upload_part.py">UploadPart</a></code>
 
+# Admin
+
+## Organization
+
+### AuditLogs
+
+Types:
+
+```python
+from openai.types.admin.organization import AuditLogListResponse
+```
+
+Methods:
+
+- <code title="get /organization/audit_logs">client.admin.organization.audit_logs.<a href="./src/openai/resources/admin/organization/audit_logs.py">list</a>(\*\*<a href="src/openai/types/admin/organization/audit_log_list_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/audit_log_list_response.py">SyncConversationCursorPage[AuditLogListResponse]</a></code>
+
 # [Responses](src/openai/resources/responses/api.md)
 
 # [Realtime](src/openai/resources/realtime/api.md)
