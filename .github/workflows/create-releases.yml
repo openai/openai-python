@@ -24,9 +24,9 @@ jobs:
 
       - name: Set up uv
         if: ${{ steps.release.outputs.releases_created }}
-        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # setup-uv v8.1.0; uv 0.11.7
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # setup-uv v8.1.0; uv 0.11.8
         with:
-          version: "0.11.7"
+          version: "0.11.8"
           enable-cache: true
 
       - name: Set up Python
