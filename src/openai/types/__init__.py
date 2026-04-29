@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from .chat import ChatCompletion as ChatCompletion
 from .batch import Batch as Batch
 from .image import Image as Image
 from .model import Model as Model
@@ -29,6 +30,7 @@ from .shared import (
 )
 from .upload import Upload as Upload
 from .embedding import Embedding as Embedding
+from .responses import Response as Response, ResponseUsage as ResponseUsage
 from .chat_model import ChatModel as ChatModel
 from .completion import Completion as Completion
 from .moderation import Moderation as Moderation
