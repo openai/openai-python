@@ -20,10 +20,13 @@ __all__ = [
 class ActionSearchSource(TypedDict, total=False):
     """A source used in the search."""
 
-    type: Required[Literal["url"]]
-    """The type of source. Always `url`."""
+    type: Required[Literal["url", "api"]]
+    """The type of source. One of `url` or `api`."""
 
-    url: Required[str]
+    name: str
+    """The name of the source."""
+
+    url: str
     """The URL of the source."""
 
 
