@@ -91,7 +91,7 @@ WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER = "workload-identity-auth"
 
 class OpenAI(SyncAPIClient):
     # client options
-    api_key: str | None
+    api_key: str
     admin_api_key: str | None
     workload_identity: WorkloadIdentity | None
     organization: str | None
@@ -164,7 +164,7 @@ class OpenAI(SyncAPIClient):
                 self.api_key = ""
                 self._api_key_provider: Callable[[], str] | None = api_key  # type: ignore[no-redef]
             else:
-                self.api_key = api_key
+                self.api_key = api_key or ""
                 self._api_key_provider = None
             self._workload_identity_auth = None
 
@@ -471,7 +471,7 @@ class OpenAI(SyncAPIClient):
             '"Could not resolve authentication method. Expected either api_key or admin_api_key to be set. Or for one of the `Authorization` or `Authorization` headers to be explicitly omitted"'
         )
 
-    def _refresh_api_key(self) -> str | None:
+    def _refresh_api_key(self) -> str:
         if self._api_key_provider is not None:
             self.api_key = self._api_key_provider()
 
@@ -580,7 +580,7 @@ class OpenAI(SyncAPIClient):
 
 class AsyncOpenAI(AsyncAPIClient):
     # client options
-    api_key: str | None
+    api_key: str
     admin_api_key: str | None
     workload_identity: WorkloadIdentity | None
     organization: str | None
@@ -653,7 +653,7 @@ class AsyncOpenAI(AsyncAPIClient):
                 self.api_key = ""
                 self._api_key_provider: Callable[[], Awaitable[str]] | None = api_key  # type: ignore[no-redef]
             else:
-                self.api_key = api_key
+                self.api_key = api_key or ""
                 self._api_key_provider = None
             self._workload_identity_auth = None
 
@@ -960,7 +960,7 @@ class AsyncOpenAI(AsyncAPIClient):
             '"Could not resolve authentication method. Expected either api_key or admin_api_key to be set. Or for one of the `Authorization` or `Authorization` headers to be explicitly omitted"'
         )
 
-    async def _refresh_api_key(self) -> str | None:
+    async def _refresh_api_key(self) -> str:
         if self._api_key_provider is not None:
             self.api_key = await self._api_key_provider()
 
