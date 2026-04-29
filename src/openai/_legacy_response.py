@@ -136,7 +136,10 @@ class LegacyAPIResponse(Generic[R]):
 
         parsed = self._parse(to=to)
         if is_given(self._options.post_parser):
-            parsed = self._options.post_parser(parsed)
+            try:
+                parsed = self._options.post_parser(parsed)
+            except pydantic.ValidationError as err:
+                raise APIResponseValidationError(response=self.http_response, body=parsed) from err
 
         if isinstance(parsed, BaseModel):
             add_request_id(parsed, self.request_id)

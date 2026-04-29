@@ -5,12 +5,13 @@ from typing import List, Optional
 from typing_extensions import Literal, TypeVar
 
 import pytest
+import pydantic
 from respx import MockRouter
 from pydantic import Field, BaseModel
 from inline_snapshot import snapshot
 
 import openai
-from openai import OpenAI, AsyncOpenAI
+from openai import OpenAI, AsyncOpenAI, APIResponseValidationError
 from openai._utils import assert_signatures_in_sync
 from openai._compat import PYDANTIC_V1
 
@@ -159,6 +160,36 @@ ParsedChatCompletion(
 )
 """
     )
+
+
+@pytest.mark.respx(base_url=base_url)
+def test_parse_pydantic_model_invalid_json(client: OpenAI, respx_mock: MockRouter) -> None:
+    class Location(BaseModel):
+        city: str
+        temperature: float
+        units: Literal["c", "f"]
+
+    with pytest.raises(APIResponseValidationError) as exc:
+        make_snapshot_request(
+            lambda c: c.beta.chat.completions.parse(
+                model="gpt-4o-2024-08-06",
+                messages=[
+                    {
+                        "role": "user",
+                        "content": "What's the weather like in SF?",
+                    },
+                ],
+                response_format=Location,
+            ),
+            content_snapshot=snapshot(
+                '{"id": "chatcmpl-invalid", "object": "chat.completion", "created": 1727346143, "model": "gpt-4o-2024-08-06", "choices": [{"index": 0, "message": {"role": "assistant", "content": "{\\"city\\":\\"San Francisco\\"", "refusal": null}, "logprobs": null, "finish_reason": "stop"}], "usage": {"prompt_tokens": 79, "completion_tokens": 8, "total_tokens": 87, "completion_tokens_details": {"reasoning_tokens": 0}}, "system_fingerprint": "fp_5050236cbd"}'
+            ),
+            path="/chat/completions",
+            mock_client=client,
+            respx_mock=respx_mock,
+        )
+
+    assert isinstance(exc.value.__cause__, pydantic.ValidationError)
 
 
 @pytest.mark.respx(base_url=base_url)
