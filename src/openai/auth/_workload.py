@@ -254,7 +254,8 @@ def aws_bedrock_token_provider(
     For ``AsyncOpenAI``, use :func:`async_aws_bedrock_token_provider` instead.
 
     Args:
-        region: AWS region. Defaults to ``AWS_REGION`` or ``AWS_DEFAULT_REGION`` environment variable.
+        region: AWS region. Must match the region in the ``base_url`` passed to the client.
+            Defaults to ``AWS_REGION`` or ``AWS_DEFAULT_REGION`` environment variable.
         profile: AWS profile name. If not set, botocore resolves credentials from the standard chain.
         token_duration: Presigned URL expiry in seconds. Defaults to 3600 (1 hour).
     """
@@ -278,7 +279,8 @@ def async_aws_bedrock_token_provider(
     For ``OpenAI`` (sync), use :func:`aws_bedrock_token_provider` instead.
 
     Args:
-        region: AWS region. Defaults to ``AWS_REGION`` or ``AWS_DEFAULT_REGION`` environment variable.
+        region: AWS region. Must match the region in the ``base_url`` passed to the client.
+            Defaults to ``AWS_REGION`` or ``AWS_DEFAULT_REGION`` environment variable.
         profile: AWS profile name. If not set, botocore resolves credentials from the standard chain.
         token_duration: Presigned URL expiry in seconds. Defaults to 3600 (1 hour).
     """

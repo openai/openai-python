@@ -143,7 +143,7 @@ from openai import OpenAI
 from openai.auth import aws_bedrock_token_provider
 
 client = OpenAI(
-    base_url="https://bedrock-runtime.us-east-1.amazonaws.com/openai/v1",
+    base_url="https://bedrock-mantle.us-east-1.api.aws/v1",  # region must match the token provider
     api_key=aws_bedrock_token_provider(
         region="us-east-1",
         profile="my-profile",  # optional — defaults to the standard AWS credential chain
@@ -162,7 +162,7 @@ from openai import AsyncOpenAI
 from openai.auth import async_aws_bedrock_token_provider
 
 client = AsyncOpenAI(
-    base_url="https://bedrock-runtime.us-east-1.amazonaws.com/openai/v1",
+    base_url="https://bedrock-mantle.us-east-1.api.aws/v1",  # region must match the token provider
     api_key=async_aws_bedrock_token_provider(
         region="us-east-1",
     ),
