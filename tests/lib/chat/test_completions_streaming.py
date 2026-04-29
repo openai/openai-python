@@ -19,7 +19,7 @@ from inline_snapshot import (
 import openai
 from openai import OpenAI, AsyncOpenAI
 from openai._utils import consume_sync_iterator, assert_signatures_in_sync
-from openai._compat import model_copy
+from openai._compat import parse_obj, model_copy
 from openai.types.chat import ChatCompletionChunk
 from openai.lib.streaming.chat import (
     ContentDoneEvent,
@@ -41,6 +41,44 @@ _T = TypeVar("_T")
 # you can update them with
 #
 # `OPENAI_LIVE=1 pytest --inline-snapshot=fix -p no:xdist -o addopts=""`
+
+
+def test_chat_completion_chunk_usage_supports_text_and_image_token_details() -> None:
+    chunk = parse_obj(
+        ChatCompletionChunk,
+        {
+            "id": "chatcmpl-usage",
+            "choices": [],
+            "created": 1757617904,
+            "model": "gemini-2.5-flash",
+            "object": "chat.completion.chunk",
+            "usage": {
+                "completion_tokens": 1994,
+                "completion_tokens_details": {
+                    "accepted_prediction_tokens": None,
+                    "audio_tokens": None,
+                    "reasoning_tokens": 1269,
+                    "rejected_prediction_tokens": None,
+                    "text_tokens": 725,
+                },
+                "prompt_tokens": 12,
+                "prompt_tokens_details": {
+                    "audio_tokens": None,
+                    "cached_tokens": None,
+                    "image_tokens": None,
+                    "text_tokens": 12,
+                },
+                "total_tokens": 2006,
+            },
+        },
+    )
+
+    assert chunk.usage is not None
+    assert chunk.usage.completion_tokens_details is not None
+    assert chunk.usage.completion_tokens_details.text_tokens == 725
+    assert chunk.usage.prompt_tokens_details is not None
+    assert chunk.usage.prompt_tokens_details.image_tokens is None
+    assert chunk.usage.prompt_tokens_details.text_tokens == 12
 
 
 @pytest.mark.respx(base_url=base_url)
