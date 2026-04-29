@@ -7,6 +7,7 @@ import pytest
 import pydantic
 from pydantic import Field
 
+from openai.types import CompletionUsage
 from openai._utils import PropertyInfo
 from openai._compat import PYDANTIC_V1, parse_obj, model_dump, model_json
 from openai._models import DISCRIMINATOR_CACHE, BaseModel, construct_type
@@ -155,6 +156,36 @@ def test_unknown_fields() -> None:
     assert cast(Any, m2).unknown == {"foo_bar": True}
 
     assert model_dump(m2) == {"foo": "foo", "unknown": {"foo_bar": True}}
+
+
+def test_completion_usage_preserves_unknown_token_details() -> None:
+    usage = parse_obj(
+        CompletionUsage,
+        {
+            "completion_tokens": 57,
+            "prompt_tokens": 2181,
+            "total_tokens": 2518,
+            "prompt_tokens_details": None,
+            "reasoning_tokens": 280,
+            "traffic_type": "ON_DEMAND",
+            "promptTokensDetails": [{"modality": "TEXT", "tokenCount": 2181}],
+            "candidatesTokensDetails": [{"modality": "TEXT", "tokenCount": 57}],
+        },
+    )
+
+    assert usage.prompt_tokens_details is None
+    assert cast(Any, usage).reasoning_tokens == 280
+    assert cast(Any, usage).traffic_type == "ON_DEMAND"
+    assert cast(Any, usage).promptTokensDetails == [{"modality": "TEXT", "tokenCount": 2181}]
+    assert usage.to_dict(exclude_none=True) == {
+        "completion_tokens": 57,
+        "prompt_tokens": 2181,
+        "total_tokens": 2518,
+        "reasoning_tokens": 280,
+        "traffic_type": "ON_DEMAND",
+        "promptTokensDetails": [{"modality": "TEXT", "tokenCount": 2181}],
+        "candidatesTokensDetails": [{"modality": "TEXT", "tokenCount": 57}],
+    }
 
 
 def test_strict_validation_unknown_fields() -> None:
