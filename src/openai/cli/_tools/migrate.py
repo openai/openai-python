@@ -82,7 +82,11 @@ def _debug(message: str) -> None:
 def install() -> Path:
     """Installs the Grit CLI and returns the location of the binary"""
     if sys.platform == "win32":
-        raise CLIError("Windows is not supported yet in the migration CLI")
+        raise CLIError(
+            "Windows is not supported directly in the migration CLI. To migrate on Windows, "
+            "run `openai migrate` from WSL or another Linux/macOS shell; the command downloads "
+            "and invokes Grit itself, so you do not need to install `grit` or add it to PATH."
+        )
 
     _debug("Using Grit installer from GitHub")
 
