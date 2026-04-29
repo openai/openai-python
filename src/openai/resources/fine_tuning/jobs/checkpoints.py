@@ -89,6 +89,7 @@ class Checkpoints(SyncAPIResource):
                     },
                     checkpoint_list_params.CheckpointListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=FineTuningJobCheckpoint,
         )
@@ -162,6 +163,7 @@ class AsyncCheckpoints(AsyncAPIResource):
                     },
                     checkpoint_list_params.CheckpointListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=FineTuningJobCheckpoint,
         )

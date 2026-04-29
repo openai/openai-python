@@ -89,7 +89,11 @@ class Moderations(SyncAPIResource):
                 moderation_create_params.ModerationCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ModerationCreateResponse,
         )
@@ -163,7 +167,11 @@ class AsyncModerations(AsyncAPIResource):
                 moderation_create_params.ModerationCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ModerationCreateResponse,
         )

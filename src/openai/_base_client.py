@@ -63,7 +63,7 @@ from ._types import (
 )
 from ._utils import SensitiveHeadersFilter, is_dict, is_list, asyncify, is_given, lru_cache, is_mapping
 from ._compat import PYDANTIC_V1, model_copy, model_dump
-from ._models import GenericModel, FinalRequestOptions, validate_type, construct_type
+from ._models import GenericModel, SecurityOptions, FinalRequestOptions, validate_type, construct_type
 from ._response import (
     APIResponse,
     BaseAPIResponse,
@@ -435,9 +435,27 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
     ) -> _exceptions.APIStatusError:
         raise NotImplementedError()
 
+    def _auth_headers(
+        self,
+        security: SecurityOptions,  # noqa: ARG002
+    ) -> dict[str, str]:
+        return {}
+
+    def _auth_query(
+        self,
+        security: SecurityOptions,  # noqa: ARG002
+    ) -> dict[str, str]:
+        return {}
+
+    def _custom_auth(
+        self,
+        security: SecurityOptions,  # noqa: ARG002
+    ) -> httpx.Auth | None:
+        return None
+
     def _build_headers(self, options: FinalRequestOptions, *, retries_taken: int = 0) -> httpx.Headers:
         custom_headers = options.headers or {}
-        headers_dict = _merge_mappings(self.default_headers, custom_headers)
+        headers_dict = _merge_mappings({**self._auth_headers(options.security), **self.default_headers}, custom_headers)
         self._validate_headers(headers_dict, custom_headers)
 
         # headers are case-insensitive while dictionaries are not.
@@ -509,7 +527,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
                 raise RuntimeError(f"Unexpected JSON data type, {type(json_data)}, cannot merge with `extra_body`")
 
         headers = self._build_headers(options, retries_taken=retries_taken)
-        params = _merge_mappings(self.default_query, options.params)
+        params = _merge_mappings({**self._auth_query(options.security), **self.default_query}, options.params)
         content_type = headers.get("Content-Type")
         files = options.files
 
@@ -678,7 +696,6 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
             "Content-Type": "application/json",
             "User-Agent": self.user_agent,
             **self.platform_headers(),
-            **self.auth_headers,
             **self._custom_headers,
         }
 
@@ -1006,8 +1023,9 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
             self._prepare_request(request)
 
             kwargs: HttpxSendArgs = {}
-            if self.custom_auth is not None:
-                kwargs["auth"] = self.custom_auth
+            custom_auth = self._custom_auth(options.security)
+            if custom_auth is not None:
+                kwargs["auth"] = custom_auth
 
             if options.follow_redirects is not None:
                 kwargs["follow_redirects"] = options.follow_redirects
@@ -2013,6 +2031,7 @@ def make_request_options(
     idempotency_key: str | None = None,
     timeout: float | httpx.Timeout | None | NotGiven = not_given,
     post_parser: PostParser | NotGiven = not_given,
+    security: SecurityOptions | None = None,
     synthesize_event_and_data: bool | None = None,
 ) -> RequestOptions:
     """Create a dict of type RequestOptions without keys of NotGiven values."""
@@ -2038,6 +2057,9 @@ def make_request_options(
     if is_given(post_parser):
         # internal
         options["post_parser"] = post_parser  # type: ignore
+
+    if security is not None:
+        options["security"] = security
 
     if synthesize_event_and_data is not None:
         options["synthesize_event_and_data"] = synthesize_event_and_data

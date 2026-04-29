@@ -242,7 +242,11 @@ class Uploads(SyncAPIResource):
                 upload_create_params.UploadCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Upload,
         )
@@ -278,7 +282,11 @@ class Uploads(SyncAPIResource):
         return self._post(
             path_template("/uploads/{upload_id}/cancel", upload_id=upload_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Upload,
         )
@@ -339,7 +347,11 @@ class Uploads(SyncAPIResource):
                 upload_complete_params.UploadCompleteParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Upload,
         )
@@ -558,7 +570,11 @@ class AsyncUploads(AsyncAPIResource):
                 upload_create_params.UploadCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Upload,
         )
@@ -594,7 +610,11 @@ class AsyncUploads(AsyncAPIResource):
         return await self._post(
             path_template("/uploads/{upload_id}/cancel", upload_id=upload_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Upload,
         )
@@ -655,7 +675,11 @@ class AsyncUploads(AsyncAPIResource):
                 upload_complete_params.UploadCompleteParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Upload,
         )

@@ -91,7 +91,11 @@ class Permissions(SyncAPIResource):
             page=SyncPage[PermissionCreateResponse],
             body=maybe_transform({"project_ids": project_ids}, permission_create_params.PermissionCreateParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             model=PermissionCreateResponse,
             method="post",
@@ -159,6 +163,7 @@ class Permissions(SyncAPIResource):
                     },
                     permission_retrieve_params.PermissionRetrieveParams,
                 ),
+                security={"bearer_auth": True},
             ),
             cast_to=PermissionRetrieveResponse,
         )
@@ -225,6 +230,7 @@ class Permissions(SyncAPIResource):
                     },
                     permission_list_params.PermissionListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=PermissionListResponse,
         )
@@ -269,7 +275,11 @@ class Permissions(SyncAPIResource):
                 permission_id=permission_id,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=PermissionDeleteResponse,
         )
@@ -338,7 +348,11 @@ class AsyncPermissions(AsyncAPIResource):
             page=AsyncPage[PermissionCreateResponse],
             body=maybe_transform({"project_ids": project_ids}, permission_create_params.PermissionCreateParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             model=PermissionCreateResponse,
             method="post",
@@ -406,6 +420,7 @@ class AsyncPermissions(AsyncAPIResource):
                     },
                     permission_retrieve_params.PermissionRetrieveParams,
                 ),
+                security={"bearer_auth": True},
             ),
             cast_to=PermissionRetrieveResponse,
         )
@@ -472,6 +487,7 @@ class AsyncPermissions(AsyncAPIResource):
                     },
                     permission_list_params.PermissionListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=PermissionListResponse,
         )
@@ -516,7 +532,11 @@ class AsyncPermissions(AsyncAPIResource):
                 permission_id=permission_id,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=PermissionDeleteResponse,
         )

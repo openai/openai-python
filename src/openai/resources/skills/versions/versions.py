@@ -114,7 +114,11 @@ class Versions(SyncAPIResource):
             body=maybe_transform(body, version_create_params.VersionCreateParams),
             files=extracted_files,
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=SkillVersion,
         )
@@ -152,7 +156,11 @@ class Versions(SyncAPIResource):
         return self._get(
             path_template("/skills/{skill_id}/versions/{version}", skill_id=skill_id, version=version),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=SkillVersion,
         )
@@ -207,6 +215,7 @@ class Versions(SyncAPIResource):
                     },
                     version_list_params.VersionListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=SkillVersion,
         )
@@ -244,7 +253,11 @@ class Versions(SyncAPIResource):
         return self._delete(
             path_template("/skills/{skill_id}/versions/{version}", skill_id=skill_id, version=version),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=DeletedSkillVersion,
         )
@@ -323,7 +336,11 @@ class AsyncVersions(AsyncAPIResource):
             body=await async_maybe_transform(body, version_create_params.VersionCreateParams),
             files=extracted_files,
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=SkillVersion,
         )
@@ -361,7 +378,11 @@ class AsyncVersions(AsyncAPIResource):
         return await self._get(
             path_template("/skills/{skill_id}/versions/{version}", skill_id=skill_id, version=version),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=SkillVersion,
         )
@@ -416,6 +437,7 @@ class AsyncVersions(AsyncAPIResource):
                     },
                     version_list_params.VersionListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=SkillVersion,
         )
@@ -453,7 +475,11 @@ class AsyncVersions(AsyncAPIResource):
         return await self._delete(
             path_template("/skills/{skill_id}/versions/{version}", skill_id=skill_id, version=version),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=DeletedSkillVersion,
         )

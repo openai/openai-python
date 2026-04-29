@@ -114,7 +114,11 @@ class Skills(SyncAPIResource):
             body=maybe_transform(body, skill_create_params.SkillCreateParams),
             files=extracted_files,
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Skill,
         )
@@ -147,7 +151,11 @@ class Skills(SyncAPIResource):
         return self._get(
             path_template("/skills/{skill_id}", skill_id=skill_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Skill,
         )
@@ -184,7 +192,11 @@ class Skills(SyncAPIResource):
             path_template("/skills/{skill_id}", skill_id=skill_id),
             body=maybe_transform({"default_version": default_version}, skill_update_params.SkillUpdateParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Skill,
         )
@@ -237,6 +249,7 @@ class Skills(SyncAPIResource):
                     },
                     skill_list_params.SkillListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=Skill,
         )
@@ -269,7 +282,11 @@ class Skills(SyncAPIResource):
         return self._delete(
             path_template("/skills/{skill_id}", skill_id=skill_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=DeletedSkill,
         )
@@ -340,7 +357,11 @@ class AsyncSkills(AsyncAPIResource):
             body=await async_maybe_transform(body, skill_create_params.SkillCreateParams),
             files=extracted_files,
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Skill,
         )
@@ -373,7 +394,11 @@ class AsyncSkills(AsyncAPIResource):
         return await self._get(
             path_template("/skills/{skill_id}", skill_id=skill_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Skill,
         )
@@ -412,7 +437,11 @@ class AsyncSkills(AsyncAPIResource):
                 {"default_version": default_version}, skill_update_params.SkillUpdateParams
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Skill,
         )
@@ -465,6 +494,7 @@ class AsyncSkills(AsyncAPIResource):
                     },
                     skill_list_params.SkillListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=Skill,
         )
@@ -497,7 +527,11 @@ class AsyncSkills(AsyncAPIResource):
         return await self._delete(
             path_template("/skills/{skill_id}", skill_id=skill_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=DeletedSkill,
         )

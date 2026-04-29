@@ -36,7 +36,7 @@ import pydantic
 from httpx import URL, Proxy, Timeout, Response, BaseTransport, AsyncBaseTransport
 
 if TYPE_CHECKING:
-    from ._models import BaseModel
+    from ._models import BaseModel, SecurityOptions
     from ._response import APIResponse, AsyncAPIResponse
     from ._legacy_response import HttpxBinaryResponseContent
 
@@ -125,6 +125,7 @@ class RequestOptions(TypedDict, total=False):
     extra_json: AnyMapping
     idempotency_key: str
     follow_redirects: bool
+    security: SecurityOptions
     synthesize_event_and_data: bool
 
 

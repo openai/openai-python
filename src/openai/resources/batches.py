@@ -123,7 +123,11 @@ class Batches(SyncAPIResource):
                 batch_create_params.BatchCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Batch,
         )
@@ -156,7 +160,11 @@ class Batches(SyncAPIResource):
         return self._get(
             path_template("/batches/{batch_id}", batch_id=batch_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Batch,
         )
@@ -209,6 +217,7 @@ class Batches(SyncAPIResource):
                     },
                     batch_list_params.BatchListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=Batch,
         )
@@ -244,7 +253,11 @@ class Batches(SyncAPIResource):
         return self._post(
             path_template("/batches/{batch_id}/cancel", batch_id=batch_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Batch,
         )
@@ -351,7 +364,11 @@ class AsyncBatches(AsyncAPIResource):
                 batch_create_params.BatchCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Batch,
         )
@@ -384,7 +401,11 @@ class AsyncBatches(AsyncAPIResource):
         return await self._get(
             path_template("/batches/{batch_id}", batch_id=batch_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Batch,
         )
@@ -437,6 +458,7 @@ class AsyncBatches(AsyncAPIResource):
                     },
                     batch_list_params.BatchListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=Batch,
         )
@@ -472,7 +494,11 @@ class AsyncBatches(AsyncAPIResource):
         return await self._post(
             path_template("/batches/{batch_id}/cancel", batch_id=batch_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Batch,
         )

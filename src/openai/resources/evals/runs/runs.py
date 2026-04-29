@@ -113,7 +113,11 @@ class Runs(SyncAPIResource):
                 run_create_params.RunCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=RunCreateResponse,
         )
@@ -149,7 +153,11 @@ class Runs(SyncAPIResource):
         return self._get(
             path_template("/evals/{eval_id}/runs/{run_id}", eval_id=eval_id, run_id=run_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=RunRetrieveResponse,
         )
@@ -210,6 +218,7 @@ class Runs(SyncAPIResource):
                     },
                     run_list_params.RunListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=RunListResponse,
         )
@@ -245,7 +254,11 @@ class Runs(SyncAPIResource):
         return self._delete(
             path_template("/evals/{eval_id}/runs/{run_id}", eval_id=eval_id, run_id=run_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=RunDeleteResponse,
         )
@@ -281,7 +294,11 @@ class Runs(SyncAPIResource):
         return self._post(
             path_template("/evals/{eval_id}/runs/{run_id}", eval_id=eval_id, run_id=run_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=RunCancelResponse,
         )
@@ -366,7 +383,11 @@ class AsyncRuns(AsyncAPIResource):
                 run_create_params.RunCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=RunCreateResponse,
         )
@@ -402,7 +423,11 @@ class AsyncRuns(AsyncAPIResource):
         return await self._get(
             path_template("/evals/{eval_id}/runs/{run_id}", eval_id=eval_id, run_id=run_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=RunRetrieveResponse,
         )
@@ -463,6 +488,7 @@ class AsyncRuns(AsyncAPIResource):
                     },
                     run_list_params.RunListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=RunListResponse,
         )
@@ -498,7 +524,11 @@ class AsyncRuns(AsyncAPIResource):
         return await self._delete(
             path_template("/evals/{eval_id}/runs/{run_id}", eval_id=eval_id, run_id=run_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=RunDeleteResponse,
         )
@@ -534,7 +564,11 @@ class AsyncRuns(AsyncAPIResource):
         return await self._post(
             path_template("/evals/{eval_id}/runs/{run_id}", eval_id=eval_id, run_id=run_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=RunCancelResponse,
         )

@@ -125,7 +125,11 @@ class Videos(SyncAPIResource):
             body=maybe_transform(body, video_create_params.VideoCreateParams),
             files=files,
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Video,
         )
@@ -231,7 +235,11 @@ class Videos(SyncAPIResource):
         return self._get(
             path_template("/videos/{video_id}", video_id=video_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Video,
         )
@@ -284,6 +292,7 @@ class Videos(SyncAPIResource):
                     },
                     video_list_params.VideoListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=Video,
         )
@@ -316,7 +325,11 @@ class Videos(SyncAPIResource):
         return self._delete(
             path_template("/videos/{video_id}", video_id=video_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VideoDeleteResponse,
         )
@@ -366,7 +379,11 @@ class Videos(SyncAPIResource):
             body=maybe_transform(body, video_create_character_params.VideoCreateCharacterParams),
             files=files,
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VideoCreateCharacterResponse,
         )
@@ -410,6 +427,7 @@ class Videos(SyncAPIResource):
                 extra_body=extra_body,
                 timeout=timeout,
                 query=maybe_transform({"variant": variant}, video_download_content_params.VideoDownloadContentParams),
+                security={"bearer_auth": True},
             ),
             cast_to=_legacy_response.HttpxBinaryResponseContent,
         )
@@ -460,7 +478,11 @@ class Videos(SyncAPIResource):
             body=maybe_transform(body, video_edit_params.VideoEditParams),
             files=files,
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Video,
         )
@@ -515,7 +537,11 @@ class Videos(SyncAPIResource):
             body=maybe_transform(body, video_extend_params.VideoExtendParams),
             files=files,
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Video,
         )
@@ -548,7 +574,11 @@ class Videos(SyncAPIResource):
         return self._get(
             path_template("/videos/characters/{character_id}", character_id=character_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VideoGetCharacterResponse,
         )
@@ -585,7 +615,11 @@ class Videos(SyncAPIResource):
             path_template("/videos/{video_id}/remix", video_id=video_id),
             body=maybe_transform({"prompt": prompt}, video_remix_params.VideoRemixParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Video,
         )
@@ -670,7 +704,11 @@ class AsyncVideos(AsyncAPIResource):
             body=await async_maybe_transform(body, video_create_params.VideoCreateParams),
             files=files,
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Video,
         )
@@ -776,7 +814,11 @@ class AsyncVideos(AsyncAPIResource):
         return await self._get(
             path_template("/videos/{video_id}", video_id=video_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Video,
         )
@@ -829,6 +871,7 @@ class AsyncVideos(AsyncAPIResource):
                     },
                     video_list_params.VideoListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=Video,
         )
@@ -861,7 +904,11 @@ class AsyncVideos(AsyncAPIResource):
         return await self._delete(
             path_template("/videos/{video_id}", video_id=video_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VideoDeleteResponse,
         )
@@ -911,7 +958,11 @@ class AsyncVideos(AsyncAPIResource):
             body=await async_maybe_transform(body, video_create_character_params.VideoCreateCharacterParams),
             files=files,
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VideoCreateCharacterResponse,
         )
@@ -957,6 +1008,7 @@ class AsyncVideos(AsyncAPIResource):
                 query=await async_maybe_transform(
                     {"variant": variant}, video_download_content_params.VideoDownloadContentParams
                 ),
+                security={"bearer_auth": True},
             ),
             cast_to=_legacy_response.HttpxBinaryResponseContent,
         )
@@ -1007,7 +1059,11 @@ class AsyncVideos(AsyncAPIResource):
             body=await async_maybe_transform(body, video_edit_params.VideoEditParams),
             files=files,
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Video,
         )
@@ -1062,7 +1118,11 @@ class AsyncVideos(AsyncAPIResource):
             body=await async_maybe_transform(body, video_extend_params.VideoExtendParams),
             files=files,
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Video,
         )
@@ -1095,7 +1155,11 @@ class AsyncVideos(AsyncAPIResource):
         return await self._get(
             path_template("/videos/characters/{character_id}", character_id=character_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VideoGetCharacterResponse,
         )
@@ -1132,7 +1196,11 @@ class AsyncVideos(AsyncAPIResource):
             path_template("/videos/{video_id}/remix", video_id=video_id),
             body=await async_maybe_transform({"prompt": prompt}, video_remix_params.VideoRemixParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Video,
         )

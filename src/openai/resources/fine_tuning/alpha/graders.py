@@ -88,7 +88,11 @@ class Graders(SyncAPIResource):
                 grader_run_params.GraderRunParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=GraderRunResponse,
         )
@@ -122,7 +126,11 @@ class Graders(SyncAPIResource):
             "/fine_tuning/alpha/graders/validate",
             body=maybe_transform({"grader": grader}, grader_validate_params.GraderValidateParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=GraderValidateResponse,
         )
@@ -198,7 +206,11 @@ class AsyncGraders(AsyncAPIResource):
                 grader_run_params.GraderRunParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=GraderRunResponse,
         )
@@ -232,7 +244,11 @@ class AsyncGraders(AsyncAPIResource):
             "/fine_tuning/alpha/graders/validate",
             body=await async_maybe_transform({"grader": grader}, grader_validate_params.GraderValidateParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=GraderValidateResponse,
         )

@@ -175,7 +175,11 @@ class Jobs(SyncAPIResource):
                 job_create_params.JobCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=FineTuningJob,
         )
@@ -210,7 +214,11 @@ class Jobs(SyncAPIResource):
         return self._get(
             path_template("/fine_tuning/jobs/{fine_tuning_job_id}", fine_tuning_job_id=fine_tuning_job_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=FineTuningJob,
         )
@@ -263,6 +271,7 @@ class Jobs(SyncAPIResource):
                     },
                     job_list_params.JobListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=FineTuningJob,
         )
@@ -295,7 +304,11 @@ class Jobs(SyncAPIResource):
         return self._post(
             path_template("/fine_tuning/jobs/{fine_tuning_job_id}/cancel", fine_tuning_job_id=fine_tuning_job_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=FineTuningJob,
         )
@@ -346,6 +359,7 @@ class Jobs(SyncAPIResource):
                     },
                     job_list_events_params.JobListEventsParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=FineTuningJobEvent,
         )
@@ -378,7 +392,11 @@ class Jobs(SyncAPIResource):
         return self._post(
             path_template("/fine_tuning/jobs/{fine_tuning_job_id}/pause", fine_tuning_job_id=fine_tuning_job_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=FineTuningJob,
         )
@@ -411,7 +429,11 @@ class Jobs(SyncAPIResource):
         return self._post(
             path_template("/fine_tuning/jobs/{fine_tuning_job_id}/resume", fine_tuning_job_id=fine_tuning_job_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=FineTuningJob,
         )
@@ -558,7 +580,11 @@ class AsyncJobs(AsyncAPIResource):
                 job_create_params.JobCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=FineTuningJob,
         )
@@ -593,7 +619,11 @@ class AsyncJobs(AsyncAPIResource):
         return await self._get(
             path_template("/fine_tuning/jobs/{fine_tuning_job_id}", fine_tuning_job_id=fine_tuning_job_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=FineTuningJob,
         )
@@ -646,6 +676,7 @@ class AsyncJobs(AsyncAPIResource):
                     },
                     job_list_params.JobListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=FineTuningJob,
         )
@@ -678,7 +709,11 @@ class AsyncJobs(AsyncAPIResource):
         return await self._post(
             path_template("/fine_tuning/jobs/{fine_tuning_job_id}/cancel", fine_tuning_job_id=fine_tuning_job_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=FineTuningJob,
         )
@@ -729,6 +764,7 @@ class AsyncJobs(AsyncAPIResource):
                     },
                     job_list_events_params.JobListEventsParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=FineTuningJobEvent,
         )
@@ -761,7 +797,11 @@ class AsyncJobs(AsyncAPIResource):
         return await self._post(
             path_template("/fine_tuning/jobs/{fine_tuning_job_id}/pause", fine_tuning_job_id=fine_tuning_job_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=FineTuningJob,
         )
@@ -794,7 +834,11 @@ class AsyncJobs(AsyncAPIResource):
         return await self._post(
             path_template("/fine_tuning/jobs/{fine_tuning_job_id}/resume", fine_tuning_job_id=fine_tuning_job_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=FineTuningJob,
         )
