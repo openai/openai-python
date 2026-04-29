@@ -20,6 +20,7 @@ import openai
 from openai import OpenAI, AsyncOpenAI
 from openai._utils import consume_sync_iterator, assert_signatures_in_sync
 from openai._compat import model_copy
+from openai._models import construct_type
 from openai.types.chat import ChatCompletionChunk
 from openai.lib.streaming.chat import (
     ContentDoneEvent,
@@ -1065,6 +1066,99 @@ recommend checking a reliable weather website or a weather app.",
     )
 ]
 """
+    )
+
+
+def test_chat_completion_state_handles_tool_call_delta_without_index(monkeypatch: pytest.MonkeyPatch) -> None:
+    state = ChatCompletionStreamState()
+    events: list[ChatCompletionStreamEvent[object]] = []
+
+    events.extend(
+        state.handle_chunk(
+            _make_chat_completion_chunk(
+                {
+                    "role": "assistant",
+                    "tool_calls": [
+                        {
+                            "index": 0,
+                            "id": "call_123",
+                            "type": "function",
+                            "function": {"name": "get_weather", "arguments": ""},
+                        }
+                    ],
+                }
+            )
+        )
+    )
+    events.extend(
+        state.handle_chunk(
+            _make_chat_completion_chunk({"tool_calls": [{"index": None, "function": {"arguments": '{"city"'}}]})
+        )
+    )
+    events.extend(
+        state.handle_chunk(
+            _make_chat_completion_chunk({"tool_calls": [{"index": None, "function": {"arguments": ':"Chicago"}'}}]})
+        )
+    )
+    events.extend(state.handle_chunk(_make_chat_completion_chunk({}, finish_reason="tool_calls")))
+
+    assert print_obj(events[-1], monkeypatch) == snapshot("""\
+FunctionToolCallArgumentsDoneEvent(
+    arguments='{"city":"Chicago"}',
+    index=0,
+    name='get_weather',
+    parsed_arguments=None,
+    type='tool_calls.function.arguments.done'
+)
+""")
+
+    assert print_obj(state.get_final_completion().choices, monkeypatch) == snapshot(
+        """\
+[
+    ParsedChoice(
+        finish_reason='tool_calls',
+        index=0,
+        logprobs=None,
+        message=ParsedChatCompletionMessage(
+            annotations=None,
+            audio=None,
+            content=None,
+            function_call=None,
+            parsed=None,
+            refusal=None,
+            role='assistant',
+            tool_calls=[
+                ParsedFunctionToolCall(
+                    function=ParsedFunction(arguments='{"city":"Chicago"}', name='get_weather', parsed_arguments=None),
+                    id='call_123',
+                    index=0,
+                    type='function'
+                )
+            ]
+        )
+    )
+]
+"""
+    )
+
+
+def _make_chat_completion_chunk(
+    delta: dict[str, object],
+    *,
+    finish_reason: Literal["stop", "length", "tool_calls", "content_filter", "function_call"] | None = None,
+) -> ChatCompletionChunk:
+    return cast(
+        ChatCompletionChunk,
+        construct_type(
+            type_=ChatCompletionChunk,
+            value={
+                "id": "chatcmpl_123",
+                "choices": [{"delta": delta, "finish_reason": finish_reason, "index": 0}],
+                "created": 1721075651,
+                "model": "gpt-4o-2024-08-06",
+                "object": "chat.completion.chunk",
+            },
+        ),
     )
 
 

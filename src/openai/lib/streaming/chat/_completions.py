@@ -39,7 +39,7 @@ from ...._streaming import Stream, AsyncStream
 from ....types.chat import ChatCompletionChunk, ParsedChatCompletion, ChatCompletionToolUnionParam
 from ...._exceptions import LengthFinishReasonError, ContentFilterFinishReasonError
 from ....types.chat.chat_completion import ChoiceLogprobs
-from ....types.chat.chat_completion_chunk import Choice as ChoiceChunk
+from ....types.chat.chat_completion_chunk import Choice as ChoiceChunk, ChoiceDeltaToolCall
 from ....types.chat.completion_create_params import ResponseFormat as ResponseFormatParam
 
 
@@ -393,7 +393,7 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
                                     ),
                                 ),
                             ),
-                            cast("dict[object, object]", choice.delta.to_dict()),
+                            _choice_delta_to_dict(choice),
                         ),
                     ),
                 )
@@ -415,7 +415,7 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
                         type_=ParsedChoiceSnapshot,
                         value={
                             **choice.model_dump(exclude_unset=True, exclude={"delta"}),
-                            "message": choice.delta.to_dict(),
+                            "message": _choice_delta_to_dict(choice),
                         },
                     ),
                 )
@@ -445,8 +445,9 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
                     partial_mode=True,
                 )
 
-            for tool_call_chunk in choice.delta.tool_calls or []:
-                tool_call_snapshot = (choice_snapshot.message.tool_calls or [])[tool_call_chunk.index]
+            for tool_call_chunk_position, tool_call_chunk in enumerate(choice.delta.tool_calls or []):
+                tool_call_index = _tool_call_delta_index(tool_call_chunk, fallback_index=tool_call_chunk_position)
+                tool_call_snapshot = (choice_snapshot.message.tool_calls or [])[tool_call_index]
 
                 if tool_call_snapshot.type == "function":
                     input_tool = get_input_tool_by_name(
@@ -531,8 +532,9 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
                 tool_calls = choice_snapshot.message.tool_calls
                 assert tool_calls is not None
 
-                for tool_call_delta in choice.delta.tool_calls:
-                    tool_call = tool_calls[tool_call_delta.index]
+                for tool_call_delta_position, tool_call_delta in enumerate(choice.delta.tool_calls):
+                    tool_call_index = _tool_call_delta_index(tool_call_delta, fallback_index=tool_call_delta_position)
+                    tool_call = tool_calls[tool_call_index]
 
                     if tool_call.type == "function":
                         assert tool_call_delta.function is not None
@@ -541,7 +543,7 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
                                 FunctionToolCallArgumentsDeltaEvent,
                                 type="tool_calls.function.arguments.delta",
                                 name=tool_call.function.name,
-                                index=tool_call_delta.index,
+                                index=tool_call_index,
                                 arguments=tool_call.function.arguments,
                                 parsed_arguments=tool_call.function.parsed_arguments,
                                 arguments_delta=tool_call_delta.function.arguments or "",
@@ -617,8 +619,10 @@ class ChoiceEventState:
                     tool_index=self.__current_tool_call_index,
                 )
 
-        for tool_call in choice_chunk.delta.tool_calls or []:
-            if self.__current_tool_call_index != tool_call.index:
+        for tool_call_position, tool_call in enumerate(choice_chunk.delta.tool_calls or []):
+            tool_call_index = _tool_call_delta_index(tool_call, fallback_index=tool_call_position)
+
+            if self.__current_tool_call_index != tool_call_index:
                 events_to_fire.extend(
                     self._content_done_events(choice_snapshot=choice_snapshot, response_format=response_format)
                 )
@@ -630,7 +634,7 @@ class ChoiceEventState:
                         tool_index=self.__current_tool_call_index,
                     )
 
-            self.__current_tool_call_index = tool_call.index
+            self.__current_tool_call_index = tool_call_index
 
         return events_to_fire
 
@@ -744,7 +748,7 @@ def _convert_initial_chunk_into_snapshot(chunk: ChatCompletionChunk) -> ParsedCh
     for choice in chunk.choices:
         choices[choice.index] = {
             **choice.model_dump(exclude_unset=True, exclude={"delta"}),
-            "message": choice.delta.to_dict(),
+            "message": _choice_delta_to_dict(choice),
         }
 
     return cast(
@@ -758,6 +762,29 @@ def _convert_initial_chunk_into_snapshot(chunk: ChatCompletionChunk) -> ParsedCh
             },
         ),
     )
+
+
+def _choice_delta_to_dict(choice: ChoiceChunk) -> dict[object, object]:
+    delta = cast("dict[object, object]", choice.delta.to_dict())
+    tool_call_deltas = choice.delta.tool_calls
+    if not tool_call_deltas:
+        return delta
+
+    tool_call_dicts = cast("list[dict[object, object]]", delta.get("tool_calls"))
+    for tool_call_position, tool_call_delta in enumerate(tool_call_deltas):
+        tool_call_dicts[tool_call_position]["index"] = _tool_call_delta_index(
+            tool_call_delta, fallback_index=tool_call_position
+        )
+
+    return delta
+
+
+def _tool_call_delta_index(tool_call_delta: ChoiceDeltaToolCall, *, fallback_index: int) -> int:
+    index = cast("int | None", tool_call_delta.index)
+    if index is None:
+        return fallback_index
+
+    return index
 
 
 def _is_valid_chat_completion_chunk_weak(sse_event: ChatCompletionChunk) -> bool:
