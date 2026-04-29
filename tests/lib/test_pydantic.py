@@ -409,3 +409,23 @@ def test_nested_inline_ref_expansion() -> None:
                 "additionalProperties": False,
             }
         )
+
+
+def test_extra_allow_is_strict() -> None:
+    if not PYDANTIC_V1:
+        from pydantic import ConfigDict
+
+        class Model(BaseModel):
+            model_config = ConfigDict(extra="allow")
+
+            field: str
+
+    else:
+
+        class Model(BaseModel):
+            field: str
+
+            class Config:
+                extra = "allow"
+
+    assert to_strict_json_schema(Model)["additionalProperties"] is False
