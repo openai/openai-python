@@ -150,10 +150,10 @@ class CategoryScores(BaseModel):
     hate_threatening: float = FieldInfo(alias="hate/threatening")
     """The score for the category 'hate/threatening'."""
 
-    illicit: float
+    illicit: Optional[float] = None
     """The score for the category 'illicit'."""
 
-    illicit_violent: float = FieldInfo(alias="illicit/violent")
+    illicit_violent: Optional[float] = FieldInfo(alias="illicit/violent", default=None)
     """The score for the category 'illicit/violent'."""
 
     self_harm: float = FieldInfo(alias="self-harm")
