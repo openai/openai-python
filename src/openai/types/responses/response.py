@@ -214,7 +214,7 @@ class Response(BaseModel):
     [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
     """
 
-    prompt_cache_retention: Optional[Literal["in-memory", "24h"]] = None
+    prompt_cache_retention: Optional[Literal["in_memory", "24h"]] = None
     """The retention policy for the prompt cache.
 
     Set to `24h` to enable extended prompt caching, which keeps cached prefixes
