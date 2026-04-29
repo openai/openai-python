@@ -260,7 +260,6 @@ class AsyncEmbeddings(AsyncAPIResource):
             "/embeddings",
             body=maybe_transform(params, embedding_create_params.EmbeddingCreateParams),
             options=make_request_options(
-            options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
                 extra_body=extra_body,

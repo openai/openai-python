@@ -10,7 +10,7 @@ import asyncio
 import inspect
 import dataclasses
 import tracemalloc
-from typing import Any, Union, TypeVar, Callable, Iterable, Iterator, Optional, Protocol, Coroutine, cast
+from typing import Any, Union, TypeVar, Callable, Iterable, Iterator, Optional, Coroutine, cast
 from unittest import mock
 from typing_extensions import Literal, AsyncIterator, override
 
@@ -19,7 +19,7 @@ import pytest
 from respx import MockRouter
 from pydantic import ValidationError
 
-from openai import OpenAI, AsyncOpenAI, APIResponseValidationError
+from openai import OpenAI, AsyncOpenAI, OpenAIError, APIResponseValidationError
 from openai.auth import WorkloadIdentity
 from openai._types import Omit
 from openai._utils import asyncify
@@ -43,6 +43,15 @@ T = TypeVar("T")
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 api_key = "My API Key"
 admin_api_key = "My Admin API Key"
+workload_identity: WorkloadIdentity = {
+    "client_id": "client_123",
+    "identity_provider_id": "provider_123",
+    "service_account_id": "service_account_123",
+    "provider": {
+        "get_token": lambda: "external-subject-token",
+        "token_type": "jwt",
+    },
+}
 
 
 def _get_params(client: BaseClient[Any, Any]) -> dict[str, str]:
@@ -424,19 +433,6 @@ class TestOpenAI:
             api_key=api_key,
             admin_api_key=admin_api_key,
             _strict_response_validation=True,
-            default_headers={
-                "X-Foo": "stainless",
-                "X-Stainless-Lang": "my-overriding-header",
-            },
-        )
-        request = test_client2._build_request(FinalRequestOptions(method="get", url="/foo"))
-        assert request.headers.get("x-foo") == "stainless"
-        assert request.headers.get("x-stainless-lang") == "my-overriding-header"
-
-        test_client.close()
-        test_client2.close()
-
-    def test_validate_headers(self) -> None:
             default_headers={
                 "X-Foo": "stainless",
                 "X-Stainless-Lang": "my-overriding-header",
