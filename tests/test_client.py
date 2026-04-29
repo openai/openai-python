@@ -1903,6 +1903,20 @@ class TestAsyncOpenAI:
             assert not test_client.is_closed()
         assert test_client.is_closed()
 
+    async def test_client_context_manager_closes_custom_http_client(self) -> None:
+        http_client = httpx.AsyncClient()
+        test_client = AsyncOpenAI(
+            base_url=base_url,
+            api_key=api_key,
+            _strict_response_validation=True,
+            http_client=http_client,
+        )
+
+        async with test_client:
+            assert not http_client.is_closed
+
+        assert http_client.is_closed
+
     @pytest.mark.respx(base_url=base_url)
     async def test_client_response_validation_error(self, respx_mock: MockRouter, async_client: AsyncOpenAI) -> None:
         class Model(BaseModel):

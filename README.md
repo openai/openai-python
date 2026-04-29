@@ -891,6 +891,20 @@ with OpenAI() as client:
 # HTTP client is now closed
 ```
 
+The async client works the same way:
+
+```py
+from openai import AsyncOpenAI
+
+async with AsyncOpenAI() as client:
+  # make requests here
+  ...
+
+# HTTP client is now closed
+```
+
+In long-running async applications, such as ASGI web servers, create one async client during application startup and close it during application shutdown instead of creating a new client for every request.
+
 ## Microsoft Azure OpenAI
 
 To use this library with [Azure OpenAI](https://learn.microsoft.com/azure/ai-services/openai/overview), use the `AzureOpenAI`
