@@ -1,12 +1,14 @@
 from __future__ import annotations
 
+import gc
+import weakref
 from enum import Enum
 from typing import List, Optional
 from typing_extensions import Literal, TypeVar
 
 import pytest
 from respx import MockRouter
-from pydantic import Field, BaseModel
+from pydantic import Field, BaseModel, create_model
 from inline_snapshot import snapshot
 
 import openai
@@ -982,6 +984,39 @@ ParsedChatCompletion(
 )
 """
     )
+
+
+@pytest.mark.respx(base_url=base_url)
+async def test_async_parse_releases_dynamic_response_format(async_client: AsyncOpenAI, respx_mock: MockRouter) -> None:
+    ResponseFormat = create_model("ResponseFormat", city=(str, ...))
+    response_format_ref = weakref.ref(ResponseFormat)
+
+    completion = await make_async_snapshot_request(
+        lambda c: c.chat.completions.parse(
+            model="gpt-4o-2024-08-06",
+            messages=[
+                {
+                    "role": "user",
+                    "content": "What's the weather like in SF?",
+                },
+            ],
+            response_format=ResponseFormat,
+        ),
+        content_snapshot=snapshot(
+            '{"id": "chatcmpl-test", "object": "chat.completion", "created": 1727389532, "model": "gpt-4o-2024-08-06", "choices": [{"index": 0, "message": {"role": "assistant", "content": "{\\"city\\":\\"San Francisco\\"}", "refusal": null}, "logprobs": null, "finish_reason": "stop"}]}'
+        ),
+        path="/chat/completions",
+        mock_client=async_client,
+        respx_mock=respx_mock,
+    )
+
+    assert completion.choices[0].message.parsed is not None
+
+    del completion
+    del ResponseFormat
+    gc.collect()
+
+    assert response_format_ref() is None
 
 
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])

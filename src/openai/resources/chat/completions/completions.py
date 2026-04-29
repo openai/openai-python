@@ -182,11 +182,17 @@ class Completions(SyncAPIResource):
         }
 
         def parser(raw_completion: ChatCompletion) -> ParsedChatCompletion[ResponseFormatT]:
-            return _parse_chat_completion(
-                response_format=response_format,
-                chat_completion=raw_completion,
-                input_tools=chat_completion_tools,
-            )
+            nonlocal response_format, chat_completion_tools
+
+            try:
+                return _parse_chat_completion(
+                    response_format=response_format,
+                    chat_completion=raw_completion,
+                    input_tools=chat_completion_tools,
+                )
+            finally:
+                response_format = omit
+                chat_completion_tools = omit
 
         return self._post(
             "/chat/completions",
@@ -1685,11 +1691,17 @@ class AsyncCompletions(AsyncAPIResource):
         }
 
         def parser(raw_completion: ChatCompletion) -> ParsedChatCompletion[ResponseFormatT]:
-            return _parse_chat_completion(
-                response_format=response_format,
-                chat_completion=raw_completion,
-                input_tools=tools,
-            )
+            nonlocal response_format, tools
+
+            try:
+                return _parse_chat_completion(
+                    response_format=response_format,
+                    chat_completion=raw_completion,
+                    input_tools=tools,
+                )
+            finally:
+                response_format = omit
+                tools = omit
 
         return await self._post(
             "/chat/completions",
