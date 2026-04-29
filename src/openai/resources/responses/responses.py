@@ -1161,7 +1161,7 @@ class Responses(SyncAPIResource):
                     extra_headers=extra_headers,
                     extra_query=extra_query,
                     extra_body=extra_body,
-                    starting_after=omit,
+                    starting_after=starting_after,
                     timeout=timeout,
                 ),
                 text_format=text_format,
@@ -2845,6 +2845,7 @@ class AsyncResponses(AsyncAPIResource):
                 extra_headers=extra_headers,
                 extra_query=extra_query,
                 extra_body=extra_body,
+                starting_after=starting_after,
                 timeout=timeout,
             )
             return AsyncResponseStreamManager(

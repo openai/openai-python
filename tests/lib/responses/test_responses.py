@@ -1,7 +1,9 @@
 from __future__ import annotations
 
-from typing_extensions import TypeVar
+from typing import cast
+from typing_extensions import TypeVar, Protocol
 
+import httpx
 import pytest
 from respx import MockRouter
 from inline_snapshot import snapshot
@@ -13,6 +15,10 @@ from ...conftest import base_url
 from ..snapshots import make_snapshot_request
 
 _T = TypeVar("_T")
+
+
+class MockRequestCall(Protocol):
+    request: httpx.Request
 
 # all the snapshots in this file are auto-generated from the live API
 #
@@ -61,3 +67,31 @@ def test_parse_method_definition_in_sync(sync: bool, client: OpenAI, async_clien
         checking_client.responses.parse,
         exclude_params={"tools"},
     )
+
+
+@pytest.mark.respx(base_url=base_url)
+def test_stream_existing_response_forwards_starting_after(client: OpenAI, respx_mock: MockRouter) -> None:
+    respx_mock.get("/responses/resp_123").mock(
+        return_value=httpx.Response(200, content=b"data: [DONE]\n\n", headers={"content-type": "text/event-stream"})
+    )
+
+    with client.responses.stream(response_id="resp_123", starting_after=42):
+        pass
+
+    calls = cast("list[MockRequestCall]", respx_mock.calls)
+    assert calls[0].request.url.params["starting_after"] == "42"
+
+
+@pytest.mark.respx(base_url=base_url)
+async def test_async_stream_existing_response_forwards_starting_after(
+    async_client: AsyncOpenAI, respx_mock: MockRouter
+) -> None:
+    respx_mock.get("/responses/resp_123").mock(
+        return_value=httpx.Response(200, content=b"data: [DONE]\n\n", headers={"content-type": "text/event-stream"})
+    )
+
+    async with async_client.responses.stream(response_id="resp_123", starting_after=42):
+        pass
+
+    calls = cast("list[MockRequestCall]", respx_mock.calls)
+    assert calls[0].request.url.params["starting_after"] == "42"
