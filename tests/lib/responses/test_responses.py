@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import json
 from typing_extensions import TypeVar
 
+import httpx
 import pytest
 from respx import MockRouter
 from inline_snapshot import snapshot
@@ -39,6 +41,53 @@ def test_output_text(client: OpenAI, respx_mock: MockRouter) -> None:
     assert response.output_text == snapshot(
         "I can't provide real-time updates, but you can easily check the current weather in San Francisco using a weather website or app. Typically, San Francisco has cool, foggy summers and mild winters, so it's good to be prepared for variable weather!"
     )
+
+
+@pytest.mark.respx(base_url=base_url)
+def test_streaming_allowed_tools_tool_choice_body(client: OpenAI, respx_mock: MockRouter) -> None:
+    respx_mock.post("/responses").mock(return_value=httpx.Response(200, json={}))
+
+    response = client.responses.with_raw_response.create(
+        model="gpt-5",
+        input="Use your python tool to do this math: 8*9183*7663",
+        tools=[
+            {
+                "type": "code_interpreter",
+                "container": {"type": "auto"},
+            }
+        ],
+        tool_choice={
+            "type": "allowed_tools",
+            "mode": "auto",
+            "tools": [
+                {
+                    "type": "code_interpreter",
+                }
+            ],
+        },
+        stream=True,
+    )
+
+    assert json.loads(response.http_request.content) == {
+        "model": "gpt-5",
+        "input": "Use your python tool to do this math: 8*9183*7663",
+        "tools": [
+            {
+                "type": "code_interpreter",
+                "container": {"type": "auto"},
+            }
+        ],
+        "tool_choice": {
+            "type": "allowed_tools",
+            "mode": "auto",
+            "tools": [
+                {
+                    "type": "code_interpreter",
+                }
+            ],
+        },
+        "stream": True,
+    }
 
 
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
