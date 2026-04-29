@@ -238,6 +238,23 @@ def test_enums() -> None:
         )
 
 
+def test_dict_property_schema_has_explicit_object_shape() -> None:
+    class ReviewSentiment(BaseModel):
+        sentiment: str
+        tags: list[str]
+        aspect_sentiment: dict[str, str]
+
+    assert to_strict_json_schema(ReviewSentiment)["properties"]["aspect_sentiment"] == snapshot(
+        {
+            "additionalProperties": {"type": "string"},
+            "title": "Aspect Sentiment",
+            "type": "object",
+            "properties": {},
+            "required": [],
+        }
+    )
+
+
 class Star(BaseModel):
     name: str = Field(description="The name of the star.")
 

@@ -49,6 +49,9 @@ def _ensure_strict_json_schema(
     typ = json_schema.get("type")
     if typ == "object" and "additionalProperties" not in json_schema:
         json_schema["additionalProperties"] = False
+    if typ == "object" and "properties" not in json_schema:
+        json_schema["properties"] = {}
+        json_schema["required"] = []
 
     # object types
     # { 'type': 'object', 'properties': { 'a':  {...} } }
