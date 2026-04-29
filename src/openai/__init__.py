@@ -6,7 +6,6 @@ import os as _os
 import typing as _t
 from typing_extensions import override
 
-from . import types
 from ._types import NOT_GIVEN, Omit, NoneType, NotGiven, Transport, ProxiesTypes, omit, not_given
 from ._utils import file_from_path
 from ._client import Client, OpenAI, Stream, Timeout, Transport, AsyncClient, AsyncOpenAI, AsyncStream, RequestOptions
@@ -39,7 +38,19 @@ from ._exceptions import (
 from ._base_client import DefaultHttpxClient, DefaultAioHttpClient, DefaultAsyncHttpxClient
 from ._utils._logs import setup_logging as _setup_logging
 from ._legacy_response import HttpxBinaryResponseContent as HttpxBinaryResponseContent
-from .types.websocket_reconnection import ReconnectingEvent, ReconnectingOverrides
+from ._utils._types_proxy import types as types
+
+if _t.TYPE_CHECKING:
+    from .lib import pydantic_function_tool as pydantic_function_tool
+    from .lib.azure import AzureOpenAI as AzureOpenAI, AsyncAzureOpenAI as AsyncAzureOpenAI
+    from .lib.streaming import (
+        AssistantEventHandler as AssistantEventHandler,
+        AsyncAssistantEventHandler as AsyncAssistantEventHandler,
+    )
+    from .types.websocket_reconnection import (
+        ReconnectingEvent as ReconnectingEvent,
+        ReconnectingOverrides as ReconnectingOverrides,
+    )
 
 __all__ = [
     "types",
@@ -96,16 +107,42 @@ __all__ = [
 if not _t.TYPE_CHECKING:
     from ._utils._resources_proxy import resources as resources
 
-from .lib import azure as _azure, pydantic_function_tool as pydantic_function_tool
 from .version import VERSION as VERSION
-from .lib.azure import AzureOpenAI as AzureOpenAI, AsyncAzureOpenAI as AsyncAzureOpenAI
 from .lib._old_api import *
-from .lib.streaming import (
-    AssistantEventHandler as AssistantEventHandler,
-    AsyncAssistantEventHandler as AsyncAssistantEventHandler,
-)
 
 _setup_logging()
+
+
+def __getattr__(name: str) -> object:
+    if name in {"ReconnectingEvent", "ReconnectingOverrides"}:
+        from .types import websocket_reconnection
+
+        value = getattr(websocket_reconnection, name)
+        globals()[name] = value
+        return value
+
+    if name in {"AzureOpenAI", "AsyncAzureOpenAI"}:
+        from .lib import azure
+
+        value = getattr(azure, name)
+        globals()[name] = value
+        return value
+
+    if name == "pydantic_function_tool":
+        from .lib import pydantic_function_tool
+
+        globals()[name] = pydantic_function_tool
+        return pydantic_function_tool
+
+    if name in {"AssistantEventHandler", "AsyncAssistantEventHandler"}:
+        from .lib import streaming
+
+        value = getattr(streaming, name)
+        globals()[name] = value
+        return value
+
+    raise AttributeError(f"module 'openai' has no attribute {name!r}")
+
 
 # Update the __module__ attribute for exported symbols so that
 # error messages point to this module instead of the module
@@ -116,6 +153,8 @@ for __name in __all__:
     if not __name.startswith("__"):
         try:
             __locals[__name].__module__ = "openai"
+        except KeyError:
+            pass
         except (TypeError, AttributeError):
             # Some of our exported symbols are builtins which we can't set attributes for.
             pass
@@ -158,7 +197,7 @@ azure_endpoint: str | None = _os.environ.get("AZURE_OPENAI_ENDPOINT")
 
 azure_ad_token: str | None = _os.environ.get("AZURE_OPENAI_AD_TOKEN")
 
-azure_ad_token_provider: _azure.AzureADTokenProvider | None = None
+azure_ad_token_provider: _t.Callable[[], str] | None = None
 
 
 class _ModuleClient(OpenAI):
@@ -277,10 +316,6 @@ class _ModuleClient(OpenAI):
         http_client = value
 
 
-class _AzureModuleClient(_ModuleClient, AzureOpenAI):  # type: ignore
-    ...
-
-
 class _AmbiguousModuleClientUsageError(OpenAIError):
     def __init__(self) -> None:
         super().__init__(
@@ -341,6 +376,11 @@ def _load_client() -> OpenAI:  # type: ignore[reportUnusedFunction]
                 api_type = "openai"
 
         if api_type == "azure":
+            from .lib.azure import AzureOpenAI
+
+            class _AzureModuleClient(_ModuleClient, AzureOpenAI):  # type: ignore
+                ...
+
             _client = _AzureModuleClient(  # type: ignore
                 api_version=api_version,
                 azure_endpoint=azure_endpoint,

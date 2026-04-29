@@ -9,10 +9,12 @@ import httpx
 
 from ._utils import is_dict
 from ._models import construct_type
-from .types.shared.oauth_error_code import OAuthErrorCode
 
 if TYPE_CHECKING:
     from .types.chat import ChatCompletion
+    from .types.shared.oauth_error_code import OAuthErrorCode
+else:
+    OAuthErrorCode = str
 
 __all__ = [
     "BadRequestError",
