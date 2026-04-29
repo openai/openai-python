@@ -98,7 +98,11 @@ class Calls(SyncAPIResource):
                 call_create_params.CallCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=_legacy_response.HttpxBinaryResponseContent,
         )
@@ -250,7 +254,11 @@ class Calls(SyncAPIResource):
                 call_accept_params.CallAcceptParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=NoneType,
         )
@@ -284,7 +292,11 @@ class Calls(SyncAPIResource):
         return self._post(
             path_template("/realtime/calls/{call_id}/hangup", call_id=call_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=NoneType,
         )
@@ -323,7 +335,11 @@ class Calls(SyncAPIResource):
             path_template("/realtime/calls/{call_id}/refer", call_id=call_id),
             body=maybe_transform({"target_uri": target_uri}, call_refer_params.CallReferParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=NoneType,
         )
@@ -362,7 +378,11 @@ class Calls(SyncAPIResource):
             path_template("/realtime/calls/{call_id}/reject", call_id=call_id),
             body=maybe_transform({"status_code": status_code}, call_reject_params.CallRejectParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=NoneType,
         )
@@ -428,7 +448,11 @@ class AsyncCalls(AsyncAPIResource):
                 call_create_params.CallCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=_legacy_response.HttpxBinaryResponseContent,
         )
@@ -580,7 +604,11 @@ class AsyncCalls(AsyncAPIResource):
                 call_accept_params.CallAcceptParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=NoneType,
         )
@@ -614,7 +642,11 @@ class AsyncCalls(AsyncAPIResource):
         return await self._post(
             path_template("/realtime/calls/{call_id}/hangup", call_id=call_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=NoneType,
         )
@@ -653,7 +685,11 @@ class AsyncCalls(AsyncAPIResource):
             path_template("/realtime/calls/{call_id}/refer", call_id=call_id),
             body=await async_maybe_transform({"target_uri": target_uri}, call_refer_params.CallReferParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=NoneType,
         )
@@ -692,7 +728,11 @@ class AsyncCalls(AsyncAPIResource):
             path_template("/realtime/calls/{call_id}/reject", call_id=call_id),
             body=await async_maybe_transform({"status_code": status_code}, call_reject_params.CallRejectParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=NoneType,
         )

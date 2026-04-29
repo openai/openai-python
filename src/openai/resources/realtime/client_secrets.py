@@ -93,7 +93,11 @@ class ClientSecrets(SyncAPIResource):
                 client_secret_create_params.ClientSecretCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ClientSecretCreateResponse,
         )
@@ -175,7 +179,11 @@ class AsyncClientSecrets(AsyncAPIResource):
                 client_secret_create_params.ClientSecretCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ClientSecretCreateResponse,
         )

@@ -100,6 +100,7 @@ class Steps(SyncAPIResource):
                 extra_body=extra_body,
                 timeout=timeout,
                 query=maybe_transform({"include": include}, step_retrieve_params.StepRetrieveParams),
+                security={"bearer_auth": True},
             ),
             cast_to=RunStep,
         )
@@ -181,6 +182,7 @@ class Steps(SyncAPIResource):
                     },
                     step_list_params.StepListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=RunStep,
         )
@@ -263,6 +265,7 @@ class AsyncSteps(AsyncAPIResource):
                 extra_body=extra_body,
                 timeout=timeout,
                 query=await async_maybe_transform({"include": include}, step_retrieve_params.StepRetrieveParams),
+                security={"bearer_auth": True},
             ),
             cast_to=RunStep,
         )
@@ -344,6 +347,7 @@ class AsyncSteps(AsyncAPIResource):
                     },
                     step_list_params.StepListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=RunStep,
         )

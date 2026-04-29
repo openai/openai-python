@@ -182,7 +182,11 @@ class Assistants(SyncAPIResource):
                 assistant_create_params.AssistantCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Assistant,
         )
@@ -217,7 +221,11 @@ class Assistants(SyncAPIResource):
         return self._get(
             path_template("/assistants/{assistant_id}", assistant_id=assistant_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Assistant,
         )
@@ -401,7 +409,11 @@ class Assistants(SyncAPIResource):
                 assistant_update_params.AssistantUpdateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Assistant,
         )
@@ -468,6 +480,7 @@ class Assistants(SyncAPIResource):
                     },
                     assistant_list_params.AssistantListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=Assistant,
         )
@@ -502,7 +515,11 @@ class Assistants(SyncAPIResource):
         return self._delete(
             path_template("/assistants/{assistant_id}", assistant_id=assistant_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=AssistantDeleted,
         )
@@ -658,7 +675,11 @@ class AsyncAssistants(AsyncAPIResource):
                 assistant_create_params.AssistantCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Assistant,
         )
@@ -693,7 +714,11 @@ class AsyncAssistants(AsyncAPIResource):
         return await self._get(
             path_template("/assistants/{assistant_id}", assistant_id=assistant_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Assistant,
         )
@@ -877,7 +902,11 @@ class AsyncAssistants(AsyncAPIResource):
                 assistant_update_params.AssistantUpdateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Assistant,
         )
@@ -944,6 +973,7 @@ class AsyncAssistants(AsyncAPIResource):
                     },
                     assistant_list_params.AssistantListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=Assistant,
         )
@@ -978,7 +1008,11 @@ class AsyncAssistants(AsyncAPIResource):
         return await self._delete(
             path_template("/assistants/{assistant_id}", assistant_id=assistant_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=AssistantDeleted,
         )

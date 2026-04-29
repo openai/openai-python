@@ -135,7 +135,11 @@ class Threads(SyncAPIResource):
                 thread_create_params.ThreadCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Thread,
         )
@@ -170,7 +174,11 @@ class Threads(SyncAPIResource):
         return self._get(
             path_template("/threads/{thread_id}", thread_id=thread_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Thread,
         )
@@ -226,7 +234,11 @@ class Threads(SyncAPIResource):
                 thread_update_params.ThreadUpdateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Thread,
         )
@@ -261,7 +273,11 @@ class Threads(SyncAPIResource):
         return self._delete(
             path_template("/threads/{thread_id}", thread_id=thread_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ThreadDeleted,
         )
@@ -727,6 +743,7 @@ class Threads(SyncAPIResource):
                 extra_query=extra_query,
                 extra_body=extra_body,
                 timeout=timeout,
+                security={"bearer_auth": True},
                 synthesize_event_and_data=True,
             ),
             cast_to=Run,
@@ -820,7 +837,11 @@ class AsyncThreads(AsyncAPIResource):
                 thread_create_params.ThreadCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Thread,
         )
@@ -855,7 +876,11 @@ class AsyncThreads(AsyncAPIResource):
         return await self._get(
             path_template("/threads/{thread_id}", thread_id=thread_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Thread,
         )
@@ -911,7 +936,11 @@ class AsyncThreads(AsyncAPIResource):
                 thread_update_params.ThreadUpdateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Thread,
         )
@@ -946,7 +975,11 @@ class AsyncThreads(AsyncAPIResource):
         return await self._delete(
             path_template("/threads/{thread_id}", thread_id=thread_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ThreadDeleted,
         )
@@ -1412,6 +1445,7 @@ class AsyncThreads(AsyncAPIResource):
                 extra_query=extra_query,
                 extra_body=extra_body,
                 timeout=timeout,
+                security={"bearer_auth": True},
                 synthesize_event_and_data=True,
             ),
             cast_to=Run,

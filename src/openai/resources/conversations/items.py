@@ -89,6 +89,7 @@ class Items(SyncAPIResource):
                 extra_body=extra_body,
                 timeout=timeout,
                 query=maybe_transform({"include": include}, item_create_params.ItemCreateParams),
+                security={"bearer_auth": True},
             ),
             cast_to=ConversationItemList,
         )
@@ -138,6 +139,7 @@ class Items(SyncAPIResource):
                     extra_body=extra_body,
                     timeout=timeout,
                     query=maybe_transform({"include": include}, item_retrieve_params.ItemRetrieveParams),
+                    security={"bearer_auth": True},
                 ),
                 cast_to=cast(Any, ConversationItem),  # Union types cannot be passed in as arguments in the type system
             ),
@@ -218,6 +220,7 @@ class Items(SyncAPIResource):
                     },
                     item_list_params.ItemListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=cast(Any, ConversationItem),  # Union types cannot be passed in as arguments in the type system
         )
@@ -255,7 +258,11 @@ class Items(SyncAPIResource):
                 "/conversations/{conversation_id}/items/{item_id}", conversation_id=conversation_id, item_id=item_id
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Conversation,
         )
@@ -325,6 +332,7 @@ class AsyncItems(AsyncAPIResource):
                 extra_body=extra_body,
                 timeout=timeout,
                 query=await async_maybe_transform({"include": include}, item_create_params.ItemCreateParams),
+                security={"bearer_auth": True},
             ),
             cast_to=ConversationItemList,
         )
@@ -374,6 +382,7 @@ class AsyncItems(AsyncAPIResource):
                     extra_body=extra_body,
                     timeout=timeout,
                     query=await async_maybe_transform({"include": include}, item_retrieve_params.ItemRetrieveParams),
+                    security={"bearer_auth": True},
                 ),
                 cast_to=cast(Any, ConversationItem),  # Union types cannot be passed in as arguments in the type system
             ),
@@ -454,6 +463,7 @@ class AsyncItems(AsyncAPIResource):
                     },
                     item_list_params.ItemListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=cast(Any, ConversationItem),  # Union types cannot be passed in as arguments in the type system
         )
@@ -491,7 +501,11 @@ class AsyncItems(AsyncAPIResource):
                 "/conversations/{conversation_id}/items/{item_id}", conversation_id=conversation_id, item_id=item_id
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Conversation,
         )

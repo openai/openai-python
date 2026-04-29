@@ -69,7 +69,11 @@ class Models(SyncAPIResource):
         return self._get(
             path_template("/models/{model}", model=model),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Model,
         )
@@ -92,7 +96,11 @@ class Models(SyncAPIResource):
             "/models",
             page=SyncPage[Model],
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             model=Model,
         )
@@ -127,7 +135,11 @@ class Models(SyncAPIResource):
         return self._delete(
             path_template("/models/{model}", model=model),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ModelDeleted,
         )
@@ -184,7 +196,11 @@ class AsyncModels(AsyncAPIResource):
         return await self._get(
             path_template("/models/{model}", model=model),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Model,
         )
@@ -207,7 +223,11 @@ class AsyncModels(AsyncAPIResource):
             "/models",
             page=AsyncPage[Model],
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             model=Model,
         )
@@ -242,7 +262,11 @@ class AsyncModels(AsyncAPIResource):
         return await self._delete(
             path_template("/models/{model}", model=model),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ModelDeleted,
         )

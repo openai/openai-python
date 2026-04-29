@@ -101,7 +101,11 @@ class Conversations(SyncAPIResource):
                 conversation_create_params.ConversationCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Conversation,
         )
@@ -134,7 +138,11 @@ class Conversations(SyncAPIResource):
         return self._get(
             path_template("/conversations/{conversation_id}", conversation_id=conversation_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Conversation,
         )
@@ -176,7 +184,11 @@ class Conversations(SyncAPIResource):
             path_template("/conversations/{conversation_id}", conversation_id=conversation_id),
             body=maybe_transform({"metadata": metadata}, conversation_update_params.ConversationUpdateParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Conversation,
         )
@@ -210,7 +222,11 @@ class Conversations(SyncAPIResource):
         return self._delete(
             path_template("/conversations/{conversation_id}", conversation_id=conversation_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ConversationDeletedResource,
         )
@@ -287,7 +303,11 @@ class AsyncConversations(AsyncAPIResource):
                 conversation_create_params.ConversationCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Conversation,
         )
@@ -320,7 +340,11 @@ class AsyncConversations(AsyncAPIResource):
         return await self._get(
             path_template("/conversations/{conversation_id}", conversation_id=conversation_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Conversation,
         )
@@ -364,7 +388,11 @@ class AsyncConversations(AsyncAPIResource):
                 {"metadata": metadata}, conversation_update_params.ConversationUpdateParams
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Conversation,
         )
@@ -398,7 +426,11 @@ class AsyncConversations(AsyncAPIResource):
         return await self._delete(
             path_template("/conversations/{conversation_id}", conversation_id=conversation_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ConversationDeletedResource,
         )

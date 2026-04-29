@@ -101,6 +101,7 @@ class InputItems(SyncAPIResource):
                     },
                     input_item_list_params.InputItemListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=cast(Any, ResponseItem),  # Union types cannot be passed in as arguments in the type system
         )
@@ -185,6 +186,7 @@ class AsyncInputItems(AsyncAPIResource):
                     },
                     input_item_list_params.InputItemListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=cast(Any, ResponseItem),  # Union types cannot be passed in as arguments in the type system
         )

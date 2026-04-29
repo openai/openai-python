@@ -1086,7 +1086,11 @@ class Completions(SyncAPIResource):
                 else completion_create_params.CompletionCreateParamsNonStreaming,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ChatCompletion,
             stream=stream or False,
@@ -1123,7 +1127,11 @@ class Completions(SyncAPIResource):
         return self._get(
             path_template("/chat/completions/{completion_id}", completion_id=completion_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ChatCompletion,
         )
@@ -1168,7 +1176,11 @@ class Completions(SyncAPIResource):
             path_template("/chat/completions/{completion_id}", completion_id=completion_id),
             body=maybe_transform({"metadata": metadata}, completion_update_params.CompletionUpdateParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ChatCompletion,
         )
@@ -1234,6 +1246,7 @@ class Completions(SyncAPIResource):
                     },
                     completion_list_params.CompletionListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=ChatCompletion,
         )
@@ -1268,7 +1281,11 @@ class Completions(SyncAPIResource):
         return self._delete(
             path_template("/chat/completions/{completion_id}", completion_id=completion_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ChatCompletionDeleted,
         )
@@ -2314,7 +2331,11 @@ class AsyncCompletions(AsyncAPIResource):
                 else completion_create_params.CompletionCreateParamsNonStreaming,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ChatCompletion,
             stream=stream or False,
@@ -2351,7 +2372,11 @@ class AsyncCompletions(AsyncAPIResource):
         return await self._get(
             path_template("/chat/completions/{completion_id}", completion_id=completion_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ChatCompletion,
         )
@@ -2396,7 +2421,11 @@ class AsyncCompletions(AsyncAPIResource):
             path_template("/chat/completions/{completion_id}", completion_id=completion_id),
             body=await async_maybe_transform({"metadata": metadata}, completion_update_params.CompletionUpdateParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ChatCompletion,
         )
@@ -2462,6 +2491,7 @@ class AsyncCompletions(AsyncAPIResource):
                     },
                     completion_list_params.CompletionListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=ChatCompletion,
         )
@@ -2496,7 +2526,11 @@ class AsyncCompletions(AsyncAPIResource):
         return await self._delete(
             path_template("/chat/completions/{completion_id}", completion_id=completion_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ChatCompletionDeleted,
         )

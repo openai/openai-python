@@ -74,7 +74,11 @@ class Content(SyncAPIResource):
                 "/containers/{container_id}/files/{file_id}/content", container_id=container_id, file_id=file_id
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=_legacy_response.HttpxBinaryResponseContent,
         )
@@ -134,7 +138,11 @@ class AsyncContent(AsyncAPIResource):
                 "/containers/{container_id}/files/{file_id}/content", container_id=container_id, file_id=file_id
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=_legacy_response.HttpxBinaryResponseContent,
         )

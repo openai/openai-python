@@ -141,7 +141,11 @@ class Files(SyncAPIResource):
             body=maybe_transform(body, file_create_params.FileCreateParams),
             files=files,
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=FileObject,
         )
@@ -174,7 +178,11 @@ class Files(SyncAPIResource):
         return self._get(
             path_template("/files/{file_id}", file_id=file_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=FileObject,
         )
@@ -236,6 +244,7 @@ class Files(SyncAPIResource):
                     },
                     file_list_params.FileListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=FileObject,
         )
@@ -268,7 +277,11 @@ class Files(SyncAPIResource):
         return self._delete(
             path_template("/files/{file_id}", file_id=file_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=FileDeleted,
         )
@@ -302,7 +315,11 @@ class Files(SyncAPIResource):
         return self._get(
             path_template("/files/{file_id}/content", file_id=file_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=_legacy_response.HttpxBinaryResponseContent,
         )
@@ -336,7 +353,11 @@ class Files(SyncAPIResource):
         return self._get(
             path_template("/files/{file_id}/content", file_id=file_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=str,
         )
@@ -451,7 +472,11 @@ class AsyncFiles(AsyncAPIResource):
             body=await async_maybe_transform(body, file_create_params.FileCreateParams),
             files=files,
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=FileObject,
         )
@@ -484,7 +509,11 @@ class AsyncFiles(AsyncAPIResource):
         return await self._get(
             path_template("/files/{file_id}", file_id=file_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=FileObject,
         )
@@ -546,6 +575,7 @@ class AsyncFiles(AsyncAPIResource):
                     },
                     file_list_params.FileListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=FileObject,
         )
@@ -578,7 +608,11 @@ class AsyncFiles(AsyncAPIResource):
         return await self._delete(
             path_template("/files/{file_id}", file_id=file_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=FileDeleted,
         )
@@ -612,7 +646,11 @@ class AsyncFiles(AsyncAPIResource):
         return await self._get(
             path_template("/files/{file_id}/content", file_id=file_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=_legacy_response.HttpxBinaryResponseContent,
         )
@@ -646,7 +684,11 @@ class AsyncFiles(AsyncAPIResource):
         return await self._get(
             path_template("/files/{file_id}/content", file_id=file_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=str,
         )

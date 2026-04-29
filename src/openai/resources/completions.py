@@ -577,7 +577,11 @@ class Completions(SyncAPIResource):
                 else completion_create_params.CompletionCreateParamsNonStreaming,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Completion,
             stream=stream or False,
@@ -1140,7 +1144,11 @@ class AsyncCompletions(AsyncAPIResource):
                 else completion_create_params.CompletionCreateParamsNonStreaming,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Completion,
             stream=stream or False,

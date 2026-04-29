@@ -102,7 +102,11 @@ class Files(SyncAPIResource):
                 file_create_params.FileCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStoreFile,
         )
@@ -141,7 +145,11 @@ class Files(SyncAPIResource):
                 "/vector_stores/{vector_store_id}/files/{file_id}", vector_store_id=vector_store_id, file_id=file_id
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStoreFile,
         )
@@ -188,7 +196,11 @@ class Files(SyncAPIResource):
             ),
             body=maybe_transform({"attributes": attributes}, file_update_params.FileUpdateParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStoreFile,
         )
@@ -260,6 +272,7 @@ class Files(SyncAPIResource):
                     },
                     file_list_params.FileListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=VectorStoreFile,
         )
@@ -302,7 +315,11 @@ class Files(SyncAPIResource):
                 "/vector_stores/{vector_store_id}/files/{file_id}", vector_store_id=vector_store_id, file_id=file_id
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStoreFileDeleted,
         )
@@ -344,7 +361,11 @@ class Files(SyncAPIResource):
             ),
             page=SyncPage[FileContentResponse],
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             model=FileContentResponse,
         )
@@ -427,7 +448,11 @@ class AsyncFiles(AsyncAPIResource):
                 file_create_params.FileCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStoreFile,
         )
@@ -466,7 +491,11 @@ class AsyncFiles(AsyncAPIResource):
                 "/vector_stores/{vector_store_id}/files/{file_id}", vector_store_id=vector_store_id, file_id=file_id
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStoreFile,
         )
@@ -513,7 +542,11 @@ class AsyncFiles(AsyncAPIResource):
             ),
             body=await async_maybe_transform({"attributes": attributes}, file_update_params.FileUpdateParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStoreFile,
         )
@@ -585,6 +618,7 @@ class AsyncFiles(AsyncAPIResource):
                     },
                     file_list_params.FileListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=VectorStoreFile,
         )
@@ -627,7 +661,11 @@ class AsyncFiles(AsyncAPIResource):
                 "/vector_stores/{vector_store_id}/files/{file_id}", vector_store_id=vector_store_id, file_id=file_id
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStoreFileDeleted,
         )
@@ -669,7 +707,11 @@ class AsyncFiles(AsyncAPIResource):
             ),
             page=AsyncPage[FileContentResponse],
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             model=FileContentResponse,
         )

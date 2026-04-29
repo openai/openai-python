@@ -12,6 +12,7 @@ from . import _exceptions
 from ._qs import Querystring
 from ._types import (
     Omit,
+    Headers,
     Timeout,
     NotGiven,
     Transport,
@@ -26,9 +27,10 @@ from ._utils import (
     get_async_library,
 )
 from ._compat import cached_property
+from ._models import SecurityOptions
 from ._version import __version__
 from ._streaming import Stream as Stream, AsyncStream as AsyncStream
-from ._exceptions import OpenAIError, APIStatusError
+from ._exceptions import APIStatusError
 from ._base_client import (
     DEFAULT_MAX_RETRIES,
     SyncAPIClient,
@@ -85,7 +87,8 @@ __all__ = ["Timeout", "Transport", "ProxiesTypes", "RequestOptions", "OpenAI", "
 
 class OpenAI(SyncAPIClient):
     # client options
-    api_key: str
+    api_key: str | None
+    admin_api_key: str | None
     organization: str | None
     project: str | None
     webhook_secret: str | None
@@ -102,6 +105,7 @@ class OpenAI(SyncAPIClient):
         self,
         *,
         api_key: str | None = None,
+        admin_api_key: str | None = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -129,17 +133,18 @@ class OpenAI(SyncAPIClient):
 
         This automatically infers the following arguments from their corresponding environment variables if they are not provided:
         - `api_key` from `OPENAI_API_KEY`
+        - `admin_api_key` from `OPENAI_ADMIN_KEY`
         - `organization` from `OPENAI_ORG_ID`
         - `project` from `OPENAI_PROJECT_ID`
         - `webhook_secret` from `OPENAI_WEBHOOK_SECRET`
         """
         if api_key is None:
             api_key = os.environ.get("OPENAI_API_KEY")
-        if api_key is None:
-            raise OpenAIError(
-                "The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable"
-            )
         self.api_key = api_key
+
+        if admin_api_key is None:
+            admin_api_key = os.environ.get("OPENAI_ADMIN_KEY")
+        self.admin_api_key = admin_api_key
 
         if organization is None:
             organization = os.environ.get("OPENAI_ORG_ID")
@@ -339,11 +344,26 @@ class OpenAI(SyncAPIClient):
     def qs(self) -> Querystring:
         return Querystring(array_format="brackets")
 
-    @property
     @override
-    def auth_headers(self) -> dict[str, str]:
+    def _auth_headers(self, security: SecurityOptions) -> dict[str, str]:
+        return {
+            **(self._bearer_auth if security.get("bearer_auth", False) else {}),
+            **(self._admin_api_key_auth if security.get("admin_api_key_auth", False) else {}),
+        }
+
+    @property
+    def _bearer_auth(self) -> dict[str, str]:
         api_key = self.api_key
+        if api_key is None:
+            return {}
         return {"Authorization": f"Bearer {api_key}"}
+
+    @property
+    def _admin_api_key_auth(self) -> dict[str, str]:
+        admin_api_key = self.admin_api_key
+        if admin_api_key is None:
+            return {}
+        return {"Authorization": f"Bearer {admin_api_key}"}
 
     @property
     @override
@@ -356,10 +376,20 @@ class OpenAI(SyncAPIClient):
             **self._custom_headers,
         }
 
+    @override
+    def _validate_headers(self, headers: Headers, custom_headers: Headers) -> None:
+        if headers.get("Authorization") or isinstance(custom_headers.get("Authorization"), Omit):
+            return
+
+        raise TypeError(
+            '"Could not resolve authentication method. Expected either api_key or admin_api_key to be set. Or for one of the `Authorization` or `Authorization` headers to be explicitly omitted"'
+        )
+
     def copy(
         self,
         *,
         api_key: str | None = None,
+        admin_api_key: str | None = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -398,6 +428,7 @@ class OpenAI(SyncAPIClient):
         http_client = http_client or self._client
         return self.__class__(
             api_key=api_key or self.api_key,
+            admin_api_key=admin_api_key or self.admin_api_key,
             organization=organization or self.organization,
             project=project or self.project,
             webhook_secret=webhook_secret or self.webhook_secret,
@@ -452,7 +483,8 @@ class OpenAI(SyncAPIClient):
 
 class AsyncOpenAI(AsyncAPIClient):
     # client options
-    api_key: str
+    api_key: str | None
+    admin_api_key: str | None
     organization: str | None
     project: str | None
     webhook_secret: str | None
@@ -469,6 +501,7 @@ class AsyncOpenAI(AsyncAPIClient):
         self,
         *,
         api_key: str | None = None,
+        admin_api_key: str | None = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -496,17 +529,18 @@ class AsyncOpenAI(AsyncAPIClient):
 
         This automatically infers the following arguments from their corresponding environment variables if they are not provided:
         - `api_key` from `OPENAI_API_KEY`
+        - `admin_api_key` from `OPENAI_ADMIN_KEY`
         - `organization` from `OPENAI_ORG_ID`
         - `project` from `OPENAI_PROJECT_ID`
         - `webhook_secret` from `OPENAI_WEBHOOK_SECRET`
         """
         if api_key is None:
             api_key = os.environ.get("OPENAI_API_KEY")
-        if api_key is None:
-            raise OpenAIError(
-                "The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable"
-            )
         self.api_key = api_key
+
+        if admin_api_key is None:
+            admin_api_key = os.environ.get("OPENAI_ADMIN_KEY")
+        self.admin_api_key = admin_api_key
 
         if organization is None:
             organization = os.environ.get("OPENAI_ORG_ID")
@@ -706,11 +740,26 @@ class AsyncOpenAI(AsyncAPIClient):
     def qs(self) -> Querystring:
         return Querystring(array_format="brackets")
 
-    @property
     @override
-    def auth_headers(self) -> dict[str, str]:
+    def _auth_headers(self, security: SecurityOptions) -> dict[str, str]:
+        return {
+            **(self._bearer_auth if security.get("bearer_auth", False) else {}),
+            **(self._admin_api_key_auth if security.get("admin_api_key_auth", False) else {}),
+        }
+
+    @property
+    def _bearer_auth(self) -> dict[str, str]:
         api_key = self.api_key
+        if api_key is None:
+            return {}
         return {"Authorization": f"Bearer {api_key}"}
+
+    @property
+    def _admin_api_key_auth(self) -> dict[str, str]:
+        admin_api_key = self.admin_api_key
+        if admin_api_key is None:
+            return {}
+        return {"Authorization": f"Bearer {admin_api_key}"}
 
     @property
     @override
@@ -723,10 +772,20 @@ class AsyncOpenAI(AsyncAPIClient):
             **self._custom_headers,
         }
 
+    @override
+    def _validate_headers(self, headers: Headers, custom_headers: Headers) -> None:
+        if headers.get("Authorization") or isinstance(custom_headers.get("Authorization"), Omit):
+            return
+
+        raise TypeError(
+            '"Could not resolve authentication method. Expected either api_key or admin_api_key to be set. Or for one of the `Authorization` or `Authorization` headers to be explicitly omitted"'
+        )
+
     def copy(
         self,
         *,
         api_key: str | None = None,
+        admin_api_key: str | None = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -765,6 +824,7 @@ class AsyncOpenAI(AsyncAPIClient):
         http_client = http_client or self._client
         return self.__class__(
             api_key=api_key or self.api_key,
+            admin_api_key=admin_api_key or self.admin_api_key,
             organization=organization or self.organization,
             project=project or self.project,
             webhook_secret=webhook_secret or self.webhook_secret,

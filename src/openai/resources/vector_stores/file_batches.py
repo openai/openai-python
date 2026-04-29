@@ -109,7 +109,11 @@ class FileBatches(SyncAPIResource):
                 file_batch_create_params.FileBatchCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStoreFileBatch,
         )
@@ -150,7 +154,11 @@ class FileBatches(SyncAPIResource):
                 batch_id=batch_id,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStoreFileBatch,
         )
@@ -193,7 +201,11 @@ class FileBatches(SyncAPIResource):
                 batch_id=batch_id,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStoreFileBatch,
         )
@@ -272,6 +284,7 @@ class FileBatches(SyncAPIResource):
                     },
                     file_batch_list_files_params.FileBatchListFilesParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=VectorStoreFile,
         )
@@ -362,7 +375,11 @@ class AsyncFileBatches(AsyncAPIResource):
                 file_batch_create_params.FileBatchCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStoreFileBatch,
         )
@@ -403,7 +420,11 @@ class AsyncFileBatches(AsyncAPIResource):
                 batch_id=batch_id,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStoreFileBatch,
         )
@@ -446,7 +467,11 @@ class AsyncFileBatches(AsyncAPIResource):
                 batch_id=batch_id,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStoreFileBatch,
         )
@@ -525,6 +550,7 @@ class AsyncFileBatches(AsyncAPIResource):
                     },
                     file_batch_list_files_params.FileBatchListFilesParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=VectorStoreFile,
         )

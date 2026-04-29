@@ -110,6 +110,8 @@ from ._base_client import DEFAULT_TIMEOUT, DEFAULT_MAX_RETRIES
 
 api_key: str | None = None
 
+admin_api_key: str | None = None
+
 organization: str | None = None
 
 project: str | None = None
@@ -143,6 +145,17 @@ class _ModuleClient(OpenAI):
         global api_key
 
         api_key = value
+
+    @property  # type: ignore
+    @override
+    def admin_api_key(self) -> str | None:
+        return admin_api_key
+
+    @admin_api_key.setter  # type: ignore
+    def admin_api_key(self, value: str | None) -> None:  # type: ignore
+        global admin_api_key
+
+        admin_api_key = value
 
     @property  # type: ignore
     @override
@@ -254,6 +267,7 @@ def _load_client() -> OpenAI:  # type: ignore[reportUnusedFunction]
     if _client is None:
         _client = _ModuleClient(
             api_key=api_key,
+            admin_api_key=admin_api_key,
             organization=organization,
             project=project,
             webhook_secret=webhook_secret,

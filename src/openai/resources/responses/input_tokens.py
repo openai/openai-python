@@ -143,7 +143,11 @@ class InputTokens(SyncAPIResource):
                 input_token_count_params.InputTokenCountParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=InputTokenCountResponse,
         )
@@ -269,7 +273,11 @@ class AsyncInputTokens(AsyncAPIResource):
                 input_token_count_params.InputTokenCountParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=InputTokenCountResponse,
         )

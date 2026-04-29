@@ -109,7 +109,11 @@ class Messages(SyncAPIResource):
                 message_create_params.MessageCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Message,
         )
@@ -147,7 +151,11 @@ class Messages(SyncAPIResource):
         return self._get(
             path_template("/threads/{thread_id}/messages/{message_id}", thread_id=thread_id, message_id=message_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Message,
         )
@@ -194,7 +202,11 @@ class Messages(SyncAPIResource):
             path_template("/threads/{thread_id}/messages/{message_id}", thread_id=thread_id, message_id=message_id),
             body=maybe_transform({"metadata": metadata}, message_update_params.MessageUpdateParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Message,
         )
@@ -267,6 +279,7 @@ class Messages(SyncAPIResource):
                     },
                     message_list_params.MessageListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=Message,
         )
@@ -304,7 +317,11 @@ class Messages(SyncAPIResource):
         return self._delete(
             path_template("/threads/{thread_id}/messages/{message_id}", thread_id=thread_id, message_id=message_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=MessageDeleted,
         )
@@ -394,7 +411,11 @@ class AsyncMessages(AsyncAPIResource):
                 message_create_params.MessageCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Message,
         )
@@ -432,7 +453,11 @@ class AsyncMessages(AsyncAPIResource):
         return await self._get(
             path_template("/threads/{thread_id}/messages/{message_id}", thread_id=thread_id, message_id=message_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Message,
         )
@@ -479,7 +504,11 @@ class AsyncMessages(AsyncAPIResource):
             path_template("/threads/{thread_id}/messages/{message_id}", thread_id=thread_id, message_id=message_id),
             body=await async_maybe_transform({"metadata": metadata}, message_update_params.MessageUpdateParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Message,
         )
@@ -552,6 +581,7 @@ class AsyncMessages(AsyncAPIResource):
                     },
                     message_list_params.MessageListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=Message,
         )
@@ -589,7 +619,11 @@ class AsyncMessages(AsyncAPIResource):
         return await self._delete(
             path_template("/threads/{thread_id}/messages/{message_id}", thread_id=thread_id, message_id=message_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=MessageDeleted,
         )

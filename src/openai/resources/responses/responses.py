@@ -930,7 +930,11 @@ class Responses(SyncAPIResource):
                 else response_create_params.ResponseCreateParamsNonStreaming,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Response,
             stream=stream or False,
@@ -1117,6 +1121,7 @@ class Responses(SyncAPIResource):
                     },
                     response_retrieve_params.ResponseRetrieveParams,
                 ),
+                security={"bearer_auth": True},
             ),
             cast_to=Response,
             stream=stream or False,
@@ -1152,7 +1157,11 @@ class Responses(SyncAPIResource):
         return self._delete(
             path_template("/responses/{response_id}", response_id=response_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=NoneType,
         )
@@ -1188,7 +1197,11 @@ class Responses(SyncAPIResource):
         return self._post(
             path_template("/responses/{response_id}/cancel", response_id=response_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Response,
         )
@@ -1360,7 +1373,11 @@ class Responses(SyncAPIResource):
                 response_compact_params.ResponseCompactParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=CompactedResponse,
         )
@@ -2246,7 +2263,11 @@ class AsyncResponses(AsyncAPIResource):
                 else response_create_params.ResponseCreateParamsNonStreaming,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Response,
             stream=stream or False,
@@ -2433,6 +2454,7 @@ class AsyncResponses(AsyncAPIResource):
                     },
                     response_retrieve_params.ResponseRetrieveParams,
                 ),
+                security={"bearer_auth": True},
             ),
             cast_to=Response,
             stream=stream or False,
@@ -2468,7 +2490,11 @@ class AsyncResponses(AsyncAPIResource):
         return await self._delete(
             path_template("/responses/{response_id}", response_id=response_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=NoneType,
         )
@@ -2504,7 +2530,11 @@ class AsyncResponses(AsyncAPIResource):
         return await self._post(
             path_template("/responses/{response_id}/cancel", response_id=response_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Response,
         )
@@ -2676,7 +2706,11 @@ class AsyncResponses(AsyncAPIResource):
                 response_compact_params.ResponseCompactParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=CompactedResponse,
         )

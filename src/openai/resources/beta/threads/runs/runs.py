@@ -609,6 +609,7 @@ class Runs(SyncAPIResource):
                 extra_body=extra_body,
                 timeout=timeout,
                 query=maybe_transform({"include": include}, run_create_params.RunCreateParams),
+                security={"bearer_auth": True},
                 synthesize_event_and_data=True,
             ),
             cast_to=Run,
@@ -649,7 +650,11 @@ class Runs(SyncAPIResource):
         return self._get(
             path_template("/threads/{thread_id}/runs/{run_id}", thread_id=thread_id, run_id=run_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Run,
         )
@@ -696,7 +701,11 @@ class Runs(SyncAPIResource):
             path_template("/threads/{thread_id}/runs/{run_id}", thread_id=thread_id, run_id=run_id),
             body=maybe_transform({"metadata": metadata}, run_update_params.RunUpdateParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Run,
         )
@@ -765,6 +774,7 @@ class Runs(SyncAPIResource):
                     },
                     run_list_params.RunListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=Run,
         )
@@ -802,7 +812,11 @@ class Runs(SyncAPIResource):
         return self._post(
             path_template("/threads/{thread_id}/runs/{run_id}/cancel", thread_id=thread_id, run_id=run_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Run,
         )
@@ -961,6 +975,7 @@ class Runs(SyncAPIResource):
                 extra_query=extra_query,
                 extra_body=extra_body,
                 timeout=timeout,
+                security={"bearer_auth": True},
                 synthesize_event_and_data=True,
             ),
             cast_to=Run,
@@ -1534,6 +1549,7 @@ class AsyncRuns(AsyncAPIResource):
                 extra_body=extra_body,
                 timeout=timeout,
                 query=await async_maybe_transform({"include": include}, run_create_params.RunCreateParams),
+                security={"bearer_auth": True},
                 synthesize_event_and_data=True,
             ),
             cast_to=Run,
@@ -1574,7 +1590,11 @@ class AsyncRuns(AsyncAPIResource):
         return await self._get(
             path_template("/threads/{thread_id}/runs/{run_id}", thread_id=thread_id, run_id=run_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Run,
         )
@@ -1621,7 +1641,11 @@ class AsyncRuns(AsyncAPIResource):
             path_template("/threads/{thread_id}/runs/{run_id}", thread_id=thread_id, run_id=run_id),
             body=await async_maybe_transform({"metadata": metadata}, run_update_params.RunUpdateParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Run,
         )
@@ -1690,6 +1714,7 @@ class AsyncRuns(AsyncAPIResource):
                     },
                     run_list_params.RunListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=Run,
         )
@@ -1727,7 +1752,11 @@ class AsyncRuns(AsyncAPIResource):
         return await self._post(
             path_template("/threads/{thread_id}/runs/{run_id}/cancel", thread_id=thread_id, run_id=run_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Run,
         )
@@ -1886,6 +1915,7 @@ class AsyncRuns(AsyncAPIResource):
                 extra_query=extra_query,
                 extra_body=extra_body,
                 timeout=timeout,
+                security={"bearer_auth": True},
                 synthesize_event_and_data=True,
             ),
             cast_to=Run,
