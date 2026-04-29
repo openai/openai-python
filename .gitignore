@@ -8,6 +8,7 @@ __pycache__
 dist
 
 .venv
+node_modules
 .idea
 
 .env

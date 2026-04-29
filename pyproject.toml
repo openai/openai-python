@@ -51,10 +51,10 @@ realtime = ["websockets >= 13, < 16"]
 datalib = ["numpy >= 1", "pandas >= 1.2.3", "pandas-stubs >= 1.1.0.11"]
 voice_helpers = ["sounddevice>=0.5.1", "numpy>=2.0.2"]
 
-[tool.rye]
-managed = true
-# version pins are in requirements-dev.lock
-dev-dependencies = [
+[dependency-groups]
+# uv.lock is the primary lockfile. requirements*.lock are exported
+# compatibility artifacts for workflows that still consume that format.
+dev = [
     "pyright==1.1.399",
     "mypy==1.17",
     "respx",
@@ -75,35 +75,6 @@ dev-dependencies = [
     "pytest-xdist>=3.6.1",
     "griffe>=1",
 ]
-
-[tool.rye.scripts]
-format = { chain = [
-  "format:ruff",
-  "format:docs",
-  "fix:ruff",
-  # run formatting again to fix any inconsistencies when imports are stripped
-  "format:ruff",
-]}
-"format:docs" = "bash -c 'python scripts/utils/ruffen-docs.py README.md $(find . -type f -name api.md)'"
-"format:ruff" = "ruff format"
-
-"lint" = { chain = [
-  "check:ruff",
-  "typecheck",
-  "check:importable",
-]}
-"check:ruff" = "ruff check ."
-"fix:ruff" = "ruff check --fix ."
-
-"check:importable" = "python -c 'import openai'"
-
-typecheck = { chain = [
-  "typecheck:pyright",
-  "typecheck:mypy"
-]}
-"typecheck:pyright" = "scripts/run-pyright"
-"typecheck:verify-types" = "pyright --verifytypes openai --ignoreexternal"
-"typecheck:mypy" = "mypy ."
 
 [build-system]
 requires = ["hatchling==1.26.3", "hatch-fancy-pypi-readme"]
@@ -299,3 +270,15 @@ known-first-party = ["openai", "tests"]
 "scripts/**.py" = ["T201", "T203"]
 "tests/**.py" = ["T201", "T203"]
 "examples/**.py" = ["T201", "T203"]
+
+[tool.uv]
+exclude-newer = "7 days"
+index-strategy = "first-index"
+constraint-dependencies = [
+  "pydantic==2.12.5",
+  "pydantic-core==2.41.5",
+]
+
+[tool.uv.pip]
+exclude-newer = "7 days"
+index-strategy = "first-index"

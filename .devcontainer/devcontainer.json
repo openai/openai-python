@@ -7,7 +7,7 @@
     "context": ".."
   },
 
-  "postStartCommand": "rye sync --all-features",
+  "postStartCommand": "uv sync --locked --all-extras --group dev",
 
   "customizations": {
     "vscode": {
@@ -18,10 +18,7 @@
         "terminal.integrated.shell.linux": "/bin/bash",
         "python.pythonPath": ".venv/bin/python",
         "python.defaultInterpreterPath": ".venv/bin/python",
-        "python.typeChecking": "basic",
-        "terminal.integrated.env.linux": {
-          "PATH": "/home/vscode/.rye/shims:${env:PATH}"
-        }
+        "python.typeChecking": "basic"
       }
     }
   },

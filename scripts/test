@@ -40,10 +40,13 @@ elif ! steady_is_running ; then
   echo -e "${RED}ERROR:${NC} The test suite will not run without a mock Steady server"
   echo -e "running against your OpenAPI spec."
   echo
+  echo -e "Install the pinned mock server dependency first:"
+  echo -e "  \$ ${YELLOW}corepack pnpm install --frozen-lockfile${NC}"
+  echo
   echo -e "To run the server, pass in the path or url of your OpenAPI"
   echo -e "spec to the steady command:"
   echo
-  echo -e "  \$ ${YELLOW}npm exec --package=@stdy/cli@0.20.2 -- steady path/to/your.openapi.yml --host 127.0.0.1 -p 4010 --validator-query-array-format=brackets --validator-form-array-format=brackets --validator-query-object-format=brackets --validator-form-object-format=brackets${NC}"
+  echo -e "  \$ ${YELLOW}corepack pnpm exec steady path/to/your.openapi.yml --host 127.0.0.1 -p 4010 --validator-query-array-format=brackets --validator-form-array-format=brackets --validator-query-object-format=brackets --validator-form-object-format=brackets${NC}"
   echo
 
   exit 1
@@ -55,7 +58,7 @@ fi
 export DEFER_PYDANTIC_BUILD=false
 
 echo "==> Running tests"
-rye run pytest "$@"
+uv run pytest "$@"
 
 echo "==> Running Pydantic v1 tests"
-rye run nox -s test-pydantic-v1 -- "$@"
+uv run nox -s test-pydantic-v1 -- "$@"
