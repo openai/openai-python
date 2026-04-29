@@ -462,7 +462,7 @@ class OpenAI(SyncAPIClient):
         http_client = http_client or self._client
 
         return self.__class__(
-            api_key=api_key or self._api_key_provider or self.api_key,
+            api_key=api_key if api_key is not None else self._api_key_provider or self.api_key,
             workload_identity=workload_identity or self.workload_identity,
             organization=organization or self.organization,
             project=project or self.project,
@@ -890,7 +890,7 @@ class AsyncOpenAI(AsyncAPIClient):
 
         http_client = http_client or self._client
         return self.__class__(
-            api_key=api_key or self._api_key_provider or self.api_key,
+            api_key=api_key if api_key is not None else self._api_key_provider or self.api_key,
             workload_identity=workload_identity or self.workload_identity,
             organization=organization or self.organization,
             project=project or self.project,

@@ -1191,6 +1191,12 @@ class TestOpenAI:
         client._refresh_api_key()
         assert client.auth_headers == {"Authorization": "Bearer test_bearer_token_2"}
 
+    def test_copy_auth_with_empty_api_key(self) -> None:
+        client = OpenAI(base_url=base_url, api_key=api_key).copy(api_key="")
+
+        assert client.api_key == ""
+        assert "Authorization" not in client.auth_headers
+
 
 class TestAsyncOpenAI:
     @pytest.mark.respx(base_url=base_url)
@@ -2274,6 +2280,12 @@ class TestAsyncOpenAI:
         client = AsyncOpenAI(base_url=base_url, api_key=token_provider_1).copy(api_key=token_provider_2)
         await client._refresh_api_key()
         assert client.auth_headers == {"Authorization": "Bearer test_bearer_token_2"}
+
+    async def test_copy_auth_with_empty_api_key(self) -> None:
+        client = AsyncOpenAI(base_url=base_url, api_key=api_key).copy(api_key="")
+
+        assert client.api_key == ""
+        assert "Authorization" not in client.auth_headers
 
 
 class TestWorkloadIdentity401Retry:
