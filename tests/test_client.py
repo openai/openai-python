@@ -929,6 +929,28 @@ class TestOpenAI:
 
         assert _get_open_connections(client) == 0
 
+    @pytest.mark.respx(base_url=base_url)
+    def test_timeout_errors_are_not_retried_when_retries_are_disabled(
+        self, respx_mock: MockRouter, client: OpenAI
+    ) -> None:
+        respx_mock.post("/chat/completions").mock(side_effect=httpx.TimeoutException("Test timeout error"))
+
+        with pytest.raises(APITimeoutError):
+            client.with_options(max_retries=0, timeout=1.0).chat.completions.create(
+                messages=[
+                    {
+                        "content": "string",
+                        "role": "developer",
+                    }
+                ],
+                model="gpt-5.4",
+            )
+
+        calls = cast("list[MockRequestCall]", respx_mock.calls)
+        assert len(calls) == 1
+        timeout = httpx.Timeout(**calls[0].request.extensions["timeout"])  # type: ignore
+        assert timeout == httpx.Timeout(1.0)
+
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
     def test_retrying_status_errors_doesnt_leak(self, respx_mock: MockRouter, client: OpenAI) -> None:
@@ -1999,6 +2021,28 @@ class TestAsyncOpenAI:
             ).__aenter__()
 
         assert _get_open_connections(async_client) == 0
+
+    @pytest.mark.respx(base_url=base_url)
+    async def test_timeout_errors_are_not_retried_when_retries_are_disabled(
+        self, respx_mock: MockRouter, async_client: AsyncOpenAI
+    ) -> None:
+        respx_mock.post("/chat/completions").mock(side_effect=httpx.TimeoutException("Test timeout error"))
+
+        with pytest.raises(APITimeoutError):
+            await async_client.with_options(max_retries=0, timeout=1.0).chat.completions.create(
+                messages=[
+                    {
+                        "content": "string",
+                        "role": "developer",
+                    }
+                ],
+                model="gpt-5.4",
+            )
+
+        calls = cast("list[MockRequestCall]", respx_mock.calls)
+        assert len(calls) == 1
+        timeout = httpx.Timeout(**calls[0].request.extensions["timeout"])  # type: ignore
+        assert timeout == httpx.Timeout(1.0)
 
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)

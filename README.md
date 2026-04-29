@@ -729,9 +729,11 @@ client.with_options(timeout=5.0).chat.completions.create(
 )
 ```
 
-On timeout, an `APITimeoutError` is thrown.
+On timeout, an `APITimeoutError` is thrown. Timeout values are passed through to `httpx`, which
+applies them per request operation, not as a wall-clock deadline across all retry attempts.
 
-Note that requests that time out are [retried twice by default](#retries).
+Note that requests that time out are [retried twice by default](#retries). To make a timeout error
+fail after the first attempt, set `max_retries=0`.
 
 ## Advanced
 
