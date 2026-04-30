@@ -8,11 +8,11 @@ from typing_extensions import Self, override
 import httpx
 
 from ..auth import WorkloadIdentity
-from .._types import NOT_GIVEN, Omit, Query, Timeout, NotGiven
+from .._types import NOT_GIVEN, Omit, Query, Headers, Timeout, NotGiven
 from .._utils import is_given, is_mapping
 from .._client import OpenAI, AsyncOpenAI
 from .._compat import model_copy
-from .._models import FinalRequestOptions
+from .._models import SecurityOptions, FinalRequestOptions
 from .._streaming import Stream, AsyncStream
 from .._exceptions import OpenAIError
 from .._base_client import DEFAULT_MAX_RETRIES, BaseClient
@@ -41,6 +41,15 @@ _DefaultStreamT = TypeVar("_DefaultStreamT", bound=Union[Stream[Any], AsyncStrea
 # as we don't want to make the `api_key` in the main client Optional
 # and Azure AD tokens may be retrieved on a per-request basis
 API_KEY_SENTINEL = "".join(["<", "missing API key", ">"])
+
+
+def _has_header(headers: Headers, header: str) -> bool:
+    header = header.lower()
+    return any(key.lower() == header for key in headers)
+
+
+def _has_auth_header(headers: Headers) -> bool:
+    return _has_header(headers, "Authorization") or _has_header(headers, "api-key")
 
 
 class MutuallyExclusiveAuthError(OpenAIError):
@@ -338,6 +347,25 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         return None
 
     @override
+    def _auth_headers(self, security: SecurityOptions) -> dict[str, str]:  # noqa: ARG002
+        if self._azure_ad_token is not None:
+            return {"Authorization": f"Bearer {self._azure_ad_token}"}
+
+        if self.api_key and self.api_key != API_KEY_SENTINEL:
+            return {"api-key": self.api_key}
+
+        return {}
+
+    @override
+    def _validate_headers(self, headers: Headers, custom_headers: Headers) -> None:
+        if _has_auth_header(headers) or _has_auth_header(custom_headers):
+            return
+
+        raise TypeError(
+            '"Could not resolve authentication method. Expected either api_key, azure_ad_token or azure_ad_token_provider to be set. Or for one of the `Authorization` or `api-key` headers to be explicitly supplied or omitted"'
+        )
+
+    @override
     def _prepare_options(self, options: FinalRequestOptions) -> FinalRequestOptions:
         headers: dict[str, str | Omit] = {**options.headers} if is_given(options.headers) else {}
 
@@ -346,11 +374,13 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
 
         azure_ad_token = self._get_azure_ad_token()
         if azure_ad_token is not None:
-            if headers.get("Authorization") is None:
+            if not _has_header(headers, "Authorization"):
                 headers["Authorization"] = f"Bearer {azure_ad_token}"
         elif self.api_key and self.api_key != API_KEY_SENTINEL:
-            if headers.get("api-key") is None:
+            if not _has_header(headers, "api-key"):
                 headers["api-key"] = self.api_key
+        elif _has_auth_header(headers) or _has_auth_header(self.default_headers):
+            pass
         else:
             # should never be hit
             raise ValueError("Unable to handle auth")
@@ -639,6 +669,25 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         return None
 
     @override
+    def _auth_headers(self, security: SecurityOptions) -> dict[str, str]:  # noqa: ARG002
+        if self._azure_ad_token is not None:
+            return {"Authorization": f"Bearer {self._azure_ad_token}"}
+
+        if self.api_key and self.api_key != API_KEY_SENTINEL:
+            return {"api-key": self.api_key}
+
+        return {}
+
+    @override
+    def _validate_headers(self, headers: Headers, custom_headers: Headers) -> None:
+        if _has_auth_header(headers) or _has_auth_header(custom_headers):
+            return
+
+        raise TypeError(
+            '"Could not resolve authentication method. Expected either api_key, azure_ad_token or azure_ad_token_provider to be set. Or for one of the `Authorization` or `api-key` headers to be explicitly supplied or omitted"'
+        )
+
+    @override
     async def _prepare_options(self, options: FinalRequestOptions) -> FinalRequestOptions:
         headers: dict[str, str | Omit] = {**options.headers} if is_given(options.headers) else {}
 
@@ -647,11 +696,13 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
 
         azure_ad_token = await self._get_azure_ad_token()
         if azure_ad_token is not None:
-            if headers.get("Authorization") is None:
+            if not _has_header(headers, "Authorization"):
                 headers["Authorization"] = f"Bearer {azure_ad_token}"
         elif self.api_key and self.api_key != API_KEY_SENTINEL:
-            if headers.get("api-key") is None:
+            if not _has_header(headers, "api-key"):
                 headers["api-key"] = self.api_key
+        elif _has_auth_header(headers) or _has_auth_header(self.default_headers):
+            pass
         else:
             # should never be hit
             raise ValueError("Unable to handle auth")

@@ -91,6 +91,55 @@ def test_enforce_credentials_false_sync() -> None:
         )
 
 
+@pytest.mark.respx()
+def test_enforce_credentials_false_sync_uses_default_api_key_header(respx_mock: MockRouter) -> None:
+    respx_mock.post(
+        "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-02-01"
+    ).mock(return_value=httpx.Response(200, json={"model": "gpt-4"}))
+
+    with update_env(AZURE_OPENAI_API_KEY=Omit(), AZURE_OPENAI_AD_TOKEN=Omit()):
+        client = AzureOpenAI(
+            api_version="2024-02-01",
+            api_key=None,
+            azure_ad_token=None,
+            azure_ad_token_provider=None,
+            azure_endpoint="https://example-resource.azure.openai.com",
+            default_headers={"api-key": "manual-api-key"},
+            _enforce_credentials=False,
+        )
+        client.chat.completions.create(messages=[], model="gpt-4")
+
+    calls = cast("list[MockRequestCall]", respx_mock.calls)
+    assert calls[0].request.headers.get("api-key") == "manual-api-key"
+    assert calls[0].request.headers.get("Authorization") is None
+
+
+@pytest.mark.respx()
+def test_enforce_credentials_false_sync_uses_request_authorization_header(respx_mock: MockRouter) -> None:
+    respx_mock.post(
+        "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-02-01"
+    ).mock(return_value=httpx.Response(200, json={"model": "gpt-4"}))
+
+    with update_env(AZURE_OPENAI_API_KEY=Omit(), AZURE_OPENAI_AD_TOKEN=Omit()):
+        client = AzureOpenAI(
+            api_version="2024-02-01",
+            api_key=None,
+            azure_ad_token=None,
+            azure_ad_token_provider=None,
+            azure_endpoint="https://example-resource.azure.openai.com",
+            _enforce_credentials=False,
+        )
+        client.chat.completions.create(
+            messages=[],
+            model="gpt-4",
+            extra_headers={"authorization": "Bearer manual-token"},
+        )
+
+    calls = cast("list[MockRequestCall]", respx_mock.calls)
+    assert calls[0].request.headers.get("Authorization") == "Bearer manual-token"
+    assert calls[0].request.headers.get("api-key") is None
+
+
 def test_enforce_credentials_true_sync() -> None:
     with update_env(AZURE_OPENAI_API_KEY=Omit(), AZURE_OPENAI_AD_TOKEN=Omit()):
         with pytest.raises(OpenAIError, match="Missing credentials"):
@@ -113,6 +162,57 @@ def test_enforce_credentials_false_async() -> None:
             azure_endpoint="https://example-resource.azure.openai.com",
             _enforce_credentials=False,
         )
+
+
+@pytest.mark.asyncio
+@pytest.mark.respx()
+async def test_enforce_credentials_false_async_uses_default_api_key_header(respx_mock: MockRouter) -> None:
+    respx_mock.post(
+        "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-02-01"
+    ).mock(return_value=httpx.Response(200, json={"model": "gpt-4"}))
+
+    with update_env(AZURE_OPENAI_API_KEY=Omit(), AZURE_OPENAI_AD_TOKEN=Omit()):
+        client = AsyncAzureOpenAI(
+            api_version="2024-02-01",
+            api_key=None,
+            azure_ad_token=None,
+            azure_ad_token_provider=None,
+            azure_endpoint="https://example-resource.azure.openai.com",
+            default_headers={"api-key": "manual-api-key"},
+            _enforce_credentials=False,
+        )
+        await client.chat.completions.create(messages=[], model="gpt-4")
+
+    calls = cast("list[MockRequestCall]", respx_mock.calls)
+    assert calls[0].request.headers.get("api-key") == "manual-api-key"
+    assert calls[0].request.headers.get("Authorization") is None
+
+
+@pytest.mark.asyncio
+@pytest.mark.respx()
+async def test_enforce_credentials_false_async_uses_request_authorization_header(respx_mock: MockRouter) -> None:
+    respx_mock.post(
+        "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-02-01"
+    ).mock(return_value=httpx.Response(200, json={"model": "gpt-4"}))
+
+    with update_env(AZURE_OPENAI_API_KEY=Omit(), AZURE_OPENAI_AD_TOKEN=Omit()):
+        client = AsyncAzureOpenAI(
+            api_version="2024-02-01",
+            api_key=None,
+            azure_ad_token=None,
+            azure_ad_token_provider=None,
+            azure_endpoint="https://example-resource.azure.openai.com",
+            _enforce_credentials=False,
+        )
+        await client.chat.completions.create(
+            messages=[],
+            model="gpt-4",
+            extra_headers={"authorization": "Bearer manual-token"},
+        )
+
+    calls = cast("list[MockRequestCall]", respx_mock.calls)
+    assert calls[0].request.headers.get("Authorization") == "Bearer manual-token"
+    assert calls[0].request.headers.get("api-key") is None
 
 
 def test_enforce_credentials_true_async() -> None:
