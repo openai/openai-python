@@ -498,8 +498,65 @@ class TestOpenAI:
                 "OPENAI_ADMIN_KEY": Omit(),
             }
         ):
+            no_credentials = OpenAI(
+                base_url=base_url,
+                api_key=None,
+                admin_api_key=None,
+                _enforce_credentials=False,
+                _strict_response_validation=True,
+            )
+            lowercase_auth_request = no_credentials._build_request(
+                FinalRequestOptions(method="get", url="/foo", headers={"authorization": "Bearer custom"})
+            )
+            assert lowercase_auth_request.headers.get("Authorization") == "Bearer custom"
+
+            omitted_auth_request = no_credentials._build_request(
+                FinalRequestOptions(method="get", url="/foo", headers={"authorization": Omit()})
+            )
+            assert "Authorization" not in omitted_auth_request.headers
+
+        with update_env(
+            **{
+                "OPENAI_API_KEY": Omit(),
+                "OPENAI_ADMIN_KEY": Omit(),
+            }
+        ):
             with pytest.raises(OpenAIError, match="Missing credentials"):
                 OpenAI(base_url=base_url, api_key=None, admin_api_key=None, _strict_response_validation=True)
+
+    @pytest.mark.respx(base_url=base_url)
+    def test_api_key_provider_preserves_admin_auth(self, respx_mock: MockRouter) -> None:
+        respx_mock.get("/organization/projects").mock(return_value=httpx.Response(200, json={"ok": True}))
+
+        provider_called = False
+
+        def api_key_provider() -> str:
+            nonlocal provider_called
+            provider_called = True
+            return "dynamic-api-key"
+
+        client = OpenAI(base_url=base_url, api_key=api_key_provider, admin_api_key=admin_api_key)
+        response = client.get(
+            "/organization/projects",
+            cast_to=httpx.Response,
+            options={"security": {"admin_api_key_auth": True}},
+        )
+
+        assert response.request.headers.get("Authorization") == f"Bearer {admin_api_key}"
+        assert provider_called is False
+
+    @pytest.mark.respx(base_url=base_url)
+    def test_workload_identity_preserves_admin_auth(self, respx_mock: MockRouter) -> None:
+        respx_mock.get("/organization/projects").mock(return_value=httpx.Response(200, json={"ok": True}))
+
+        client = OpenAI(base_url=base_url, workload_identity=workload_identity, admin_api_key=admin_api_key)
+        response = client.get(
+            "/organization/projects",
+            cast_to=httpx.Response,
+            options={"security": {"admin_api_key_auth": True}},
+        )
+
+        assert response.request.headers.get("Authorization") == f"Bearer {admin_api_key}"
 
     def test_workload_identity_is_mutually_exclusive_with_api_key(self) -> None:
         with pytest.raises(
@@ -1686,8 +1743,65 @@ class TestAsyncOpenAI:
                 "OPENAI_ADMIN_KEY": Omit(),
             }
         ):
+            no_credentials = AsyncOpenAI(
+                base_url=base_url,
+                api_key=None,
+                admin_api_key=None,
+                _enforce_credentials=False,
+                _strict_response_validation=True,
+            )
+            lowercase_auth_request = no_credentials._build_request(
+                FinalRequestOptions(method="get", url="/foo", headers={"authorization": "Bearer custom"})
+            )
+            assert lowercase_auth_request.headers.get("Authorization") == "Bearer custom"
+
+            omitted_auth_request = no_credentials._build_request(
+                FinalRequestOptions(method="get", url="/foo", headers={"authorization": Omit()})
+            )
+            assert "Authorization" not in omitted_auth_request.headers
+
+        with update_env(
+            **{
+                "OPENAI_API_KEY": Omit(),
+                "OPENAI_ADMIN_KEY": Omit(),
+            }
+        ):
             with pytest.raises(OpenAIError, match="Missing credentials"):
                 AsyncOpenAI(base_url=base_url, api_key=None, admin_api_key=None, _strict_response_validation=True)
+
+    @pytest.mark.respx(base_url=base_url)
+    async def test_api_key_provider_preserves_admin_auth(self, respx_mock: MockRouter) -> None:
+        respx_mock.get("/organization/projects").mock(return_value=httpx.Response(200, json={"ok": True}))
+
+        provider_called = False
+
+        async def api_key_provider() -> str:
+            nonlocal provider_called
+            provider_called = True
+            return "dynamic-api-key"
+
+        client = AsyncOpenAI(base_url=base_url, api_key=api_key_provider, admin_api_key=admin_api_key)
+        response = await client.get(
+            "/organization/projects",
+            cast_to=httpx.Response,
+            options={"security": {"admin_api_key_auth": True}},
+        )
+
+        assert response.request.headers.get("Authorization") == f"Bearer {admin_api_key}"
+        assert provider_called is False
+
+    @pytest.mark.respx(base_url=base_url)
+    async def test_workload_identity_preserves_admin_auth(self, respx_mock: MockRouter) -> None:
+        respx_mock.get("/organization/projects").mock(return_value=httpx.Response(200, json={"ok": True}))
+
+        client = AsyncOpenAI(base_url=base_url, workload_identity=workload_identity, admin_api_key=admin_api_key)
+        response = await client.get(
+            "/organization/projects",
+            cast_to=httpx.Response,
+            options={"security": {"admin_api_key_auth": True}},
+        )
+
+        assert response.request.headers.get("Authorization") == f"Bearer {admin_api_key}"
 
     async def test_default_query_option(self) -> None:
         client = AsyncOpenAI(

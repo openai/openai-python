@@ -89,6 +89,16 @@ __all__ = ["Timeout", "Transport", "ProxiesTypes", "RequestOptions", "OpenAI", "
 WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER = "workload-identity-auth"
 
 
+def _has_header(headers: Headers, header: str) -> bool:
+    header = header.lower()
+    return any(key.lower() == header for key in headers)
+
+
+def _has_omitted_header(headers: Headers, header: str) -> bool:
+    header = header.lower()
+    return any(key.lower() == header and isinstance(value, Omit) for key, value in headers.items())
+
+
 class OpenAI(SyncAPIClient):
     # client options
     api_key: str
@@ -389,14 +399,25 @@ class OpenAI(SyncAPIClient):
         retried: bool = False,
         **kwargs: Unpack[HttpxSendArgs],
     ) -> httpx.Response:
+        used_workload_identity_auth = False
         if self._api_key_provider is not None:
-            request.headers["Authorization"] = f"Bearer {self._refresh_api_key()}"
+            authorization = request.headers.get("Authorization")
+            if authorization is None or authorization == f"Bearer {self.api_key}":
+                request.headers["Authorization"] = f"Bearer {self._refresh_api_key()}"
 
         if self._workload_identity_auth is not None:
-            request.headers["Authorization"] = f"Bearer {self._workload_identity_auth.get_token()}"
+            authorization = request.headers.get("Authorization")
+            if authorization is None or authorization == f"Bearer {WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER}":
+                request.headers["Authorization"] = f"Bearer {self._workload_identity_auth.get_token()}"
+                used_workload_identity_auth = True
 
         response = super()._send_request(request, stream=stream, **kwargs)
-        if response.status_code == 401 and self._workload_identity_auth is not None and not retried:
+        if (
+            response.status_code == 401
+            and self._workload_identity_auth is not None
+            and used_workload_identity_auth
+            and not retried
+        ):
             response.close()
             self._workload_identity_auth.invalidate_token()
             request.headers["Authorization"] = f"Bearer {self._workload_identity_auth.get_token()}"
@@ -461,7 +482,7 @@ class OpenAI(SyncAPIClient):
 
     @override
     def _validate_headers(self, headers: Headers, custom_headers: Headers) -> None:
-        if headers.get("Authorization") or isinstance(custom_headers.get("Authorization"), Omit):
+        if _has_header(headers, "Authorization") or _has_omitted_header(custom_headers, "Authorization"):
             return
 
         if self._api_key_provider is not None or self._workload_identity_auth is not None:
@@ -878,14 +899,25 @@ class AsyncOpenAI(AsyncAPIClient):
         retried: bool = False,
         **kwargs: Unpack[HttpxSendArgs],
     ) -> httpx.Response:
+        used_workload_identity_auth = False
         if self._api_key_provider is not None:
-            request.headers["Authorization"] = f"Bearer {await self._refresh_api_key()}"
+            authorization = request.headers.get("Authorization")
+            if authorization is None or authorization == f"Bearer {self.api_key}":
+                request.headers["Authorization"] = f"Bearer {await self._refresh_api_key()}"
 
         if self._workload_identity_auth is not None:
-            request.headers["Authorization"] = f"Bearer {await self._workload_identity_auth.get_token_async()}"
+            authorization = request.headers.get("Authorization")
+            if authorization is None or authorization == f"Bearer {WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER}":
+                request.headers["Authorization"] = f"Bearer {await self._workload_identity_auth.get_token_async()}"
+                used_workload_identity_auth = True
 
         response = await super()._send_request(request, stream=stream, **kwargs)
-        if response.status_code == 401 and self._workload_identity_auth is not None and not retried:
+        if (
+            response.status_code == 401
+            and self._workload_identity_auth is not None
+            and used_workload_identity_auth
+            and not retried
+        ):
             await response.aclose()
             self._workload_identity_auth.invalidate_token()
             request.headers["Authorization"] = f"Bearer {await self._workload_identity_auth.get_token_async()}"
@@ -950,7 +982,7 @@ class AsyncOpenAI(AsyncAPIClient):
 
     @override
     def _validate_headers(self, headers: Headers, custom_headers: Headers) -> None:
-        if headers.get("Authorization") or isinstance(custom_headers.get("Authorization"), Omit):
+        if _has_header(headers, "Authorization") or _has_omitted_header(custom_headers, "Authorization"):
             return
 
         if self._api_key_provider is not None or self._workload_identity_auth is not None:

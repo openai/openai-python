@@ -206,7 +206,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         if azure_ad_token is None:
             azure_ad_token = os.environ.get("AZURE_OPENAI_AD_TOKEN")
 
-        if api_key is None and azure_ad_token is None and azure_ad_token_provider is None:
+        if _enforce_credentials and api_key is None and azure_ad_token is None and azure_ad_token_provider is None:
             raise OpenAIError(
                 "Missing credentials. Please pass one of `api_key`, `azure_ad_token`, `azure_ad_token_provider`, or the `AZURE_OPENAI_API_KEY` or `AZURE_OPENAI_AD_TOKEN` environment variables."
             )
@@ -505,7 +505,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         if azure_ad_token is None:
             azure_ad_token = os.environ.get("AZURE_OPENAI_AD_TOKEN")
 
-        if api_key is None and azure_ad_token is None and azure_ad_token_provider is None:
+        if _enforce_credentials and api_key is None and azure_ad_token is None and azure_ad_token_provider is None:
             raise OpenAIError(
                 "Missing credentials. Please pass one of `api_key`, `azure_ad_token`, `azure_ad_token_provider`, or the `AZURE_OPENAI_API_KEY` or `AZURE_OPENAI_AD_TOKEN` environment variables."
             )

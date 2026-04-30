@@ -8,6 +8,9 @@ import httpx
 import pytest
 from respx import MockRouter
 
+from openai import OpenAIError
+from tests.utils import update_env
+from openai._types import Omit
 from openai._utils import SensitiveHeadersFilter, is_dict
 from openai._models import FinalRequestOptions
 from openai.lib.azure import AzureOpenAI, AsyncAzureOpenAI
@@ -74,6 +77,54 @@ def test_client_copying_override_options(client: Client) -> None:
         api_version="2022-05-01",
     )
     assert copied._custom_query == {"api-version": "2022-05-01"}
+
+
+def test_enforce_credentials_false_sync() -> None:
+    with update_env(AZURE_OPENAI_API_KEY=Omit(), AZURE_OPENAI_AD_TOKEN=Omit()):
+        AzureOpenAI(
+            api_version="2024-02-01",
+            api_key=None,
+            azure_ad_token=None,
+            azure_ad_token_provider=None,
+            azure_endpoint="https://example-resource.azure.openai.com",
+            _enforce_credentials=False,
+        )
+
+
+def test_enforce_credentials_true_sync() -> None:
+    with update_env(AZURE_OPENAI_API_KEY=Omit(), AZURE_OPENAI_AD_TOKEN=Omit()):
+        with pytest.raises(OpenAIError, match="Missing credentials"):
+            AzureOpenAI(
+                api_version="2024-02-01",
+                api_key=None,
+                azure_ad_token=None,
+                azure_ad_token_provider=None,
+                azure_endpoint="https://example-resource.azure.openai.com",
+            )
+
+
+def test_enforce_credentials_false_async() -> None:
+    with update_env(AZURE_OPENAI_API_KEY=Omit(), AZURE_OPENAI_AD_TOKEN=Omit()):
+        AsyncAzureOpenAI(
+            api_version="2024-02-01",
+            api_key=None,
+            azure_ad_token=None,
+            azure_ad_token_provider=None,
+            azure_endpoint="https://example-resource.azure.openai.com",
+            _enforce_credentials=False,
+        )
+
+
+def test_enforce_credentials_true_async() -> None:
+    with update_env(AZURE_OPENAI_API_KEY=Omit(), AZURE_OPENAI_AD_TOKEN=Omit()):
+        with pytest.raises(OpenAIError, match="Missing credentials"):
+            AsyncAzureOpenAI(
+                api_version="2024-02-01",
+                api_key=None,
+                azure_ad_token=None,
+                azure_ad_token_provider=None,
+                azure_endpoint="https://example-resource.azure.openai.com",
+            )
 
 
 @pytest.mark.respx()
