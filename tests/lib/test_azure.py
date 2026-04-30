@@ -154,6 +154,77 @@ async def test_client_token_provider_refresh_async(respx_mock: MockRouter) -> No
     assert calls[1].request.headers.get("Authorization") == "Bearer second"
 
 
+@pytest.mark.respx()
+def test_image_edit_uses_azure_deployment_multipart_request(respx_mock: MockRouter) -> None:
+    respx_mock.post(
+        "https://example-resource.azure.openai.com/openai/deployments/deployment-client/images/edits?api-version=2025-04-01-preview"
+    ).mock(return_value=httpx.Response(200, json={"created": 0, "data": []}))
+
+    client = AzureOpenAI(
+        api_version="2025-04-01-preview",
+        api_key="example API key",
+        azure_endpoint="https://example-resource.azure.openai.com",
+        azure_deployment="deployment-client",
+    )
+    client.images.edit(
+        image=b"Example data",
+        prompt="A clean product photo",
+        model="gpt-image-1",
+    )
+
+    calls = cast("list[MockRequestCall]", respx_mock.calls)
+    request = calls[0].request
+
+    assert request.url == (
+        "https://example-resource.azure.openai.com/openai/deployments/deployment-client/images/edits?api-version=2025-04-01-preview"
+    )
+    assert request.headers["Content-Type"].startswith("multipart/form-data; boundary=")
+    assert request.headers["api-key"] == "example API key"
+
+    content = request.read()
+    assert b'name="image"; filename="upload"' in content
+    assert b'name="prompt"' in content
+    assert b"A clean product photo" in content
+    assert b'name="model"' in content
+    assert b"gpt-image-1" in content
+
+
+@pytest.mark.asyncio
+@pytest.mark.respx()
+async def test_image_edit_uses_azure_deployment_multipart_request_async(respx_mock: MockRouter) -> None:
+    respx_mock.post(
+        "https://example-resource.azure.openai.com/openai/deployments/deployment-client/images/edits?api-version=2025-04-01-preview"
+    ).mock(return_value=httpx.Response(200, json={"created": 0, "data": []}))
+
+    client = AsyncAzureOpenAI(
+        api_version="2025-04-01-preview",
+        api_key="example API key",
+        azure_endpoint="https://example-resource.azure.openai.com",
+        azure_deployment="deployment-client",
+    )
+    await client.images.edit(
+        image=b"Example data",
+        prompt="A clean product photo",
+        model="gpt-image-1",
+    )
+
+    calls = cast("list[MockRequestCall]", respx_mock.calls)
+    request = calls[0].request
+
+    assert request.url == (
+        "https://example-resource.azure.openai.com/openai/deployments/deployment-client/images/edits?api-version=2025-04-01-preview"
+    )
+    assert request.headers["Content-Type"].startswith("multipart/form-data; boundary=")
+    assert request.headers["api-key"] == "example API key"
+
+    content = request.read()
+    assert b'name="image"; filename="upload"' in content
+    assert b'name="prompt"' in content
+    assert b"A clean product photo" in content
+    assert b'name="model"' in content
+    assert b"gpt-image-1" in content
+
+
 class TestAzureLogging:
     @pytest.fixture(autouse=True)
     def logger_with_filter(self) -> logging.Logger:
