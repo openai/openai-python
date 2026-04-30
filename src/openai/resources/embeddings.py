@@ -142,6 +142,7 @@ class Embeddings(SyncAPIResource):
                 extra_body=extra_body,
                 timeout=timeout,
                 post_parser=parser,
+                security={"bearer_auth": True},
             ),
             cast_to=CreateEmbeddingResponse,
         )

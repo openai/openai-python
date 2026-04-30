@@ -236,6 +236,7 @@ class Completions(SyncAPIResource):
                 extra_body=extra_body,
                 timeout=timeout,
                 post_parser=parser,
+                security={"bearer_auth": True},
             ),
             # we turn the `ChatCompletion` instance into a `ParsedChatCompletion`
             # in the `parser` function above
@@ -1756,6 +1757,7 @@ class AsyncCompletions(AsyncAPIResource):
                 extra_body=extra_body,
                 timeout=timeout,
                 post_parser=parser,
+                security={"bearer_auth": True},
             ),
             # we turn the `ChatCompletion` instance into a `ParsedChatCompletion`
             # in the `parser` function above
