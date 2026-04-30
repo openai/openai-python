@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import logging
 from typing import Union, cast
 from typing_extensions import Literal, Protocol
@@ -7,6 +8,7 @@ from typing_extensions import Literal, Protocol
 import httpx
 import pytest
 from respx import MockRouter
+from pydantic import BaseModel
 
 from openai._utils import SensitiveHeadersFilter, is_dict
 from openai._models import FinalRequestOptions
@@ -30,6 +32,59 @@ async_client = AsyncAzureOpenAI(
 
 class MockRequestCall(Protocol):
     request: httpx.Request
+
+
+@pytest.mark.respx()
+async def test_parse_does_not_send_default_token_limits_to_azure(respx_mock: MockRouter) -> None:
+    class ParsedResult(BaseModel):
+        answer: str
+
+    respx_mock.post(
+        "https://example-resource.azure.openai.com/openai/deployments/gpt-5/chat/completions?api-version=2024-02-01"
+    ).mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "id": "chatcmpl-example",
+                "object": "chat.completion",
+                "created": 1727346142,
+                "model": "gpt-5",
+                "choices": [
+                    {
+                        "index": 0,
+                        "message": {
+                            "role": "assistant",
+                            "content": '{"answer":"ok"}',
+                            "refusal": None,
+                        },
+                        "finish_reason": "stop",
+                    }
+                ],
+            },
+        )
+    )
+
+    client = AsyncAzureOpenAI(
+        api_version="2024-02-01",
+        api_key="example API key",
+        azure_endpoint="https://example-resource.azure.openai.com",
+    )
+
+    completion = await client.beta.chat.completions.parse(
+        model="gpt-5",
+        messages=[{"role": "user", "content": "Return JSON."}],
+        response_format=ParsedResult,
+        reasoning_effort="minimal",
+    )
+
+    calls = cast("list[MockRequestCall]", respx_mock.calls)
+    assert len(calls) == 1
+
+    request_body = json.loads(calls[0].request.content)
+    assert request_body["reasoning_effort"] == "minimal"
+    assert "max_tokens" not in request_body
+    assert "max_completion_tokens" not in request_body
+    assert completion.choices[0].message.parsed == ParsedResult(answer="ok")
 
 
 @pytest.mark.parametrize("client", [sync_client, async_client])
