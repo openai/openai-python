@@ -946,6 +946,26 @@ class TestOpenAI:
             ).__enter__()
         assert _get_open_connections(client) == 0
 
+    @pytest.mark.respx(base_url=base_url)
+    def test_chat_completions_verbosity_is_serialized(self, respx_mock: MockRouter, client: OpenAI) -> None:
+        respx_mock.post("/chat/completions").mock(return_value=httpx.Response(200, json={}))
+
+        client.chat.completions.with_raw_response.create(
+            messages=[
+                {
+                    "content": "string",
+                    "role": "developer",
+                }
+            ],
+            model="gpt-5.4",
+            verbosity="low",
+        )
+
+        calls = cast("list[MockRequestCall]", respx_mock.calls)
+        data = json.loads(calls[0].request.content.decode("utf-8"))
+        assert data["verbosity"] == "low"
+        assert "text" not in data
+
     @pytest.mark.parametrize("failures_before_success", [0, 2, 4])
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
