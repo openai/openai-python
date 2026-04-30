@@ -60,7 +60,7 @@ class Response(BaseModel):
     id: str
     """Unique identifier for this Response."""
 
-    created_at: int
+    created_at: float
     """Unix timestamp (in seconds) of when this Response was created."""
 
     error: Optional[ResponseError] = None
@@ -165,7 +165,7 @@ class Response(BaseModel):
     [Learn more](https://platform.openai.com/docs/guides/background).
     """
 
-    completed_at: Optional[int] = None
+    completed_at: Optional[float] = None
     """
     Unix timestamp (in seconds) of when this Response was completed. Only present
     when the status is `completed`.
