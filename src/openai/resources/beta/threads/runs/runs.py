@@ -1037,7 +1037,11 @@ class Runs(SyncAPIResource):
                 run_create_params.RunCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Run,
             stream=True,
@@ -1229,6 +1233,7 @@ class Runs(SyncAPIResource):
                 extra_body=extra_body,
                 timeout=timeout,
                 query=maybe_transform({"include": include}, run_create_params.RunCreateParams),
+                security={"bearer_auth": True},
             ),
             cast_to=Run,
             stream=True,
@@ -1527,7 +1532,11 @@ class Runs(SyncAPIResource):
                 run_submit_tool_outputs_params.RunSubmitToolOutputsParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Run,
             stream=True,
@@ -2513,7 +2522,11 @@ class AsyncRuns(AsyncAPIResource):
                 run_create_params.RunCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Run,
             stream=True,
@@ -2706,6 +2719,7 @@ class AsyncRuns(AsyncAPIResource):
                 extra_body=extra_body,
                 timeout=timeout,
                 query=maybe_transform({"include": include}, run_create_params.RunCreateParams),
+                security={"bearer_auth": True},
             ),
             cast_to=Run,
             stream=True,
@@ -3006,7 +3020,11 @@ class AsyncRuns(AsyncAPIResource):
                 run_submit_tool_outputs_params.RunSubmitToolOutputsParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Run,
             stream=True,

@@ -1275,6 +1275,7 @@ class Responses(SyncAPIResource):
                 extra_body=extra_body,
                 timeout=timeout,
                 post_parser=parser,
+                security={"bearer_auth": True},
             ),
             # we turn the `Response` instance into a `ParsedResponse`
             # in the `parser` function above
@@ -2977,6 +2978,7 @@ class AsyncResponses(AsyncAPIResource):
                 extra_body=extra_body,
                 timeout=timeout,
                 post_parser=parser,
+                security={"bearer_auth": True},
             ),
             # we turn the `Response` instance into a `ParsedResponse`
             # in the `parser` function above
