@@ -1038,8 +1038,8 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
             except OpenAIError as err:
                 # Propagate OpenAIErrors as-is, without retrying or wrapping in APIConnectionError
                 raise err
-            except Exception as err:
-                log.debug("Encountered Exception", exc_info=True)
+            except httpx.RequestError as err:
+                log.debug("Encountered httpx.RequestError", exc_info=True)
 
                 if remaining_retries > 0:
                     self._sleep_for_retry(
@@ -1649,8 +1649,8 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
             except OpenAIError as err:
                 # Propagate OpenAIErrors as-is, without retrying or wrapping in APIConnectionError
                 raise err
-            except Exception as err:
-                log.debug("Encountered Exception", exc_info=True)
+            except httpx.RequestError as err:
+                log.debug("Encountered httpx.RequestError", exc_info=True)
 
                 if remaining_retries > 0:
                     await self._sleep_for_retry(

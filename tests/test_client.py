@@ -57,6 +57,10 @@ class MockRequestCall(Protocol):
     request: httpx.Request
 
 
+class CustomTaskSignal(Exception):
+    pass
+
+
 def _get_params(client: BaseClient[Any, Any]) -> dict[str, str]:
     request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
     url = httpx.URL(request.url)
@@ -966,7 +970,7 @@ class TestOpenAI:
             if nb_retries < failures_before_success:
                 nb_retries += 1
                 if failure_mode == "exception":
-                    raise RuntimeError("oops")
+                    raise httpx.ConnectError("oops")
                 return httpx.Response(500)
             return httpx.Response(200)
 
@@ -984,6 +988,30 @@ class TestOpenAI:
 
         assert response.retries_taken == failures_before_success
         assert int(response.http_request.headers.get("x-stainless-retry-count")) == failures_before_success
+
+    @pytest.mark.respx(base_url=base_url)
+    def test_non_httpx_request_errors_are_not_retried_or_wrapped(self, respx_mock: MockRouter, client: OpenAI) -> None:
+        nb_requests = 0
+
+        def handler(_request: httpx.Request) -> httpx.Response:
+            nonlocal nb_requests
+            nb_requests += 1
+            raise CustomTaskSignal("task timeout")
+
+        respx_mock.post("/chat/completions").mock(side_effect=handler)
+
+        with pytest.raises(CustomTaskSignal):
+            client.with_options(max_retries=4).chat.completions.create(
+                messages=[
+                    {
+                        "content": "string",
+                        "role": "developer",
+                    }
+                ],
+                model="gpt-5.4",
+            )
+
+        assert nb_requests == 1
 
     @pytest.mark.parametrize("failures_before_success", [0, 2, 4])
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
@@ -2037,7 +2065,7 @@ class TestAsyncOpenAI:
             if nb_retries < failures_before_success:
                 nb_retries += 1
                 if failure_mode == "exception":
-                    raise RuntimeError("oops")
+                    raise httpx.ConnectError("oops")
                 return httpx.Response(500)
             return httpx.Response(200)
 
@@ -2055,6 +2083,32 @@ class TestAsyncOpenAI:
 
         assert response.retries_taken == failures_before_success
         assert int(response.http_request.headers.get("x-stainless-retry-count")) == failures_before_success
+
+    @pytest.mark.respx(base_url=base_url)
+    async def test_non_httpx_request_errors_are_not_retried_or_wrapped(
+        self, respx_mock: MockRouter, async_client: AsyncOpenAI
+    ) -> None:
+        nb_requests = 0
+
+        def handler(_request: httpx.Request) -> httpx.Response:
+            nonlocal nb_requests
+            nb_requests += 1
+            raise CustomTaskSignal("task timeout")
+
+        respx_mock.post("/chat/completions").mock(side_effect=handler)
+
+        with pytest.raises(CustomTaskSignal):
+            await async_client.with_options(max_retries=4).chat.completions.create(
+                messages=[
+                    {
+                        "content": "string",
+                        "role": "developer",
+                    }
+                ],
+                model="gpt-5.4",
+            )
+
+        assert nb_requests == 1
 
     @pytest.mark.parametrize("failures_before_success", [0, 2, 4])
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
