@@ -34,7 +34,8 @@ for chunk in stream:
     if not chunk.choices:
         continue
 
-    print(chunk.choices[0].delta.content, end="")
+    delta = chunk.choices[0].delta
+    print(delta.content if delta and delta.content is not None else "", end="")
 print()
 
 # Response headers:

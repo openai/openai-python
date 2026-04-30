@@ -364,6 +364,9 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
             return _convert_initial_chunk_into_snapshot(chunk)
 
         for choice in chunk.choices:
+            choice_delta = choice.delta
+            choice_delta_dict = choice_delta.to_dict() if choice_delta is not None else {}
+
             try:
                 choice_snapshot = completion_snapshot.choices[choice.index]
                 previous_tool_calls = choice_snapshot.message.tool_calls or []
@@ -393,7 +396,7 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
                                     ),
                                 ),
                             ),
-                            cast("dict[object, object]", choice.delta.to_dict()),
+                            cast("dict[object, object]", choice_delta_dict),
                         ),
                     ),
                 )
@@ -415,7 +418,7 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
                         type_=ParsedChoiceSnapshot,
                         value={
                             **choice.model_dump(exclude_unset=True, exclude={"delta"}),
-                            "message": choice.delta.to_dict(),
+                            "message": choice_delta_dict,
                         },
                     ),
                 )
@@ -445,7 +448,7 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
                     partial_mode=True,
                 )
 
-            for tool_call_chunk in choice.delta.tool_calls or []:
+            for tool_call_chunk in choice_delta.tool_calls if choice_delta and choice_delta.tool_calls else []:
                 tool_call_snapshot = (choice_snapshot.message.tool_calls or [])[tool_call_chunk.index]
 
                 if tool_call_snapshot.type == "function":
@@ -505,33 +508,42 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
         for choice in chunk.choices:
             choice_state = self._get_choice_state(choice)
             choice_snapshot = completion_snapshot.choices[choice.index]
+            choice_delta = choice.delta
 
-            if choice.delta.content is not None and choice_snapshot.message.content is not None:
+            if (
+                choice_delta is not None
+                and choice_delta.content is not None
+                and choice_snapshot.message.content is not None
+            ):
                 events_to_fire.append(
                     build(
                         ContentDeltaEvent,
                         type="content.delta",
-                        delta=choice.delta.content,
+                        delta=choice_delta.content,
                         snapshot=choice_snapshot.message.content,
                         parsed=choice_snapshot.message.parsed,
                     )
                 )
 
-            if choice.delta.refusal is not None and choice_snapshot.message.refusal is not None:
+            if (
+                choice_delta is not None
+                and choice_delta.refusal is not None
+                and choice_snapshot.message.refusal is not None
+            ):
                 events_to_fire.append(
                     build(
                         RefusalDeltaEvent,
                         type="refusal.delta",
-                        delta=choice.delta.refusal,
+                        delta=choice_delta.refusal,
                         snapshot=choice_snapshot.message.refusal,
                     )
                 )
 
-            if choice.delta.tool_calls:
+            if choice_delta is not None and choice_delta.tool_calls:
                 tool_calls = choice_snapshot.message.tool_calls
                 assert tool_calls is not None
 
-                for tool_call_delta in choice.delta.tool_calls:
+                for tool_call_delta in choice_delta.tool_calls:
                     tool_call = tool_calls[tool_call_delta.index]
 
                     if tool_call.type == "function":
@@ -617,7 +629,9 @@ class ChoiceEventState:
                     tool_index=self.__current_tool_call_index,
                 )
 
-        for tool_call in choice_chunk.delta.tool_calls or []:
+        choice_delta = choice_chunk.delta
+
+        for tool_call in choice_delta.tool_calls if choice_delta and choice_delta.tool_calls else []:
             if self.__current_tool_call_index != tool_call.index:
                 events_to_fire.extend(
                     self._content_done_events(choice_snapshot=choice_snapshot, response_format=response_format)
@@ -742,9 +756,12 @@ def _convert_initial_chunk_into_snapshot(chunk: ChatCompletionChunk) -> ParsedCh
     choices = cast("list[object]", data["choices"])
 
     for choice in chunk.choices:
+        choice_delta = choice.delta
+        choice_delta_dict = choice_delta.to_dict() if choice_delta is not None else {}
+
         choices[choice.index] = {
             **choice.model_dump(exclude_unset=True, exclude={"delta"}),
-            "message": choice.delta.to_dict(),
+            "message": choice_delta_dict,
         }
 
     return cast(

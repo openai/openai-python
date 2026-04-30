@@ -20,6 +20,7 @@ stream = openai.chat.completions.create(
 )
 
 for chunk in stream:
-    print(chunk.choices[0].delta.content or "", end="", flush=True)
+    delta = chunk.choices[0].delta
+    print(delta.content if delta and delta.content is not None else "", end="", flush=True)
 
 print()

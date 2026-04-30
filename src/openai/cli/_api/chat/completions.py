@@ -149,7 +149,7 @@ class CLIChatCompletion:
                 if should_print_header:
                     sys.stdout.write("===== Chat Completion {} =====\n".format(choice.index))
 
-                content = choice.delta.content or ""
+                content = choice.delta.content if choice.delta and choice.delta.content is not None else ""
                 sys.stdout.write(content)
 
                 if should_print_header:

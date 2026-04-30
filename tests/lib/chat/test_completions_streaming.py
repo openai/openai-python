@@ -20,6 +20,7 @@ import openai
 from openai import OpenAI, AsyncOpenAI
 from openai._utils import consume_sync_iterator, assert_signatures_in_sync
 from openai._compat import model_copy
+from openai._models import construct_type
 from openai.types.chat import ChatCompletionChunk
 from openai.lib.streaming.chat import (
     ContentDoneEvent,
@@ -1066,6 +1067,54 @@ recommend checking a reliable weather website or a weather app.",
 ]
 """
     )
+
+
+def test_chat_completion_state_accepts_null_delta() -> None:
+    state = ChatCompletionStreamState()
+
+    first_chunk = cast(
+        ChatCompletionChunk,
+        construct_type(
+            type_=ChatCompletionChunk,
+            value={
+                "id": "chatcmpl-test",
+                "choices": [
+                    {
+                        "delta": {"content": "Hello", "role": "assistant"},
+                        "finish_reason": None,
+                        "index": 0,
+                    }
+                ],
+                "created": 1720000000,
+                "model": "gpt-4o-mini",
+                "object": "chat.completion.chunk",
+            },
+        ),
+    )
+    final_chunk = cast(
+        ChatCompletionChunk,
+        construct_type(
+            type_=ChatCompletionChunk,
+            value={
+                "id": "chatcmpl-test",
+                "choices": [{"delta": None, "finish_reason": "stop", "index": 0}],
+                "created": 1720000000,
+                "model": "gpt-4o-mini",
+                "object": "chat.completion.chunk",
+            },
+        ),
+    )
+
+    assert first_chunk.choices[0].delta is not None
+    assert final_chunk.choices[0].delta is None
+
+    state.handle_chunk(first_chunk)
+    events = list(state.handle_chunk(final_chunk))
+
+    assert [event.type for event in events] == ["chunk", "content.done"]
+    completion = state.get_final_completion()
+    assert completion.choices[0].message.content == "Hello"
+    assert completion.choices[0].finish_reason == "stop"
 
 
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
