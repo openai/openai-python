@@ -545,6 +545,25 @@ class TestOpenAI:
         assert response.request.headers.get("Authorization") == f"Bearer {admin_api_key}"
         assert provider_called is False
 
+    def test_api_key_provider_does_not_fill_admin_auth(self) -> None:
+        provider_called = False
+
+        def api_key_provider() -> str:
+            nonlocal provider_called
+            provider_called = True
+            return "dynamic-api-key"
+
+        with update_env(OPENAI_ADMIN_KEY=Omit()):
+            client = OpenAI(base_url=base_url, api_key=api_key_provider, admin_api_key=None)
+            with pytest.raises(TypeError, match="Could not resolve authentication method"):
+                client.get(
+                    "/organization/projects",
+                    cast_to=httpx.Response,
+                    options={"security": {"admin_api_key_auth": True}},
+                )
+
+        assert provider_called is False
+
     @pytest.mark.respx(base_url=base_url)
     def test_workload_identity_preserves_admin_auth(self, respx_mock: MockRouter) -> None:
         respx_mock.get("/organization/projects").mock(return_value=httpx.Response(200, json={"ok": True}))
@@ -1788,6 +1807,25 @@ class TestAsyncOpenAI:
         )
 
         assert response.request.headers.get("Authorization") == f"Bearer {admin_api_key}"
+        assert provider_called is False
+
+    async def test_api_key_provider_does_not_fill_admin_auth(self) -> None:
+        provider_called = False
+
+        async def api_key_provider() -> str:
+            nonlocal provider_called
+            provider_called = True
+            return "dynamic-api-key"
+
+        with update_env(OPENAI_ADMIN_KEY=Omit()):
+            client = AsyncOpenAI(base_url=base_url, api_key=api_key_provider, admin_api_key=None)
+            with pytest.raises(TypeError, match="Could not resolve authentication method"):
+                await client.get(
+                    "/organization/projects",
+                    cast_to=httpx.Response,
+                    options={"security": {"admin_api_key_auth": True}},
+                )
+
         assert provider_called is False
 
     @pytest.mark.respx(base_url=base_url)
