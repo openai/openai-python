@@ -44,6 +44,35 @@ response = client.responses.create(
 print(response.output_text)
 ```
 
+### Conversation state
+
+For multi-turn conversations with the Responses API, use `previous_response_id`
+to have the API retain context between turns.
+
+```python
+from openai import OpenAI
+
+client = OpenAI()
+
+response = client.responses.create(
+    model="gpt-5.2",
+    input="Write a haiku about recursion in programming.",
+)
+print(response.output_text)
+
+response = client.responses.create(
+    model="gpt-5.2",
+    input="Now explain it in plain English.",
+    previous_response_id=response.id,
+)
+print(response.output_text)
+```
+
+If you manually manage conversation history instead, preserve all items from
+`response.output` in their original order. Reasoning models may return reasoning
+items together with assistant messages, and filtering those items down to only
+messages can break subsequent requests.
+
 The previous standard (supported indefinitely) for generating text is the [Chat Completions API](https://platform.openai.com/docs/api-reference/chat). You can use that API to generate text from the model with the code below.
 
 ```python
