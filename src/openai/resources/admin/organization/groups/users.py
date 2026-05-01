@@ -12,12 +12,12 @@ from ....._utils import path_template, maybe_transform, async_maybe_transform
 from ....._compat import cached_property
 from ....._resource import SyncAPIResource, AsyncAPIResource
 from ....._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
-from .....pagination import SyncCursorPage, AsyncCursorPage
+from .....pagination import SyncNextCursorPage, AsyncNextCursorPage
 from ....._base_client import AsyncPaginator, make_request_options
 from .....types.admin.organization.groups import user_list_params, user_create_params
-from .....types.admin.organization.organization_user import OrganizationUser
 from .....types.admin.organization.groups.user_create_response import UserCreateResponse
 from .....types.admin.organization.groups.user_delete_response import UserDeleteResponse
+from .....types.admin.organization.groups.organization_group_user import OrganizationGroupUser
 
 __all__ = ["Users", "AsyncUsers"]
 
@@ -96,7 +96,7 @@ class Users(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> SyncCursorPage[OrganizationUser]:
+    ) -> SyncNextCursorPage[OrganizationGroupUser]:
         """
         Lists the users assigned to a group.
 
@@ -121,7 +121,7 @@ class Users(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `group_id` but received {group_id!r}")
         return self._get_api_list(
             path_template("/organization/groups/{group_id}/users", group_id=group_id),
-            page=SyncCursorPage[OrganizationUser],
+            page=SyncNextCursorPage[OrganizationGroupUser],
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -137,7 +137,7 @@ class Users(SyncAPIResource):
                 ),
                 security={"admin_api_key_auth": True},
             ),
-            model=OrganizationUser,
+            model=OrganizationGroupUser,
         )
 
     def delete(
@@ -255,7 +255,7 @@ class AsyncUsers(AsyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> AsyncPaginator[OrganizationUser, AsyncCursorPage[OrganizationUser]]:
+    ) -> AsyncPaginator[OrganizationGroupUser, AsyncNextCursorPage[OrganizationGroupUser]]:
         """
         Lists the users assigned to a group.
 
@@ -280,7 +280,7 @@ class AsyncUsers(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `group_id` but received {group_id!r}")
         return self._get_api_list(
             path_template("/organization/groups/{group_id}/users", group_id=group_id),
-            page=AsyncCursorPage[OrganizationUser],
+            page=AsyncNextCursorPage[OrganizationGroupUser],
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -296,7 +296,7 @@ class AsyncUsers(AsyncAPIResource):
                 ),
                 security={"admin_api_key_auth": True},
             ),
-            model=OrganizationUser,
+            model=OrganizationGroupUser,
         )
 
     async def delete(

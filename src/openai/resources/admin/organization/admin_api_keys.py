@@ -17,6 +17,7 @@ from ....pagination import SyncCursorPage, AsyncCursorPage
 from ...._base_client import AsyncPaginator, make_request_options
 from ....types.admin.organization import admin_api_key_list_params, admin_api_key_create_params
 from ....types.admin.organization.admin_api_key import AdminAPIKey
+from ....types.admin.organization.admin_api_key_create_response import AdminAPIKeyCreateResponse
 from ....types.admin.organization.admin_api_key_delete_response import AdminAPIKeyDeleteResponse
 
 __all__ = ["AdminAPIKeys", "AsyncAdminAPIKeys"]
@@ -52,7 +53,7 @@ class AdminAPIKeys(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> AdminAPIKey:
+    ) -> AdminAPIKeyCreateResponse:
         """
         Create an organization admin API key
 
@@ -75,7 +76,7 @@ class AdminAPIKeys(SyncAPIResource):
                 timeout=timeout,
                 security={"admin_api_key_auth": True},
             ),
-            cast_to=AdminAPIKey,
+            cast_to=AdminAPIKeyCreateResponse,
         )
 
     def retrieve(
@@ -239,7 +240,7 @@ class AsyncAdminAPIKeys(AsyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> AdminAPIKey:
+    ) -> AdminAPIKeyCreateResponse:
         """
         Create an organization admin API key
 
@@ -262,7 +263,7 @@ class AsyncAdminAPIKeys(AsyncAPIResource):
                 timeout=timeout,
                 security={"admin_api_key_auth": True},
             ),
-            cast_to=AdminAPIKey,
+            cast_to=AdminAPIKeyCreateResponse,
         )
 
     async def retrieve(

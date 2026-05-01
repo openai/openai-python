@@ -28,7 +28,7 @@ from ....._utils import path_template, maybe_transform, async_maybe_transform
 from ....._compat import cached_property
 from ....._resource import SyncAPIResource, AsyncAPIResource
 from ....._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
-from .....pagination import SyncCursorPage, AsyncCursorPage
+from .....pagination import SyncNextCursorPage, AsyncNextCursorPage
 from ....._base_client import AsyncPaginator, make_request_options
 from .....types.admin.organization import group_list_params, group_create_params, group_update_params
 from .....types.admin.organization.group import Group
@@ -157,7 +157,7 @@ class Groups(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> SyncCursorPage[Group]:
+    ) -> SyncNextCursorPage[Group]:
         """
         Lists all groups in the organization.
 
@@ -182,7 +182,7 @@ class Groups(SyncAPIResource):
         """
         return self._get_api_list(
             "/organization/groups",
-            page=SyncCursorPage[Group],
+            page=SyncNextCursorPage[Group],
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -358,7 +358,7 @@ class AsyncGroups(AsyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> AsyncPaginator[Group, AsyncCursorPage[Group]]:
+    ) -> AsyncPaginator[Group, AsyncNextCursorPage[Group]]:
         """
         Lists all groups in the organization.
 
@@ -383,7 +383,7 @@ class AsyncGroups(AsyncAPIResource):
         """
         return self._get_api_list(
             "/organization/groups",
-            page=AsyncCursorPage[Group],
+            page=AsyncNextCursorPage[Group],
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,

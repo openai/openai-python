@@ -19,7 +19,9 @@ from .....types.admin.organization.projects import (
     certificate_activate_params,
     certificate_deactivate_params,
 )
-from .....types.admin.organization.certificate import Certificate
+from .....types.admin.organization.projects.certificate_list_response import CertificateListResponse
+from .....types.admin.organization.projects.certificate_activate_response import CertificateActivateResponse
+from .....types.admin.organization.projects.certificate_deactivate_response import CertificateDeactivateResponse
 
 __all__ = ["Certificates", "AsyncCertificates"]
 
@@ -57,7 +59,7 @@ class Certificates(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> SyncConversationCursorPage[Certificate]:
+    ) -> SyncConversationCursorPage[CertificateListResponse]:
         """
         List certificates for this project.
 
@@ -85,7 +87,7 @@ class Certificates(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `project_id` but received {project_id!r}")
         return self._get_api_list(
             path_template("/organization/projects/{project_id}/certificates", project_id=project_id),
-            page=SyncConversationCursorPage[Certificate],
+            page=SyncConversationCursorPage[CertificateListResponse],
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -101,7 +103,7 @@ class Certificates(SyncAPIResource):
                 ),
                 security={"admin_api_key_auth": True},
             ),
-            model=Certificate,
+            model=CertificateListResponse,
         )
 
     def activate(
@@ -115,7 +117,7 @@ class Certificates(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> SyncPage[Certificate]:
+    ) -> SyncPage[CertificateActivateResponse]:
         """
         Activate certificates at the project level.
 
@@ -134,7 +136,7 @@ class Certificates(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `project_id` but received {project_id!r}")
         return self._get_api_list(
             path_template("/organization/projects/{project_id}/certificates/activate", project_id=project_id),
-            page=SyncPage[Certificate],
+            page=SyncPage[CertificateActivateResponse],
             body=maybe_transform(
                 {"certificate_ids": certificate_ids}, certificate_activate_params.CertificateActivateParams
             ),
@@ -145,7 +147,7 @@ class Certificates(SyncAPIResource):
                 timeout=timeout,
                 security={"admin_api_key_auth": True},
             ),
-            model=Certificate,
+            model=CertificateActivateResponse,
             method="post",
         )
 
@@ -160,7 +162,7 @@ class Certificates(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> SyncPage[Certificate]:
+    ) -> SyncPage[CertificateDeactivateResponse]:
         """Deactivate certificates at the project level.
 
         You can atomically and
@@ -179,7 +181,7 @@ class Certificates(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `project_id` but received {project_id!r}")
         return self._get_api_list(
             path_template("/organization/projects/{project_id}/certificates/deactivate", project_id=project_id),
-            page=SyncPage[Certificate],
+            page=SyncPage[CertificateDeactivateResponse],
             body=maybe_transform(
                 {"certificate_ids": certificate_ids}, certificate_deactivate_params.CertificateDeactivateParams
             ),
@@ -190,7 +192,7 @@ class Certificates(SyncAPIResource):
                 timeout=timeout,
                 security={"admin_api_key_auth": True},
             ),
-            model=Certificate,
+            model=CertificateDeactivateResponse,
             method="post",
         )
 
@@ -228,7 +230,7 @@ class AsyncCertificates(AsyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> AsyncPaginator[Certificate, AsyncConversationCursorPage[Certificate]]:
+    ) -> AsyncPaginator[CertificateListResponse, AsyncConversationCursorPage[CertificateListResponse]]:
         """
         List certificates for this project.
 
@@ -256,7 +258,7 @@ class AsyncCertificates(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `project_id` but received {project_id!r}")
         return self._get_api_list(
             path_template("/organization/projects/{project_id}/certificates", project_id=project_id),
-            page=AsyncConversationCursorPage[Certificate],
+            page=AsyncConversationCursorPage[CertificateListResponse],
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -272,7 +274,7 @@ class AsyncCertificates(AsyncAPIResource):
                 ),
                 security={"admin_api_key_auth": True},
             ),
-            model=Certificate,
+            model=CertificateListResponse,
         )
 
     def activate(
@@ -286,7 +288,7 @@ class AsyncCertificates(AsyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> AsyncPaginator[Certificate, AsyncPage[Certificate]]:
+    ) -> AsyncPaginator[CertificateActivateResponse, AsyncPage[CertificateActivateResponse]]:
         """
         Activate certificates at the project level.
 
@@ -305,7 +307,7 @@ class AsyncCertificates(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `project_id` but received {project_id!r}")
         return self._get_api_list(
             path_template("/organization/projects/{project_id}/certificates/activate", project_id=project_id),
-            page=AsyncPage[Certificate],
+            page=AsyncPage[CertificateActivateResponse],
             body=maybe_transform(
                 {"certificate_ids": certificate_ids}, certificate_activate_params.CertificateActivateParams
             ),
@@ -316,7 +318,7 @@ class AsyncCertificates(AsyncAPIResource):
                 timeout=timeout,
                 security={"admin_api_key_auth": True},
             ),
-            model=Certificate,
+            model=CertificateActivateResponse,
             method="post",
         )
 
@@ -331,7 +333,7 @@ class AsyncCertificates(AsyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> AsyncPaginator[Certificate, AsyncPage[Certificate]]:
+    ) -> AsyncPaginator[CertificateDeactivateResponse, AsyncPage[CertificateDeactivateResponse]]:
         """Deactivate certificates at the project level.
 
         You can atomically and
@@ -350,7 +352,7 @@ class AsyncCertificates(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `project_id` but received {project_id!r}")
         return self._get_api_list(
             path_template("/organization/projects/{project_id}/certificates/deactivate", project_id=project_id),
-            page=AsyncPage[Certificate],
+            page=AsyncPage[CertificateDeactivateResponse],
             body=maybe_transform(
                 {"certificate_ids": certificate_ids}, certificate_deactivate_params.CertificateDeactivateParams
             ),
@@ -361,7 +363,7 @@ class AsyncCertificates(AsyncAPIResource):
                 timeout=timeout,
                 security={"admin_api_key_auth": True},
             ),
-            model=Certificate,
+            model=CertificateDeactivateResponse,
             method="post",
         )
 

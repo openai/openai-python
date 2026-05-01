@@ -41,7 +41,7 @@ class APIKeys(SyncAPIResource):
 
     def retrieve(
         self,
-        key_id: str,
+        api_key_id: str,
         *,
         project_id: str,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -65,11 +65,13 @@ class APIKeys(SyncAPIResource):
         """
         if not project_id:
             raise ValueError(f"Expected a non-empty value for `project_id` but received {project_id!r}")
-        if not key_id:
-            raise ValueError(f"Expected a non-empty value for `key_id` but received {key_id!r}")
+        if not api_key_id:
+            raise ValueError(f"Expected a non-empty value for `api_key_id` but received {api_key_id!r}")
         return self._get(
             path_template(
-                "/organization/projects/{project_id}/api_keys/{key_id}", project_id=project_id, key_id=key_id
+                "/organization/projects/{project_id}/api_keys/{api_key_id}",
+                project_id=project_id,
+                api_key_id=api_key_id,
             ),
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -138,7 +140,7 @@ class APIKeys(SyncAPIResource):
 
     def delete(
         self,
-        key_id: str,
+        api_key_id: str,
         *,
         project_id: str,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -165,11 +167,13 @@ class APIKeys(SyncAPIResource):
         """
         if not project_id:
             raise ValueError(f"Expected a non-empty value for `project_id` but received {project_id!r}")
-        if not key_id:
-            raise ValueError(f"Expected a non-empty value for `key_id` but received {key_id!r}")
+        if not api_key_id:
+            raise ValueError(f"Expected a non-empty value for `api_key_id` but received {api_key_id!r}")
         return self._delete(
             path_template(
-                "/organization/projects/{project_id}/api_keys/{key_id}", project_id=project_id, key_id=key_id
+                "/organization/projects/{project_id}/api_keys/{api_key_id}",
+                project_id=project_id,
+                api_key_id=api_key_id,
             ),
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -204,7 +208,7 @@ class AsyncAPIKeys(AsyncAPIResource):
 
     async def retrieve(
         self,
-        key_id: str,
+        api_key_id: str,
         *,
         project_id: str,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -228,11 +232,13 @@ class AsyncAPIKeys(AsyncAPIResource):
         """
         if not project_id:
             raise ValueError(f"Expected a non-empty value for `project_id` but received {project_id!r}")
-        if not key_id:
-            raise ValueError(f"Expected a non-empty value for `key_id` but received {key_id!r}")
+        if not api_key_id:
+            raise ValueError(f"Expected a non-empty value for `api_key_id` but received {api_key_id!r}")
         return await self._get(
             path_template(
-                "/organization/projects/{project_id}/api_keys/{key_id}", project_id=project_id, key_id=key_id
+                "/organization/projects/{project_id}/api_keys/{api_key_id}",
+                project_id=project_id,
+                api_key_id=api_key_id,
             ),
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -301,7 +307,7 @@ class AsyncAPIKeys(AsyncAPIResource):
 
     async def delete(
         self,
-        key_id: str,
+        api_key_id: str,
         *,
         project_id: str,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -328,11 +334,13 @@ class AsyncAPIKeys(AsyncAPIResource):
         """
         if not project_id:
             raise ValueError(f"Expected a non-empty value for `project_id` but received {project_id!r}")
-        if not key_id:
-            raise ValueError(f"Expected a non-empty value for `key_id` but received {key_id!r}")
+        if not api_key_id:
+            raise ValueError(f"Expected a non-empty value for `api_key_id` but received {api_key_id!r}")
         return await self._delete(
             path_template(
-                "/organization/projects/{project_id}/api_keys/{key_id}", project_id=project_id, key_id=key_id
+                "/organization/projects/{project_id}/api_keys/{api_key_id}",
+                project_id=project_id,
+                api_key_id=api_key_id,
             ),
             options=make_request_options(
                 extra_headers=extra_headers,

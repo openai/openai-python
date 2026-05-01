@@ -20,7 +20,7 @@ from ......_utils import path_template, maybe_transform, async_maybe_transform
 from ......_compat import cached_property
 from ......_resource import SyncAPIResource, AsyncAPIResource
 from ......_response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
-from ......pagination import SyncCursorPage, AsyncCursorPage
+from ......pagination import SyncNextCursorPage, AsyncNextCursorPage
 from ......_base_client import AsyncPaginator, make_request_options
 from ......types.admin.organization.projects import group_list_params, group_create_params
 from ......types.admin.organization.projects.project_group import ProjectGroup
@@ -116,7 +116,7 @@ class Groups(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> SyncCursorPage[ProjectGroup]:
+    ) -> SyncNextCursorPage[ProjectGroup]:
         """
         Lists the groups that have access to a project.
 
@@ -140,7 +140,7 @@ class Groups(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `project_id` but received {project_id!r}")
         return self._get_api_list(
             path_template("/organization/projects/{project_id}/groups", project_id=project_id),
-            page=SyncCursorPage[ProjectGroup],
+            page=SyncNextCursorPage[ProjectGroup],
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -289,7 +289,7 @@ class AsyncGroups(AsyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> AsyncPaginator[ProjectGroup, AsyncCursorPage[ProjectGroup]]:
+    ) -> AsyncPaginator[ProjectGroup, AsyncNextCursorPage[ProjectGroup]]:
         """
         Lists the groups that have access to a project.
 
@@ -313,7 +313,7 @@ class AsyncGroups(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `project_id` but received {project_id!r}")
         return self._get_api_list(
             path_template("/organization/projects/{project_id}/groups", project_id=project_id),
-            page=AsyncCursorPage[ProjectGroup],
+            page=AsyncNextCursorPage[ProjectGroup],
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,

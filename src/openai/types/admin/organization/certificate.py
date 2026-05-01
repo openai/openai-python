@@ -30,7 +30,7 @@ class Certificate(BaseModel):
     created_at: int
     """The Unix timestamp (in seconds) of when the certificate was uploaded."""
 
-    name: str
+    name: Optional[str] = None
     """The name of the certificate."""
 
     object: Literal["certificate", "organization.certificate", "organization.project.certificate"]

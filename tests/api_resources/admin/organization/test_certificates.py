@@ -12,7 +12,10 @@ from tests.utils import assert_matches_type
 from openai.pagination import SyncPage, AsyncPage, SyncConversationCursorPage, AsyncConversationCursorPage
 from openai.types.admin.organization import (
     Certificate,
+    CertificateListResponse,
     CertificateDeleteResponse,
+    CertificateActivateResponse,
+    CertificateDeactivateResponse,
 )
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
@@ -24,14 +27,14 @@ class TestCertificates:
     @parametrize
     def test_method_create(self, client: OpenAI) -> None:
         certificate = client.admin.organization.certificates.create(
-            content="content",
+            certificate="certificate",
         )
         assert_matches_type(Certificate, certificate, path=["response"])
 
     @parametrize
     def test_method_create_with_all_params(self, client: OpenAI) -> None:
         certificate = client.admin.organization.certificates.create(
-            content="content",
+            certificate="certificate",
             name="name",
         )
         assert_matches_type(Certificate, certificate, path=["response"])
@@ -39,7 +42,7 @@ class TestCertificates:
     @parametrize
     def test_raw_response_create(self, client: OpenAI) -> None:
         response = client.admin.organization.certificates.with_raw_response.create(
-            content="content",
+            certificate="certificate",
         )
 
         assert response.is_closed is True
@@ -50,7 +53,7 @@ class TestCertificates:
     @parametrize
     def test_streaming_response_create(self, client: OpenAI) -> None:
         with client.admin.organization.certificates.with_streaming_response.create(
-            content="content",
+            certificate="certificate",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -110,6 +113,13 @@ class TestCertificates:
     def test_method_update(self, client: OpenAI) -> None:
         certificate = client.admin.organization.certificates.update(
             certificate_id="certificate_id",
+        )
+        assert_matches_type(Certificate, certificate, path=["response"])
+
+    @parametrize
+    def test_method_update_with_all_params(self, client: OpenAI) -> None:
+        certificate = client.admin.organization.certificates.update(
+            certificate_id="certificate_id",
             name="name",
         )
         assert_matches_type(Certificate, certificate, path=["response"])
@@ -118,7 +128,6 @@ class TestCertificates:
     def test_raw_response_update(self, client: OpenAI) -> None:
         response = client.admin.organization.certificates.with_raw_response.update(
             certificate_id="certificate_id",
-            name="name",
         )
 
         assert response.is_closed is True
@@ -130,7 +139,6 @@ class TestCertificates:
     def test_streaming_response_update(self, client: OpenAI) -> None:
         with client.admin.organization.certificates.with_streaming_response.update(
             certificate_id="certificate_id",
-            name="name",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -145,13 +153,12 @@ class TestCertificates:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `certificate_id` but received ''"):
             client.admin.organization.certificates.with_raw_response.update(
                 certificate_id="",
-                name="name",
             )
 
     @parametrize
     def test_method_list(self, client: OpenAI) -> None:
         certificate = client.admin.organization.certificates.list()
-        assert_matches_type(SyncConversationCursorPage[Certificate], certificate, path=["response"])
+        assert_matches_type(SyncConversationCursorPage[CertificateListResponse], certificate, path=["response"])
 
     @parametrize
     def test_method_list_with_all_params(self, client: OpenAI) -> None:
@@ -160,7 +167,7 @@ class TestCertificates:
             limit=0,
             order="asc",
         )
-        assert_matches_type(SyncConversationCursorPage[Certificate], certificate, path=["response"])
+        assert_matches_type(SyncConversationCursorPage[CertificateListResponse], certificate, path=["response"])
 
     @parametrize
     def test_raw_response_list(self, client: OpenAI) -> None:
@@ -169,7 +176,7 @@ class TestCertificates:
         assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         certificate = response.parse()
-        assert_matches_type(SyncConversationCursorPage[Certificate], certificate, path=["response"])
+        assert_matches_type(SyncConversationCursorPage[CertificateListResponse], certificate, path=["response"])
 
     @parametrize
     def test_streaming_response_list(self, client: OpenAI) -> None:
@@ -178,7 +185,7 @@ class TestCertificates:
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
             certificate = response.parse()
-            assert_matches_type(SyncConversationCursorPage[Certificate], certificate, path=["response"])
+            assert_matches_type(SyncConversationCursorPage[CertificateListResponse], certificate, path=["response"])
 
         assert cast(Any, response.is_closed) is True
 
@@ -225,7 +232,7 @@ class TestCertificates:
         certificate = client.admin.organization.certificates.activate(
             certificate_ids=["cert_abc"],
         )
-        assert_matches_type(SyncPage[Certificate], certificate, path=["response"])
+        assert_matches_type(SyncPage[CertificateActivateResponse], certificate, path=["response"])
 
     @parametrize
     def test_raw_response_activate(self, client: OpenAI) -> None:
@@ -236,7 +243,7 @@ class TestCertificates:
         assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         certificate = response.parse()
-        assert_matches_type(SyncPage[Certificate], certificate, path=["response"])
+        assert_matches_type(SyncPage[CertificateActivateResponse], certificate, path=["response"])
 
     @parametrize
     def test_streaming_response_activate(self, client: OpenAI) -> None:
@@ -247,7 +254,7 @@ class TestCertificates:
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
             certificate = response.parse()
-            assert_matches_type(SyncPage[Certificate], certificate, path=["response"])
+            assert_matches_type(SyncPage[CertificateActivateResponse], certificate, path=["response"])
 
         assert cast(Any, response.is_closed) is True
 
@@ -256,7 +263,7 @@ class TestCertificates:
         certificate = client.admin.organization.certificates.deactivate(
             certificate_ids=["cert_abc"],
         )
-        assert_matches_type(SyncPage[Certificate], certificate, path=["response"])
+        assert_matches_type(SyncPage[CertificateDeactivateResponse], certificate, path=["response"])
 
     @parametrize
     def test_raw_response_deactivate(self, client: OpenAI) -> None:
@@ -267,7 +274,7 @@ class TestCertificates:
         assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         certificate = response.parse()
-        assert_matches_type(SyncPage[Certificate], certificate, path=["response"])
+        assert_matches_type(SyncPage[CertificateDeactivateResponse], certificate, path=["response"])
 
     @parametrize
     def test_streaming_response_deactivate(self, client: OpenAI) -> None:
@@ -278,7 +285,7 @@ class TestCertificates:
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
             certificate = response.parse()
-            assert_matches_type(SyncPage[Certificate], certificate, path=["response"])
+            assert_matches_type(SyncPage[CertificateDeactivateResponse], certificate, path=["response"])
 
         assert cast(Any, response.is_closed) is True
 
@@ -291,14 +298,14 @@ class TestAsyncCertificates:
     @parametrize
     async def test_method_create(self, async_client: AsyncOpenAI) -> None:
         certificate = await async_client.admin.organization.certificates.create(
-            content="content",
+            certificate="certificate",
         )
         assert_matches_type(Certificate, certificate, path=["response"])
 
     @parametrize
     async def test_method_create_with_all_params(self, async_client: AsyncOpenAI) -> None:
         certificate = await async_client.admin.organization.certificates.create(
-            content="content",
+            certificate="certificate",
             name="name",
         )
         assert_matches_type(Certificate, certificate, path=["response"])
@@ -306,7 +313,7 @@ class TestAsyncCertificates:
     @parametrize
     async def test_raw_response_create(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.admin.organization.certificates.with_raw_response.create(
-            content="content",
+            certificate="certificate",
         )
 
         assert response.is_closed is True
@@ -317,7 +324,7 @@ class TestAsyncCertificates:
     @parametrize
     async def test_streaming_response_create(self, async_client: AsyncOpenAI) -> None:
         async with async_client.admin.organization.certificates.with_streaming_response.create(
-            content="content",
+            certificate="certificate",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -377,6 +384,13 @@ class TestAsyncCertificates:
     async def test_method_update(self, async_client: AsyncOpenAI) -> None:
         certificate = await async_client.admin.organization.certificates.update(
             certificate_id="certificate_id",
+        )
+        assert_matches_type(Certificate, certificate, path=["response"])
+
+    @parametrize
+    async def test_method_update_with_all_params(self, async_client: AsyncOpenAI) -> None:
+        certificate = await async_client.admin.organization.certificates.update(
+            certificate_id="certificate_id",
             name="name",
         )
         assert_matches_type(Certificate, certificate, path=["response"])
@@ -385,7 +399,6 @@ class TestAsyncCertificates:
     async def test_raw_response_update(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.admin.organization.certificates.with_raw_response.update(
             certificate_id="certificate_id",
-            name="name",
         )
 
         assert response.is_closed is True
@@ -397,7 +410,6 @@ class TestAsyncCertificates:
     async def test_streaming_response_update(self, async_client: AsyncOpenAI) -> None:
         async with async_client.admin.organization.certificates.with_streaming_response.update(
             certificate_id="certificate_id",
-            name="name",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -412,13 +424,12 @@ class TestAsyncCertificates:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `certificate_id` but received ''"):
             await async_client.admin.organization.certificates.with_raw_response.update(
                 certificate_id="",
-                name="name",
             )
 
     @parametrize
     async def test_method_list(self, async_client: AsyncOpenAI) -> None:
         certificate = await async_client.admin.organization.certificates.list()
-        assert_matches_type(AsyncConversationCursorPage[Certificate], certificate, path=["response"])
+        assert_matches_type(AsyncConversationCursorPage[CertificateListResponse], certificate, path=["response"])
 
     @parametrize
     async def test_method_list_with_all_params(self, async_client: AsyncOpenAI) -> None:
@@ -427,7 +438,7 @@ class TestAsyncCertificates:
             limit=0,
             order="asc",
         )
-        assert_matches_type(AsyncConversationCursorPage[Certificate], certificate, path=["response"])
+        assert_matches_type(AsyncConversationCursorPage[CertificateListResponse], certificate, path=["response"])
 
     @parametrize
     async def test_raw_response_list(self, async_client: AsyncOpenAI) -> None:
@@ -436,7 +447,7 @@ class TestAsyncCertificates:
         assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         certificate = response.parse()
-        assert_matches_type(AsyncConversationCursorPage[Certificate], certificate, path=["response"])
+        assert_matches_type(AsyncConversationCursorPage[CertificateListResponse], certificate, path=["response"])
 
     @parametrize
     async def test_streaming_response_list(self, async_client: AsyncOpenAI) -> None:
@@ -445,7 +456,7 @@ class TestAsyncCertificates:
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
             certificate = await response.parse()
-            assert_matches_type(AsyncConversationCursorPage[Certificate], certificate, path=["response"])
+            assert_matches_type(AsyncConversationCursorPage[CertificateListResponse], certificate, path=["response"])
 
         assert cast(Any, response.is_closed) is True
 
@@ -492,7 +503,7 @@ class TestAsyncCertificates:
         certificate = await async_client.admin.organization.certificates.activate(
             certificate_ids=["cert_abc"],
         )
-        assert_matches_type(AsyncPage[Certificate], certificate, path=["response"])
+        assert_matches_type(AsyncPage[CertificateActivateResponse], certificate, path=["response"])
 
     @parametrize
     async def test_raw_response_activate(self, async_client: AsyncOpenAI) -> None:
@@ -503,7 +514,7 @@ class TestAsyncCertificates:
         assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         certificate = response.parse()
-        assert_matches_type(AsyncPage[Certificate], certificate, path=["response"])
+        assert_matches_type(AsyncPage[CertificateActivateResponse], certificate, path=["response"])
 
     @parametrize
     async def test_streaming_response_activate(self, async_client: AsyncOpenAI) -> None:
@@ -514,7 +525,7 @@ class TestAsyncCertificates:
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
             certificate = await response.parse()
-            assert_matches_type(AsyncPage[Certificate], certificate, path=["response"])
+            assert_matches_type(AsyncPage[CertificateActivateResponse], certificate, path=["response"])
 
         assert cast(Any, response.is_closed) is True
 
@@ -523,7 +534,7 @@ class TestAsyncCertificates:
         certificate = await async_client.admin.organization.certificates.deactivate(
             certificate_ids=["cert_abc"],
         )
-        assert_matches_type(AsyncPage[Certificate], certificate, path=["response"])
+        assert_matches_type(AsyncPage[CertificateDeactivateResponse], certificate, path=["response"])
 
     @parametrize
     async def test_raw_response_deactivate(self, async_client: AsyncOpenAI) -> None:
@@ -534,7 +545,7 @@ class TestAsyncCertificates:
         assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         certificate = response.parse()
-        assert_matches_type(AsyncPage[Certificate], certificate, path=["response"])
+        assert_matches_type(AsyncPage[CertificateDeactivateResponse], certificate, path=["response"])
 
     @parametrize
     async def test_streaming_response_deactivate(self, async_client: AsyncOpenAI) -> None:
@@ -545,6 +556,6 @@ class TestAsyncCertificates:
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
             certificate = await response.parse()
-            assert_matches_type(AsyncPage[Certificate], certificate, path=["response"])
+            assert_matches_type(AsyncPage[CertificateDeactivateResponse], certificate, path=["response"])
 
         assert cast(Any, response.is_closed) is True

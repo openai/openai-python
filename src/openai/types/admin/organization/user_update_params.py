@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from typing_extensions import Literal, Required, TypedDict
+from typing_extensions import Literal, TypedDict
 
 __all__ = ["UserUpdateParams"]
 
 
 class UserUpdateParams(TypedDict, total=False):
-    role: Required[Literal["owner", "reader"]]
+    role: Literal["owner", "reader"]
     """`owner` or `reader`"""

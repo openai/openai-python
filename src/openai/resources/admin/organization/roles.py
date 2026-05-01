@@ -13,7 +13,7 @@ from ...._utils import path_template, maybe_transform, async_maybe_transform
 from ...._compat import cached_property
 from ...._resource import SyncAPIResource, AsyncAPIResource
 from ...._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
-from ....pagination import SyncCursorPage, AsyncCursorPage
+from ....pagination import SyncNextCursorPage, AsyncNextCursorPage
 from ...._base_client import AsyncPaginator, make_request_options
 from ....types.admin.organization import role_list_params, role_create_params, role_update_params
 from ....types.admin.organization.role import Role
@@ -159,7 +159,7 @@ class Roles(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> SyncCursorPage[Role]:
+    ) -> SyncNextCursorPage[Role]:
         """
         Lists the roles configured for the organization.
 
@@ -181,7 +181,7 @@ class Roles(SyncAPIResource):
         """
         return self._get_api_list(
             "/organization/roles",
-            page=SyncCursorPage[Role],
+            page=SyncNextCursorPage[Role],
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -375,7 +375,7 @@ class AsyncRoles(AsyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> AsyncPaginator[Role, AsyncCursorPage[Role]]:
+    ) -> AsyncPaginator[Role, AsyncNextCursorPage[Role]]:
         """
         Lists the roles configured for the organization.
 
@@ -397,7 +397,7 @@ class AsyncRoles(AsyncAPIResource):
         """
         return self._get_api_list(
             "/organization/roles",
-            page=AsyncCursorPage[Role],
+            page=AsyncNextCursorPage[Role],
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,

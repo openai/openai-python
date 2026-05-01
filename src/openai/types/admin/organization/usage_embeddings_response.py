@@ -305,10 +305,10 @@ class DataResultOrganizationUsageCodeInterpreterSessionsResult(BaseModel):
     The aggregated code interpreter sessions usage details of the specific time bucket.
     """
 
-    object: Literal["organization.usage.code_interpreter_sessions.result"]
-
-    num_sessions: Optional[int] = None
+    num_sessions: int
     """The number of code interpreter sessions."""
+
+    object: Literal["organization.usage.code_interpreter_sessions.result"]
 
     project_id: Optional[str] = None
     """
@@ -375,7 +375,7 @@ class Data(BaseModel):
 
     object: Literal["bucket"]
 
-    result: List[DataResult]
+    results: List[DataResult]
 
     start_time: int
 
@@ -385,6 +385,6 @@ class UsageEmbeddingsResponse(BaseModel):
 
     has_more: bool
 
-    next_page: str
+    next_page: Optional[str] = None
 
     object: Literal["page"]

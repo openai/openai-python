@@ -13,7 +13,7 @@ from ....._utils import path_template, maybe_transform, async_maybe_transform
 from ....._compat import cached_property
 from ....._resource import SyncAPIResource, AsyncAPIResource
 from ....._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
-from .....pagination import SyncCursorPage, AsyncCursorPage
+from .....pagination import SyncNextCursorPage, AsyncNextCursorPage
 from ....._base_client import AsyncPaginator, make_request_options
 from .....types.admin.organization.role import Role
 from .....types.admin.organization.projects import role_list_params, role_create_params, role_update_params
@@ -166,7 +166,7 @@ class Roles(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> SyncCursorPage[Role]:
+    ) -> SyncNextCursorPage[Role]:
         """Lists the roles configured for a project.
 
         Args:
@@ -191,7 +191,7 @@ class Roles(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `project_id` but received {project_id!r}")
         return self._get_api_list(
             path_template("/projects/{project_id}/roles", project_id=project_id),
-            page=SyncCursorPage[Role],
+            page=SyncNextCursorPage[Role],
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -395,7 +395,7 @@ class AsyncRoles(AsyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> AsyncPaginator[Role, AsyncCursorPage[Role]]:
+    ) -> AsyncPaginator[Role, AsyncNextCursorPage[Role]]:
         """Lists the roles configured for a project.
 
         Args:
@@ -420,7 +420,7 @@ class AsyncRoles(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `project_id` but received {project_id!r}")
         return self._get_api_list(
             path_template("/projects/{project_id}/roles", project_id=project_id),
-            page=AsyncCursorPage[Role],
+            page=AsyncNextCursorPage[Role],
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
