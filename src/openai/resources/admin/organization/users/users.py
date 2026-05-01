@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing_extensions import Literal
+from typing import Optional
 
 import httpx
 
@@ -94,7 +94,10 @@ class Users(SyncAPIResource):
         self,
         user_id: str,
         *,
-        role: Literal["owner", "reader"] | Omit = omit,
+        developer_persona: Optional[str] | Omit = omit,
+        role: Optional[str] | Omit = omit,
+        role_id: Optional[str] | Omit = omit,
+        technical_level: Optional[str] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -106,7 +109,13 @@ class Users(SyncAPIResource):
         Modifies a user's role in the organization.
 
         Args:
+          developer_persona: Developer persona metadata.
+
           role: `owner` or `reader`
+
+          role_id: Role ID to assign to the user.
+
+          technical_level: Technical level metadata.
 
           extra_headers: Send extra headers
 
@@ -120,7 +129,15 @@ class Users(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `user_id` but received {user_id!r}")
         return self._post(
             path_template("/organization/users/{user_id}", user_id=user_id),
-            body=maybe_transform({"role": role}, user_update_params.UserUpdateParams),
+            body=maybe_transform(
+                {
+                    "developer_persona": developer_persona,
+                    "role": role,
+                    "role_id": role_id,
+                    "technical_level": technical_level,
+                },
+                user_update_params.UserUpdateParams,
+            ),
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -290,7 +307,10 @@ class AsyncUsers(AsyncAPIResource):
         self,
         user_id: str,
         *,
-        role: Literal["owner", "reader"] | Omit = omit,
+        developer_persona: Optional[str] | Omit = omit,
+        role: Optional[str] | Omit = omit,
+        role_id: Optional[str] | Omit = omit,
+        technical_level: Optional[str] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -302,7 +322,13 @@ class AsyncUsers(AsyncAPIResource):
         Modifies a user's role in the organization.
 
         Args:
+          developer_persona: Developer persona metadata.
+
           role: `owner` or `reader`
+
+          role_id: Role ID to assign to the user.
+
+          technical_level: Technical level metadata.
 
           extra_headers: Send extra headers
 
@@ -316,7 +342,15 @@ class AsyncUsers(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `user_id` but received {user_id!r}")
         return await self._post(
             path_template("/organization/users/{user_id}", user_id=user_id),
-            body=await async_maybe_transform({"role": role}, user_update_params.UserUpdateParams),
+            body=await async_maybe_transform(
+                {
+                    "developer_persona": developer_persona,
+                    "role": role,
+                    "role_id": role_id,
+                    "technical_level": technical_level,
+                },
+                user_update_params.UserUpdateParams,
+            ),
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,

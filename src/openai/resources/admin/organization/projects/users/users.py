@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing_extensions import Literal
+from typing import Optional
 
 import httpx
 
@@ -57,8 +57,9 @@ class Users(SyncAPIResource):
         self,
         project_id: str,
         *,
-        role: Literal["owner", "member"],
-        user_id: str,
+        role: str,
+        email: Optional[str] | Omit = omit,
+        user_id: Optional[str] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -73,6 +74,8 @@ class Users(SyncAPIResource):
 
         Args:
           role: `owner` or `member`
+
+          email: Email of the user to add.
 
           user_id: The ID of the user.
 
@@ -91,6 +94,7 @@ class Users(SyncAPIResource):
             body=maybe_transform(
                 {
                     "role": role,
+                    "email": email,
                     "user_id": user_id,
                 },
                 user_create_params.UserCreateParams,
@@ -152,7 +156,7 @@ class Users(SyncAPIResource):
         user_id: str,
         *,
         project_id: str,
-        role: Literal["owner", "member"],
+        role: Optional[str] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -322,8 +326,9 @@ class AsyncUsers(AsyncAPIResource):
         self,
         project_id: str,
         *,
-        role: Literal["owner", "member"],
-        user_id: str,
+        role: str,
+        email: Optional[str] | Omit = omit,
+        user_id: Optional[str] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -338,6 +343,8 @@ class AsyncUsers(AsyncAPIResource):
 
         Args:
           role: `owner` or `member`
+
+          email: Email of the user to add.
 
           user_id: The ID of the user.
 
@@ -356,6 +363,7 @@ class AsyncUsers(AsyncAPIResource):
             body=await async_maybe_transform(
                 {
                     "role": role,
+                    "email": email,
                     "user_id": user_id,
                 },
                 user_create_params.UserCreateParams,
@@ -417,7 +425,7 @@ class AsyncUsers(AsyncAPIResource):
         user_id: str,
         *,
         project_id: str,
-        role: Literal["owner", "member"],
+        role: Optional[str] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,

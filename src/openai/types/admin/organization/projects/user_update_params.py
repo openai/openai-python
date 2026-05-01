@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing_extensions import Literal, Required, TypedDict
+from typing import Optional
+from typing_extensions import Required, TypedDict
 
 __all__ = ["UserUpdateParams"]
 
@@ -10,5 +11,5 @@ __all__ = ["UserUpdateParams"]
 class UserUpdateParams(TypedDict, total=False):
     project_id: Required[str]
 
-    role: Required[Literal["owner", "member"]]
+    role: Optional[str]
     """`owner` or `member`"""

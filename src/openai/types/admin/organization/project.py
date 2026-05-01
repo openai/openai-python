@@ -17,14 +17,17 @@ class Project(BaseModel):
     created_at: int
     """The Unix timestamp (in seconds) of when the project was created."""
 
-    name: str
-    """The name of the project. This appears in reporting."""
-
     object: Literal["organization.project"]
     """The object type, which is always `organization.project`"""
 
-    status: Literal["active", "archived"]
-    """`active` or `archived`"""
-
     archived_at: Optional[int] = None
     """The Unix timestamp (in seconds) of when the project was archived or `null`."""
+
+    external_key_id: Optional[str] = None
+    """The external key associated with the project."""
+
+    name: Optional[str] = None
+    """The name of the project. This appears in reporting."""
+
+    status: Optional[str] = None
+    """`active` or `archived`"""

@@ -2,14 +2,18 @@
 
 from __future__ import annotations
 
-from typing_extensions import Literal, Required, TypedDict
+from typing import Optional
+from typing_extensions import Required, TypedDict
 
 __all__ = ["UserCreateParams"]
 
 
 class UserCreateParams(TypedDict, total=False):
-    role: Required[Literal["owner", "member"]]
+    role: Required[str]
     """`owner` or `member`"""
 
-    user_id: Required[str]
+    email: Optional[str]
+    """Email of the user to add."""
+
+    user_id: Optional[str]
     """The ID of the user."""

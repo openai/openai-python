@@ -9,10 +9,10 @@ __all__ = ["Invite", "Project"]
 
 
 class Project(BaseModel):
-    id: Optional[str] = None
+    id: str
     """Project's public ID"""
 
-    role: Optional[Literal["member", "owner"]] = None
+    role: Literal["member", "owner"]
     """Project membership role"""
 
 
@@ -28,11 +28,11 @@ class Invite(BaseModel):
     email: str
     """The email address of the individual to whom the invite was sent"""
 
-    expires_at: Optional[int] = None
-    """The Unix timestamp (in seconds) of when the invite expires."""
-
     object: Literal["organization.invite"]
     """The object type, which is always `organization.invite`"""
+
+    projects: List[Project]
+    """The projects that were granted membership upon acceptance of the invite."""
 
     role: Literal["owner", "reader"]
     """`owner` or `reader`"""
@@ -43,5 +43,5 @@ class Invite(BaseModel):
     accepted_at: Optional[int] = None
     """The Unix timestamp (in seconds) of when the invite was accepted."""
 
-    projects: Optional[List[Project]] = None
-    """The projects that were granted membership upon acceptance of the invite."""
+    expires_at: Optional[int] = None
+    """The Unix timestamp (in seconds) of when the invite expires."""

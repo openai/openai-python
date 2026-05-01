@@ -29,7 +29,8 @@ class TestProjects:
     def test_method_create_with_all_params(self, client: OpenAI) -> None:
         project = client.admin.organization.projects.create(
             name="name",
-            geography="US",
+            external_key_id="external_key_id",
+            geography="geography",
         )
         assert_matches_type(Project, project, path=["response"])
 
@@ -99,6 +100,15 @@ class TestProjects:
     def test_method_update(self, client: OpenAI) -> None:
         project = client.admin.organization.projects.update(
             project_id="project_id",
+        )
+        assert_matches_type(Project, project, path=["response"])
+
+    @parametrize
+    def test_method_update_with_all_params(self, client: OpenAI) -> None:
+        project = client.admin.organization.projects.update(
+            project_id="project_id",
+            external_key_id="external_key_id",
+            geography="geography",
             name="name",
         )
         assert_matches_type(Project, project, path=["response"])
@@ -107,7 +117,6 @@ class TestProjects:
     def test_raw_response_update(self, client: OpenAI) -> None:
         response = client.admin.organization.projects.with_raw_response.update(
             project_id="project_id",
-            name="name",
         )
 
         assert response.is_closed is True
@@ -119,7 +128,6 @@ class TestProjects:
     def test_streaming_response_update(self, client: OpenAI) -> None:
         with client.admin.organization.projects.with_streaming_response.update(
             project_id="project_id",
-            name="name",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -134,7 +142,6 @@ class TestProjects:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `project_id` but received ''"):
             client.admin.organization.projects.with_raw_response.update(
                 project_id="",
-                name="name",
             )
 
     @parametrize
@@ -226,7 +233,8 @@ class TestAsyncProjects:
     async def test_method_create_with_all_params(self, async_client: AsyncOpenAI) -> None:
         project = await async_client.admin.organization.projects.create(
             name="name",
-            geography="US",
+            external_key_id="external_key_id",
+            geography="geography",
         )
         assert_matches_type(Project, project, path=["response"])
 
@@ -296,6 +304,15 @@ class TestAsyncProjects:
     async def test_method_update(self, async_client: AsyncOpenAI) -> None:
         project = await async_client.admin.organization.projects.update(
             project_id="project_id",
+        )
+        assert_matches_type(Project, project, path=["response"])
+
+    @parametrize
+    async def test_method_update_with_all_params(self, async_client: AsyncOpenAI) -> None:
+        project = await async_client.admin.organization.projects.update(
+            project_id="project_id",
+            external_key_id="external_key_id",
+            geography="geography",
             name="name",
         )
         assert_matches_type(Project, project, path=["response"])
@@ -304,7 +321,6 @@ class TestAsyncProjects:
     async def test_raw_response_update(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.admin.organization.projects.with_raw_response.update(
             project_id="project_id",
-            name="name",
         )
 
         assert response.is_closed is True
@@ -316,7 +332,6 @@ class TestAsyncProjects:
     async def test_streaming_response_update(self, async_client: AsyncOpenAI) -> None:
         async with async_client.admin.organization.projects.with_streaming_response.update(
             project_id="project_id",
-            name="name",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -331,7 +346,6 @@ class TestAsyncProjects:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `project_id` but received ''"):
             await async_client.admin.organization.projects.with_raw_response.update(
                 project_id="",
-                name="name",
             )
 
     @parametrize
