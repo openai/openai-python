@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import logging
 from typing import Union, cast
 from typing_extensions import Literal, Protocol
@@ -259,6 +260,18 @@ class TestAzureLogging:
             {"model": "deployment-body"},
             "https://example-resource.azure.openai.com/openai/deployments/deployment-body/chat/completions?api-version=2024-02-01",
         ),
+        # AzureOpenAI: Image deployment names can differ from model names.
+        (
+            AzureOpenAI(
+                api_version="2024-02-01",
+                api_key="example API key",
+                azure_endpoint="https://example-resource.azure.openai.com",
+            ),
+            "https://example-resource.azure.openai.com/openai/",
+            "/images/generations",
+            {"model": "gpt-image-1-5", "prompt": "A sunset over mountains"},
+            "https://example-resource.azure.openai.com/openai/deployments/gpt-image-1-5/images/generations?api-version=2024-02-01",
+        ),
         # AzureOpenAI: Deployment specified
         (
             AzureOpenAI(
@@ -386,6 +399,7 @@ def test_prepare_url_deployment_endpoint(
         )
     )
     assert req.url == expected
+    assert "model" not in json.loads(req.content)
     assert client.base_url == base_url
 
 
