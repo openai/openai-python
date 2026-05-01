@@ -12,6 +12,7 @@ from tests.utils import assert_matches_type
 from openai.pagination import SyncCursorPage, AsyncCursorPage
 from openai.types.admin.organization import (
     AdminAPIKey,
+    AdminAPIKeyCreateResponse,
     AdminAPIKeyDeleteResponse,
 )
 
@@ -26,7 +27,7 @@ class TestAdminAPIKeys:
         admin_api_key = client.admin.organization.admin_api_keys.create(
             name="New Admin Key",
         )
-        assert_matches_type(AdminAPIKey, admin_api_key, path=["response"])
+        assert_matches_type(AdminAPIKeyCreateResponse, admin_api_key, path=["response"])
 
     @parametrize
     def test_raw_response_create(self, client: OpenAI) -> None:
@@ -37,7 +38,7 @@ class TestAdminAPIKeys:
         assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         admin_api_key = response.parse()
-        assert_matches_type(AdminAPIKey, admin_api_key, path=["response"])
+        assert_matches_type(AdminAPIKeyCreateResponse, admin_api_key, path=["response"])
 
     @parametrize
     def test_streaming_response_create(self, client: OpenAI) -> None:
@@ -48,7 +49,7 @@ class TestAdminAPIKeys:
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
             admin_api_key = response.parse()
-            assert_matches_type(AdminAPIKey, admin_api_key, path=["response"])
+            assert_matches_type(AdminAPIKeyCreateResponse, admin_api_key, path=["response"])
 
         assert cast(Any, response.is_closed) is True
 
@@ -173,7 +174,7 @@ class TestAsyncAdminAPIKeys:
         admin_api_key = await async_client.admin.organization.admin_api_keys.create(
             name="New Admin Key",
         )
-        assert_matches_type(AdminAPIKey, admin_api_key, path=["response"])
+        assert_matches_type(AdminAPIKeyCreateResponse, admin_api_key, path=["response"])
 
     @parametrize
     async def test_raw_response_create(self, async_client: AsyncOpenAI) -> None:
@@ -184,7 +185,7 @@ class TestAsyncAdminAPIKeys:
         assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         admin_api_key = response.parse()
-        assert_matches_type(AdminAPIKey, admin_api_key, path=["response"])
+        assert_matches_type(AdminAPIKeyCreateResponse, admin_api_key, path=["response"])
 
     @parametrize
     async def test_streaming_response_create(self, async_client: AsyncOpenAI) -> None:
@@ -195,7 +196,7 @@ class TestAsyncAdminAPIKeys:
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
             admin_api_key = await response.parse()
-            assert_matches_type(AdminAPIKey, admin_api_key, path=["response"])
+            assert_matches_type(AdminAPIKeyCreateResponse, admin_api_key, path=["response"])
 
         assert cast(Any, response.is_closed) is True
 

@@ -8,7 +8,7 @@ __all__ = ["CertificateCreateParams"]
 
 
 class CertificateCreateParams(TypedDict, total=False):
-    content: Required[str]
+    certificate: Required[str]
     """The certificate content in PEM format"""
 
     name: str

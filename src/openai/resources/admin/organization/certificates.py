@@ -24,7 +24,10 @@ from ....types.admin.organization import (
     certificate_deactivate_params,
 )
 from ....types.admin.organization.certificate import Certificate
+from ....types.admin.organization.certificate_list_response import CertificateListResponse
 from ....types.admin.organization.certificate_delete_response import CertificateDeleteResponse
+from ....types.admin.organization.certificate_activate_response import CertificateActivateResponse
+from ....types.admin.organization.certificate_deactivate_response import CertificateDeactivateResponse
 
 __all__ = ["Certificates", "AsyncCertificates"]
 
@@ -52,7 +55,7 @@ class Certificates(SyncAPIResource):
     def create(
         self,
         *,
-        content: str,
+        certificate: str,
         name: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -69,7 +72,7 @@ class Certificates(SyncAPIResource):
         Organizations can upload up to 50 certificates.
 
         Args:
-          content: The certificate content in PEM format
+          certificate: The certificate content in PEM format
 
           name: An optional name for the certificate
 
@@ -85,7 +88,7 @@ class Certificates(SyncAPIResource):
             "/organization/certificates",
             body=maybe_transform(
                 {
-                    "content": content,
+                    "certificate": certificate,
                     "name": name,
                 },
                 certificate_create_params.CertificateCreateParams,
@@ -148,7 +151,7 @@ class Certificates(SyncAPIResource):
         self,
         certificate_id: str,
         *,
-        name: str,
+        name: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -198,7 +201,7 @@ class Certificates(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> SyncConversationCursorPage[Certificate]:
+    ) -> SyncConversationCursorPage[CertificateListResponse]:
         """
         List uploaded certificates for this organization.
 
@@ -224,7 +227,7 @@ class Certificates(SyncAPIResource):
         """
         return self._get_api_list(
             "/organization/certificates",
-            page=SyncConversationCursorPage[Certificate],
+            page=SyncConversationCursorPage[CertificateListResponse],
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -240,7 +243,7 @@ class Certificates(SyncAPIResource):
                 ),
                 security={"admin_api_key_auth": True},
             ),
-            model=Certificate,
+            model=CertificateListResponse,
         )
 
     def delete(
@@ -292,7 +295,7 @@ class Certificates(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> SyncPage[Certificate]:
+    ) -> SyncPage[CertificateActivateResponse]:
         """
         Activate certificates at the organization level.
 
@@ -309,7 +312,7 @@ class Certificates(SyncAPIResource):
         """
         return self._get_api_list(
             "/organization/certificates/activate",
-            page=SyncPage[Certificate],
+            page=SyncPage[CertificateActivateResponse],
             body=maybe_transform(
                 {"certificate_ids": certificate_ids}, certificate_activate_params.CertificateActivateParams
             ),
@@ -320,7 +323,7 @@ class Certificates(SyncAPIResource):
                 timeout=timeout,
                 security={"admin_api_key_auth": True},
             ),
-            model=Certificate,
+            model=CertificateActivateResponse,
             method="post",
         )
 
@@ -334,7 +337,7 @@ class Certificates(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> SyncPage[Certificate]:
+    ) -> SyncPage[CertificateDeactivateResponse]:
         """
         Deactivate certificates at the organization level.
 
@@ -351,7 +354,7 @@ class Certificates(SyncAPIResource):
         """
         return self._get_api_list(
             "/organization/certificates/deactivate",
-            page=SyncPage[Certificate],
+            page=SyncPage[CertificateDeactivateResponse],
             body=maybe_transform(
                 {"certificate_ids": certificate_ids}, certificate_deactivate_params.CertificateDeactivateParams
             ),
@@ -362,7 +365,7 @@ class Certificates(SyncAPIResource):
                 timeout=timeout,
                 security={"admin_api_key_auth": True},
             ),
-            model=Certificate,
+            model=CertificateDeactivateResponse,
             method="post",
         )
 
@@ -390,7 +393,7 @@ class AsyncCertificates(AsyncAPIResource):
     async def create(
         self,
         *,
-        content: str,
+        certificate: str,
         name: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -407,7 +410,7 @@ class AsyncCertificates(AsyncAPIResource):
         Organizations can upload up to 50 certificates.
 
         Args:
-          content: The certificate content in PEM format
+          certificate: The certificate content in PEM format
 
           name: An optional name for the certificate
 
@@ -423,7 +426,7 @@ class AsyncCertificates(AsyncAPIResource):
             "/organization/certificates",
             body=await async_maybe_transform(
                 {
-                    "content": content,
+                    "certificate": certificate,
                     "name": name,
                 },
                 certificate_create_params.CertificateCreateParams,
@@ -488,7 +491,7 @@ class AsyncCertificates(AsyncAPIResource):
         self,
         certificate_id: str,
         *,
-        name: str,
+        name: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -538,7 +541,7 @@ class AsyncCertificates(AsyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> AsyncPaginator[Certificate, AsyncConversationCursorPage[Certificate]]:
+    ) -> AsyncPaginator[CertificateListResponse, AsyncConversationCursorPage[CertificateListResponse]]:
         """
         List uploaded certificates for this organization.
 
@@ -564,7 +567,7 @@ class AsyncCertificates(AsyncAPIResource):
         """
         return self._get_api_list(
             "/organization/certificates",
-            page=AsyncConversationCursorPage[Certificate],
+            page=AsyncConversationCursorPage[CertificateListResponse],
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -580,7 +583,7 @@ class AsyncCertificates(AsyncAPIResource):
                 ),
                 security={"admin_api_key_auth": True},
             ),
-            model=Certificate,
+            model=CertificateListResponse,
         )
 
     async def delete(
@@ -632,7 +635,7 @@ class AsyncCertificates(AsyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> AsyncPaginator[Certificate, AsyncPage[Certificate]]:
+    ) -> AsyncPaginator[CertificateActivateResponse, AsyncPage[CertificateActivateResponse]]:
         """
         Activate certificates at the organization level.
 
@@ -649,7 +652,7 @@ class AsyncCertificates(AsyncAPIResource):
         """
         return self._get_api_list(
             "/organization/certificates/activate",
-            page=AsyncPage[Certificate],
+            page=AsyncPage[CertificateActivateResponse],
             body=maybe_transform(
                 {"certificate_ids": certificate_ids}, certificate_activate_params.CertificateActivateParams
             ),
@@ -660,7 +663,7 @@ class AsyncCertificates(AsyncAPIResource):
                 timeout=timeout,
                 security={"admin_api_key_auth": True},
             ),
-            model=Certificate,
+            model=CertificateActivateResponse,
             method="post",
         )
 
@@ -674,7 +677,7 @@ class AsyncCertificates(AsyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> AsyncPaginator[Certificate, AsyncPage[Certificate]]:
+    ) -> AsyncPaginator[CertificateDeactivateResponse, AsyncPage[CertificateDeactivateResponse]]:
         """
         Deactivate certificates at the organization level.
 
@@ -691,7 +694,7 @@ class AsyncCertificates(AsyncAPIResource):
         """
         return self._get_api_list(
             "/organization/certificates/deactivate",
-            page=AsyncPage[Certificate],
+            page=AsyncPage[CertificateDeactivateResponse],
             body=maybe_transform(
                 {"certificate_ids": certificate_ids}, certificate_deactivate_params.CertificateDeactivateParams
             ),
@@ -702,7 +705,7 @@ class AsyncCertificates(AsyncAPIResource):
                 timeout=timeout,
                 security={"admin_api_key_auth": True},
             ),
-            model=Certificate,
+            model=CertificateDeactivateResponse,
             method="post",
         )
 

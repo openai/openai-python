@@ -1,5 +1,6 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
+from typing import Optional
 from typing_extensions import Literal
 
 from ....._models import BaseModel
@@ -23,7 +24,7 @@ class APIKey(BaseModel):
 class ServiceAccountCreateResponse(BaseModel):
     id: str
 
-    api_key: APIKey
+    api_key: Optional[APIKey] = None
 
     created_at: int
 

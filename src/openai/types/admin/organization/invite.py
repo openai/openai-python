@@ -22,14 +22,14 @@ class Invite(BaseModel):
     id: str
     """The identifier, which can be referenced in API endpoints"""
 
+    created_at: int
+    """The Unix timestamp (in seconds) of when the invite was sent."""
+
     email: str
     """The email address of the individual to whom the invite was sent"""
 
-    expires_at: int
+    expires_at: Optional[int] = None
     """The Unix timestamp (in seconds) of when the invite expires."""
-
-    invited_at: int
-    """The Unix timestamp (in seconds) of when the invite was sent."""
 
     object: Literal["organization.invite"]
     """The object type, which is always `organization.invite`"""

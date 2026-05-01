@@ -21,7 +21,7 @@ class TestAPIKeys:
     @parametrize
     def test_method_retrieve(self, client: OpenAI) -> None:
         api_key = client.admin.organization.projects.api_keys.retrieve(
-            key_id="key_id",
+            api_key_id="api_key_id",
             project_id="project_id",
         )
         assert_matches_type(ProjectAPIKey, api_key, path=["response"])
@@ -29,7 +29,7 @@ class TestAPIKeys:
     @parametrize
     def test_raw_response_retrieve(self, client: OpenAI) -> None:
         response = client.admin.organization.projects.api_keys.with_raw_response.retrieve(
-            key_id="key_id",
+            api_key_id="api_key_id",
             project_id="project_id",
         )
 
@@ -41,7 +41,7 @@ class TestAPIKeys:
     @parametrize
     def test_streaming_response_retrieve(self, client: OpenAI) -> None:
         with client.admin.organization.projects.api_keys.with_streaming_response.retrieve(
-            key_id="key_id",
+            api_key_id="api_key_id",
             project_id="project_id",
         ) as response:
             assert not response.is_closed
@@ -56,13 +56,13 @@ class TestAPIKeys:
     def test_path_params_retrieve(self, client: OpenAI) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `project_id` but received ''"):
             client.admin.organization.projects.api_keys.with_raw_response.retrieve(
-                key_id="key_id",
+                api_key_id="api_key_id",
                 project_id="",
             )
 
-        with pytest.raises(ValueError, match=r"Expected a non-empty value for `key_id` but received ''"):
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `api_key_id` but received ''"):
             client.admin.organization.projects.api_keys.with_raw_response.retrieve(
-                key_id="",
+                api_key_id="",
                 project_id="project_id",
             )
 
@@ -116,7 +116,7 @@ class TestAPIKeys:
     @parametrize
     def test_method_delete(self, client: OpenAI) -> None:
         api_key = client.admin.organization.projects.api_keys.delete(
-            key_id="key_id",
+            api_key_id="api_key_id",
             project_id="project_id",
         )
         assert_matches_type(APIKeyDeleteResponse, api_key, path=["response"])
@@ -124,7 +124,7 @@ class TestAPIKeys:
     @parametrize
     def test_raw_response_delete(self, client: OpenAI) -> None:
         response = client.admin.organization.projects.api_keys.with_raw_response.delete(
-            key_id="key_id",
+            api_key_id="api_key_id",
             project_id="project_id",
         )
 
@@ -136,7 +136,7 @@ class TestAPIKeys:
     @parametrize
     def test_streaming_response_delete(self, client: OpenAI) -> None:
         with client.admin.organization.projects.api_keys.with_streaming_response.delete(
-            key_id="key_id",
+            api_key_id="api_key_id",
             project_id="project_id",
         ) as response:
             assert not response.is_closed
@@ -151,13 +151,13 @@ class TestAPIKeys:
     def test_path_params_delete(self, client: OpenAI) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `project_id` but received ''"):
             client.admin.organization.projects.api_keys.with_raw_response.delete(
-                key_id="key_id",
+                api_key_id="api_key_id",
                 project_id="",
             )
 
-        with pytest.raises(ValueError, match=r"Expected a non-empty value for `key_id` but received ''"):
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `api_key_id` but received ''"):
             client.admin.organization.projects.api_keys.with_raw_response.delete(
-                key_id="",
+                api_key_id="",
                 project_id="project_id",
             )
 
@@ -170,7 +170,7 @@ class TestAsyncAPIKeys:
     @parametrize
     async def test_method_retrieve(self, async_client: AsyncOpenAI) -> None:
         api_key = await async_client.admin.organization.projects.api_keys.retrieve(
-            key_id="key_id",
+            api_key_id="api_key_id",
             project_id="project_id",
         )
         assert_matches_type(ProjectAPIKey, api_key, path=["response"])
@@ -178,7 +178,7 @@ class TestAsyncAPIKeys:
     @parametrize
     async def test_raw_response_retrieve(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.admin.organization.projects.api_keys.with_raw_response.retrieve(
-            key_id="key_id",
+            api_key_id="api_key_id",
             project_id="project_id",
         )
 
@@ -190,7 +190,7 @@ class TestAsyncAPIKeys:
     @parametrize
     async def test_streaming_response_retrieve(self, async_client: AsyncOpenAI) -> None:
         async with async_client.admin.organization.projects.api_keys.with_streaming_response.retrieve(
-            key_id="key_id",
+            api_key_id="api_key_id",
             project_id="project_id",
         ) as response:
             assert not response.is_closed
@@ -205,13 +205,13 @@ class TestAsyncAPIKeys:
     async def test_path_params_retrieve(self, async_client: AsyncOpenAI) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `project_id` but received ''"):
             await async_client.admin.organization.projects.api_keys.with_raw_response.retrieve(
-                key_id="key_id",
+                api_key_id="api_key_id",
                 project_id="",
             )
 
-        with pytest.raises(ValueError, match=r"Expected a non-empty value for `key_id` but received ''"):
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `api_key_id` but received ''"):
             await async_client.admin.organization.projects.api_keys.with_raw_response.retrieve(
-                key_id="",
+                api_key_id="",
                 project_id="project_id",
             )
 
@@ -265,7 +265,7 @@ class TestAsyncAPIKeys:
     @parametrize
     async def test_method_delete(self, async_client: AsyncOpenAI) -> None:
         api_key = await async_client.admin.organization.projects.api_keys.delete(
-            key_id="key_id",
+            api_key_id="api_key_id",
             project_id="project_id",
         )
         assert_matches_type(APIKeyDeleteResponse, api_key, path=["response"])
@@ -273,7 +273,7 @@ class TestAsyncAPIKeys:
     @parametrize
     async def test_raw_response_delete(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.admin.organization.projects.api_keys.with_raw_response.delete(
-            key_id="key_id",
+            api_key_id="api_key_id",
             project_id="project_id",
         )
 
@@ -285,7 +285,7 @@ class TestAsyncAPIKeys:
     @parametrize
     async def test_streaming_response_delete(self, async_client: AsyncOpenAI) -> None:
         async with async_client.admin.organization.projects.api_keys.with_streaming_response.delete(
-            key_id="key_id",
+            api_key_id="api_key_id",
             project_id="project_id",
         ) as response:
             assert not response.is_closed
@@ -300,12 +300,12 @@ class TestAsyncAPIKeys:
     async def test_path_params_delete(self, async_client: AsyncOpenAI) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `project_id` but received ''"):
             await async_client.admin.organization.projects.api_keys.with_raw_response.delete(
-                key_id="key_id",
+                api_key_id="api_key_id",
                 project_id="",
             )
 
-        with pytest.raises(ValueError, match=r"Expected a non-empty value for `key_id` but received ''"):
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `api_key_id` but received ''"):
             await async_client.admin.organization.projects.api_keys.with_raw_response.delete(
-                key_id="",
+                api_key_id="",
                 project_id="project_id",
             )

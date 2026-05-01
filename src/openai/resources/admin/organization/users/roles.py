@@ -12,7 +12,7 @@ from ....._utils import path_template, maybe_transform, async_maybe_transform
 from ....._compat import cached_property
 from ....._resource import SyncAPIResource, AsyncAPIResource
 from ....._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
-from .....pagination import SyncCursorPage, AsyncCursorPage
+from .....pagination import SyncNextCursorPage, AsyncNextCursorPage
 from ....._base_client import AsyncPaginator, make_request_options
 from .....types.admin.organization.users import role_list_params, role_create_params
 from .....types.admin.organization.users.role_list_response import RoleListResponse
@@ -96,7 +96,7 @@ class Roles(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> SyncCursorPage[RoleListResponse]:
+    ) -> SyncNextCursorPage[RoleListResponse]:
         """
         Lists the organization roles assigned to a user within the organization.
 
@@ -120,7 +120,7 @@ class Roles(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `user_id` but received {user_id!r}")
         return self._get_api_list(
             path_template("/organization/users/{user_id}/roles", user_id=user_id),
-            page=SyncCursorPage[RoleListResponse],
+            page=SyncNextCursorPage[RoleListResponse],
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -254,7 +254,7 @@ class AsyncRoles(AsyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> AsyncPaginator[RoleListResponse, AsyncCursorPage[RoleListResponse]]:
+    ) -> AsyncPaginator[RoleListResponse, AsyncNextCursorPage[RoleListResponse]]:
         """
         Lists the organization roles assigned to a user within the organization.
 
@@ -278,7 +278,7 @@ class AsyncRoles(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `user_id` but received {user_id!r}")
         return self._get_api_list(
             path_template("/organization/users/{user_id}/roles", user_id=user_id),
-            page=AsyncCursorPage[RoleListResponse],
+            page=AsyncNextCursorPage[RoleListResponse],
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,

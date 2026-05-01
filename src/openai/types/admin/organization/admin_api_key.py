@@ -1,6 +1,7 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 from typing import Optional
+from typing_extensions import Literal
 
 from ...._models import BaseModel
 
@@ -42,7 +43,7 @@ class AdminAPIKey(BaseModel):
     name: str
     """The name of the API key"""
 
-    object: str
+    object: Literal["organization.admin_api_key"]
     """The object type, which is always `organization.admin_api_key`"""
 
     owner: Owner

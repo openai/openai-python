@@ -1,6 +1,6 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import Optional
+from typing_extensions import Literal
 
 from ...._models import BaseModel
 
@@ -8,8 +8,8 @@ __all__ = ["AdminAPIKeyDeleteResponse"]
 
 
 class AdminAPIKeyDeleteResponse(BaseModel):
-    id: Optional[str] = None
+    id: str
 
-    deleted: Optional[bool] = None
+    deleted: bool
 
-    object: Optional[str] = None
+    object: Literal["organization.admin_api_key.deleted"]

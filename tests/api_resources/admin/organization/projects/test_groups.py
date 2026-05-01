@@ -9,7 +9,7 @@ import pytest
 
 from openai import OpenAI, AsyncOpenAI
 from tests.utils import assert_matches_type
-from openai.pagination import SyncCursorPage, AsyncCursorPage
+from openai.pagination import SyncNextCursorPage, AsyncNextCursorPage
 from openai.types.admin.organization.projects import (
     ProjectGroup,
     GroupDeleteResponse,
@@ -72,7 +72,7 @@ class TestGroups:
         group = client.admin.organization.projects.groups.list(
             project_id="project_id",
         )
-        assert_matches_type(SyncCursorPage[ProjectGroup], group, path=["response"])
+        assert_matches_type(SyncNextCursorPage[ProjectGroup], group, path=["response"])
 
     @parametrize
     def test_method_list_with_all_params(self, client: OpenAI) -> None:
@@ -82,7 +82,7 @@ class TestGroups:
             limit=0,
             order="asc",
         )
-        assert_matches_type(SyncCursorPage[ProjectGroup], group, path=["response"])
+        assert_matches_type(SyncNextCursorPage[ProjectGroup], group, path=["response"])
 
     @parametrize
     def test_raw_response_list(self, client: OpenAI) -> None:
@@ -93,7 +93,7 @@ class TestGroups:
         assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         group = response.parse()
-        assert_matches_type(SyncCursorPage[ProjectGroup], group, path=["response"])
+        assert_matches_type(SyncNextCursorPage[ProjectGroup], group, path=["response"])
 
     @parametrize
     def test_streaming_response_list(self, client: OpenAI) -> None:
@@ -104,7 +104,7 @@ class TestGroups:
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
             group = response.parse()
-            assert_matches_type(SyncCursorPage[ProjectGroup], group, path=["response"])
+            assert_matches_type(SyncNextCursorPage[ProjectGroup], group, path=["response"])
 
         assert cast(Any, response.is_closed) is True
 
@@ -220,7 +220,7 @@ class TestAsyncGroups:
         group = await async_client.admin.organization.projects.groups.list(
             project_id="project_id",
         )
-        assert_matches_type(AsyncCursorPage[ProjectGroup], group, path=["response"])
+        assert_matches_type(AsyncNextCursorPage[ProjectGroup], group, path=["response"])
 
     @parametrize
     async def test_method_list_with_all_params(self, async_client: AsyncOpenAI) -> None:
@@ -230,7 +230,7 @@ class TestAsyncGroups:
             limit=0,
             order="asc",
         )
-        assert_matches_type(AsyncCursorPage[ProjectGroup], group, path=["response"])
+        assert_matches_type(AsyncNextCursorPage[ProjectGroup], group, path=["response"])
 
     @parametrize
     async def test_raw_response_list(self, async_client: AsyncOpenAI) -> None:
@@ -241,7 +241,7 @@ class TestAsyncGroups:
         assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         group = response.parse()
-        assert_matches_type(AsyncCursorPage[ProjectGroup], group, path=["response"])
+        assert_matches_type(AsyncNextCursorPage[ProjectGroup], group, path=["response"])
 
     @parametrize
     async def test_streaming_response_list(self, async_client: AsyncOpenAI) -> None:
@@ -252,7 +252,7 @@ class TestAsyncGroups:
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
             group = await response.parse()
-            assert_matches_type(AsyncCursorPage[ProjectGroup], group, path=["response"])
+            assert_matches_type(AsyncNextCursorPage[ProjectGroup], group, path=["response"])
 
         assert cast(Any, response.is_closed) is True
 

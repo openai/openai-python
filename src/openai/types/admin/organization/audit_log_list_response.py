@@ -810,9 +810,6 @@ class AuditLogListResponse(BaseModel):
     id: str
     """The ID of this log."""
 
-    actor: Actor
-    """The actor who performed the audit logged action."""
-
     effective_at: int
     """The Unix timestamp (in seconds) of the event."""
 
@@ -870,6 +867,9 @@ class AuditLogListResponse(BaseModel):
         "user.deleted",
     ]
     """The event type."""
+
+    actor: Optional[Actor] = None
+    """The actor who performed the audit logged action."""
 
     api_key_created: Optional[APIKeyCreated] = FieldInfo(alias="api_key.created", default=None)
     """The details for events with this `type`."""

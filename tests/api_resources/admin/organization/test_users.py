@@ -60,6 +60,13 @@ class TestUsers:
     def test_method_update(self, client: OpenAI) -> None:
         user = client.admin.organization.users.update(
             user_id="user_id",
+        )
+        assert_matches_type(OrganizationUser, user, path=["response"])
+
+    @parametrize
+    def test_method_update_with_all_params(self, client: OpenAI) -> None:
+        user = client.admin.organization.users.update(
+            user_id="user_id",
             role="owner",
         )
         assert_matches_type(OrganizationUser, user, path=["response"])
@@ -68,7 +75,6 @@ class TestUsers:
     def test_raw_response_update(self, client: OpenAI) -> None:
         response = client.admin.organization.users.with_raw_response.update(
             user_id="user_id",
-            role="owner",
         )
 
         assert response.is_closed is True
@@ -80,7 +86,6 @@ class TestUsers:
     def test_streaming_response_update(self, client: OpenAI) -> None:
         with client.admin.organization.users.with_streaming_response.update(
             user_id="user_id",
-            role="owner",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -95,7 +100,6 @@ class TestUsers:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `user_id` but received ''"):
             client.admin.organization.users.with_raw_response.update(
                 user_id="",
-                role="owner",
             )
 
     @parametrize
@@ -218,6 +222,13 @@ class TestAsyncUsers:
     async def test_method_update(self, async_client: AsyncOpenAI) -> None:
         user = await async_client.admin.organization.users.update(
             user_id="user_id",
+        )
+        assert_matches_type(OrganizationUser, user, path=["response"])
+
+    @parametrize
+    async def test_method_update_with_all_params(self, async_client: AsyncOpenAI) -> None:
+        user = await async_client.admin.organization.users.update(
+            user_id="user_id",
             role="owner",
         )
         assert_matches_type(OrganizationUser, user, path=["response"])
@@ -226,7 +237,6 @@ class TestAsyncUsers:
     async def test_raw_response_update(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.admin.organization.users.with_raw_response.update(
             user_id="user_id",
-            role="owner",
         )
 
         assert response.is_closed is True
@@ -238,7 +248,6 @@ class TestAsyncUsers:
     async def test_streaming_response_update(self, async_client: AsyncOpenAI) -> None:
         async with async_client.admin.organization.users.with_streaming_response.update(
             user_id="user_id",
-            role="owner",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -253,7 +262,6 @@ class TestAsyncUsers:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `user_id` but received ''"):
             await async_client.admin.organization.users.with_raw_response.update(
                 user_id="",
-                role="owner",
             )
 
     @parametrize
