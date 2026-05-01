@@ -14,6 +14,9 @@ class Group(BaseModel):
     created_at: int
     """Unix timestamp (in seconds) when the group was created."""
 
+    group_type: str
+    """The type of the group."""
+
     is_scim_managed: bool
     """
     Whether the group is managed through SCIM and controlled by your identity

@@ -2,11 +2,18 @@
 
 from __future__ import annotations
 
-from typing_extensions import Required, TypedDict
+from typing import Optional
+from typing_extensions import TypedDict
 
 __all__ = ["ProjectUpdateParams"]
 
 
 class ProjectUpdateParams(TypedDict, total=False):
-    name: Required[str]
+    external_key_id: Optional[str]
+    """External key ID to associate with the project."""
+
+    geography: Optional[str]
+    """Geography for the project."""
+
+    name: Optional[str]
     """The updated name of the project, this name appears in reports."""

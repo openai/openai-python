@@ -37,12 +37,6 @@ class AdminAPIKey(BaseModel):
     created_at: int
     """The Unix timestamp (in seconds) of when the API key was created"""
 
-    last_used_at: Optional[int] = None
-    """The Unix timestamp (in seconds) of when the API key was last used"""
-
-    name: str
-    """The name of the API key"""
-
     object: Literal["organization.admin_api_key"]
     """The object type, which is always `organization.admin_api_key`"""
 
@@ -51,5 +45,8 @@ class AdminAPIKey(BaseModel):
     redacted_value: str
     """The redacted value of the API key"""
 
-    value: Optional[str] = None
-    """The value of the API key. Only shown on create."""
+    last_used_at: Optional[int] = None
+    """The Unix timestamp (in seconds) of when the API key was last used"""
+
+    name: Optional[str] = None
+    """The name of the API key"""

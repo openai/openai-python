@@ -67,7 +67,10 @@ class TestUsers:
     def test_method_update_with_all_params(self, client: OpenAI) -> None:
         user = client.admin.organization.users.update(
             user_id="user_id",
-            role="owner",
+            developer_persona="developer_persona",
+            role="role",
+            role_id="role_id",
+            technical_level="technical_level",
         )
         assert_matches_type(OrganizationUser, user, path=["response"])
 
@@ -229,7 +232,10 @@ class TestAsyncUsers:
     async def test_method_update_with_all_params(self, async_client: AsyncOpenAI) -> None:
         user = await async_client.admin.organization.users.update(
             user_id="user_id",
-            role="owner",
+            developer_persona="developer_persona",
+            role="role",
+            role_id="role_id",
+            technical_level="technical_level",
         )
         assert_matches_type(OrganizationUser, user, path=["response"])
 

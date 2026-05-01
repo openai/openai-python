@@ -1,5 +1,6 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
+from typing import Optional
 from typing_extensions import Literal
 
 from ....._models import BaseModel
@@ -16,14 +17,14 @@ class ProjectUser(BaseModel):
     added_at: int
     """The Unix timestamp (in seconds) of when the project was added."""
 
-    email: str
-    """The email address of the user"""
-
-    name: str
-    """The name of the user"""
-
     object: Literal["organization.project.user"]
     """The object type, which is always `organization.project.user`"""
 
-    role: Literal["owner", "member"]
+    role: str
     """`owner` or `member`"""
+
+    email: Optional[str] = None
+    """The email address of the user"""
+
+    name: Optional[str] = None
+    """The name of the user"""

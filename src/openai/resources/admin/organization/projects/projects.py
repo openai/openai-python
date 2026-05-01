@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing_extensions import Literal
+from typing import Optional
 
 import httpx
 
@@ -128,7 +128,8 @@ class Projects(SyncAPIResource):
         self,
         *,
         name: str,
-        geography: Literal["US", "EU", "JP", "IN", "KR", "CA", "AU", "SG"] | Omit = omit,
+        external_key_id: Optional[str] | Omit = omit,
+        geography: Optional[str] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -143,6 +144,8 @@ class Projects(SyncAPIResource):
 
         Args:
           name: The friendly name of the project, this name appears in reports.
+
+          external_key_id: External key ID to associate with the project.
 
           geography: Create the project with the specified data residency region. Your organization
               must have access to Data residency functionality in order to use. See
@@ -162,6 +165,7 @@ class Projects(SyncAPIResource):
             body=maybe_transform(
                 {
                     "name": name,
+                    "external_key_id": external_key_id,
                     "geography": geography,
                 },
                 project_create_params.ProjectCreateParams,
@@ -217,7 +221,9 @@ class Projects(SyncAPIResource):
         self,
         project_id: str,
         *,
-        name: str,
+        external_key_id: Optional[str] | Omit = omit,
+        geography: Optional[str] | Omit = omit,
+        name: Optional[str] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -229,6 +235,10 @@ class Projects(SyncAPIResource):
         Modifies a project in the organization.
 
         Args:
+          external_key_id: External key ID to associate with the project.
+
+          geography: Geography for the project.
+
           name: The updated name of the project, this name appears in reports.
 
           extra_headers: Send extra headers
@@ -243,7 +253,14 @@ class Projects(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `project_id` but received {project_id!r}")
         return self._post(
             path_template("/organization/projects/{project_id}", project_id=project_id),
-            body=maybe_transform({"name": name}, project_update_params.ProjectUpdateParams),
+            body=maybe_transform(
+                {
+                    "external_key_id": external_key_id,
+                    "geography": geography,
+                    "name": name,
+                },
+                project_update_params.ProjectUpdateParams,
+            ),
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -404,7 +421,8 @@ class AsyncProjects(AsyncAPIResource):
         self,
         *,
         name: str,
-        geography: Literal["US", "EU", "JP", "IN", "KR", "CA", "AU", "SG"] | Omit = omit,
+        external_key_id: Optional[str] | Omit = omit,
+        geography: Optional[str] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -419,6 +437,8 @@ class AsyncProjects(AsyncAPIResource):
 
         Args:
           name: The friendly name of the project, this name appears in reports.
+
+          external_key_id: External key ID to associate with the project.
 
           geography: Create the project with the specified data residency region. Your organization
               must have access to Data residency functionality in order to use. See
@@ -438,6 +458,7 @@ class AsyncProjects(AsyncAPIResource):
             body=await async_maybe_transform(
                 {
                     "name": name,
+                    "external_key_id": external_key_id,
                     "geography": geography,
                 },
                 project_create_params.ProjectCreateParams,
@@ -493,7 +514,9 @@ class AsyncProjects(AsyncAPIResource):
         self,
         project_id: str,
         *,
-        name: str,
+        external_key_id: Optional[str] | Omit = omit,
+        geography: Optional[str] | Omit = omit,
+        name: Optional[str] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -505,6 +528,10 @@ class AsyncProjects(AsyncAPIResource):
         Modifies a project in the organization.
 
         Args:
+          external_key_id: External key ID to associate with the project.
+
+          geography: Geography for the project.
+
           name: The updated name of the project, this name appears in reports.
 
           extra_headers: Send extra headers
@@ -519,7 +546,14 @@ class AsyncProjects(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `project_id` but received {project_id!r}")
         return await self._post(
             path_template("/organization/projects/{project_id}", project_id=project_id),
-            body=await async_maybe_transform({"name": name}, project_update_params.ProjectUpdateParams),
+            body=await async_maybe_transform(
+                {
+                    "external_key_id": external_key_id,
+                    "geography": geography,
+                    "name": name,
+                },
+                project_update_params.ProjectUpdateParams,
+            ),
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,

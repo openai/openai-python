@@ -2,11 +2,21 @@
 
 from __future__ import annotations
 
-from typing_extensions import Literal, TypedDict
+from typing import Optional
+from typing_extensions import TypedDict
 
 __all__ = ["UserUpdateParams"]
 
 
 class UserUpdateParams(TypedDict, total=False):
-    role: Literal["owner", "reader"]
+    developer_persona: Optional[str]
+    """Developer persona metadata."""
+
+    role: Optional[str]
     """`owner` or `reader`"""
+
+    role_id: Optional[str]
+    """Role ID to assign to the user."""
+
+    technical_level: Optional[str]
+    """Technical level metadata."""

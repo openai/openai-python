@@ -19,6 +19,9 @@ class ProjectGroup(BaseModel):
     group_name: str
     """Display name of the group."""
 
+    group_type: str
+    """The type of the group."""
+
     object: Literal["project.group"]
     """Always `project.group`."""
 
