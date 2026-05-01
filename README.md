@@ -180,7 +180,7 @@ With an image URL:
 
 ```python
 prompt = "What is in this image?"
-img_url = "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/2023_06_08_Raccoon1.jpg/1599px-2023_06_08_Raccoon1.jpg"
+img_url = "https://api.nga.gov/iiif/a2e6da57-3cd1-4235-b20e-95dcaefed6c8/full/!800,800/0/default.jpg"
 
 response = client.responses.create(
     model="gpt-5.2",
@@ -189,7 +189,7 @@ response = client.responses.create(
             "role": "user",
             "content": [
                 {"type": "input_text", "text": prompt},
-                {"type": "input_image", "image_url": f"{img_url}"},
+                {"type": "input_image", "image_url": f"{img_url}", "detail": "low"},
             ],
         }
     ],
