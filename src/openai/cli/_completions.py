@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import sys
 import argparse
 from typing import Optional
 
