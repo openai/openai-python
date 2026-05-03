@@ -71,25 +71,19 @@ _openai_completion() {
 
     case ${words[1]} in
         api)
-            # API subcommands
-            local api_commands="chat completions models files fine-tuning embeddings audio images moderations assistants threads runs messages"
-            if [[ ${cword} -eq 2 ]]; then
-                COMPREPLY=($(compgen -W "${api_commands}" -- "${cur}"))
-            fi
+            # API subcommands - use full command names as registered in CLI
+            local api_commands="chat.completions.create completions.create models.list models.retrieve models.delete files.create files.list files.retrieve files.delete images.generate images.edit images.create_variation audio.transcriptions.create audio.translations.create fine_tuning.jobs.create fine_tuning.jobs.list fine_tuning.jobs.retrieve fine_tuning.jobs.cancel fine_tuning.jobs.list_events"
+            COMPREPLY=($(compgen -W "${api_commands}" -- "${cur}"))
             ;;
         tools)
             # Tools subcommands
-            local tools_commands=""
-            if [[ ${cword} -eq 2 ]]; then
-                COMPREPLY=($(compgen -W "${tools_commands}" -- "${cur}"))
-            fi
+            local tools_commands="fine_tunes.prepare_data migrate grit"
+            COMPREPLY=($(compgen -W "${tools_commands}" -- "${cur}"))
             ;;
         complete)
             # Complete subcommand - shell names
             local shells="bash zsh fish powershell"
-            if [[ ${cword} -eq 2 ]]; then
-                COMPREPLY=($(compgen -W "${shells}" -- "${cur}"))
-            fi
+            COMPREPLY=($(compgen -W "${shells}" -- "${cur}"))
             ;;
     esac
 }
@@ -147,21 +141,36 @@ _openai() {
                 api)
                     local -a api_commands
                     api_commands=(
-                        'chat:Chat completions API'
-                        'completions:Completions API'
-                        'models:Models API'
-                        'files:Files API'
-                        'fine-tuning:Fine-tuning API'
-                        'embeddings:Embeddings API'
-                        'audio:Audio API'
-                        'images:Images API'
-                        'moderations:Moderations API'
-                        'assistants:Assistants API'
-                        'threads:Threads API'
-                        'runs:Runs API'
-                        'messages:Messages API'
+                        'chat.completions.create:Create chat completion'
+                        'completions.create:Create completion'
+                        'models.list:List models'
+                        'models.retrieve:Retrieve model'
+                        'models.delete:Delete model'
+                        'files.create:Create file'
+                        'files.list:List files'
+                        'files.retrieve:Retrieve file'
+                        'files.delete:Delete file'
+                        'images.generate:Generate image'
+                        'images.edit:Edit image'
+                        'images.create_variation:Create image variation'
+                        'audio.transcriptions.create:Create transcription'
+                        'audio.translations.create:Create translation'
+                        'fine_tuning.jobs.create:Create fine-tuning job'
+                        'fine_tuning.jobs.list:List fine-tuning jobs'
+                        'fine_tuning.jobs.retrieve:Retrieve fine-tuning job'
+                        'fine_tuning.jobs.cancel:Cancel fine-tuning job'
+                        'fine_tuning.jobs.list_events:List fine-tuning job events'
                     )
                     _describe 'api command' api_commands
+                    ;;
+                tools)
+                    local -a tools_commands
+                    tools_commands=(
+                        'fine_tunes.prepare_data:Prepare data for fine-tuning'
+                        'migrate:Migrate to new API version'
+                        'grit:Run grit'
+                    )
+                    _describe 'tools command' tools_commands
                     ;;
                 complete)
                     local -a shells
@@ -207,6 +216,32 @@ complete -c openai -l azure-endpoint -d 'The Azure endpoint'
 complete -c openai -l azure-ad-token -d 'A token from Azure Active Directory'
 complete -c openai -s V -l version -d 'Show version'
 
+# api subcommands
+complete -c openai -n '__fish_seen_subcommand_from api' -a 'chat.completions.create' -d 'Create chat completion'
+complete -c openai -n '__fish_seen_subcommand_from api' -a 'completions.create' -d 'Create completion'
+complete -c openai -n '__fish_seen_subcommand_from api' -a 'models.list' -d 'List models'
+complete -c openai -n '__fish_seen_subcommand_from api' -a 'models.retrieve' -d 'Retrieve model'
+complete -c openai -n '__fish_seen_subcommand_from api' -a 'models.delete' -d 'Delete model'
+complete -c openai -n '__fish_seen_subcommand_from api' -a 'files.create' -d 'Create file'
+complete -c openai -n '__fish_seen_subcommand_from api' -a 'files.list' -d 'List files'
+complete -c openai -n '__fish_seen_subcommand_from api' -a 'files.retrieve' -d 'Retrieve file'
+complete -c openai -n '__fish_seen_subcommand_from api' -a 'files.delete' -d 'Delete file'
+complete -c openai -n '__fish_seen_subcommand_from api' -a 'images.generate' -d 'Generate image'
+complete -c openai -n '__fish_seen_subcommand_from api' -a 'images.edit' -d 'Edit image'
+complete -c openai -n '__fish_seen_subcommand_from api' -a 'images.create_variation' -d 'Create image variation'
+complete -c openai -n '__fish_seen_subcommand_from api' -a 'audio.transcriptions.create' -d 'Create transcription'
+complete -c openai -n '__fish_seen_subcommand_from api' -a 'audio.translations.create' -d 'Create translation'
+complete -c openai -n '__fish_seen_subcommand_from api' -a 'fine_tuning.jobs.create' -d 'Create fine-tuning job'
+complete -c openai -n '__fish_seen_subcommand_from api' -a 'fine_tuning.jobs.list' -d 'List fine-tuning jobs'
+complete -c openai -n '__fish_seen_subcommand_from api' -a 'fine_tuning.jobs.retrieve' -d 'Retrieve fine-tuning job'
+complete -c openai -n '__fish_seen_subcommand_from api' -a 'fine_tuning.jobs.cancel' -d 'Cancel fine-tuning job'
+complete -c openai -n '__fish_seen_subcommand_from api' -a 'fine_tuning.jobs.list_events' -d 'List fine-tuning job events'
+
+# tools subcommands
+complete -c openai -n '__fish_seen_subcommand_from tools' -a 'fine_tunes.prepare_data' -d 'Prepare data for fine-tuning'
+complete -c openai -n '__fish_seen_subcommand_from tools' -a 'migrate' -d 'Migrate to new API version'
+complete -c openai -n '__fish_seen_subcommand_from tools' -a 'grit' -d 'Run grit'
+
 # complete subcommand
 complete -c openai -n '__fish_seen_subcommand_from complete' -a 'bash' -d 'Bash completion'
 complete -c openai -n '__fish_seen_subcommand_from complete' -a 'zsh' -d 'Zsh completion'
@@ -230,19 +265,9 @@ Register-ArgumentCompleter -Native -CommandName openai -ScriptBlock {
     param($wordToComplete, $commandAst, $cursorPosition)
 
     $commandElements = $commandAst.CommandElements
-    $command = @(
-        'complete'
-        for ($i = 1; $i -lt $commandElements.Count; $i++) {
-            $element = $commandElements[$i]
-            if ($element -isnot [StringConstantExpressionAst]) {
-                break
-            }
-            if ($element.Value.StartsWith('-')) {
-                break
-            }
-            $element.Value
-        }
-    ) -join ';'
+
+    # Get the subcommand (second element if present)
+    $subcommand = if ($commandElements.Count -ge 2) { $commandElements[1].Value } else { '' }
 
     $completions = @(
         # Main commands
@@ -251,7 +276,35 @@ Register-ArgumentCompleter -Native -CommandName openai -ScriptBlock {
         [CompletionResult]::new('complete', 'complete', [CompletionResultType]::Command, 'Generate shell completion scripts')
     )
 
-    if ($command -eq 'complete') {
+    if ($subcommand -eq 'api') {
+        $completions = @(
+            [CompletionResult]::new('chat.completions.create', 'chat.completions.create', [CompletionResultType]::ParameterValue, 'Create chat completion')
+            [CompletionResult]::new('completions.create', 'completions.create', [CompletionResultType]::ParameterValue, 'Create completion')
+            [CompletionResult]::new('models.list', 'models.list', [CompletionResultType]::ParameterValue, 'List models')
+            [CompletionResult]::new('models.retrieve', 'models.retrieve', [CompletionResultType]::ParameterValue, 'Retrieve model')
+            [CompletionResult]::new('models.delete', 'models.delete', [CompletionResultType]::ParameterValue, 'Delete model')
+            [CompletionResult]::new('files.create', 'files.create', [CompletionResultType]::ParameterValue, 'Create file')
+            [CompletionResult]::new('files.list', 'files.list', [CompletionResultType]::ParameterValue, 'List files')
+            [CompletionResult]::new('files.retrieve', 'files.retrieve', [CompletionResultType]::ParameterValue, 'Retrieve file')
+            [CompletionResult]::new('files.delete', 'files.delete', [CompletionResultType]::ParameterValue, 'Delete file')
+            [CompletionResult]::new('images.generate', 'images.generate', [CompletionResultType]::ParameterValue, 'Generate image')
+            [CompletionResult]::new('images.edit', 'images.edit', [CompletionResultType]::ParameterValue, 'Edit image')
+            [CompletionResult]::new('images.create_variation', 'images.create_variation', [CompletionResultType]::ParameterValue, 'Create image variation')
+            [CompletionResult]::new('audio.transcriptions.create', 'audio.transcriptions.create', [CompletionResultType]::ParameterValue, 'Create transcription')
+            [CompletionResult]::new('audio.translations.create', 'audio.translations.create', [CompletionResultType]::ParameterValue, 'Create translation')
+            [CompletionResult]::new('fine_tuning.jobs.create', 'fine_tuning.jobs.create', [CompletionResultType]::ParameterValue, 'Create fine-tuning job')
+            [CompletionResult]::new('fine_tuning.jobs.list', 'fine_tuning.jobs.list', [CompletionResultType]::ParameterValue, 'List fine-tuning jobs')
+            [CompletionResult]::new('fine_tuning.jobs.retrieve', 'fine_tuning.jobs.retrieve', [CompletionResultType]::ParameterValue, 'Retrieve fine-tuning job')
+            [CompletionResult]::new('fine_tuning.jobs.cancel', 'fine_tuning.jobs.cancel', [CompletionResultType]::ParameterValue, 'Cancel fine-tuning job')
+            [CompletionResult]::new('fine_tuning.jobs.list_events', 'fine_tuning.jobs.list_events', [CompletionResultType]::ParameterValue, 'List fine-tuning job events')
+        )
+    } elseif ($subcommand -eq 'tools') {
+        $completions = @(
+            [CompletionResult]::new('fine_tunes.prepare_data', 'fine_tunes.prepare_data', [CompletionResultType]::ParameterValue, 'Prepare data for fine-tuning')
+            [CompletionResult]::new('migrate', 'migrate', [CompletionResultType]::ParameterValue, 'Migrate to new API version')
+            [CompletionResult]::new('grit', 'grit', [CompletionResultType]::ParameterValue, 'Run grit')
+        )
+    } elseif ($subcommand -eq 'complete') {
         $completions = @(
             [CompletionResult]::new('bash', 'bash', [CompletionResultType]::ParameterValue, 'Bash completion')
             [CompletionResult]::new('zsh', 'zsh', [CompletionResultType]::ParameterValue, 'Zsh completion')
