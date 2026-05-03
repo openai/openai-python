@@ -12,6 +12,7 @@ import pydantic
 import openai
 
 from . import _tools
+from . import _completion
 from .. import _ApiType, __version__
 from ._api import register_commands
 from ._utils import can_use_http2
@@ -119,6 +120,9 @@ def _build_parser() -> argparse.ArgumentParser:
 
     sub_tools = subparsers.add_parser("tools", help="Client side tools for convenience")
     _tools.register_commands(sub_tools, subparsers)
+
+    sub_complete = subparsers.add_parser("complete", help="Generate shell completion scripts")
+    _completion.register_commands(sub_complete)
 
     return parser
 
