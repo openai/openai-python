@@ -13,7 +13,7 @@ Requires:
 
 Run:
   export AWS_REGION=us-west-2
-  PYTHONPATH=src python3 examples/bedrock_mantle_credential_provider.py
+  PYTHONPATH=src python3 examples/aws_credential_provider.py
 """
 
 from __future__ import annotations

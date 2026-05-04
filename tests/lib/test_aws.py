@@ -69,12 +69,12 @@ def _patch_ensure_botocore() -> Any:
 
 class TestConstructorWithRegionDerivedUrl:
     def test_sync_base_url_from_region(self) -> None:
-        with _patch_default_creds():
+        with _patch_ensure_botocore():
             client = AwsOpenAI(region="us-west-2")
         assert str(client.base_url) == "https://bedrock-mantle.us-west-2.api.aws/v1/"
 
     def test_async_base_url_from_region(self) -> None:
-        with _patch_default_creds():
+        with _patch_ensure_botocore():
             client = AsyncAwsOpenAI(region="us-east-1")
         assert str(client.base_url) == "https://bedrock-mantle.us-east-1.api.aws/v1/"
 
@@ -86,7 +86,7 @@ class TestConstructorWithRegionDerivedUrl:
 
 class TestConstructorWithBaseUrl:
     def test_sync_uses_provided_base_url(self) -> None:
-        with _patch_default_creds():
+        with _patch_ensure_botocore():
             client = AwsOpenAI(
                 base_url="https://custom.example.com/v1",
                 region="us-west-2",
@@ -94,7 +94,7 @@ class TestConstructorWithBaseUrl:
         assert str(client.base_url) == "https://custom.example.com/v1/"
 
     def test_async_uses_provided_base_url(self) -> None:
-        with _patch_default_creds():
+        with _patch_ensure_botocore():
             client = AsyncAwsOpenAI(
                 base_url="https://custom.example.com/v1",
                 region="us-west-2",
@@ -148,12 +148,12 @@ class TestConstructorWithApiKey:
 
 class TestInheritance:
     def test_sync_is_instance_of_openai(self) -> None:
-        with _patch_default_creds():
+        with _patch_ensure_botocore():
             client = AwsOpenAI(region="us-west-2")
         assert isinstance(client, OpenAI)
 
     def test_async_is_instance_of_async_openai(self) -> None:
-        with _patch_default_creds():
+        with _patch_ensure_botocore():
             client = AsyncAwsOpenAI(region="us-west-2")
         assert isinstance(client, AsyncOpenAI)
 
@@ -165,27 +165,27 @@ class TestInheritance:
 
 class TestCopyPreservesFields:
     def test_sync_copy_preserves_region_and_sigv4(self) -> None:
-        with _patch_default_creds():
+        with _patch_ensure_botocore():
             client = AwsOpenAI(region="us-west-2")
             copied = client.copy()
         assert copied._region == "us-west-2"
         assert copied._use_sigv4 is True
 
     def test_sync_with_options_preserves_region(self) -> None:
-        with _patch_default_creds():
+        with _patch_ensure_botocore():
             client = AwsOpenAI(region="us-west-2")
             copied = client.with_options()
         assert copied._region == "us-west-2"
 
     def test_async_copy_preserves_region_and_sigv4(self) -> None:
-        with _patch_default_creds():
+        with _patch_ensure_botocore():
             client = AsyncAwsOpenAI(region="us-west-2")
             copied = client.copy()
         assert copied._region == "us-west-2"
         assert copied._use_sigv4 is True
 
     def test_async_with_options_preserves_region(self) -> None:
-        with _patch_default_creds():
+        with _patch_ensure_botocore():
             client = AsyncAwsOpenAI(region="us-west-2")
             copied = client.with_options()
         assert copied._region == "us-west-2"
@@ -205,25 +205,25 @@ class TestCopyPreservesFields:
         assert copied._credential_provider is provider
 
     def test_sync_copy_overrides_region(self) -> None:
-        with _patch_default_creds():
+        with _patch_ensure_botocore():
             client = AwsOpenAI(region="us-west-2")
             copied = client.copy(region="eu-west-1")
         assert copied._region == "eu-west-1"
 
     def test_async_copy_overrides_region(self) -> None:
-        with _patch_default_creds():
+        with _patch_ensure_botocore():
             client = AsyncAwsOpenAI(region="us-west-2")
             copied = client.copy(region="eu-west-1")
         assert copied._region == "eu-west-1"
 
     def test_sync_copy_returns_same_type(self) -> None:
-        with _patch_default_creds():
+        with _patch_ensure_botocore():
             client = AwsOpenAI(region="us-west-2")
             copied = client.copy()
         assert type(copied) is AwsOpenAI
 
     def test_async_copy_returns_same_type(self) -> None:
-        with _patch_default_creds():
+        with _patch_ensure_botocore():
             client = AsyncAwsOpenAI(region="us-west-2")
             copied = client.copy()
         assert type(copied) is AsyncAwsOpenAI
@@ -236,22 +236,32 @@ class TestCopyPreservesFields:
 
 class TestDefaultBotocoreCredentials:
     def test_sync_uses_botocore_default_chain(self) -> None:
+        """Credentials are resolved lazily on first request, not at construction."""
         unfrozen = _make_unfrozen_creds("AKID_DEFAULT", "secret_default", "tok_default")
-        with _patch_default_creds(unfrozen):
+        with _patch_ensure_botocore():
             client = AwsOpenAI(region="us-west-2")
-        assert client._botocore_credentials is unfrozen
+        # Not yet resolved at construction time
+        assert client._botocore_credentials is None
         assert client._credential_provider is None
 
-    def test_async_uses_botocore_default_chain(self) -> None:
-        unfrozen = _make_unfrozen_creds("AKID_DEFAULT", "secret_default", "tok_default")
-        with _patch_default_creds(unfrozen):
-            client = AsyncAwsOpenAI(region="us-west-2")
+        # Resolve on first _prepare_request call
+        request = httpx.Request("POST", "https://example.com/v1/chat/completions", content=b'{"model":"x"}')
+        with _patch_default_creds(unfrozen), patch("openai.lib.aws._sign_httpx_request"):
+            client._prepare_request(request)
         assert client._botocore_credentials is unfrozen
+
+    def test_async_uses_botocore_default_chain(self) -> None:
+        """Credentials are resolved lazily on first request, not at construction."""
+        unfrozen = _make_unfrozen_creds("AKID_DEFAULT", "secret_default", "tok_default")
+        with _patch_ensure_botocore():
+            client = AsyncAwsOpenAI(region="us-west-2")
+        # Not yet resolved at construction time
+        assert client._botocore_credentials is None
         assert client._credential_provider is None
 
     def test_sync_raises_when_botocore_missing(self) -> None:
         with patch(
-            "openai.lib.aws._get_default_credentials",
+            "openai.lib.aws._ensure_botocore",
             side_effect=OpenAIError("botocore must be installed"),
         ):
             with pytest.raises(OpenAIError, match="botocore must be installed"):
@@ -259,19 +269,38 @@ class TestDefaultBotocoreCredentials:
 
     def test_async_raises_when_botocore_missing(self) -> None:
         with patch(
-            "openai.lib.aws._get_default_credentials",
+            "openai.lib.aws._ensure_botocore",
             side_effect=OpenAIError("botocore must be installed"),
         ):
             with pytest.raises(OpenAIError, match="botocore must be installed"):
                 AsyncAwsOpenAI(region="us-west-2")
 
     def test_sync_raises_when_no_creds_resolved(self) -> None:
+        """Error is raised at request time, not construction time."""
+        with _patch_ensure_botocore():
+            client = AwsOpenAI(region="us-west-2")
+
+        request = httpx.Request("POST", "https://example.com/v1/chat/completions", content=b'{"model":"x"}')
         with patch(
             "openai.lib.aws._get_default_credentials",
             side_effect=OpenAIError("Could not resolve AWS credentials"),
         ):
             with pytest.raises(OpenAIError, match="Could not resolve AWS credentials"):
-                AwsOpenAI(region="us-west-2")
+                client._prepare_request(request)
+
+    @pytest.mark.asyncio
+    async def test_async_raises_when_no_creds_resolved(self) -> None:
+        """Error is raised at request time, not construction time."""
+        with _patch_ensure_botocore():
+            client = AsyncAwsOpenAI(region="us-west-2")
+
+        request = httpx.Request("POST", "https://example.com/v1/chat/completions", content=b'{"model":"x"}')
+        with patch(
+            "openai.lib.aws._get_default_credentials",
+            side_effect=OpenAIError("Could not resolve AWS credentials"),
+        ):
+            with pytest.raises(OpenAIError, match="Could not resolve AWS credentials"):
+                await client._prepare_request(request)
 
 
 # ---------------------------------------------------------------------------
@@ -291,6 +320,7 @@ class TestCredentialRefreshFailure:
         with pytest.raises(OpenAIError, match="Failed to refresh AWS credentials: token expired"):
             client._prepare_request(request)
 
+    @pytest.mark.asyncio
     async def test_async_wraps_provider_error_in_openai_error(self) -> None:
         def bad_provider() -> None:
             raise RuntimeError("token expired")
@@ -302,6 +332,7 @@ class TestCredentialRefreshFailure:
         with pytest.raises(OpenAIError, match="Failed to refresh AWS credentials: token expired"):
             await client._prepare_request(request)
 
+    @pytest.mark.asyncio
     async def test_async_wraps_async_provider_error(self) -> None:
         async def bad_async_provider() -> None:
             raise ValueError("async refresh failed")
@@ -353,12 +384,12 @@ class TestMutualExclusivity:
 
     def test_sync_no_base_url_no_region_raises(self) -> None:
         with patch.dict("os.environ", {"AWS_REGION": "", "AWS_DEFAULT_REGION": ""}):
-            with pytest.raises(ValueError, match="Must provide region"):
+            with pytest.raises(OpenAIError, match="Must provide region"):
                 AwsOpenAI()
 
     def test_async_no_base_url_no_region_raises(self) -> None:
         with patch.dict("os.environ", {"AWS_REGION": "", "AWS_DEFAULT_REGION": ""}):
-            with pytest.raises(ValueError, match="Must provide region"):
+            with pytest.raises(OpenAIError, match="Must provide region"):
                 AsyncAwsOpenAI()
 
 
@@ -370,7 +401,7 @@ class TestMutualExclusivity:
 class TestRegionFromEnv:
     def test_sync_aws_region_env(self) -> None:
         with patch.dict("os.environ", {"AWS_REGION": "ap-southeast-1", "AWS_DEFAULT_REGION": ""}):
-            with _patch_default_creds():
+            with _patch_ensure_botocore():
                 client = AwsOpenAI()
         assert client._region == "ap-southeast-1"
 
@@ -380,7 +411,7 @@ class TestRegionFromEnv:
 
             orig = os.environ.pop("AWS_REGION", None)
             try:
-                with _patch_default_creds():
+                with _patch_ensure_botocore():
                     client = AwsOpenAI()
                 assert client._region == "eu-central-1"
             finally:
@@ -389,13 +420,13 @@ class TestRegionFromEnv:
 
     def test_sync_aws_region_takes_precedence(self) -> None:
         with patch.dict("os.environ", {"AWS_REGION": "us-west-2", "AWS_DEFAULT_REGION": "eu-west-1"}):
-            with _patch_default_creds():
+            with _patch_ensure_botocore():
                 client = AwsOpenAI()
         assert client._region == "us-west-2"
 
     def test_async_aws_region_env(self) -> None:
         with patch.dict("os.environ", {"AWS_REGION": "ap-southeast-1", "AWS_DEFAULT_REGION": ""}):
-            with _patch_default_creds():
+            with _patch_ensure_botocore():
                 client = AsyncAwsOpenAI()
         assert client._region == "ap-southeast-1"
 
@@ -460,6 +491,7 @@ class TestResponsesApiSigV4:
         assert captured.get("x-amz-date") == "20240101T000000Z"
         assert captured.get("x-amz-security-token") == "session_tok"
 
+    @pytest.mark.asyncio
     async def test_async_responses_create_has_sigv4_headers(self) -> None:
         captured: dict[str, str] = {}
 

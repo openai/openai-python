@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import os
+import asyncio
 import inspect
-from typing import Any, Union, Mapping, Callable, Awaitable
+from typing import Any, Union, Mapping, Callable, Awaitable, NamedTuple
 from typing_extensions import Self, override
 
 import httpx
@@ -14,7 +15,10 @@ from .._base_client import DEFAULT_MAX_RETRIES
 
 # Sentinel API key used when SigV4 mode is active, so the base OpenAI
 # constructor (which requires a non-None api_key) is satisfied.
-API_KEY_SENTINEL = "<bedrock-mantle-sigv4>"
+_API_KEY_SENTINEL = "<aws-sigv4-a]3c7f2b-9d1e-4b8a-af6c-5e0d7g9h2i4k>"
+
+# Exclude httpx transport-level headers that cause SigV4 signature mismatch
+_HEADERS_TO_EXCLUDE = frozenset({"connection", "accept-encoding"})
 
 # A credential provider is a callable that returns a botocore-compatible
 # credentials object (with access_key, secret_key, token attributes).
@@ -65,8 +69,6 @@ def _sign_httpx_request(
     import botocore.auth  # type: ignore[import-untyped]  # pyright: ignore[reportMissingTypeStubs]
     import botocore.awsrequest  # type: ignore[import-untyped]  # pyright: ignore[reportMissingTypeStubs]
 
-    # Exclude httpx transport-level headers that cause SigV4 signature mismatch
-    _HEADERS_TO_EXCLUDE = {"connection", "accept-encoding"}
     clean_headers = {k: v for k, v in request.headers.items() if k.lower() not in _HEADERS_TO_EXCLUDE}
 
     # Convert httpx.Request → botocore.awsrequest.AWSRequest
@@ -90,19 +92,30 @@ def _sign_httpx_request(
 # ---------------------------------------------------------------------------
 
 
+class _BedrockMantleConfig(NamedTuple):
+    use_sigv4: bool
+    credential_provider: Any | None
+    region: str
+    base_url: str
+
+
 def _resolve_bedrock_mantle_config(
     *,
     api_key: str | None,
     credential_provider: Any | None,
     region: str | None,
     base_url: str | None,
-) -> tuple[bool, Any | None, str, str, Any | None]:
+) -> _BedrockMantleConfig:
     """Shared constructor logic for both sync and async clients.
 
-    Returns (use_sigv4, credential_provider, region, base_url, botocore_credentials).
+    Validates configuration and resolves region/base_url, but does NOT resolve
+    credentials — that is deferred to _prepare_request() so that construction
+    never performs blocking I/O.
+
+    Returns (use_sigv4, credential_provider, region, base_url).
     """
     # Normalize: treat the sentinel as "no api_key provided"
-    if api_key == API_KEY_SENTINEL:
+    if api_key is _API_KEY_SENTINEL:
         api_key = None
 
     if api_key is not None and credential_provider is not None:
@@ -118,24 +131,20 @@ def _resolve_bedrock_mantle_config(
     # Resolve region (needed for SigV4 and base_url fallback)
     resolved_region = region or os.environ.get("AWS_REGION") or os.environ.get("AWS_DEFAULT_REGION")
     if use_sigv4 and not resolved_region:
-        raise ValueError("Must provide region or set AWS_REGION / AWS_DEFAULT_REGION environment variable")
+        raise OpenAIError("Must provide region or set AWS_REGION / AWS_DEFAULT_REGION environment variable")
     resolved_region = resolved_region or ""
 
     # Resolve base_url — fall back to region-derived endpoint
     if base_url is None:
         if not resolved_region:
-            raise ValueError("Must provide base_url, or set region / AWS_REGION / AWS_DEFAULT_REGION")
+            raise OpenAIError("Must provide base_url, or set region / AWS_REGION / AWS_DEFAULT_REGION")
         base_url = f"https://bedrock-mantle.{resolved_region}.api.aws/v1"
 
-    # Resolve botocore credentials if needed
-    botocore_credentials: Any = None
-    if use_sigv4 and credential_provider is None:
-        botocore_credentials = _get_default_credentials()
-    elif use_sigv4:
-        # SigV4 signing always requires botocore (for botocore.auth.SigV4Auth)
+    # Verify botocore is available when SigV4 is needed
+    if use_sigv4:
         _ensure_botocore()
 
-    return use_sigv4, credential_provider, resolved_region, base_url, botocore_credentials
+    return _BedrockMantleConfig(use_sigv4, credential_provider, resolved_region, base_url)
 
 
 def _resolve_credentials_sync(
@@ -188,6 +197,7 @@ class AwsOpenAI(OpenAI):
     """OpenAI-compatible client for AWS Bedrock Mantle APIs.
 
     Supports SigV4 request signing and API key authentication.
+    Credentials are resolved lazily on the first request, not at construction time.
     """
 
     _region: str
@@ -215,16 +225,16 @@ class AwsOpenAI(OpenAI):
             self._credential_provider,
             self._region,
             base_url,
-            self._botocore_credentials,
         ) = _resolve_bedrock_mantle_config(
             api_key=api_key,
             credential_provider=credential_provider,
             region=region,
             base_url=base_url,
         )
+        self._botocore_credentials: Any = None
 
         super().__init__(
-            api_key=api_key or API_KEY_SENTINEL,
+            api_key=api_key or _API_KEY_SENTINEL,
             base_url=base_url,
             timeout=timeout,
             max_retries=max_retries,
@@ -239,6 +249,9 @@ class AwsOpenAI(OpenAI):
     def _prepare_request(self, request: httpx.Request) -> None:
         if not self._use_sigv4:
             return
+        # Lazily resolve default credentials on first request
+        if self._credential_provider is None and self._botocore_credentials is None:
+            self._botocore_credentials = _get_default_credentials()
         credentials = _resolve_credentials_sync(self._credential_provider, self._botocore_credentials)
         _sign_httpx_request(request, credentials, self._region)
 
@@ -268,6 +281,8 @@ class AsyncAwsOpenAI(AsyncOpenAI):
     """Async OpenAI-compatible client for AWS Bedrock Mantle APIs.
 
     Supports SigV4 request signing and API key authentication.
+    Credentials are resolved lazily on the first request using asyncio.to_thread
+    to avoid blocking the event loop.
     """
 
     _region: str
@@ -295,16 +310,17 @@ class AsyncAwsOpenAI(AsyncOpenAI):
             self._credential_provider,
             self._region,
             base_url,
-            self._botocore_credentials,
         ) = _resolve_bedrock_mantle_config(
             api_key=api_key,
             credential_provider=credential_provider,
             region=region,
             base_url=base_url,
         )
+        self._botocore_credentials: Any = None
+        self._creds_lock = asyncio.Lock()
 
         super().__init__(
-            api_key=api_key or API_KEY_SENTINEL,
+            api_key=api_key or _API_KEY_SENTINEL,
             base_url=base_url,
             timeout=timeout,
             max_retries=max_retries,
@@ -319,6 +335,11 @@ class AsyncAwsOpenAI(AsyncOpenAI):
     async def _prepare_request(self, request: httpx.Request) -> None:
         if not self._use_sigv4:
             return
+        # Lazily resolve default credentials on first request, off the event loop
+        if self._credential_provider is None and self._botocore_credentials is None:
+            async with self._creds_lock:
+                if self._botocore_credentials is None:
+                    self._botocore_credentials = await asyncio.to_thread(_get_default_credentials)
         credentials = await _resolve_credentials_async(self._credential_provider, self._botocore_credentials)
         _sign_httpx_request(request, credentials, self._region)
 

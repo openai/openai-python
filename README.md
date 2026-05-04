@@ -935,7 +935,7 @@ An example of using the client with Microsoft Entra ID (formerly known as Azure 
 
 ## AWS Bedrock Mantle
 
-To use this library with [AWS Bedrock Mantle](https://docs.aws.amazon.com/bedrock/), use the `AwsOpenAI`
+To use this library with [AWS Bedrock Mantle](https://docs.aws.amazon.com/bedrock/latest/userguide/bedrock-mantle.html), use the `AwsOpenAI`
 class instead of the `OpenAI` class.
 
 > [!IMPORTANT]
@@ -949,16 +949,16 @@ client = AwsOpenAI(
     region="us-west-2",
 )
 
-completion = client.chat.completions.create(
+response = client.responses.create(
     model="openai.gpt-oss-120b",
-    messages=[
+    input=[
         {
             "role": "user",
             "content": "How do I output all files in a directory using Python?",
         },
     ],
 )
-print(completion.choices[0].message.content)
+print(response.output_text)
 ```
 
 In addition to the options provided in the base `OpenAI` client, the following options are provided:
