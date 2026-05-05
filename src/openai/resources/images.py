@@ -160,10 +160,10 @@ class Images(SyncAPIResource):
         Args:
           image: The image(s) to edit. Must be a supported image file or an array of images.
 
-              For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`, and
-              `gpt-image-1.5`), each image should be a `png`, `webp`, or `jpg` file less than
-              50MB. You can provide up to 16 images. `chatgpt-image-latest` follows the same
-              input constraints as GPT image models.
+              For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`,
+              `gpt-image-2`, `gpt-image-2-2026-04-21`, and `chatgpt-image-latest`), each image
+              should be a `png`, `webp`, or `jpg` file less than 50MB. You can provide up to
+              16 images.
 
               For `dall-e-2`, you can only provide one image, and it should be a square `png`
               file less than 4MB.
@@ -189,7 +189,10 @@ class Images(SyncAPIResource):
               the mask will be applied on the first image. Must be a valid PNG file, less than
               4MB, and have the same dimensions as `image`.
 
-          model: The model to use for image generation. Defaults to `gpt-image-1.5`.
+          model: The model to use for image generation. One of `dall-e-2` or a GPT image model
+              (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+              `gpt-image-2-2026-04-21`, or `chatgpt-image-latest`). Defaults to
+              `gpt-image-1.5`.
 
           n: The number of images to generate. Must be between 1 and 10.
 
@@ -273,10 +276,10 @@ class Images(SyncAPIResource):
         Args:
           image: The image(s) to edit. Must be a supported image file or an array of images.
 
-              For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`, and
-              `gpt-image-1.5`), each image should be a `png`, `webp`, or `jpg` file less than
-              50MB. You can provide up to 16 images. `chatgpt-image-latest` follows the same
-              input constraints as GPT image models.
+              For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`,
+              `gpt-image-2`, `gpt-image-2-2026-04-21`, and `chatgpt-image-latest`), each image
+              should be a `png`, `webp`, or `jpg` file less than 50MB. You can provide up to
+              16 images.
 
               For `dall-e-2`, you can only provide one image, and it should be a square `png`
               file less than 4MB.
@@ -306,7 +309,10 @@ class Images(SyncAPIResource):
               the mask will be applied on the first image. Must be a valid PNG file, less than
               4MB, and have the same dimensions as `image`.
 
-          model: The model to use for image generation. Defaults to `gpt-image-1.5`.
+          model: The model to use for image generation. One of `dall-e-2` or a GPT image model
+              (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+              `gpt-image-2-2026-04-21`, or `chatgpt-image-latest`). Defaults to
+              `gpt-image-1.5`.
 
           n: The number of images to generate. Must be between 1 and 10.
 
@@ -386,10 +392,10 @@ class Images(SyncAPIResource):
         Args:
           image: The image(s) to edit. Must be a supported image file or an array of images.
 
-              For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`, and
-              `gpt-image-1.5`), each image should be a `png`, `webp`, or `jpg` file less than
-              50MB. You can provide up to 16 images. `chatgpt-image-latest` follows the same
-              input constraints as GPT image models.
+              For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`,
+              `gpt-image-2`, `gpt-image-2-2026-04-21`, and `chatgpt-image-latest`), each image
+              should be a `png`, `webp`, or `jpg` file less than 50MB. You can provide up to
+              16 images.
 
               For `dall-e-2`, you can only provide one image, and it should be a square `png`
               file less than 4MB.
@@ -419,7 +425,10 @@ class Images(SyncAPIResource):
               the mask will be applied on the first image. Must be a valid PNG file, less than
               4MB, and have the same dimensions as `image`.
 
-          model: The model to use for image generation. Defaults to `gpt-image-1.5`.
+          model: The model to use for image generation. One of `dall-e-2` or a GPT image model
+              (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+              `gpt-image-2-2026-04-21`, or `chatgpt-image-latest`). Defaults to
+              `gpt-image-1.5`.
 
           n: The number of images to generate. Must be between 1 and 10.
 
@@ -580,8 +589,9 @@ class Images(SyncAPIResource):
               be set to either `png` (default value) or `webp`.
 
           model: The model to use for image generation. One of `dall-e-2`, `dall-e-3`, or a GPT
-              image model (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`). Defaults to
-              `dall-e-2` unless a parameter specific to the GPT image models is used.
+              image model (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+              or `gpt-image-2-2026-04-21`). Defaults to `dall-e-2` unless a parameter specific
+              to the GPT image models is used.
 
           moderation: Control the content-moderation level for images generated by the GPT image
               models. Must be either `low` for less restrictive filtering or `auto` (default
@@ -695,8 +705,9 @@ class Images(SyncAPIResource):
               be set to either `png` (default value) or `webp`.
 
           model: The model to use for image generation. One of `dall-e-2`, `dall-e-3`, or a GPT
-              image model (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`). Defaults to
-              `dall-e-2` unless a parameter specific to the GPT image models is used.
+              image model (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+              or `gpt-image-2-2026-04-21`). Defaults to `dall-e-2` unless a parameter specific
+              to the GPT image models is used.
 
           moderation: Control the content-moderation level for images generated by the GPT image
               models. Must be either `low` for less restrictive filtering or `auto` (default
@@ -806,8 +817,9 @@ class Images(SyncAPIResource):
               be set to either `png` (default value) or `webp`.
 
           model: The model to use for image generation. One of `dall-e-2`, `dall-e-3`, or a GPT
-              image model (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`). Defaults to
-              `dall-e-2` unless a parameter specific to the GPT image models is used.
+              image model (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+              or `gpt-image-2-2026-04-21`). Defaults to `dall-e-2` unless a parameter specific
+              to the GPT image models is used.
 
           moderation: Control the content-moderation level for images generated by the GPT image
               models. Must be either `low` for less restrictive filtering or `auto` (default
@@ -1066,10 +1078,10 @@ class AsyncImages(AsyncAPIResource):
         Args:
           image: The image(s) to edit. Must be a supported image file or an array of images.
 
-              For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`, and
-              `gpt-image-1.5`), each image should be a `png`, `webp`, or `jpg` file less than
-              50MB. You can provide up to 16 images. `chatgpt-image-latest` follows the same
-              input constraints as GPT image models.
+              For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`,
+              `gpt-image-2`, `gpt-image-2-2026-04-21`, and `chatgpt-image-latest`), each image
+              should be a `png`, `webp`, or `jpg` file less than 50MB. You can provide up to
+              16 images.
 
               For `dall-e-2`, you can only provide one image, and it should be a square `png`
               file less than 4MB.
@@ -1095,7 +1107,10 @@ class AsyncImages(AsyncAPIResource):
               the mask will be applied on the first image. Must be a valid PNG file, less than
               4MB, and have the same dimensions as `image`.
 
-          model: The model to use for image generation. Defaults to `gpt-image-1.5`.
+          model: The model to use for image generation. One of `dall-e-2` or a GPT image model
+              (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+              `gpt-image-2-2026-04-21`, or `chatgpt-image-latest`). Defaults to
+              `gpt-image-1.5`.
 
           n: The number of images to generate. Must be between 1 and 10.
 
@@ -1179,10 +1194,10 @@ class AsyncImages(AsyncAPIResource):
         Args:
           image: The image(s) to edit. Must be a supported image file or an array of images.
 
-              For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`, and
-              `gpt-image-1.5`), each image should be a `png`, `webp`, or `jpg` file less than
-              50MB. You can provide up to 16 images. `chatgpt-image-latest` follows the same
-              input constraints as GPT image models.
+              For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`,
+              `gpt-image-2`, `gpt-image-2-2026-04-21`, and `chatgpt-image-latest`), each image
+              should be a `png`, `webp`, or `jpg` file less than 50MB. You can provide up to
+              16 images.
 
               For `dall-e-2`, you can only provide one image, and it should be a square `png`
               file less than 4MB.
@@ -1212,7 +1227,10 @@ class AsyncImages(AsyncAPIResource):
               the mask will be applied on the first image. Must be a valid PNG file, less than
               4MB, and have the same dimensions as `image`.
 
-          model: The model to use for image generation. Defaults to `gpt-image-1.5`.
+          model: The model to use for image generation. One of `dall-e-2` or a GPT image model
+              (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+              `gpt-image-2-2026-04-21`, or `chatgpt-image-latest`). Defaults to
+              `gpt-image-1.5`.
 
           n: The number of images to generate. Must be between 1 and 10.
 
@@ -1292,10 +1310,10 @@ class AsyncImages(AsyncAPIResource):
         Args:
           image: The image(s) to edit. Must be a supported image file or an array of images.
 
-              For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`, and
-              `gpt-image-1.5`), each image should be a `png`, `webp`, or `jpg` file less than
-              50MB. You can provide up to 16 images. `chatgpt-image-latest` follows the same
-              input constraints as GPT image models.
+              For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`,
+              `gpt-image-2`, `gpt-image-2-2026-04-21`, and `chatgpt-image-latest`), each image
+              should be a `png`, `webp`, or `jpg` file less than 50MB. You can provide up to
+              16 images.
 
               For `dall-e-2`, you can only provide one image, and it should be a square `png`
               file less than 4MB.
@@ -1325,7 +1343,10 @@ class AsyncImages(AsyncAPIResource):
               the mask will be applied on the first image. Must be a valid PNG file, less than
               4MB, and have the same dimensions as `image`.
 
-          model: The model to use for image generation. Defaults to `gpt-image-1.5`.
+          model: The model to use for image generation. One of `dall-e-2` or a GPT image model
+              (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+              `gpt-image-2-2026-04-21`, or `chatgpt-image-latest`). Defaults to
+              `gpt-image-1.5`.
 
           n: The number of images to generate. Must be between 1 and 10.
 
@@ -1486,8 +1507,9 @@ class AsyncImages(AsyncAPIResource):
               be set to either `png` (default value) or `webp`.
 
           model: The model to use for image generation. One of `dall-e-2`, `dall-e-3`, or a GPT
-              image model (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`). Defaults to
-              `dall-e-2` unless a parameter specific to the GPT image models is used.
+              image model (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+              or `gpt-image-2-2026-04-21`). Defaults to `dall-e-2` unless a parameter specific
+              to the GPT image models is used.
 
           moderation: Control the content-moderation level for images generated by the GPT image
               models. Must be either `low` for less restrictive filtering or `auto` (default
@@ -1601,8 +1623,9 @@ class AsyncImages(AsyncAPIResource):
               be set to either `png` (default value) or `webp`.
 
           model: The model to use for image generation. One of `dall-e-2`, `dall-e-3`, or a GPT
-              image model (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`). Defaults to
-              `dall-e-2` unless a parameter specific to the GPT image models is used.
+              image model (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+              or `gpt-image-2-2026-04-21`). Defaults to `dall-e-2` unless a parameter specific
+              to the GPT image models is used.
 
           moderation: Control the content-moderation level for images generated by the GPT image
               models. Must be either `low` for less restrictive filtering or `auto` (default
@@ -1712,8 +1735,9 @@ class AsyncImages(AsyncAPIResource):
               be set to either `png` (default value) or `webp`.
 
           model: The model to use for image generation. One of `dall-e-2`, `dall-e-3`, or a GPT
-              image model (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`). Defaults to
-              `dall-e-2` unless a parameter specific to the GPT image models is used.
+              image model (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+              or `gpt-image-2-2026-04-21`). Defaults to `dall-e-2` unless a parameter specific
+              to the GPT image models is used.
 
           moderation: Control the content-moderation level for images generated by the GPT image
               models. Must be either `low` for less restrictive filtering or `auto` (default

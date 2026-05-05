@@ -262,7 +262,18 @@ class ImageGeneration(BaseModel):
     Contains `image_url` (string, optional) and `file_id` (string, optional).
     """
 
-    model: Union[str, Literal["gpt-image-1", "gpt-image-1-mini", "gpt-image-1.5"], None] = None
+    model: Union[
+        str,
+        Literal[
+            "gpt-image-1",
+            "gpt-image-1-mini",
+            "gpt-image-2",
+            "gpt-image-2-2026-04-21",
+            "gpt-image-1.5",
+            "chatgpt-image-latest",
+        ],
+        None,
+    ] = None
     """The image generation model to use. Default: `gpt-image-1`."""
 
     moderation: Optional[Literal["auto", "low"]] = None
