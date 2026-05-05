@@ -21,9 +21,14 @@ class ImageGenerateParamsBase(TypedDict, total=False):
     background: Optional[Literal["transparent", "opaque", "auto"]]
     """
     Allows to set transparency for the background of the generated image(s). This
-    parameter is only supported for the GPT image models. Must be one of
-    `transparent`, `opaque` or `auto` (default value). When `auto` is used, the
-    model will automatically determine the best background for the image.
+    parameter is only supported for GPT image models that support transparent
+    backgrounds. Must be one of `transparent`, `opaque`, or `auto` (default value).
+    When `auto` is used, the model will automatically determine the best background
+    for the image.
+
+    `gpt-image-2` and `gpt-image-2-2026-04-21` do not support transparent
+    backgrounds. Requests with `background` set to `transparent` will return an
+    error for these models; use `opaque` or `auto` instead.
 
     If `transparent`, the output format needs to support transparency, so it should
     be set to either `png` (default value) or `webp`.
@@ -95,15 +100,19 @@ class ImageGenerateParamsBase(TypedDict, total=False):
     models, which always return base64-encoded images.
     """
 
-    size: Optional[
-        Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"]
-    ]
+    size: Optional[str]
     """The size of the generated images.
 
-    Must be one of `1024x1024`, `1536x1024` (landscape), `1024x1536` (portrait), or
-    `auto` (default value) for the GPT image models, one of `256x256`, `512x512`, or
-    `1024x1024` for `dall-e-2`, and one of `1024x1024`, `1792x1024`, or `1024x1792`
-    for `dall-e-3`.
+    For `gpt-image-2` and `gpt-image-2-2026-04-21`, arbitrary resolutions are
+    supported as `WIDTHxHEIGHT` strings, for example `1536x864`. Width and height
+    must both be divisible by 16 and the requested aspect ratio must be between 1:3
+    and 3:1. Resolutions above `2560x1440` are experimental, and the maximum
+    supported resolution is `3840x2160`. The requested size must also satisfy the
+    model's current pixel and edge limits. The standard sizes `1024x1024`,
+    `1536x1024`, and `1024x1536` are supported by the GPT image models; `auto` is
+    supported for models that allow automatic sizing. For `dall-e-2`, use one of
+    `256x256`, `512x512`, or `1024x1024`. For `dall-e-3`, use one of `1024x1024`,
+    `1792x1024`, or `1024x1792`.
     """
 
     style: Optional[Literal["vivid", "natural"]]
