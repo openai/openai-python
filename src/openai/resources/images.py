@@ -141,7 +141,8 @@ class Images(SyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
-        size: Optional[str] | Omit = omit,
+        size: Union[str, Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"], None]
+        | Omit = omit,
         stream: Optional[Literal[False]] | Omit = omit,
         user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -271,7 +272,8 @@ class Images(SyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
-        size: Optional[str] | Omit = omit,
+        size: Union[str, Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"], None]
+        | Omit = omit,
         user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -400,7 +402,8 @@ class Images(SyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
-        size: Optional[str] | Omit = omit,
+        size: Union[str, Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"], None]
+        | Omit = omit,
         user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -528,7 +531,8 @@ class Images(SyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
-        size: Optional[str] | Omit = omit,
+        size: Union[str, Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"], None]
+        | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
         user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -596,7 +600,12 @@ class Images(SyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
-        size: Optional[str] | Omit = omit,
+        size: Union[
+            str,
+            Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"],
+            None,
+        ]
+        | Omit = omit,
         stream: Optional[Literal[False]] | Omit = omit,
         style: Optional[Literal["vivid", "natural"]] | Omit = omit,
         user: str | Omit = omit,
@@ -718,7 +727,12 @@ class Images(SyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
-        size: Optional[str] | Omit = omit,
+        size: Union[
+            str,
+            Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"],
+            None,
+        ]
+        | Omit = omit,
         style: Optional[Literal["vivid", "natural"]] | Omit = omit,
         user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -839,7 +853,12 @@ class Images(SyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
-        size: Optional[str] | Omit = omit,
+        size: Union[
+            str,
+            Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"],
+            None,
+        ]
+        | Omit = omit,
         style: Optional[Literal["vivid", "natural"]] | Omit = omit,
         user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -959,7 +978,12 @@ class Images(SyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
-        size: Optional[str] | Omit = omit,
+        size: Union[
+            str,
+            Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"],
+            None,
+        ]
+        | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
         style: Optional[Literal["vivid", "natural"]] | Omit = omit,
         user: str | Omit = omit,
@@ -1122,7 +1146,8 @@ class AsyncImages(AsyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
-        size: Optional[str] | Omit = omit,
+        size: Union[str, Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"], None]
+        | Omit = omit,
         stream: Optional[Literal[False]] | Omit = omit,
         user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -1252,7 +1277,8 @@ class AsyncImages(AsyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
-        size: Optional[str] | Omit = omit,
+        size: Union[str, Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"], None]
+        | Omit = omit,
         user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1381,7 +1407,8 @@ class AsyncImages(AsyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
-        size: Optional[str] | Omit = omit,
+        size: Union[str, Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"], None]
+        | Omit = omit,
         user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1509,7 +1536,8 @@ class AsyncImages(AsyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
-        size: Optional[str] | Omit = omit,
+        size: Union[str, Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"], None]
+        | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
         user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -1577,7 +1605,12 @@ class AsyncImages(AsyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
-        size: Optional[str] | Omit = omit,
+        size: Union[
+            str,
+            Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"],
+            None,
+        ]
+        | Omit = omit,
         stream: Optional[Literal[False]] | Omit = omit,
         style: Optional[Literal["vivid", "natural"]] | Omit = omit,
         user: str | Omit = omit,
@@ -1699,7 +1732,12 @@ class AsyncImages(AsyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
-        size: Optional[str] | Omit = omit,
+        size: Union[
+            str,
+            Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"],
+            None,
+        ]
+        | Omit = omit,
         style: Optional[Literal["vivid", "natural"]] | Omit = omit,
         user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -1820,7 +1858,12 @@ class AsyncImages(AsyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
-        size: Optional[str] | Omit = omit,
+        size: Union[
+            str,
+            Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"],
+            None,
+        ]
+        | Omit = omit,
         style: Optional[Literal["vivid", "natural"]] | Omit = omit,
         user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -1940,7 +1983,12 @@ class AsyncImages(AsyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
-        size: Optional[str] | Omit = omit,
+        size: Union[
+            str,
+            Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"],
+            None,
+        ]
+        | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
         style: Optional[Literal["vivid", "natural"]] | Omit = omit,
         user: str | Omit = omit,

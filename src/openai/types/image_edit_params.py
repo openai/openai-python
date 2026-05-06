@@ -114,7 +114,7 @@ class ImageEditParamsBase(TypedDict, total=False):
     base64-encoded images.
     """
 
-    size: Optional[str]
+    size: Union[str, Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"], None]
     """The size of the generated images.
 
     For `gpt-image-2` and `gpt-image-2-2026-04-21`, arbitrary resolutions are

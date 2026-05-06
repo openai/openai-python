@@ -100,7 +100,11 @@ class ImageGenerateParamsBase(TypedDict, total=False):
     models, which always return base64-encoded images.
     """
 
-    size: Optional[str]
+    size: Union[
+        str,
+        Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"],
+        None,
+    ]
     """The size of the generated images.
 
     For `gpt-image-2` and `gpt-image-2-2026-04-21`, arbitrary resolutions are

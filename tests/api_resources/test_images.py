@@ -83,7 +83,7 @@ class TestImages:
             partial_images=1,
             quality="high",
             response_format="url",
-            size="1024x1024",
+            size="256x256",
             stream=False,
             user="user-1234",
         )
@@ -140,7 +140,7 @@ class TestImages:
             partial_images=1,
             quality="high",
             response_format="url",
-            size="1024x1024",
+            size="256x256",
             user="user-1234",
         )
         image_stream.response.close()
@@ -192,7 +192,7 @@ class TestImages:
             partial_images=1,
             quality="medium",
             response_format="url",
-            size="1024x1024",
+            size="auto",
             stream=False,
             style="vivid",
             user="user-1234",
@@ -245,7 +245,7 @@ class TestImages:
             partial_images=1,
             quality="medium",
             response_format="url",
-            size="1024x1024",
+            size="auto",
             style="vivid",
             user="user-1234",
         )
@@ -348,7 +348,7 @@ class TestAsyncImages:
             partial_images=1,
             quality="high",
             response_format="url",
-            size="1024x1024",
+            size="256x256",
             stream=False,
             user="user-1234",
         )
@@ -405,7 +405,7 @@ class TestAsyncImages:
             partial_images=1,
             quality="high",
             response_format="url",
-            size="1024x1024",
+            size="256x256",
             user="user-1234",
         )
         await image_stream.response.aclose()
@@ -457,7 +457,7 @@ class TestAsyncImages:
             partial_images=1,
             quality="medium",
             response_format="url",
-            size="1024x1024",
+            size="auto",
             stream=False,
             style="vivid",
             user="user-1234",
@@ -510,7 +510,7 @@ class TestAsyncImages:
             partial_images=1,
             quality="medium",
             response_format="url",
-            size="1024x1024",
+            size="auto",
             style="vivid",
             user="user-1234",
         )
