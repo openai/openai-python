@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.35.1 (2026-05-06)
+
+Full Changelog: [v2.35.0...v2.35.1](https://github.com/openai/openai-python/compare/v2.35.0...v2.35.1)
+
+### Bug Fixes
+
+* **api:** fix imagegen `size` enum regression ([4484653](https://github.com/openai/openai-python/commit/44846536bc3b02c393daa5bae70a85de04c7f621))
+
 ## 2.35.0 (2026-05-06)
 
 Full Changelog: [v2.34.0...v2.35.0](https://github.com/openai/openai-python/compare/v2.34.0...v2.35.0)
