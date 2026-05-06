@@ -294,8 +294,9 @@ class ResponsesClientEventParam(TypedDict, total=False):
 
     top_logprobs: Optional[int]
     """
-    An integer between 0 and 20 specifying the number of most likely tokens to
-    return at each token position, each with an associated log probability.
+    An integer between 0 and 20 specifying the maximum number of most likely tokens
+    to return at each token position, each with an associated log probability. In
+    some cases, the number of returned tokens may be fewer than requested.
     """
 
     top_p: Optional[float]

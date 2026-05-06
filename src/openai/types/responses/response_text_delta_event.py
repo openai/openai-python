@@ -30,7 +30,7 @@ class Logprob(BaseModel):
     """The log probability of this token."""
 
     top_logprobs: Optional[List[LogprobTopLogprob]] = None
-    """The log probability of the top 20 most likely tokens."""
+    """The log probabilities of up to 20 of the most likely tokens."""
 
 
 class ResponseTextDeltaEvent(BaseModel):

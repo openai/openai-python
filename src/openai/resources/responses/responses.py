@@ -321,8 +321,9 @@ class Responses(SyncAPIResource):
                 [function calling](https://platform.openai.com/docs/guides/function-calling).
                 You can also use custom tools to call your own code.
 
-          top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
-              return at each token position, each with an associated log probability.
+          top_logprobs: An integer between 0 and 20 specifying the maximum number of most likely tokens
+              to return at each token position, each with an associated log probability. In
+              some cases, the number of returned tokens may be fewer than requested.
 
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
               model considers the results of the tokens with top_p probability mass. So 0.1
@@ -570,8 +571,9 @@ class Responses(SyncAPIResource):
                 [function calling](https://platform.openai.com/docs/guides/function-calling).
                 You can also use custom tools to call your own code.
 
-          top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
-              return at each token position, each with an associated log probability.
+          top_logprobs: An integer between 0 and 20 specifying the maximum number of most likely tokens
+              to return at each token position, each with an associated log probability. In
+              some cases, the number of returned tokens may be fewer than requested.
 
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
               model considers the results of the tokens with top_p probability mass. So 0.1
@@ -819,8 +821,9 @@ class Responses(SyncAPIResource):
                 [function calling](https://platform.openai.com/docs/guides/function-calling).
                 You can also use custom tools to call your own code.
 
-          top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
-              return at each token position, each with an associated log probability.
+          top_logprobs: An integer between 0 and 20 specifying the maximum number of most likely tokens
+              to return at each token position, each with an associated log probability. In
+              some cases, the number of returned tokens may be fewer than requested.
 
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
               model considers the results of the tokens with top_p probability mass. So 0.1
@@ -1654,8 +1657,9 @@ class AsyncResponses(AsyncAPIResource):
                 [function calling](https://platform.openai.com/docs/guides/function-calling).
                 You can also use custom tools to call your own code.
 
-          top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
-              return at each token position, each with an associated log probability.
+          top_logprobs: An integer between 0 and 20 specifying the maximum number of most likely tokens
+              to return at each token position, each with an associated log probability. In
+              some cases, the number of returned tokens may be fewer than requested.
 
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
               model considers the results of the tokens with top_p probability mass. So 0.1
@@ -1903,8 +1907,9 @@ class AsyncResponses(AsyncAPIResource):
                 [function calling](https://platform.openai.com/docs/guides/function-calling).
                 You can also use custom tools to call your own code.
 
-          top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
-              return at each token position, each with an associated log probability.
+          top_logprobs: An integer between 0 and 20 specifying the maximum number of most likely tokens
+              to return at each token position, each with an associated log probability. In
+              some cases, the number of returned tokens may be fewer than requested.
 
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
               model considers the results of the tokens with top_p probability mass. So 0.1
@@ -2152,8 +2157,9 @@ class AsyncResponses(AsyncAPIResource):
                 [function calling](https://platform.openai.com/docs/guides/function-calling).
                 You can also use custom tools to call your own code.
 
-          top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
-              return at each token position, each with an associated log probability.
+          top_logprobs: An integer between 0 and 20 specifying the maximum number of most likely tokens
+              to return at each token position, each with an associated log probability. In
+              some cases, the number of returned tokens may be fewer than requested.
 
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
               model considers the results of the tokens with top_p probability mass. So 0.1

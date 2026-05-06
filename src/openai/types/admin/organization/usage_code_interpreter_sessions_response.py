@@ -353,6 +353,12 @@ class DataResultOrganizationCostsResult(BaseModel):
     costs result.
     """
 
+    quantity: Optional[float] = None
+    """
+    When `group_by=line_item`, this field provides the quantity of the grouped costs
+    result.
+    """
+
 
 DataResult: TypeAlias = Annotated[
     Union[
