@@ -315,7 +315,7 @@ class ImageGeneration(BaseModel):
     One of `low`, `medium`, `high`, or `auto`. Default: `auto`.
     """
 
-    size: Optional[str] = None
+    size: Union[str, Literal["1024x1024", "1024x1536", "1536x1024", "auto"], None] = None
     """The size of the generated images.
 
     For `gpt-image-2` and `gpt-image-2-2026-04-21`, arbitrary resolutions are
