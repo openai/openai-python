@@ -5,6 +5,7 @@ from typing_extensions import Literal, Annotated, TypeAlias
 
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
+from .realtime_reasoning import RealtimeReasoning
 from .audio_transcription import AudioTranscription
 from .realtime_truncation import RealtimeTruncation
 from .noise_reduction_type import NoiseReductionType
@@ -13,7 +14,6 @@ from .realtime_function_tool import RealtimeFunctionTool
 from ..responses.response_prompt import ResponsePrompt
 from ..responses.tool_choice_mcp import ToolChoiceMcp
 from ..responses.tool_choice_options import ToolChoiceOptions
-from .realtime_session_client_secret import RealtimeSessionClientSecret
 from ..responses.tool_choice_function import ToolChoiceFunction
 
 __all__ = [
@@ -176,16 +176,6 @@ class AudioInput(BaseModel):
     """
 
     transcription: Optional[AudioTranscription] = None
-    """
-    Configuration for input audio transcription, defaults to off and can be set to
-    `null` to turn off once on. Input audio transcription is not native to the
-    model, since the model consumes audio directly. Transcription runs
-    asynchronously through
-    [the /audio/transcriptions endpoint](https://platform.openai.com/docs/api-reference/audio/createTranscription)
-    and should be treated as guidance of input audio content rather than precisely
-    what the model heard. The client can optionally set the language and prompt for
-    transcription, these offer additional guidance to the transcription service.
-    """
 
     turn_detection: Optional[AudioInputTurnDetection] = None
     """Configuration for turn detection, ether Server VAD or Semantic VAD.
@@ -202,6 +192,9 @@ class AudioInput(BaseModel):
     trails off with "uhhm", the model will score a low probability of turn end and
     wait longer for the user to continue speaking. This can be useful for more
     natural conversations, but may have a higher latency.
+
+    For `gpt-realtime-whisper` transcription sessions, turn detection must be set to
+    `null`; VAD is not supported.
     """
 
 
@@ -414,20 +407,22 @@ Tracing: TypeAlias = Union[Literal["auto"], TracingTracingConfiguration, None]
 
 
 class RealtimeSessionCreateResponse(BaseModel):
-    """A new Realtime session configuration, with an ephemeral key.
+    """A Realtime session configuration object."""
 
-    Default TTL
-    for keys is one minute.
-    """
+    id: str
+    """Unique identifier for the session that looks like `sess_1234567890abcdef`."""
 
-    client_secret: RealtimeSessionClientSecret
-    """Ephemeral key returned by the API."""
+    object: Literal["realtime.session"]
+    """The object type. Always `realtime.session`."""
 
     type: Literal["realtime"]
     """The type of session to create. Always `realtime` for the Realtime API."""
 
     audio: Optional[Audio] = None
     """Configuration for input and output audio."""
+
+    expires_at: Optional[int] = None
+    """Expiration timestamp for the session, in seconds since epoch."""
 
     include: Optional[List[Literal["item.input_audio_transcription.logprobs"]]] = None
     """Additional fields to include in server outputs.
@@ -464,6 +459,7 @@ class RealtimeSessionCreateResponse(BaseModel):
         Literal[
             "gpt-realtime",
             "gpt-realtime-1.5",
+            "gpt-realtime-2",
             "gpt-realtime-2025-08-28",
             "gpt-4o-realtime-preview",
             "gpt-4o-realtime-preview-2024-10-01",
@@ -496,6 +492,9 @@ class RealtimeSessionCreateResponse(BaseModel):
     Reference to a prompt template and its variables.
     [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
     """
+
+    reasoning: Optional[RealtimeReasoning] = None
+    """Configuration for reasoning-capable Realtime models such as `gpt-realtime-2`."""
 
     tool_choice: Optional[ToolChoice] = None
     """How the model chooses tools.

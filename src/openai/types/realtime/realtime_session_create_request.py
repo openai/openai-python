@@ -4,6 +4,7 @@ from typing import List, Union, Optional
 from typing_extensions import Literal
 
 from ..._models import BaseModel
+from .realtime_reasoning import RealtimeReasoning
 from .realtime_truncation import RealtimeTruncation
 from .realtime_audio_config import RealtimeAudioConfig
 from .realtime_tools_config import RealtimeToolsConfig
@@ -58,6 +59,7 @@ class RealtimeSessionCreateRequest(BaseModel):
         Literal[
             "gpt-realtime",
             "gpt-realtime-1.5",
+            "gpt-realtime-2",
             "gpt-realtime-2025-08-28",
             "gpt-4o-realtime-preview",
             "gpt-4o-realtime-preview-2024-10-01",
@@ -85,11 +87,20 @@ class RealtimeSessionCreateRequest(BaseModel):
     only. It is not possible to request both `text` and `audio` at the same time.
     """
 
+    parallel_tool_calls: Optional[bool] = None
+    """Whether the model may call multiple tools in parallel.
+
+    Only supported by reasoning Realtime models such as `gpt-realtime-2`.
+    """
+
     prompt: Optional[ResponsePrompt] = None
     """
     Reference to a prompt template and its variables.
     [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
     """
+
+    reasoning: Optional[RealtimeReasoning] = None
+    """Configuration for reasoning-capable Realtime models such as `gpt-realtime-2`."""
 
     tool_choice: Optional[RealtimeToolChoiceConfig] = None
     """How the model chooses tools.

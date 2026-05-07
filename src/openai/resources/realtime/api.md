@@ -58,6 +58,8 @@ from openai.types.realtime import (
     RealtimeMcpToolCall,
     RealtimeMcpToolExecutionError,
     RealtimeMcphttpError,
+    RealtimeReasoning,
+    RealtimeReasoningEffort,
     RealtimeResponse,
     RealtimeResponseCreateAudioOutput,
     RealtimeResponseCreateMcpTool,
@@ -130,7 +132,6 @@ Types:
 
 ```python
 from openai.types.realtime import (
-    RealtimeSessionClientSecret,
     RealtimeSessionCreateResponse,
     RealtimeTranscriptionSessionCreateResponse,
     RealtimeTranscriptionSessionTurnDetection,

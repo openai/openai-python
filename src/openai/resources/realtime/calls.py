@@ -28,6 +28,7 @@ from ...types.realtime import (
     call_reject_params,
 )
 from ...types.responses.response_prompt_param import ResponsePromptParam
+from ...types.realtime.realtime_reasoning_param import RealtimeReasoningParam
 from ...types.realtime.realtime_truncation_param import RealtimeTruncationParam
 from ...types.realtime.realtime_audio_config_param import RealtimeAudioConfigParam
 from ...types.realtime.realtime_tools_config_param import RealtimeToolsConfigParam
@@ -121,6 +122,7 @@ class Calls(SyncAPIResource):
             Literal[
                 "gpt-realtime",
                 "gpt-realtime-1.5",
+                "gpt-realtime-2",
                 "gpt-realtime-2025-08-28",
                 "gpt-4o-realtime-preview",
                 "gpt-4o-realtime-preview-2024-10-01",
@@ -139,7 +141,9 @@ class Calls(SyncAPIResource):
         ]
         | Omit = omit,
         output_modalities: List[Literal["text", "audio"]] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
+        reasoning: RealtimeReasoningParam | Omit = omit,
         tool_choice: RealtimeToolChoiceConfigParam | Omit = omit,
         tools: RealtimeToolsConfigParam | Omit = omit,
         tracing: Optional[RealtimeTracingConfigParam] | Omit = omit,
@@ -188,8 +192,13 @@ class Calls(SyncAPIResource):
               can be used to make the model respond with text only. It is not possible to
               request both `text` and `audio` at the same time.
 
+          parallel_tool_calls: Whether the model may call multiple tools in parallel. Only supported by
+              reasoning Realtime models such as `gpt-realtime-2`.
+
           prompt: Reference to a prompt template and its variables.
               [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
+
+          reasoning: Configuration for reasoning-capable Realtime models such as `gpt-realtime-2`.
 
           tool_choice: How the model chooses tools. Provide one of the string modes or force a specific
               function/MCP tool.
@@ -245,7 +254,9 @@ class Calls(SyncAPIResource):
                     "max_output_tokens": max_output_tokens,
                     "model": model,
                     "output_modalities": output_modalities,
+                    "parallel_tool_calls": parallel_tool_calls,
                     "prompt": prompt,
+                    "reasoning": reasoning,
                     "tool_choice": tool_choice,
                     "tools": tools,
                     "tracing": tracing,
@@ -471,6 +482,7 @@ class AsyncCalls(AsyncAPIResource):
             Literal[
                 "gpt-realtime",
                 "gpt-realtime-1.5",
+                "gpt-realtime-2",
                 "gpt-realtime-2025-08-28",
                 "gpt-4o-realtime-preview",
                 "gpt-4o-realtime-preview-2024-10-01",
@@ -489,7 +501,9 @@ class AsyncCalls(AsyncAPIResource):
         ]
         | Omit = omit,
         output_modalities: List[Literal["text", "audio"]] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
+        reasoning: RealtimeReasoningParam | Omit = omit,
         tool_choice: RealtimeToolChoiceConfigParam | Omit = omit,
         tools: RealtimeToolsConfigParam | Omit = omit,
         tracing: Optional[RealtimeTracingConfigParam] | Omit = omit,
@@ -538,8 +552,13 @@ class AsyncCalls(AsyncAPIResource):
               can be used to make the model respond with text only. It is not possible to
               request both `text` and `audio` at the same time.
 
+          parallel_tool_calls: Whether the model may call multiple tools in parallel. Only supported by
+              reasoning Realtime models such as `gpt-realtime-2`.
+
           prompt: Reference to a prompt template and its variables.
               [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
+
+          reasoning: Configuration for reasoning-capable Realtime models such as `gpt-realtime-2`.
 
           tool_choice: How the model chooses tools. Provide one of the string modes or force a specific
               function/MCP tool.
@@ -595,7 +614,9 @@ class AsyncCalls(AsyncAPIResource):
                     "max_output_tokens": max_output_tokens,
                     "model": model,
                     "output_modalities": output_modalities,
+                    "parallel_tool_calls": parallel_tool_calls,
                     "prompt": prompt,
+                    "reasoning": reasoning,
                     "tool_choice": tool_choice,
                     "tools": tools,
                     "tracing": tracing,
