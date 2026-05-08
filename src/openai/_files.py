@@ -99,7 +99,7 @@ async def async_to_httpx_files(files: RequestFiles | None) -> HttpxRequestFiles 
     elif is_sequence_t(files):
         files = [(key, await _async_transform_file(file)) for key, file in files]
     else:
-        raise TypeError("Unexpected file type input {type(files)}, expected mapping or sequence")
+        raise TypeError(f"Unexpected file type input {type(files)}, expected mapping or sequence")
 
     return files
 
