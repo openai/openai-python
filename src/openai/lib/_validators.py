@@ -637,6 +637,18 @@ def get_classification_hyperparams(df: pd.DataFrame) -> tuple[int, object]:
     return n_classes, pos_class
 
 
+def _fine_tuning_instructions(training_file: str, validation_file: str | None = None) -> str:
+    validation_text = (
+        f' and pass the validation file ID as `validation_file` after uploading "{validation_file}"'
+        if validation_file
+        else ""
+    )
+    return (
+        f'Upload "{training_file}" with `client.files.create(..., purpose="fine-tune")`, '
+        f"then pass the returned file ID as `training_file` to `client.fine_tuning.jobs.create(...)`{validation_text}."
+    )
+
+
 def write_out_file(df: pd.DataFrame, fname: str, any_remediations: bool, auto_accept: bool) -> None:
     """
     This function will write out a dataframe to a file, if the user would like to proceed, and also offer a fine-tuning command with the newly created file.
@@ -652,7 +664,6 @@ def write_out_file(df: pd.DataFrame, fname: str, any_remediations: bool, auto_ac
         if accept_suggestion(input_text, auto_accept):
             split = True
 
-    additional_params = ""
     common_prompt_suffix_new_line_handled = common_prompt_suffix.replace("\n", "\\n")
     common_completion_suffix_new_line_handled = common_completion_suffix.replace("\n", "\\n")
     optional_ending_string = (
@@ -665,7 +676,7 @@ def write_out_file(df: pd.DataFrame, fname: str, any_remediations: bool, auto_ac
 
     if not any_remediations and not split:
         sys.stdout.write(
-            f'\nYou can use your file for fine-tuning:\n> openai api fine_tunes.create -t "{fname}"{additional_params}\n\nAfter you’ve fine-tuned a model, remember that your prompt has to end with the indicator string `{common_prompt_suffix_new_line_handled}` for the model to start generating completions, rather than continuing with the prompt.{optional_ending_string}\n'
+            f"\nYou can use your file for fine-tuning:\n{_fine_tuning_instructions(fname)}\n\nAfter you’ve fine-tuned a model, remember that your prompt has to end with the indicator string `{common_prompt_suffix_new_line_handled}` for the model to start generating completions, rather than continuing with the prompt.{optional_ending_string}\n"
         )
         estimate_fine_tuning_time(df)
 
@@ -683,13 +694,6 @@ def write_out_file(df: pd.DataFrame, fname: str, any_remediations: bool, auto_ac
             df_valid[["prompt", "completion"]].to_json(
                 fnames[1], lines=True, orient="records", force_ascii=False, indent=None
             )
-
-            n_classes, pos_class = get_classification_hyperparams(df)
-            additional_params += " --compute_classification_metrics"
-            if n_classes == 2:
-                additional_params += f' --classification_positive_class "{pos_class}"'
-            else:
-                additional_params += f" --classification_n_classes {n_classes}"
         else:
             assert len(fnames) == 1
             df[["prompt", "completion"]].to_json(
@@ -698,14 +702,14 @@ def write_out_file(df: pd.DataFrame, fname: str, any_remediations: bool, auto_ac
 
         # Add -v VALID_FILE if we split the file into train / valid
         files_string = ("s" if split else "") + " to `" + ("` and `".join(fnames))
-        valid_string = f' -v "{fnames[1]}"' if split else ""
+        valid_file = fnames[1] if split else None
         separator_reminder = (
             ""
             if len(common_prompt_suffix_new_line_handled) == 0
             else f"After you’ve fine-tuned a model, remember that your prompt has to end with the indicator string `{common_prompt_suffix_new_line_handled}` for the model to start generating completions, rather than continuing with the prompt."
         )
         sys.stdout.write(
-            f'\nWrote modified file{files_string}`\nFeel free to take a look!\n\nNow use that file when fine-tuning:\n> openai api fine_tunes.create -t "{fnames[0]}"{valid_string}{additional_params}\n\n{separator_reminder}{optional_ending_string}\n'
+            f"\nWrote modified file{files_string}`\nFeel free to take a look!\n\nNow use that file when fine-tuning:\n{_fine_tuning_instructions(fnames[0], validation_file=valid_file)}\n\n{separator_reminder}{optional_ending_string}\n"
         )
         estimate_fine_tuning_time(df)
     else:
