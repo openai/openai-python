@@ -36,7 +36,7 @@ client = OpenAI(
 )
 
 response = client.responses.create(
-    model="gpt-5.2",
+    model="gpt-5.5",
     instructions="You are a coding assistant that talks like a pirate.",
     input="How do I check if a Python object is an instance of a class?",
 )
@@ -52,7 +52,7 @@ from openai import OpenAI
 client = OpenAI()
 
 completion = client.chat.completions.create(
-    model="gpt-5.2",
+    model="gpt-5.5",
     messages=[
         {"role": "developer", "content": "Talk like a pirate."},
         {
@@ -95,7 +95,7 @@ client = OpenAI(
 )
 
 response = client.chat.completions.create(
-    model="gpt-4",
+    model="gpt-5.5",
     messages=[{"role": "user", "content": "Hello!"}],
 )
 ```
@@ -183,7 +183,7 @@ prompt = "What is in this image?"
 img_url = "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/2023_06_08_Raccoon1.jpg/1599px-2023_06_08_Raccoon1.jpg"
 
 response = client.responses.create(
-    model="gpt-5.2",
+    model="gpt-5.5",
     input=[
         {
             "role": "user",
@@ -209,7 +209,7 @@ with open("path/to/image.png", "rb") as image_file:
     b64_image = base64.b64encode(image_file.read()).decode("utf-8")
 
 response = client.responses.create(
-    model="gpt-5.2",
+    model="gpt-5.5",
     input=[
         {
             "role": "user",
@@ -239,7 +239,7 @@ client = AsyncOpenAI(
 
 async def main() -> None:
     response = await client.responses.create(
-        model="gpt-5.2", input="Explain disestablishmentarianism to a smart five year old."
+        model="gpt-5.5", input="Explain disestablishmentarianism to a smart five year old."
     )
     print(response.output_text)
 
@@ -281,7 +281,7 @@ async def main() -> None:
                     "content": "Say this is a test",
                 }
             ],
-            model="gpt-5.2",
+            model="gpt-5.5",
         )
 
 
@@ -298,7 +298,7 @@ from openai import OpenAI
 client = OpenAI()
 
 stream = client.responses.create(
-    model="gpt-5.2",
+    model="gpt-5.5",
     input="Write a one-sentence bedtime story about a unicorn.",
     stream=True,
 )
@@ -318,7 +318,7 @@ client = AsyncOpenAI()
 
 async def main():
     stream = await client.responses.create(
-        model="gpt-5.2",
+        model="gpt-5.5",
         input="Write a one-sentence bedtime story about a unicorn.",
         stream=True,
     )
@@ -347,7 +347,7 @@ from openai import AsyncOpenAI
 async def main():
     client = AsyncOpenAI()
 
-    async with client.realtime.connect(model="gpt-realtime") as connection:
+    async with client.realtime.connect(model="gpt-realtime-2") as connection:
         await connection.session.update(
             session={"type": "realtime", "output_modalities": ["text"]}
         )
@@ -383,7 +383,7 @@ Whenever an error occurs, the Realtime API will send an [`error` event](https://
 ```py
 client = AsyncOpenAI()
 
-async with client.realtime.connect(model="gpt-realtime") as connection:
+async with client.realtime.connect(model="gpt-realtime-2") as connection:
     ...
     async for event in connection:
         if event.type == 'error':
@@ -482,15 +482,15 @@ from openai import OpenAI
 
 client = OpenAI()
 
-response = client.chat.responses.create(
+response = client.responses.create(
     input=[
         {
             "role": "user",
             "content": "How much ?",
         }
     ],
-    model="gpt-5.2",
-    response_format={"type": "json_object"},
+    model="gpt-5.5",
+    text={"format": {"type": "json_object"}},
 )
 ```
 
@@ -644,7 +644,7 @@ All object responses in the SDK provide a `_request_id` property which is added 
 
 ```python
 response = await client.responses.create(
-    model="gpt-5.2",
+    model="gpt-5.5",
     input="Say 'this is a test'.",
 )
 print(response._request_id)  # req_123
@@ -662,7 +662,7 @@ import openai
 
 try:
     completion = await client.chat.completions.create(
-        messages=[{"role": "user", "content": "Say this is a test"}], model="gpt-5.2"
+        messages=[{"role": "user", "content": "Say this is a test"}], model="gpt-5.5"
     )
 except openai.APIStatusError as exc:
     print(exc.request_id)  # req_123
@@ -694,7 +694,7 @@ client.with_options(max_retries=5).chat.completions.create(
             "content": "How can I get the name of the current day in JavaScript?",
         }
     ],
-    model="gpt-5.2",
+    model="gpt-5.5",
 )
 ```
 
@@ -725,7 +725,7 @@ client.with_options(timeout=5.0).chat.completions.create(
             "content": "How can I list all files in a directory using Python?",
         }
     ],
-    model="gpt-5.2",
+    model="gpt-5.5",
 )
 ```
 
@@ -772,7 +772,7 @@ response = client.chat.completions.with_raw_response.create(
         "role": "user",
         "content": "Say this is a test",
     }],
-    model="gpt-5.2",
+    model="gpt-5.5",
 )
 print(response.headers.get('X-My-Header'))
 
@@ -805,7 +805,7 @@ with client.chat.completions.with_streaming_response.create(
             "content": "Say this is a test",
         }
     ],
-    model="gpt-5.2",
+    model="gpt-5.5",
 ) as response:
     print(response.headers.get("X-My-Header"))
 
