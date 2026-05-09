@@ -28,6 +28,14 @@ from .threads.threads import (
     ThreadsWithStreamingResponse,
     AsyncThreadsWithStreamingResponse,
 )
+from ..vector_stores import (
+    VectorStores,
+    AsyncVectorStores,
+    VectorStoresWithRawResponse,
+    AsyncVectorStoresWithRawResponse,
+    VectorStoresWithStreamingResponse,
+    AsyncVectorStoresWithStreamingResponse,
+)
 from ...resources.chat import Chat, AsyncChat
 from .realtime.realtime import (
     Realtime,
@@ -59,6 +67,11 @@ class Beta(SyncAPIResource):
     def threads(self) -> Threads:
         """Build Assistants that can call models and use tools."""
         return Threads(self._client)
+
+    @cached_property
+    def vector_stores(self) -> VectorStores:
+        """Backwards-compatible access to Assistants v2 vector stores."""
+        return self._client.vector_stores
 
     @cached_property
     def with_raw_response(self) -> BetaWithRawResponse:
@@ -104,6 +117,11 @@ class AsyncBeta(AsyncAPIResource):
         return AsyncThreads(self._client)
 
     @cached_property
+    def vector_stores(self) -> AsyncVectorStores:
+        """Backwards-compatible access to Assistants v2 vector stores."""
+        return self._client.vector_stores
+
+    @cached_property
     def with_raw_response(self) -> AsyncBetaWithRawResponse:
         """
         This property can be used as a prefix for any HTTP method call to return
@@ -141,6 +159,10 @@ class BetaWithRawResponse:
         """Build Assistants that can call models and use tools."""
         return ThreadsWithRawResponse(self._beta.threads)
 
+    @cached_property
+    def vector_stores(self) -> VectorStoresWithRawResponse:
+        return VectorStoresWithRawResponse(self._beta.vector_stores)
+
 
 class AsyncBetaWithRawResponse:
     def __init__(self, beta: AsyncBeta) -> None:
@@ -159,6 +181,10 @@ class AsyncBetaWithRawResponse:
     def threads(self) -> AsyncThreadsWithRawResponse:
         """Build Assistants that can call models and use tools."""
         return AsyncThreadsWithRawResponse(self._beta.threads)
+
+    @cached_property
+    def vector_stores(self) -> AsyncVectorStoresWithRawResponse:
+        return AsyncVectorStoresWithRawResponse(self._beta.vector_stores)
 
 
 class BetaWithStreamingResponse:
@@ -179,6 +205,10 @@ class BetaWithStreamingResponse:
         """Build Assistants that can call models and use tools."""
         return ThreadsWithStreamingResponse(self._beta.threads)
 
+    @cached_property
+    def vector_stores(self) -> VectorStoresWithStreamingResponse:
+        return VectorStoresWithStreamingResponse(self._beta.vector_stores)
+
 
 class AsyncBetaWithStreamingResponse:
     def __init__(self, beta: AsyncBeta) -> None:
@@ -197,3 +227,7 @@ class AsyncBetaWithStreamingResponse:
     def threads(self) -> AsyncThreadsWithStreamingResponse:
         """Build Assistants that can call models and use tools."""
         return AsyncThreadsWithStreamingResponse(self._beta.threads)
+
+    @cached_property
+    def vector_stores(self) -> AsyncVectorStoresWithStreamingResponse:
+        return AsyncVectorStoresWithStreamingResponse(self._beta.vector_stores)

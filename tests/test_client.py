@@ -157,6 +157,11 @@ class TestOpenAI:
         assert copied.admin_api_key == "another My Admin API Key"
         assert client.admin_api_key == "My Admin API Key"
 
+    def test_beta_vector_stores_alias(self, client: OpenAI) -> None:
+        assert client.beta.vector_stores is client.vector_stores
+        assert client.beta.with_raw_response.vector_stores._vector_stores is client.vector_stores
+        assert client.beta.with_streaming_response.vector_stores._vector_stores is client.vector_stores
+
     def test_copy_default_options(self, client: OpenAI) -> None:
         # options that have a default are overridden correctly
         copied = client.copy(max_retries=7)
@@ -1419,6 +1424,11 @@ class TestAsyncOpenAI:
         copied = async_client.copy(admin_api_key="another My Admin API Key")
         assert copied.admin_api_key == "another My Admin API Key"
         assert async_client.admin_api_key == "My Admin API Key"
+
+    def test_beta_vector_stores_alias(self, async_client: AsyncOpenAI) -> None:
+        assert async_client.beta.vector_stores is async_client.vector_stores
+        assert async_client.beta.with_raw_response.vector_stores._vector_stores is async_client.vector_stores
+        assert async_client.beta.with_streaming_response.vector_stores._vector_stores is async_client.vector_stores
 
     def test_copy_default_options(self, async_client: AsyncOpenAI) -> None:
         # options that have a default are overridden correctly
