@@ -3,16 +3,27 @@ from __future__ import annotations
 from ..._utils import is_dict, is_list
 
 
+def _is_indexed_list(v: object) -> bool:
+    return is_list(v) and len(v) > 0 and all(is_dict(e) and "index" in e for e in v)  # type: ignore
+
+
 def accumulate_delta(acc: dict[object, object], delta: dict[object, object]) -> dict[object, object]:
     for key, delta_value in delta.items():
         if key not in acc:
-            acc[key] = delta_value
-            continue
+            if _is_indexed_list(delta_value):
+                acc[key] = []
+            else:
+                acc[key] = delta_value
+                continue
 
         acc_value = acc[key]
         if acc_value is None:
-            acc[key] = delta_value
-            continue
+            if _is_indexed_list(delta_value):
+                acc[key] = []
+                acc_value = acc[key]
+            else:
+                acc[key] = delta_value
+                continue
 
         # the `index` property is used in arrays of objects so it should
         # not be accumulated like other values e.g.
@@ -33,7 +44,7 @@ def accumulate_delta(acc: dict[object, object], delta: dict[object, object]) -> 
         elif is_list(acc_value) and is_list(delta_value):
             # for lists of non-dictionary items we'll only ever get new entries
             # in the array, existing entries will never be changed
-            if all(isinstance(x, (str, int, float)) for x in acc_value):
+            if all(isinstance(x, (str, int, float)) for x in delta_value):
                 acc_value.extend(delta_value)
                 continue
 
