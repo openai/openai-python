@@ -36,6 +36,13 @@ from typing_extensions import (
 )
 
 import pydantic
+
+try:
+    from pydantic.errors import PydanticUserError
+except ImportError:  # pydantic v1 does not export PydanticUserError
+    class PydanticUserError(Exception):  # type: ignore[no-redef]
+        pass
+
 from pydantic.fields import FieldInfo
 
 from ._types import (
@@ -442,7 +449,11 @@ def _get_extra_fields_type(cls: type[pydantic.BaseModel]) -> type | None:
         # TODO
         return None
 
-    schema = cls.__pydantic_core_schema__
+    try:
+        schema = cls.__pydantic_core_schema__
+    except PydanticUserError:
+        cls.model_rebuild(force=True, raise_errors=False)
+        schema = cls.__pydantic_core_schema__
     if schema["type"] == "model":
         fields = schema["schema"]
         if fields["type"] == "model-fields":

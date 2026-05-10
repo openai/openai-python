@@ -9,7 +9,7 @@ from pydantic import Field
 
 from openai._utils import PropertyInfo
 from openai._compat import PYDANTIC_V1, parse_obj, model_dump, model_json
-from openai._models import DISCRIMINATOR_CACHE, BaseModel, construct_type
+from openai._models import DISCRIMINATOR_CACHE, BaseModel, _get_extra_fields_type, construct_type
 
 
 class BasicModel(BaseModel):
@@ -155,6 +155,43 @@ def test_unknown_fields() -> None:
     assert cast(Any, m2).unknown == {"foo_bar": True}
 
     assert model_dump(m2) == {"foo": "foo", "unknown": {"foo_bar": True}}
+
+
+@pytest.mark.skipif(PYDANTIC_V1, reason="pydantic v2 only")
+def test_get_extra_fields_type_rebuilds_after_pydantic_user_error() -> None:
+    schema = {
+        "type": "model",
+        "schema": {
+            "type": "model-fields",
+            "extras_schema": {"cls": str},
+        },
+    }
+
+    class Meta(type):
+        _schema_calls = 0
+        _rebuild_calls = 0
+
+        @property
+        def __pydantic_core_schema__(cls) -> dict[str, object]:
+            type(cls)._schema_calls += 1
+            if type(cls)._schema_calls == 1:
+                raise pydantic.errors.PydanticUserError(
+                    "schema unavailable",
+                    code="schema-unavailable",
+                )
+            return schema
+
+        def model_rebuild(cls, *, force: bool, raise_errors: bool) -> bool:
+            type(cls)._rebuild_calls += 1
+            assert force is True
+            assert raise_errors is False
+            return True
+
+    class FakeModel(metaclass=Meta):
+        pass
+
+    assert _get_extra_fields_type(cast(Any, FakeModel)) is str
+    assert Meta._rebuild_calls == 1
 
 
 def test_strict_validation_unknown_fields() -> None:
