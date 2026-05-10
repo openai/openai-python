@@ -961,3 +961,24 @@ def test_extra_properties() -> None:
     assert model.a.prop == 1
     assert isinstance(model.a, Item)
     assert model.other == "foo"
+
+
+@pytest.mark.skipif(PYDANTIC_V1, reason="TypeAdapter cache is only used in Pydantic v2")
+def test_type_adapter_cache_is_thread_local() -> None:
+    """Regression test for https://github.com/openai/openai-python/issues/2672
+
+    The TypeAdapter cache uses threading.local() to prevent memory leaks
+    in multi-threaded environments. Each thread maintains its own cache that
+    is cleaned up when the thread exits.
+    """
+    import threading
+
+    from openai._models import TypeAdapter, _type_adapter_cache
+
+    # Verify the cache is thread-local
+    assert isinstance(_type_adapter_cache, threading.local)
+
+    # Verify TypeAdapter returns a cached instance for the same type
+    adapter1 = TypeAdapter(int)
+    adapter2 = TypeAdapter(int)
+    assert adapter1 is adapter2, "TypeAdapter should return cached instances for the same type"
