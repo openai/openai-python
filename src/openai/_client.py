@@ -197,6 +197,7 @@ class OpenAI(SyncAPIClient):
 
         self.workload_identity = workload_identity if provider_runtime is None else None
 
+        _api_key_explicitly_set = False
         if provider_runtime is not None:
             self.api_key = ""
             self._api_key_provider = None
@@ -211,9 +212,11 @@ class OpenAI(SyncAPIClient):
             if callable(api_key):
                 self.api_key = ""
                 self._api_key_provider: Callable[[], str] | None = api_key  # type: ignore[no-redef]
+                _api_key_explicitly_set = True
             else:
                 self.api_key = api_key or ""
                 self._api_key_provider = None
+                _api_key_explicitly_set = api_key is not None
             self._workload_identity_auth = None
 
         if admin_api_key is None and provider_runtime is None:
@@ -224,6 +227,7 @@ class OpenAI(SyncAPIClient):
             provider_runtime is None
             and _enforce_credentials
             and not self.api_key
+            and not _api_key_explicitly_set
             and self._api_key_provider is None
             and workload_identity is None
             and self.admin_api_key is None
@@ -803,6 +807,7 @@ class AsyncOpenAI(AsyncAPIClient):
 
         self.workload_identity = workload_identity if provider_runtime is None else None
 
+        _api_key_explicitly_set = False
         if provider_runtime is not None:
             self.api_key = ""
             self._api_key_provider = None
@@ -817,9 +822,11 @@ class AsyncOpenAI(AsyncAPIClient):
             if callable(api_key):
                 self.api_key = ""
                 self._api_key_provider: Callable[[], Awaitable[str]] | None = api_key  # type: ignore[no-redef]
+                _api_key_explicitly_set = True
             else:
                 self.api_key = api_key or ""
                 self._api_key_provider = None
+                _api_key_explicitly_set = api_key is not None
             self._workload_identity_auth = None
 
         if admin_api_key is None and provider_runtime is None:
@@ -830,6 +837,7 @@ class AsyncOpenAI(AsyncAPIClient):
             provider_runtime is None
             and _enforce_credentials
             and not self.api_key
+            and not _api_key_explicitly_set
             and self._api_key_provider is None
             and workload_identity is None
             and self.admin_api_key is None
