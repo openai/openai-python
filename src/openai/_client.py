@@ -163,7 +163,7 @@ class OpenAI(SyncAPIClient):
 
         self.workload_identity = workload_identity
 
-        _api_key_explicitly_set = False
+        _api_key_explicitly_set = api_key is not None
         if workload_identity is not None:
             self.api_key = WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER
             self._api_key_provider = None
@@ -176,11 +176,9 @@ class OpenAI(SyncAPIClient):
             if callable(api_key):
                 self.api_key = ""
                 self._api_key_provider: Callable[[], str] | None = api_key  # type: ignore[no-redef]
-                _api_key_explicitly_set = True
             else:
                 self.api_key = api_key or ""
                 self._api_key_provider = None
-                _api_key_explicitly_set = api_key is not None
             self._workload_identity_auth = None
 
         if admin_api_key is None:
@@ -673,7 +671,7 @@ class AsyncOpenAI(AsyncAPIClient):
 
         self.workload_identity = workload_identity
 
-        _api_key_explicitly_set = False
+        _api_key_explicitly_set = api_key is not None
         if workload_identity is not None:
             self.api_key = WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER
             self._api_key_provider = None
@@ -686,11 +684,9 @@ class AsyncOpenAI(AsyncAPIClient):
             if callable(api_key):
                 self.api_key = ""
                 self._api_key_provider: Callable[[], Awaitable[str]] | None = api_key  # type: ignore[no-redef]
-                _api_key_explicitly_set = True
             else:
                 self.api_key = api_key or ""
                 self._api_key_provider = None
-                _api_key_explicitly_set = api_key is not None
             self._workload_identity_auth = None
 
         if admin_api_key is None:
