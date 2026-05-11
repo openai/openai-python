@@ -6,13 +6,24 @@ from ..._utils import is_dict, is_list
 def accumulate_delta(acc: dict[object, object], delta: dict[object, object]) -> dict[object, object]:
     for key, delta_value in delta.items():
         if key not in acc:
-            acc[key] = delta_value
-            continue
+            if is_list(delta_value):
+                # Initialize an empty list so that list-merge logic below
+                # handles duplicate-index entries even on the very first chunk.
+                acc[key] = []
+            else:
+                acc[key] = delta_value
+                continue
 
         acc_value = acc[key]
         if acc_value is None:
-            acc[key] = delta_value
-            continue
+            if is_list(delta_value):
+                # Same as above: route list deltas through the merge path
+                # instead of copying the raw array wholesale.
+                acc[key] = []
+                acc_value = acc[key]
+            else:
+                acc[key] = delta_value
+                continue
 
         # the `index` property is used in arrays of objects so it should
         # not be accumulated like other values e.g.
