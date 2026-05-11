@@ -1315,6 +1315,7 @@ class Responses(SyncAPIResource):
         previous_response_id: Optional[str] | Omit = omit,
         prompt_cache_key: Optional[str] | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "priority"]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -1354,6 +1355,8 @@ class Responses(SyncAPIResource):
 
           prompt_cache_retention: How long to retain a prompt cache entry created by this request.
 
+          service_tier: The service tier to use for this request.
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -1372,6 +1375,7 @@ class Responses(SyncAPIResource):
                     "previous_response_id": previous_response_id,
                     "prompt_cache_key": prompt_cache_key,
                     "prompt_cache_retention": prompt_cache_retention,
+                    "service_tier": service_tier,
                 },
                 response_compact_params.ResponseCompactParams,
             ),
@@ -2651,6 +2655,7 @@ class AsyncResponses(AsyncAPIResource):
         previous_response_id: Optional[str] | Omit = omit,
         prompt_cache_key: Optional[str] | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "priority"]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -2690,6 +2695,8 @@ class AsyncResponses(AsyncAPIResource):
 
           prompt_cache_retention: How long to retain a prompt cache entry created by this request.
 
+          service_tier: The service tier to use for this request.
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -2708,6 +2715,7 @@ class AsyncResponses(AsyncAPIResource):
                     "previous_response_id": previous_response_id,
                     "prompt_cache_key": prompt_cache_key,
                     "prompt_cache_retention": prompt_cache_retention,
+                    "service_tier": service_tier,
                 },
                 response_compact_params.ResponseCompactParams,
             ),

@@ -143,3 +143,6 @@ class ResponseCompactParams(TypedDict, total=False):
 
     prompt_cache_retention: Optional[Literal["in_memory", "24h"]]
     """How long to retain a prompt cache entry created by this request."""
+
+    service_tier: Optional[Literal["auto", "default", "flex", "priority"]]
+    """The service tier to use for this request."""
