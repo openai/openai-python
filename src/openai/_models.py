@@ -25,7 +25,9 @@ from typing_extensions import (
     ClassVar,
     Protocol,
     Required,
+    Annotated,
     ParamSpec,
+    TypeAlias,
     TypedDict,
     TypeGuard,
     final,
@@ -79,7 +81,15 @@ from ._compat import (
 from ._constants import RAW_RESPONSE_HEADER
 
 if TYPE_CHECKING:
+    from pydantic import GetCoreSchemaHandler, ValidatorFunctionWrapHandler
+    from pydantic_core import CoreSchema, core_schema
     from pydantic_core.core_schema import ModelField, ModelSchema, LiteralSchema, ModelFieldsSchema
+else:
+    try:
+        from pydantic_core import CoreSchema, core_schema
+    except ImportError:
+        CoreSchema = None
+        core_schema = None
 
 __all__ = ["BaseModel", "GenericModel"]
 
@@ -394,6 +404,76 @@ class BaseModel(pydantic.BaseModel):
                 exclude_defaults=exclude_defaults,
                 exclude_none=exclude_none,
             )
+
+
+class _EagerIterable(list[_T], Generic[_T]):
+    """
+    Accepts any Iterable[T] input (including generators), consumes it
+    eagerly, and validates all items upfront.
+
+    Validation preserves the original container type where possible
+    (e.g. a set[T] stays a set[T]).  Serialization (model_dump / JSON)
+    always emits a list — round-tripping through model_dump() will not
+    restore the original container type.
+    """
+
+    @classmethod
+    def __get_pydantic_core_schema__(
+        cls,
+        source_type: Any,
+        handler: GetCoreSchemaHandler,
+    ) -> CoreSchema:
+        (item_type,) = get_args(source_type) or (Any,)
+        item_schema: CoreSchema = handler.generate_schema(item_type)
+        list_of_items_schema: CoreSchema = core_schema.list_schema(item_schema)
+
+        return core_schema.no_info_wrap_validator_function(
+            cls._validate,
+            list_of_items_schema,
+            serialization=core_schema.plain_serializer_function_ser_schema(
+                cls._serialize,
+                info_arg=False,
+            ),
+        )
+
+    @staticmethod
+    def _validate(v: Iterable[_T], handler: "ValidatorFunctionWrapHandler") -> Any:
+        original_type: type[Any] = type(v)
+
+        # Normalize to list so list_schema can validate each item
+        if isinstance(v, list):
+            items: list[_T] = v
+        else:
+            try:
+                items = list(v)
+            except TypeError as e:
+                raise TypeError("Value is not iterable") from e
+
+        # Validate items against the inner schema
+        validated: list[_T] = handler(items)
+
+        # Reconstruct original container type
+        if original_type is list:
+            return validated
+        # str(list) produces the list's repr, not a string built from items,
+        # so skip reconstruction for str and its subclasses.
+        if issubclass(original_type, str):
+            return validated
+        try:
+            return original_type(validated)
+        except (TypeError, ValueError):
+            # If the type cannot be reconstructed, just return the validated list
+            return validated
+
+    @staticmethod
+    def _serialize(v: Iterable[_T]) -> list[_T]:
+        """Always serialize as a list so Pydantic's JSON encoder is happy."""
+        if isinstance(v, list):
+            return v
+        return list(v)
+
+
+EagerIterable: TypeAlias = Annotated[Iterable[_T], _EagerIterable]
 
 
 def _construct_field(value: object, field: FieldInfo, key: str) -> object:
