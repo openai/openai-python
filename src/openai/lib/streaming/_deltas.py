@@ -6,8 +6,19 @@ from ..._utils import is_dict, is_list
 def accumulate_delta(acc: dict[object, object], delta: dict[object, object]) -> dict[object, object]:
     for key, delta_value in delta.items():
         if key not in acc:
-            acc[key] = delta_value
-            continue
+            # For lists of indexed dicts (e.g. tool_calls), initialize an empty
+            # list and fall through to the merge logic so that entries with
+            # duplicate indexes in the first chunk are correctly merged.
+            if (
+                is_list(delta_value)
+                and delta_value
+                and is_dict(delta_value[0])
+                and "index" in delta_value[0]
+            ):
+                acc[key] = []
+            else:
+                acc[key] = delta_value
+                continue
 
         acc_value = acc[key]
         if acc_value is None:
@@ -49,15 +60,21 @@ def accumulate_delta(acc: dict[object, object], delta: dict[object, object]) -> 
                 if not isinstance(index, int):
                     raise TypeError(f"Unexpected, list delta entry `index` value is not an integer; {index}")
 
-                try:
-                    acc_entry = acc_value[index]
-                except IndexError:
-                    acc_value.insert(index, delta_entry)
-                else:
-                    if not is_dict(acc_entry):
-                        raise TypeError("not handled yet")
+                # Find existing entry by its index field value rather
+                # than by list position, since list position may diverge
+                # from the index field (e.g. duplicate or out-of-order indexes).
+                existing_entry = None
+                existing_entry_idx = None
+                for i, entry in enumerate(acc_value):
+                    if is_dict(entry) and entry.get("index") == index:
+                        existing_entry = entry
+                        existing_entry_idx = i
+                        break
 
-                    acc_value[index] = accumulate_delta(acc_entry, delta_entry)
+                if existing_entry is not None:
+                    acc_value[existing_entry_idx] = accumulate_delta(existing_entry, delta_entry)
+                else:
+                    acc_value.append(delta_entry)
 
         acc[key] = acc_value
 
