@@ -523,6 +523,22 @@ class TestOpenAI:
             with pytest.raises(OpenAIError, match="Missing credentials"):
                 OpenAI(base_url=base_url, api_key=None, admin_api_key=None, _strict_response_validation=True)
 
+        # Explicitly passing api_key="" should not raise, even with _enforce_credentials=True.
+        # This is important for OpenAI-compatible local servers that don't require authentication.
+        with update_env(
+            **{
+                "OPENAI_API_KEY": Omit(),
+                "OPENAI_ADMIN_KEY": Omit(),
+            }
+        ):
+            client = OpenAI(
+                base_url=base_url,
+                api_key="",
+                admin_api_key=None,
+                _strict_response_validation=True,
+            )
+            assert client.api_key == ""
+
     @pytest.mark.respx(base_url=base_url)
     def test_api_key_provider_preserves_admin_auth(self, respx_mock: MockRouter) -> None:
         respx_mock.get("/organization/projects").mock(return_value=httpx.Response(200, json={"ok": True}))
@@ -1786,6 +1802,22 @@ class TestAsyncOpenAI:
         ):
             with pytest.raises(OpenAIError, match="Missing credentials"):
                 AsyncOpenAI(base_url=base_url, api_key=None, admin_api_key=None, _strict_response_validation=True)
+
+        # Explicitly passing api_key="" should not raise, even with _enforce_credentials=True.
+        # This is important for OpenAI-compatible local servers that don't require authentication.
+        with update_env(
+            **{
+                "OPENAI_API_KEY": Omit(),
+                "OPENAI_ADMIN_KEY": Omit(),
+            }
+        ):
+            client = AsyncOpenAI(
+                base_url=base_url,
+                api_key="",
+                admin_api_key=None,
+                _strict_response_validation=True,
+            )
+            assert client.api_key == ""
 
     @pytest.mark.respx(base_url=base_url)
     async def test_api_key_provider_preserves_admin_auth(self, respx_mock: MockRouter) -> None:
