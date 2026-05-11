@@ -44,7 +44,7 @@ def accumulate_delta(acc: dict[object, object], delta: dict[object, object]) -> 
         elif is_list(acc_value) and is_list(delta_value):
             # for lists of non-dictionary items we'll only ever get new entries
             # in the array, existing entries will never be changed
-            if all(isinstance(x, (str, int, float)) for x in acc_value):
+            if acc_value and all(isinstance(x, (str, int, float)) for x in acc_value):
                 acc_value.extend(delta_value)
                 continue
 
