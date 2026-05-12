@@ -15,6 +15,9 @@ class ToolFunction(TypedDict, total=False):
 
     type: Required[Literal["function"]]
 
+    defer_loading: bool
+    """Whether this function should be deferred and discovered via tool search."""
+
     description: Optional[str]
 
     parameters: Optional[object]

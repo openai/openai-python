@@ -1,12 +1,24 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 from typing import Union, Optional
-from typing_extensions import Literal
+from typing_extensions import Literal, TypeAlias
 
 from ..._models import BaseModel
 from .realtime_audio_formats import RealtimeAudioFormats
 
-__all__ = ["RealtimeAudioConfigOutput"]
+__all__ = ["RealtimeAudioConfigOutput", "Voice", "VoiceID"]
+
+
+class VoiceID(BaseModel):
+    """Custom voice reference."""
+
+    id: str
+    """The custom voice ID, e.g. `voice_1234`."""
+
+
+Voice: TypeAlias = Union[
+    str, Literal["alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse", "marin", "cedar"], VoiceID
+]
 
 
 class RealtimeAudioConfigOutput(BaseModel):
@@ -24,13 +36,12 @@ class RealtimeAudioConfigOutput(BaseModel):
     generated, it's also possible to prompt the model to speak faster or slower.
     """
 
-    voice: Union[
-        str, Literal["alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse", "marin", "cedar"], None
-    ] = None
+    voice: Optional[Voice] = None
     """The voice the model uses to respond.
 
     Supported built-in voices are `alloy`, `ash`, `ballad`, `coral`, `echo`, `sage`,
-    `shimmer`, `verse`, `marin`, and `cedar`. Voice cannot be changed during the
-    session once the model has responded with audio at least once. We recommend
-    `marin` and `cedar` for best quality.
+    `shimmer`, `verse`, `marin`, and `cedar`. You may also provide a custom voice
+    object with an `id`, for example `{ "id": "voice_1234" }`. Voice cannot be
+    changed during the session once the model has responded with audio at least
+    once. We recommend `marin` and `cedar` for best quality.
     """

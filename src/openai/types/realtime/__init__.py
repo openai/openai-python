@@ -9,6 +9,7 @@ from .realtime_response import RealtimeResponse as RealtimeResponse
 from .call_accept_params import CallAcceptParams as CallAcceptParams
 from .call_create_params import CallCreateParams as CallCreateParams
 from .call_reject_params import CallRejectParams as CallRejectParams
+from .realtime_reasoning import RealtimeReasoning as RealtimeReasoning
 from .audio_transcription import AudioTranscription as AudioTranscription
 from .log_prob_properties import LogProbProperties as LogProbProperties
 from .realtime_truncation import RealtimeTruncation as RealtimeTruncation
@@ -38,11 +39,13 @@ from .realtime_mcp_list_tools import RealtimeMcpListTools as RealtimeMcpListTool
 from .realtime_response_usage import RealtimeResponseUsage as RealtimeResponseUsage
 from .realtime_tracing_config import RealtimeTracingConfig as RealtimeTracingConfig
 from .mcp_list_tools_completed import McpListToolsCompleted as McpListToolsCompleted
+from .realtime_reasoning_param import RealtimeReasoningParam as RealtimeReasoningParam
 from .realtime_response_status import RealtimeResponseStatus as RealtimeResponseStatus
 from .response_mcp_call_failed import ResponseMcpCallFailed as ResponseMcpCallFailed
 from .response_text_done_event import ResponseTextDoneEvent as ResponseTextDoneEvent
 from .audio_transcription_param import AudioTranscriptionParam as AudioTranscriptionParam
 from .rate_limits_updated_event import RateLimitsUpdatedEvent as RateLimitsUpdatedEvent
+from .realtime_reasoning_effort import RealtimeReasoningEffort as RealtimeReasoningEffort
 from .realtime_truncation_param import RealtimeTruncationParam as RealtimeTruncationParam
 from .response_audio_done_event import ResponseAudioDoneEvent as ResponseAudioDoneEvent
 from .response_text_delta_event import ResponseTextDeltaEvent as ResponseTextDeltaEvent
@@ -75,7 +78,6 @@ from .conversation_item_create_event import ConversationItemCreateEvent as Conve
 from .conversation_item_delete_event import ConversationItemDeleteEvent as ConversationItemDeleteEvent
 from .input_audio_buffer_clear_event import InputAudioBufferClearEvent as InputAudioBufferClearEvent
 from .realtime_mcp_approval_response import RealtimeMcpApprovalResponse as RealtimeMcpApprovalResponse
-from .realtime_session_client_secret import RealtimeSessionClientSecret as RealtimeSessionClientSecret
 from .conversation_item_created_event import ConversationItemCreatedEvent as ConversationItemCreatedEvent
 from .conversation_item_deleted_event import ConversationItemDeletedEvent as ConversationItemDeletedEvent
 from .input_audio_buffer_append_event import InputAudioBufferAppendEvent as InputAudioBufferAppendEvent

@@ -6,6 +6,7 @@ import httpx
 
 from .. import _legacy_response
 from .._types import Body, Query, Headers, NotGiven, not_given
+from .._utils import path_template
 from .._compat import cached_property
 from .._resource import SyncAPIResource, AsyncAPIResource
 from .._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -69,9 +70,13 @@ class Models(SyncAPIResource):
         if not model:
             raise ValueError(f"Expected a non-empty value for `model` but received {model!r}")
         return self._get(
-            f"/models/{model}",
+            path_template("/models/{model}", model=model),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Model,
         )
@@ -94,7 +99,11 @@ class Models(SyncAPIResource):
             "/models",
             page=SyncPage[Model],
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             model=Model,
         )
@@ -127,9 +136,13 @@ class Models(SyncAPIResource):
         if not model:
             raise ValueError(f"Expected a non-empty value for `model` but received {model!r}")
         return self._delete(
-            f"/models/{model}",
+            path_template("/models/{model}", model=model),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ModelDeleted,
         )
@@ -184,9 +197,13 @@ class AsyncModels(AsyncAPIResource):
         if not model:
             raise ValueError(f"Expected a non-empty value for `model` but received {model!r}")
         return await self._get(
-            f"/models/{model}",
+            path_template("/models/{model}", model=model),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Model,
         )
@@ -209,7 +226,11 @@ class AsyncModels(AsyncAPIResource):
             "/models",
             page=AsyncPage[Model],
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             model=Model,
         )
@@ -242,9 +263,13 @@ class AsyncModels(AsyncAPIResource):
         if not model:
             raise ValueError(f"Expected a non-empty value for `model` but received {model!r}")
         return await self._delete(
-            f"/models/{model}",
+            path_template("/models/{model}", model=model),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ModelDeleted,
         )

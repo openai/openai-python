@@ -56,9 +56,15 @@ class ActionClick(TypedDict, total=False):
     y: Required[int]
     """The y-coordinate where the click occurred."""
 
+    keys: Optional[SequenceNotStr[str]]
+    """The keys being held while clicking."""
+
 
 class ActionDoubleClick(TypedDict, total=False):
     """A double click action."""
+
+    keys: Required[Optional[SequenceNotStr[str]]]
+    """The keys being held while double-clicking."""
 
     type: Required[Literal["double_click"]]
     """Specifies the event type.
@@ -105,6 +111,9 @@ class ActionDrag(TypedDict, total=False):
     For a drag action, this property is always set to `drag`.
     """
 
+    keys: Optional[SequenceNotStr[str]]
+    """The keys being held while dragging the mouse."""
+
 
 class ActionKeypress(TypedDict, total=False):
     """A collection of keypresses the model would like to perform."""
@@ -137,6 +146,9 @@ class ActionMove(TypedDict, total=False):
     y: Required[int]
     """The y-coordinate to move to."""
 
+    keys: Optional[SequenceNotStr[str]]
+    """The keys being held while moving the mouse."""
+
 
 class ActionScreenshot(TypedDict, total=False):
     """A screenshot action."""
@@ -168,6 +180,9 @@ class ActionScroll(TypedDict, total=False):
 
     y: Required[int]
     """The y-coordinate where the scroll occurred."""
+
+    keys: Optional[SequenceNotStr[str]]
+    """The keys being held while scrolling."""
 
 
 class ActionType(TypedDict, total=False):

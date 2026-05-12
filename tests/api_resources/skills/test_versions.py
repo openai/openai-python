@@ -30,7 +30,7 @@ class TestVersions:
         version = client.skills.versions.create(
             skill_id="skill_123",
             default=True,
-            files=[b"raw file contents"],
+            files=[b"Example data"],
         )
         assert_matches_type(SkillVersion, version, path=["response"])
 
@@ -227,7 +227,7 @@ class TestAsyncVersions:
         version = await async_client.skills.versions.create(
             skill_id="skill_123",
             default=True,
-            files=[b"raw file contents"],
+            files=[b"Example data"],
         )
         assert_matches_type(SkillVersion, version, path=["response"])
 

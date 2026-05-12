@@ -1,6 +1,6 @@
 [project]
 name = "openai"
-version = "2.26.0"
+version = "2.36.0"
 description = "The official Python library for the openai API"
 dynamic = ["readme"]
 license = "Apache-2.0"
@@ -11,7 +11,7 @@ authors = [
 dependencies = [
   "httpx>=0.23.0, <1",
   "pydantic>=1.9.0, <3",
-    "typing-extensions>=4.11, <5",
+    "typing-extensions>=4.11, <5", "typing-extensions>=4.14, <5",
   "anyio>=3.5.0, <5",
   "distro>=1.7.0, <2",
   "sniffio",
@@ -41,9 +41,6 @@ classifiers = [
 [project.urls]
 Homepage = "https://github.com/openai/openai-python"
 Repository = "https://github.com/openai/openai-python"
-
-[project.scripts]
-openai = "openai.cli:main"
 
 [project.optional-dependencies]
 aiohttp = ["aiohttp", "httpx_aiohttp>=0.1.9"]

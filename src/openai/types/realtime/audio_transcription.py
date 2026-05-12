@@ -9,6 +9,13 @@ __all__ = ["AudioTranscription"]
 
 
 class AudioTranscription(BaseModel):
+    delay: Optional[Literal["minimal", "low", "medium", "high", "xhigh"]] = None
+    """
+    Controls how long the model waits before emitting transcription text. Higher
+    values can improve transcription accuracy at the cost of latency. Only supported
+    with `gpt-realtime-whisper` in GA Realtime sessions.
+    """
+
     language: Optional[str] = None
     """The language of the input audio.
 
@@ -25,15 +32,16 @@ class AudioTranscription(BaseModel):
             "gpt-4o-mini-transcribe-2025-12-15",
             "gpt-4o-transcribe",
             "gpt-4o-transcribe-diarize",
+            "gpt-realtime-whisper",
         ],
         None,
     ] = None
     """The model to use for transcription.
 
     Current options are `whisper-1`, `gpt-4o-mini-transcribe`,
-    `gpt-4o-mini-transcribe-2025-12-15`, `gpt-4o-transcribe`, and
-    `gpt-4o-transcribe-diarize`. Use `gpt-4o-transcribe-diarize` when you need
-    diarization with speaker labels.
+    `gpt-4o-mini-transcribe-2025-12-15`, `gpt-4o-transcribe`,
+    `gpt-4o-transcribe-diarize`, and `gpt-realtime-whisper`. Use
+    `gpt-4o-transcribe-diarize` when you need diarization with speaker labels.
     """
 
     prompt: Optional[str] = None
@@ -43,4 +51,5 @@ class AudioTranscription(BaseModel):
     [prompt is a list of keywords](https://platform.openai.com/docs/guides/speech-to-text#prompting).
     For `gpt-4o-transcribe` models (excluding `gpt-4o-transcribe-diarize`), the
     prompt is a free text string, for example "expect words related to technology".
+    Prompt is not supported with `gpt-realtime-whisper` in GA Realtime sessions.
     """

@@ -13,7 +13,7 @@ import sniffio
 from ... import _legacy_response
 from ...types import FileChunkingStrategyParam
 from ..._types import Body, Omit, Query, Headers, NotGiven, FileTypes, SequenceNotStr, omit, not_given
-from ..._utils import is_given, maybe_transform, async_maybe_transform
+from ..._utils import is_given, path_template, maybe_transform, async_maybe_transform
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -79,14 +79,16 @@ class FileBatches(SyncAPIResource):
           file_ids: A list of [File](https://platform.openai.com/docs/api-reference/files) IDs that
               the vector store should use. Useful for tools like `file_search` that can access
               files. If `attributes` or `chunking_strategy` are provided, they will be applied
-              to all files in the batch. The maximum batch size is 2000 files. Mutually
-              exclusive with `files`.
+              to all files in the batch. The maximum batch size is 2000 files. This endpoint
+              is recommended for multi-file ingestion and helps reduce per-vector-store write
+              request pressure. Mutually exclusive with `files`.
 
           files: A list of objects that each include a `file_id` plus optional `attributes` or
               `chunking_strategy`. Use this when you need to override metadata for specific
               files. The global `attributes` or `chunking_strategy` will be ignored and must
-              be specified for each file. The maximum batch size is 2000 files. Mutually
-              exclusive with `file_ids`.
+              be specified for each file. The maximum batch size is 2000 files. This endpoint
+              is recommended for multi-file ingestion and helps reduce per-vector-store write
+              request pressure. Mutually exclusive with `file_ids`.
 
           extra_headers: Send extra headers
 
@@ -100,7 +102,7 @@ class FileBatches(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `vector_store_id` but received {vector_store_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._post(
-            f"/vector_stores/{vector_store_id}/file_batches",
+            path_template("/vector_stores/{vector_store_id}/file_batches", vector_store_id=vector_store_id),
             body=maybe_transform(
                 {
                     "attributes": attributes,
@@ -111,7 +113,11 @@ class FileBatches(SyncAPIResource):
                 file_batch_create_params.FileBatchCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStoreFileBatch,
         )
@@ -146,9 +152,17 @@ class FileBatches(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `batch_id` but received {batch_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._get(
-            f"/vector_stores/{vector_store_id}/file_batches/{batch_id}",
+            path_template(
+                "/vector_stores/{vector_store_id}/file_batches/{batch_id}",
+                vector_store_id=vector_store_id,
+                batch_id=batch_id,
+            ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStoreFileBatch,
         )
@@ -185,9 +199,17 @@ class FileBatches(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `batch_id` but received {batch_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._post(
-            f"/vector_stores/{vector_store_id}/file_batches/{batch_id}/cancel",
+            path_template(
+                "/vector_stores/{vector_store_id}/file_batches/{batch_id}/cancel",
+                vector_store_id=vector_store_id,
+                batch_id=batch_id,
+            ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStoreFileBatch,
         )
@@ -280,7 +302,11 @@ class FileBatches(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `batch_id` but received {batch_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._get_api_list(
-            f"/vector_stores/{vector_store_id}/file_batches/{batch_id}/files",
+            path_template(
+                "/vector_stores/{vector_store_id}/file_batches/{batch_id}/files",
+                vector_store_id=vector_store_id,
+                batch_id=batch_id,
+            ),
             page=SyncCursorPage[VectorStoreFile],
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -297,6 +323,7 @@ class FileBatches(SyncAPIResource):
                     },
                     file_batch_list_files_params.FileBatchListFilesParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=VectorStoreFile,
         )
@@ -440,14 +467,16 @@ class AsyncFileBatches(AsyncAPIResource):
           file_ids: A list of [File](https://platform.openai.com/docs/api-reference/files) IDs that
               the vector store should use. Useful for tools like `file_search` that can access
               files. If `attributes` or `chunking_strategy` are provided, they will be applied
-              to all files in the batch. The maximum batch size is 2000 files. Mutually
-              exclusive with `files`.
+              to all files in the batch. The maximum batch size is 2000 files. This endpoint
+              is recommended for multi-file ingestion and helps reduce per-vector-store write
+              request pressure. Mutually exclusive with `files`.
 
           files: A list of objects that each include a `file_id` plus optional `attributes` or
               `chunking_strategy`. Use this when you need to override metadata for specific
               files. The global `attributes` or `chunking_strategy` will be ignored and must
-              be specified for each file. The maximum batch size is 2000 files. Mutually
-              exclusive with `file_ids`.
+              be specified for each file. The maximum batch size is 2000 files. This endpoint
+              is recommended for multi-file ingestion and helps reduce per-vector-store write
+              request pressure. Mutually exclusive with `file_ids`.
 
           extra_headers: Send extra headers
 
@@ -461,7 +490,7 @@ class AsyncFileBatches(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `vector_store_id` but received {vector_store_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._post(
-            f"/vector_stores/{vector_store_id}/file_batches",
+            path_template("/vector_stores/{vector_store_id}/file_batches", vector_store_id=vector_store_id),
             body=await async_maybe_transform(
                 {
                     "attributes": attributes,
@@ -472,7 +501,11 @@ class AsyncFileBatches(AsyncAPIResource):
                 file_batch_create_params.FileBatchCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStoreFileBatch,
         )
@@ -507,9 +540,17 @@ class AsyncFileBatches(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `batch_id` but received {batch_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._get(
-            f"/vector_stores/{vector_store_id}/file_batches/{batch_id}",
+            path_template(
+                "/vector_stores/{vector_store_id}/file_batches/{batch_id}",
+                vector_store_id=vector_store_id,
+                batch_id=batch_id,
+            ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStoreFileBatch,
         )
@@ -546,9 +587,17 @@ class AsyncFileBatches(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `batch_id` but received {batch_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._post(
-            f"/vector_stores/{vector_store_id}/file_batches/{batch_id}/cancel",
+            path_template(
+                "/vector_stores/{vector_store_id}/file_batches/{batch_id}/cancel",
+                vector_store_id=vector_store_id,
+                batch_id=batch_id,
+            ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStoreFileBatch,
         )
@@ -641,7 +690,11 @@ class AsyncFileBatches(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `batch_id` but received {batch_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._get_api_list(
-            f"/vector_stores/{vector_store_id}/file_batches/{batch_id}/files",
+            path_template(
+                "/vector_stores/{vector_store_id}/file_batches/{batch_id}/files",
+                vector_store_id=vector_store_id,
+                batch_id=batch_id,
+            ),
             page=AsyncCursorPage[VectorStoreFile],
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -658,6 +711,7 @@ class AsyncFileBatches(AsyncAPIResource):
                     },
                     file_batch_list_files_params.FileBatchListFilesParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=VectorStoreFile,
         )

@@ -15,6 +15,9 @@ class ToolFunction(BaseModel):
 
     type: Literal["function"]
 
+    defer_loading: Optional[bool] = None
+    """Whether this function should be deferred and discovered via tool search."""
+
     description: Optional[str] = None
 
     parameters: Optional[object] = None

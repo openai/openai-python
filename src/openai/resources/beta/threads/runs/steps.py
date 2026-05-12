@@ -10,7 +10,7 @@ import httpx
 
 from ..... import _legacy_response
 from ....._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
-from ....._utils import maybe_transform, async_maybe_transform
+from ....._utils import path_template, maybe_transform, async_maybe_transform
 from ....._compat import cached_property
 from ....._resource import SyncAPIResource, AsyncAPIResource
 from ....._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -88,13 +88,19 @@ class Steps(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `step_id` but received {step_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._get(
-            f"/threads/{thread_id}/runs/{run_id}/steps/{step_id}",
+            path_template(
+                "/threads/{thread_id}/runs/{run_id}/steps/{step_id}",
+                thread_id=thread_id,
+                run_id=run_id,
+                step_id=step_id,
+            ),
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
                 extra_body=extra_body,
                 timeout=timeout,
                 query=maybe_transform({"include": include}, step_retrieve_params.StepRetrieveParams),
+                security={"bearer_auth": True},
             ),
             cast_to=RunStep,
         )
@@ -159,7 +165,7 @@ class Steps(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._get_api_list(
-            f"/threads/{thread_id}/runs/{run_id}/steps",
+            path_template("/threads/{thread_id}/runs/{run_id}/steps", thread_id=thread_id, run_id=run_id),
             page=SyncCursorPage[RunStep],
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -176,6 +182,7 @@ class Steps(SyncAPIResource):
                     },
                     step_list_params.StepListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=RunStep,
         )
@@ -246,13 +253,19 @@ class AsyncSteps(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `step_id` but received {step_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._get(
-            f"/threads/{thread_id}/runs/{run_id}/steps/{step_id}",
+            path_template(
+                "/threads/{thread_id}/runs/{run_id}/steps/{step_id}",
+                thread_id=thread_id,
+                run_id=run_id,
+                step_id=step_id,
+            ),
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
                 extra_body=extra_body,
                 timeout=timeout,
                 query=await async_maybe_transform({"include": include}, step_retrieve_params.StepRetrieveParams),
+                security={"bearer_auth": True},
             ),
             cast_to=RunStep,
         )
@@ -317,7 +330,7 @@ class AsyncSteps(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._get_api_list(
-            f"/threads/{thread_id}/runs/{run_id}/steps",
+            path_template("/threads/{thread_id}/runs/{run_id}/steps", thread_id=thread_id, run_id=run_id),
             page=AsyncCursorPage[RunStep],
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -334,6 +347,7 @@ class AsyncSteps(AsyncAPIResource):
                     },
                     step_list_params.StepListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=RunStep,
         )

@@ -21,6 +21,7 @@ from .steps import (
 from ....._types import NOT_GIVEN, Body, Omit, Query, Headers, NotGiven, omit, not_given
 from ....._utils import (
     is_given,
+    path_template,
     required_args,
     maybe_transform,
     async_maybe_transform,
@@ -594,7 +595,7 @@ class Runs(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._post(
-            f"/threads/{thread_id}/runs",
+            path_template("/threads/{thread_id}/runs", thread_id=thread_id),
             body=maybe_transform(
                 {
                     "assistant_id": assistant_id,
@@ -623,6 +624,7 @@ class Runs(SyncAPIResource):
                 extra_body=extra_body,
                 timeout=timeout,
                 query=maybe_transform({"include": include}, run_create_params.RunCreateParams),
+                security={"bearer_auth": True},
                 synthesize_event_and_data=True,
             ),
             cast_to=Run,
@@ -661,9 +663,13 @@ class Runs(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._get(
-            f"/threads/{thread_id}/runs/{run_id}",
+            path_template("/threads/{thread_id}/runs/{run_id}", thread_id=thread_id, run_id=run_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Run,
         )
@@ -707,10 +713,14 @@ class Runs(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._post(
-            f"/threads/{thread_id}/runs/{run_id}",
+            path_template("/threads/{thread_id}/runs/{run_id}", thread_id=thread_id, run_id=run_id),
             body=maybe_transform({"metadata": metadata}, run_update_params.RunUpdateParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Run,
         )
@@ -763,7 +773,7 @@ class Runs(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._get_api_list(
-            f"/threads/{thread_id}/runs",
+            path_template("/threads/{thread_id}/runs", thread_id=thread_id),
             page=SyncCursorPage[Run],
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -779,6 +789,7 @@ class Runs(SyncAPIResource):
                     },
                     run_list_params.RunListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=Run,
         )
@@ -814,9 +825,13 @@ class Runs(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._post(
-            f"/threads/{thread_id}/runs/{run_id}/cancel",
+            path_template("/threads/{thread_id}/runs/{run_id}/cancel", thread_id=thread_id, run_id=run_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Run,
         )
@@ -998,7 +1013,7 @@ class Runs(SyncAPIResource):
         }
         make_request = partial(
             self._post,
-            f"/threads/{thread_id}/runs",
+            path_template("/threads/{thread_id}/runs", thread_id=thread_id),
             body=maybe_transform(
                 {
                     "assistant_id": assistant_id,
@@ -1022,7 +1037,11 @@ class Runs(SyncAPIResource):
                 run_create_params.RunCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Run,
             stream=True,
@@ -1185,7 +1204,7 @@ class Runs(SyncAPIResource):
         }
         make_request = partial(
             self._post,
-            f"/threads/{thread_id}/runs",
+            path_template("/threads/{thread_id}/runs", thread_id=thread_id),
             body=maybe_transform(
                 {
                     "assistant_id": assistant_id,
@@ -1214,6 +1233,7 @@ class Runs(SyncAPIResource):
                 extra_body=extra_body,
                 timeout=timeout,
                 query=maybe_transform({"include": include}, run_create_params.RunCreateParams),
+                security={"bearer_auth": True},
             ),
             cast_to=Run,
             stream=True,
@@ -1361,7 +1381,7 @@ class Runs(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._post(
-            f"/threads/{thread_id}/runs/{run_id}/submit_tool_outputs",
+            path_template("/threads/{thread_id}/runs/{run_id}/submit_tool_outputs", thread_id=thread_id, run_id=run_id),
             body=maybe_transform(
                 {
                     "tool_outputs": tool_outputs,
@@ -1376,6 +1396,7 @@ class Runs(SyncAPIResource):
                 extra_query=extra_query,
                 extra_body=extra_body,
                 timeout=timeout,
+                security={"bearer_auth": True},
                 synthesize_event_and_data=True,
             ),
             cast_to=Run,
@@ -1502,7 +1523,7 @@ class Runs(SyncAPIResource):
         }
         request = partial(
             self._post,
-            f"/threads/{thread_id}/runs/{run_id}/submit_tool_outputs",
+            path_template("/threads/{thread_id}/runs/{run_id}/submit_tool_outputs", thread_id=thread_id, run_id=run_id),
             body=maybe_transform(
                 {
                     "tool_outputs": tool_outputs,
@@ -1511,7 +1532,11 @@ class Runs(SyncAPIResource):
                 run_submit_tool_outputs_params.RunSubmitToolOutputsParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Run,
             stream=True,
@@ -2057,7 +2082,7 @@ class AsyncRuns(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._post(
-            f"/threads/{thread_id}/runs",
+            path_template("/threads/{thread_id}/runs", thread_id=thread_id),
             body=await async_maybe_transform(
                 {
                     "assistant_id": assistant_id,
@@ -2086,6 +2111,7 @@ class AsyncRuns(AsyncAPIResource):
                 extra_body=extra_body,
                 timeout=timeout,
                 query=await async_maybe_transform({"include": include}, run_create_params.RunCreateParams),
+                security={"bearer_auth": True},
                 synthesize_event_and_data=True,
             ),
             cast_to=Run,
@@ -2124,9 +2150,13 @@ class AsyncRuns(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._get(
-            f"/threads/{thread_id}/runs/{run_id}",
+            path_template("/threads/{thread_id}/runs/{run_id}", thread_id=thread_id, run_id=run_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Run,
         )
@@ -2170,10 +2200,14 @@ class AsyncRuns(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._post(
-            f"/threads/{thread_id}/runs/{run_id}",
+            path_template("/threads/{thread_id}/runs/{run_id}", thread_id=thread_id, run_id=run_id),
             body=await async_maybe_transform({"metadata": metadata}, run_update_params.RunUpdateParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Run,
         )
@@ -2226,7 +2260,7 @@ class AsyncRuns(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._get_api_list(
-            f"/threads/{thread_id}/runs",
+            path_template("/threads/{thread_id}/runs", thread_id=thread_id),
             page=AsyncCursorPage[Run],
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -2242,6 +2276,7 @@ class AsyncRuns(AsyncAPIResource):
                     },
                     run_list_params.RunListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=Run,
         )
@@ -2277,9 +2312,13 @@ class AsyncRuns(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._post(
-            f"/threads/{thread_id}/runs/{run_id}/cancel",
+            path_template("/threads/{thread_id}/runs/{run_id}/cancel", thread_id=thread_id, run_id=run_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Run,
         )
@@ -2460,7 +2499,7 @@ class AsyncRuns(AsyncAPIResource):
             **(extra_headers or {}),
         }
         request = self._post(
-            f"/threads/{thread_id}/runs",
+            path_template("/threads/{thread_id}/runs", thread_id=thread_id),
             body=maybe_transform(
                 {
                     "assistant_id": assistant_id,
@@ -2483,7 +2522,11 @@ class AsyncRuns(AsyncAPIResource):
                 run_create_params.RunCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Run,
             stream=True,
@@ -2647,7 +2690,7 @@ class AsyncRuns(AsyncAPIResource):
             **(extra_headers or {}),
         }
         request = self._post(
-            f"/threads/{thread_id}/runs",
+            path_template("/threads/{thread_id}/runs", thread_id=thread_id),
             body=maybe_transform(
                 {
                     "assistant_id": assistant_id,
@@ -2676,6 +2719,7 @@ class AsyncRuns(AsyncAPIResource):
                 extra_body=extra_body,
                 timeout=timeout,
                 query=maybe_transform({"include": include}, run_create_params.RunCreateParams),
+                security={"bearer_auth": True},
             ),
             cast_to=Run,
             stream=True,
@@ -2823,7 +2867,7 @@ class AsyncRuns(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._post(
-            f"/threads/{thread_id}/runs/{run_id}/submit_tool_outputs",
+            path_template("/threads/{thread_id}/runs/{run_id}/submit_tool_outputs", thread_id=thread_id, run_id=run_id),
             body=await async_maybe_transform(
                 {
                     "tool_outputs": tool_outputs,
@@ -2838,6 +2882,7 @@ class AsyncRuns(AsyncAPIResource):
                 extra_query=extra_query,
                 extra_body=extra_body,
                 timeout=timeout,
+                security={"bearer_auth": True},
                 synthesize_event_and_data=True,
             ),
             cast_to=Run,
@@ -2966,7 +3011,7 @@ class AsyncRuns(AsyncAPIResource):
             **(extra_headers or {}),
         }
         request = self._post(
-            f"/threads/{thread_id}/runs/{run_id}/submit_tool_outputs",
+            path_template("/threads/{thread_id}/runs/{run_id}/submit_tool_outputs", thread_id=thread_id, run_id=run_id),
             body=maybe_transform(
                 {
                     "tool_outputs": tool_outputs,
@@ -2975,7 +3020,11 @@ class AsyncRuns(AsyncAPIResource):
                 run_submit_tool_outputs_params.RunSubmitToolOutputsParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Run,
             stream=True,

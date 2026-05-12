@@ -55,9 +55,15 @@ class ActionClick(BaseModel):
     y: int
     """The y-coordinate where the click occurred."""
 
+    keys: Optional[List[str]] = None
+    """The keys being held while clicking."""
+
 
 class ActionDoubleClick(BaseModel):
     """A double click action."""
+
+    keys: Optional[List[str]] = None
+    """The keys being held while double-clicking."""
 
     type: Literal["double_click"]
     """Specifies the event type.
@@ -104,6 +110,9 @@ class ActionDrag(BaseModel):
     For a drag action, this property is always set to `drag`.
     """
 
+    keys: Optional[List[str]] = None
+    """The keys being held while dragging the mouse."""
+
 
 class ActionKeypress(BaseModel):
     """A collection of keypresses the model would like to perform."""
@@ -136,6 +145,9 @@ class ActionMove(BaseModel):
     y: int
     """The y-coordinate to move to."""
 
+    keys: Optional[List[str]] = None
+    """The keys being held while moving the mouse."""
+
 
 class ActionScreenshot(BaseModel):
     """A screenshot action."""
@@ -167,6 +179,9 @@ class ActionScroll(BaseModel):
 
     y: int
     """The y-coordinate where the scroll occurred."""
+
+    keys: Optional[List[str]] = None
+    """The keys being held while scrolling."""
 
 
 class ActionType(BaseModel):

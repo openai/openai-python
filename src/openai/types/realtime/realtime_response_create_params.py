@@ -6,6 +6,7 @@ from typing_extensions import Literal, TypeAlias
 from ..._models import BaseModel
 from ..shared.metadata import Metadata
 from .conversation_item import ConversationItem
+from .realtime_reasoning import RealtimeReasoning
 from .realtime_function_tool import RealtimeFunctionTool
 from ..responses.response_prompt import ResponsePrompt
 from ..responses.tool_choice_mcp import ToolChoiceMcp
@@ -84,11 +85,20 @@ class RealtimeResponseCreateParams(BaseModel):
     model.
     """
 
+    parallel_tool_calls: Optional[bool] = None
+    """Whether the model may call multiple tools in parallel.
+
+    Only supported by reasoning Realtime models such as `gpt-realtime-2`.
+    """
+
     prompt: Optional[ResponsePrompt] = None
     """
     Reference to a prompt template and its variables.
     [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
     """
+
+    reasoning: Optional[RealtimeReasoning] = None
+    """Configuration for reasoning-capable Realtime models such as `gpt-realtime-2`."""
 
     tool_choice: Optional[ToolChoice] = None
     """How the model chooses tools.

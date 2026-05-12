@@ -10,7 +10,7 @@ import httpx
 from ... import _legacy_response
 from ...types import eval_list_params, eval_create_params, eval_update_params
 from ..._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
-from ..._utils import maybe_transform, async_maybe_transform
+from ..._utils import path_template, maybe_transform, async_maybe_transform
 from ..._compat import cached_property
 from .runs.runs import (
     Runs,
@@ -121,7 +121,11 @@ class Evals(SyncAPIResource):
                 eval_create_params.EvalCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=EvalCreateResponse,
         )
@@ -152,9 +156,13 @@ class Evals(SyncAPIResource):
         if not eval_id:
             raise ValueError(f"Expected a non-empty value for `eval_id` but received {eval_id!r}")
         return self._get(
-            f"/evals/{eval_id}",
+            path_template("/evals/{eval_id}", eval_id=eval_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=EvalRetrieveResponse,
         )
@@ -196,7 +204,7 @@ class Evals(SyncAPIResource):
         if not eval_id:
             raise ValueError(f"Expected a non-empty value for `eval_id` but received {eval_id!r}")
         return self._post(
-            f"/evals/{eval_id}",
+            path_template("/evals/{eval_id}", eval_id=eval_id),
             body=maybe_transform(
                 {
                     "metadata": metadata,
@@ -205,7 +213,11 @@ class Evals(SyncAPIResource):
                 eval_update_params.EvalUpdateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=EvalUpdateResponse,
         )
@@ -263,6 +275,7 @@ class Evals(SyncAPIResource):
                     },
                     eval_list_params.EvalListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=EvalListResponse,
         )
@@ -293,9 +306,13 @@ class Evals(SyncAPIResource):
         if not eval_id:
             raise ValueError(f"Expected a non-empty value for `eval_id` but received {eval_id!r}")
         return self._delete(
-            f"/evals/{eval_id}",
+            path_template("/evals/{eval_id}", eval_id=eval_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=EvalDeleteResponse,
         )
@@ -388,7 +405,11 @@ class AsyncEvals(AsyncAPIResource):
                 eval_create_params.EvalCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=EvalCreateResponse,
         )
@@ -419,9 +440,13 @@ class AsyncEvals(AsyncAPIResource):
         if not eval_id:
             raise ValueError(f"Expected a non-empty value for `eval_id` but received {eval_id!r}")
         return await self._get(
-            f"/evals/{eval_id}",
+            path_template("/evals/{eval_id}", eval_id=eval_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=EvalRetrieveResponse,
         )
@@ -463,7 +488,7 @@ class AsyncEvals(AsyncAPIResource):
         if not eval_id:
             raise ValueError(f"Expected a non-empty value for `eval_id` but received {eval_id!r}")
         return await self._post(
-            f"/evals/{eval_id}",
+            path_template("/evals/{eval_id}", eval_id=eval_id),
             body=await async_maybe_transform(
                 {
                     "metadata": metadata,
@@ -472,7 +497,11 @@ class AsyncEvals(AsyncAPIResource):
                 eval_update_params.EvalUpdateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=EvalUpdateResponse,
         )
@@ -530,6 +559,7 @@ class AsyncEvals(AsyncAPIResource):
                     },
                     eval_list_params.EvalListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=EvalListResponse,
         )
@@ -560,9 +590,13 @@ class AsyncEvals(AsyncAPIResource):
         if not eval_id:
             raise ValueError(f"Expected a non-empty value for `eval_id` but received {eval_id!r}")
         return await self._delete(
-            f"/evals/{eval_id}",
+            path_template("/evals/{eval_id}", eval_id=eval_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=EvalDeleteResponse,
         )

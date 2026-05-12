@@ -1,6 +1,6 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import List, Union
+from typing import List, Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
 
 from ..._utils import PropertyInfo
@@ -39,9 +39,15 @@ class Click(BaseModel):
     y: int
     """The y-coordinate where the click occurred."""
 
+    keys: Optional[List[str]] = None
+    """The keys being held while clicking."""
+
 
 class DoubleClick(BaseModel):
     """A double click action."""
+
+    keys: Optional[List[str]] = None
+    """The keys being held while double-clicking."""
 
     type: Literal["double_click"]
     """Specifies the event type.
@@ -88,6 +94,9 @@ class Drag(BaseModel):
     For a drag action, this property is always set to `drag`.
     """
 
+    keys: Optional[List[str]] = None
+    """The keys being held while dragging the mouse."""
+
 
 class Keypress(BaseModel):
     """A collection of keypresses the model would like to perform."""
@@ -120,6 +129,9 @@ class Move(BaseModel):
     y: int
     """The y-coordinate to move to."""
 
+    keys: Optional[List[str]] = None
+    """The keys being held while moving the mouse."""
+
 
 class Screenshot(BaseModel):
     """A screenshot action."""
@@ -151,6 +163,9 @@ class Scroll(BaseModel):
 
     y: int
     """The y-coordinate where the scroll occurred."""
+
+    keys: Optional[List[str]] = None
+    """The keys being held while scrolling."""
 
 
 class Type(BaseModel):

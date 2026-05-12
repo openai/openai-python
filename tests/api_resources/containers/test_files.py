@@ -33,7 +33,7 @@ class TestFiles:
     def test_method_create_with_all_params(self, client: OpenAI) -> None:
         file = client.containers.files.create(
             container_id="container_id",
-            file=b"raw file contents",
+            file=b"Example data",
             file_id="file_id",
         )
         assert_matches_type(FileCreateResponse, file, path=["response"])
@@ -230,7 +230,7 @@ class TestAsyncFiles:
     async def test_method_create_with_all_params(self, async_client: AsyncOpenAI) -> None:
         file = await async_client.containers.files.create(
             container_id="container_id",
-            file=b"raw file contents",
+            file=b"Example data",
             file_id="file_id",
         )
         assert_matches_type(FileCreateResponse, file, path=["response"])

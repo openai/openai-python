@@ -20,7 +20,7 @@ from .messages import (
     AsyncMessagesWithStreamingResponse,
 )
 from ...._types import Body, Omit, Query, Headers, NotGiven, SequenceNotStr, omit, not_given
-from ...._utils import required_args, maybe_transform, async_maybe_transform
+from ...._utils import path_template, required_args, maybe_transform, async_maybe_transform
 from ...._compat import cached_property
 from ...._resource import SyncAPIResource, AsyncAPIResource
 from ...._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -109,7 +109,7 @@ class Completions(SyncAPIResource):
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
         presence_penalty: Optional[float] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
-        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
         safety_identifier: str | Omit = omit,
         seed: Optional[int] | Omit = omit,
@@ -236,6 +236,7 @@ class Completions(SyncAPIResource):
                 extra_body=extra_body,
                 timeout=timeout,
                 post_parser=parser,
+                security={"bearer_auth": True},
             ),
             # we turn the `ChatCompletion` instance into a `ParsedChatCompletion`
             # in the `parser` function above
@@ -264,7 +265,7 @@ class Completions(SyncAPIResource):
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
         presence_penalty: Optional[float] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
-        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
         response_format: completion_create_params.ResponseFormat | Omit = omit,
         safety_identifier: str | Omit = omit,
@@ -515,8 +516,9 @@ class Completions(SyncAPIResource):
               [custom tools](https://platform.openai.com/docs/guides/function-calling#custom-tools)
               or [function tools](https://platform.openai.com/docs/guides/function-calling).
 
-          top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
-              return at each token position, each with an associated log probability.
+          top_logprobs: An integer between 0 and 20 specifying the maximum number of most likely tokens
+              to return at each token position, each with an associated log probability. In
+              some cases, the number of returned tokens may be fewer than requested.
               `logprobs` must be set to `true` if this parameter is used.
 
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
@@ -571,7 +573,7 @@ class Completions(SyncAPIResource):
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
         presence_penalty: Optional[float] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
-        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
         response_format: completion_create_params.ResponseFormat | Omit = omit,
         safety_identifier: str | Omit = omit,
@@ -821,8 +823,9 @@ class Completions(SyncAPIResource):
               [custom tools](https://platform.openai.com/docs/guides/function-calling#custom-tools)
               or [function tools](https://platform.openai.com/docs/guides/function-calling).
 
-          top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
-              return at each token position, each with an associated log probability.
+          top_logprobs: An integer between 0 and 20 specifying the maximum number of most likely tokens
+              to return at each token position, each with an associated log probability. In
+              some cases, the number of returned tokens may be fewer than requested.
               `logprobs` must be set to `true` if this parameter is used.
 
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
@@ -877,7 +880,7 @@ class Completions(SyncAPIResource):
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
         presence_penalty: Optional[float] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
-        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
         response_format: completion_create_params.ResponseFormat | Omit = omit,
         safety_identifier: str | Omit = omit,
@@ -1127,8 +1130,9 @@ class Completions(SyncAPIResource):
               [custom tools](https://platform.openai.com/docs/guides/function-calling#custom-tools)
               or [function tools](https://platform.openai.com/docs/guides/function-calling).
 
-          top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
-              return at each token position, each with an associated log probability.
+          top_logprobs: An integer between 0 and 20 specifying the maximum number of most likely tokens
+              to return at each token position, each with an associated log probability. In
+              some cases, the number of returned tokens may be fewer than requested.
               `logprobs` must be set to `true` if this parameter is used.
 
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
@@ -1182,7 +1186,7 @@ class Completions(SyncAPIResource):
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
         presence_penalty: Optional[float] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
-        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
         response_format: completion_create_params.ResponseFormat | Omit = omit,
         safety_identifier: str | Omit = omit,
@@ -1253,7 +1257,11 @@ class Completions(SyncAPIResource):
                 else completion_create_params.CompletionCreateParamsNonStreaming,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ChatCompletion,
             stream=stream or False,
@@ -1288,9 +1296,13 @@ class Completions(SyncAPIResource):
         if not completion_id:
             raise ValueError(f"Expected a non-empty value for `completion_id` but received {completion_id!r}")
         return self._get(
-            f"/chat/completions/{completion_id}",
+            path_template("/chat/completions/{completion_id}", completion_id=completion_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ChatCompletion,
         )
@@ -1332,10 +1344,14 @@ class Completions(SyncAPIResource):
         if not completion_id:
             raise ValueError(f"Expected a non-empty value for `completion_id` but received {completion_id!r}")
         return self._post(
-            f"/chat/completions/{completion_id}",
+            path_template("/chat/completions/{completion_id}", completion_id=completion_id),
             body=maybe_transform({"metadata": metadata}, completion_update_params.CompletionUpdateParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ChatCompletion,
         )
@@ -1401,6 +1417,7 @@ class Completions(SyncAPIResource):
                     },
                     completion_list_params.CompletionListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=ChatCompletion,
         )
@@ -1433,9 +1450,13 @@ class Completions(SyncAPIResource):
         if not completion_id:
             raise ValueError(f"Expected a non-empty value for `completion_id` but received {completion_id!r}")
         return self._delete(
-            f"/chat/completions/{completion_id}",
+            path_template("/chat/completions/{completion_id}", completion_id=completion_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ChatCompletionDeleted,
         )
@@ -1461,7 +1482,7 @@ class Completions(SyncAPIResource):
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
         presence_penalty: Optional[float] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
-        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
         safety_identifier: str | Omit = omit,
         seed: Optional[int] | Omit = omit,
@@ -1612,7 +1633,7 @@ class AsyncCompletions(AsyncAPIResource):
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
         presence_penalty: Optional[float] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
-        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
         safety_identifier: str | Omit = omit,
         seed: Optional[int] | Omit = omit,
@@ -1739,6 +1760,7 @@ class AsyncCompletions(AsyncAPIResource):
                 extra_body=extra_body,
                 timeout=timeout,
                 post_parser=parser,
+                security={"bearer_auth": True},
             ),
             # we turn the `ChatCompletion` instance into a `ParsedChatCompletion`
             # in the `parser` function above
@@ -1767,7 +1789,7 @@ class AsyncCompletions(AsyncAPIResource):
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
         presence_penalty: Optional[float] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
-        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
         response_format: completion_create_params.ResponseFormat | Omit = omit,
         safety_identifier: str | Omit = omit,
@@ -2018,8 +2040,9 @@ class AsyncCompletions(AsyncAPIResource):
               [custom tools](https://platform.openai.com/docs/guides/function-calling#custom-tools)
               or [function tools](https://platform.openai.com/docs/guides/function-calling).
 
-          top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
-              return at each token position, each with an associated log probability.
+          top_logprobs: An integer between 0 and 20 specifying the maximum number of most likely tokens
+              to return at each token position, each with an associated log probability. In
+              some cases, the number of returned tokens may be fewer than requested.
               `logprobs` must be set to `true` if this parameter is used.
 
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
@@ -2074,7 +2097,7 @@ class AsyncCompletions(AsyncAPIResource):
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
         presence_penalty: Optional[float] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
-        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
         response_format: completion_create_params.ResponseFormat | Omit = omit,
         safety_identifier: str | Omit = omit,
@@ -2324,8 +2347,9 @@ class AsyncCompletions(AsyncAPIResource):
               [custom tools](https://platform.openai.com/docs/guides/function-calling#custom-tools)
               or [function tools](https://platform.openai.com/docs/guides/function-calling).
 
-          top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
-              return at each token position, each with an associated log probability.
+          top_logprobs: An integer between 0 and 20 specifying the maximum number of most likely tokens
+              to return at each token position, each with an associated log probability. In
+              some cases, the number of returned tokens may be fewer than requested.
               `logprobs` must be set to `true` if this parameter is used.
 
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
@@ -2380,7 +2404,7 @@ class AsyncCompletions(AsyncAPIResource):
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
         presence_penalty: Optional[float] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
-        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
         response_format: completion_create_params.ResponseFormat | Omit = omit,
         safety_identifier: str | Omit = omit,
@@ -2630,8 +2654,9 @@ class AsyncCompletions(AsyncAPIResource):
               [custom tools](https://platform.openai.com/docs/guides/function-calling#custom-tools)
               or [function tools](https://platform.openai.com/docs/guides/function-calling).
 
-          top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
-              return at each token position, each with an associated log probability.
+          top_logprobs: An integer between 0 and 20 specifying the maximum number of most likely tokens
+              to return at each token position, each with an associated log probability. In
+              some cases, the number of returned tokens may be fewer than requested.
               `logprobs` must be set to `true` if this parameter is used.
 
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
@@ -2685,7 +2710,7 @@ class AsyncCompletions(AsyncAPIResource):
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
         presence_penalty: Optional[float] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
-        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
         response_format: completion_create_params.ResponseFormat | Omit = omit,
         safety_identifier: str | Omit = omit,
@@ -2756,7 +2781,11 @@ class AsyncCompletions(AsyncAPIResource):
                 else completion_create_params.CompletionCreateParamsNonStreaming,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ChatCompletion,
             stream=stream or False,
@@ -2791,9 +2820,13 @@ class AsyncCompletions(AsyncAPIResource):
         if not completion_id:
             raise ValueError(f"Expected a non-empty value for `completion_id` but received {completion_id!r}")
         return await self._get(
-            f"/chat/completions/{completion_id}",
+            path_template("/chat/completions/{completion_id}", completion_id=completion_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ChatCompletion,
         )
@@ -2835,10 +2868,14 @@ class AsyncCompletions(AsyncAPIResource):
         if not completion_id:
             raise ValueError(f"Expected a non-empty value for `completion_id` but received {completion_id!r}")
         return await self._post(
-            f"/chat/completions/{completion_id}",
+            path_template("/chat/completions/{completion_id}", completion_id=completion_id),
             body=await async_maybe_transform({"metadata": metadata}, completion_update_params.CompletionUpdateParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ChatCompletion,
         )
@@ -2904,6 +2941,7 @@ class AsyncCompletions(AsyncAPIResource):
                     },
                     completion_list_params.CompletionListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=ChatCompletion,
         )
@@ -2936,9 +2974,13 @@ class AsyncCompletions(AsyncAPIResource):
         if not completion_id:
             raise ValueError(f"Expected a non-empty value for `completion_id` but received {completion_id!r}")
         return await self._delete(
-            f"/chat/completions/{completion_id}",
+            path_template("/chat/completions/{completion_id}", completion_id=completion_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ChatCompletionDeleted,
         )
@@ -2964,7 +3006,7 @@ class AsyncCompletions(AsyncAPIResource):
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
         presence_penalty: Optional[float] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
-        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
         safety_identifier: str | Omit = omit,
         seed: Optional[int] | Omit = omit,

@@ -40,7 +40,7 @@ class TestResponses:
             include=["file_search_call.results"],
             input="string",
             instructions="instructions",
-            max_output_tokens=0,
+            max_output_tokens=16,
             max_tool_calls=0,
             metadata={"foo": "string"},
             model="gpt-5.1",
@@ -52,7 +52,7 @@ class TestResponses:
                 "version": "version",
             },
             prompt_cache_key="prompt-cache-key-1234",
-            prompt_cache_retention="in-memory",
+            prompt_cache_retention="in_memory",
             reasoning={
                 "effort": "none",
                 "generate_summary": "auto",
@@ -128,7 +128,7 @@ class TestResponses:
             include=["file_search_call.results"],
             input="string",
             instructions="instructions",
-            max_output_tokens=0,
+            max_output_tokens=16,
             max_tool_calls=0,
             metadata={"foo": "string"},
             model="gpt-5.1",
@@ -140,7 +140,7 @@ class TestResponses:
                 "version": "version",
             },
             prompt_cache_key="prompt-cache-key-1234",
-            prompt_cache_retention="in-memory",
+            prompt_cache_retention="in_memory",
             reasoning={
                 "effort": "none",
                 "generate_summary": "auto",
@@ -388,6 +388,7 @@ class TestResponses:
             instructions="instructions",
             previous_response_id="resp_123",
             prompt_cache_key="prompt_cache_key",
+            prompt_cache_retention="in_memory",
         )
         assert_matches_type(CompactedResponse, response, path=["response"])
 
@@ -451,7 +452,7 @@ class TestAsyncResponses:
             include=["file_search_call.results"],
             input="string",
             instructions="instructions",
-            max_output_tokens=0,
+            max_output_tokens=16,
             max_tool_calls=0,
             metadata={"foo": "string"},
             model="gpt-5.1",
@@ -463,7 +464,7 @@ class TestAsyncResponses:
                 "version": "version",
             },
             prompt_cache_key="prompt-cache-key-1234",
-            prompt_cache_retention="in-memory",
+            prompt_cache_retention="in_memory",
             reasoning={
                 "effort": "none",
                 "generate_summary": "auto",
@@ -539,7 +540,7 @@ class TestAsyncResponses:
             include=["file_search_call.results"],
             input="string",
             instructions="instructions",
-            max_output_tokens=0,
+            max_output_tokens=16,
             max_tool_calls=0,
             metadata={"foo": "string"},
             model="gpt-5.1",
@@ -551,7 +552,7 @@ class TestAsyncResponses:
                 "version": "version",
             },
             prompt_cache_key="prompt-cache-key-1234",
-            prompt_cache_retention="in-memory",
+            prompt_cache_retention="in_memory",
             reasoning={
                 "effort": "none",
                 "generate_summary": "auto",
@@ -799,6 +800,7 @@ class TestAsyncResponses:
             instructions="instructions",
             previous_response_id="resp_123",
             prompt_cache_key="prompt_cache_key",
+            prompt_cache_retention="in_memory",
         )
         assert_matches_type(CompactedResponse, response, path=["response"])
 

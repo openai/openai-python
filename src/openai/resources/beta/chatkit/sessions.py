@@ -6,7 +6,7 @@ import httpx
 
 from .... import _legacy_response
 from ...._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
-from ...._utils import maybe_transform, async_maybe_transform
+from ...._utils import path_template, maybe_transform, async_maybe_transform
 from ...._compat import cached_property
 from ...._resource import SyncAPIResource, AsyncAPIResource
 from ...._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -100,7 +100,11 @@ class Sessions(SyncAPIResource):
                 session_create_params.SessionCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ChatSession,
         )
@@ -134,9 +138,13 @@ class Sessions(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `session_id` but received {session_id!r}")
         extra_headers = {"OpenAI-Beta": "chatkit_beta=v1", **(extra_headers or {})}
         return self._post(
-            f"/chatkit/sessions/{session_id}/cancel",
+            path_template("/chatkit/sessions/{session_id}/cancel", session_id=session_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ChatSession,
         )
@@ -215,7 +223,11 @@ class AsyncSessions(AsyncAPIResource):
                 session_create_params.SessionCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ChatSession,
         )
@@ -249,9 +261,13 @@ class AsyncSessions(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `session_id` but received {session_id!r}")
         extra_headers = {"OpenAI-Beta": "chatkit_beta=v1", **(extra_headers or {})}
         return await self._post(
-            f"/chatkit/sessions/{session_id}/cancel",
+            path_template("/chatkit/sessions/{session_id}/cancel", session_id=session_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ChatSession,
         )

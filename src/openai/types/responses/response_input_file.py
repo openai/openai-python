@@ -17,7 +17,8 @@ class ResponseInputFile(BaseModel):
     detail: Optional[Literal["low", "high"]] = None
     """The detail level of the file to be sent to the model.
 
-    One of `high` or `low`. Defaults to `high`.
+    Use `low` for the default rendering behavior, or `high` to render the file at
+    higher quality. Defaults to `low`.
     """
 
     file_data: Optional[str] = None

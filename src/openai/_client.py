@@ -4,28 +4,32 @@ from __future__ import annotations
 
 import os
 from typing import TYPE_CHECKING, Any, Mapping, Callable, Awaitable
-from typing_extensions import Self, override
+from typing_extensions import Self, Unpack, override
 
 import httpx
 
 from . import _exceptions
 from ._qs import Querystring
+from .auth import WorkloadIdentity, WorkloadIdentityAuth
 from ._types import (
     Omit,
+    Headers,
     Timeout,
     NotGiven,
     Transport,
     ProxiesTypes,
+    HttpxSendArgs,
     RequestOptions,
     not_given,
 )
 from ._utils import (
     is_given,
     is_mapping,
+    is_mapping_t,
     get_async_library,
 )
 from ._compat import cached_property
-from ._models import FinalRequestOptions
+from ._models import SecurityOptions, FinalRequestOptions
 from ._version import __version__
 from ._streaming import Stream as Stream, AsyncStream as AsyncStream
 from ._exceptions import OpenAIError, APIStatusError
@@ -39,6 +43,7 @@ if TYPE_CHECKING:
     from .resources import (
         beta,
         chat,
+        admin,
         audio,
         evals,
         files,
@@ -66,6 +71,7 @@ if TYPE_CHECKING:
     from .resources.beta.beta import Beta, AsyncBeta
     from .resources.chat.chat import Chat, AsyncChat
     from .resources.embeddings import Embeddings, AsyncEmbeddings
+    from .resources.admin.admin import Admin, AsyncAdmin
     from .resources.audio.audio import Audio, AsyncAudio
     from .resources.completions import Completions, AsyncCompletions
     from .resources.evals.evals import Evals, AsyncEvals
@@ -82,13 +88,28 @@ if TYPE_CHECKING:
 
 __all__ = ["Timeout", "Transport", "ProxiesTypes", "RequestOptions", "OpenAI", "AsyncOpenAI", "Client", "AsyncClient"]
 
+WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER = "workload-identity-auth"
+
+
+def _has_header(headers: Headers, header: str) -> bool:
+    header = header.lower()
+    return any(key.lower() == header for key in headers)
+
+
+def _has_omitted_header(headers: Headers, header: str) -> bool:
+    header = header.lower()
+    return any(key.lower() == header and isinstance(value, Omit) for key, value in headers.items())
+
 
 class OpenAI(SyncAPIClient):
     # client options
     api_key: str
+    admin_api_key: str | None
+    workload_identity: WorkloadIdentity | None
     organization: str | None
     project: str | None
     webhook_secret: str | None
+    _workload_identity_auth: WorkloadIdentityAuth | None
 
     websocket_base_url: str | httpx.URL | None
     """Base URL for WebSocket connections.
@@ -101,7 +122,9 @@ class OpenAI(SyncAPIClient):
     def __init__(
         self,
         *,
-        api_key: str | None | Callable[[], str] = None,
+        api_key: str | Callable[[], str] | None = None,
+        admin_api_key: str | None = None,
+        workload_identity: WorkloadIdentity | None = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -124,27 +147,53 @@ class OpenAI(SyncAPIClient):
         # outlining your use-case to help us decide if it should be
         # part of our public interface in the future.
         _strict_response_validation: bool = False,
+        _enforce_credentials: bool = True,
     ) -> None:
         """Construct a new synchronous OpenAI client instance.
 
         This automatically infers the following arguments from their corresponding environment variables if they are not provided:
         - `api_key` from `OPENAI_API_KEY`
+        - `admin_api_key` from `OPENAI_ADMIN_KEY`
         - `organization` from `OPENAI_ORG_ID`
         - `project` from `OPENAI_PROJECT_ID`
         - `webhook_secret` from `OPENAI_WEBHOOK_SECRET`
         """
-        if api_key is None:
-            api_key = os.environ.get("OPENAI_API_KEY")
-        if api_key is None:
-            raise OpenAIError(
-                "The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable"
-            )
-        if callable(api_key):
-            self.api_key = ""
-            self._api_key_provider: Callable[[], str] | None = api_key
-        else:
-            self.api_key = api_key
+        if api_key is not None and api_key != WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER and workload_identity is not None:
+            raise OpenAIError("The `api_key` and `workload_identity` arguments are mutually exclusive")
+
+        self.workload_identity = workload_identity
+
+        if workload_identity is not None:
+            self.api_key = WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER
             self._api_key_provider = None
+            self._workload_identity_auth = WorkloadIdentityAuth(
+                workload_identity=workload_identity,
+            )
+        else:
+            if api_key is None:
+                api_key = os.environ.get("OPENAI_API_KEY")
+            if callable(api_key):
+                self.api_key = ""
+                self._api_key_provider: Callable[[], str] | None = api_key  # type: ignore[no-redef]
+            else:
+                self.api_key = api_key or ""
+                self._api_key_provider = None
+            self._workload_identity_auth = None
+
+        if admin_api_key is None:
+            admin_api_key = os.environ.get("OPENAI_ADMIN_KEY")
+        self.admin_api_key = admin_api_key
+
+        if (
+            _enforce_credentials
+            and not self.api_key
+            and self._api_key_provider is None
+            and workload_identity is None
+            and self.admin_api_key is None
+        ):
+            raise OpenAIError(
+                "Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable."
+            )
 
         if organization is None:
             organization = os.environ.get("OPENAI_ORG_ID")
@@ -164,6 +213,15 @@ class OpenAI(SyncAPIClient):
             base_url = os.environ.get("OPENAI_BASE_URL")
         if base_url is None:
             base_url = f"https://api.openai.com/v1"
+
+        custom_headers_env = os.environ.get("OPENAI_CUSTOM_HEADERS")
+        if custom_headers_env is not None:
+            parsed: dict[str, str] = {}
+            for line in custom_headers_env.split("\n"):
+                colon = line.find(":")
+                if colon >= 0:
+                    parsed[line[:colon].strip()] = line[colon + 1 :].strip()
+            default_headers = {**parsed, **(default_headers if is_mapping_t(default_headers) else {})}
 
         super().__init__(
             version=__version__,
@@ -279,6 +337,12 @@ class OpenAI(SyncAPIClient):
         return Uploads(self)
 
     @cached_property
+    def admin(self) -> Admin:
+        from .resources.admin import Admin
+
+        return Admin(self)
+
+    @cached_property
     def responses(self) -> Responses:
         from .resources.responses import Responses
 
@@ -335,23 +399,79 @@ class OpenAI(SyncAPIClient):
     def qs(self) -> Querystring:
         return Querystring(array_format="brackets")
 
-    def _refresh_api_key(self) -> None:
-        if self._api_key_provider:
-            self.api_key = self._api_key_provider()
+    def _send_with_auth_retry(
+        self,
+        request: httpx.Request,
+        *,
+        stream: bool,
+        retried: bool = False,
+        **kwargs: Unpack[HttpxSendArgs],
+    ) -> httpx.Response:
+        used_workload_identity_auth = False
+
+        if self._workload_identity_auth is not None:
+            authorization = request.headers.get("Authorization")
+            if authorization == f"Bearer {WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER}":
+                request.headers["Authorization"] = f"Bearer {self._workload_identity_auth.get_token()}"
+                used_workload_identity_auth = True
+
+        response = super()._send_request(request, stream=stream, **kwargs)
+        if (
+            response.status_code == 401
+            and self._workload_identity_auth is not None
+            and used_workload_identity_auth
+            and not retried
+        ):
+            response.close()
+            self._workload_identity_auth.invalidate_token()
+            request.headers["Authorization"] = f"Bearer {self._workload_identity_auth.get_token()}"
+            return self._send_with_auth_retry(request, stream=stream, retried=True, **kwargs)
+
+        return response
 
     @override
-    def _prepare_options(self, options: FinalRequestOptions) -> FinalRequestOptions:
-        self._refresh_api_key()
-        return super()._prepare_options(options)
+    def _send_request(
+        self,
+        request: httpx.Request,
+        *,
+        stream: bool,
+        **kwargs: Unpack[HttpxSendArgs],
+    ) -> httpx.Response:
+        return self._send_with_auth_retry(request, stream=stream, **kwargs)
+
+    @override
+    def _auth_headers(self, security: SecurityOptions) -> dict[str, str]:
+        if security.get("bearer_auth", False):
+            headers = self._bearer_auth
+            if headers:
+                return headers
+
+        if security.get("admin_api_key_auth", False):
+            return self._admin_api_key_auth
+
+        return {}
+
+    @property
+    def _bearer_auth(self) -> dict[str, str]:
+        api_key = self.api_key
+        if not api_key:
+            return {}
+        return {"Authorization": f"Bearer {api_key}"}
 
     @property
     @override
     def auth_headers(self) -> dict[str, str]:
         api_key = self.api_key
-        if not api_key:
-            # if the api key is an empty string, encoding the header will fail
+        if not api_key or api_key == WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER:
             return {}
         return {"Authorization": f"Bearer {api_key}"}
+
+    @property
+    def _admin_api_key_auth(self) -> dict[str, str]:
+        admin_api_key = self.admin_api_key
+        if admin_api_key is None:
+            return {}
+        return {"Authorization": f"Bearer {admin_api_key}"}
 
     @property
     @override
@@ -364,10 +484,34 @@ class OpenAI(SyncAPIClient):
             **self._custom_headers,
         }
 
+    @override
+    def _validate_headers(self, headers: Headers, custom_headers: Headers) -> None:
+        if _has_header(headers, "Authorization") or _has_omitted_header(custom_headers, "Authorization"):
+            return
+
+        raise TypeError(
+            '"Could not resolve authentication method. Expected either api_key or admin_api_key to be set. Or for one of the `Authorization` or `Authorization` headers to be explicitly omitted"'
+        )
+
+    @override
+    def _prepare_options(self, options: FinalRequestOptions) -> FinalRequestOptions:
+        if self._api_key_provider is not None and options.security.get("bearer_auth", False):
+            self._refresh_api_key()
+
+        return super()._prepare_options(options)
+
+    def _refresh_api_key(self) -> str:
+        if self._api_key_provider is not None:
+            self.api_key = self._api_key_provider()
+
+        return self.api_key
+
     def copy(
         self,
         *,
         api_key: str | Callable[[], str] | None = None,
+        admin_api_key: str | None = None,
+        workload_identity: WorkloadIdentity | None = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -380,6 +524,7 @@ class OpenAI(SyncAPIClient):
         set_default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
         set_default_query: Mapping[str, object] | None = None,
+        _enforce_credentials: bool | None = None,
         _extra_kwargs: Mapping[str, Any] = {},
     ) -> Self:
         """
@@ -404,8 +549,11 @@ class OpenAI(SyncAPIClient):
             params = set_default_query
 
         http_client = http_client or self._client
+
         return self.__class__(
             api_key=api_key or self._api_key_provider or self.api_key,
+            admin_api_key=admin_api_key or self.admin_api_key,
+            workload_identity=workload_identity or self.workload_identity,
             organization=organization or self.organization,
             project=project or self.project,
             webhook_secret=webhook_secret or self.webhook_secret,
@@ -416,6 +564,7 @@ class OpenAI(SyncAPIClient):
             max_retries=max_retries if is_given(max_retries) else self.max_retries,
             default_headers=headers,
             default_query=params,
+            _enforce_credentials=True if _enforce_credentials is None else _enforce_credentials,
             **_extra_kwargs,
         )
 
@@ -461,9 +610,12 @@ class OpenAI(SyncAPIClient):
 class AsyncOpenAI(AsyncAPIClient):
     # client options
     api_key: str
+    admin_api_key: str | None
+    workload_identity: WorkloadIdentity | None
     organization: str | None
     project: str | None
     webhook_secret: str | None
+    _workload_identity_auth: WorkloadIdentityAuth | None
 
     websocket_base_url: str | httpx.URL | None
     """Base URL for WebSocket connections.
@@ -477,6 +629,8 @@ class AsyncOpenAI(AsyncAPIClient):
         self,
         *,
         api_key: str | Callable[[], Awaitable[str]] | None = None,
+        admin_api_key: str | None = None,
+        workload_identity: WorkloadIdentity | None = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -499,27 +653,53 @@ class AsyncOpenAI(AsyncAPIClient):
         # outlining your use-case to help us decide if it should be
         # part of our public interface in the future.
         _strict_response_validation: bool = False,
+        _enforce_credentials: bool = True,
     ) -> None:
         """Construct a new async AsyncOpenAI client instance.
 
         This automatically infers the following arguments from their corresponding environment variables if they are not provided:
         - `api_key` from `OPENAI_API_KEY`
+        - `admin_api_key` from `OPENAI_ADMIN_KEY`
         - `organization` from `OPENAI_ORG_ID`
         - `project` from `OPENAI_PROJECT_ID`
         - `webhook_secret` from `OPENAI_WEBHOOK_SECRET`
         """
-        if api_key is None:
-            api_key = os.environ.get("OPENAI_API_KEY")
-        if api_key is None:
-            raise OpenAIError(
-                "The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable"
-            )
-        if callable(api_key):
-            self.api_key = ""
-            self._api_key_provider: Callable[[], Awaitable[str]] | None = api_key
-        else:
-            self.api_key = api_key
+        if api_key is not None and api_key != WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER and workload_identity is not None:
+            raise OpenAIError("The `api_key` and `workload_identity` arguments are mutually exclusive")
+
+        self.workload_identity = workload_identity
+
+        if workload_identity is not None:
+            self.api_key = WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER
             self._api_key_provider = None
+            self._workload_identity_auth = WorkloadIdentityAuth(
+                workload_identity=workload_identity,
+            )
+        else:
+            if api_key is None:
+                api_key = os.environ.get("OPENAI_API_KEY")
+            if callable(api_key):
+                self.api_key = ""
+                self._api_key_provider: Callable[[], Awaitable[str]] | None = api_key  # type: ignore[no-redef]
+            else:
+                self.api_key = api_key or ""
+                self._api_key_provider = None
+            self._workload_identity_auth = None
+
+        if admin_api_key is None:
+            admin_api_key = os.environ.get("OPENAI_ADMIN_KEY")
+        self.admin_api_key = admin_api_key
+
+        if (
+            _enforce_credentials
+            and not self.api_key
+            and self._api_key_provider is None
+            and workload_identity is None
+            and self.admin_api_key is None
+        ):
+            raise OpenAIError(
+                "Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable."
+            )
 
         if organization is None:
             organization = os.environ.get("OPENAI_ORG_ID")
@@ -539,6 +719,15 @@ class AsyncOpenAI(AsyncAPIClient):
             base_url = os.environ.get("OPENAI_BASE_URL")
         if base_url is None:
             base_url = f"https://api.openai.com/v1"
+
+        custom_headers_env = os.environ.get("OPENAI_CUSTOM_HEADERS")
+        if custom_headers_env is not None:
+            parsed: dict[str, str] = {}
+            for line in custom_headers_env.split("\n"):
+                colon = line.find(":")
+                if colon >= 0:
+                    parsed[line[:colon].strip()] = line[colon + 1 :].strip()
+            default_headers = {**parsed, **(default_headers if is_mapping_t(default_headers) else {})}
 
         super().__init__(
             version=__version__,
@@ -654,6 +843,12 @@ class AsyncOpenAI(AsyncAPIClient):
         return AsyncUploads(self)
 
     @cached_property
+    def admin(self) -> AsyncAdmin:
+        from .resources.admin import AsyncAdmin
+
+        return AsyncAdmin(self)
+
+    @cached_property
     def responses(self) -> AsyncResponses:
         from .resources.responses import AsyncResponses
 
@@ -710,23 +905,79 @@ class AsyncOpenAI(AsyncAPIClient):
     def qs(self) -> Querystring:
         return Querystring(array_format="brackets")
 
-    async def _refresh_api_key(self) -> None:
-        if self._api_key_provider:
-            self.api_key = await self._api_key_provider()
+    async def _send_with_auth_retry(
+        self,
+        request: httpx.Request,
+        *,
+        stream: bool,
+        retried: bool = False,
+        **kwargs: Unpack[HttpxSendArgs],
+    ) -> httpx.Response:
+        used_workload_identity_auth = False
+
+        if self._workload_identity_auth is not None:
+            authorization = request.headers.get("Authorization")
+            if authorization == f"Bearer {WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER}":
+                request.headers["Authorization"] = f"Bearer {await self._workload_identity_auth.get_token_async()}"
+                used_workload_identity_auth = True
+
+        response = await super()._send_request(request, stream=stream, **kwargs)
+        if (
+            response.status_code == 401
+            and self._workload_identity_auth is not None
+            and used_workload_identity_auth
+            and not retried
+        ):
+            await response.aclose()
+            self._workload_identity_auth.invalidate_token()
+            request.headers["Authorization"] = f"Bearer {await self._workload_identity_auth.get_token_async()}"
+            return await self._send_with_auth_retry(request, stream=stream, retried=True, **kwargs)
+
+        return response
 
     @override
-    async def _prepare_options(self, options: FinalRequestOptions) -> FinalRequestOptions:
-        await self._refresh_api_key()
-        return await super()._prepare_options(options)
+    async def _send_request(
+        self,
+        request: httpx.Request,
+        *,
+        stream: bool,
+        **kwargs: Unpack[HttpxSendArgs],
+    ) -> httpx.Response:
+        return await self._send_with_auth_retry(request, stream=stream, **kwargs)
+
+    @override
+    def _auth_headers(self, security: SecurityOptions) -> dict[str, str]:
+        if security.get("bearer_auth", False):
+            headers = self._bearer_auth
+            if headers:
+                return headers
+
+        if security.get("admin_api_key_auth", False):
+            return self._admin_api_key_auth
+
+        return {}
+
+    @property
+    def _bearer_auth(self) -> dict[str, str]:
+        api_key = self.api_key
+        if not api_key:
+            return {}
+        return {"Authorization": f"Bearer {api_key}"}
 
     @property
     @override
     def auth_headers(self) -> dict[str, str]:
         api_key = self.api_key
-        if not api_key:
-            # if the api key is an empty string, encoding the header will fail
+        if not api_key or api_key == WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER:
             return {}
         return {"Authorization": f"Bearer {api_key}"}
+
+    @property
+    def _admin_api_key_auth(self) -> dict[str, str]:
+        admin_api_key = self.admin_api_key
+        if admin_api_key is None:
+            return {}
+        return {"Authorization": f"Bearer {admin_api_key}"}
 
     @property
     @override
@@ -739,10 +990,34 @@ class AsyncOpenAI(AsyncAPIClient):
             **self._custom_headers,
         }
 
+    @override
+    def _validate_headers(self, headers: Headers, custom_headers: Headers) -> None:
+        if _has_header(headers, "Authorization") or _has_omitted_header(custom_headers, "Authorization"):
+            return
+
+        raise TypeError(
+            '"Could not resolve authentication method. Expected either api_key or admin_api_key to be set. Or for one of the `Authorization` or `Authorization` headers to be explicitly omitted"'
+        )
+
+    @override
+    async def _prepare_options(self, options: FinalRequestOptions) -> FinalRequestOptions:
+        if self._api_key_provider is not None and options.security.get("bearer_auth", False):
+            await self._refresh_api_key()
+
+        return await super()._prepare_options(options)
+
+    async def _refresh_api_key(self) -> str:
+        if self._api_key_provider is not None:
+            self.api_key = await self._api_key_provider()
+
+        return self.api_key
+
     def copy(
         self,
         *,
         api_key: str | Callable[[], Awaitable[str]] | None = None,
+        admin_api_key: str | None = None,
+        workload_identity: WorkloadIdentity | None = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -755,6 +1030,7 @@ class AsyncOpenAI(AsyncAPIClient):
         set_default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
         set_default_query: Mapping[str, object] | None = None,
+        _enforce_credentials: bool | None = None,
         _extra_kwargs: Mapping[str, Any] = {},
     ) -> Self:
         """
@@ -781,6 +1057,8 @@ class AsyncOpenAI(AsyncAPIClient):
         http_client = http_client or self._client
         return self.__class__(
             api_key=api_key or self._api_key_provider or self.api_key,
+            admin_api_key=admin_api_key or self.admin_api_key,
+            workload_identity=workload_identity or self.workload_identity,
             organization=organization or self.organization,
             project=project or self.project,
             webhook_secret=webhook_secret or self.webhook_secret,
@@ -791,6 +1069,7 @@ class AsyncOpenAI(AsyncAPIClient):
             max_retries=max_retries if is_given(max_retries) else self.max_retries,
             default_headers=headers,
             default_query=params,
+            _enforce_credentials=True if _enforce_credentials is None else _enforce_credentials,
             **_extra_kwargs,
         )
 
@@ -932,6 +1211,12 @@ class OpenAIWithRawResponse:
         from .resources.uploads import UploadsWithRawResponse
 
         return UploadsWithRawResponse(self._client.uploads)
+
+    @cached_property
+    def admin(self) -> admin.AdminWithRawResponse:
+        from .resources.admin import AdminWithRawResponse
+
+        return AdminWithRawResponse(self._client.admin)
 
     @cached_property
     def responses(self) -> responses.ResponsesWithRawResponse:
@@ -1079,6 +1364,12 @@ class AsyncOpenAIWithRawResponse:
         return AsyncUploadsWithRawResponse(self._client.uploads)
 
     @cached_property
+    def admin(self) -> admin.AsyncAdminWithRawResponse:
+        from .resources.admin import AsyncAdminWithRawResponse
+
+        return AsyncAdminWithRawResponse(self._client.admin)
+
+    @cached_property
     def responses(self) -> responses.AsyncResponsesWithRawResponse:
         from .resources.responses import AsyncResponsesWithRawResponse
 
@@ -1224,6 +1515,12 @@ class OpenAIWithStreamedResponse:
         return UploadsWithStreamingResponse(self._client.uploads)
 
     @cached_property
+    def admin(self) -> admin.AdminWithStreamingResponse:
+        from .resources.admin import AdminWithStreamingResponse
+
+        return AdminWithStreamingResponse(self._client.admin)
+
+    @cached_property
     def responses(self) -> responses.ResponsesWithStreamingResponse:
         from .resources.responses import ResponsesWithStreamingResponse
 
@@ -1367,6 +1664,12 @@ class AsyncOpenAIWithStreamedResponse:
         from .resources.uploads import AsyncUploadsWithStreamingResponse
 
         return AsyncUploadsWithStreamingResponse(self._client.uploads)
+
+    @cached_property
+    def admin(self) -> admin.AsyncAdminWithStreamingResponse:
+        from .resources.admin import AsyncAdminWithStreamingResponse
+
+        return AsyncAdminWithStreamingResponse(self._client.admin)
 
     @cached_property
     def responses(self) -> responses.AsyncResponsesWithStreamingResponse:

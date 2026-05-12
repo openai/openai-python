@@ -184,7 +184,7 @@ class ResponsesClientEvent(BaseModel):
     [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
     """
 
-    prompt_cache_retention: Optional[Literal["in-memory", "24h"]] = None
+    prompt_cache_retention: Optional[Literal["in_memory", "24h"]] = None
     """The retention policy for the prompt cache.
 
     Set to `24h` to enable extended prompt caching, which keeps cached prefixes
@@ -293,8 +293,9 @@ class ResponsesClientEvent(BaseModel):
 
     top_logprobs: Optional[int] = None
     """
-    An integer between 0 and 20 specifying the number of most likely tokens to
-    return at each token position, each with an associated log probability.
+    An integer between 0 and 20 specifying the maximum number of most likely tokens
+    to return at each token position, each with an associated log probability. In
+    some cases, the number of returned tokens may be fewer than requested.
     """
 
     top_p: Optional[float] = None

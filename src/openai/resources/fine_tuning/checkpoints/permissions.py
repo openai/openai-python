@@ -9,7 +9,7 @@ import httpx
 
 from .... import _legacy_response
 from ...._types import Body, Omit, Query, Headers, NotGiven, SequenceNotStr, omit, not_given
-from ...._utils import maybe_transform, async_maybe_transform
+from ...._utils import path_template, maybe_transform, async_maybe_transform
 from ...._compat import cached_property
 from ...._resource import SyncAPIResource, AsyncAPIResource
 from ...._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -84,11 +84,18 @@ class Permissions(SyncAPIResource):
                 f"Expected a non-empty value for `fine_tuned_model_checkpoint` but received {fine_tuned_model_checkpoint!r}"
             )
         return self._get_api_list(
-            f"/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions",
+            path_template(
+                "/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions",
+                fine_tuned_model_checkpoint=fine_tuned_model_checkpoint,
+            ),
             page=SyncPage[PermissionCreateResponse],
             body=maybe_transform({"project_ids": project_ids}, permission_create_params.PermissionCreateParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             model=PermissionCreateResponse,
             method="post",
@@ -138,7 +145,10 @@ class Permissions(SyncAPIResource):
                 f"Expected a non-empty value for `fine_tuned_model_checkpoint` but received {fine_tuned_model_checkpoint!r}"
             )
         return self._get(
-            f"/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions",
+            path_template(
+                "/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions",
+                fine_tuned_model_checkpoint=fine_tuned_model_checkpoint,
+            ),
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -153,6 +163,7 @@ class Permissions(SyncAPIResource):
                     },
                     permission_retrieve_params.PermissionRetrieveParams,
                 ),
+                security={"bearer_auth": True},
             ),
             cast_to=PermissionRetrieveResponse,
         )
@@ -200,7 +211,10 @@ class Permissions(SyncAPIResource):
                 f"Expected a non-empty value for `fine_tuned_model_checkpoint` but received {fine_tuned_model_checkpoint!r}"
             )
         return self._get_api_list(
-            f"/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions",
+            path_template(
+                "/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions",
+                fine_tuned_model_checkpoint=fine_tuned_model_checkpoint,
+            ),
             page=SyncConversationCursorPage[PermissionListResponse],
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -216,6 +230,7 @@ class Permissions(SyncAPIResource):
                     },
                     permission_list_params.PermissionListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=PermissionListResponse,
         )
@@ -254,9 +269,17 @@ class Permissions(SyncAPIResource):
         if not permission_id:
             raise ValueError(f"Expected a non-empty value for `permission_id` but received {permission_id!r}")
         return self._delete(
-            f"/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions/{permission_id}",
+            path_template(
+                "/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions/{permission_id}",
+                fine_tuned_model_checkpoint=fine_tuned_model_checkpoint,
+                permission_id=permission_id,
+            ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=PermissionDeleteResponse,
         )
@@ -318,11 +341,18 @@ class AsyncPermissions(AsyncAPIResource):
                 f"Expected a non-empty value for `fine_tuned_model_checkpoint` but received {fine_tuned_model_checkpoint!r}"
             )
         return self._get_api_list(
-            f"/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions",
+            path_template(
+                "/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions",
+                fine_tuned_model_checkpoint=fine_tuned_model_checkpoint,
+            ),
             page=AsyncPage[PermissionCreateResponse],
             body=maybe_transform({"project_ids": project_ids}, permission_create_params.PermissionCreateParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             model=PermissionCreateResponse,
             method="post",
@@ -372,7 +402,10 @@ class AsyncPermissions(AsyncAPIResource):
                 f"Expected a non-empty value for `fine_tuned_model_checkpoint` but received {fine_tuned_model_checkpoint!r}"
             )
         return await self._get(
-            f"/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions",
+            path_template(
+                "/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions",
+                fine_tuned_model_checkpoint=fine_tuned_model_checkpoint,
+            ),
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -387,6 +420,7 @@ class AsyncPermissions(AsyncAPIResource):
                     },
                     permission_retrieve_params.PermissionRetrieveParams,
                 ),
+                security={"bearer_auth": True},
             ),
             cast_to=PermissionRetrieveResponse,
         )
@@ -434,7 +468,10 @@ class AsyncPermissions(AsyncAPIResource):
                 f"Expected a non-empty value for `fine_tuned_model_checkpoint` but received {fine_tuned_model_checkpoint!r}"
             )
         return self._get_api_list(
-            f"/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions",
+            path_template(
+                "/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions",
+                fine_tuned_model_checkpoint=fine_tuned_model_checkpoint,
+            ),
             page=AsyncConversationCursorPage[PermissionListResponse],
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -450,6 +487,7 @@ class AsyncPermissions(AsyncAPIResource):
                     },
                     permission_list_params.PermissionListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=PermissionListResponse,
         )
@@ -488,9 +526,17 @@ class AsyncPermissions(AsyncAPIResource):
         if not permission_id:
             raise ValueError(f"Expected a non-empty value for `permission_id` but received {permission_id!r}")
         return await self._delete(
-            f"/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions/{permission_id}",
+            path_template(
+                "/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions/{permission_id}",
+                fine_tuned_model_checkpoint=fine_tuned_model_checkpoint,
+                permission_id=permission_id,
+            ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=PermissionDeleteResponse,
         )

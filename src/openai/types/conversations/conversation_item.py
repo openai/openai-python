@@ -7,6 +7,7 @@ from .message import Message
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
 from ..responses.response_reasoning_item import ResponseReasoningItem
+from ..responses.response_compaction_item import ResponseCompactionItem
 from ..responses.response_custom_tool_call import ResponseCustomToolCall
 from ..responses.response_tool_search_call import ResponseToolSearchCall
 from ..responses.response_computer_tool_call import ResponseComputerToolCall
@@ -234,6 +235,7 @@ ConversationItem: TypeAlias = Annotated[
         ResponseToolSearchCall,
         ResponseToolSearchOutputItem,
         ResponseReasoningItem,
+        ResponseCompactionItem,
         ResponseCodeInterpreterToolCall,
         LocalShellCall,
         LocalShellCallOutput,
