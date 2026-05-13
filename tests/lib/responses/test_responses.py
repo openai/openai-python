@@ -1,13 +1,19 @@
 from __future__ import annotations
 
+import gc
+
 from typing_extensions import TypeVar
 
 import pytest
+import pydantic
 from respx import MockRouter
 from inline_snapshot import snapshot
 
 from openai import OpenAI, AsyncOpenAI
 from openai._utils import assert_signatures_in_sync
+from openai._models import construct_type_unchecked
+from openai.types.responses import Response
+from openai.lib._parsing._responses import parse_response
 
 from ...conftest import base_url
 from ..snapshots import make_snapshot_request
@@ -60,4 +66,92 @@ def test_parse_method_definition_in_sync(sync: bool, client: OpenAI, async_clien
         checking_client.responses.create,
         checking_client.responses.parse,
         exclude_params={"tools"},
+    )
+
+
+_MINIMAL_RESPONSE_DICT = {
+    "id": "resp_test",
+    "object": "response",
+    "created_at": 1700000000,
+    "status": "completed",
+    "model": "gpt-4o-mini",
+    "output": [
+        {
+            "id": "msg_test",
+            "type": "message",
+            "status": "completed",
+            "role": "assistant",
+            "content": [
+                {
+                    "type": "output_text",
+                    "text": '{"name": "Birthday Party", "date": "2026-06-01"}',
+                    "annotations": [],
+                    "logprobs": [],
+                }
+            ],
+        }
+    ],
+    "parallel_tool_calls": True,
+    "reasoning": {"effort": None, "summary": None},
+    "text": {"format": {"type": "text"}, "verbosity": "medium"},
+    "tool_choice": "auto",
+    "tools": [],
+    "truncation": "disabled",
+    "usage": {
+        "input_tokens": 10,
+        "input_tokens_details": {"cached_tokens": 0},
+        "output_tokens": 10,
+        "output_tokens_details": {"reasoning_tokens": 0},
+        "total_tokens": 20,
+    },
+}
+
+
+class _CalendarEvent(pydantic.BaseModel):
+    name: str
+    date: str
+
+
+def test_parse_response_structured_output_correctness() -> None:
+    """parse_response returns correctly-typed and correctly-valued output."""
+    response = construct_type_unchecked(type_=Response, value=_MINIMAL_RESPONSE_DICT)
+
+    parsed = parse_response(text_format=_CalendarEvent, input_tools=None, response=response)
+
+    assert len(parsed.output) == 1
+    msg = parsed.output[0]
+    assert msg.type == "message"
+    content = msg.content[0]
+    assert content.type == "output_text"
+    assert isinstance(content.parsed, _CalendarEvent)
+    assert content.parsed.name == "Birthday Party"
+    assert content.parsed.date == "2026-06-01"
+
+
+def test_parse_response_no_pydantic_schema_leak() -> None:
+    """parse_response must not allocate new SchemaValidator objects on every call.
+
+    Using ParsedResponse[free_TypeVar] prevents Pydantic from caching the schema,
+    causing a new SchemaValidator/SchemaSerializer per call (issue #3084).
+    """
+    response = construct_type_unchecked(type_=Response, value=_MINIMAL_RESPONSE_DICT)
+
+    # One warm-up call triggers the initial (and only legitimate) schema build.
+    parse_response(text_format=_CalendarEvent, input_tools=None, response=response)
+
+    def _count_validators() -> int:
+        return sum(1 for obj in gc.get_objects() if type(obj).__name__ == "SchemaValidator")
+
+    gc.collect()
+    before = _count_validators()
+
+    for _ in range(50):
+        parse_response(text_format=_CalendarEvent, input_tools=None, response=response)
+
+    gc.collect()
+    after = _count_validators()
+
+    assert after == before, (
+        f"parse_response leaked {after - before} SchemaValidator object(s) over 50 calls. "
+        "The Pydantic schema for ParsedResponse and friends must be built once and cached."
     )
