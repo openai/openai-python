@@ -1018,6 +1018,7 @@ def accumulate_delta(acc: dict[object, object], delta: dict[object, object]) -> 
                 isinstance(x, (str, int, float)) for x in delta_value
             ):
                 acc_value.extend(delta_value)
+                acc[key] = acc_value
                 continue
 
             for delta_entry in delta_value:

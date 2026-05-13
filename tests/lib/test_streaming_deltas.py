@@ -60,6 +60,19 @@ def test_accumulate_delta_merges_duplicate_index_entries_in_initial_list(
     assert json.loads(arguments) == {"city": "London"}
 
 
+@pytest.mark.parametrize("accumulate_delta", [accumulate_chat_delta, accumulate_assistant_delta])
+@pytest.mark.parametrize("initial_acc", [{}, {"content": None}])
+def test_accumulate_delta_preserves_initial_primitive_lists(
+    accumulate_delta: AccumulateDelta,
+    initial_acc: dict[object, object],
+) -> None:
+    acc = deepcopy(initial_acc)
+
+    accumulate_delta(acc, {"content": ["hello", " ", "world"]})
+
+    assert acc["content"] == ["hello", " ", "world"]
+
+
 def test_chat_stream_state_merges_duplicate_tool_call_indexes_in_first_chunk() -> None:
     state = ChatCompletionStreamState[object]()
 
