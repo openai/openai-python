@@ -185,6 +185,21 @@ class ImageGenerationCall(TypedDict, total=False):
     type: Required[Literal["image_generation_call"]]
     """The type of the image generation call. Always `image_generation_call`."""
 
+    background: Optional[Literal["transparent", "opaque", "auto"]]
+    """The background setting used for the generated image."""
+
+    output_format: Optional[Literal["png", "webp", "jpeg"]]
+    """The output format of the generated image."""
+
+    quality: Optional[Literal["low", "medium", "high", "auto"]]
+    """The quality setting used for the generated image."""
+
+    revised_prompt: Optional[str]
+    """The revised prompt that was used to generate the image, if applicable."""
+
+    size: Optional[Literal["1024x1024", "1024x1536", "1536x1024", "auto"]]
+    """The size of the generated image."""
+
 
 class LocalShellCallAction(TypedDict, total=False):
     """Execute a shell command on the server."""
