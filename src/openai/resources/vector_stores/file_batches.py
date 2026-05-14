@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Dict, Iterable, Optional
+from typing import Any, Dict, Iterable, Optional
 from typing_extensions import Union, Literal
 from concurrent.futures import Future, ThreadPoolExecutor, as_completed
 
@@ -15,6 +15,7 @@ from ...types import FileChunkingStrategyParam
 from ..._types import Body, Omit, Query, Headers, NotGiven, FileTypes, SequenceNotStr, omit, not_given
 from ..._utils import is_given, path_template, maybe_transform, async_maybe_transform
 from ..._compat import cached_property
+from ..._models import construct_type_unchecked
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from ...pagination import SyncCursorPage, AsyncCursorPage
@@ -26,6 +27,26 @@ from ...types.vector_stores.vector_store_file import VectorStoreFile
 from ...types.vector_stores.vector_store_file_batch import VectorStoreFileBatch
 
 __all__ = ["FileBatches", "AsyncFileBatches"]
+
+
+def _coerce_vector_store_poll_response(
+    data: dict[str, Any],
+    *,
+    batch_id: str,
+    vector_store_id: str,
+) -> VectorStoreFileBatch | None:
+    if data.get("object") != "vector_store" or data.get("id") != vector_store_id:
+        return None
+
+    return construct_type_unchecked(
+        value={
+            **data,
+            "id": batch_id,
+            "object": "vector_store.files_batch",
+            "vector_store_id": vector_store_id,
+        },
+        type_=VectorStoreFileBatch,
+    )
 
 
 class FileBatches(SyncAPIResource):
@@ -351,7 +372,11 @@ class FileBatches(SyncAPIResource):
                 extra_headers=headers,
             )
 
-            batch = response.parse()
+            data = response.parse(to=dict)
+            batch = _coerce_vector_store_poll_response(data, batch_id=batch_id, vector_store_id=vector_store_id)
+            if batch is None:
+                batch = response.parse()
+
             if batch.file_counts.in_progress > 0:
                 if not is_given(poll_interval_ms):
                     from_header = response.headers.get("openai-poll-after-ms")
@@ -739,7 +764,11 @@ class AsyncFileBatches(AsyncAPIResource):
                 extra_headers=headers,
             )
 
-            batch = response.parse()
+            data = response.parse(to=dict)
+            batch = _coerce_vector_store_poll_response(data, batch_id=batch_id, vector_store_id=vector_store_id)
+            if batch is None:
+                batch = response.parse()
+
             if batch.file_counts.in_progress > 0:
                 if not is_given(poll_interval_ms):
                     from_header = response.headers.get("openai-poll-after-ms")

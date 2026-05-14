@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 from typing import Any, cast
 
+import httpx
 import pytest
 
 from openai import OpenAI, AsyncOpenAI
@@ -462,3 +463,58 @@ def test_create_and_poll_method_in_sync(sync: bool, client: OpenAI, async_client
         checking_client.vector_stores.file_batches.create,
         checking_client.vector_stores.file_batches.create_and_poll,
     )
+
+
+def _completed_vector_store_response() -> dict[str, object]:
+    return {
+        "id": "vs_abc123",
+        "created_at": 1761991501,
+        "file_counts": {
+            "cancelled": 0,
+            "completed": 1,
+            "failed": 0,
+            "in_progress": 0,
+            "total": 1,
+        },
+        "object": "vector_store",
+        "status": "completed",
+        "vector_store_id": None,
+    }
+
+
+def test_poll_coerces_completed_vector_store_response() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.path == "/vector_stores/vs_abc123/file_batches/vsfb_abc123"
+        return httpx.Response(200, json=_completed_vector_store_response())
+
+    with OpenAI(
+        api_key="My API Key",
+        base_url=base_url,
+        http_client=httpx.Client(transport=httpx.MockTransport(handler)),
+        _strict_response_validation=True,
+    ) as client:
+        file_batch = client.vector_stores.file_batches.poll(batch_id="vsfb_abc123", vector_store_id="vs_abc123")
+
+    assert_matches_type(VectorStoreFileBatch, file_batch, path=["response"])
+    assert file_batch.id == "vsfb_abc123"
+    assert file_batch.vector_store_id == "vs_abc123"
+
+
+async def test_async_poll_coerces_completed_vector_store_response() -> None:
+    async def handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.path == "/vector_stores/vs_abc123/file_batches/vsfb_abc123"
+        return httpx.Response(200, json=_completed_vector_store_response())
+
+    async with AsyncOpenAI(
+        api_key="My API Key",
+        base_url=base_url,
+        http_client=httpx.AsyncClient(transport=httpx.MockTransport(handler)),
+        _strict_response_validation=True,
+    ) as async_client:
+        file_batch = await async_client.vector_stores.file_batches.poll(
+            batch_id="vsfb_abc123", vector_store_id="vs_abc123"
+        )
+
+    assert_matches_type(VectorStoreFileBatch, file_batch, path=["response"])
+    assert file_batch.id == "vsfb_abc123"
+    assert file_batch.vector_store_id == "vs_abc123"
