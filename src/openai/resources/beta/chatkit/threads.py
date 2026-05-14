@@ -72,7 +72,11 @@ class Threads(SyncAPIResource):
         return self._get(
             path_template("/chatkit/threads/{thread_id}", thread_id=thread_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ChatKitThread,
         )
@@ -136,6 +140,7 @@ class Threads(SyncAPIResource):
                     },
                     thread_list_params.ThreadListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=ChatKitThread,
         )
@@ -169,7 +174,11 @@ class Threads(SyncAPIResource):
         return self._delete(
             path_template("/chatkit/threads/{thread_id}", thread_id=thread_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ThreadDeleteResponse,
         )
@@ -231,6 +240,7 @@ class Threads(SyncAPIResource):
                     },
                     thread_list_items_params.ThreadListItemsParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=cast(Any, Data),  # Union types cannot be passed in as arguments in the type system
         )
@@ -285,7 +295,11 @@ class AsyncThreads(AsyncAPIResource):
         return await self._get(
             path_template("/chatkit/threads/{thread_id}", thread_id=thread_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ChatKitThread,
         )
@@ -349,6 +363,7 @@ class AsyncThreads(AsyncAPIResource):
                     },
                     thread_list_params.ThreadListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=ChatKitThread,
         )
@@ -382,7 +397,11 @@ class AsyncThreads(AsyncAPIResource):
         return await self._delete(
             path_template("/chatkit/threads/{thread_id}", thread_id=thread_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ThreadDeleteResponse,
         )
@@ -444,6 +463,7 @@ class AsyncThreads(AsyncAPIResource):
                     },
                     thread_list_items_params.ThreadListItemsParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=cast(Any, Data),  # Union types cannot be passed in as arguments in the type system
         )

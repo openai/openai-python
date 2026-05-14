@@ -1,6 +1,6 @@
 [project]
 name = "openai"
-version = "2.33.0"
+version = "2.36.0"
 description = "The official Python library for the openai API"
 dynamic = ["readme"]
 license = "Apache-2.0"
@@ -41,9 +41,6 @@ classifiers = [
 [project.urls]
 Homepage = "https://github.com/openai/openai-python"
 Repository = "https://github.com/openai/openai-python"
-
-[project.scripts]
-openai = "openai.cli:main"
 
 [project.optional-dependencies]
 aiohttp = ["aiohttp", "httpx_aiohttp>=0.1.9"]

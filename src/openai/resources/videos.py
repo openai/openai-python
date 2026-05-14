@@ -19,8 +19,9 @@ from ..types import (
     video_create_character_params,
     video_download_content_params,
 )
+from .._files import deepcopy_with_paths
 from .._types import Body, Omit, Query, Headers, NotGiven, FileTypes, omit, not_given
-from .._utils import extract_files, path_template, maybe_transform, deepcopy_minimal, async_maybe_transform
+from .._utils import extract_files, path_template, maybe_transform, async_maybe_transform
 from .._compat import cached_property
 from .._resource import SyncAPIResource, AsyncAPIResource
 from .._response import (
@@ -104,14 +105,15 @@ class Videos(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        body = deepcopy_minimal(
+        body = deepcopy_with_paths(
             {
                 "prompt": prompt,
                 "input_reference": input_reference,
                 "model": model,
                 "seconds": seconds,
                 "size": size,
-            }
+            },
+            [["input_reference"]],
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["input_reference"]])
         # It should be noted that the actual Content-Type header that will be
@@ -123,7 +125,11 @@ class Videos(SyncAPIResource):
             body=maybe_transform(body, video_create_params.VideoCreateParams),
             files=files,
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Video,
         )
@@ -229,7 +235,11 @@ class Videos(SyncAPIResource):
         return self._get(
             path_template("/videos/{video_id}", video_id=video_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Video,
         )
@@ -282,6 +292,7 @@ class Videos(SyncAPIResource):
                     },
                     video_list_params.VideoListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=Video,
         )
@@ -314,7 +325,11 @@ class Videos(SyncAPIResource):
         return self._delete(
             path_template("/videos/{video_id}", video_id=video_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VideoDeleteResponse,
         )
@@ -347,11 +362,12 @@ class Videos(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        body = deepcopy_minimal(
+        body = deepcopy_with_paths(
             {
                 "name": name,
                 "video": video,
-            }
+            },
+            [["video"]],
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["video"]])
         # It should be noted that the actual Content-Type header that will be
@@ -363,7 +379,11 @@ class Videos(SyncAPIResource):
             body=maybe_transform(body, video_create_character_params.VideoCreateCharacterParams),
             files=files,
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VideoCreateCharacterResponse,
         )
@@ -407,6 +427,7 @@ class Videos(SyncAPIResource):
                 extra_body=extra_body,
                 timeout=timeout,
                 query=maybe_transform({"variant": variant}, video_download_content_params.VideoDownloadContentParams),
+                security={"bearer_auth": True},
             ),
             cast_to=_legacy_response.HttpxBinaryResponseContent,
         )
@@ -440,11 +461,12 @@ class Videos(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        body = deepcopy_minimal(
+        body = deepcopy_with_paths(
             {
                 "prompt": prompt,
                 "video": video,
-            }
+            },
+            [["video"]],
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["video"]])
         # It should be noted that the actual Content-Type header that will be
@@ -456,7 +478,11 @@ class Videos(SyncAPIResource):
             body=maybe_transform(body, video_edit_params.VideoEditParams),
             files=files,
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Video,
         )
@@ -493,12 +519,13 @@ class Videos(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        body = deepcopy_minimal(
+        body = deepcopy_with_paths(
             {
                 "prompt": prompt,
                 "seconds": seconds,
                 "video": video,
-            }
+            },
+            [["video"]],
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["video"]])
         # It should be noted that the actual Content-Type header that will be
@@ -510,7 +537,11 @@ class Videos(SyncAPIResource):
             body=maybe_transform(body, video_extend_params.VideoExtendParams),
             files=files,
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Video,
         )
@@ -543,7 +574,11 @@ class Videos(SyncAPIResource):
         return self._get(
             path_template("/videos/characters/{character_id}", character_id=character_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VideoGetCharacterResponse,
         )
@@ -580,7 +615,11 @@ class Videos(SyncAPIResource):
             path_template("/videos/{video_id}/remix", video_id=video_id),
             body=maybe_transform({"prompt": prompt}, video_remix_params.VideoRemixParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Video,
         )
@@ -645,14 +684,15 @@ class AsyncVideos(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        body = deepcopy_minimal(
+        body = deepcopy_with_paths(
             {
                 "prompt": prompt,
                 "input_reference": input_reference,
                 "model": model,
                 "seconds": seconds,
                 "size": size,
-            }
+            },
+            [["input_reference"]],
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["input_reference"]])
         # It should be noted that the actual Content-Type header that will be
@@ -664,7 +704,11 @@ class AsyncVideos(AsyncAPIResource):
             body=await async_maybe_transform(body, video_create_params.VideoCreateParams),
             files=files,
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Video,
         )
@@ -770,7 +814,11 @@ class AsyncVideos(AsyncAPIResource):
         return await self._get(
             path_template("/videos/{video_id}", video_id=video_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Video,
         )
@@ -823,6 +871,7 @@ class AsyncVideos(AsyncAPIResource):
                     },
                     video_list_params.VideoListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=Video,
         )
@@ -855,7 +904,11 @@ class AsyncVideos(AsyncAPIResource):
         return await self._delete(
             path_template("/videos/{video_id}", video_id=video_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VideoDeleteResponse,
         )
@@ -888,11 +941,12 @@ class AsyncVideos(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        body = deepcopy_minimal(
+        body = deepcopy_with_paths(
             {
                 "name": name,
                 "video": video,
-            }
+            },
+            [["video"]],
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["video"]])
         # It should be noted that the actual Content-Type header that will be
@@ -904,7 +958,11 @@ class AsyncVideos(AsyncAPIResource):
             body=await async_maybe_transform(body, video_create_character_params.VideoCreateCharacterParams),
             files=files,
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VideoCreateCharacterResponse,
         )
@@ -950,6 +1008,7 @@ class AsyncVideos(AsyncAPIResource):
                 query=await async_maybe_transform(
                     {"variant": variant}, video_download_content_params.VideoDownloadContentParams
                 ),
+                security={"bearer_auth": True},
             ),
             cast_to=_legacy_response.HttpxBinaryResponseContent,
         )
@@ -983,11 +1042,12 @@ class AsyncVideos(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        body = deepcopy_minimal(
+        body = deepcopy_with_paths(
             {
                 "prompt": prompt,
                 "video": video,
-            }
+            },
+            [["video"]],
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["video"]])
         # It should be noted that the actual Content-Type header that will be
@@ -999,7 +1059,11 @@ class AsyncVideos(AsyncAPIResource):
             body=await async_maybe_transform(body, video_edit_params.VideoEditParams),
             files=files,
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Video,
         )
@@ -1036,12 +1100,13 @@ class AsyncVideos(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        body = deepcopy_minimal(
+        body = deepcopy_with_paths(
             {
                 "prompt": prompt,
                 "seconds": seconds,
                 "video": video,
-            }
+            },
+            [["video"]],
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["video"]])
         # It should be noted that the actual Content-Type header that will be
@@ -1053,7 +1118,11 @@ class AsyncVideos(AsyncAPIResource):
             body=await async_maybe_transform(body, video_extend_params.VideoExtendParams),
             files=files,
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Video,
         )
@@ -1086,7 +1155,11 @@ class AsyncVideos(AsyncAPIResource):
         return await self._get(
             path_template("/videos/characters/{character_id}", character_id=character_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VideoGetCharacterResponse,
         )
@@ -1123,7 +1196,11 @@ class AsyncVideos(AsyncAPIResource):
             path_template("/videos/{video_id}/remix", video_id=video_id),
             body=await async_maybe_transform({"prompt": prompt}, video_remix_params.VideoRemixParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Video,
         )

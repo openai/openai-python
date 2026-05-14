@@ -3,8 +3,8 @@ from __future__ import annotations
 import io
 import os
 import pathlib
-from typing import overload
-from typing_extensions import TypeGuard
+from typing import Sequence, cast, overload
+from typing_extensions import TypeVar, TypeGuard
 
 import anyio
 
@@ -17,7 +17,9 @@ from ._types import (
     HttpxFileContent,
     HttpxRequestFiles,
 )
-from ._utils import is_tuple_t, is_mapping_t, is_sequence_t
+from ._utils import is_list, is_mapping, is_tuple_t, is_mapping_t, is_sequence_t
+
+_T = TypeVar("_T")
 
 
 def is_base64_file_input(obj: object) -> TypeGuard[Base64FileInput]:
@@ -121,3 +123,51 @@ async def async_read_file_content(file: FileContent) -> HttpxFileContent:
         return await anyio.Path(file).read_bytes()
 
     return file
+
+
+def deepcopy_with_paths(item: _T, paths: Sequence[Sequence[str]]) -> _T:
+    """Copy only the containers along the given paths.
+
+    Used to guard against mutation by extract_files without copying the entire structure.
+    Only dicts and lists that lie on a path are copied; everything else
+    is returned by reference.
+
+    For example, given paths=[["foo", "files", "file"]] and the structure:
+        {
+            "foo": {
+                "bar": {"baz": {}},
+                "files": {"file": <content>}
+            }
+        }
+    The root dict, "foo", and "files" are copied (they lie on the path).
+    "bar" and "baz" are returned by reference (off the path).
+    """
+    return _deepcopy_with_paths(item, paths, 0)
+
+
+def _deepcopy_with_paths(item: _T, paths: Sequence[Sequence[str]], index: int) -> _T:
+    if not paths:
+        return item
+    if is_mapping(item):
+        key_to_paths: dict[str, list[Sequence[str]]] = {}
+        for path in paths:
+            if index < len(path):
+                key_to_paths.setdefault(path[index], []).append(path)
+
+        # if no path continues through this mapping, it won't be mutated and copying it is redundant
+        if not key_to_paths:
+            return item
+
+        result = dict(item)
+        for key, subpaths in key_to_paths.items():
+            if key in result:
+                result[key] = _deepcopy_with_paths(result[key], subpaths, index + 1)
+        return cast(_T, result)
+    if is_list(item):
+        array_paths = [path for path in paths if index < len(path) and path[index] == "<array>"]
+
+        # if no path expects a list here, nothing will be mutated inside it - return by reference
+        if not array_paths:
+            return cast(_T, item)
+        return cast(_T, [_deepcopy_with_paths(entry, array_paths, index + 1) for entry in item])
+    return item

@@ -100,7 +100,11 @@ class Sessions(SyncAPIResource):
                 session_create_params.SessionCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ChatSession,
         )
@@ -136,7 +140,11 @@ class Sessions(SyncAPIResource):
         return self._post(
             path_template("/chatkit/sessions/{session_id}/cancel", session_id=session_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ChatSession,
         )
@@ -215,7 +223,11 @@ class AsyncSessions(AsyncAPIResource):
                 session_create_params.SessionCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ChatSession,
         )
@@ -251,7 +263,11 @@ class AsyncSessions(AsyncAPIResource):
         return await self._post(
             path_template("/chatkit/sessions/{session_id}/cancel", session_id=session_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ChatSession,
         )

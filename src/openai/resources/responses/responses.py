@@ -344,8 +344,9 @@ class Responses(SyncAPIResource):
                 [function calling](https://platform.openai.com/docs/guides/function-calling).
                 You can also use custom tools to call your own code.
 
-          top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
-              return at each token position, each with an associated log probability.
+          top_logprobs: An integer between 0 and 20 specifying the maximum number of most likely tokens
+              to return at each token position, each with an associated log probability. In
+              some cases, the number of returned tokens may be fewer than requested.
 
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
               model considers the results of the tokens with top_p probability mass. So 0.1
@@ -593,8 +594,9 @@ class Responses(SyncAPIResource):
                 [function calling](https://platform.openai.com/docs/guides/function-calling).
                 You can also use custom tools to call your own code.
 
-          top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
-              return at each token position, each with an associated log probability.
+          top_logprobs: An integer between 0 and 20 specifying the maximum number of most likely tokens
+              to return at each token position, each with an associated log probability. In
+              some cases, the number of returned tokens may be fewer than requested.
 
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
               model considers the results of the tokens with top_p probability mass. So 0.1
@@ -842,8 +844,9 @@ class Responses(SyncAPIResource):
                 [function calling](https://platform.openai.com/docs/guides/function-calling).
                 You can also use custom tools to call your own code.
 
-          top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
-              return at each token position, each with an associated log probability.
+          top_logprobs: An integer between 0 and 20 specifying the maximum number of most likely tokens
+              to return at each token position, each with an associated log probability. In
+              some cases, the number of returned tokens may be fewer than requested.
 
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
               model considers the results of the tokens with top_p probability mass. So 0.1
@@ -953,7 +956,11 @@ class Responses(SyncAPIResource):
                 else response_create_params.ResponseCreateParamsNonStreaming,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Response,
             stream=stream or False,
@@ -1271,6 +1278,7 @@ class Responses(SyncAPIResource):
                 extra_body=extra_body,
                 timeout=timeout,
                 post_parser=parser,
+                security={"bearer_auth": True},
             ),
             # we turn the `Response` instance into a `ParsedResponse`
             # in the `parser` function above
@@ -1505,6 +1513,7 @@ class Responses(SyncAPIResource):
                     },
                     response_retrieve_params.ResponseRetrieveParams,
                 ),
+                security={"bearer_auth": True},
             ),
             cast_to=Response,
             stream=stream or False,
@@ -1540,7 +1549,11 @@ class Responses(SyncAPIResource):
         return self._delete(
             path_template("/responses/{response_id}", response_id=response_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=NoneType,
         )
@@ -1576,7 +1589,11 @@ class Responses(SyncAPIResource):
         return self._post(
             path_template("/responses/{response_id}/cancel", response_id=response_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Response,
         )
@@ -1748,7 +1765,11 @@ class Responses(SyncAPIResource):
                 response_compact_params.ResponseCompactParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=CompactedResponse,
         )
@@ -2025,8 +2046,9 @@ class AsyncResponses(AsyncAPIResource):
                 [function calling](https://platform.openai.com/docs/guides/function-calling).
                 You can also use custom tools to call your own code.
 
-          top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
-              return at each token position, each with an associated log probability.
+          top_logprobs: An integer between 0 and 20 specifying the maximum number of most likely tokens
+              to return at each token position, each with an associated log probability. In
+              some cases, the number of returned tokens may be fewer than requested.
 
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
               model considers the results of the tokens with top_p probability mass. So 0.1
@@ -2274,8 +2296,9 @@ class AsyncResponses(AsyncAPIResource):
                 [function calling](https://platform.openai.com/docs/guides/function-calling).
                 You can also use custom tools to call your own code.
 
-          top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
-              return at each token position, each with an associated log probability.
+          top_logprobs: An integer between 0 and 20 specifying the maximum number of most likely tokens
+              to return at each token position, each with an associated log probability. In
+              some cases, the number of returned tokens may be fewer than requested.
 
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
               model considers the results of the tokens with top_p probability mass. So 0.1
@@ -2523,8 +2546,9 @@ class AsyncResponses(AsyncAPIResource):
                 [function calling](https://platform.openai.com/docs/guides/function-calling).
                 You can also use custom tools to call your own code.
 
-          top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
-              return at each token position, each with an associated log probability.
+          top_logprobs: An integer between 0 and 20 specifying the maximum number of most likely tokens
+              to return at each token position, each with an associated log probability. In
+              some cases, the number of returned tokens may be fewer than requested.
 
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
               model considers the results of the tokens with top_p probability mass. So 0.1
@@ -2634,7 +2658,11 @@ class AsyncResponses(AsyncAPIResource):
                 else response_create_params.ResponseCreateParamsNonStreaming,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Response,
             stream=stream or False,
@@ -2956,6 +2984,7 @@ class AsyncResponses(AsyncAPIResource):
                 extra_body=extra_body,
                 timeout=timeout,
                 post_parser=parser,
+                security={"bearer_auth": True},
             ),
             # we turn the `Response` instance into a `ParsedResponse`
             # in the `parser` function above
@@ -3190,6 +3219,7 @@ class AsyncResponses(AsyncAPIResource):
                     },
                     response_retrieve_params.ResponseRetrieveParams,
                 ),
+                security={"bearer_auth": True},
             ),
             cast_to=Response,
             stream=stream or False,
@@ -3225,7 +3255,11 @@ class AsyncResponses(AsyncAPIResource):
         return await self._delete(
             path_template("/responses/{response_id}", response_id=response_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=NoneType,
         )
@@ -3261,7 +3295,11 @@ class AsyncResponses(AsyncAPIResource):
         return await self._post(
             path_template("/responses/{response_id}/cancel", response_id=response_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Response,
         )
@@ -3433,7 +3471,11 @@ class AsyncResponses(AsyncAPIResource):
                 response_compact_params.ResponseCompactParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=CompactedResponse,
         )

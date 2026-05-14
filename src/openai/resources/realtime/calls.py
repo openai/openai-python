@@ -28,6 +28,7 @@ from ...types.realtime import (
     call_reject_params,
 )
 from ...types.responses.response_prompt_param import ResponsePromptParam
+from ...types.realtime.realtime_reasoning_param import RealtimeReasoningParam
 from ...types.realtime.realtime_truncation_param import RealtimeTruncationParam
 from ...types.realtime.realtime_audio_config_param import RealtimeAudioConfigParam
 from ...types.realtime.realtime_tools_config_param import RealtimeToolsConfigParam
@@ -98,7 +99,11 @@ class Calls(SyncAPIResource):
                 call_create_params.CallCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=_legacy_response.HttpxBinaryResponseContent,
         )
@@ -117,6 +122,7 @@ class Calls(SyncAPIResource):
             Literal[
                 "gpt-realtime",
                 "gpt-realtime-1.5",
+                "gpt-realtime-2",
                 "gpt-realtime-2025-08-28",
                 "gpt-4o-realtime-preview",
                 "gpt-4o-realtime-preview-2024-10-01",
@@ -135,7 +141,9 @@ class Calls(SyncAPIResource):
         ]
         | Omit = omit,
         output_modalities: List[Literal["text", "audio"]] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
+        reasoning: RealtimeReasoningParam | Omit = omit,
         tool_choice: RealtimeToolChoiceConfigParam | Omit = omit,
         tools: RealtimeToolsConfigParam | Omit = omit,
         tracing: Optional[RealtimeTracingConfigParam] | Omit = omit,
@@ -184,8 +192,13 @@ class Calls(SyncAPIResource):
               can be used to make the model respond with text only. It is not possible to
               request both `text` and `audio` at the same time.
 
+          parallel_tool_calls: Whether the model may call multiple tools in parallel. Only supported by
+              reasoning Realtime models such as `gpt-realtime-2`.
+
           prompt: Reference to a prompt template and its variables.
               [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
+
+          reasoning: Configuration for reasoning-capable Realtime models such as `gpt-realtime-2`.
 
           tool_choice: How the model chooses tools. Provide one of the string modes or force a specific
               function/MCP tool.
@@ -241,7 +254,9 @@ class Calls(SyncAPIResource):
                     "max_output_tokens": max_output_tokens,
                     "model": model,
                     "output_modalities": output_modalities,
+                    "parallel_tool_calls": parallel_tool_calls,
                     "prompt": prompt,
+                    "reasoning": reasoning,
                     "tool_choice": tool_choice,
                     "tools": tools,
                     "tracing": tracing,
@@ -250,7 +265,11 @@ class Calls(SyncAPIResource):
                 call_accept_params.CallAcceptParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=NoneType,
         )
@@ -284,7 +303,11 @@ class Calls(SyncAPIResource):
         return self._post(
             path_template("/realtime/calls/{call_id}/hangup", call_id=call_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=NoneType,
         )
@@ -323,7 +346,11 @@ class Calls(SyncAPIResource):
             path_template("/realtime/calls/{call_id}/refer", call_id=call_id),
             body=maybe_transform({"target_uri": target_uri}, call_refer_params.CallReferParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=NoneType,
         )
@@ -362,7 +389,11 @@ class Calls(SyncAPIResource):
             path_template("/realtime/calls/{call_id}/reject", call_id=call_id),
             body=maybe_transform({"status_code": status_code}, call_reject_params.CallRejectParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=NoneType,
         )
@@ -428,7 +459,11 @@ class AsyncCalls(AsyncAPIResource):
                 call_create_params.CallCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=_legacy_response.HttpxBinaryResponseContent,
         )
@@ -447,6 +482,7 @@ class AsyncCalls(AsyncAPIResource):
             Literal[
                 "gpt-realtime",
                 "gpt-realtime-1.5",
+                "gpt-realtime-2",
                 "gpt-realtime-2025-08-28",
                 "gpt-4o-realtime-preview",
                 "gpt-4o-realtime-preview-2024-10-01",
@@ -465,7 +501,9 @@ class AsyncCalls(AsyncAPIResource):
         ]
         | Omit = omit,
         output_modalities: List[Literal["text", "audio"]] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
+        reasoning: RealtimeReasoningParam | Omit = omit,
         tool_choice: RealtimeToolChoiceConfigParam | Omit = omit,
         tools: RealtimeToolsConfigParam | Omit = omit,
         tracing: Optional[RealtimeTracingConfigParam] | Omit = omit,
@@ -514,8 +552,13 @@ class AsyncCalls(AsyncAPIResource):
               can be used to make the model respond with text only. It is not possible to
               request both `text` and `audio` at the same time.
 
+          parallel_tool_calls: Whether the model may call multiple tools in parallel. Only supported by
+              reasoning Realtime models such as `gpt-realtime-2`.
+
           prompt: Reference to a prompt template and its variables.
               [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
+
+          reasoning: Configuration for reasoning-capable Realtime models such as `gpt-realtime-2`.
 
           tool_choice: How the model chooses tools. Provide one of the string modes or force a specific
               function/MCP tool.
@@ -571,7 +614,9 @@ class AsyncCalls(AsyncAPIResource):
                     "max_output_tokens": max_output_tokens,
                     "model": model,
                     "output_modalities": output_modalities,
+                    "parallel_tool_calls": parallel_tool_calls,
                     "prompt": prompt,
+                    "reasoning": reasoning,
                     "tool_choice": tool_choice,
                     "tools": tools,
                     "tracing": tracing,
@@ -580,7 +625,11 @@ class AsyncCalls(AsyncAPIResource):
                 call_accept_params.CallAcceptParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=NoneType,
         )
@@ -614,7 +663,11 @@ class AsyncCalls(AsyncAPIResource):
         return await self._post(
             path_template("/realtime/calls/{call_id}/hangup", call_id=call_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=NoneType,
         )
@@ -653,7 +706,11 @@ class AsyncCalls(AsyncAPIResource):
             path_template("/realtime/calls/{call_id}/refer", call_id=call_id),
             body=await async_maybe_transform({"target_uri": target_uri}, call_refer_params.CallReferParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=NoneType,
         )
@@ -692,7 +749,11 @@ class AsyncCalls(AsyncAPIResource):
             path_template("/realtime/calls/{call_id}/reject", call_id=call_id),
             body=await async_maybe_transform({"status_code": status_code}, call_reject_params.CallRejectParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=NoneType,
         )

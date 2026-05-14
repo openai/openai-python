@@ -236,6 +236,7 @@ class Completions(SyncAPIResource):
                 extra_body=extra_body,
                 timeout=timeout,
                 post_parser=parser,
+                security={"bearer_auth": True},
             ),
             # we turn the `ChatCompletion` instance into a `ParsedChatCompletion`
             # in the `parser` function above
@@ -515,8 +516,9 @@ class Completions(SyncAPIResource):
               [custom tools](https://platform.openai.com/docs/guides/function-calling#custom-tools)
               or [function tools](https://platform.openai.com/docs/guides/function-calling).
 
-          top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
-              return at each token position, each with an associated log probability.
+          top_logprobs: An integer between 0 and 20 specifying the maximum number of most likely tokens
+              to return at each token position, each with an associated log probability. In
+              some cases, the number of returned tokens may be fewer than requested.
               `logprobs` must be set to `true` if this parameter is used.
 
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
@@ -821,8 +823,9 @@ class Completions(SyncAPIResource):
               [custom tools](https://platform.openai.com/docs/guides/function-calling#custom-tools)
               or [function tools](https://platform.openai.com/docs/guides/function-calling).
 
-          top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
-              return at each token position, each with an associated log probability.
+          top_logprobs: An integer between 0 and 20 specifying the maximum number of most likely tokens
+              to return at each token position, each with an associated log probability. In
+              some cases, the number of returned tokens may be fewer than requested.
               `logprobs` must be set to `true` if this parameter is used.
 
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
@@ -1127,8 +1130,9 @@ class Completions(SyncAPIResource):
               [custom tools](https://platform.openai.com/docs/guides/function-calling#custom-tools)
               or [function tools](https://platform.openai.com/docs/guides/function-calling).
 
-          top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
-              return at each token position, each with an associated log probability.
+          top_logprobs: An integer between 0 and 20 specifying the maximum number of most likely tokens
+              to return at each token position, each with an associated log probability. In
+              some cases, the number of returned tokens may be fewer than requested.
               `logprobs` must be set to `true` if this parameter is used.
 
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
@@ -1253,7 +1257,11 @@ class Completions(SyncAPIResource):
                 else completion_create_params.CompletionCreateParamsNonStreaming,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ChatCompletion,
             stream=stream or False,
@@ -1290,7 +1298,11 @@ class Completions(SyncAPIResource):
         return self._get(
             path_template("/chat/completions/{completion_id}", completion_id=completion_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ChatCompletion,
         )
@@ -1335,7 +1347,11 @@ class Completions(SyncAPIResource):
             path_template("/chat/completions/{completion_id}", completion_id=completion_id),
             body=maybe_transform({"metadata": metadata}, completion_update_params.CompletionUpdateParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ChatCompletion,
         )
@@ -1401,6 +1417,7 @@ class Completions(SyncAPIResource):
                     },
                     completion_list_params.CompletionListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=ChatCompletion,
         )
@@ -1435,7 +1452,11 @@ class Completions(SyncAPIResource):
         return self._delete(
             path_template("/chat/completions/{completion_id}", completion_id=completion_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ChatCompletionDeleted,
         )
@@ -1739,6 +1760,7 @@ class AsyncCompletions(AsyncAPIResource):
                 extra_body=extra_body,
                 timeout=timeout,
                 post_parser=parser,
+                security={"bearer_auth": True},
             ),
             # we turn the `ChatCompletion` instance into a `ParsedChatCompletion`
             # in the `parser` function above
@@ -2018,8 +2040,9 @@ class AsyncCompletions(AsyncAPIResource):
               [custom tools](https://platform.openai.com/docs/guides/function-calling#custom-tools)
               or [function tools](https://platform.openai.com/docs/guides/function-calling).
 
-          top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
-              return at each token position, each with an associated log probability.
+          top_logprobs: An integer between 0 and 20 specifying the maximum number of most likely tokens
+              to return at each token position, each with an associated log probability. In
+              some cases, the number of returned tokens may be fewer than requested.
               `logprobs` must be set to `true` if this parameter is used.
 
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
@@ -2324,8 +2347,9 @@ class AsyncCompletions(AsyncAPIResource):
               [custom tools](https://platform.openai.com/docs/guides/function-calling#custom-tools)
               or [function tools](https://platform.openai.com/docs/guides/function-calling).
 
-          top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
-              return at each token position, each with an associated log probability.
+          top_logprobs: An integer between 0 and 20 specifying the maximum number of most likely tokens
+              to return at each token position, each with an associated log probability. In
+              some cases, the number of returned tokens may be fewer than requested.
               `logprobs` must be set to `true` if this parameter is used.
 
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
@@ -2630,8 +2654,9 @@ class AsyncCompletions(AsyncAPIResource):
               [custom tools](https://platform.openai.com/docs/guides/function-calling#custom-tools)
               or [function tools](https://platform.openai.com/docs/guides/function-calling).
 
-          top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
-              return at each token position, each with an associated log probability.
+          top_logprobs: An integer between 0 and 20 specifying the maximum number of most likely tokens
+              to return at each token position, each with an associated log probability. In
+              some cases, the number of returned tokens may be fewer than requested.
               `logprobs` must be set to `true` if this parameter is used.
 
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
@@ -2756,7 +2781,11 @@ class AsyncCompletions(AsyncAPIResource):
                 else completion_create_params.CompletionCreateParamsNonStreaming,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ChatCompletion,
             stream=stream or False,
@@ -2793,7 +2822,11 @@ class AsyncCompletions(AsyncAPIResource):
         return await self._get(
             path_template("/chat/completions/{completion_id}", completion_id=completion_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ChatCompletion,
         )
@@ -2838,7 +2871,11 @@ class AsyncCompletions(AsyncAPIResource):
             path_template("/chat/completions/{completion_id}", completion_id=completion_id),
             body=await async_maybe_transform({"metadata": metadata}, completion_update_params.CompletionUpdateParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ChatCompletion,
         )
@@ -2904,6 +2941,7 @@ class AsyncCompletions(AsyncAPIResource):
                     },
                     completion_list_params.CompletionListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=ChatCompletion,
         )
@@ -2938,7 +2976,11 @@ class AsyncCompletions(AsyncAPIResource):
         return await self._delete(
             path_template("/chat/completions/{completion_id}", completion_id=completion_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ChatCompletionDeleted,
         )

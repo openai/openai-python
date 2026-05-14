@@ -82,7 +82,11 @@ class OutputItems(SyncAPIResource):
                 output_item_id=output_item_id,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=OutputItemRetrieveResponse,
         )
@@ -146,6 +150,7 @@ class OutputItems(SyncAPIResource):
                     },
                     output_item_list_params.OutputItemListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=OutputItemListResponse,
         )
@@ -212,7 +217,11 @@ class AsyncOutputItems(AsyncAPIResource):
                 output_item_id=output_item_id,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=OutputItemRetrieveResponse,
         )
@@ -276,6 +285,7 @@ class AsyncOutputItems(AsyncAPIResource):
                     },
                     output_item_list_params.OutputItemListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=OutputItemListResponse,
         )

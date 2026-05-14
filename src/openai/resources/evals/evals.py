@@ -121,7 +121,11 @@ class Evals(SyncAPIResource):
                 eval_create_params.EvalCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=EvalCreateResponse,
         )
@@ -154,7 +158,11 @@ class Evals(SyncAPIResource):
         return self._get(
             path_template("/evals/{eval_id}", eval_id=eval_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=EvalRetrieveResponse,
         )
@@ -205,7 +213,11 @@ class Evals(SyncAPIResource):
                 eval_update_params.EvalUpdateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=EvalUpdateResponse,
         )
@@ -263,6 +275,7 @@ class Evals(SyncAPIResource):
                     },
                     eval_list_params.EvalListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=EvalListResponse,
         )
@@ -295,7 +308,11 @@ class Evals(SyncAPIResource):
         return self._delete(
             path_template("/evals/{eval_id}", eval_id=eval_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=EvalDeleteResponse,
         )
@@ -388,7 +405,11 @@ class AsyncEvals(AsyncAPIResource):
                 eval_create_params.EvalCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=EvalCreateResponse,
         )
@@ -421,7 +442,11 @@ class AsyncEvals(AsyncAPIResource):
         return await self._get(
             path_template("/evals/{eval_id}", eval_id=eval_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=EvalRetrieveResponse,
         )
@@ -472,7 +497,11 @@ class AsyncEvals(AsyncAPIResource):
                 eval_update_params.EvalUpdateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=EvalUpdateResponse,
         )
@@ -530,6 +559,7 @@ class AsyncEvals(AsyncAPIResource):
                     },
                     eval_list_params.EvalListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=EvalListResponse,
         )
@@ -562,7 +592,11 @@ class AsyncEvals(AsyncAPIResource):
         return await self._delete(
             path_template("/evals/{eval_id}", eval_id=eval_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=EvalDeleteResponse,
         )

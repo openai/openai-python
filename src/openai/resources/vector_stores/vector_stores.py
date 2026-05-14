@@ -139,7 +139,11 @@ class VectorStores(SyncAPIResource):
                 vector_store_create_params.VectorStoreCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStore,
         )
@@ -173,7 +177,11 @@ class VectorStores(SyncAPIResource):
         return self._get(
             path_template("/vector_stores/{vector_store_id}", vector_store_id=vector_store_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStore,
         )
@@ -229,7 +237,11 @@ class VectorStores(SyncAPIResource):
                 vector_store_update_params.VectorStoreUpdateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStore,
         )
@@ -295,6 +307,7 @@ class VectorStores(SyncAPIResource):
                     },
                     vector_store_list_params.VectorStoreListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=VectorStore,
         )
@@ -328,7 +341,11 @@ class VectorStores(SyncAPIResource):
         return self._delete(
             path_template("/vector_stores/{vector_store_id}", vector_store_id=vector_store_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStoreDeleted,
         )
@@ -390,7 +407,11 @@ class VectorStores(SyncAPIResource):
                 vector_store_search_params.VectorStoreSearchParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             model=VectorStoreSearchResponse,
             method="post",
@@ -489,7 +510,11 @@ class AsyncVectorStores(AsyncAPIResource):
                 vector_store_create_params.VectorStoreCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStore,
         )
@@ -523,7 +548,11 @@ class AsyncVectorStores(AsyncAPIResource):
         return await self._get(
             path_template("/vector_stores/{vector_store_id}", vector_store_id=vector_store_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStore,
         )
@@ -579,7 +608,11 @@ class AsyncVectorStores(AsyncAPIResource):
                 vector_store_update_params.VectorStoreUpdateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStore,
         )
@@ -645,6 +678,7 @@ class AsyncVectorStores(AsyncAPIResource):
                     },
                     vector_store_list_params.VectorStoreListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=VectorStore,
         )
@@ -678,7 +712,11 @@ class AsyncVectorStores(AsyncAPIResource):
         return await self._delete(
             path_template("/vector_stores/{vector_store_id}", vector_store_id=vector_store_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStoreDeleted,
         )
@@ -740,7 +778,11 @@ class AsyncVectorStores(AsyncAPIResource):
                 vector_store_search_params.VectorStoreSearchParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             model=VectorStoreSearchResponse,
             method="post",

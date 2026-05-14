@@ -97,6 +97,7 @@ class Messages(SyncAPIResource):
                     },
                     message_list_params.MessageListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=ChatCompletionStoreMessage,
         )
@@ -179,6 +180,7 @@ class AsyncMessages(AsyncAPIResource):
                     },
                     message_list_params.MessageListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=ChatCompletionStoreMessage,
         )

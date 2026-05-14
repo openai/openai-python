@@ -10,7 +10,7 @@ import asyncio
 import inspect
 import dataclasses
 import tracemalloc
-from typing import Any, Union, TypeVar, Callable, Iterable, Iterator, Optional, Protocol, Coroutine, cast
+from typing import Any, Union, TypeVar, Callable, Iterable, Iterator, Optional, Coroutine, cast
 from unittest import mock
 from typing_extensions import Literal, AsyncIterator, override
 
@@ -18,14 +18,15 @@ import httpx
 import pytest
 from respx import MockRouter
 from pydantic import ValidationError
+from respx.models import Call as MockRequestCall
 
-from openai import OpenAI, AsyncOpenAI, APIResponseValidationError
+from openai import OpenAI, AsyncOpenAI, OpenAIError, APIResponseValidationError
 from openai.auth import WorkloadIdentity
 from openai._types import Omit
 from openai._utils import asyncify
 from openai._models import BaseModel, FinalRequestOptions
 from openai._streaming import Stream, AsyncStream
-from openai._exceptions import OpenAIError, APIStatusError, APITimeoutError, APIResponseValidationError
+from openai._exceptions import APIStatusError, APITimeoutError, APIResponseValidationError
 from openai._base_client import (
     DEFAULT_TIMEOUT,
     HTTPX_DEFAULT_TIMEOUT,
@@ -42,19 +43,16 @@ from .utils import update_env
 T = TypeVar("T")
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 api_key = "My API Key"
+admin_api_key = "My Admin API Key"
 workload_identity: WorkloadIdentity = {
-    "client_id": "client-id",
-    "identity_provider_id": "identity-provider-id",
-    "service_account_id": "service-account-id",
+    "client_id": "client_123",
+    "identity_provider_id": "provider_123",
+    "service_account_id": "service_account_123",
     "provider": {
-        "token_type": "jwt",
         "get_token": lambda: "external-subject-token",
+        "token_type": "jwt",
     },
 }
-
-
-class MockRequestCall(Protocol):
-    request: httpx.Request
 
 
 def _get_params(client: BaseClient[Any, Any]) -> dict[str, str]:
@@ -155,6 +153,10 @@ class TestOpenAI:
         assert copied.api_key == "another My API Key"
         assert client.api_key == "My API Key"
 
+        copied = client.copy(admin_api_key="another My Admin API Key")
+        assert copied.admin_api_key == "another My Admin API Key"
+        assert client.admin_api_key == "My Admin API Key"
+
     def test_copy_default_options(self, client: OpenAI) -> None:
         # options that have a default are overridden correctly
         copied = client.copy(max_retries=7)
@@ -173,7 +175,11 @@ class TestOpenAI:
 
     def test_copy_default_headers(self) -> None:
         client = OpenAI(
-            base_url=base_url, api_key=api_key, _strict_response_validation=True, default_headers={"X-Foo": "bar"}
+            base_url=base_url,
+            api_key=api_key,
+            admin_api_key=admin_api_key,
+            _strict_response_validation=True,
+            default_headers={"X-Foo": "bar"},
         )
         assert client.default_headers["X-Foo"] == "bar"
 
@@ -208,7 +214,11 @@ class TestOpenAI:
 
     def test_copy_default_query(self) -> None:
         client = OpenAI(
-            base_url=base_url, api_key=api_key, _strict_response_validation=True, default_query={"foo": "bar"}
+            base_url=base_url,
+            api_key=api_key,
+            admin_api_key=admin_api_key,
+            _strict_response_validation=True,
+            default_query={"foo": "bar"},
         )
         assert _get_params(client)["foo"] == "bar"
 
@@ -333,7 +343,13 @@ class TestOpenAI:
         assert timeout == httpx.Timeout(100.0)
 
     def test_client_timeout_option(self) -> None:
-        client = OpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True, timeout=httpx.Timeout(0))
+        client = OpenAI(
+            base_url=base_url,
+            api_key=api_key,
+            admin_api_key=admin_api_key,
+            _strict_response_validation=True,
+            timeout=httpx.Timeout(0),
+        )
 
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
         timeout = httpx.Timeout(**request.extensions["timeout"])  # type: ignore
@@ -345,7 +361,11 @@ class TestOpenAI:
         # custom timeout given to the httpx client should be used
         with httpx.Client(timeout=None) as http_client:
             client = OpenAI(
-                base_url=base_url, api_key=api_key, _strict_response_validation=True, http_client=http_client
+                base_url=base_url,
+                api_key=api_key,
+                admin_api_key=admin_api_key,
+                _strict_response_validation=True,
+                http_client=http_client,
             )
 
             request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
@@ -357,7 +377,11 @@ class TestOpenAI:
         # no timeout given to the httpx client should not use the httpx default
         with httpx.Client() as http_client:
             client = OpenAI(
-                base_url=base_url, api_key=api_key, _strict_response_validation=True, http_client=http_client
+                base_url=base_url,
+                api_key=api_key,
+                admin_api_key=admin_api_key,
+                _strict_response_validation=True,
+                http_client=http_client,
             )
 
             request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
@@ -369,7 +393,11 @@ class TestOpenAI:
         # explicitly passing the default timeout currently results in it being ignored
         with httpx.Client(timeout=HTTPX_DEFAULT_TIMEOUT) as http_client:
             client = OpenAI(
-                base_url=base_url, api_key=api_key, _strict_response_validation=True, http_client=http_client
+                base_url=base_url,
+                api_key=api_key,
+                admin_api_key=admin_api_key,
+                _strict_response_validation=True,
+                http_client=http_client,
             )
 
             request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
@@ -384,13 +412,18 @@ class TestOpenAI:
                 OpenAI(
                     base_url=base_url,
                     api_key=api_key,
+                    admin_api_key=admin_api_key,
                     _strict_response_validation=True,
                     http_client=cast(Any, http_client),
                 )
 
     def test_default_headers_option(self) -> None:
         test_client = OpenAI(
-            base_url=base_url, api_key=api_key, _strict_response_validation=True, default_headers={"X-Foo": "bar"}
+            base_url=base_url,
+            api_key=api_key,
+            admin_api_key=admin_api_key,
+            _strict_response_validation=True,
+            default_headers={"X-Foo": "bar"},
         )
         request = test_client._build_request(FinalRequestOptions(method="get", url="/foo"))
         assert request.headers.get("x-foo") == "bar"
@@ -399,6 +432,7 @@ class TestOpenAI:
         test_client2 = OpenAI(
             base_url=base_url,
             api_key=api_key,
+            admin_api_key=admin_api_key,
             _strict_response_validation=True,
             default_headers={
                 "X-Foo": "stainless",
@@ -413,16 +447,135 @@ class TestOpenAI:
         test_client2.close()
 
     def test_validate_headers(self) -> None:
-        client = OpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+        client = OpenAI(
+            base_url=base_url, api_key=api_key, admin_api_key=admin_api_key, _strict_response_validation=True
+        )
         options = client._prepare_options(FinalRequestOptions(method="get", url="/foo"))
         request = client._build_request(options)
 
         assert request.headers.get("Authorization") == f"Bearer {api_key}"
 
-        with pytest.raises(OpenAIError):
-            with update_env(**{"OPENAI_API_KEY": Omit()}):
-                client2 = OpenAI(base_url=base_url, api_key=None, _strict_response_validation=True)
-            _ = client2
+        admin_request = client._build_request(
+            FinalRequestOptions(
+                method="get",
+                url="/organization/projects",
+                security={"admin_api_key_auth": True},
+            )
+        )
+        assert admin_request.headers.get("Authorization") == f"Bearer {admin_api_key}"
+
+        with update_env(**{"OPENAI_API_KEY": Omit()}):
+            admin_only = OpenAI(
+                base_url=base_url,
+                api_key=None,
+                admin_api_key=admin_api_key,
+                _strict_response_validation=True,
+            )
+            admin_only_request = admin_only._build_request(
+                FinalRequestOptions(
+                    method="get",
+                    url="/organization/projects",
+                    security={"admin_api_key_auth": True},
+                )
+            )
+            assert admin_only_request.headers.get("Authorization") == f"Bearer {admin_api_key}"
+
+            with pytest.raises(
+                TypeError,
+                match="Could not resolve authentication method",
+            ):
+                admin_only._build_request(
+                    FinalRequestOptions(
+                        method="post",
+                        url="/responses",
+                        security={"bearer_auth": True},
+                    )
+                )
+
+        with update_env(
+            **{
+                "OPENAI_API_KEY": Omit(),
+                "OPENAI_ADMIN_KEY": Omit(),
+            }
+        ):
+            no_credentials = OpenAI(
+                base_url=base_url,
+                api_key=None,
+                admin_api_key=None,
+                _enforce_credentials=False,
+                _strict_response_validation=True,
+            )
+            lowercase_auth_request = no_credentials._build_request(
+                FinalRequestOptions(method="get", url="/foo", headers={"authorization": "Bearer custom"})
+            )
+            assert lowercase_auth_request.headers.get("Authorization") == "Bearer custom"
+
+            omitted_auth_request = no_credentials._build_request(
+                FinalRequestOptions(method="get", url="/foo", headers={"authorization": Omit()})
+            )
+            assert "Authorization" not in omitted_auth_request.headers
+
+        with update_env(
+            **{
+                "OPENAI_API_KEY": Omit(),
+                "OPENAI_ADMIN_KEY": Omit(),
+            }
+        ):
+            with pytest.raises(OpenAIError, match="Missing credentials"):
+                OpenAI(base_url=base_url, api_key=None, admin_api_key=None, _strict_response_validation=True)
+
+    @pytest.mark.respx(base_url=base_url)
+    def test_api_key_provider_preserves_admin_auth(self, respx_mock: MockRouter) -> None:
+        respx_mock.get("/organization/projects").mock(return_value=httpx.Response(200, json={"ok": True}))
+
+        provider_called = False
+
+        def api_key_provider() -> str:
+            nonlocal provider_called
+            provider_called = True
+            return "dynamic-api-key"
+
+        client = OpenAI(base_url=base_url, api_key=api_key_provider, admin_api_key=admin_api_key)
+        response = client.get(
+            "/organization/projects",
+            cast_to=httpx.Response,
+            options={"security": {"admin_api_key_auth": True}},
+        )
+
+        assert response.request.headers.get("Authorization") == f"Bearer {admin_api_key}"
+        assert provider_called is False
+
+    def test_api_key_provider_does_not_fill_admin_auth(self) -> None:
+        provider_called = False
+
+        def api_key_provider() -> str:
+            nonlocal provider_called
+            provider_called = True
+            return "dynamic-api-key"
+
+        with update_env(OPENAI_ADMIN_KEY=Omit()):
+            client = OpenAI(base_url=base_url, api_key=api_key_provider, admin_api_key=None)
+            with pytest.raises(TypeError, match="Could not resolve authentication method"):
+                client.get(
+                    "/organization/projects",
+                    cast_to=httpx.Response,
+                    options={"security": {"admin_api_key_auth": True}},
+                )
+
+        assert provider_called is False
+
+    @pytest.mark.respx(base_url=base_url)
+    def test_workload_identity_preserves_admin_auth(self, respx_mock: MockRouter) -> None:
+        respx_mock.get("/organization/projects").mock(return_value=httpx.Response(200, json={"ok": True}))
+
+        client = OpenAI(base_url=base_url, workload_identity=workload_identity, admin_api_key=admin_api_key)
+        response = client.get(
+            "/organization/projects",
+            cast_to=httpx.Response,
+            options={"security": {"admin_api_key_auth": True}},
+        )
+
+        assert response.request.headers.get("Authorization") == f"Bearer {admin_api_key}"
 
     def test_workload_identity_is_mutually_exclusive_with_api_key(self) -> None:
         with pytest.raises(
@@ -439,7 +592,11 @@ class TestOpenAI:
 
     def test_default_query_option(self) -> None:
         client = OpenAI(
-            base_url=base_url, api_key=api_key, _strict_response_validation=True, default_query={"query_param": "bar"}
+            base_url=base_url,
+            api_key=api_key,
+            admin_api_key=admin_api_key,
+            _strict_response_validation=True,
+            default_query={"query_param": "bar"},
         )
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
         url = httpx.URL(request.url)
@@ -636,6 +793,7 @@ class TestOpenAI:
         with OpenAI(
             base_url=base_url,
             api_key=api_key,
+            admin_api_key=admin_api_key,
             _strict_response_validation=True,
             http_client=httpx.Client(transport=MockTransport(handler=mock_handler)),
         ) as client:
@@ -729,7 +887,12 @@ class TestOpenAI:
         assert response.foo == 2
 
     def test_base_url_setter(self) -> None:
-        client = OpenAI(base_url="https://example.com/from_init", api_key=api_key, _strict_response_validation=True)
+        client = OpenAI(
+            base_url="https://example.com/from_init",
+            api_key=api_key,
+            admin_api_key=admin_api_key,
+            _strict_response_validation=True,
+        )
         assert client.base_url == "https://example.com/from_init/"
 
         client.base_url = "https://example.com/from_setter"  # type: ignore[assignment]
@@ -740,16 +903,22 @@ class TestOpenAI:
 
     def test_base_url_env(self) -> None:
         with update_env(OPENAI_BASE_URL="http://localhost:5000/from/env"):
-            client = OpenAI(api_key=api_key, _strict_response_validation=True)
+            client = OpenAI(api_key=api_key, admin_api_key=admin_api_key, _strict_response_validation=True)
             assert client.base_url == "http://localhost:5000/from/env/"
 
     @pytest.mark.parametrize(
         "client",
         [
-            OpenAI(base_url="http://localhost:5000/custom/path/", api_key=api_key, _strict_response_validation=True),
             OpenAI(
                 base_url="http://localhost:5000/custom/path/",
                 api_key=api_key,
+                admin_api_key=admin_api_key,
+                _strict_response_validation=True,
+            ),
+            OpenAI(
+                base_url="http://localhost:5000/custom/path/",
+                api_key=api_key,
+                admin_api_key=admin_api_key,
                 _strict_response_validation=True,
                 http_client=httpx.Client(),
             ),
@@ -770,10 +939,16 @@ class TestOpenAI:
     @pytest.mark.parametrize(
         "client",
         [
-            OpenAI(base_url="http://localhost:5000/custom/path/", api_key=api_key, _strict_response_validation=True),
             OpenAI(
                 base_url="http://localhost:5000/custom/path/",
                 api_key=api_key,
+                admin_api_key=admin_api_key,
+                _strict_response_validation=True,
+            ),
+            OpenAI(
+                base_url="http://localhost:5000/custom/path/",
+                api_key=api_key,
+                admin_api_key=admin_api_key,
                 _strict_response_validation=True,
                 http_client=httpx.Client(),
             ),
@@ -794,10 +969,16 @@ class TestOpenAI:
     @pytest.mark.parametrize(
         "client",
         [
-            OpenAI(base_url="http://localhost:5000/custom/path/", api_key=api_key, _strict_response_validation=True),
             OpenAI(
                 base_url="http://localhost:5000/custom/path/",
                 api_key=api_key,
+                admin_api_key=admin_api_key,
+                _strict_response_validation=True,
+            ),
+            OpenAI(
+                base_url="http://localhost:5000/custom/path/",
+                api_key=api_key,
+                admin_api_key=admin_api_key,
                 _strict_response_validation=True,
                 http_client=httpx.Client(),
             ),
@@ -816,7 +997,9 @@ class TestOpenAI:
         client.close()
 
     def test_copied_client_does_not_close_http(self) -> None:
-        test_client = OpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+        test_client = OpenAI(
+            base_url=base_url, api_key=api_key, admin_api_key=admin_api_key, _strict_response_validation=True
+        )
         assert not test_client.is_closed()
 
         copied = test_client.copy()
@@ -827,7 +1010,9 @@ class TestOpenAI:
         assert not test_client.is_closed()
 
     def test_client_context_manager(self) -> None:
-        test_client = OpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+        test_client = OpenAI(
+            base_url=base_url, api_key=api_key, admin_api_key=admin_api_key, _strict_response_validation=True
+        )
         with test_client as c2:
             assert c2 is test_client
             assert not c2.is_closed()
@@ -848,7 +1033,13 @@ class TestOpenAI:
 
     def test_client_max_retries_validation(self) -> None:
         with pytest.raises(TypeError, match=r"max_retries cannot be None"):
-            OpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True, max_retries=cast(Any, None))
+            OpenAI(
+                base_url=base_url,
+                api_key=api_key,
+                admin_api_key=admin_api_key,
+                _strict_response_validation=True,
+                max_retries=cast(Any, None),
+            )
 
     @pytest.mark.respx(base_url=base_url)
     def test_default_stream_cls(self, respx_mock: MockRouter, client: OpenAI) -> None:
@@ -868,12 +1059,16 @@ class TestOpenAI:
 
         respx_mock.get("/foo").mock(return_value=httpx.Response(200, text="my-custom-format"))
 
-        strict_client = OpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+        strict_client = OpenAI(
+            base_url=base_url, api_key=api_key, admin_api_key=admin_api_key, _strict_response_validation=True
+        )
 
         with pytest.raises(APIResponseValidationError):
             strict_client.get("/foo", cast_to=Model)
 
-        non_strict_client = OpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=False)
+        non_strict_client = OpenAI(
+            base_url=base_url, api_key=api_key, admin_api_key=admin_api_key, _strict_response_validation=False
+        )
 
         response = non_strict_client.get("/foo", cast_to=Model)
         assert isinstance(response, str)  # type: ignore[unreachable]
@@ -1221,6 +1416,10 @@ class TestAsyncOpenAI:
         assert copied.api_key == "another My API Key"
         assert async_client.api_key == "My API Key"
 
+        copied = async_client.copy(admin_api_key="another My Admin API Key")
+        assert copied.admin_api_key == "another My Admin API Key"
+        assert async_client.admin_api_key == "My Admin API Key"
+
     def test_copy_default_options(self, async_client: AsyncOpenAI) -> None:
         # options that have a default are overridden correctly
         copied = async_client.copy(max_retries=7)
@@ -1239,7 +1438,11 @@ class TestAsyncOpenAI:
 
     async def test_copy_default_headers(self) -> None:
         client = AsyncOpenAI(
-            base_url=base_url, api_key=api_key, _strict_response_validation=True, default_headers={"X-Foo": "bar"}
+            base_url=base_url,
+            api_key=api_key,
+            admin_api_key=admin_api_key,
+            _strict_response_validation=True,
+            default_headers={"X-Foo": "bar"},
         )
         assert client.default_headers["X-Foo"] == "bar"
 
@@ -1274,7 +1477,11 @@ class TestAsyncOpenAI:
 
     async def test_copy_default_query(self) -> None:
         client = AsyncOpenAI(
-            base_url=base_url, api_key=api_key, _strict_response_validation=True, default_query={"foo": "bar"}
+            base_url=base_url,
+            api_key=api_key,
+            admin_api_key=admin_api_key,
+            _strict_response_validation=True,
+            default_query={"foo": "bar"},
         )
         assert _get_params(client)["foo"] == "bar"
 
@@ -1402,7 +1609,11 @@ class TestAsyncOpenAI:
 
     async def test_client_timeout_option(self) -> None:
         client = AsyncOpenAI(
-            base_url=base_url, api_key=api_key, _strict_response_validation=True, timeout=httpx.Timeout(0)
+            base_url=base_url,
+            api_key=api_key,
+            admin_api_key=admin_api_key,
+            _strict_response_validation=True,
+            timeout=httpx.Timeout(0),
         )
 
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
@@ -1415,7 +1626,11 @@ class TestAsyncOpenAI:
         # custom timeout given to the httpx client should be used
         async with httpx.AsyncClient(timeout=None) as http_client:
             client = AsyncOpenAI(
-                base_url=base_url, api_key=api_key, _strict_response_validation=True, http_client=http_client
+                base_url=base_url,
+                api_key=api_key,
+                admin_api_key=admin_api_key,
+                _strict_response_validation=True,
+                http_client=http_client,
             )
 
             request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
@@ -1427,7 +1642,11 @@ class TestAsyncOpenAI:
         # no timeout given to the httpx client should not use the httpx default
         async with httpx.AsyncClient() as http_client:
             client = AsyncOpenAI(
-                base_url=base_url, api_key=api_key, _strict_response_validation=True, http_client=http_client
+                base_url=base_url,
+                api_key=api_key,
+                admin_api_key=admin_api_key,
+                _strict_response_validation=True,
+                http_client=http_client,
             )
 
             request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
@@ -1439,7 +1658,11 @@ class TestAsyncOpenAI:
         # explicitly passing the default timeout currently results in it being ignored
         async with httpx.AsyncClient(timeout=HTTPX_DEFAULT_TIMEOUT) as http_client:
             client = AsyncOpenAI(
-                base_url=base_url, api_key=api_key, _strict_response_validation=True, http_client=http_client
+                base_url=base_url,
+                api_key=api_key,
+                admin_api_key=admin_api_key,
+                _strict_response_validation=True,
+                http_client=http_client,
             )
 
             request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
@@ -1454,13 +1677,18 @@ class TestAsyncOpenAI:
                 AsyncOpenAI(
                     base_url=base_url,
                     api_key=api_key,
+                    admin_api_key=admin_api_key,
                     _strict_response_validation=True,
                     http_client=cast(Any, http_client),
                 )
 
     async def test_default_headers_option(self) -> None:
         test_client = AsyncOpenAI(
-            base_url=base_url, api_key=api_key, _strict_response_validation=True, default_headers={"X-Foo": "bar"}
+            base_url=base_url,
+            api_key=api_key,
+            admin_api_key=admin_api_key,
+            _strict_response_validation=True,
+            default_headers={"X-Foo": "bar"},
         )
         request = test_client._build_request(FinalRequestOptions(method="get", url="/foo"))
         assert request.headers.get("x-foo") == "bar"
@@ -1469,6 +1697,7 @@ class TestAsyncOpenAI:
         test_client2 = AsyncOpenAI(
             base_url=base_url,
             api_key=api_key,
+            admin_api_key=admin_api_key,
             _strict_response_validation=True,
             default_headers={
                 "X-Foo": "stainless",
@@ -1483,19 +1712,142 @@ class TestAsyncOpenAI:
         await test_client2.close()
 
     async def test_validate_headers(self) -> None:
-        client = AsyncOpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+        client = AsyncOpenAI(
+            base_url=base_url, api_key=api_key, admin_api_key=admin_api_key, _strict_response_validation=True
+        )
         options = await client._prepare_options(FinalRequestOptions(method="get", url="/foo"))
         request = client._build_request(options)
         assert request.headers.get("Authorization") == f"Bearer {api_key}"
 
-        with pytest.raises(OpenAIError):
-            with update_env(**{"OPENAI_API_KEY": Omit()}):
-                client2 = AsyncOpenAI(base_url=base_url, api_key=None, _strict_response_validation=True)
-            _ = client2
+        admin_request = client._build_request(
+            FinalRequestOptions(
+                method="get",
+                url="/organization/projects",
+                security={"admin_api_key_auth": True},
+            )
+        )
+        assert admin_request.headers.get("Authorization") == f"Bearer {admin_api_key}"
+
+        with update_env(**{"OPENAI_API_KEY": Omit()}):
+            admin_only = AsyncOpenAI(
+                base_url=base_url,
+                api_key=None,
+                admin_api_key=admin_api_key,
+                _strict_response_validation=True,
+            )
+            admin_only_request = admin_only._build_request(
+                FinalRequestOptions(
+                    method="get",
+                    url="/organization/projects",
+                    security={"admin_api_key_auth": True},
+                )
+            )
+            assert admin_only_request.headers.get("Authorization") == f"Bearer {admin_api_key}"
+
+            with pytest.raises(
+                TypeError,
+                match="Could not resolve authentication method",
+            ):
+                admin_only._build_request(
+                    FinalRequestOptions(
+                        method="post",
+                        url="/responses",
+                        security={"bearer_auth": True},
+                    )
+                )
+
+        with update_env(
+            **{
+                "OPENAI_API_KEY": Omit(),
+                "OPENAI_ADMIN_KEY": Omit(),
+            }
+        ):
+            no_credentials = AsyncOpenAI(
+                base_url=base_url,
+                api_key=None,
+                admin_api_key=None,
+                _enforce_credentials=False,
+                _strict_response_validation=True,
+            )
+            lowercase_auth_request = no_credentials._build_request(
+                FinalRequestOptions(method="get", url="/foo", headers={"authorization": "Bearer custom"})
+            )
+            assert lowercase_auth_request.headers.get("Authorization") == "Bearer custom"
+
+            omitted_auth_request = no_credentials._build_request(
+                FinalRequestOptions(method="get", url="/foo", headers={"authorization": Omit()})
+            )
+            assert "Authorization" not in omitted_auth_request.headers
+
+        with update_env(
+            **{
+                "OPENAI_API_KEY": Omit(),
+                "OPENAI_ADMIN_KEY": Omit(),
+            }
+        ):
+            with pytest.raises(OpenAIError, match="Missing credentials"):
+                AsyncOpenAI(base_url=base_url, api_key=None, admin_api_key=None, _strict_response_validation=True)
+
+    @pytest.mark.respx(base_url=base_url)
+    async def test_api_key_provider_preserves_admin_auth(self, respx_mock: MockRouter) -> None:
+        respx_mock.get("/organization/projects").mock(return_value=httpx.Response(200, json={"ok": True}))
+
+        provider_called = False
+
+        async def api_key_provider() -> str:
+            nonlocal provider_called
+            provider_called = True
+            return "dynamic-api-key"
+
+        client = AsyncOpenAI(base_url=base_url, api_key=api_key_provider, admin_api_key=admin_api_key)
+        response = await client.get(
+            "/organization/projects",
+            cast_to=httpx.Response,
+            options={"security": {"admin_api_key_auth": True}},
+        )
+
+        assert response.request.headers.get("Authorization") == f"Bearer {admin_api_key}"
+        assert provider_called is False
+
+    async def test_api_key_provider_does_not_fill_admin_auth(self) -> None:
+        provider_called = False
+
+        async def api_key_provider() -> str:
+            nonlocal provider_called
+            provider_called = True
+            return "dynamic-api-key"
+
+        with update_env(OPENAI_ADMIN_KEY=Omit()):
+            client = AsyncOpenAI(base_url=base_url, api_key=api_key_provider, admin_api_key=None)
+            with pytest.raises(TypeError, match="Could not resolve authentication method"):
+                await client.get(
+                    "/organization/projects",
+                    cast_to=httpx.Response,
+                    options={"security": {"admin_api_key_auth": True}},
+                )
+
+        assert provider_called is False
+
+    @pytest.mark.respx(base_url=base_url)
+    async def test_workload_identity_preserves_admin_auth(self, respx_mock: MockRouter) -> None:
+        respx_mock.get("/organization/projects").mock(return_value=httpx.Response(200, json={"ok": True}))
+
+        client = AsyncOpenAI(base_url=base_url, workload_identity=workload_identity, admin_api_key=admin_api_key)
+        response = await client.get(
+            "/organization/projects",
+            cast_to=httpx.Response,
+            options={"security": {"admin_api_key_auth": True}},
+        )
+
+        assert response.request.headers.get("Authorization") == f"Bearer {admin_api_key}"
 
     async def test_default_query_option(self) -> None:
         client = AsyncOpenAI(
-            base_url=base_url, api_key=api_key, _strict_response_validation=True, default_query={"query_param": "bar"}
+            base_url=base_url,
+            api_key=api_key,
+            admin_api_key=admin_api_key,
+            _strict_response_validation=True,
+            default_query={"query_param": "bar"},
         )
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
         url = httpx.URL(request.url)
@@ -1692,6 +2044,7 @@ class TestAsyncOpenAI:
         async with AsyncOpenAI(
             base_url=base_url,
             api_key=api_key,
+            admin_api_key=admin_api_key,
             _strict_response_validation=True,
             http_client=httpx.AsyncClient(transport=MockTransport(handler=mock_handler)),
         ) as client:
@@ -1790,7 +2143,10 @@ class TestAsyncOpenAI:
 
     async def test_base_url_setter(self) -> None:
         client = AsyncOpenAI(
-            base_url="https://example.com/from_init", api_key=api_key, _strict_response_validation=True
+            base_url="https://example.com/from_init",
+            api_key=api_key,
+            admin_api_key=admin_api_key,
+            _strict_response_validation=True,
         )
         assert client.base_url == "https://example.com/from_init/"
 
@@ -1802,18 +2158,22 @@ class TestAsyncOpenAI:
 
     async def test_base_url_env(self) -> None:
         with update_env(OPENAI_BASE_URL="http://localhost:5000/from/env"):
-            client = AsyncOpenAI(api_key=api_key, _strict_response_validation=True)
+            client = AsyncOpenAI(api_key=api_key, admin_api_key=admin_api_key, _strict_response_validation=True)
             assert client.base_url == "http://localhost:5000/from/env/"
 
     @pytest.mark.parametrize(
         "client",
         [
             AsyncOpenAI(
-                base_url="http://localhost:5000/custom/path/", api_key=api_key, _strict_response_validation=True
+                base_url="http://localhost:5000/custom/path/",
+                api_key=api_key,
+                admin_api_key=admin_api_key,
+                _strict_response_validation=True,
             ),
             AsyncOpenAI(
                 base_url="http://localhost:5000/custom/path/",
                 api_key=api_key,
+                admin_api_key=admin_api_key,
                 _strict_response_validation=True,
                 http_client=httpx.AsyncClient(),
             ),
@@ -1835,11 +2195,15 @@ class TestAsyncOpenAI:
         "client",
         [
             AsyncOpenAI(
-                base_url="http://localhost:5000/custom/path/", api_key=api_key, _strict_response_validation=True
+                base_url="http://localhost:5000/custom/path/",
+                api_key=api_key,
+                admin_api_key=admin_api_key,
+                _strict_response_validation=True,
             ),
             AsyncOpenAI(
                 base_url="http://localhost:5000/custom/path/",
                 api_key=api_key,
+                admin_api_key=admin_api_key,
                 _strict_response_validation=True,
                 http_client=httpx.AsyncClient(),
             ),
@@ -1861,11 +2225,15 @@ class TestAsyncOpenAI:
         "client",
         [
             AsyncOpenAI(
-                base_url="http://localhost:5000/custom/path/", api_key=api_key, _strict_response_validation=True
+                base_url="http://localhost:5000/custom/path/",
+                api_key=api_key,
+                admin_api_key=admin_api_key,
+                _strict_response_validation=True,
             ),
             AsyncOpenAI(
                 base_url="http://localhost:5000/custom/path/",
                 api_key=api_key,
+                admin_api_key=admin_api_key,
                 _strict_response_validation=True,
                 http_client=httpx.AsyncClient(),
             ),
@@ -1884,7 +2252,9 @@ class TestAsyncOpenAI:
         await client.close()
 
     async def test_copied_client_does_not_close_http(self) -> None:
-        test_client = AsyncOpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+        test_client = AsyncOpenAI(
+            base_url=base_url, api_key=api_key, admin_api_key=admin_api_key, _strict_response_validation=True
+        )
         assert not test_client.is_closed()
 
         copied = test_client.copy()
@@ -1896,7 +2266,9 @@ class TestAsyncOpenAI:
         assert not test_client.is_closed()
 
     async def test_client_context_manager(self) -> None:
-        test_client = AsyncOpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+        test_client = AsyncOpenAI(
+            base_url=base_url, api_key=api_key, admin_api_key=admin_api_key, _strict_response_validation=True
+        )
         async with test_client as c2:
             assert c2 is test_client
             assert not c2.is_closed()
@@ -1918,7 +2290,11 @@ class TestAsyncOpenAI:
     async def test_client_max_retries_validation(self) -> None:
         with pytest.raises(TypeError, match=r"max_retries cannot be None"):
             AsyncOpenAI(
-                base_url=base_url, api_key=api_key, _strict_response_validation=True, max_retries=cast(Any, None)
+                base_url=base_url,
+                api_key=api_key,
+                admin_api_key=admin_api_key,
+                _strict_response_validation=True,
+                max_retries=cast(Any, None),
             )
 
     @pytest.mark.respx(base_url=base_url)
@@ -1939,12 +2315,16 @@ class TestAsyncOpenAI:
 
         respx_mock.get("/foo").mock(return_value=httpx.Response(200, text="my-custom-format"))
 
-        strict_client = AsyncOpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+        strict_client = AsyncOpenAI(
+            base_url=base_url, api_key=api_key, admin_api_key=admin_api_key, _strict_response_validation=True
+        )
 
         with pytest.raises(APIResponseValidationError):
             await strict_client.get("/foo", cast_to=Model)
 
-        non_strict_client = AsyncOpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=False)
+        non_strict_client = AsyncOpenAI(
+            base_url=base_url, api_key=api_key, admin_api_key=admin_api_key, _strict_response_validation=False
+        )
 
         response = await non_strict_client.get("/foo", cast_to=Model)
         assert isinstance(response, str)  # type: ignore[unreachable]

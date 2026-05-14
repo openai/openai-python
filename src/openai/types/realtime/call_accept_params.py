@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import List, Union, Optional
 from typing_extensions import Literal, Required, TypedDict
 
+from .realtime_reasoning_param import RealtimeReasoningParam
 from .realtime_truncation_param import RealtimeTruncationParam
 from .realtime_audio_config_param import RealtimeAudioConfigParam
 from .realtime_tools_config_param import RealtimeToolsConfigParam
@@ -57,6 +58,7 @@ class CallAcceptParams(TypedDict, total=False):
         Literal[
             "gpt-realtime",
             "gpt-realtime-1.5",
+            "gpt-realtime-2",
             "gpt-realtime-2025-08-28",
             "gpt-4o-realtime-preview",
             "gpt-4o-realtime-preview-2024-10-01",
@@ -83,11 +85,20 @@ class CallAcceptParams(TypedDict, total=False):
     only. It is not possible to request both `text` and `audio` at the same time.
     """
 
+    parallel_tool_calls: bool
+    """Whether the model may call multiple tools in parallel.
+
+    Only supported by reasoning Realtime models such as `gpt-realtime-2`.
+    """
+
     prompt: Optional[ResponsePromptParam]
     """
     Reference to a prompt template and its variables.
     [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
     """
+
+    reasoning: RealtimeReasoningParam
+    """Configuration for reasoning-capable Realtime models such as `gpt-realtime-2`."""
 
     tool_choice: RealtimeToolChoiceConfigParam
     """How the model chooses tools.
