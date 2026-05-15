@@ -498,6 +498,16 @@ class TestOpenAI:
                 "OPENAI_ADMIN_KEY": Omit(),
             }
         ):
+            local_server = OpenAI(
+                base_url=base_url,
+                api_key="",
+                admin_api_key=None,
+                _strict_response_validation=True,
+            )
+            local_server_request = local_server._build_request(FinalRequestOptions(method="get", url="/foo"))
+            assert "Authorization" not in local_server_request.headers
+            local_server.close()
+
             no_credentials = OpenAI(
                 base_url=base_url,
                 api_key=None,
@@ -1762,6 +1772,16 @@ class TestAsyncOpenAI:
                 "OPENAI_ADMIN_KEY": Omit(),
             }
         ):
+            local_server = AsyncOpenAI(
+                base_url=base_url,
+                api_key="",
+                admin_api_key=None,
+                _strict_response_validation=True,
+            )
+            local_server_request = local_server._build_request(FinalRequestOptions(method="get", url="/foo"))
+            assert "Authorization" not in local_server_request.headers
+            await local_server.close()
+
             no_credentials = AsyncOpenAI(
                 base_url=base_url,
                 api_key=None,

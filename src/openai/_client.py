@@ -106,6 +106,7 @@ class OpenAI(SyncAPIClient):
     api_key: str
     admin_api_key: str | None
     workload_identity: WorkloadIdentity | None
+    _api_key_is_set: bool
     organization: str | None
     project: str | None
     webhook_secret: str | None
@@ -165,6 +166,7 @@ class OpenAI(SyncAPIClient):
 
         if workload_identity is not None:
             self.api_key = WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER
+            self._api_key_is_set = True
             self._api_key_provider = None
             self._workload_identity_auth = WorkloadIdentityAuth(
                 workload_identity=workload_identity,
@@ -172,6 +174,7 @@ class OpenAI(SyncAPIClient):
         else:
             if api_key is None:
                 api_key = os.environ.get("OPENAI_API_KEY")
+            self._api_key_is_set = api_key is not None
             if callable(api_key):
                 self.api_key = ""
                 self._api_key_provider: Callable[[], str] | None = api_key  # type: ignore[no-redef]
@@ -186,7 +189,7 @@ class OpenAI(SyncAPIClient):
 
         if (
             _enforce_credentials
-            and not self.api_key
+            and not self._api_key_is_set
             and self._api_key_provider is None
             and workload_identity is None
             and self.admin_api_key is None
@@ -489,6 +492,9 @@ class OpenAI(SyncAPIClient):
         if _has_header(headers, "Authorization") or _has_omitted_header(custom_headers, "Authorization"):
             return
 
+        if self._api_key_is_set and not self.api_key:
+            return
+
         raise TypeError(
             '"Could not resolve authentication method. Expected either api_key or admin_api_key to be set. Or for one of the `Authorization` or `Authorization` headers to be explicitly omitted"'
         )
@@ -612,6 +618,7 @@ class AsyncOpenAI(AsyncAPIClient):
     api_key: str
     admin_api_key: str | None
     workload_identity: WorkloadIdentity | None
+    _api_key_is_set: bool
     organization: str | None
     project: str | None
     webhook_secret: str | None
@@ -671,6 +678,7 @@ class AsyncOpenAI(AsyncAPIClient):
 
         if workload_identity is not None:
             self.api_key = WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER
+            self._api_key_is_set = True
             self._api_key_provider = None
             self._workload_identity_auth = WorkloadIdentityAuth(
                 workload_identity=workload_identity,
@@ -678,6 +686,7 @@ class AsyncOpenAI(AsyncAPIClient):
         else:
             if api_key is None:
                 api_key = os.environ.get("OPENAI_API_KEY")
+            self._api_key_is_set = api_key is not None
             if callable(api_key):
                 self.api_key = ""
                 self._api_key_provider: Callable[[], Awaitable[str]] | None = api_key  # type: ignore[no-redef]
@@ -692,7 +701,7 @@ class AsyncOpenAI(AsyncAPIClient):
 
         if (
             _enforce_credentials
-            and not self.api_key
+            and not self._api_key_is_set
             and self._api_key_provider is None
             and workload_identity is None
             and self.admin_api_key is None
@@ -993,6 +1002,9 @@ class AsyncOpenAI(AsyncAPIClient):
     @override
     def _validate_headers(self, headers: Headers, custom_headers: Headers) -> None:
         if _has_header(headers, "Authorization") or _has_omitted_header(custom_headers, "Authorization"):
+            return
+
+        if self._api_key_is_set and not self.api_key:
             return
 
         raise TypeError(
