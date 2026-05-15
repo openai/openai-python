@@ -52,6 +52,7 @@ __all__ = [
     "McpApprovalRequest",
     "McpApprovalResponse",
     "McpCall",
+    "CompactionTrigger",
     "ItemReference",
 ]
 
@@ -526,6 +527,13 @@ class McpCall(TypedDict, total=False):
     """
 
 
+class CompactionTrigger(TypedDict, total=False):
+    """Compacts the current context. Must be the final input item."""
+
+    type: Required[Literal["compaction_trigger"]]
+    """The type of the item. Always `compaction_trigger`."""
+
+
 class ItemReference(TypedDict, total=False):
     """An internal identifier for an item to reference."""
 
@@ -564,6 +572,7 @@ ResponseInputItemParam: TypeAlias = Union[
     McpCall,
     ResponseCustomToolCallOutputParam,
     ResponseCustomToolCallParam,
+    CompactionTrigger,
     ItemReference,
 ]
 
