@@ -50,6 +50,7 @@ __all__ = [
     "McpApprovalRequest",
     "McpApprovalResponse",
     "McpCall",
+    "CompactionTrigger",
     "ItemReference",
 ]
 
@@ -527,6 +528,13 @@ class McpCall(BaseModel):
     """
 
 
+class CompactionTrigger(BaseModel):
+    """Compacts the current context. Must be the final input item."""
+
+    type: Literal["compaction_trigger"]
+    """The type of the item. Always `compaction_trigger`."""
+
+
 class ItemReference(BaseModel):
     """An internal identifier for an item to reference."""
 
@@ -566,6 +574,7 @@ ResponseInputItem: TypeAlias = Annotated[
         McpCall,
         ResponseCustomToolCallOutput,
         ResponseCustomToolCall,
+        CompactionTrigger,
         ItemReference,
     ],
     PropertyInfo(discriminator="type"),
