@@ -8,7 +8,7 @@ from typing import Any, cast
 import httpx
 import pytest
 
-from openai import OpenAI, AsyncOpenAI
+from openai import OpenAI, AsyncOpenAI, APIResponseValidationError
 from tests.utils import assert_matches_type
 from openai._utils import assert_signatures_in_sync
 from openai.pagination import SyncCursorPage, AsyncCursorPage
@@ -518,3 +518,37 @@ async def test_async_poll_coerces_completed_vector_store_response() -> None:
     assert_matches_type(VectorStoreFileBatch, file_batch, path=["response"])
     assert file_batch.id == "vsfb_abc123"
     assert file_batch.vector_store_id == "vs_abc123"
+
+
+def test_poll_preserves_strict_validation_for_coerced_vector_store_response() -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        data = _completed_vector_store_response()
+        data["created_at"] = "invalid"
+        return httpx.Response(200, json=data)
+
+    with OpenAI(
+        api_key="My API Key",
+        base_url=base_url,
+        http_client=httpx.Client(transport=httpx.MockTransport(handler)),
+        _strict_response_validation=True,
+    ) as client:
+        with pytest.raises(APIResponseValidationError):
+            client.vector_stores.file_batches.poll(batch_id="vsfb_abc123", vector_store_id="vs_abc123")
+
+
+async def test_async_poll_preserves_strict_validation_for_coerced_vector_store_response() -> None:
+    async def handler(request: httpx.Request) -> httpx.Response:
+        data = _completed_vector_store_response()
+        data["created_at"] = "invalid"
+        return httpx.Response(200, json=data)
+
+    async with AsyncOpenAI(
+        api_key="My API Key",
+        base_url=base_url,
+        http_client=httpx.AsyncClient(transport=httpx.MockTransport(handler)),
+        _strict_response_validation=True,
+    ) as async_client:
+        with pytest.raises(APIResponseValidationError):
+            await async_client.vector_stores.file_batches.poll(
+                batch_id="vsfb_abc123", vector_store_id="vs_abc123"
+            )

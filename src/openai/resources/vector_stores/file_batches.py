@@ -15,7 +15,6 @@ from ...types import FileChunkingStrategyParam
 from ..._types import Body, Omit, Query, Headers, NotGiven, FileTypes, SequenceNotStr, omit, not_given
 from ..._utils import is_given, path_template, maybe_transform, async_maybe_transform
 from ..._compat import cached_property
-from ..._models import construct_type_unchecked
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from ...pagination import SyncCursorPage, AsyncCursorPage
@@ -34,19 +33,16 @@ def _coerce_vector_store_poll_response(
     *,
     batch_id: str,
     vector_store_id: str,
-) -> VectorStoreFileBatch | None:
+) -> dict[str, Any] | None:
     if data.get("object") != "vector_store" or data.get("id") != vector_store_id:
         return None
 
-    return construct_type_unchecked(
-        value={
-            **data,
-            "id": batch_id,
-            "object": "vector_store.files_batch",
-            "vector_store_id": vector_store_id,
-        },
-        type_=VectorStoreFileBatch,
-    )
+    return {
+        **data,
+        "id": batch_id,
+        "object": "vector_store.files_batch",
+        "vector_store_id": vector_store_id,
+    }
 
 
 class FileBatches(SyncAPIResource):
@@ -373,9 +369,17 @@ class FileBatches(SyncAPIResource):
             )
 
             data = response.parse(to=dict)
-            batch = _coerce_vector_store_poll_response(data, batch_id=batch_id, vector_store_id=vector_store_id)
-            if batch is None:
+            coerced_data = _coerce_vector_store_poll_response(
+                data, batch_id=batch_id, vector_store_id=vector_store_id
+            )
+            if coerced_data is None:
                 batch = response.parse()
+            else:
+                batch = response._client._process_response_data(
+                    data=coerced_data,
+                    cast_to=VectorStoreFileBatch,
+                    response=response.http_response,
+                )
 
             if batch.file_counts.in_progress > 0:
                 if not is_given(poll_interval_ms):
@@ -765,9 +769,17 @@ class AsyncFileBatches(AsyncAPIResource):
             )
 
             data = response.parse(to=dict)
-            batch = _coerce_vector_store_poll_response(data, batch_id=batch_id, vector_store_id=vector_store_id)
-            if batch is None:
+            coerced_data = _coerce_vector_store_poll_response(
+                data, batch_id=batch_id, vector_store_id=vector_store_id
+            )
+            if coerced_data is None:
                 batch = response.parse()
+            else:
+                batch = response._client._process_response_data(
+                    data=coerced_data,
+                    cast_to=VectorStoreFileBatch,
+                    response=response.http_response,
+                )
 
             if batch.file_counts.in_progress > 0:
                 if not is_given(poll_interval_ms):
