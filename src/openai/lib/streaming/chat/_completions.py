@@ -357,16 +357,57 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
             self.__choice_event_states.append(choice_state)
             return choice_state
 
+    def _infer_missing_tool_call_indexes(
+        self,
+        *,
+        choice: ChoiceChunk,
+        previous_tool_calls: list[Any],
+    ) -> None:
+        tool_calls = choice.delta.tool_calls
+        if not tool_calls or len(tool_calls) != 1:
+            return
+
+        tool_call = cast(Any, tool_calls[0])
+        if tool_call.index is not None:
+            return
+
+        if len(previous_tool_calls) == 0:
+            tool_call.index = 0
+            return
+
+        if len(previous_tool_calls) != 1:
+            return
+
+        if not self._is_missing_index_tool_call_continuation(tool_call):
+            return
+
+        tool_call.index = previous_tool_calls[0].index
+
+    @staticmethod
+    def _is_missing_index_tool_call_continuation(tool_call: Any) -> bool:
+        if tool_call.id is not None or tool_call.type is not None:
+            return False
+
+        function = tool_call.function
+        if function is not None and function.name is not None:
+            return False
+
+        return True
+
     def _accumulate_chunk(self, chunk: ChatCompletionChunk) -> ParsedChatCompletionSnapshot:
         completion_snapshot = self.__current_completion_snapshot
 
         if completion_snapshot is None:
+            for choice in chunk.choices:
+                self._infer_missing_tool_call_indexes(choice=choice, previous_tool_calls=[])
+
             return _convert_initial_chunk_into_snapshot(chunk)
 
         for choice in chunk.choices:
             try:
                 choice_snapshot = completion_snapshot.choices[choice.index]
                 previous_tool_calls = choice_snapshot.message.tool_calls or []
+                self._infer_missing_tool_call_indexes(choice=choice, previous_tool_calls=previous_tool_calls)
 
                 choice_snapshot.message = cast(
                     ParsedChatCompletionMessageSnapshot,
