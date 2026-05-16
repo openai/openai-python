@@ -23,6 +23,7 @@ __all__ = [
     "ConflictError",
     "UnprocessableEntityError",
     "RateLimitError",
+    "InsufficientQuotaError",
     "InternalServerError",
     "LengthFinishReasonError",
     "ContentFilterFinishReasonError",
@@ -156,6 +157,16 @@ class UnprocessableEntityError(APIStatusError):
 
 
 class RateLimitError(APIStatusError):
+    status_code: Literal[429] = 429  # pyright: ignore[reportIncompatibleVariableOverride]
+
+
+class InsufficientQuotaError(RateLimitError):
+    """Raised when the API returns a 429 status code with an 'insufficient_quota' error code.
+
+    This is distinct from a rate limit error — it indicates that the account's
+    quota has been exhausted rather than a temporary rate limit being hit.
+    """
+
     status_code: Literal[429] = 429  # pyright: ignore[reportIncompatibleVariableOverride]
 
 
