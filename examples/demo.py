@@ -16,7 +16,8 @@ completion = client.chat.completions.create(
         },
     ],
 )
-print(completion.choices[0].message.content)
+if completion.choices:
+    print(completion.choices[0].message.content)
 
 # Streaming:
 print("----- streaming request -----")
@@ -50,4 +51,5 @@ response = client.chat.completions.with_raw_response.create(
 )
 completion = response.parse()
 print(response.request_id)
-print(completion.choices[0].message.content)
+if completion.choices:
+    print(completion.choices[0].message.content)
