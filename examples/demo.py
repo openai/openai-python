@@ -16,7 +16,7 @@ completion = client.chat.completions.create(
         },
     ],
 )
-if completion.choices:
+if completion.choices and completion.choices[0].message is not None:
     print(completion.choices[0].message.content)
 
 # Streaming:
@@ -51,5 +51,5 @@ response = client.chat.completions.with_raw_response.create(
 )
 completion = response.parse()
 print(response.request_id)
-if completion.choices:
+if completion.choices and completion.choices[0].message is not None:
     print(completion.choices[0].message.content)
