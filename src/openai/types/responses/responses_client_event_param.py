@@ -245,6 +245,20 @@ class ResponsesClientEventParam(TypedDict, total=False):
     stream_options: Optional[StreamOptions]
     """Options for streaming responses. Only set this when you set `stream: true`."""
 
+    frequency_penalty: Optional[float]
+    """Number between -2.0 and 2.0.
+
+    Positive values penalize new tokens based on their existing frequency in the
+    text so far, decreasing the model's likelihood to repeat the same line verbatim.
+    """
+
+    presence_penalty: Optional[float]
+    """Number between -2.0 and 2.0.
+
+    Positive values penalize new tokens based on whether they appear in the text so
+    far, increasing the model's likelihood to talk about new topics.
+    """
+
     temperature: Optional[float]
     """What sampling temperature to use, between 0 and 2.
 
