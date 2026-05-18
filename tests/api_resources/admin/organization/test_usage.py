@@ -17,6 +17,8 @@ from openai.types.admin.organization import (
     UsageModerationsResponse,
     UsageVectorStoresResponse,
     UsageAudioSpeechesResponse,
+    UsageWebSearchCallsResponse,
+    UsageFileSearchCallsResponse,
     UsageAudioTranscriptionsResponse,
     UsageCodeInterpreterSessionsResponse,
 )
@@ -306,6 +308,53 @@ class TestUsage:
         assert cast(Any, response.is_closed) is True
 
     @parametrize
+    def test_method_file_search_calls(self, client: OpenAI) -> None:
+        usage = client.admin.organization.usage.file_search_calls(
+            start_time=0,
+        )
+        assert_matches_type(UsageFileSearchCallsResponse, usage, path=["response"])
+
+    @parametrize
+    def test_method_file_search_calls_with_all_params(self, client: OpenAI) -> None:
+        usage = client.admin.organization.usage.file_search_calls(
+            start_time=0,
+            api_key_ids=["string"],
+            bucket_width="1m",
+            end_time=0,
+            group_by=["project_id"],
+            limit=0,
+            page="page",
+            project_ids=["string"],
+            user_ids=["string"],
+            vector_store_ids=["string"],
+        )
+        assert_matches_type(UsageFileSearchCallsResponse, usage, path=["response"])
+
+    @parametrize
+    def test_raw_response_file_search_calls(self, client: OpenAI) -> None:
+        response = client.admin.organization.usage.with_raw_response.file_search_calls(
+            start_time=0,
+        )
+
+        assert response.is_closed is True
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        usage = response.parse()
+        assert_matches_type(UsageFileSearchCallsResponse, usage, path=["response"])
+
+    @parametrize
+    def test_streaming_response_file_search_calls(self, client: OpenAI) -> None:
+        with client.admin.organization.usage.with_streaming_response.file_search_calls(
+            start_time=0,
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            usage = response.parse()
+            assert_matches_type(UsageFileSearchCallsResponse, usage, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
+
+    @parametrize
     def test_method_images(self, client: OpenAI) -> None:
         usage = client.admin.organization.usage.images(
             start_time=0,
@@ -442,6 +491,54 @@ class TestUsage:
 
             usage = response.parse()
             assert_matches_type(UsageVectorStoresResponse, usage, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
+
+    @parametrize
+    def test_method_web_search_calls(self, client: OpenAI) -> None:
+        usage = client.admin.organization.usage.web_search_calls(
+            start_time=0,
+        )
+        assert_matches_type(UsageWebSearchCallsResponse, usage, path=["response"])
+
+    @parametrize
+    def test_method_web_search_calls_with_all_params(self, client: OpenAI) -> None:
+        usage = client.admin.organization.usage.web_search_calls(
+            start_time=0,
+            api_key_ids=["string"],
+            bucket_width="1m",
+            context_levels=["low"],
+            end_time=0,
+            group_by=["project_id"],
+            limit=0,
+            models=["string"],
+            page="page",
+            project_ids=["string"],
+            user_ids=["string"],
+        )
+        assert_matches_type(UsageWebSearchCallsResponse, usage, path=["response"])
+
+    @parametrize
+    def test_raw_response_web_search_calls(self, client: OpenAI) -> None:
+        response = client.admin.organization.usage.with_raw_response.web_search_calls(
+            start_time=0,
+        )
+
+        assert response.is_closed is True
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        usage = response.parse()
+        assert_matches_type(UsageWebSearchCallsResponse, usage, path=["response"])
+
+    @parametrize
+    def test_streaming_response_web_search_calls(self, client: OpenAI) -> None:
+        with client.admin.organization.usage.with_streaming_response.web_search_calls(
+            start_time=0,
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            usage = response.parse()
+            assert_matches_type(UsageWebSearchCallsResponse, usage, path=["response"])
 
         assert cast(Any, response.is_closed) is True
 
@@ -730,6 +827,53 @@ class TestAsyncUsage:
         assert cast(Any, response.is_closed) is True
 
     @parametrize
+    async def test_method_file_search_calls(self, async_client: AsyncOpenAI) -> None:
+        usage = await async_client.admin.organization.usage.file_search_calls(
+            start_time=0,
+        )
+        assert_matches_type(UsageFileSearchCallsResponse, usage, path=["response"])
+
+    @parametrize
+    async def test_method_file_search_calls_with_all_params(self, async_client: AsyncOpenAI) -> None:
+        usage = await async_client.admin.organization.usage.file_search_calls(
+            start_time=0,
+            api_key_ids=["string"],
+            bucket_width="1m",
+            end_time=0,
+            group_by=["project_id"],
+            limit=0,
+            page="page",
+            project_ids=["string"],
+            user_ids=["string"],
+            vector_store_ids=["string"],
+        )
+        assert_matches_type(UsageFileSearchCallsResponse, usage, path=["response"])
+
+    @parametrize
+    async def test_raw_response_file_search_calls(self, async_client: AsyncOpenAI) -> None:
+        response = await async_client.admin.organization.usage.with_raw_response.file_search_calls(
+            start_time=0,
+        )
+
+        assert response.is_closed is True
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        usage = response.parse()
+        assert_matches_type(UsageFileSearchCallsResponse, usage, path=["response"])
+
+    @parametrize
+    async def test_streaming_response_file_search_calls(self, async_client: AsyncOpenAI) -> None:
+        async with async_client.admin.organization.usage.with_streaming_response.file_search_calls(
+            start_time=0,
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            usage = await response.parse()
+            assert_matches_type(UsageFileSearchCallsResponse, usage, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
+
+    @parametrize
     async def test_method_images(self, async_client: AsyncOpenAI) -> None:
         usage = await async_client.admin.organization.usage.images(
             start_time=0,
@@ -866,5 +1010,53 @@ class TestAsyncUsage:
 
             usage = await response.parse()
             assert_matches_type(UsageVectorStoresResponse, usage, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
+
+    @parametrize
+    async def test_method_web_search_calls(self, async_client: AsyncOpenAI) -> None:
+        usage = await async_client.admin.organization.usage.web_search_calls(
+            start_time=0,
+        )
+        assert_matches_type(UsageWebSearchCallsResponse, usage, path=["response"])
+
+    @parametrize
+    async def test_method_web_search_calls_with_all_params(self, async_client: AsyncOpenAI) -> None:
+        usage = await async_client.admin.organization.usage.web_search_calls(
+            start_time=0,
+            api_key_ids=["string"],
+            bucket_width="1m",
+            context_levels=["low"],
+            end_time=0,
+            group_by=["project_id"],
+            limit=0,
+            models=["string"],
+            page="page",
+            project_ids=["string"],
+            user_ids=["string"],
+        )
+        assert_matches_type(UsageWebSearchCallsResponse, usage, path=["response"])
+
+    @parametrize
+    async def test_raw_response_web_search_calls(self, async_client: AsyncOpenAI) -> None:
+        response = await async_client.admin.organization.usage.with_raw_response.web_search_calls(
+            start_time=0,
+        )
+
+        assert response.is_closed is True
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        usage = response.parse()
+        assert_matches_type(UsageWebSearchCallsResponse, usage, path=["response"])
+
+    @parametrize
+    async def test_streaming_response_web_search_calls(self, async_client: AsyncOpenAI) -> None:
+        async with async_client.admin.organization.usage.with_streaming_response.web_search_calls(
+            start_time=0,
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            usage = await response.parse()
+            assert_matches_type(UsageWebSearchCallsResponse, usage, path=["response"])
 
         assert cast(Any, response.is_closed) is True
