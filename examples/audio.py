@@ -1,4 +1,4 @@
-#!/usr/bin/env rye run python
+#!/usr/bin/env -S rye run python
 
 from pathlib import Path
 
