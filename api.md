@@ -701,9 +701,11 @@ from openai.types.admin.organization import (
     UsageCompletionsResponse,
     UsageCostsResponse,
     UsageEmbeddingsResponse,
+    UsageFileSearchCallsResponse,
     UsageImagesResponse,
     UsageModerationsResponse,
     UsageVectorStoresResponse,
+    UsageWebSearchCallsResponse,
 )
 ```
 
@@ -715,9 +717,11 @@ Methods:
 - <code title="get /organization/usage/completions">client.admin.organization.usage.<a href="./src/openai/resources/admin/organization/usage.py">completions</a>(\*\*<a href="src/openai/types/admin/organization/usage_completions_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/usage_completions_response.py">UsageCompletionsResponse</a></code>
 - <code title="get /organization/costs">client.admin.organization.usage.<a href="./src/openai/resources/admin/organization/usage.py">costs</a>(\*\*<a href="src/openai/types/admin/organization/usage_costs_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/usage_costs_response.py">UsageCostsResponse</a></code>
 - <code title="get /organization/usage/embeddings">client.admin.organization.usage.<a href="./src/openai/resources/admin/organization/usage.py">embeddings</a>(\*\*<a href="src/openai/types/admin/organization/usage_embeddings_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/usage_embeddings_response.py">UsageEmbeddingsResponse</a></code>
+- <code title="get /organization/usage/file_search_calls">client.admin.organization.usage.<a href="./src/openai/resources/admin/organization/usage.py">file_search_calls</a>(\*\*<a href="src/openai/types/admin/organization/usage_file_search_calls_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/usage_file_search_calls_response.py">UsageFileSearchCallsResponse</a></code>
 - <code title="get /organization/usage/images">client.admin.organization.usage.<a href="./src/openai/resources/admin/organization/usage.py">images</a>(\*\*<a href="src/openai/types/admin/organization/usage_images_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/usage_images_response.py">UsageImagesResponse</a></code>
 - <code title="get /organization/usage/moderations">client.admin.organization.usage.<a href="./src/openai/resources/admin/organization/usage.py">moderations</a>(\*\*<a href="src/openai/types/admin/organization/usage_moderations_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/usage_moderations_response.py">UsageModerationsResponse</a></code>
 - <code title="get /organization/usage/vector_stores">client.admin.organization.usage.<a href="./src/openai/resources/admin/organization/usage.py">vector_stores</a>(\*\*<a href="src/openai/types/admin/organization/usage_vector_stores_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/usage_vector_stores_response.py">UsageVectorStoresResponse</a></code>
+- <code title="get /organization/usage/web_search_calls">client.admin.organization.usage.<a href="./src/openai/resources/admin/organization/usage.py">web_search_calls</a>(\*\*<a href="src/openai/types/admin/organization/usage_web_search_calls_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/usage_web_search_calls_response.py">UsageWebSearchCallsResponse</a></code>
 
 ### Invites
 
@@ -952,6 +956,36 @@ Methods:
 
 - <code title="get /organization/projects/{project_id}/rate_limits">client.admin.organization.projects.rate_limits.<a href="./src/openai/resources/admin/organization/projects/rate_limits.py">list_rate_limits</a>(project_id, \*\*<a href="src/openai/types/admin/organization/projects/rate_limit_list_rate_limits_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/projects/project_rate_limit.py">SyncConversationCursorPage[ProjectRateLimit]</a></code>
 - <code title="post /organization/projects/{project_id}/rate_limits/{rate_limit_id}">client.admin.organization.projects.rate_limits.<a href="./src/openai/resources/admin/organization/projects/rate_limits.py">update_rate_limit</a>(rate_limit_id, \*, project_id, \*\*<a href="src/openai/types/admin/organization/projects/rate_limit_update_rate_limit_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/projects/project_rate_limit.py">ProjectRateLimit</a></code>
+
+#### ModelPermissions
+
+Types:
+
+```python
+from openai.types.admin.organization.projects import (
+    ProjectModelPermissions,
+    ProjectModelPermissionsDeleted,
+)
+```
+
+Methods:
+
+- <code title="get /organization/projects/{project_id}/model_permissions">client.admin.organization.projects.model_permissions.<a href="./src/openai/resources/admin/organization/projects/model_permissions.py">retrieve</a>(project_id) -> <a href="./src/openai/types/admin/organization/projects/project_model_permissions.py">ProjectModelPermissions</a></code>
+- <code title="post /organization/projects/{project_id}/model_permissions">client.admin.organization.projects.model_permissions.<a href="./src/openai/resources/admin/organization/projects/model_permissions.py">update</a>(project_id, \*\*<a href="src/openai/types/admin/organization/projects/model_permission_update_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/projects/project_model_permissions.py">ProjectModelPermissions</a></code>
+- <code title="delete /organization/projects/{project_id}/model_permissions">client.admin.organization.projects.model_permissions.<a href="./src/openai/resources/admin/organization/projects/model_permissions.py">delete</a>(project_id) -> <a href="./src/openai/types/admin/organization/projects/project_model_permissions_deleted.py">ProjectModelPermissionsDeleted</a></code>
+
+#### HostedToolPermissions
+
+Types:
+
+```python
+from openai.types.admin.organization.projects import ProjectHostedToolPermissions
+```
+
+Methods:
+
+- <code title="get /organization/projects/{project_id}/hosted_tool_permissions">client.admin.organization.projects.hosted_tool_permissions.<a href="./src/openai/resources/admin/organization/projects/hosted_tool_permissions.py">retrieve</a>(project_id) -> <a href="./src/openai/types/admin/organization/projects/project_hosted_tool_permissions.py">ProjectHostedToolPermissions</a></code>
+- <code title="post /organization/projects/{project_id}/hosted_tool_permissions">client.admin.organization.projects.hosted_tool_permissions.<a href="./src/openai/resources/admin/organization/projects/hosted_tool_permissions.py">update</a>(project_id, \*\*<a href="src/openai/types/admin/organization/projects/hosted_tool_permission_update_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/projects/project_hosted_tool_permissions.py">ProjectHostedToolPermissions</a></code>
 
 #### Groups
 

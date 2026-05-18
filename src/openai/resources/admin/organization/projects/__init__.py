@@ -64,6 +64,22 @@ from .service_accounts import (
     ServiceAccountsWithStreamingResponse,
     AsyncServiceAccountsWithStreamingResponse,
 )
+from .model_permissions import (
+    ModelPermissions,
+    AsyncModelPermissions,
+    ModelPermissionsWithRawResponse,
+    AsyncModelPermissionsWithRawResponse,
+    ModelPermissionsWithStreamingResponse,
+    AsyncModelPermissionsWithStreamingResponse,
+)
+from .hosted_tool_permissions import (
+    HostedToolPermissions,
+    AsyncHostedToolPermissions,
+    HostedToolPermissionsWithRawResponse,
+    AsyncHostedToolPermissionsWithRawResponse,
+    HostedToolPermissionsWithStreamingResponse,
+    AsyncHostedToolPermissionsWithStreamingResponse,
+)
 
 __all__ = [
     "Users",
@@ -90,6 +106,18 @@ __all__ = [
     "AsyncRateLimitsWithRawResponse",
     "RateLimitsWithStreamingResponse",
     "AsyncRateLimitsWithStreamingResponse",
+    "ModelPermissions",
+    "AsyncModelPermissions",
+    "ModelPermissionsWithRawResponse",
+    "AsyncModelPermissionsWithRawResponse",
+    "ModelPermissionsWithStreamingResponse",
+    "AsyncModelPermissionsWithStreamingResponse",
+    "HostedToolPermissions",
+    "AsyncHostedToolPermissions",
+    "HostedToolPermissionsWithRawResponse",
+    "AsyncHostedToolPermissionsWithRawResponse",
+    "HostedToolPermissionsWithStreamingResponse",
+    "AsyncHostedToolPermissionsWithStreamingResponse",
     "Groups",
     "AsyncGroups",
     "GroupsWithRawResponse",

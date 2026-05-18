@@ -70,6 +70,22 @@ from .service_accounts import (
     ServiceAccountsWithStreamingResponse,
     AsyncServiceAccountsWithStreamingResponse,
 )
+from .model_permissions import (
+    ModelPermissions,
+    AsyncModelPermissions,
+    ModelPermissionsWithRawResponse,
+    AsyncModelPermissionsWithRawResponse,
+    ModelPermissionsWithStreamingResponse,
+    AsyncModelPermissionsWithStreamingResponse,
+)
+from .hosted_tool_permissions import (
+    HostedToolPermissions,
+    AsyncHostedToolPermissions,
+    HostedToolPermissionsWithRawResponse,
+    AsyncHostedToolPermissionsWithRawResponse,
+    HostedToolPermissionsWithStreamingResponse,
+    AsyncHostedToolPermissionsWithStreamingResponse,
+)
 from .....types.admin.organization import project_list_params, project_create_params, project_update_params
 from .....types.admin.organization.project import Project
 
@@ -92,6 +108,14 @@ class Projects(SyncAPIResource):
     @cached_property
     def rate_limits(self) -> RateLimits:
         return RateLimits(self._client)
+
+    @cached_property
+    def model_permissions(self) -> ModelPermissions:
+        return ModelPermissions(self._client)
+
+    @cached_property
+    def hosted_tool_permissions(self) -> HostedToolPermissions:
+        return HostedToolPermissions(self._client)
 
     @cached_property
     def groups(self) -> Groups:
@@ -385,6 +409,14 @@ class AsyncProjects(AsyncAPIResource):
     @cached_property
     def rate_limits(self) -> AsyncRateLimits:
         return AsyncRateLimits(self._client)
+
+    @cached_property
+    def model_permissions(self) -> AsyncModelPermissions:
+        return AsyncModelPermissions(self._client)
+
+    @cached_property
+    def hosted_tool_permissions(self) -> AsyncHostedToolPermissions:
+        return AsyncHostedToolPermissions(self._client)
 
     @cached_property
     def groups(self) -> AsyncGroups:
@@ -699,6 +731,14 @@ class ProjectsWithRawResponse:
         return RateLimitsWithRawResponse(self._projects.rate_limits)
 
     @cached_property
+    def model_permissions(self) -> ModelPermissionsWithRawResponse:
+        return ModelPermissionsWithRawResponse(self._projects.model_permissions)
+
+    @cached_property
+    def hosted_tool_permissions(self) -> HostedToolPermissionsWithRawResponse:
+        return HostedToolPermissionsWithRawResponse(self._projects.hosted_tool_permissions)
+
+    @cached_property
     def groups(self) -> GroupsWithRawResponse:
         return GroupsWithRawResponse(self._projects.groups)
 
@@ -746,6 +786,14 @@ class AsyncProjectsWithRawResponse:
     @cached_property
     def rate_limits(self) -> AsyncRateLimitsWithRawResponse:
         return AsyncRateLimitsWithRawResponse(self._projects.rate_limits)
+
+    @cached_property
+    def model_permissions(self) -> AsyncModelPermissionsWithRawResponse:
+        return AsyncModelPermissionsWithRawResponse(self._projects.model_permissions)
+
+    @cached_property
+    def hosted_tool_permissions(self) -> AsyncHostedToolPermissionsWithRawResponse:
+        return AsyncHostedToolPermissionsWithRawResponse(self._projects.hosted_tool_permissions)
 
     @cached_property
     def groups(self) -> AsyncGroupsWithRawResponse:
@@ -797,6 +845,14 @@ class ProjectsWithStreamingResponse:
         return RateLimitsWithStreamingResponse(self._projects.rate_limits)
 
     @cached_property
+    def model_permissions(self) -> ModelPermissionsWithStreamingResponse:
+        return ModelPermissionsWithStreamingResponse(self._projects.model_permissions)
+
+    @cached_property
+    def hosted_tool_permissions(self) -> HostedToolPermissionsWithStreamingResponse:
+        return HostedToolPermissionsWithStreamingResponse(self._projects.hosted_tool_permissions)
+
+    @cached_property
     def groups(self) -> GroupsWithStreamingResponse:
         return GroupsWithStreamingResponse(self._projects.groups)
 
@@ -844,6 +900,14 @@ class AsyncProjectsWithStreamingResponse:
     @cached_property
     def rate_limits(self) -> AsyncRateLimitsWithStreamingResponse:
         return AsyncRateLimitsWithStreamingResponse(self._projects.rate_limits)
+
+    @cached_property
+    def model_permissions(self) -> AsyncModelPermissionsWithStreamingResponse:
+        return AsyncModelPermissionsWithStreamingResponse(self._projects.model_permissions)
+
+    @cached_property
+    def hosted_tool_permissions(self) -> AsyncHostedToolPermissionsWithStreamingResponse:
+        return AsyncHostedToolPermissionsWithStreamingResponse(self._projects.hosted_tool_permissions)
 
     @cached_property
     def groups(self) -> AsyncGroupsWithStreamingResponse:
