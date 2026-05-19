@@ -163,6 +163,7 @@ class OpenAI(SyncAPIClient):
 
         self.workload_identity = workload_identity
 
+        _api_key_explicitly_provided = False
         if workload_identity is not None:
             self.api_key = WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER
             self._api_key_provider = None
@@ -170,6 +171,7 @@ class OpenAI(SyncAPIClient):
                 workload_identity=workload_identity,
             )
         else:
+            _api_key_explicitly_provided = api_key is not None
             if api_key is None:
                 api_key = os.environ.get("OPENAI_API_KEY")
             if callable(api_key):
@@ -187,6 +189,7 @@ class OpenAI(SyncAPIClient):
         if (
             _enforce_credentials
             and not self.api_key
+            and not _api_key_explicitly_provided
             and self._api_key_provider is None
             and workload_identity is None
             and self.admin_api_key is None
@@ -669,6 +672,7 @@ class AsyncOpenAI(AsyncAPIClient):
 
         self.workload_identity = workload_identity
 
+        _api_key_explicitly_provided = False
         if workload_identity is not None:
             self.api_key = WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER
             self._api_key_provider = None
@@ -676,6 +680,7 @@ class AsyncOpenAI(AsyncAPIClient):
                 workload_identity=workload_identity,
             )
         else:
+            _api_key_explicitly_provided = api_key is not None
             if api_key is None:
                 api_key = os.environ.get("OPENAI_API_KEY")
             if callable(api_key):
@@ -693,6 +698,7 @@ class AsyncOpenAI(AsyncAPIClient):
         if (
             _enforce_credentials
             and not self.api_key
+            and not _api_key_explicitly_provided
             and self._api_key_provider is None
             and workload_identity is None
             and self.admin_api_key is None
