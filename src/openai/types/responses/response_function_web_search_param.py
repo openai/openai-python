@@ -47,7 +47,7 @@ class ActionOpenPage(TypedDict, total=False):
     """Action type "open_page" - Opens a specific URL from search results."""
 
     type: Required[Literal["open_page"]]
-    """The action type."""
+    """The action type. Always `open_page`."""
 
     url: Optional[str]
     """The URL opened by the model."""
