@@ -1,7 +1,5 @@
 # OpenAI Python API library
 
-<!-- Custom code release sync check 5/19/2026 -->
-
 <!-- prettier-ignore -->
 [![PyPI version](https://img.shields.io/pypi/v/openai.svg?label=pypi%20(stable))](https://pypi.org/project/openai/)
 
