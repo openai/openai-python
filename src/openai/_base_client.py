@@ -857,7 +857,11 @@ class _DefaultHttpxClient(httpx.Client):
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
         kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
-        kwargs.setdefault("transport", httpx.HTTPTransport(socket_options=_build_keepalive_socket_options()))
+        if "transport" not in kwargs:
+            kwargs["transport"] = httpx.HTTPTransport(
+                limits=kwargs.get("limits", DEFAULT_CONNECTION_LIMITS),
+                socket_options=_build_keepalive_socket_options(),
+            )
         super().__init__(**kwargs)
 
 
@@ -1445,7 +1449,11 @@ class _DefaultAsyncHttpxClient(httpx.AsyncClient):
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
         kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
-        kwargs.setdefault("transport", httpx.AsyncHTTPTransport(socket_options=_build_keepalive_socket_options()))
+        if "transport" not in kwargs:
+            kwargs["transport"] = httpx.AsyncHTTPTransport(
+                limits=kwargs.get("limits", DEFAULT_CONNECTION_LIMITS),
+                socket_options=_build_keepalive_socket_options(),
+            )
         super().__init__(**kwargs)
 
 
