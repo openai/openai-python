@@ -46,7 +46,7 @@ class ActionOpenPage(BaseModel):
     """Action type "open_page" - Opens a specific URL from search results."""
 
     type: Literal["open_page"]
-    """The action type."""
+    """The action type. Always `open_page`."""
 
     url: Optional[str] = None
     """The URL opened by the model."""
