@@ -211,7 +211,7 @@ class OpenAI(SyncAPIClient):
 
         if base_url is None:
             base_url = os.environ.get("OPENAI_BASE_URL")
-        if base_url is None:
+        if not base_url:
             base_url = f"https://api.openai.com/v1"
 
         custom_headers_env = os.environ.get("OPENAI_CUSTOM_HEADERS")
@@ -717,7 +717,7 @@ class AsyncOpenAI(AsyncAPIClient):
 
         if base_url is None:
             base_url = os.environ.get("OPENAI_BASE_URL")
-        if base_url is None:
+        if not base_url:
             base_url = f"https://api.openai.com/v1"
 
         custom_headers_env = os.environ.get("OPENAI_CUSTOM_HEADERS")
