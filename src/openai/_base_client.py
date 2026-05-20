@@ -9,6 +9,7 @@ import asyncio
 import inspect
 import logging
 import platform
+import socket
 import warnings
 import email.utils
 from types import TracebackType
@@ -831,11 +832,25 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         return f"stainless-python-retry-{uuid.uuid4()}"
 
 
+def _get_default_socket_options() -> list[tuple[int, int, int]]:
+    """Return socket options to enable TCP keepalive for NAT/gateway environments."""
+    # TCP keepalive: enables keep-alive packets to detect dead connections
+    # Needed for NAT gateways that drop idle connections after their timeout
+    if sys.platform == "darwin":
+        # macOS: TCP_KEEPALIVE = 16
+        return [(socket.IPPROTO_TCP, socket.TCP_KEEPALIVE, 1)]
+    # Linux/others: TCP_KEEPIDLE (start keepalive after 60s idle)
+    return [(socket.IPPROTO_TCP, getattr(socket, "TCP_KEEPIDLE", 4), 60)]
+
+
 class _DefaultHttpxClient(httpx.Client):
     def __init__(self, **kwargs: Any) -> None:
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
         kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
+        # Enable TCP keepalive to prevent non-streaming calls from hanging
+        # behind NAT gateways that drop idle connections
+        kwargs.setdefault("socket_options", _get_default_socket_options())
         super().__init__(**kwargs)
 
 
@@ -1423,6 +1438,7 @@ class _DefaultAsyncHttpxClient(httpx.AsyncClient):
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
         kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
+        kwargs.setdefault("socket_options", _get_default_socket_options())
         super().__init__(**kwargs)
 
 
