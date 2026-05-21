@@ -30,6 +30,7 @@ __all__ = [
     "SubjectTokenProviderError",
     "WebSocketConnectionClosedError",
     "WebSocketQueueFullError",
+    "IncompleteResponseError",
 ]
 
 
@@ -205,3 +206,26 @@ class WebSocketQueueFullError(OpenAIError):
     """Raised when the outgoing WebSocket message queue exceeds its byte-size limit."""
 
     pass
+
+
+class IncompleteResponseError(OpenAIError):
+    """Raised when a streaming response ends with incomplete status.
+
+    This typically occurs when the response is truncated due to max_output_tokens
+    or content_filter restrictions.
+    """
+
+    response_id: str
+    incomplete_details_reason: Optional[Literal["max_output_tokens", "content_filter"]]
+
+    def __init__(
+        self,
+        *,
+        response_id: str,
+        incomplete_details_reason: Optional[Literal["max_output_tokens", "content_filter"]],
+    ) -> None:
+        reason_str = incomplete_details_reason or "unknown"
+        message = f"Response {response_id} is incomplete: {reason_str}"
+        super().__init__(message)
+        self.response_id = response_id
+        self.incomplete_details_reason = incomplete_details_reason
