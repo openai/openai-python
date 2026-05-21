@@ -23,7 +23,7 @@ class TestBatches:
         batch = client.batches.create(
             completion_window="24h",
             endpoint="/v1/responses",
-            input_file_id="input_file_id",
+            input_file_id="string",
         )
         assert_matches_type(Batch, batch, path=["response"])
 
@@ -32,7 +32,7 @@ class TestBatches:
         batch = client.batches.create(
             completion_window="24h",
             endpoint="/v1/responses",
-            input_file_id="input_file_id",
+            input_file_id="string",
             metadata={"foo": "string"},
             output_expires_after={
                 "anchor": "created_at",
@@ -46,7 +46,7 @@ class TestBatches:
         response = client.batches.with_raw_response.create(
             completion_window="24h",
             endpoint="/v1/responses",
-            input_file_id="input_file_id",
+            input_file_id="string",
         )
 
         assert response.is_closed is True
@@ -59,7 +59,7 @@ class TestBatches:
         with client.batches.with_streaming_response.create(
             completion_window="24h",
             endpoint="/v1/responses",
-            input_file_id="input_file_id",
+            input_file_id="string",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -72,14 +72,14 @@ class TestBatches:
     @parametrize
     def test_method_retrieve(self, client: OpenAI) -> None:
         batch = client.batches.retrieve(
-            "batch_id",
+            "string",
         )
         assert_matches_type(Batch, batch, path=["response"])
 
     @parametrize
     def test_raw_response_retrieve(self, client: OpenAI) -> None:
         response = client.batches.with_raw_response.retrieve(
-            "batch_id",
+            "string",
         )
 
         assert response.is_closed is True
@@ -90,7 +90,7 @@ class TestBatches:
     @parametrize
     def test_streaming_response_retrieve(self, client: OpenAI) -> None:
         with client.batches.with_streaming_response.retrieve(
-            "batch_id",
+            "string",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -115,7 +115,7 @@ class TestBatches:
     @parametrize
     def test_method_list_with_all_params(self, client: OpenAI) -> None:
         batch = client.batches.list(
-            after="after",
+            after="string",
             limit=0,
         )
         assert_matches_type(SyncCursorPage[Batch], batch, path=["response"])
@@ -143,14 +143,14 @@ class TestBatches:
     @parametrize
     def test_method_cancel(self, client: OpenAI) -> None:
         batch = client.batches.cancel(
-            "batch_id",
+            "string",
         )
         assert_matches_type(Batch, batch, path=["response"])
 
     @parametrize
     def test_raw_response_cancel(self, client: OpenAI) -> None:
         response = client.batches.with_raw_response.cancel(
-            "batch_id",
+            "string",
         )
 
         assert response.is_closed is True
@@ -161,7 +161,7 @@ class TestBatches:
     @parametrize
     def test_streaming_response_cancel(self, client: OpenAI) -> None:
         with client.batches.with_streaming_response.cancel(
-            "batch_id",
+            "string",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -189,7 +189,7 @@ class TestAsyncBatches:
         batch = await async_client.batches.create(
             completion_window="24h",
             endpoint="/v1/responses",
-            input_file_id="input_file_id",
+            input_file_id="string",
         )
         assert_matches_type(Batch, batch, path=["response"])
 
@@ -198,7 +198,7 @@ class TestAsyncBatches:
         batch = await async_client.batches.create(
             completion_window="24h",
             endpoint="/v1/responses",
-            input_file_id="input_file_id",
+            input_file_id="string",
             metadata={"foo": "string"},
             output_expires_after={
                 "anchor": "created_at",
@@ -212,7 +212,7 @@ class TestAsyncBatches:
         response = await async_client.batches.with_raw_response.create(
             completion_window="24h",
             endpoint="/v1/responses",
-            input_file_id="input_file_id",
+            input_file_id="string",
         )
 
         assert response.is_closed is True
@@ -225,7 +225,7 @@ class TestAsyncBatches:
         async with async_client.batches.with_streaming_response.create(
             completion_window="24h",
             endpoint="/v1/responses",
-            input_file_id="input_file_id",
+            input_file_id="string",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -238,14 +238,14 @@ class TestAsyncBatches:
     @parametrize
     async def test_method_retrieve(self, async_client: AsyncOpenAI) -> None:
         batch = await async_client.batches.retrieve(
-            "batch_id",
+            "string",
         )
         assert_matches_type(Batch, batch, path=["response"])
 
     @parametrize
     async def test_raw_response_retrieve(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.batches.with_raw_response.retrieve(
-            "batch_id",
+            "string",
         )
 
         assert response.is_closed is True
@@ -256,7 +256,7 @@ class TestAsyncBatches:
     @parametrize
     async def test_streaming_response_retrieve(self, async_client: AsyncOpenAI) -> None:
         async with async_client.batches.with_streaming_response.retrieve(
-            "batch_id",
+            "string",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -281,7 +281,7 @@ class TestAsyncBatches:
     @parametrize
     async def test_method_list_with_all_params(self, async_client: AsyncOpenAI) -> None:
         batch = await async_client.batches.list(
-            after="after",
+            after="string",
             limit=0,
         )
         assert_matches_type(AsyncCursorPage[Batch], batch, path=["response"])
@@ -309,14 +309,14 @@ class TestAsyncBatches:
     @parametrize
     async def test_method_cancel(self, async_client: AsyncOpenAI) -> None:
         batch = await async_client.batches.cancel(
-            "batch_id",
+            "string",
         )
         assert_matches_type(Batch, batch, path=["response"])
 
     @parametrize
     async def test_raw_response_cancel(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.batches.with_raw_response.cancel(
-            "batch_id",
+            "string",
         )
 
         assert response.is_closed is True
@@ -327,7 +327,7 @@ class TestAsyncBatches:
     @parametrize
     async def test_streaming_response_cancel(self, async_client: AsyncOpenAI) -> None:
         async with async_client.batches.with_streaming_response.cancel(
-            "batch_id",
+            "string",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"

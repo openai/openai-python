@@ -3,6 +3,7 @@ from typing import Any
 from typing_extensions import override
 
 from openai._utils import LazyProxy
+from openai._extras._common import MissingDependencyError
 
 
 class RecursiveLazyProxy(LazyProxy[Any]):
@@ -24,11 +25,11 @@ def test_recursive_proxy() -> None:
 
 
 def test_isinstance_does_not_error() -> None:
-    class AlwaysErrorProxy(LazyProxy[Any]):
+    class MissingDepsProxy(LazyProxy[Any]):
         @override
         def __load__(self) -> Any:
-            raise RuntimeError("Mocking missing dependency")
+            raise MissingDependencyError("Mocking missing dependency")
 
-    proxy = AlwaysErrorProxy()
+    proxy = MissingDepsProxy()
     assert not isinstance(proxy, dict)
     assert isinstance(proxy, LazyProxy)

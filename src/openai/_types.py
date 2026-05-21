@@ -186,6 +186,8 @@ class Omit:
 
 omit = Omit()
 
+Omittable = Union[_T, Omit]
+
 
 @runtime_checkable
 class ModelBuilderProtocol(Protocol):

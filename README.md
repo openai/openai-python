@@ -7,9 +7,11 @@ The OpenAI Python library provides convenient access to the OpenAI REST API from
 application. The library includes type definitions for all request params and response fields,
 and offers both synchronous and asynchronous clients powered by [httpx](https://github.com/encode/httpx).
 
+It is generated from our [OpenAPI specification](https://github.com/openai/openai-openapi) with [Stainless](https://stainlessapi.com/).
+
 ## Documentation
 
-The REST API documentation can be found on [platform.openai.com](https://platform.openai.com/docs). The full API of this library can be found in [api.md](api.md).
+The REST API documentation can be found on [platform.openai.com](https://platform.openai.com/docs/api-reference). The full API of this library can be found in [api.md](api.md).
 
 ## Installation
 
@@ -22,29 +24,196 @@ pip install openai
 
 The full API of this library can be found in [api.md](api.md).
 
+The primary API for interacting with OpenAI models is the [Responses API](https://platform.openai.com/docs/api-reference/responses). You can generate text from the model with the code below.
+
 ```python
 import os
 from openai import OpenAI
 
 client = OpenAI(
-    api_key=os.environ.get("OPENAI_API_KEY"),  # This is the default and can be omitted
+    # This is the default and can be omitted
+    api_key=os.environ.get("OPENAI_API_KEY"),
 )
 
-chat_completion = client.chat.completions.create(
+response = client.responses.create(
+    model="gpt-5.2",
+    instructions="You are a coding assistant that talks like a pirate.",
+    input="How do I check if a Python object is an instance of a class?",
+)
+
+print(response.output_text)
+```
+
+The previous standard (supported indefinitely) for generating text is the [Chat Completions API](https://platform.openai.com/docs/api-reference/chat). You can use that API to generate text from the model with the code below.
+
+```python
+from openai import OpenAI
+
+client = OpenAI()
+
+completion = client.chat.completions.create(
+    model="gpt-5.2",
     messages=[
+        {"role": "developer", "content": "Talk like a pirate."},
         {
             "role": "user",
-            "content": "Say this is a test",
-        }
+            "content": "How do I check if a Python object is an instance of a class?",
+        },
     ],
-    model="gpt-4o",
 )
+
+print(completion.choices[0].message.content)
 ```
 
 While you can provide an `api_key` keyword argument,
 we recommend using [python-dotenv](https://pypi.org/project/python-dotenv/)
 to add `OPENAI_API_KEY="My API Key"` to your `.env` file
-so that your API Key is not stored in source control.
+so that your API key is not stored in source control.
+[Get an API key here](https://platform.openai.com/settings/organization/api-keys).
+
+### Workload Identity Authentication
+
+For secure, automated environments like cloud-managed Kubernetes, Azure, and Google Cloud Platform, you can use workload identity authentication with short-lived tokens from cloud identity providers instead of long-lived API keys.
+
+#### Kubernetes (service account tokens)
+
+```python
+from openai import OpenAI
+from openai.auth import k8s_service_account_token_provider
+
+client = OpenAI(
+    workload_identity={
+        "identity_provider_id": "idp-123",
+        "service_account_id": "sa-456",
+        "provider": k8s_service_account_token_provider(
+            "/var/run/secrets/kubernetes.io/serviceaccount/token"
+        ),
+    },
+)
+
+response = client.chat.completions.create(
+    model="gpt-4",
+    messages=[{"role": "user", "content": "Hello!"}],
+)
+```
+
+#### Azure (managed identity)
+
+```python
+from openai import OpenAI
+from openai.auth import azure_managed_identity_token_provider
+
+client = OpenAI(
+    workload_identity={
+        "identity_provider_id": "idp-123",
+        "service_account_id": "sa-456",
+        "provider": azure_managed_identity_token_provider(
+            resource="https://management.azure.com/",
+        ),
+    },
+)
+```
+
+#### Google Cloud Platform (compute engine metadata)
+
+```python
+from openai import OpenAI
+from openai.auth import gcp_id_token_provider
+
+client = OpenAI(
+    workload_identity={
+        "identity_provider_id": "idp-123",
+        "service_account_id": "sa-456",
+        "provider": gcp_id_token_provider(audience="https://api.openai.com/v1"),
+    },
+)
+```
+
+#### Custom subject token provider
+
+```python
+from openai import OpenAI
+
+
+def get_custom_token() -> str:
+    return "your-jwt-token"
+
+
+client = OpenAI(
+    workload_identity={
+        "identity_provider_id": "idp-123",
+        "service_account_id": "sa-456",
+        "provider": {
+            "token_type": "jwt",
+            "get_token": get_custom_token,
+        },
+    }
+)
+```
+
+You can also customize the token refresh buffer (default is 1200 seconds (20 minutes) before expiration):
+
+```python
+from openai import OpenAI
+from openai.auth import k8s_service_account_token_provider
+
+client = OpenAI(
+    workload_identity={
+        "identity_provider_id": "idp-123",
+        "service_account_id": "sa-456",
+        "provider": k8s_service_account_token_provider("/var/token"),
+        "refresh_buffer_seconds": 120.0,
+    }
+)
+```
+
+### Vision
+
+With an image URL:
+
+```python
+prompt = "What is in this image?"
+img_url = "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/2023_06_08_Raccoon1.jpg/1599px-2023_06_08_Raccoon1.jpg"
+
+response = client.responses.create(
+    model="gpt-5.2",
+    input=[
+        {
+            "role": "user",
+            "content": [
+                {"type": "input_text", "text": prompt},
+                {"type": "input_image", "image_url": f"{img_url}"},
+            ],
+        }
+    ],
+)
+```
+
+With the image as a base64 encoded string:
+
+```python
+import base64
+from openai import OpenAI
+
+client = OpenAI()
+
+prompt = "What is in this image?"
+with open("path/to/image.png", "rb") as image_file:
+    b64_image = base64.b64encode(image_file.read()).decode("utf-8")
+
+response = client.responses.create(
+    model="gpt-5.2",
+    input=[
+        {
+            "role": "user",
+            "content": [
+                {"type": "input_text", "text": prompt},
+                {"type": "input_image", "image_url": f"data:image/png;base64,{b64_image}"},
+            ],
+        }
+    ],
+)
+```
 
 ## Async usage
 
@@ -56,20 +225,16 @@ import asyncio
 from openai import AsyncOpenAI
 
 client = AsyncOpenAI(
-    api_key=os.environ.get("OPENAI_API_KEY"),  # This is the default and can be omitted
+    # This is the default and can be omitted
+    api_key=os.environ.get("OPENAI_API_KEY"),
 )
 
 
 async def main() -> None:
-    chat_completion = await client.chat.completions.create(
-        messages=[
-            {
-                "role": "user",
-                "content": "Say this is a test",
-            }
-        ],
-        model="gpt-4o",
+    response = await client.responses.create(
+        model="gpt-5.2", input="Explain disestablishmentarianism to a smart five year old."
     )
+    print(response.output_text)
 
 
 asyncio.run(main())
@@ -109,7 +274,7 @@ async def main() -> None:
                     "content": "Say this is a test",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.2",
         )
 
 
@@ -125,39 +290,100 @@ from openai import OpenAI
 
 client = OpenAI()
 
-stream = client.chat.completions.create(
-    messages=[
-        {
-            "role": "user",
-            "content": "Say this is a test",
-        }
-    ],
-    model="gpt-4o",
+stream = client.responses.create(
+    model="gpt-5.2",
+    input="Write a one-sentence bedtime story about a unicorn.",
     stream=True,
 )
-for chat_completion in stream:
-    print(chat_completion)
+
+for event in stream:
+    print(event)
 ```
 
 The async client uses the exact same interface.
 
 ```python
+import asyncio
 from openai import AsyncOpenAI
 
 client = AsyncOpenAI()
 
-stream = await client.chat.completions.create(
-    messages=[
-        {
-            "role": "user",
-            "content": "Say this is a test",
-        }
-    ],
-    model="gpt-4o",
-    stream=True,
-)
-async for chat_completion in stream:
-    print(chat_completion)
+
+async def main():
+    stream = await client.responses.create(
+        model="gpt-5.2",
+        input="Write a one-sentence bedtime story about a unicorn.",
+        stream=True,
+    )
+
+    async for event in stream:
+        print(event)
+
+
+asyncio.run(main())
+```
+
+## Realtime API
+
+The Realtime API enables you to build low-latency, multi-modal conversational experiences. It currently supports text and audio as both input and output, as well as [function calling](https://platform.openai.com/docs/guides/function-calling) through a WebSocket connection.
+
+Under the hood the SDK uses the [`websockets`](https://websockets.readthedocs.io/en/stable/) library to manage connections.
+
+The Realtime API works through a combination of client-sent events and server-sent events. Clients can send events to do things like update session configuration or send text and audio inputs. Server events confirm when audio responses have completed, or when a text response from the model has been received. A full event reference can be found [here](https://platform.openai.com/docs/api-reference/realtime-client-events) and a guide can be found [here](https://platform.openai.com/docs/guides/realtime).
+
+Basic text based example:
+
+```py
+import asyncio
+from openai import AsyncOpenAI
+
+async def main():
+    client = AsyncOpenAI()
+
+    async with client.realtime.connect(model="gpt-realtime") as connection:
+        await connection.session.update(
+            session={"type": "realtime", "output_modalities": ["text"]}
+        )
+
+        await connection.conversation.item.create(
+            item={
+                "type": "message",
+                "role": "user",
+                "content": [{"type": "input_text", "text": "Say hello!"}],
+            }
+        )
+        await connection.response.create()
+
+        async for event in connection:
+            if event.type == "response.output_text.delta":
+                print(event.delta, flush=True, end="")
+
+            elif event.type == "response.output_text.done":
+                print()
+
+            elif event.type == "response.done":
+                break
+
+asyncio.run(main())
+```
+
+However the real magic of the Realtime API is handling audio inputs / outputs, see this example [TUI script](https://github.com/openai/openai-python/blob/main/examples/realtime/push_to_talk_app.py) for a fully fledged example.
+
+### Realtime error handling
+
+Whenever an error occurs, the Realtime API will send an [`error` event](https://platform.openai.com/docs/guides/realtime-model-capabilities#error-handling) and the connection will stay open and remain usable. This means you need to handle it yourself, as _no errors are raised directly_ by the SDK when an `error` event comes in.
+
+```py
+client = AsyncOpenAI()
+
+async with client.realtime.connect(model="gpt-realtime") as connection:
+    ...
+    async for event in connection:
+        if event.type == 'error':
+            print(event.error.type)
+            print(event.error.code)
+            print(event.error.event_id)
+            print(event.error.message)
 ```
 
 ## Using types
@@ -249,14 +475,14 @@ from openai import OpenAI
 
 client = OpenAI()
 
-completion = client.chat.completions.create(
-    messages=[
+response = client.chat.responses.create(
+    input=[
         {
             "role": "user",
-            "content": "Can you generate an example json object describing a fruit?",
+            "content": "How much ?",
         }
     ],
-    model="gpt-4o",
+    model="gpt-5.2",
     response_format={"type": "json_object"},
 )
 ```
@@ -278,6 +504,86 @@ client.files.create(
 ```
 
 The async client uses the exact same interface. If you pass a [`PathLike`](https://docs.python.org/3/library/os.html#os.PathLike) instance, the file contents will be read asynchronously automatically.
+
+## Webhook Verification
+
+Verifying webhook signatures is _optional but encouraged_.
+
+For more information about webhooks, see [the API docs](https://platform.openai.com/docs/guides/webhooks).
+
+### Parsing webhook payloads
+
+For most use cases, you will likely want to verify the webhook and parse the payload at the same time. To achieve this, we provide the method `client.webhooks.unwrap()`, which parses a webhook request and verifies that it was sent by OpenAI. This method will raise an error if the signature is invalid.
+
+Note that the `body` parameter must be the raw JSON string sent from the server (do not parse it first). The `.unwrap()` method will parse this JSON for you into an event object after verifying the webhook was sent from OpenAI.
+
+```python
+from openai import OpenAI
+from flask import Flask, request
+
+app = Flask(__name__)
+client = OpenAI()  # OPENAI_WEBHOOK_SECRET environment variable is used by default
+
+
+@app.route("/webhook", methods=["POST"])
+def webhook():
+    request_body = request.get_data(as_text=True)
+
+    try:
+        event = client.webhooks.unwrap(request_body, request.headers)
+
+        if event.type == "response.completed":
+            print("Response completed:", event.data)
+        elif event.type == "response.failed":
+            print("Response failed:", event.data)
+        else:
+            print("Unhandled event type:", event.type)
+
+        return "ok"
+    except Exception as e:
+        print("Invalid signature:", e)
+        return "Invalid signature", 400
+
+
+if __name__ == "__main__":
+    app.run(port=8000)
+```
+
+### Verifying webhook payloads directly
+
+In some cases, you may want to verify the webhook separately from parsing the payload. If you prefer to handle these steps separately, we provide the method `client.webhooks.verify_signature()` to _only verify_ the signature of a webhook request. Like `.unwrap()`, this method will raise an error if the signature is invalid.
+
+Note that the `body` parameter must be the raw JSON string sent from the server (do not parse it first). You will then need to parse the body after verifying the signature.
+
+```python
+import json
+from openai import OpenAI
+from flask import Flask, request
+
+app = Flask(__name__)
+client = OpenAI()  # OPENAI_WEBHOOK_SECRET environment variable is used by default
+
+
+@app.route("/webhook", methods=["POST"])
+def webhook():
+    request_body = request.get_data(as_text=True)
+
+    try:
+        client.webhooks.verify_signature(request_body, request.headers)
+
+        # Parse the body after verification
+        event = json.loads(request_body)
+        print("Verified event:", event)
+
+        return "ok"
+    except Exception as e:
+        print("Invalid signature:", e)
+        return "Invalid signature", 400
+
+
+if __name__ == "__main__":
+    app.run(port=8000)
+```
 
 ## Handling errors
 
@@ -323,7 +629,40 @@ Error codes are as follows:
 | >=500       | `InternalServerError`      |
 | N/A         | `APIConnectionError`       |
 
-### Retries
+## Request IDs
+
+> For more information on debugging requests, see [these docs](https://platform.openai.com/docs/api-reference/debugging-requests)
+
+All object responses in the SDK provide a `_request_id` property which is added from the `x-request-id` response header so that you can quickly log failing requests and report them back to OpenAI.
+
+```python
+response = await client.responses.create(
+    model="gpt-5.2",
+    input="Say 'this is a test'.",
+)
+print(response._request_id)  # req_123
+```
+
+Note that unlike other properties that use an `_` prefix, the `_request_id` property
+_is_ public. Unless documented otherwise, _all_ other `_` prefix properties,
+methods and modules are _private_.
+
+> [!IMPORTANT]  
+> If you need to access request IDs for failed requests you must catch the `APIStatusError` exception
+
+```python
+import openai
+
+try:
+    completion = await client.chat.completions.create(
+        messages=[{"role": "user", "content": "Say this is a test"}], model="gpt-5.2"
+    )
+except openai.APIStatusError as exc:
+    print(exc.request_id)  # req_123
+    raise exc
+```
+
+## Retries
 
 Certain errors are automatically retried 2 times by default, with a short exponential backoff.
 Connection errors (for example, due to a network connectivity problem), 408 Request Timeout, 409 Conflict,
@@ -348,11 +687,11 @@ client.with_options(max_retries=5).chat.completions.create(
             "content": "How can I get the name of the current day in JavaScript?",
         }
     ],
-    model="gpt-4o",
+    model="gpt-5.2",
 )
 ```
 
-### Timeouts
+## Timeouts
 
 By default requests time out after 10 minutes. You can configure this with a `timeout` option,
 which accepts a float or an [`httpx.Timeout`](https://www.python-httpx.org/advanced/timeouts/#fine-tuning-the-configuration) object:
@@ -379,7 +718,7 @@ client.with_options(timeout=5.0).chat.completions.create(
             "content": "How can I list all files in a directory using Python?",
         }
     ],
-    model="gpt-4o",
+    model="gpt-5.2",
 )
 ```
 
@@ -426,7 +765,7 @@ response = client.chat.completions.with_raw_response.create(
         "role": "user",
         "content": "Say this is a test",
     }],
-    model="gpt-4o",
+    model="gpt-5.2",
 )
 print(response.headers.get('X-My-Header'))
 
@@ -459,7 +798,7 @@ with client.chat.completions.with_streaming_response.create(
             "content": "Say this is a test",
         }
     ],
-    model="gpt-4o",
+    model="gpt-5.2",
 ) as response:
     print(response.headers.get("X-My-Header"))
 
@@ -517,7 +856,7 @@ from openai import OpenAI, DefaultHttpxClient
 
 client = OpenAI(
     # Or use the `OPENAI_BASE_URL` env var
-    base_url="http://my.test.server.example.com:8083",
+    base_url="http://my.test.server.example.com:8083/v1",
     http_client=DefaultHttpxClient(
         proxy="http://my.test.proxy.example.com",
         transport=httpx.HTTPTransport(local_address="0.0.0.0"),
@@ -544,6 +883,48 @@ with OpenAI() as client:
 
 # HTTP client is now closed
 ```
+
+## Microsoft Azure OpenAI
+
+To use this library with [Azure OpenAI](https://learn.microsoft.com/azure/ai-services/openai/overview), use the `AzureOpenAI`
+class instead of the `OpenAI` class.
+
+> [!IMPORTANT]
+> The Azure API shape differs from the core API shape which means that the static types for responses / params
+> won't always be correct.
+
+```py
+from openai import AzureOpenAI
+
+# gets the API Key from environment variable AZURE_OPENAI_API_KEY
+client = AzureOpenAI(
+    # https://learn.microsoft.com/azure/ai-services/openai/reference#rest-api-versioning
+    api_version="2023-07-01-preview",
+    # https://learn.microsoft.com/azure/cognitive-services/openai/how-to/create-resource?pivots=web-portal#create-a-resource
+    azure_endpoint="https://example-endpoint.openai.azure.com",
+)
+
+completion = client.chat.completions.create(
+    model="deployment-name",  # e.g. gpt-35-instant
+    messages=[
+        {
+            "role": "user",
+            "content": "How do I output all files in a directory using Python?",
+        },
+    ],
+)
+print(completion.to_json())
+```
+
+In addition to the options provided in the base `OpenAI` client, the following options are provided:
+
+- `azure_endpoint` (or the `AZURE_OPENAI_ENDPOINT` environment variable)
+- `azure_deployment`
+- `api_version` (or the `OPENAI_API_VERSION` environment variable)
+- `azure_ad_token` (or the `AZURE_OPENAI_AD_TOKEN` environment variable)
+- `azure_ad_token_provider`
+
+An example of using the client with Microsoft Entra ID (formerly known as Azure Active Directory) can be found [here](https://github.com/openai/openai-python/blob/main/examples/azure_ad.py).
 
 ## Versioning
 

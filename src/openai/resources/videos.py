@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Mapping, cast
-from typing_extensions import Literal
+from typing import TYPE_CHECKING, Mapping, cast
+from typing_extensions import Literal, assert_never
 
 import httpx
 
@@ -35,6 +35,7 @@ from .._response import (
 from ..pagination import SyncConversationCursorPage, AsyncConversationCursorPage
 from ..types.video import Video
 from .._base_client import AsyncPaginator, make_request_options
+from .._utils._utils import is_given
 from ..types.video_size import VideoSize
 from ..types.video_seconds import VideoSeconds
 from ..types.video_model_param import VideoModelParam
@@ -132,6 +133,79 @@ class Videos(SyncAPIResource):
             ),
             cast_to=Video,
         )
+
+    def create_and_poll(
+        self,
+        *,
+        prompt: str,
+        input_reference: video_create_params.InputReference | Omit = omit,
+        model: VideoModelParam | Omit = omit,
+        seconds: VideoSeconds | Omit = omit,
+        size: VideoSize | Omit = omit,
+        poll_interval_ms: int | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> Video:
+        """Create a video and wait for it to be processed."""
+        video = self.create(
+            model=model,
+            prompt=prompt,
+            input_reference=input_reference,
+            seconds=seconds,
+            size=size,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        )
+
+        return self.poll(
+            video.id,
+            poll_interval_ms=poll_interval_ms,
+        )
+
+    def poll(
+        self,
+        video_id: str,
+        *,
+        poll_interval_ms: int | Omit = omit,
+    ) -> Video:
+        """Wait for the vector store file to finish processing.
+
+        Note: this will return even if the file failed to process, you need to check
+        file.last_error and file.status to handle these cases
+        """
+        headers: dict[str, str] = {"X-Stainless-Poll-Helper": "true"}
+        if is_given(poll_interval_ms):
+            headers["X-Stainless-Custom-Poll-Interval"] = str(poll_interval_ms)
+
+        while True:
+            response = self.with_raw_response.retrieve(
+                video_id,
+                extra_headers=headers,
+            )
+
+            video = response.parse()
+            if video.status == "in_progress" or video.status == "queued":
+                if not is_given(poll_interval_ms):
+                    from_header = response.headers.get("openai-poll-after-ms")
+                    if from_header is not None:
+                        poll_interval_ms = int(from_header)
+                    else:
+                        poll_interval_ms = 1000
+
+                self._sleep(poll_interval_ms / 1000)
+            elif video.status == "completed" or video.status == "failed":
+                return video
+            else:
+                if TYPE_CHECKING:  # type: ignore[unreachable]
+                    assert_never(video.status)
+                else:
+                    return video
 
     def retrieve(
         self,
@@ -638,6 +712,79 @@ class AsyncVideos(AsyncAPIResource):
             ),
             cast_to=Video,
         )
+
+    async def create_and_poll(
+        self,
+        *,
+        prompt: str,
+        input_reference: video_create_params.InputReference | Omit = omit,
+        model: VideoModelParam | Omit = omit,
+        seconds: VideoSeconds | Omit = omit,
+        size: VideoSize | Omit = omit,
+        poll_interval_ms: int | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> Video:
+        """Create a video and wait for it to be processed."""
+        video = await self.create(
+            model=model,
+            prompt=prompt,
+            input_reference=input_reference,
+            seconds=seconds,
+            size=size,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        )
+
+        return await self.poll(
+            video.id,
+            poll_interval_ms=poll_interval_ms,
+        )
+
+    async def poll(
+        self,
+        video_id: str,
+        *,
+        poll_interval_ms: int | Omit = omit,
+    ) -> Video:
+        """Wait for the vector store file to finish processing.
+
+        Note: this will return even if the file failed to process, you need to check
+        file.last_error and file.status to handle these cases
+        """
+        headers: dict[str, str] = {"X-Stainless-Poll-Helper": "true"}
+        if is_given(poll_interval_ms):
+            headers["X-Stainless-Custom-Poll-Interval"] = str(poll_interval_ms)
+
+        while True:
+            response = await self.with_raw_response.retrieve(
+                video_id,
+                extra_headers=headers,
+            )
+
+            video = response.parse()
+            if video.status == "in_progress" or video.status == "queued":
+                if not is_given(poll_interval_ms):
+                    from_header = response.headers.get("openai-poll-after-ms")
+                    if from_header is not None:
+                        poll_interval_ms = int(from_header)
+                    else:
+                        poll_interval_ms = 1000
+
+                await self._sleep(poll_interval_ms / 1000)
+            elif video.status == "completed" or video.status == "failed":
+                return video
+            else:
+                if TYPE_CHECKING:  # type: ignore[unreachable]
+                    assert_never(video.status)
+                else:
+                    return video
 
     async def retrieve(
         self,

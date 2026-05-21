@@ -11,6 +11,7 @@ from .image_file_content_block import ImageFileContentBlock
 
 __all__ = ["MessageContent"]
 
+
 MessageContent: TypeAlias = Annotated[
     Union[ImageFileContentBlock, ImageURLContentBlock, TextContentBlock, RefusalContentBlock],
     PropertyInfo(discriminator="type"),

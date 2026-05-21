@@ -26,7 +26,7 @@ class TestSpeech:
     def test_method_create(self, client: OpenAI, respx_mock: MockRouter) -> None:
         respx_mock.post("/audio/speech").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
         speech = client.audio.speech.create(
-            input="input",
+            input="string",
             model="tts-1",
             voice="alloy",
         )
@@ -38,7 +38,7 @@ class TestSpeech:
     def test_method_create_with_all_params(self, client: OpenAI, respx_mock: MockRouter) -> None:
         respx_mock.post("/audio/speech").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
         speech = client.audio.speech.create(
-            input="input",
+            input="string",
             model="tts-1",
             voice="alloy",
             instructions="instructions",
@@ -55,7 +55,7 @@ class TestSpeech:
         respx_mock.post("/audio/speech").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
 
         response = client.audio.speech.with_raw_response.create(
-            input="input",
+            input="string",
             model="tts-1",
             voice="alloy",
         )
@@ -70,7 +70,7 @@ class TestSpeech:
     def test_streaming_response_create(self, client: OpenAI, respx_mock: MockRouter) -> None:
         respx_mock.post("/audio/speech").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
         with client.audio.speech.with_streaming_response.create(
-            input="input",
+            input="string",
             model="tts-1",
             voice="alloy",
         ) as response:
@@ -93,7 +93,7 @@ class TestAsyncSpeech:
     async def test_method_create(self, async_client: AsyncOpenAI, respx_mock: MockRouter) -> None:
         respx_mock.post("/audio/speech").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
         speech = await async_client.audio.speech.create(
-            input="input",
+            input="string",
             model="tts-1",
             voice="alloy",
         )
@@ -105,7 +105,7 @@ class TestAsyncSpeech:
     async def test_method_create_with_all_params(self, async_client: AsyncOpenAI, respx_mock: MockRouter) -> None:
         respx_mock.post("/audio/speech").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
         speech = await async_client.audio.speech.create(
-            input="input",
+            input="string",
             model="tts-1",
             voice="alloy",
             instructions="instructions",
@@ -122,7 +122,7 @@ class TestAsyncSpeech:
         respx_mock.post("/audio/speech").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
 
         response = await async_client.audio.speech.with_raw_response.create(
-            input="input",
+            input="string",
             model="tts-1",
             voice="alloy",
         )
@@ -137,7 +137,7 @@ class TestAsyncSpeech:
     async def test_streaming_response_create(self, async_client: AsyncOpenAI, respx_mock: MockRouter) -> None:
         respx_mock.post("/audio/speech").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
         async with async_client.audio.speech.with_streaming_response.create(
-            input="input",
+            input="string",
             model="tts-1",
             voice="alloy",
         ) as response:

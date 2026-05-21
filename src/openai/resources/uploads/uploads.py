@@ -2,6 +2,14 @@
 
 from __future__ import annotations
 
+import io
+import os
+import logging
+import builtins
+from typing import overload
+from pathlib import Path
+
+import anyio
 import httpx
 
 from ... import _legacy_response
@@ -24,6 +32,12 @@ from ...types.upload import Upload
 from ...types.file_purpose import FilePurpose
 
 __all__ = ["Uploads", "AsyncUploads"]
+
+
+# 64MB
+DEFAULT_PART_SIZE = 64 * 1024 * 1024
+
+log: logging.Logger = logging.getLogger(__name__)
 
 
 class Uploads(SyncAPIResource):
@@ -52,6 +66,104 @@ class Uploads(SyncAPIResource):
         For more information, see https://www.github.com/openai/openai-python#with_streaming_response
         """
         return UploadsWithStreamingResponse(self)
+
+    @overload
+    def upload_file_chunked(
+        self,
+        *,
+        file: os.PathLike[str],
+        mime_type: str,
+        purpose: FilePurpose,
+        bytes: int | None = None,
+        part_size: int | None = None,
+        md5: str | Omit = omit,
+    ) -> Upload:
+        """Splits a file into multiple 64MB parts and uploads them sequentially."""
+
+    @overload
+    def upload_file_chunked(
+        self,
+        *,
+        file: bytes,
+        filename: str,
+        bytes: int,
+        mime_type: str,
+        purpose: FilePurpose,
+        part_size: int | None = None,
+        md5: str | Omit = omit,
+    ) -> Upload:
+        """Splits an in-memory file into multiple 64MB parts and uploads them sequentially."""
+
+    def upload_file_chunked(
+        self,
+        *,
+        file: os.PathLike[str] | bytes,
+        mime_type: str,
+        purpose: FilePurpose,
+        filename: str | None = None,
+        bytes: int | None = None,
+        part_size: int | None = None,
+        md5: str | Omit = omit,
+    ) -> Upload:
+        """Splits the given file into multiple parts and uploads them sequentially.
+
+        ```py
+        from pathlib import Path
+
+        client.uploads.upload_file(
+            file=Path("my-paper.pdf"),
+            mime_type="pdf",
+            purpose="assistants",
+        )
+        ```
+        """
+        if isinstance(file, builtins.bytes):
+            if filename is None:
+                raise TypeError("The `filename` argument must be given for in-memory files")
+
+            if bytes is None:
+                raise TypeError("The `bytes` argument must be given for in-memory files")
+        else:
+            if not isinstance(file, Path):
+                file = Path(file)
+
+            if not filename:
+                filename = file.name
+
+            if bytes is None:
+                bytes = file.stat().st_size
+
+        upload = self.create(
+            bytes=bytes,
+            filename=filename,
+            mime_type=mime_type,
+            purpose=purpose,
+        )
+
+        part_ids: list[str] = []
+
+        if part_size is None:
+            part_size = DEFAULT_PART_SIZE
+
+        if isinstance(file, builtins.bytes):
+            buf: io.FileIO | io.BytesIO = io.BytesIO(file)
+        else:
+            buf = io.FileIO(file)
+
+        try:
+            while True:
+                data = buf.read(part_size)
+                if not data:
+                    # EOF
+                    break
+
+                part = self.parts.create(upload_id=upload.id, data=data)
+                log.info("Uploaded part %s for upload %s", part.id, upload.id)
+                part_ids.append(part.id)
+        finally:
+            buf.close()
+
+        return self.complete(upload_id=upload.id, part_ids=part_ids, md5=md5)
 
     def create(
         self,
@@ -271,6 +383,115 @@ class AsyncUploads(AsyncAPIResource):
         For more information, see https://www.github.com/openai/openai-python#with_streaming_response
         """
         return AsyncUploadsWithStreamingResponse(self)
+
+    @overload
+    async def upload_file_chunked(
+        self,
+        *,
+        file: os.PathLike[str],
+        mime_type: str,
+        purpose: FilePurpose,
+        bytes: int | None = None,
+        part_size: int | None = None,
+        md5: str | Omit = omit,
+    ) -> Upload:
+        """Splits a file into multiple 64MB parts and uploads them sequentially."""
+
+    @overload
+    async def upload_file_chunked(
+        self,
+        *,
+        file: bytes,
+        filename: str,
+        bytes: int,
+        mime_type: str,
+        purpose: FilePurpose,
+        part_size: int | None = None,
+        md5: str | Omit = omit,
+    ) -> Upload:
+        """Splits an in-memory file into multiple 64MB parts and uploads them sequentially."""
+
+    async def upload_file_chunked(
+        self,
+        *,
+        file: os.PathLike[str] | bytes,
+        mime_type: str,
+        purpose: FilePurpose,
+        filename: str | None = None,
+        bytes: int | None = None,
+        part_size: int | None = None,
+        md5: str | Omit = omit,
+    ) -> Upload:
+        """Splits the given file into multiple parts and uploads them sequentially.
+
+        ```py
+        from pathlib import Path
+
+        client.uploads.upload_file(
+            file=Path("my-paper.pdf"),
+            mime_type="pdf",
+            purpose="assistants",
+        )
+        ```
+        """
+        if isinstance(file, builtins.bytes):
+            if filename is None:
+                raise TypeError("The `filename` argument must be given for in-memory files")
+
+            if bytes is None:
+                raise TypeError("The `bytes` argument must be given for in-memory files")
+        else:
+            if not isinstance(file, anyio.Path):
+                file = anyio.Path(file)
+
+            if not filename:
+                filename = file.name
+
+            if bytes is None:
+                stat = await file.stat()
+                bytes = stat.st_size
+
+        upload = await self.create(
+            bytes=bytes,
+            filename=filename,
+            mime_type=mime_type,
+            purpose=purpose,
+        )
+
+        part_ids: list[str] = []
+
+        if part_size is None:
+            part_size = DEFAULT_PART_SIZE
+
+        if isinstance(file, anyio.Path):
+            fd = await file.open("rb")
+            async with fd:
+                while True:
+                    data = await fd.read(part_size)
+                    if not data:
+                        # EOF
+                        break
+
+                    part = await self.parts.create(upload_id=upload.id, data=data)
+                    log.info("Uploaded part %s for upload %s", part.id, upload.id)
+                    part_ids.append(part.id)
+        else:
+            buf = io.BytesIO(file)
+
+            try:
+                while True:
+                    data = buf.read(part_size)
+                    if not data:
+                        # EOF
+                        break
+
+                    part = await self.parts.create(upload_id=upload.id, data=data)
+                    log.info("Uploaded part %s for upload %s", part.id, upload.id)
+                    part_ids.append(part.id)
+            finally:
+                buf.close()
+
+        return await self.complete(upload_id=upload.id, part_ids=part_ids, md5=md5)
 
     async def create(
         self,

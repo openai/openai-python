@@ -18,8 +18,10 @@ import httpx
 import pytest
 from respx import MockRouter
 from pydantic import ValidationError
+from respx.models import Call as MockRequestCall
 
-from openai import OpenAI, AsyncOpenAI, APIResponseValidationError
+from openai import OpenAI, AsyncOpenAI, OpenAIError, APIResponseValidationError
+from openai.auth import WorkloadIdentity
 from openai._types import Omit
 from openai._utils import asyncify
 from openai._models import BaseModel, FinalRequestOptions
@@ -42,6 +44,14 @@ T = TypeVar("T")
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 api_key = "My API Key"
 admin_api_key = "My Admin API Key"
+workload_identity: WorkloadIdentity = {
+    "identity_provider_id": "provider_123",
+    "service_account_id": "service_account_123",
+    "provider": {
+        "get_token": lambda: "external-subject-token",
+        "token_type": "jwt",
+    },
+}
 
 
 def _get_params(client: BaseClient[Any, Any]) -> dict[str, str]:
@@ -439,8 +449,47 @@ class TestOpenAI:
         client = OpenAI(
             base_url=base_url, api_key=api_key, admin_api_key=admin_api_key, _strict_response_validation=True
         )
-        request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
+        options = client._prepare_options(FinalRequestOptions(method="get", url="/foo"))
+        request = client._build_request(options)
+
         assert request.headers.get("Authorization") == f"Bearer {api_key}"
+
+        admin_request = client._build_request(
+            FinalRequestOptions(
+                method="get",
+                url="/organization/projects",
+                security={"admin_api_key_auth": True},
+            )
+        )
+        assert admin_request.headers.get("Authorization") == f"Bearer {admin_api_key}"
+
+        with update_env(**{"OPENAI_API_KEY": Omit()}):
+            admin_only = OpenAI(
+                base_url=base_url,
+                api_key=None,
+                admin_api_key=admin_api_key,
+                _strict_response_validation=True,
+            )
+            admin_only_request = admin_only._build_request(
+                FinalRequestOptions(
+                    method="get",
+                    url="/organization/projects",
+                    security={"admin_api_key_auth": True},
+                )
+            )
+            assert admin_only_request.headers.get("Authorization") == f"Bearer {admin_api_key}"
+
+            with pytest.raises(
+                TypeError,
+                match="Could not resolve authentication method",
+            ):
+                admin_only._build_request(
+                    FinalRequestOptions(
+                        method="post",
+                        url="/responses",
+                        security={"bearer_auth": True},
+                    )
+                )
 
         with update_env(
             **{
@@ -448,18 +497,97 @@ class TestOpenAI:
                 "OPENAI_ADMIN_KEY": Omit(),
             }
         ):
-            client2 = OpenAI(base_url=base_url, api_key=None, admin_api_key=None, _strict_response_validation=True)
+            no_credentials = OpenAI(
+                base_url=base_url,
+                api_key=None,
+                admin_api_key=None,
+                _enforce_credentials=False,
+                _strict_response_validation=True,
+            )
+            lowercase_auth_request = no_credentials._build_request(
+                FinalRequestOptions(method="get", url="/foo", headers={"authorization": "Bearer custom"})
+            )
+            assert lowercase_auth_request.headers.get("Authorization") == "Bearer custom"
 
-        with pytest.raises(
-            TypeError,
-            match="Could not resolve authentication method. Expected either api_key or admin_api_key to be set. Or for one of the `Authorization` or `Authorization` headers to be explicitly omitted",
+            omitted_auth_request = no_credentials._build_request(
+                FinalRequestOptions(method="get", url="/foo", headers={"authorization": Omit()})
+            )
+            assert "Authorization" not in omitted_auth_request.headers
+
+        with update_env(
+            **{
+                "OPENAI_API_KEY": Omit(),
+                "OPENAI_ADMIN_KEY": Omit(),
+            }
         ):
-            client2._build_request(FinalRequestOptions(method="get", url="/foo"))
+            with pytest.raises(OpenAIError, match="Missing credentials"):
+                OpenAI(base_url=base_url, api_key=None, admin_api_key=None, _strict_response_validation=True)
 
-        request2 = client2._build_request(
-            FinalRequestOptions(method="get", url="/foo", headers={"Authorization": Omit()})
+    @pytest.mark.respx(base_url=base_url)
+    def test_api_key_provider_preserves_admin_auth(self, respx_mock: MockRouter) -> None:
+        respx_mock.get("/organization/projects").mock(return_value=httpx.Response(200, json={"ok": True}))
+
+        provider_called = False
+
+        def api_key_provider() -> str:
+            nonlocal provider_called
+            provider_called = True
+            return "dynamic-api-key"
+
+        client = OpenAI(base_url=base_url, api_key=api_key_provider, admin_api_key=admin_api_key)
+        response = client.get(
+            "/organization/projects",
+            cast_to=httpx.Response,
+            options={"security": {"admin_api_key_auth": True}},
         )
-        assert request2.headers.get("Authorization") is None
+
+        assert response.request.headers.get("Authorization") == f"Bearer {admin_api_key}"
+        assert provider_called is False
+
+    def test_api_key_provider_does_not_fill_admin_auth(self) -> None:
+        provider_called = False
+
+        def api_key_provider() -> str:
+            nonlocal provider_called
+            provider_called = True
+            return "dynamic-api-key"
+
+        with update_env(OPENAI_ADMIN_KEY=Omit()):
+            client = OpenAI(base_url=base_url, api_key=api_key_provider, admin_api_key=None)
+            with pytest.raises(TypeError, match="Could not resolve authentication method"):
+                client.get(
+                    "/organization/projects",
+                    cast_to=httpx.Response,
+                    options={"security": {"admin_api_key_auth": True}},
+                )
+
+        assert provider_called is False
+
+    @pytest.mark.respx(base_url=base_url)
+    def test_workload_identity_preserves_admin_auth(self, respx_mock: MockRouter) -> None:
+        respx_mock.get("/organization/projects").mock(return_value=httpx.Response(200, json={"ok": True}))
+
+        client = OpenAI(base_url=base_url, workload_identity=workload_identity, admin_api_key=admin_api_key)
+        response = client.get(
+            "/organization/projects",
+            cast_to=httpx.Response,
+            options={"security": {"admin_api_key_auth": True}},
+        )
+
+        assert response.request.headers.get("Authorization") == f"Bearer {admin_api_key}"
+
+    def test_workload_identity_is_mutually_exclusive_with_api_key(self) -> None:
+        with pytest.raises(
+            OpenAIError,
+            match="The `api_key` and `workload_identity` arguments are mutually exclusive",
+        ):
+            OpenAI(
+                base_url=base_url,
+                api_key=api_key,
+                workload_identity=workload_identity,  # type: ignore[reportArgumentType]
+                organization="org_123",
+                _strict_response_validation=True,
+            )
 
     def test_default_query_option(self) -> None:
         client = OpenAI(
@@ -1201,6 +1329,62 @@ class TestOpenAI:
         assert exc_info.value.response.status_code == 302
         assert exc_info.value.response.headers["Location"] == f"{base_url}/redirected"
 
+    def test_api_key_before_after_refresh_provider(self) -> None:
+        client = OpenAI(base_url=base_url, api_key=lambda: "test_bearer_token")
+
+        assert client.api_key == ""
+        assert "Authorization" not in client.auth_headers
+
+        client._refresh_api_key()
+
+        assert client.api_key == "test_bearer_token"
+        assert client.auth_headers.get("Authorization") == "Bearer test_bearer_token"
+
+    def test_api_key_before_after_refresh_str(self) -> None:
+        client = OpenAI(base_url=base_url, api_key="test_api_key")
+
+        assert client.auth_headers.get("Authorization") == "Bearer test_api_key"
+        client._refresh_api_key()
+
+        assert client.auth_headers.get("Authorization") == "Bearer test_api_key"
+
+    @pytest.mark.respx()
+    def test_api_key_refresh_on_retry(self, respx_mock: MockRouter) -> None:
+        respx_mock.post(base_url + "/chat/completions").mock(
+            side_effect=[
+                httpx.Response(500, json={"error": "server error"}),
+                httpx.Response(200, json={"foo": "bar"}),
+            ]
+        )
+
+        counter = 0
+
+        def token_provider() -> str:
+            nonlocal counter
+
+            counter += 1
+
+            if counter == 1:
+                return "first"
+
+            return "second"
+
+        client = OpenAI(base_url=base_url, api_key=token_provider)
+        client.chat.completions.create(messages=[], model="gpt-4")
+
+        calls = cast("list[MockRequestCall]", respx_mock.calls)
+        assert len(calls) == 2
+
+        assert calls[0].request.headers.get("Authorization") == "Bearer first"
+        assert calls[1].request.headers.get("Authorization") == "Bearer second"
+
+    def test_copy_auth(self) -> None:
+        client = OpenAI(base_url=base_url, api_key=lambda: "test_bearer_token_1").copy(
+            api_key=lambda: "test_bearer_token_2"
+        )
+        client._refresh_api_key()
+        assert client.auth_headers == {"Authorization": "Bearer test_bearer_token_2"}
+
 
 class TestAsyncOpenAI:
     @pytest.mark.respx(base_url=base_url)
@@ -1526,12 +1710,50 @@ class TestAsyncOpenAI:
         await test_client.close()
         await test_client2.close()
 
-    def test_validate_headers(self) -> None:
+    async def test_validate_headers(self) -> None:
         client = AsyncOpenAI(
             base_url=base_url, api_key=api_key, admin_api_key=admin_api_key, _strict_response_validation=True
         )
-        request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
+        options = await client._prepare_options(FinalRequestOptions(method="get", url="/foo"))
+        request = client._build_request(options)
         assert request.headers.get("Authorization") == f"Bearer {api_key}"
+
+        admin_request = client._build_request(
+            FinalRequestOptions(
+                method="get",
+                url="/organization/projects",
+                security={"admin_api_key_auth": True},
+            )
+        )
+        assert admin_request.headers.get("Authorization") == f"Bearer {admin_api_key}"
+
+        with update_env(**{"OPENAI_API_KEY": Omit()}):
+            admin_only = AsyncOpenAI(
+                base_url=base_url,
+                api_key=None,
+                admin_api_key=admin_api_key,
+                _strict_response_validation=True,
+            )
+            admin_only_request = admin_only._build_request(
+                FinalRequestOptions(
+                    method="get",
+                    url="/organization/projects",
+                    security={"admin_api_key_auth": True},
+                )
+            )
+            assert admin_only_request.headers.get("Authorization") == f"Bearer {admin_api_key}"
+
+            with pytest.raises(
+                TypeError,
+                match="Could not resolve authentication method",
+            ):
+                admin_only._build_request(
+                    FinalRequestOptions(
+                        method="post",
+                        url="/responses",
+                        security={"bearer_auth": True},
+                    )
+                )
 
         with update_env(
             **{
@@ -1539,18 +1761,84 @@ class TestAsyncOpenAI:
                 "OPENAI_ADMIN_KEY": Omit(),
             }
         ):
-            client2 = AsyncOpenAI(base_url=base_url, api_key=None, admin_api_key=None, _strict_response_validation=True)
+            no_credentials = AsyncOpenAI(
+                base_url=base_url,
+                api_key=None,
+                admin_api_key=None,
+                _enforce_credentials=False,
+                _strict_response_validation=True,
+            )
+            lowercase_auth_request = no_credentials._build_request(
+                FinalRequestOptions(method="get", url="/foo", headers={"authorization": "Bearer custom"})
+            )
+            assert lowercase_auth_request.headers.get("Authorization") == "Bearer custom"
 
-        with pytest.raises(
-            TypeError,
-            match="Could not resolve authentication method. Expected either api_key or admin_api_key to be set. Or for one of the `Authorization` or `Authorization` headers to be explicitly omitted",
+            omitted_auth_request = no_credentials._build_request(
+                FinalRequestOptions(method="get", url="/foo", headers={"authorization": Omit()})
+            )
+            assert "Authorization" not in omitted_auth_request.headers
+
+        with update_env(
+            **{
+                "OPENAI_API_KEY": Omit(),
+                "OPENAI_ADMIN_KEY": Omit(),
+            }
         ):
-            client2._build_request(FinalRequestOptions(method="get", url="/foo"))
+            with pytest.raises(OpenAIError, match="Missing credentials"):
+                AsyncOpenAI(base_url=base_url, api_key=None, admin_api_key=None, _strict_response_validation=True)
 
-        request2 = client2._build_request(
-            FinalRequestOptions(method="get", url="/foo", headers={"Authorization": Omit()})
+    @pytest.mark.respx(base_url=base_url)
+    async def test_api_key_provider_preserves_admin_auth(self, respx_mock: MockRouter) -> None:
+        respx_mock.get("/organization/projects").mock(return_value=httpx.Response(200, json={"ok": True}))
+
+        provider_called = False
+
+        async def api_key_provider() -> str:
+            nonlocal provider_called
+            provider_called = True
+            return "dynamic-api-key"
+
+        client = AsyncOpenAI(base_url=base_url, api_key=api_key_provider, admin_api_key=admin_api_key)
+        response = await client.get(
+            "/organization/projects",
+            cast_to=httpx.Response,
+            options={"security": {"admin_api_key_auth": True}},
         )
-        assert request2.headers.get("Authorization") is None
+
+        assert response.request.headers.get("Authorization") == f"Bearer {admin_api_key}"
+        assert provider_called is False
+
+    async def test_api_key_provider_does_not_fill_admin_auth(self) -> None:
+        provider_called = False
+
+        async def api_key_provider() -> str:
+            nonlocal provider_called
+            provider_called = True
+            return "dynamic-api-key"
+
+        with update_env(OPENAI_ADMIN_KEY=Omit()):
+            client = AsyncOpenAI(base_url=base_url, api_key=api_key_provider, admin_api_key=None)
+            with pytest.raises(TypeError, match="Could not resolve authentication method"):
+                await client.get(
+                    "/organization/projects",
+                    cast_to=httpx.Response,
+                    options={"security": {"admin_api_key_auth": True}},
+                )
+
+        assert provider_called is False
+
+    @pytest.mark.respx(base_url=base_url)
+    async def test_workload_identity_preserves_admin_auth(self, respx_mock: MockRouter) -> None:
+        respx_mock.get("/organization/projects").mock(return_value=httpx.Response(200, json={"ok": True}))
+
+        client = AsyncOpenAI(base_url=base_url, workload_identity=workload_identity, admin_api_key=admin_api_key)
+        response = await client.get(
+            "/organization/projects",
+            cast_to=httpx.Response,
+            options={"security": {"admin_api_key_auth": True}},
+        )
+
+        assert response.request.headers.get("Authorization") == f"Bearer {admin_api_key}"
 
     async def test_default_query_option(self) -> None:
         client = AsyncOpenAI(
@@ -2302,3 +2590,362 @@ class TestAsyncOpenAI:
 
         assert exc_info.value.response.status_code == 302
         assert exc_info.value.response.headers["Location"] == f"{base_url}/redirected"
+
+    async def test_api_key_before_after_refresh_provider(self) -> None:
+        async def mock_api_key_provider():
+            return "test_bearer_token"
+
+        client = AsyncOpenAI(base_url=base_url, api_key=mock_api_key_provider)
+
+        assert client.api_key == ""
+        assert "Authorization" not in client.auth_headers
+
+        await client._refresh_api_key()
+
+        assert client.api_key == "test_bearer_token"
+        assert client.auth_headers.get("Authorization") == "Bearer test_bearer_token"
+
+    async def test_api_key_before_after_refresh_str(self) -> None:
+        client = AsyncOpenAI(base_url=base_url, api_key="test_api_key")
+
+        assert client.auth_headers.get("Authorization") == "Bearer test_api_key"
+        await client._refresh_api_key()
+
+        assert client.auth_headers.get("Authorization") == "Bearer test_api_key"
+
+    @pytest.mark.respx()
+    async def test_bearer_token_refresh_async(self, respx_mock: MockRouter) -> None:
+        respx_mock.post(base_url + "/chat/completions").mock(
+            side_effect=[
+                httpx.Response(500, json={"error": "server error"}),
+                httpx.Response(200, json={"foo": "bar"}),
+            ]
+        )
+
+        counter = 0
+
+        async def token_provider() -> str:
+            nonlocal counter
+
+            counter += 1
+
+            if counter == 1:
+                return "first"
+
+            return "second"
+
+        client = AsyncOpenAI(base_url=base_url, api_key=token_provider)
+        await client.chat.completions.create(messages=[], model="gpt-4")
+
+        calls = cast("list[MockRequestCall]", respx_mock.calls)
+        assert len(calls) == 2
+
+        assert calls[0].request.headers.get("Authorization") == "Bearer first"
+        assert calls[1].request.headers.get("Authorization") == "Bearer second"
+
+    async def test_copy_auth(self) -> None:
+        async def token_provider_1() -> str:
+            return "test_bearer_token_1"
+
+        async def token_provider_2() -> str:
+            return "test_bearer_token_2"
+
+        client = AsyncOpenAI(base_url=base_url, api_key=token_provider_1).copy(api_key=token_provider_2)
+        await client._refresh_api_key()
+        assert client.auth_headers == {"Authorization": "Bearer test_bearer_token_2"}
+
+
+class TestWorkloadIdentity401Retry:
+    @pytest.mark.respx()
+    def test_workload_identity_401_retry(self, respx_mock: MockRouter) -> None:
+        provider_call_count = 0
+
+        def provider() -> str:
+            nonlocal provider_call_count
+            provider_call_count += 1
+            return f"external-subject-token-{provider_call_count}"
+
+        respx_mock.post("https://auth.openai.com/oauth/token").mock(
+            side_effect=[
+                httpx.Response(
+                    200,
+                    json={
+                        "access_token": "openai-access-token-1",
+                        "issued_token_type": "urn:ietf:params:oauth:token-type:access_token",
+                        "token_type": "Bearer",
+                        "expires_in": 3600,
+                    },
+                ),
+                httpx.Response(
+                    200,
+                    json={
+                        "access_token": "openai-access-token-2",
+                        "issued_token_type": "urn:ietf:params:oauth:token-type:access_token",
+                        "token_type": "Bearer",
+                        "expires_in": 3600,
+                    },
+                ),
+            ]
+        )
+
+        respx_mock.post(base_url + "/chat/completions").mock(
+            side_effect=[
+                httpx.Response(401, json={"error": {"message": "Unauthorized", "type": "invalid_request_error"}}),
+                httpx.Response(
+                    200,
+                    json={
+                        "id": "chatcmpl-123",
+                        "object": "chat.completion",
+                        "created": 1234567890,
+                        "model": "gpt-4",
+                        "choices": [],
+                    },
+                ),
+            ]
+        )
+
+        with OpenAI(
+            base_url=base_url,
+            workload_identity={
+                **workload_identity,
+                "provider": {
+                    "get_token": provider,
+                    "token_type": "jwt",
+                },
+            },
+            organization="org_123",
+            project="proj_123",
+            _strict_response_validation=True,
+        ) as client:
+            client.chat.completions.create(messages=[], model="gpt-4")
+
+            calls = cast("list[MockRequestCall]", respx_mock.calls)
+            assert len(calls) == 4
+
+            assert calls[0].request.url == httpx.URL("https://auth.openai.com/oauth/token")
+            assert calls[1].request.url == httpx.URL(base_url + "/chat/completions")
+            assert calls[1].request.headers.get("Authorization") == "Bearer openai-access-token-1"
+
+            assert calls[2].request.url == httpx.URL("https://auth.openai.com/oauth/token")
+
+            assert calls[3].request.url == httpx.URL(base_url + "/chat/completions")
+            assert calls[3].request.headers.get("Authorization") == "Bearer openai-access-token-2"
+
+            assert provider_call_count == 2
+
+    @pytest.mark.respx()
+    def test_401_without_workload_identity_no_retry(self, respx_mock: MockRouter) -> None:
+        respx_mock.post(base_url + "/chat/completions").mock(
+            return_value=httpx.Response(
+                401, json={"error": {"message": "Unauthorized", "type": "invalid_request_error"}}
+            )
+        )
+
+        with OpenAI(
+            base_url=base_url,
+            api_key="test-api-key",
+            _strict_response_validation=True,
+        ) as client:
+            with pytest.raises(APIStatusError) as exc_info:
+                client.chat.completions.create(messages=[], model="gpt-4")
+
+            assert exc_info.value.status_code == 401
+
+            calls = cast("list[MockRequestCall]", respx_mock.calls)
+            assert len(calls) == 1
+
+    @pytest.mark.respx()
+    def test_non_401_errors_no_retry(self, respx_mock: MockRouter) -> None:
+        provider_call_count = 0
+
+        def provider() -> str:
+            nonlocal provider_call_count
+            provider_call_count += 1
+            return "external-subject-token"
+
+        respx_mock.post("https://auth.openai.com/oauth/token").mock(
+            return_value=httpx.Response(
+                200,
+                json={
+                    "access_token": "openai-access-token-1",
+                    "issued_token_type": "urn:ietf:params:oauth:token-type:access_token",
+                    "token_type": "Bearer",
+                    "expires_in": 3600,
+                },
+            )
+        )
+
+        respx_mock.post(base_url + "/chat/completions").mock(
+            return_value=httpx.Response(403, json={"error": {"message": "Forbidden", "type": "invalid_request_error"}})
+        )
+
+        with OpenAI(
+            base_url=base_url,
+            workload_identity={
+                **workload_identity,
+                "provider": {
+                    "get_token": provider,
+                    "token_type": "jwt",
+                },
+            },
+            organization="org_123",
+            project="proj_123",
+            _strict_response_validation=True,
+        ) as client:
+            with pytest.raises(APIStatusError) as exc_info:
+                client.chat.completions.create(messages=[], model="gpt-4")
+
+            assert exc_info.value.status_code == 403
+
+            calls = cast("list[MockRequestCall]", respx_mock.calls)
+            assert len(calls) == 2
+
+            assert provider_call_count == 1
+
+
+class TestAsyncWorkloadIdentity401Retry:
+    @pytest.mark.respx()
+    async def test_workload_identity_401_retry(self, respx_mock: MockRouter) -> None:
+        provider_call_count = 0
+
+        def provider() -> str:
+            nonlocal provider_call_count
+            provider_call_count += 1
+            return f"external-subject-token-{provider_call_count}"
+
+        respx_mock.post("https://auth.openai.com/oauth/token").mock(
+            side_effect=[
+                httpx.Response(
+                    200,
+                    json={
+                        "access_token": "openai-access-token-1",
+                        "issued_token_type": "urn:ietf:params:oauth:token-type:access_token",
+                        "token_type": "Bearer",
+                        "expires_in": 3600,
+                    },
+                ),
+                httpx.Response(
+                    200,
+                    json={
+                        "access_token": "openai-access-token-2",
+                        "issued_token_type": "urn:ietf:params:oauth:token-type:access_token",
+                        "token_type": "Bearer",
+                        "expires_in": 3600,
+                    },
+                ),
+            ]
+        )
+
+        respx_mock.post(base_url + "/chat/completions").mock(
+            side_effect=[
+                httpx.Response(401, json={"error": {"message": "Unauthorized", "type": "invalid_request_error"}}),
+                httpx.Response(
+                    200,
+                    json={
+                        "id": "chatcmpl-123",
+                        "object": "chat.completion",
+                        "created": 1234567890,
+                        "model": "gpt-4",
+                        "choices": [],
+                    },
+                ),
+            ]
+        )
+
+        async with AsyncOpenAI(
+            base_url=base_url,
+            workload_identity={
+                **workload_identity,
+                "provider": {
+                    "get_token": provider,
+                    "token_type": "jwt",
+                },
+            },
+            organization="org_123",
+            project="proj_123",
+            _strict_response_validation=True,
+        ) as client:
+            await client.chat.completions.create(messages=[], model="gpt-4")
+
+            calls = cast("list[MockRequestCall]", respx_mock.calls)
+            assert len(calls) == 4
+
+            assert calls[0].request.url == httpx.URL("https://auth.openai.com/oauth/token")
+            assert calls[1].request.url == httpx.URL(base_url + "/chat/completions")
+            assert calls[1].request.headers.get("Authorization") == "Bearer openai-access-token-1"
+
+            assert calls[2].request.url == httpx.URL("https://auth.openai.com/oauth/token")
+
+            assert calls[3].request.url == httpx.URL(base_url + "/chat/completions")
+            assert calls[3].request.headers.get("Authorization") == "Bearer openai-access-token-2"
+
+            assert provider_call_count == 2
+
+    @pytest.mark.respx()
+    async def test_401_without_workload_identity_no_retry(self, respx_mock: MockRouter) -> None:
+        respx_mock.post(base_url + "/chat/completions").mock(
+            return_value=httpx.Response(
+                401, json={"error": {"message": "Unauthorized", "type": "invalid_request_error"}}
+            )
+        )
+
+        async with AsyncOpenAI(
+            base_url=base_url,
+            api_key="test-api-key",
+            _strict_response_validation=True,
+        ) as client:
+            with pytest.raises(APIStatusError) as exc_info:
+                await client.chat.completions.create(messages=[], model="gpt-4")
+
+            assert exc_info.value.status_code == 401
+
+            calls = cast("list[MockRequestCall]", respx_mock.calls)
+            assert len(calls) == 1
+
+    @pytest.mark.respx()
+    async def test_non_401_errors_no_retry(self, respx_mock: MockRouter) -> None:
+        provider_call_count = 0
+
+        def provider() -> str:
+            nonlocal provider_call_count
+            provider_call_count += 1
+            return "external-subject-token"
+
+        respx_mock.post("https://auth.openai.com/oauth/token").mock(
+            return_value=httpx.Response(
+                200,
+                json={
+                    "access_token": "openai-access-token-1",
+                    "issued_token_type": "urn:ietf:params:oauth:token-type:access_token",
+                    "token_type": "Bearer",
+                    "expires_in": 3600,
+                },
+            )
+        )
+
+        respx_mock.post(base_url + "/chat/completions").mock(
+            return_value=httpx.Response(403, json={"error": {"message": "Forbidden", "type": "invalid_request_error"}})
+        )
+
+        async with AsyncOpenAI(
+            base_url=base_url,
+            workload_identity={
+                **workload_identity,
+                "provider": {
+                    "get_token": provider,
+                    "token_type": "jwt",
+                },
+            },
+            organization="org_123",
+            project="proj_123",
+            _strict_response_validation=True,
+        ) as client:
+            with pytest.raises(APIStatusError) as exc_info:
+                await client.chat.completions.create(messages=[], model="gpt-4")
+
+            assert exc_info.value.status_code == 403
+
+            calls = cast("list[MockRequestCall]", respx_mock.calls)
+            assert len(calls) == 2
+
+            assert provider_call_count == 1

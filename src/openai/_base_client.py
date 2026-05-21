@@ -30,7 +30,7 @@ from typing import (
     cast,
     overload,
 )
-from typing_extensions import Literal, override, get_origin
+from typing_extensions import Unpack, Literal, override, get_origin
 
 import anyio
 import httpx
@@ -61,7 +61,7 @@ from ._types import (
     ModelBuilderProtocol,
     not_given,
 )
-from ._utils import is_dict, is_list, asyncify, is_given, lru_cache, is_mapping
+from ._utils import SensitiveHeadersFilter, is_dict, is_list, asyncify, is_given, lru_cache, is_mapping
 from ._compat import PYDANTIC_V1, model_copy, model_dump
 from ._models import GenericModel, SecurityOptions, FinalRequestOptions, validate_type, construct_type
 from ._response import (
@@ -81,6 +81,7 @@ from ._constants import (
 )
 from ._streaming import Stream, SSEDecoder, AsyncStream, SSEBytesDecoder
 from ._exceptions import (
+    OpenAIError,
     APIStatusError,
     APITimeoutError,
     APIConnectionError,
@@ -90,6 +91,7 @@ from ._utils._json import openapi_dumps
 from ._legacy_response import LegacyAPIResponse
 
 log: logging.Logger = logging.getLogger(__name__)
+log.addFilter(SensitiveHeadersFilter())
 
 # TODO: make base page type vars covariant
 SyncPageT = TypeVar("SyncPageT", bound="BaseSyncPage[Any]")
@@ -952,6 +954,15 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
         """
         return None
 
+    def _send_request(
+        self,
+        request: httpx.Request,
+        *,
+        stream: bool,
+        **kwargs: Unpack[HttpxSendArgs],
+    ) -> httpx.Response:
+        return self._client.send(request, stream=stream, **kwargs)
+
     @overload
     def request(
         self,
@@ -1023,7 +1034,7 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
 
             response = None
             try:
-                response = self._client.send(
+                response = self._send_request(
                     request,
                     stream=stream or self._should_stream_response_body(request=request),
                     **kwargs,
@@ -1042,6 +1053,9 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
 
                 log.debug("Raising timeout error")
                 raise APITimeoutError(request=request) from err
+            except OpenAIError as err:
+                # Propagate OpenAIErrors as-is, without retrying or wrapping in APIConnectionError
+                raise err
             except Exception as err:
                 log.debug("Encountered Exception", exc_info=True)
 
@@ -1547,6 +1561,15 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
         """
         return None
 
+    async def _send_request(
+        self,
+        request: httpx.Request,
+        *,
+        stream: bool,
+        **kwargs: Unpack[HttpxSendArgs],
+    ) -> httpx.Response:
+        return await self._client.send(request, stream=stream, **kwargs)
+
     @overload
     async def request(
         self,
@@ -1622,7 +1645,7 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
 
             response = None
             try:
-                response = await self._client.send(
+                response = await self._send_request(
                     request,
                     stream=stream or self._should_stream_response_body(request=request),
                     **kwargs,
@@ -1641,6 +1664,9 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
 
                 log.debug("Raising timeout error")
                 raise APITimeoutError(request=request) from err
+            except OpenAIError as err:
+                # Propagate OpenAIErrors as-is, without retrying or wrapping in APIConnectionError
+                raise err
             except Exception as err:
                 log.debug("Encountered Exception", exc_info=True)
 

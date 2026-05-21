@@ -11,10 +11,12 @@ authors = [
 dependencies = [
   "httpx>=0.23.0, <1",
   "pydantic>=1.9.0, <3",
-  "typing-extensions>=4.14, <5",
+    "typing-extensions>=4.11, <5", "typing-extensions>=4.14, <5",
   "anyio>=3.5.0, <5",
   "distro>=1.7.0, <2",
   "sniffio",
+    "tqdm > 4",
+    "jiter>=0.10.0, <1",
 ]
 
 requires-python = ">= 3.9"
@@ -43,6 +45,8 @@ Repository = "https://github.com/openai/openai-python"
 [project.optional-dependencies]
 aiohttp = ["aiohttp", "httpx_aiohttp>=0.1.9"]
 realtime = ["websockets >= 13, < 16"]
+datalib = ["numpy >= 1", "pandas >= 1.2.3", "pandas-stubs >= 1.1.0.11"]
+voice_helpers = ["sounddevice>=0.5.1", "numpy>=2.0.2"]
 
 [tool.rye]
 managed = true
@@ -59,6 +63,12 @@ dev-dependencies = [
     "dirty-equals>=0.6.0",
     "importlib-metadata>=6.7.0",
     "rich>=13.7.1",
+    "inline-snapshot>=0.28.0",
+    "azure-identity >=1.14.1",
+    "types-tqdm > 4",
+    "types-pyaudio > 0",
+    "trio >=0.22.2",
+    "nest_asyncio==1.6.0",
     "pytest-xdist>=3.6.1",
     "griffe>=1",
 ]
@@ -88,7 +98,7 @@ typecheck = { chain = [
   "typecheck:pyright",
   "typecheck:mypy"
 ]}
-"typecheck:pyright" = "pyright"
+"typecheck:pyright" = "scripts/run-pyright"
 "typecheck:verify-types" = "pyright --verifytypes openai --ignoreexternal"
 "typecheck:mypy" = "mypy ."
 
@@ -140,6 +150,9 @@ filterwarnings = [
   "error"
 ]
 
+[tool.inline-snapshot]
+format-command="ruff format --stdin-filename {filename}"
+
 [tool.pyright]
 # this enables practically every flag given by pyright.
 # there are a couple of flags that are still disabled by
@@ -152,6 +165,11 @@ exclude = [
     ".venv",
     ".nox",
     ".git",
+
+    # uses inline `uv` script dependencies
+    # which means it can't be type checked
+    "examples/realtime/audio_util.py",
+    "examples/realtime/push_to_talk_app.py"
 ]
 
 reportImplicitOverride = true
@@ -170,7 +188,17 @@ show_error_codes = true
 #
 # We also exclude our `tests` as mypy doesn't always infer
 # types correctly and Pyright will still catch any type errors.
-exclude = ["src/openai/_files.py", "_dev/.*.py", "tests/.*"]
+#
+# realtime examples use inline `uv` script dependencies
+# which means it can't be type checked
+exclude = [
+  'src/openai/_files.py',
+  '_dev/.*.py',
+  'tests/.*',
+  'src/openai/_utils/_logs.py',
+  'examples/realtime/audio_util.py',
+  'examples/realtime/push_to_talk_app.py',
+]
 
 strict_equality = true
 implicit_reexport = true
@@ -210,7 +238,6 @@ disable_error_code = "func-returns-value,overload-cannot-match"
 module = "black.files.*"
 ignore_errors = true
 ignore_missing_imports = true
-
 
 [tool.ruff]
 line-length = 120

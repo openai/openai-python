@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from typing import Any, List, Union, Mapping, Optional, cast
-from typing_extensions import Literal, overload
+import logging
+from typing import TYPE_CHECKING, List, Union, Mapping, Optional, cast
+from typing_extensions import Literal, overload, assert_never
 
 import httpx
 
 from ... import _legacy_response
-from ...types import AudioResponseFormat
 from ..._files import deepcopy_with_paths
 from ..._types import (
     Body,
@@ -29,12 +29,17 @@ from ..._streaming import Stream, AsyncStream
 from ...types.audio import transcription_create_params
 from ..._base_client import make_request_options
 from ...types.audio_model import AudioModel
+from ...types.audio.transcription import Transcription
 from ...types.audio_response_format import AudioResponseFormat
 from ...types.audio.transcription_include import TranscriptionInclude
+from ...types.audio.transcription_verbose import TranscriptionVerbose
+from ...types.audio.transcription_diarized import TranscriptionDiarized
 from ...types.audio.transcription_stream_event import TranscriptionStreamEvent
 from ...types.audio.transcription_create_response import TranscriptionCreateResponse
 
 __all__ = ["Transcriptions", "AsyncTranscriptions"]
+
+log: logging.Logger = logging.getLogger("openai.audio.transcriptions")
 
 
 class Transcriptions(SyncAPIResource):
@@ -67,11 +72,9 @@ class Transcriptions(SyncAPIResource):
         model: Union[str, AudioModel],
         chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | Omit = omit,
         include: List[TranscriptionInclude] | Omit = omit,
-        known_speaker_names: SequenceNotStr[str] | Omit = omit,
-        known_speaker_references: SequenceNotStr[str] | Omit = omit,
         language: str | Omit = omit,
         prompt: str | Omit = omit,
-        response_format: AudioResponseFormat | Omit = omit,
+        response_format: Union[Literal["json"], Omit] = omit,
         stream: Optional[Literal[False]] | Omit = omit,
         temperature: float | Omit = omit,
         timestamp_granularities: List[Literal["word", "segment"]] | Omit = omit,
@@ -81,7 +84,7 @@ class Transcriptions(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> TranscriptionCreateResponse:
+    ) -> Transcription:
         """
         Transcribes audio into the input language.
 
@@ -102,8 +105,6 @@ class Transcriptions(SyncAPIResource):
               first normalizes loudness and then uses voice activity detection (VAD) to choose
               boundaries. `server_vad` object can be provided to tweak VAD detection
               parameters manually. If unset, the audio is transcribed as a single block.
-              Required when using `gpt-4o-transcribe-diarize` for inputs longer than 30
-              seconds.
 
           include: Additional information to include in the transcription response. `logprobs` will
               return the log probabilities of the tokens in the response to understand the
@@ -112,16 +113,6 @@ class Transcriptions(SyncAPIResource):
               `gpt-4o-mini-transcribe`, and `gpt-4o-mini-transcribe-2025-12-15`. This field is
               not supported when using `gpt-4o-transcribe-diarize`.
 
-          known_speaker_names: Optional list of speaker names that correspond to the audio samples provided in
-              `known_speaker_references[]`. Each entry should be a short identifier (for
-              example `customer` or `agent`). Up to 4 speakers are supported.
-
-          known_speaker_references: Optional list of audio samples (as
-              [data URLs](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URLs))
-              that contain known speaker references matching `known_speaker_names[]`. Each
-              sample must be between 2 and 10 seconds, and can use any of the same input audio
-              formats supported by `file`.
-
           language: The language of the input audio. Supplying the input language in
               [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) (e.g. `en`)
               format will improve accuracy and latency.
@@ -129,14 +120,11 @@ class Transcriptions(SyncAPIResource):
           prompt: An optional text to guide the model's style or continue a previous audio
               segment. The
               [prompt](https://platform.openai.com/docs/guides/speech-to-text#prompting)
-              should match the audio language. This field is not supported when using
-              `gpt-4o-transcribe-diarize`.
+              should match the audio language.
 
           response_format: The format of the output, in one of these options: `json`, `text`, `srt`,
-              `verbose_json`, `vtt`, or `diarized_json`. For `gpt-4o-transcribe` and
-              `gpt-4o-mini-transcribe`, the only supported format is `json`. For
-              `gpt-4o-transcribe-diarize`, the supported formats are `json`, `text`, and
-              `diarized_json`, with `diarized_json` required to receive speaker annotations.
+              `verbose_json`, or `vtt`. For `gpt-4o-transcribe` and `gpt-4o-mini-transcribe`,
+              the only supported format is `json`.
 
           stream: If set to true, the model response data will be streamed to the client as it is
               generated using
@@ -157,18 +145,75 @@ class Transcriptions(SyncAPIResource):
               `response_format` must be set `verbose_json` to use timestamp granularities.
               Either or both of these options are supported: `word`, or `segment`. Note: There
               is no additional latency for segment timestamps, but generating word timestamps
-              incurs additional latency. This option is not available for
-              `gpt-4o-transcribe-diarize`.
+              incurs additional latency.
 
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
-
-          extra_body: Add additional JSON properties to the request
-
-          timeout: Override the client-level default timeout for this request, in seconds
         """
-        ...
+
+    @overload
+    def create(
+        self,
+        *,
+        file: FileTypes,
+        model: Union[str, AudioModel],
+        chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | Omit = omit,
+        include: List[TranscriptionInclude] | Omit = omit,
+        response_format: Literal["verbose_json"],
+        language: str | Omit = omit,
+        prompt: str | Omit = omit,
+        temperature: float | Omit = omit,
+        timestamp_granularities: List[Literal["word", "segment"]] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> TranscriptionVerbose: ...
+
+    @overload
+    def create(
+        self,
+        *,
+        file: FileTypes,
+        model: Union[str, AudioModel],
+        chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | Omit = omit,
+        response_format: Literal["text", "srt", "vtt"],
+        include: List[TranscriptionInclude] | Omit = omit,
+        language: str | Omit = omit,
+        prompt: str | Omit = omit,
+        temperature: float | Omit = omit,
+        timestamp_granularities: List[Literal["word", "segment"]] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> str: ...
+
+    @overload
+    def create(
+        self,
+        *,
+        file: FileTypes,
+        model: Union[str, AudioModel],
+        chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | Omit = omit,
+        response_format: Literal["diarized_json"],
+        known_speaker_names: SequenceNotStr[str] | Omit = omit,
+        known_speaker_references: SequenceNotStr[str] | Omit = omit,
+        language: str | Omit = omit,
+        temperature: float | Omit = omit,
+        timestamp_granularities: List[Literal["word", "segment"]] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> TranscriptionDiarized: ...
 
     @overload
     def create(
@@ -183,7 +228,7 @@ class Transcriptions(SyncAPIResource):
         known_speaker_references: SequenceNotStr[str] | Omit = omit,
         language: str | Omit = omit,
         prompt: str | Omit = omit,
-        response_format: AudioResponseFormat | Omit = omit,
+        response_format: Union[AudioResponseFormat, Omit] = omit,
         temperature: float | Omit = omit,
         timestamp_granularities: List[Literal["word", "segment"]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -294,7 +339,7 @@ class Transcriptions(SyncAPIResource):
         known_speaker_references: SequenceNotStr[str] | Omit = omit,
         language: str | Omit = omit,
         prompt: str | Omit = omit,
-        response_format: AudioResponseFormat | Omit = omit,
+        response_format: Union[AudioResponseFormat, Omit] = omit,
         temperature: float | Omit = omit,
         timestamp_granularities: List[Literal["word", "segment"]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -404,7 +449,7 @@ class Transcriptions(SyncAPIResource):
         known_speaker_references: SequenceNotStr[str] | Omit = omit,
         language: str | Omit = omit,
         prompt: str | Omit = omit,
-        response_format: AudioResponseFormat | Omit = omit,
+        response_format: Union[AudioResponseFormat, Omit] = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
         temperature: float | Omit = omit,
         timestamp_granularities: List[Literal["word", "segment"]] | Omit = omit,
@@ -414,7 +459,7 @@ class Transcriptions(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> TranscriptionCreateResponse | Stream[TranscriptionStreamEvent]:
+    ) -> str | Transcription | TranscriptionDiarized | TranscriptionVerbose | Stream[TranscriptionStreamEvent]:
         body = deepcopy_with_paths(
             {
                 "file": file,
@@ -437,7 +482,7 @@ class Transcriptions(SyncAPIResource):
         # sent to the server will contain a `boundary` parameter, e.g.
         # multipart/form-data; boundary=---abc--
         extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
-        return self._post(
+        return self._post(  # type: ignore[return-value]
             "/audio/transcriptions",
             body=maybe_transform(
                 body,
@@ -453,9 +498,7 @@ class Transcriptions(SyncAPIResource):
                 timeout=timeout,
                 security={"bearer_auth": True},
             ),
-            cast_to=cast(
-                Any, TranscriptionCreateResponse
-            ),  # Union types cannot be passed in as arguments in the type system
+            cast_to=_get_response_format_type(response_format),
             stream=stream or False,
             stream_cls=Stream[TranscriptionStreamEvent],
         )
@@ -495,7 +538,7 @@ class AsyncTranscriptions(AsyncAPIResource):
         known_speaker_references: SequenceNotStr[str] | Omit = omit,
         language: str | Omit = omit,
         prompt: str | Omit = omit,
-        response_format: AudioResponseFormat | Omit = omit,
+        response_format: Union[Literal["json"], Omit] = omit,
         stream: Optional[Literal[False]] | Omit = omit,
         temperature: float | Omit = omit,
         timestamp_granularities: List[Literal["word", "segment"]] | Omit = omit,
@@ -587,12 +630,49 @@ class AsyncTranscriptions(AsyncAPIResource):
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
-
-          extra_body: Add additional JSON properties to the request
-
-          timeout: Override the client-level default timeout for this request, in seconds
         """
-        ...
+
+    @overload
+    async def create(
+        self,
+        *,
+        file: FileTypes,
+        model: Union[str, AudioModel],
+        chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | Omit = omit,
+        include: List[TranscriptionInclude] | Omit = omit,
+        response_format: Literal["verbose_json"],
+        language: str | Omit = omit,
+        prompt: str | Omit = omit,
+        temperature: float | Omit = omit,
+        timestamp_granularities: List[Literal["word", "segment"]] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> TranscriptionVerbose: ...
+
+    @overload
+    async def create(
+        self,
+        *,
+        file: FileTypes,
+        model: Union[str, AudioModel],
+        chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | Omit = omit,
+        include: List[TranscriptionInclude] | Omit = omit,
+        response_format: Literal["text", "srt", "vtt"],
+        language: str | Omit = omit,
+        prompt: str | Omit = omit,
+        temperature: float | Omit = omit,
+        timestamp_granularities: List[Literal["word", "segment"]] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> str: ...
 
     @overload
     async def create(
@@ -607,7 +687,7 @@ class AsyncTranscriptions(AsyncAPIResource):
         known_speaker_references: SequenceNotStr[str] | Omit = omit,
         language: str | Omit = omit,
         prompt: str | Omit = omit,
-        response_format: AudioResponseFormat | Omit = omit,
+        response_format: Union[AudioResponseFormat, Omit] = omit,
         temperature: float | Omit = omit,
         timestamp_granularities: List[Literal["word", "segment"]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -718,7 +798,7 @@ class AsyncTranscriptions(AsyncAPIResource):
         known_speaker_references: SequenceNotStr[str] | Omit = omit,
         language: str | Omit = omit,
         prompt: str | Omit = omit,
-        response_format: AudioResponseFormat | Omit = omit,
+        response_format: Union[AudioResponseFormat, Omit] = omit,
         temperature: float | Omit = omit,
         timestamp_granularities: List[Literal["word", "segment"]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -828,7 +908,7 @@ class AsyncTranscriptions(AsyncAPIResource):
         known_speaker_references: SequenceNotStr[str] | Omit = omit,
         language: str | Omit = omit,
         prompt: str | Omit = omit,
-        response_format: AudioResponseFormat | Omit = omit,
+        response_format: Union[AudioResponseFormat, Omit] = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
         temperature: float | Omit = omit,
         timestamp_granularities: List[Literal["word", "segment"]] | Omit = omit,
@@ -838,7 +918,7 @@ class AsyncTranscriptions(AsyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> TranscriptionCreateResponse | AsyncStream[TranscriptionStreamEvent]:
+    ) -> Transcription | TranscriptionVerbose | TranscriptionDiarized | str | AsyncStream[TranscriptionStreamEvent]:
         body = deepcopy_with_paths(
             {
                 "file": file,
@@ -877,9 +957,7 @@ class AsyncTranscriptions(AsyncAPIResource):
                 timeout=timeout,
                 security={"bearer_auth": True},
             ),
-            cast_to=cast(
-                Any, TranscriptionCreateResponse
-            ),  # Union types cannot be passed in as arguments in the type system
+            cast_to=_get_response_format_type(response_format),
             stream=stream or False,
             stream_cls=AsyncStream[TranscriptionStreamEvent],
         )
@@ -919,3 +997,24 @@ class AsyncTranscriptionsWithStreamingResponse:
         self.create = async_to_streamed_response_wrapper(
             transcriptions.create,
         )
+
+
+def _get_response_format_type(
+    response_format: AudioResponseFormat | Omit,
+) -> type[Transcription | TranscriptionVerbose | TranscriptionDiarized | str]:
+    if isinstance(response_format, Omit) or response_format is None:  # pyright: ignore[reportUnnecessaryComparison]
+        return Transcription
+
+    if response_format == "json":
+        return Transcription
+    elif response_format == "verbose_json":
+        return TranscriptionVerbose
+    elif response_format == "diarized_json":
+        return TranscriptionDiarized
+    elif response_format == "srt" or response_format == "text" or response_format == "vtt":
+        return str
+    elif TYPE_CHECKING:  # type: ignore[unreachable]
+        assert_never(response_format)
+    else:
+        log.warn("Unexpected audio response format: %s", response_format)
+        return Transcription

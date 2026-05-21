@@ -17,6 +17,14 @@ from .response_error import ResponseError as ResponseError
 from .response_input import ResponseInput as ResponseInput
 from .response_usage import ResponseUsage as ResponseUsage
 from .computer_action import ComputerAction as ComputerAction
+from .parsed_response import (
+    ParsedContent as ParsedContent,
+    ParsedResponse as ParsedResponse,
+    ParsedResponseOutputItem as ParsedResponseOutputItem,
+    ParsedResponseOutputText as ParsedResponseOutputText,
+    ParsedResponseOutputMessage as ParsedResponseOutputMessage,
+    ParsedResponseFunctionToolCall as ParsedResponseFunctionToolCall,
+)
 from .response_prompt import ResponsePrompt as ResponsePrompt
 from .response_status import ResponseStatus as ResponseStatus
 from .skill_reference import SkillReference as SkillReference

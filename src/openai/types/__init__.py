@@ -110,7 +110,10 @@ from .moderation_text_input_param import ModerationTextInputParam as ModerationT
 from .file_chunking_strategy_param import FileChunkingStrategyParam as FileChunkingStrategyParam
 from .vector_store_search_response import VectorStoreSearchResponse as VectorStoreSearchResponse
 from .video_get_character_response import VideoGetCharacterResponse as VideoGetCharacterResponse
-from .websocket_connection_options import WebSocketConnectionOptions as WebSocketConnectionOptions
+from .websocket_connection_options import (
+    WebSocketConnectionOptions as WebSocketConnectionOptions,
+    WebsocketConnectionOptions as WebsocketConnectionOptions,
+)
 from .image_create_variation_params import ImageCreateVariationParams as ImageCreateVariationParams
 from .image_gen_partial_image_event import ImageGenPartialImageEvent as ImageGenPartialImageEvent
 from .static_file_chunking_strategy import StaticFileChunkingStrategy as StaticFileChunkingStrategy

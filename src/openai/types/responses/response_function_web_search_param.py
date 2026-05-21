@@ -13,7 +13,7 @@ __all__ = [
     "ActionSearch",
     "ActionSearchSource",
     "ActionOpenPage",
-    "ActionFindInPage",
+    "ActionFind",
 ]
 
 
@@ -53,7 +53,7 @@ class ActionOpenPage(TypedDict, total=False):
     """The URL opened by the model."""
 
 
-class ActionFindInPage(TypedDict, total=False):
+class ActionFind(TypedDict, total=False):
     """Action type "find_in_page": Searches for a pattern within a loaded page."""
 
     pattern: Required[str]
@@ -66,7 +66,7 @@ class ActionFindInPage(TypedDict, total=False):
     """The URL of the page searched for the pattern."""
 
 
-Action: TypeAlias = Union[ActionSearch, ActionOpenPage, ActionFindInPage]
+Action: TypeAlias = Union[ActionSearch, ActionOpenPage, ActionFind]
 
 
 class ResponseFunctionWebSearchParam(TypedDict, total=False):

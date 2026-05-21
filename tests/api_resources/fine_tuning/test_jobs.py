@@ -165,7 +165,7 @@ class TestJobs:
     @parametrize
     def test_method_list_with_all_params(self, client: OpenAI) -> None:
         job = client.fine_tuning.jobs.list(
-            after="after",
+            after="string",
             limit=0,
             metadata={"foo": "string"},
         )
@@ -232,15 +232,15 @@ class TestJobs:
     @parametrize
     def test_method_list_events(self, client: OpenAI) -> None:
         job = client.fine_tuning.jobs.list_events(
-            fine_tuning_job_id="ft-AF1WoRqd3aJAHsqc9NY7iL8F",
+            "ft-AF1WoRqd3aJAHsqc9NY7iL8F",
         )
         assert_matches_type(SyncCursorPage[FineTuningJobEvent], job, path=["response"])
 
     @parametrize
     def test_method_list_events_with_all_params(self, client: OpenAI) -> None:
         job = client.fine_tuning.jobs.list_events(
-            fine_tuning_job_id="ft-AF1WoRqd3aJAHsqc9NY7iL8F",
-            after="after",
+            "ft-AF1WoRqd3aJAHsqc9NY7iL8F",
+            after="string",
             limit=0,
         )
         assert_matches_type(SyncCursorPage[FineTuningJobEvent], job, path=["response"])
@@ -248,7 +248,7 @@ class TestJobs:
     @parametrize
     def test_raw_response_list_events(self, client: OpenAI) -> None:
         response = client.fine_tuning.jobs.with_raw_response.list_events(
-            fine_tuning_job_id="ft-AF1WoRqd3aJAHsqc9NY7iL8F",
+            "ft-AF1WoRqd3aJAHsqc9NY7iL8F",
         )
 
         assert response.is_closed is True
@@ -259,7 +259,7 @@ class TestJobs:
     @parametrize
     def test_streaming_response_list_events(self, client: OpenAI) -> None:
         with client.fine_tuning.jobs.with_streaming_response.list_events(
-            fine_tuning_job_id="ft-AF1WoRqd3aJAHsqc9NY7iL8F",
+            "ft-AF1WoRqd3aJAHsqc9NY7iL8F",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -273,7 +273,7 @@ class TestJobs:
     def test_path_params_list_events(self, client: OpenAI) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `fine_tuning_job_id` but received ''"):
             client.fine_tuning.jobs.with_raw_response.list_events(
-                fine_tuning_job_id="",
+                "",
             )
 
     @parametrize
@@ -502,7 +502,7 @@ class TestAsyncJobs:
     @parametrize
     async def test_method_list_with_all_params(self, async_client: AsyncOpenAI) -> None:
         job = await async_client.fine_tuning.jobs.list(
-            after="after",
+            after="string",
             limit=0,
             metadata={"foo": "string"},
         )
@@ -569,15 +569,15 @@ class TestAsyncJobs:
     @parametrize
     async def test_method_list_events(self, async_client: AsyncOpenAI) -> None:
         job = await async_client.fine_tuning.jobs.list_events(
-            fine_tuning_job_id="ft-AF1WoRqd3aJAHsqc9NY7iL8F",
+            "ft-AF1WoRqd3aJAHsqc9NY7iL8F",
         )
         assert_matches_type(AsyncCursorPage[FineTuningJobEvent], job, path=["response"])
 
     @parametrize
     async def test_method_list_events_with_all_params(self, async_client: AsyncOpenAI) -> None:
         job = await async_client.fine_tuning.jobs.list_events(
-            fine_tuning_job_id="ft-AF1WoRqd3aJAHsqc9NY7iL8F",
-            after="after",
+            "ft-AF1WoRqd3aJAHsqc9NY7iL8F",
+            after="string",
             limit=0,
         )
         assert_matches_type(AsyncCursorPage[FineTuningJobEvent], job, path=["response"])
@@ -585,7 +585,7 @@ class TestAsyncJobs:
     @parametrize
     async def test_raw_response_list_events(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.fine_tuning.jobs.with_raw_response.list_events(
-            fine_tuning_job_id="ft-AF1WoRqd3aJAHsqc9NY7iL8F",
+            "ft-AF1WoRqd3aJAHsqc9NY7iL8F",
         )
 
         assert response.is_closed is True
@@ -596,7 +596,7 @@ class TestAsyncJobs:
     @parametrize
     async def test_streaming_response_list_events(self, async_client: AsyncOpenAI) -> None:
         async with async_client.fine_tuning.jobs.with_streaming_response.list_events(
-            fine_tuning_job_id="ft-AF1WoRqd3aJAHsqc9NY7iL8F",
+            "ft-AF1WoRqd3aJAHsqc9NY7iL8F",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -610,7 +610,7 @@ class TestAsyncJobs:
     async def test_path_params_list_events(self, async_client: AsyncOpenAI) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `fine_tuning_job_id` but received ''"):
             await async_client.fine_tuning.jobs.with_raw_response.list_events(
-                fine_tuning_job_id="",
+                "",
             )
 
     @parametrize

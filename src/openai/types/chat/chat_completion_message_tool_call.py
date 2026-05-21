@@ -5,11 +5,13 @@ from typing_extensions import Annotated, TypeAlias
 
 from ..._utils import PropertyInfo
 from .chat_completion_message_custom_tool_call import ChatCompletionMessageCustomToolCall
-from .chat_completion_message_function_tool_call import ChatCompletionMessageFunctionToolCall
+from .chat_completion_message_function_tool_call import Function as Function, ChatCompletionMessageFunctionToolCall
 
-__all__ = ["ChatCompletionMessageToolCallUnion"]
+__all__ = ["Function", "ChatCompletionMessageToolCallUnion"]
 
 ChatCompletionMessageToolCallUnion: TypeAlias = Annotated[
     Union[ChatCompletionMessageFunctionToolCall, ChatCompletionMessageCustomToolCall],
     PropertyInfo(discriminator="type"),
 ]
+
+ChatCompletionMessageToolCall: TypeAlias = ChatCompletionMessageFunctionToolCall
