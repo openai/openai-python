@@ -25,6 +25,7 @@ from ....types.responses.parsed_response import (
     ParsedResponseOutputMessage,
     ParsedResponseFunctionToolCall,
 )
+from ...._exceptions import IncompleteResponseError
 
 
 class ResponseStream(Generic[TextFormatT]):
@@ -276,6 +277,8 @@ class ResponseStreamState(Generic[TextFormatT]):
             content = output.content[event.content_index]
             assert content.type == "output_text"
 
+            # Don't parse here - defer parsing until response.completed or response.incomplete
+            # is received, so we can properly handle incomplete responses
             events.append(
                 build(
                     ResponseTextDoneEvent[TextFormatT],
@@ -286,7 +289,7 @@ class ResponseStreamState(Generic[TextFormatT]):
                     logprobs=event.logprobs,
                     type="response.output_text.done",
                     text=event.text,
-                    parsed=parse_text(event.text, text_format=self._text_format),
+                    parsed=None,  # type: ignore[arg-type]
                 )
             )
         elif event.type == "response.function_call_arguments.delta":
@@ -316,6 +319,13 @@ class ResponseStreamState(Generic[TextFormatT]):
                     type="response.completed",
                     response=response,
                 )
+            )
+        elif event.type == "response.incomplete":
+            # Raise an error for incomplete responses instead of letting
+            # Pydantic JSON validation errors bubble up later
+            raise IncompleteResponseError(
+                response_id=event.response.id,
+                incomplete_details_reason=event.response.incomplete_details.reason if event.response.incomplete_details else None,
             )
         else:
             events.append(event)
