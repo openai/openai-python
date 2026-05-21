@@ -813,6 +813,7 @@ Types:
 ```python
 from openai.types.admin.organization.users import (
     RoleCreateResponse,
+    RoleRetrieveResponse,
     RoleListResponse,
     RoleDeleteResponse,
 )
@@ -821,6 +822,7 @@ from openai.types.admin.organization.users import (
 Methods:
 
 - <code title="post /organization/users/{user_id}/roles">client.admin.organization.users.roles.<a href="./src/openai/resources/admin/organization/users/roles.py">create</a>(user_id, \*\*<a href="src/openai/types/admin/organization/users/role_create_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/users/role_create_response.py">RoleCreateResponse</a></code>
+- <code title="get /organization/users/{user_id}/roles/{role_id}">client.admin.organization.users.roles.<a href="./src/openai/resources/admin/organization/users/roles.py">retrieve</a>(role_id, \*, user_id) -> <a href="./src/openai/types/admin/organization/users/role_retrieve_response.py">RoleRetrieveResponse</a></code>
 - <code title="get /organization/users/{user_id}/roles">client.admin.organization.users.roles.<a href="./src/openai/resources/admin/organization/users/roles.py">list</a>(user_id, \*\*<a href="src/openai/types/admin/organization/users/role_list_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/users/role_list_response.py">SyncNextCursorPage[RoleListResponse]</a></code>
 - <code title="delete /organization/users/{user_id}/roles/{role_id}">client.admin.organization.users.roles.<a href="./src/openai/resources/admin/organization/users/roles.py">delete</a>(role_id, \*, user_id) -> <a href="./src/openai/types/admin/organization/users/role_delete_response.py">RoleDeleteResponse</a></code>
 
@@ -835,6 +837,7 @@ from openai.types.admin.organization import Group, GroupUpdateResponse, GroupDel
 Methods:
 
 - <code title="post /organization/groups">client.admin.organization.groups.<a href="./src/openai/resources/admin/organization/groups/groups.py">create</a>(\*\*<a href="src/openai/types/admin/organization/group_create_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/group.py">Group</a></code>
+- <code title="get /organization/groups/{group_id}">client.admin.organization.groups.<a href="./src/openai/resources/admin/organization/groups/groups.py">retrieve</a>(group_id) -> <a href="./src/openai/types/admin/organization/group.py">Group</a></code>
 - <code title="post /organization/groups/{group_id}">client.admin.organization.groups.<a href="./src/openai/resources/admin/organization/groups/groups.py">update</a>(group_id, \*\*<a href="src/openai/types/admin/organization/group_update_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/group_update_response.py">GroupUpdateResponse</a></code>
 - <code title="get /organization/groups">client.admin.organization.groups.<a href="./src/openai/resources/admin/organization/groups/groups.py">list</a>(\*\*<a href="src/openai/types/admin/organization/group_list_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/group.py">SyncNextCursorPage[Group]</a></code>
 - <code title="delete /organization/groups/{group_id}">client.admin.organization.groups.<a href="./src/openai/resources/admin/organization/groups/groups.py">delete</a>(group_id) -> <a href="./src/openai/types/admin/organization/group_delete_response.py">GroupDeleteResponse</a></code>
@@ -847,6 +850,7 @@ Types:
 from openai.types.admin.organization.groups import (
     OrganizationGroupUser,
     UserCreateResponse,
+    UserRetrieveResponse,
     UserDeleteResponse,
 )
 ```
@@ -854,6 +858,7 @@ from openai.types.admin.organization.groups import (
 Methods:
 
 - <code title="post /organization/groups/{group_id}/users">client.admin.organization.groups.users.<a href="./src/openai/resources/admin/organization/groups/users.py">create</a>(group_id, \*\*<a href="src/openai/types/admin/organization/groups/user_create_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/groups/user_create_response.py">UserCreateResponse</a></code>
+- <code title="get /organization/groups/{group_id}/users/{user_id}">client.admin.organization.groups.users.<a href="./src/openai/resources/admin/organization/groups/users.py">retrieve</a>(user_id, \*, group_id) -> <a href="./src/openai/types/admin/organization/groups/user_retrieve_response.py">UserRetrieveResponse</a></code>
 - <code title="get /organization/groups/{group_id}/users">client.admin.organization.groups.users.<a href="./src/openai/resources/admin/organization/groups/users.py">list</a>(group_id, \*\*<a href="src/openai/types/admin/organization/groups/user_list_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/groups/organization_group_user.py">SyncNextCursorPage[OrganizationGroupUser]</a></code>
 - <code title="delete /organization/groups/{group_id}/users/{user_id}">client.admin.organization.groups.users.<a href="./src/openai/resources/admin/organization/groups/users.py">delete</a>(user_id, \*, group_id) -> <a href="./src/openai/types/admin/organization/groups/user_delete_response.py">UserDeleteResponse</a></code>
 
@@ -864,6 +869,7 @@ Types:
 ```python
 from openai.types.admin.organization.groups import (
     RoleCreateResponse,
+    RoleRetrieveResponse,
     RoleListResponse,
     RoleDeleteResponse,
 )
@@ -872,6 +878,7 @@ from openai.types.admin.organization.groups import (
 Methods:
 
 - <code title="post /organization/groups/{group_id}/roles">client.admin.organization.groups.roles.<a href="./src/openai/resources/admin/organization/groups/roles.py">create</a>(group_id, \*\*<a href="src/openai/types/admin/organization/groups/role_create_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/groups/role_create_response.py">RoleCreateResponse</a></code>
+- <code title="get /organization/groups/{group_id}/roles/{role_id}">client.admin.organization.groups.roles.<a href="./src/openai/resources/admin/organization/groups/roles.py">retrieve</a>(role_id, \*, group_id) -> <a href="./src/openai/types/admin/organization/groups/role_retrieve_response.py">RoleRetrieveResponse</a></code>
 - <code title="get /organization/groups/{group_id}/roles">client.admin.organization.groups.roles.<a href="./src/openai/resources/admin/organization/groups/roles.py">list</a>(group_id, \*\*<a href="src/openai/types/admin/organization/groups/role_list_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/groups/role_list_response.py">SyncNextCursorPage[RoleListResponse]</a></code>
 - <code title="delete /organization/groups/{group_id}/roles/{role_id}">client.admin.organization.groups.roles.<a href="./src/openai/resources/admin/organization/groups/roles.py">delete</a>(role_id, \*, group_id) -> <a href="./src/openai/types/admin/organization/groups/role_delete_response.py">RoleDeleteResponse</a></code>
 
@@ -886,9 +893,38 @@ from openai.types.admin.organization import Role, RoleDeleteResponse
 Methods:
 
 - <code title="post /organization/roles">client.admin.organization.roles.<a href="./src/openai/resources/admin/organization/roles.py">create</a>(\*\*<a href="src/openai/types/admin/organization/role_create_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/role.py">Role</a></code>
+- <code title="get /organization/roles/{role_id}">client.admin.organization.roles.<a href="./src/openai/resources/admin/organization/roles.py">retrieve</a>(role_id) -> <a href="./src/openai/types/admin/organization/role.py">Role</a></code>
 - <code title="post /organization/roles/{role_id}">client.admin.organization.roles.<a href="./src/openai/resources/admin/organization/roles.py">update</a>(role_id, \*\*<a href="src/openai/types/admin/organization/role_update_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/role.py">Role</a></code>
 - <code title="get /organization/roles">client.admin.organization.roles.<a href="./src/openai/resources/admin/organization/roles.py">list</a>(\*\*<a href="src/openai/types/admin/organization/role_list_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/role.py">SyncNextCursorPage[Role]</a></code>
 - <code title="delete /organization/roles/{role_id}">client.admin.organization.roles.<a href="./src/openai/resources/admin/organization/roles.py">delete</a>(role_id) -> <a href="./src/openai/types/admin/organization/role_delete_response.py">RoleDeleteResponse</a></code>
+
+### DataRetention
+
+Types:
+
+```python
+from openai.types.admin.organization import OrganizationDataRetention
+```
+
+Methods:
+
+- <code title="get /organization/data_retention">client.admin.organization.data_retention.<a href="./src/openai/resources/admin/organization/data_retention.py">retrieve</a>() -> <a href="./src/openai/types/admin/organization/organization_data_retention.py">OrganizationDataRetention</a></code>
+- <code title="post /organization/data_retention">client.admin.organization.data_retention.<a href="./src/openai/resources/admin/organization/data_retention.py">update</a>(\*\*<a href="src/openai/types/admin/organization/data_retention_update_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/organization_data_retention.py">OrganizationDataRetention</a></code>
+
+### SpendAlerts
+
+Types:
+
+```python
+from openai.types.admin.organization import OrganizationSpendAlert, OrganizationSpendAlertDeleted
+```
+
+Methods:
+
+- <code title="post /organization/spend_alerts">client.admin.organization.spend_alerts.<a href="./src/openai/resources/admin/organization/spend_alerts.py">create</a>(\*\*<a href="src/openai/types/admin/organization/spend_alert_create_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/organization_spend_alert.py">OrganizationSpendAlert</a></code>
+- <code title="post /organization/spend_alerts/{alert_id}">client.admin.organization.spend_alerts.<a href="./src/openai/resources/admin/organization/spend_alerts.py">update</a>(alert_id, \*\*<a href="src/openai/types/admin/organization/spend_alert_update_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/organization_spend_alert.py">OrganizationSpendAlert</a></code>
+- <code title="get /organization/spend_alerts">client.admin.organization.spend_alerts.<a href="./src/openai/resources/admin/organization/spend_alerts.py">list</a>(\*\*<a href="src/openai/types/admin/organization/spend_alert_list_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/organization_spend_alert.py">SyncConversationCursorPage[OrganizationSpendAlert]</a></code>
+- <code title="delete /organization/spend_alerts/{alert_id}">client.admin.organization.spend_alerts.<a href="./src/openai/resources/admin/organization/spend_alerts.py">delete</a>(alert_id) -> <a href="./src/openai/types/admin/organization/organization_spend_alert_deleted.py">OrganizationSpendAlertDeleted</a></code>
 
 ### Certificates
 
@@ -953,6 +989,7 @@ Types:
 ```python
 from openai.types.admin.organization.projects.users import (
     RoleCreateResponse,
+    RoleRetrieveResponse,
     RoleListResponse,
     RoleDeleteResponse,
 )
@@ -961,6 +998,7 @@ from openai.types.admin.organization.projects.users import (
 Methods:
 
 - <code title="post /projects/{project_id}/users/{user_id}/roles">client.admin.organization.projects.users.roles.<a href="./src/openai/resources/admin/organization/projects/users/roles.py">create</a>(user_id, \*, project_id, \*\*<a href="src/openai/types/admin/organization/projects/users/role_create_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/projects/users/role_create_response.py">RoleCreateResponse</a></code>
+- <code title="get /projects/{project_id}/users/{user_id}/roles/{role_id}">client.admin.organization.projects.users.roles.<a href="./src/openai/resources/admin/organization/projects/users/roles.py">retrieve</a>(role_id, \*, project_id, user_id) -> <a href="./src/openai/types/admin/organization/projects/users/role_retrieve_response.py">RoleRetrieveResponse</a></code>
 - <code title="get /projects/{project_id}/users/{user_id}/roles">client.admin.organization.projects.users.roles.<a href="./src/openai/resources/admin/organization/projects/users/roles.py">list</a>(user_id, \*, project_id, \*\*<a href="src/openai/types/admin/organization/projects/users/role_list_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/projects/users/role_list_response.py">SyncNextCursorPage[RoleListResponse]</a></code>
 - <code title="delete /projects/{project_id}/users/{user_id}/roles/{role_id}">client.admin.organization.projects.users.roles.<a href="./src/openai/resources/admin/organization/projects/users/roles.py">delete</a>(role_id, \*, project_id, user_id) -> <a href="./src/openai/types/admin/organization/projects/users/role_delete_response.py">RoleDeleteResponse</a></code>
 
@@ -980,6 +1018,7 @@ Methods:
 
 - <code title="post /organization/projects/{project_id}/service_accounts">client.admin.organization.projects.service_accounts.<a href="./src/openai/resources/admin/organization/projects/service_accounts.py">create</a>(project_id, \*\*<a href="src/openai/types/admin/organization/projects/service_account_create_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/projects/service_account_create_response.py">ServiceAccountCreateResponse</a></code>
 - <code title="get /organization/projects/{project_id}/service_accounts/{service_account_id}">client.admin.organization.projects.service_accounts.<a href="./src/openai/resources/admin/organization/projects/service_accounts.py">retrieve</a>(service_account_id, \*, project_id) -> <a href="./src/openai/types/admin/organization/projects/project_service_account.py">ProjectServiceAccount</a></code>
+- <code title="post /organization/projects/{project_id}/service_accounts/{service_account_id}">client.admin.organization.projects.service_accounts.<a href="./src/openai/resources/admin/organization/projects/service_accounts.py">update</a>(service_account_id, \*, project_id, \*\*<a href="src/openai/types/admin/organization/projects/service_account_update_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/projects/project_service_account.py">ProjectServiceAccount</a></code>
 - <code title="get /organization/projects/{project_id}/service_accounts">client.admin.organization.projects.service_accounts.<a href="./src/openai/resources/admin/organization/projects/service_accounts.py">list</a>(project_id, \*\*<a href="src/openai/types/admin/organization/projects/service_account_list_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/projects/project_service_account.py">SyncConversationCursorPage[ProjectServiceAccount]</a></code>
 - <code title="delete /organization/projects/{project_id}/service_accounts/{service_account_id}">client.admin.organization.projects.service_accounts.<a href="./src/openai/resources/admin/organization/projects/service_accounts.py">delete</a>(service_account_id, \*, project_id) -> <a href="./src/openai/types/admin/organization/projects/service_account_delete_response.py">ServiceAccountDeleteResponse</a></code>
 
@@ -1051,6 +1090,7 @@ from openai.types.admin.organization.projects import ProjectGroup, GroupDeleteRe
 Methods:
 
 - <code title="post /organization/projects/{project_id}/groups">client.admin.organization.projects.groups.<a href="./src/openai/resources/admin/organization/projects/groups/groups.py">create</a>(project_id, \*\*<a href="src/openai/types/admin/organization/projects/group_create_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/projects/project_group.py">ProjectGroup</a></code>
+- <code title="get /organization/projects/{project_id}/groups/{group_id}">client.admin.organization.projects.groups.<a href="./src/openai/resources/admin/organization/projects/groups/groups.py">retrieve</a>(group_id, \*, project_id, \*\*<a href="src/openai/types/admin/organization/projects/group_retrieve_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/projects/project_group.py">ProjectGroup</a></code>
 - <code title="get /organization/projects/{project_id}/groups">client.admin.organization.projects.groups.<a href="./src/openai/resources/admin/organization/projects/groups/groups.py">list</a>(project_id, \*\*<a href="src/openai/types/admin/organization/projects/group_list_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/projects/project_group.py">SyncNextCursorPage[ProjectGroup]</a></code>
 - <code title="delete /organization/projects/{project_id}/groups/{group_id}">client.admin.organization.projects.groups.<a href="./src/openai/resources/admin/organization/projects/groups/groups.py">delete</a>(group_id, \*, project_id) -> <a href="./src/openai/types/admin/organization/projects/group_delete_response.py">GroupDeleteResponse</a></code>
 
@@ -1061,6 +1101,7 @@ Types:
 ```python
 from openai.types.admin.organization.projects.groups import (
     RoleCreateResponse,
+    RoleRetrieveResponse,
     RoleListResponse,
     RoleDeleteResponse,
 )
@@ -1069,6 +1110,7 @@ from openai.types.admin.organization.projects.groups import (
 Methods:
 
 - <code title="post /projects/{project_id}/groups/{group_id}/roles">client.admin.organization.projects.groups.roles.<a href="./src/openai/resources/admin/organization/projects/groups/roles.py">create</a>(group_id, \*, project_id, \*\*<a href="src/openai/types/admin/organization/projects/groups/role_create_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/projects/groups/role_create_response.py">RoleCreateResponse</a></code>
+- <code title="get /projects/{project_id}/groups/{group_id}/roles/{role_id}">client.admin.organization.projects.groups.roles.<a href="./src/openai/resources/admin/organization/projects/groups/roles.py">retrieve</a>(role_id, \*, project_id, group_id) -> <a href="./src/openai/types/admin/organization/projects/groups/role_retrieve_response.py">RoleRetrieveResponse</a></code>
 - <code title="get /projects/{project_id}/groups/{group_id}/roles">client.admin.organization.projects.groups.roles.<a href="./src/openai/resources/admin/organization/projects/groups/roles.py">list</a>(group_id, \*, project_id, \*\*<a href="src/openai/types/admin/organization/projects/groups/role_list_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/projects/groups/role_list_response.py">SyncNextCursorPage[RoleListResponse]</a></code>
 - <code title="delete /projects/{project_id}/groups/{group_id}/roles/{role_id}">client.admin.organization.projects.groups.roles.<a href="./src/openai/resources/admin/organization/projects/groups/roles.py">delete</a>(role_id, \*, project_id, group_id) -> <a href="./src/openai/types/admin/organization/projects/groups/role_delete_response.py">RoleDeleteResponse</a></code>
 
@@ -1083,9 +1125,38 @@ from openai.types.admin.organization.projects import RoleDeleteResponse
 Methods:
 
 - <code title="post /projects/{project_id}/roles">client.admin.organization.projects.roles.<a href="./src/openai/resources/admin/organization/projects/roles.py">create</a>(project_id, \*\*<a href="src/openai/types/admin/organization/projects/role_create_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/role.py">Role</a></code>
+- <code title="get /projects/{project_id}/roles/{role_id}">client.admin.organization.projects.roles.<a href="./src/openai/resources/admin/organization/projects/roles.py">retrieve</a>(role_id, \*, project_id) -> <a href="./src/openai/types/admin/organization/role.py">Role</a></code>
 - <code title="post /projects/{project_id}/roles/{role_id}">client.admin.organization.projects.roles.<a href="./src/openai/resources/admin/organization/projects/roles.py">update</a>(role_id, \*, project_id, \*\*<a href="src/openai/types/admin/organization/projects/role_update_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/role.py">Role</a></code>
 - <code title="get /projects/{project_id}/roles">client.admin.organization.projects.roles.<a href="./src/openai/resources/admin/organization/projects/roles.py">list</a>(project_id, \*\*<a href="src/openai/types/admin/organization/projects/role_list_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/role.py">SyncNextCursorPage[Role]</a></code>
 - <code title="delete /projects/{project_id}/roles/{role_id}">client.admin.organization.projects.roles.<a href="./src/openai/resources/admin/organization/projects/roles.py">delete</a>(role_id, \*, project_id) -> <a href="./src/openai/types/admin/organization/projects/role_delete_response.py">RoleDeleteResponse</a></code>
+
+#### DataRetention
+
+Types:
+
+```python
+from openai.types.admin.organization.projects import ProjectDataRetention
+```
+
+Methods:
+
+- <code title="get /organization/projects/{project_id}/data_retention">client.admin.organization.projects.data_retention.<a href="./src/openai/resources/admin/organization/projects/data_retention.py">retrieve</a>(project_id) -> <a href="./src/openai/types/admin/organization/projects/project_data_retention.py">ProjectDataRetention</a></code>
+- <code title="post /organization/projects/{project_id}/data_retention">client.admin.organization.projects.data_retention.<a href="./src/openai/resources/admin/organization/projects/data_retention.py">update</a>(project_id, \*\*<a href="src/openai/types/admin/organization/projects/data_retention_update_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/projects/project_data_retention.py">ProjectDataRetention</a></code>
+
+#### SpendAlerts
+
+Types:
+
+```python
+from openai.types.admin.organization.projects import ProjectSpendAlert, ProjectSpendAlertDeleted
+```
+
+Methods:
+
+- <code title="post /organization/projects/{project_id}/spend_alerts">client.admin.organization.projects.spend_alerts.<a href="./src/openai/resources/admin/organization/projects/spend_alerts.py">create</a>(project_id, \*\*<a href="src/openai/types/admin/organization/projects/spend_alert_create_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/projects/project_spend_alert.py">ProjectSpendAlert</a></code>
+- <code title="post /organization/projects/{project_id}/spend_alerts/{alert_id}">client.admin.organization.projects.spend_alerts.<a href="./src/openai/resources/admin/organization/projects/spend_alerts.py">update</a>(alert_id, \*, project_id, \*\*<a href="src/openai/types/admin/organization/projects/spend_alert_update_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/projects/project_spend_alert.py">ProjectSpendAlert</a></code>
+- <code title="get /organization/projects/{project_id}/spend_alerts">client.admin.organization.projects.spend_alerts.<a href="./src/openai/resources/admin/organization/projects/spend_alerts.py">list</a>(project_id, \*\*<a href="src/openai/types/admin/organization/projects/spend_alert_list_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/projects/project_spend_alert.py">SyncConversationCursorPage[ProjectSpendAlert]</a></code>
+- <code title="delete /organization/projects/{project_id}/spend_alerts/{alert_id}">client.admin.organization.projects.spend_alerts.<a href="./src/openai/resources/admin/organization/projects/spend_alerts.py">delete</a>(alert_id, \*, project_id) -> <a href="./src/openai/types/admin/organization/projects/project_spend_alert_deleted.py">ProjectSpendAlertDeleted</a></code>
 
 #### Certificates
 

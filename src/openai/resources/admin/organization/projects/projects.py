@@ -50,6 +50,14 @@ from .certificates import (
     CertificatesWithStreamingResponse,
     AsyncCertificatesWithStreamingResponse,
 )
+from .spend_alerts import (
+    SpendAlerts,
+    AsyncSpendAlerts,
+    SpendAlertsWithRawResponse,
+    AsyncSpendAlertsWithRawResponse,
+    SpendAlertsWithStreamingResponse,
+    AsyncSpendAlertsWithStreamingResponse,
+)
 from ....._resource import SyncAPIResource, AsyncAPIResource
 from ....._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from .groups.groups import (
@@ -61,6 +69,14 @@ from .groups.groups import (
     AsyncGroupsWithStreamingResponse,
 )
 from .....pagination import SyncConversationCursorPage, AsyncConversationCursorPage
+from .data_retention import (
+    DataRetention,
+    AsyncDataRetention,
+    DataRetentionWithRawResponse,
+    AsyncDataRetentionWithRawResponse,
+    DataRetentionWithStreamingResponse,
+    AsyncDataRetentionWithStreamingResponse,
+)
 from ....._base_client import AsyncPaginator, make_request_options
 from .service_accounts import (
     ServiceAccounts,
@@ -124,6 +140,14 @@ class Projects(SyncAPIResource):
     @cached_property
     def roles(self) -> Roles:
         return Roles(self._client)
+
+    @cached_property
+    def data_retention(self) -> DataRetention:
+        return DataRetention(self._client)
+
+    @cached_property
+    def spend_alerts(self) -> SpendAlerts:
+        return SpendAlerts(self._client)
 
     @cached_property
     def certificates(self) -> Certificates:
@@ -425,6 +449,14 @@ class AsyncProjects(AsyncAPIResource):
     @cached_property
     def roles(self) -> AsyncRoles:
         return AsyncRoles(self._client)
+
+    @cached_property
+    def data_retention(self) -> AsyncDataRetention:
+        return AsyncDataRetention(self._client)
+
+    @cached_property
+    def spend_alerts(self) -> AsyncSpendAlerts:
+        return AsyncSpendAlerts(self._client)
 
     @cached_property
     def certificates(self) -> AsyncCertificates:
@@ -747,6 +779,14 @@ class ProjectsWithRawResponse:
         return RolesWithRawResponse(self._projects.roles)
 
     @cached_property
+    def data_retention(self) -> DataRetentionWithRawResponse:
+        return DataRetentionWithRawResponse(self._projects.data_retention)
+
+    @cached_property
+    def spend_alerts(self) -> SpendAlertsWithRawResponse:
+        return SpendAlertsWithRawResponse(self._projects.spend_alerts)
+
+    @cached_property
     def certificates(self) -> CertificatesWithRawResponse:
         return CertificatesWithRawResponse(self._projects.certificates)
 
@@ -802,6 +842,14 @@ class AsyncProjectsWithRawResponse:
     @cached_property
     def roles(self) -> AsyncRolesWithRawResponse:
         return AsyncRolesWithRawResponse(self._projects.roles)
+
+    @cached_property
+    def data_retention(self) -> AsyncDataRetentionWithRawResponse:
+        return AsyncDataRetentionWithRawResponse(self._projects.data_retention)
+
+    @cached_property
+    def spend_alerts(self) -> AsyncSpendAlertsWithRawResponse:
+        return AsyncSpendAlertsWithRawResponse(self._projects.spend_alerts)
 
     @cached_property
     def certificates(self) -> AsyncCertificatesWithRawResponse:
@@ -861,6 +909,14 @@ class ProjectsWithStreamingResponse:
         return RolesWithStreamingResponse(self._projects.roles)
 
     @cached_property
+    def data_retention(self) -> DataRetentionWithStreamingResponse:
+        return DataRetentionWithStreamingResponse(self._projects.data_retention)
+
+    @cached_property
+    def spend_alerts(self) -> SpendAlertsWithStreamingResponse:
+        return SpendAlertsWithStreamingResponse(self._projects.spend_alerts)
+
+    @cached_property
     def certificates(self) -> CertificatesWithStreamingResponse:
         return CertificatesWithStreamingResponse(self._projects.certificates)
 
@@ -916,6 +972,14 @@ class AsyncProjectsWithStreamingResponse:
     @cached_property
     def roles(self) -> AsyncRolesWithStreamingResponse:
         return AsyncRolesWithStreamingResponse(self._projects.roles)
+
+    @cached_property
+    def data_retention(self) -> AsyncDataRetentionWithStreamingResponse:
+        return AsyncDataRetentionWithStreamingResponse(self._projects.data_retention)
+
+    @cached_property
+    def spend_alerts(self) -> AsyncSpendAlertsWithStreamingResponse:
+        return AsyncSpendAlertsWithStreamingResponse(self._projects.spend_alerts)
 
     @cached_property
     def certificates(self) -> AsyncCertificatesWithStreamingResponse:

@@ -13,6 +13,7 @@ from openai.pagination import SyncNextCursorPage, AsyncNextCursorPage
 from openai.types.admin.organization.groups import (
     UserCreateResponse,
     UserDeleteResponse,
+    UserRetrieveResponse,
     OrganizationGroupUser,
 )
 
@@ -62,6 +63,54 @@ class TestUsers:
             client.admin.organization.groups.users.with_raw_response.create(
                 group_id="",
                 user_id="user_id",
+            )
+
+    @parametrize
+    def test_method_retrieve(self, client: OpenAI) -> None:
+        user = client.admin.organization.groups.users.retrieve(
+            user_id="user_id",
+            group_id="group_id",
+        )
+        assert_matches_type(UserRetrieveResponse, user, path=["response"])
+
+    @parametrize
+    def test_raw_response_retrieve(self, client: OpenAI) -> None:
+        response = client.admin.organization.groups.users.with_raw_response.retrieve(
+            user_id="user_id",
+            group_id="group_id",
+        )
+
+        assert response.is_closed is True
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        user = response.parse()
+        assert_matches_type(UserRetrieveResponse, user, path=["response"])
+
+    @parametrize
+    def test_streaming_response_retrieve(self, client: OpenAI) -> None:
+        with client.admin.organization.groups.users.with_streaming_response.retrieve(
+            user_id="user_id",
+            group_id="group_id",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            user = response.parse()
+            assert_matches_type(UserRetrieveResponse, user, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
+
+    @parametrize
+    def test_path_params_retrieve(self, client: OpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `group_id` but received ''"):
+            client.admin.organization.groups.users.with_raw_response.retrieve(
+                user_id="user_id",
+                group_id="",
+            )
+
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `user_id` but received ''"):
+            client.admin.organization.groups.users.with_raw_response.retrieve(
+                user_id="",
+                group_id="group_id",
             )
 
     @parametrize
@@ -206,6 +255,54 @@ class TestAsyncUsers:
             await async_client.admin.organization.groups.users.with_raw_response.create(
                 group_id="",
                 user_id="user_id",
+            )
+
+    @parametrize
+    async def test_method_retrieve(self, async_client: AsyncOpenAI) -> None:
+        user = await async_client.admin.organization.groups.users.retrieve(
+            user_id="user_id",
+            group_id="group_id",
+        )
+        assert_matches_type(UserRetrieveResponse, user, path=["response"])
+
+    @parametrize
+    async def test_raw_response_retrieve(self, async_client: AsyncOpenAI) -> None:
+        response = await async_client.admin.organization.groups.users.with_raw_response.retrieve(
+            user_id="user_id",
+            group_id="group_id",
+        )
+
+        assert response.is_closed is True
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        user = response.parse()
+        assert_matches_type(UserRetrieveResponse, user, path=["response"])
+
+    @parametrize
+    async def test_streaming_response_retrieve(self, async_client: AsyncOpenAI) -> None:
+        async with async_client.admin.organization.groups.users.with_streaming_response.retrieve(
+            user_id="user_id",
+            group_id="group_id",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            user = await response.parse()
+            assert_matches_type(UserRetrieveResponse, user, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
+
+    @parametrize
+    async def test_path_params_retrieve(self, async_client: AsyncOpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `group_id` but received ''"):
+            await async_client.admin.organization.groups.users.with_raw_response.retrieve(
+                user_id="user_id",
+                group_id="",
+            )
+
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `user_id` but received ''"):
+            await async_client.admin.organization.groups.users.with_raw_response.retrieve(
+                user_id="",
+                group_id="group_id",
             )
 
     @parametrize
