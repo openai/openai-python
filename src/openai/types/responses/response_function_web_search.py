@@ -19,11 +19,14 @@ __all__ = [
 class ActionSearchSource(BaseModel):
     """A source used in the search."""
 
-    type: Literal["url"]
-    """The type of source. Always `url`."""
+    type: Literal["url", "api"]
+    """The type of source. One of `url` or `api`."""
 
-    url: str
-    """The URL of the source."""
+    name: Optional[str] = None
+    """The source name, used for non-URL providers such as internal APIs."""
+
+    url: Optional[str] = None
+    """The URL of the source when the source type is `url`."""
 
 
 class ActionSearch(BaseModel):

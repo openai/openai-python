@@ -10,6 +10,7 @@ from pydantic import Field
 from openai._utils import PropertyInfo
 from openai._compat import PYDANTIC_V1, parse_obj, model_dump, model_json
 from openai._models import DISCRIMINATOR_CACHE, BaseModel, construct_type
+from openai.types.responses.response_function_web_search import ActionSearchSource as ResponseActionSearchSource
 
 
 class BasicModel(BaseModel):
@@ -961,3 +962,11 @@ def test_extra_properties() -> None:
     assert model.a.prop == 1
     assert isinstance(model.a, Item)
     assert model.other == "foo"
+
+
+def test_response_function_web_search_source_allows_api_sources() -> None:
+    source = parse_obj(ResponseActionSearchSource, {"type": "api", "name": "oai-weather"})
+
+    assert source.type == "api"
+    assert source.name == "oai-weather"
+    assert source.url is None
