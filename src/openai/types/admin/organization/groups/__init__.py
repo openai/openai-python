@@ -11,4 +11,6 @@ from .role_create_response import RoleCreateResponse as RoleCreateResponse
 from .role_delete_response import RoleDeleteResponse as RoleDeleteResponse
 from .user_create_response import UserCreateResponse as UserCreateResponse
 from .user_delete_response import UserDeleteResponse as UserDeleteResponse
+from .role_retrieve_response import RoleRetrieveResponse as RoleRetrieveResponse
+from .user_retrieve_response import UserRetrieveResponse as UserRetrieveResponse
 from .organization_group_user import OrganizationGroupUser as OrganizationGroupUser
