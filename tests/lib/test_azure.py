@@ -14,6 +14,7 @@ from openai._types import Omit
 from openai._utils import SensitiveHeadersFilter, is_dict
 from openai._models import FinalRequestOptions
 from openai.lib.azure import AzureOpenAI, AsyncAzureOpenAI
+from openai.types.responses.response import Response as _OAIResponse
 
 Client = Union[AzureOpenAI, AsyncAzureOpenAI]
 
@@ -953,3 +954,126 @@ def test_client_sets_base_url(client: Client) -> None:
         )
     )
     assert req.url == "https://example-resource.azure.openai.com/openai/models?api-version=2024-02-01"
+
+
+# ---------------------------------------------------------------------------
+# Tests for x-ms-served-model header promotion into Response.model (#3271)
+# ---------------------------------------------------------------------------
+
+_MINIMAL_RESPONSE_JSON = {
+    "id": "resp_test001",
+    "created_at": 1700000000.0,
+    "model": "gpt-4o",
+    "object": "response",
+    "output": [],
+    "parallel_tool_calls": False,
+    "tool_choice": "auto",
+    "tools": [],
+}
+
+_RESPONSES_URL = "https://example-resource.azure.openai.com/openai/responses?api-version=2024-02-01"
+
+
+def _make_response(status: int = 200, headers: dict | None = None) -> httpx.Response:
+    req = httpx.Request("POST", _RESPONSES_URL)
+    resp = httpx.Response(status, json=_MINIMAL_RESPONSE_JSON, headers=headers or {})
+    resp.request = req
+    return resp
+
+
+def _make_response_for_url(url: str, headers: dict | None = None) -> httpx.Response:
+    req = httpx.Request("POST", url)
+    resp = httpx.Response(200, json=_MINIMAL_RESPONSE_JSON, headers=headers or {})
+    resp.request = req
+    return resp
+
+
+def test_azure_responses_x_ms_served_model_promoted() -> None:
+    """x-ms-served-model header is promoted into Response.model for non-streaming calls."""
+    client = AzureOpenAI(
+        api_version="2024-02-01",
+        api_key="test-key",
+        azure_endpoint="https://example-resource.azure.openai.com",
+    )
+    result = client._process_response(
+        cast_to=_OAIResponse,
+        options=FinalRequestOptions.construct(method="post", url="/responses"),
+        response=_make_response(headers={"x-ms-served-model": "gpt-4o-2024-11-20"}),
+        stream=False,
+        stream_cls=None,
+    )
+    assert isinstance(result, _OAIResponse)
+    assert result.model == "gpt-4o-2024-11-20"
+
+
+def test_azure_responses_x_ms_served_model_absent() -> None:
+    """Without x-ms-served-model, Response.model is unchanged."""
+    client = AzureOpenAI(
+        api_version="2024-02-01",
+        api_key="test-key",
+        azure_endpoint="https://example-resource.azure.openai.com",
+    )
+    result = client._process_response(
+        cast_to=_OAIResponse,
+        options=FinalRequestOptions.construct(method="post", url="/responses"),
+        response=_make_response(),
+        stream=False,
+        stream_cls=None,
+    )
+    assert isinstance(result, _OAIResponse)
+    assert result.model == "gpt-4o"
+
+
+def test_azure_non_responses_endpoint_not_affected() -> None:
+    """x-ms-served-model on a non-/responses URL should not be promoted."""
+    client = AzureOpenAI(
+        api_version="2024-02-01",
+        api_key="test-key",
+        azure_endpoint="https://example-resource.azure.openai.com",
+    )
+    chat_url = "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions"
+    result = client._process_response(
+        cast_to=_OAIResponse,
+        options=FinalRequestOptions.construct(method="post", url="/deployments/gpt-4/chat/completions"),
+        response=_make_response_for_url(chat_url, headers={"x-ms-served-model": "should-be-ignored"}),
+        stream=False,
+        stream_cls=None,
+    )
+    assert isinstance(result, _OAIResponse)
+    assert result.model == "gpt-4o"
+
+
+async def test_async_azure_responses_x_ms_served_model_promoted() -> None:
+    """Async client: x-ms-served-model is promoted into Response.model."""
+    client = AsyncAzureOpenAI(
+        api_version="2024-02-01",
+        api_key="test-key",
+        azure_endpoint="https://example-resource.azure.openai.com",
+    )
+    result = await client._process_response(
+        cast_to=_OAIResponse,
+        options=FinalRequestOptions.construct(method="post", url="/responses"),
+        response=_make_response(headers={"x-ms-served-model": "gpt-4o-2024-11-20"}),
+        stream=False,
+        stream_cls=None,
+    )
+    assert isinstance(result, _OAIResponse)
+    assert result.model == "gpt-4o-2024-11-20"
+
+
+async def test_async_azure_responses_x_ms_served_model_absent() -> None:
+    """Async client: without header, Response.model is unchanged."""
+    client = AsyncAzureOpenAI(
+        api_version="2024-02-01",
+        api_key="test-key",
+        azure_endpoint="https://example-resource.azure.openai.com",
+    )
+    result = await client._process_response(
+        cast_to=_OAIResponse,
+        options=FinalRequestOptions.construct(method="post", url="/responses"),
+        response=_make_response(),
+        stream=False,
+        stream_cls=None,
+    )
+    assert isinstance(result, _OAIResponse)
+    assert result.model == "gpt-4o"
