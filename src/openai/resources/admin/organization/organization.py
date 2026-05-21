@@ -52,6 +52,14 @@ from .certificates import (
     CertificatesWithStreamingResponse,
     AsyncCertificatesWithStreamingResponse,
 )
+from .spend_alerts import (
+    SpendAlerts,
+    AsyncSpendAlerts,
+    SpendAlertsWithRawResponse,
+    AsyncSpendAlertsWithRawResponse,
+    SpendAlertsWithStreamingResponse,
+    AsyncSpendAlertsWithStreamingResponse,
+)
 from .groups.groups import (
     Groups,
     AsyncGroups,
@@ -67,6 +75,14 @@ from .admin_api_keys import (
     AsyncAdminAPIKeysWithRawResponse,
     AdminAPIKeysWithStreamingResponse,
     AsyncAdminAPIKeysWithStreamingResponse,
+)
+from .data_retention import (
+    DataRetention,
+    AsyncDataRetention,
+    DataRetentionWithRawResponse,
+    AsyncDataRetentionWithRawResponse,
+    DataRetentionWithStreamingResponse,
+    AsyncDataRetentionWithStreamingResponse,
 )
 from .projects.projects import (
     Projects,
@@ -109,6 +125,14 @@ class Organization(SyncAPIResource):
     @cached_property
     def roles(self) -> Roles:
         return Roles(self._client)
+
+    @cached_property
+    def data_retention(self) -> DataRetention:
+        return DataRetention(self._client)
+
+    @cached_property
+    def spend_alerts(self) -> SpendAlerts:
+        return SpendAlerts(self._client)
 
     @cached_property
     def certificates(self) -> Certificates:
@@ -167,6 +191,14 @@ class AsyncOrganization(AsyncAPIResource):
     @cached_property
     def roles(self) -> AsyncRoles:
         return AsyncRoles(self._client)
+
+    @cached_property
+    def data_retention(self) -> AsyncDataRetention:
+        return AsyncDataRetention(self._client)
+
+    @cached_property
+    def spend_alerts(self) -> AsyncSpendAlerts:
+        return AsyncSpendAlerts(self._client)
 
     @cached_property
     def certificates(self) -> AsyncCertificates:
@@ -230,6 +262,14 @@ class OrganizationWithRawResponse:
         return RolesWithRawResponse(self._organization.roles)
 
     @cached_property
+    def data_retention(self) -> DataRetentionWithRawResponse:
+        return DataRetentionWithRawResponse(self._organization.data_retention)
+
+    @cached_property
+    def spend_alerts(self) -> SpendAlertsWithRawResponse:
+        return SpendAlertsWithRawResponse(self._organization.spend_alerts)
+
+    @cached_property
     def certificates(self) -> CertificatesWithRawResponse:
         return CertificatesWithRawResponse(self._organization.certificates)
 
@@ -270,6 +310,14 @@ class AsyncOrganizationWithRawResponse:
     @cached_property
     def roles(self) -> AsyncRolesWithRawResponse:
         return AsyncRolesWithRawResponse(self._organization.roles)
+
+    @cached_property
+    def data_retention(self) -> AsyncDataRetentionWithRawResponse:
+        return AsyncDataRetentionWithRawResponse(self._organization.data_retention)
+
+    @cached_property
+    def spend_alerts(self) -> AsyncSpendAlertsWithRawResponse:
+        return AsyncSpendAlertsWithRawResponse(self._organization.spend_alerts)
 
     @cached_property
     def certificates(self) -> AsyncCertificatesWithRawResponse:
@@ -314,6 +362,14 @@ class OrganizationWithStreamingResponse:
         return RolesWithStreamingResponse(self._organization.roles)
 
     @cached_property
+    def data_retention(self) -> DataRetentionWithStreamingResponse:
+        return DataRetentionWithStreamingResponse(self._organization.data_retention)
+
+    @cached_property
+    def spend_alerts(self) -> SpendAlertsWithStreamingResponse:
+        return SpendAlertsWithStreamingResponse(self._organization.spend_alerts)
+
+    @cached_property
     def certificates(self) -> CertificatesWithStreamingResponse:
         return CertificatesWithStreamingResponse(self._organization.certificates)
 
@@ -354,6 +410,14 @@ class AsyncOrganizationWithStreamingResponse:
     @cached_property
     def roles(self) -> AsyncRolesWithStreamingResponse:
         return AsyncRolesWithStreamingResponse(self._organization.roles)
+
+    @cached_property
+    def data_retention(self) -> AsyncDataRetentionWithStreamingResponse:
+        return AsyncDataRetentionWithStreamingResponse(self._organization.data_retention)
+
+    @cached_property
+    def spend_alerts(self) -> AsyncSpendAlertsWithStreamingResponse:
+        return AsyncSpendAlertsWithStreamingResponse(self._organization.spend_alerts)
 
     @cached_property
     def certificates(self) -> AsyncCertificatesWithStreamingResponse:

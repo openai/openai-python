@@ -93,6 +93,43 @@ class Roles(SyncAPIResource):
             cast_to=Role,
         )
 
+    def retrieve(
+        self,
+        role_id: str,
+        *,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> Role:
+        """
+        Retrieves an organization role.
+
+        Args:
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not role_id:
+            raise ValueError(f"Expected a non-empty value for `role_id` but received {role_id!r}")
+        return self._get(
+            path_template("/organization/roles/{role_id}", role_id=role_id),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"admin_api_key_auth": True},
+            ),
+            cast_to=Role,
+        )
+
     def update(
         self,
         role_id: str,
@@ -309,6 +346,43 @@ class AsyncRoles(AsyncAPIResource):
             cast_to=Role,
         )
 
+    async def retrieve(
+        self,
+        role_id: str,
+        *,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> Role:
+        """
+        Retrieves an organization role.
+
+        Args:
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not role_id:
+            raise ValueError(f"Expected a non-empty value for `role_id` but received {role_id!r}")
+        return await self._get(
+            path_template("/organization/roles/{role_id}", role_id=role_id),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"admin_api_key_auth": True},
+            ),
+            cast_to=Role,
+        )
+
     async def update(
         self,
         role_id: str,
@@ -461,6 +535,9 @@ class RolesWithRawResponse:
         self.create = _legacy_response.to_raw_response_wrapper(
             roles.create,
         )
+        self.retrieve = _legacy_response.to_raw_response_wrapper(
+            roles.retrieve,
+        )
         self.update = _legacy_response.to_raw_response_wrapper(
             roles.update,
         )
@@ -478,6 +555,9 @@ class AsyncRolesWithRawResponse:
 
         self.create = _legacy_response.async_to_raw_response_wrapper(
             roles.create,
+        )
+        self.retrieve = _legacy_response.async_to_raw_response_wrapper(
+            roles.retrieve,
         )
         self.update = _legacy_response.async_to_raw_response_wrapper(
             roles.update,
@@ -497,6 +577,9 @@ class RolesWithStreamingResponse:
         self.create = to_streamed_response_wrapper(
             roles.create,
         )
+        self.retrieve = to_streamed_response_wrapper(
+            roles.retrieve,
+        )
         self.update = to_streamed_response_wrapper(
             roles.update,
         )
@@ -514,6 +597,9 @@ class AsyncRolesWithStreamingResponse:
 
         self.create = async_to_streamed_response_wrapper(
             roles.create,
+        )
+        self.retrieve = async_to_streamed_response_wrapper(
+            roles.retrieve,
         )
         self.update = async_to_streamed_response_wrapper(
             roles.update,

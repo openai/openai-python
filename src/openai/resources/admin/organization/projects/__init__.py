@@ -56,6 +56,22 @@ from .certificates import (
     CertificatesWithStreamingResponse,
     AsyncCertificatesWithStreamingResponse,
 )
+from .spend_alerts import (
+    SpendAlerts,
+    AsyncSpendAlerts,
+    SpendAlertsWithRawResponse,
+    AsyncSpendAlertsWithRawResponse,
+    SpendAlertsWithStreamingResponse,
+    AsyncSpendAlertsWithStreamingResponse,
+)
+from .data_retention import (
+    DataRetention,
+    AsyncDataRetention,
+    DataRetentionWithRawResponse,
+    AsyncDataRetentionWithRawResponse,
+    DataRetentionWithStreamingResponse,
+    AsyncDataRetentionWithStreamingResponse,
+)
 from .service_accounts import (
     ServiceAccounts,
     AsyncServiceAccounts,
@@ -130,6 +146,18 @@ __all__ = [
     "AsyncRolesWithRawResponse",
     "RolesWithStreamingResponse",
     "AsyncRolesWithStreamingResponse",
+    "DataRetention",
+    "AsyncDataRetention",
+    "DataRetentionWithRawResponse",
+    "AsyncDataRetentionWithRawResponse",
+    "DataRetentionWithStreamingResponse",
+    "AsyncDataRetentionWithStreamingResponse",
+    "SpendAlerts",
+    "AsyncSpendAlerts",
+    "SpendAlertsWithRawResponse",
+    "AsyncSpendAlertsWithRawResponse",
+    "SpendAlertsWithStreamingResponse",
+    "AsyncSpendAlertsWithStreamingResponse",
     "Certificates",
     "AsyncCertificates",
     "CertificatesWithRawResponse",
