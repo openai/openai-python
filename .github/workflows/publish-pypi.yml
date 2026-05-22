@@ -9,6 +9,9 @@ jobs:
     name: publish
     runs-on: ubuntu-latest
     environment: publish
+    permissions:
+      contents: read
+      id-token: write
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -19,8 +22,10 @@ jobs:
           version: '0.44.0'
           enable-cache: true
 
-      - name: Publish to PyPI
+      - name: Build distributions
         run: |
-          bash ./bin/publish-pypi
-        env:
-          PYPI_TOKEN: ${{ secrets.OPENAI_PYPI_TOKEN || secrets.PYPI_TOKEN }}
+          mkdir -p dist
+          rye build --clean
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
