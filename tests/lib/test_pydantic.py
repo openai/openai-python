@@ -12,6 +12,11 @@ from openai.lib._pydantic import to_strict_json_schema
 from .schema_types.query import Query
 
 
+def test_to_strict_json_schema_public_api() -> None:
+    """Test that to_strict_json_schema is accessible as a public API via openai.to_strict_json_schema."""
+    assert openai.to_strict_json_schema is to_strict_json_schema
+
+
 def test_most_types() -> None:
     if not PYDANTIC_V1:
         assert openai.pydantic_function_tool(Query)["function"] == snapshot(

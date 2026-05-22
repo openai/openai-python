@@ -96,7 +96,7 @@ __all__ = [
 if not _t.TYPE_CHECKING:
     from ._utils._resources_proxy import resources as resources
 
-from .lib import azure as _azure, pydantic_function_tool as pydantic_function_tool
+from .lib import azure as _azure, pydantic_function_tool as pydantic_function_tool, to_strict_json_schema as to_strict_json_schema
 from .version import VERSION as VERSION
 from .lib.azure import AzureOpenAI as AzureOpenAI, AsyncAzureOpenAI as AsyncAzureOpenAI
 from .lib._old_api import *
