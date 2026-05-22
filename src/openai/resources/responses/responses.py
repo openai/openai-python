@@ -44,7 +44,11 @@ from .input_items import (
     AsyncInputItemsWithStreamingResponse,
 )
 from ..._streaming import Stream, AsyncStream
-from ...lib._tools import PydanticFunctionTool, ResponsesPydanticFunctionTool
+from ...lib._tools import (
+    PydanticFunctionTool,
+    ResponsesPydanticFunctionTool,
+    _apply_web_search_default_location_tools,
+)
 from .input_tokens import (
     InputTokens,
     AsyncInputTokens,
@@ -945,7 +949,7 @@ class Responses(SyncAPIResource):
                     "temperature": temperature,
                     "text": text,
                     "tool_choice": tool_choice,
-                    "tools": tools,
+                    "tools": _apply_web_search_default_location_tools(tools),
                     "top_logprobs": top_logprobs,
                     "top_p": top_p,
                     "truncation": truncation,
@@ -1263,7 +1267,7 @@ class Responses(SyncAPIResource):
                     "temperature": temperature,
                     "text": text,
                     "tool_choice": tool_choice,
-                    "tools": tools,
+                    "tools": _apply_web_search_default_location_tools(tools),
                     "top_logprobs": top_logprobs,
                     "top_p": top_p,
                     "truncation": truncation,
@@ -2651,7 +2655,7 @@ class AsyncResponses(AsyncAPIResource):
                     "temperature": temperature,
                     "text": text,
                     "tool_choice": tool_choice,
-                    "tools": tools,
+                    "tools": _apply_web_search_default_location_tools(tools),
                     "top_logprobs": top_logprobs,
                     "top_p": top_p,
                     "truncation": truncation,
@@ -2973,7 +2977,7 @@ class AsyncResponses(AsyncAPIResource):
                     "temperature": temperature,
                     "text": text,
                     "tool_choice": tool_choice,
-                    "tools": tools,
+                    "tools": _apply_web_search_default_location_tools(tools),
                     "top_logprobs": top_logprobs,
                     "top_p": top_p,
                     "truncation": truncation,
@@ -4647,7 +4651,7 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
                         "temperature": temperature,
                         "text": text,
                         "tool_choice": tool_choice,
-                        "tools": tools,
+                        "tools": _apply_web_search_default_location_tools(tools),
                         "top_logprobs": top_logprobs,
                         "top_p": top_p,
                         "truncation": truncation,
@@ -4727,7 +4731,7 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
                         "temperature": temperature,
                         "text": text,
                         "tool_choice": tool_choice,
-                        "tools": tools,
+                        "tools": _apply_web_search_default_location_tools(tools),
                         "top_logprobs": top_logprobs,
                         "top_p": top_p,
                         "truncation": truncation,
