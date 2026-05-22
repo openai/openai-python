@@ -71,7 +71,7 @@ class LocalAudioPlayer:
         else:
             audio_content = await self._tts_response_to_buffer(input)
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         event = asyncio.Event()
         idx = 0
 
@@ -105,7 +105,7 @@ class LocalAudioPlayer:
         self,
         buffer_stream: AsyncGenerator[Union[npt.NDArray[np.float32], npt.NDArray[np.int16], None], None],
     ) -> None:
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         event = asyncio.Event()
         buffer_queue: queue.Queue[Union[npt.NDArray[np.float32], npt.NDArray[np.int16], None]] = queue.Queue(maxsize=50)
 
