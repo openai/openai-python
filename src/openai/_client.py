@@ -110,14 +110,21 @@ class OpenAI(SyncAPIClient):
     project: str | None
     webhook_secret: str | None
     _workload_identity_auth: WorkloadIdentityAuth | None
+    _websocket_base_url: str | httpx.URL | None
 
-    websocket_base_url: str | httpx.URL | None
-    """Base URL for WebSocket connections.
+    @property
+    def websocket_base_url(self) -> httpx.URL:
+        """Base URL for WebSocket connections.
 
-    If not specified, the default base URL will be used, with 'wss://' replacing the
-    'http://' or 'https://' scheme. For example: 'http://example.com' becomes
-    'wss://example.com'
-    """
+        If not explicitly set, derives from base_url by replacing only the scheme
+        prefix with 'wss://' or 'ws://'. This correctly handles URLs that contain
+        'http://' or 'https://' in query parameters or paths.
+        """
+        if self._websocket_base_url is not None:
+            return httpx.URL(self._websocket_base_url)
+        scheme = self._base_url.scheme
+        ws_scheme = "ws" if scheme == "http" else "wss"
+        return self._base_url.copy_with(scheme=ws_scheme)
 
     def __init__(
         self,
@@ -207,7 +214,7 @@ class OpenAI(SyncAPIClient):
             webhook_secret = os.environ.get("OPENAI_WEBHOOK_SECRET")
         self.webhook_secret = webhook_secret
 
-        self.websocket_base_url = websocket_base_url
+        self._websocket_base_url = websocket_base_url
 
         if base_url is None:
             base_url = os.environ.get("OPENAI_BASE_URL")
@@ -557,7 +564,7 @@ class OpenAI(SyncAPIClient):
             organization=organization or self.organization,
             project=project or self.project,
             webhook_secret=webhook_secret or self.webhook_secret,
-            websocket_base_url=websocket_base_url or self.websocket_base_url,
+            websocket_base_url=websocket_base_url or self._websocket_base_url,
             base_url=base_url or self.base_url,
             timeout=self.timeout if isinstance(timeout, NotGiven) else timeout,
             http_client=http_client,
@@ -713,7 +720,7 @@ class AsyncOpenAI(AsyncAPIClient):
             webhook_secret = os.environ.get("OPENAI_WEBHOOK_SECRET")
         self.webhook_secret = webhook_secret
 
-        self.websocket_base_url = websocket_base_url
+        self._websocket_base_url = websocket_base_url
 
         if base_url is None:
             base_url = os.environ.get("OPENAI_BASE_URL")
@@ -1062,7 +1069,7 @@ class AsyncOpenAI(AsyncAPIClient):
             organization=organization or self.organization,
             project=project or self.project,
             webhook_secret=webhook_secret or self.webhook_secret,
-            websocket_base_url=websocket_base_url or self.websocket_base_url,
+            websocket_base_url=websocket_base_url or self._websocket_base_url,
             base_url=base_url or self.base_url,
             timeout=self.timeout if isinstance(timeout, NotGiven) else timeout,
             http_client=http_client,
