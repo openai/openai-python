@@ -89,7 +89,7 @@ def path_template(template: str, /, **kwargs: Any) -> str:
         Placeholders in path and fragment portions are percent-encoded where the `segment`
         and `fragment` sets from RFC 3986 respectively are considered safe.
         Placeholders in the query portion are percent-encoded where the `query` set from
-        RFC 3986 §3.3 is considered safe except for = and & characters.
+        RFC 3986 §3.4 is considered safe except for = and & characters.
 
     Raises:
         KeyError: If a placeholder is not found in `kwargs`.
