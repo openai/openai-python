@@ -17,6 +17,12 @@ class LogprobTopLogprob(BaseModel):
 
 
 class Logprob(BaseModel):
+    """
+    A logprob is the logarithmic probability that the model assigns to producing
+    a particular token at a given position in the sequence. Less-negative (higher)
+    logprob values indicate greater model confidence in that token choice.
+    """
+
     token: str
     """A possible text token."""
 
@@ -24,10 +30,12 @@ class Logprob(BaseModel):
     """The log probability of this token."""
 
     top_logprobs: Optional[List[LogprobTopLogprob]] = None
-    """The log probability of the top 20 most likely tokens."""
+    """The log probabilities of up to 20 of the most likely tokens."""
 
 
 class ResponseTextDeltaEvent(BaseModel):
+    """Emitted when there is an additional text delta."""
+
     content_index: int
     """The index of the content part that the text delta was added to."""
 

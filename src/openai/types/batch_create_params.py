@@ -17,13 +17,25 @@ class BatchCreateParams(TypedDict, total=False):
     Currently only `24h` is supported.
     """
 
-    endpoint: Required[Literal["/v1/responses", "/v1/chat/completions", "/v1/embeddings", "/v1/completions"]]
+    endpoint: Required[
+        Literal[
+            "/v1/responses",
+            "/v1/chat/completions",
+            "/v1/embeddings",
+            "/v1/completions",
+            "/v1/moderations",
+            "/v1/images/generations",
+            "/v1/images/edits",
+            "/v1/videos",
+        ]
+    ]
     """The endpoint to be used for all requests in the batch.
 
-    Currently `/v1/responses`, `/v1/chat/completions`, `/v1/embeddings`, and
-    `/v1/completions` are supported. Note that `/v1/embeddings` batches are also
-    restricted to a maximum of 50,000 embedding inputs across all requests in the
-    batch.
+    Currently `/v1/responses`, `/v1/chat/completions`, `/v1/embeddings`,
+    `/v1/completions`, `/v1/moderations`, `/v1/images/generations`,
+    `/v1/images/edits`, and `/v1/videos` are supported. Note that `/v1/embeddings`
+    batches are also restricted to a maximum of 50,000 embedding inputs across all
+    requests in the batch.
     """
 
     input_file_id: Required[str]
@@ -56,6 +68,10 @@ class BatchCreateParams(TypedDict, total=False):
 
 
 class OutputExpiresAfter(TypedDict, total=False):
+    """
+    The expiration policy for the output and/or error file that are generated for a batch.
+    """
+
     anchor: Required[Literal["created_at"]]
     """Anchor timestamp after which the expiration policy applies.
 

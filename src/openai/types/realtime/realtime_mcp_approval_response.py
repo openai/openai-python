@@ -9,6 +9,8 @@ __all__ = ["RealtimeMcpApprovalResponse"]
 
 
 class RealtimeMcpApprovalResponse(BaseModel):
+    """A Realtime item responding to an MCP approval request."""
+
     id: str
     """The unique ID of the approval response."""
 

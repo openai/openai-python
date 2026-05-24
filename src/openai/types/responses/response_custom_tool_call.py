@@ -9,6 +9,8 @@ __all__ = ["ResponseCustomToolCall"]
 
 
 class ResponseCustomToolCall(BaseModel):
+    """A call to a custom tool created by the model."""
+
     call_id: str
     """An identifier used to map this custom tool call to a tool call output."""
 
@@ -23,3 +25,6 @@ class ResponseCustomToolCall(BaseModel):
 
     id: Optional[str] = None
     """The unique ID of the custom tool call in the OpenAI platform."""
+
+    namespace: Optional[str] = None
+    """The namespace of the custom tool being called."""

@@ -62,9 +62,17 @@ class AssistantCreateParams(TypedDict, total=False):
     """
     Constrains effort on reasoning for
     [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
-    supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning
-    effort can result in faster responses and fewer tokens used on reasoning in a
-    response.
+    supported values are `none`, `minimal`, `low`, `medium`, `high`, and `xhigh`.
+    Reducing reasoning effort can result in faster responses and fewer tokens used
+    on reasoning in a response.
+
+    - `gpt-5.1` defaults to `none`, which does not perform reasoning. The supported
+      reasoning values for `gpt-5.1` are `none`, `low`, `medium`, and `high`. Tool
+      calls are supported for all reasoning values in gpt-5.1.
+    - All models before `gpt-5.1` default to `medium` reasoning effort, and do not
+      support `none`.
+    - The `gpt-5-pro` model defaults to (and only supports) `high` reasoning effort.
+    - `xhigh` is supported for all models after `gpt-5.1-codex-max`.
     """
 
     response_format: Optional[AssistantResponseFormatOptionParam]
@@ -133,6 +141,11 @@ class ToolResourcesCodeInterpreter(TypedDict, total=False):
 
 
 class ToolResourcesFileSearchVectorStoreChunkingStrategyAuto(TypedDict, total=False):
+    """The default strategy.
+
+    This strategy currently uses a `max_chunk_size_tokens` of `800` and `chunk_overlap_tokens` of `400`.
+    """
+
     type: Required[Literal["auto"]]
     """Always `auto`."""
 
@@ -174,8 +187,9 @@ class ToolResourcesFileSearchVectorStore(TypedDict, total=False):
     file_ids: SequenceNotStr[str]
     """
     A list of [file](https://platform.openai.com/docs/api-reference/files) IDs to
-    add to the vector store. There can be a maximum of 10000 files in a vector
-    store.
+    add to the vector store. For vector stores created before Nov 2025, there can be
+    a maximum of 10,000 files in a vector store. For vector stores created starting
+    in Nov 2025, the limit is 100,000,000 files.
     """
 
     metadata: Optional[Metadata]
@@ -208,6 +222,11 @@ class ToolResourcesFileSearch(TypedDict, total=False):
 
 
 class ToolResources(TypedDict, total=False):
+    """A set of resources that are used by the assistant's tools.
+
+    The resources are specific to the type of tool. For example, the `code_interpreter` tool requires a list of file IDs, while the `file_search` tool requires a list of vector store IDs.
+    """
+
     code_interpreter: ToolResourcesCodeInterpreter
 
     file_search: ToolResourcesFileSearch

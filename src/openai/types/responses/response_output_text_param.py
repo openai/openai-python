@@ -18,6 +18,8 @@ __all__ = [
 
 
 class AnnotationFileCitation(TypedDict, total=False):
+    """A citation to a file."""
+
     file_id: Required[str]
     """The ID of the file."""
 
@@ -32,6 +34,8 @@ class AnnotationFileCitation(TypedDict, total=False):
 
 
 class AnnotationURLCitation(TypedDict, total=False):
+    """A citation for a web resource used to generate a model response."""
+
     end_index: Required[int]
     """The index of the last character of the URL citation in the message."""
 
@@ -49,6 +53,8 @@ class AnnotationURLCitation(TypedDict, total=False):
 
 
 class AnnotationContainerFileCitation(TypedDict, total=False):
+    """A citation for a container file used to generate a model response."""
+
     container_id: Required[str]
     """The ID of the container file."""
 
@@ -69,6 +75,8 @@ class AnnotationContainerFileCitation(TypedDict, total=False):
 
 
 class AnnotationFilePath(TypedDict, total=False):
+    """A path to a file."""
+
     file_id: Required[str]
     """The ID of the file."""
 
@@ -85,6 +93,8 @@ Annotation: TypeAlias = Union[
 
 
 class LogprobTopLogprob(TypedDict, total=False):
+    """The top log probability of a token."""
+
     token: Required[str]
 
     bytes: Required[Iterable[int]]
@@ -93,6 +103,8 @@ class LogprobTopLogprob(TypedDict, total=False):
 
 
 class Logprob(TypedDict, total=False):
+    """The log probability of a token."""
+
     token: Required[str]
 
     bytes: Required[Iterable[int]]
@@ -103,6 +115,8 @@ class Logprob(TypedDict, total=False):
 
 
 class ResponseOutputTextParam(TypedDict, total=False):
+    """A text output from the model."""
+
     annotations: Required[Iterable[Annotation]]
     """The annotations of the text output."""
 

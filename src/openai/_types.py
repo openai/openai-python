@@ -13,9 +13,11 @@ from typing import (
     Mapping,
     TypeVar,
     Callable,
+    Iterable,
     Iterator,
     Optional,
     Sequence,
+    AsyncIterable,
 )
 from typing_extensions import (
     Set,
@@ -34,7 +36,7 @@ import pydantic
 from httpx import URL, Proxy, Timeout, Response, BaseTransport, AsyncBaseTransport
 
 if TYPE_CHECKING:
-    from ._models import BaseModel
+    from ._models import BaseModel, SecurityOptions
     from ._response import APIResponse, AsyncAPIResponse
     from ._legacy_response import HttpxBinaryResponseContent
 
@@ -45,6 +47,9 @@ Body = object
 AnyMapping = Mapping[str, object]
 ModelT = TypeVar("ModelT", bound=pydantic.BaseModel)
 _T = TypeVar("_T")
+
+ArrayFormat = Literal["comma", "repeat", "indices", "brackets"]
+NestedFormat = Literal["dots", "brackets"]
 
 
 # Approximates httpx internal ProxiesTypes and RequestFiles types
@@ -57,6 +62,13 @@ if TYPE_CHECKING:
 else:
     Base64FileInput = Union[IO[bytes], PathLike]
     FileContent = Union[IO[bytes], bytes, PathLike]  # PathLike is not subscriptable in Python 3.8.
+
+
+# Used for sending raw binary data / streaming data in request bodies
+# e.g. for file uploads without multipart encoding
+BinaryTypes = Union[bytes, bytearray, IO[bytes], Iterable[bytes]]
+AsyncBinaryTypes = Union[bytes, bytearray, IO[bytes], AsyncIterable[bytes]]
+
 FileTypes = Union[
     # file (or bytes)
     FileContent,
@@ -113,6 +125,8 @@ class RequestOptions(TypedDict, total=False):
     extra_json: AnyMapping
     idempotency_key: str
     follow_redirects: bool
+    security: SecurityOptions
+    synthesize_event_and_data: bool
 
 
 # Sentinel class used until PEP 0661 is accepted
@@ -247,6 +261,9 @@ _T_co = TypeVar("_T_co", covariant=True)
 if TYPE_CHECKING:
     # This works because str.__contains__ does not accept object (either in typeshed or at runtime)
     # https://github.com/hauntsaninja/useful_types/blob/5e9710f3875107d068e7679fd7fec9cfab0eff3b/useful_types/__init__.py#L285
+    #
+    # Note: index() and count() methods are intentionally omitted to allow pyright to properly
+    # infer TypedDict types when dict literals are used in lists assigned to SequenceNotStr.
     class SequenceNotStr(Protocol[_T_co]):
         @overload
         def __getitem__(self, index: SupportsIndex, /) -> _T_co: ...
@@ -255,8 +272,6 @@ if TYPE_CHECKING:
         def __contains__(self, value: object, /) -> bool: ...
         def __len__(self) -> int: ...
         def __iter__(self) -> Iterator[_T_co]: ...
-        def index(self, value: Any, start: int = 0, stop: int = ..., /) -> int: ...
-        def count(self, value: Any, /) -> int: ...
         def __reversed__(self) -> Iterator[_T_co]: ...
 else:
     # just point this to a normal `Sequence` at runtime to avoid having to special case

@@ -9,11 +9,15 @@ __all__ = ["FineTuningJobFailedWebhookEvent", "Data"]
 
 
 class Data(BaseModel):
+    """Event data payload."""
+
     id: str
     """The unique ID of the fine-tuning job."""
 
 
 class FineTuningJobFailedWebhookEvent(BaseModel):
+    """Sent when a fine-tuning job has failed."""
+
     id: str
     """The unique ID of the event."""
 

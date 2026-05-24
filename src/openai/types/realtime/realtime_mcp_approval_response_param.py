@@ -9,6 +9,8 @@ __all__ = ["RealtimeMcpApprovalResponseParam"]
 
 
 class RealtimeMcpApprovalResponseParam(TypedDict, total=False):
+    """A Realtime item responding to an MCP approval request."""
+
     id: Required[str]
     """The unique ID of the approval response."""
 

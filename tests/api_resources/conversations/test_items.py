@@ -44,10 +44,11 @@ class TestItems:
                 {
                     "content": "string",
                     "role": "user",
+                    "phase": "commentary",
                     "type": "message",
                 }
             ],
-            include=["code_interpreter_call.outputs"],
+            include=["file_search_call.results"],
         )
         assert_matches_type(ConversationItemList, item, path=["response"])
 
@@ -116,7 +117,7 @@ class TestItems:
         item = client.conversations.items.retrieve(
             item_id="msg_abc",
             conversation_id="conv_123",
-            include=["code_interpreter_call.outputs"],
+            include=["file_search_call.results"],
         )
         assert_matches_type(ConversationItem, item, path=["response"])
 
@@ -172,7 +173,7 @@ class TestItems:
         item = client.conversations.items.list(
             conversation_id="conv_123",
             after="after",
-            include=["code_interpreter_call.outputs"],
+            include=["file_search_call.results"],
             limit=0,
             order="asc",
         )
@@ -285,10 +286,11 @@ class TestAsyncItems:
                 {
                     "content": "string",
                     "role": "user",
+                    "phase": "commentary",
                     "type": "message",
                 }
             ],
-            include=["code_interpreter_call.outputs"],
+            include=["file_search_call.results"],
         )
         assert_matches_type(ConversationItemList, item, path=["response"])
 
@@ -357,7 +359,7 @@ class TestAsyncItems:
         item = await async_client.conversations.items.retrieve(
             item_id="msg_abc",
             conversation_id="conv_123",
-            include=["code_interpreter_call.outputs"],
+            include=["file_search_call.results"],
         )
         assert_matches_type(ConversationItem, item, path=["response"])
 
@@ -413,7 +415,7 @@ class TestAsyncItems:
         item = await async_client.conversations.items.list(
             conversation_id="conv_123",
             after="after",
-            include=["code_interpreter_call.outputs"],
+            include=["file_search_call.results"],
             limit=0,
             order="asc",
         )

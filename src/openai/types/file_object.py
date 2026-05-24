@@ -9,6 +9,8 @@ __all__ = ["FileObject"]
 
 
 class FileObject(BaseModel):
+    """The `File` object represents a document that has been uploaded to OpenAI."""
+
     id: str
     """The file identifier, which can be referenced in the API endpoints."""
 

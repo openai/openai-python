@@ -16,6 +16,8 @@ Session: TypeAlias = Annotated[
 
 
 class ClientSecretCreateResponse(BaseModel):
+    """Response from creating a session and client secret for the Realtime API."""
+
     expires_at: int
     """Expiration timestamp for the client secret, in seconds since epoch."""
 

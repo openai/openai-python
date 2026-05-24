@@ -8,6 +8,8 @@ __all__ = ["RealtimeConversationItemFunctionCallOutputParam"]
 
 
 class RealtimeConversationItemFunctionCallOutputParam(TypedDict, total=False):
+    """A function call output item in a Realtime conversation."""
+
     call_id: Required[str]
     """The ID of the function call this output is for."""
 

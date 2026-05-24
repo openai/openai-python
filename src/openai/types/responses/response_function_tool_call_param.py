@@ -8,6 +8,12 @@ __all__ = ["ResponseFunctionToolCallParam"]
 
 
 class ResponseFunctionToolCallParam(TypedDict, total=False):
+    """A tool call to run a function.
+
+    See the
+    [function calling guide](https://platform.openai.com/docs/guides/function-calling) for more information.
+    """
+
     arguments: Required[str]
     """A JSON string of the arguments to pass to the function."""
 
@@ -22,6 +28,9 @@ class ResponseFunctionToolCallParam(TypedDict, total=False):
 
     id: str
     """The unique ID of the function tool call."""
+
+    namespace: str
+    """The namespace of the function to run."""
 
     status: Literal["in_progress", "completed", "incomplete"]
     """The status of the item.

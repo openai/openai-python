@@ -15,6 +15,8 @@ __all__ = [
 
 
 class FileSearchRankingOptions(BaseModel):
+    """The ranking options for the file search."""
+
     ranker: Literal["auto", "default_2024_08_21"]
     """The ranker to use for the file search.
 
@@ -37,6 +39,8 @@ class FileSearchResultContent(BaseModel):
 
 
 class FileSearchResult(BaseModel):
+    """A result instance of the file search."""
+
     file_id: str
     """The ID of the file that result was found in."""
 
@@ -57,6 +61,8 @@ class FileSearchResult(BaseModel):
 
 
 class FileSearch(BaseModel):
+    """For now, this is always going to be an empty object."""
+
     ranking_options: Optional[FileSearchRankingOptions] = None
     """The ranking options for the file search."""
 

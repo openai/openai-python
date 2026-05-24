@@ -35,14 +35,17 @@ __all__ = ["Audio", "AsyncAudio"]
 class Audio(SyncAPIResource):
     @cached_property
     def transcriptions(self) -> Transcriptions:
+        """Turn audio into text or text into audio."""
         return Transcriptions(self._client)
 
     @cached_property
     def translations(self) -> Translations:
+        """Turn audio into text or text into audio."""
         return Translations(self._client)
 
     @cached_property
     def speech(self) -> Speech:
+        """Turn audio into text or text into audio."""
         return Speech(self._client)
 
     @cached_property
@@ -68,14 +71,17 @@ class Audio(SyncAPIResource):
 class AsyncAudio(AsyncAPIResource):
     @cached_property
     def transcriptions(self) -> AsyncTranscriptions:
+        """Turn audio into text or text into audio."""
         return AsyncTranscriptions(self._client)
 
     @cached_property
     def translations(self) -> AsyncTranslations:
+        """Turn audio into text or text into audio."""
         return AsyncTranslations(self._client)
 
     @cached_property
     def speech(self) -> AsyncSpeech:
+        """Turn audio into text or text into audio."""
         return AsyncSpeech(self._client)
 
     @cached_property
@@ -104,14 +110,17 @@ class AudioWithRawResponse:
 
     @cached_property
     def transcriptions(self) -> TranscriptionsWithRawResponse:
+        """Turn audio into text or text into audio."""
         return TranscriptionsWithRawResponse(self._audio.transcriptions)
 
     @cached_property
     def translations(self) -> TranslationsWithRawResponse:
+        """Turn audio into text or text into audio."""
         return TranslationsWithRawResponse(self._audio.translations)
 
     @cached_property
     def speech(self) -> SpeechWithRawResponse:
+        """Turn audio into text or text into audio."""
         return SpeechWithRawResponse(self._audio.speech)
 
 
@@ -121,14 +130,17 @@ class AsyncAudioWithRawResponse:
 
     @cached_property
     def transcriptions(self) -> AsyncTranscriptionsWithRawResponse:
+        """Turn audio into text or text into audio."""
         return AsyncTranscriptionsWithRawResponse(self._audio.transcriptions)
 
     @cached_property
     def translations(self) -> AsyncTranslationsWithRawResponse:
+        """Turn audio into text or text into audio."""
         return AsyncTranslationsWithRawResponse(self._audio.translations)
 
     @cached_property
     def speech(self) -> AsyncSpeechWithRawResponse:
+        """Turn audio into text or text into audio."""
         return AsyncSpeechWithRawResponse(self._audio.speech)
 
 
@@ -138,14 +150,17 @@ class AudioWithStreamingResponse:
 
     @cached_property
     def transcriptions(self) -> TranscriptionsWithStreamingResponse:
+        """Turn audio into text or text into audio."""
         return TranscriptionsWithStreamingResponse(self._audio.transcriptions)
 
     @cached_property
     def translations(self) -> TranslationsWithStreamingResponse:
+        """Turn audio into text or text into audio."""
         return TranslationsWithStreamingResponse(self._audio.translations)
 
     @cached_property
     def speech(self) -> SpeechWithStreamingResponse:
+        """Turn audio into text or text into audio."""
         return SpeechWithStreamingResponse(self._audio.speech)
 
 
@@ -155,12 +170,15 @@ class AsyncAudioWithStreamingResponse:
 
     @cached_property
     def transcriptions(self) -> AsyncTranscriptionsWithStreamingResponse:
+        """Turn audio into text or text into audio."""
         return AsyncTranscriptionsWithStreamingResponse(self._audio.transcriptions)
 
     @cached_property
     def translations(self) -> AsyncTranslationsWithStreamingResponse:
+        """Turn audio into text or text into audio."""
         return AsyncTranslationsWithStreamingResponse(self._audio.translations)
 
     @cached_property
     def speech(self) -> AsyncSpeechWithStreamingResponse:
+        """Turn audio into text or text into audio."""
         return AsyncSpeechWithStreamingResponse(self._audio.speech)

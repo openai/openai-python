@@ -9,16 +9,20 @@ __all__ = ["ResponseCodeInterpreterToolCallParam", "Output", "OutputLogs", "Outp
 
 
 class OutputLogs(TypedDict, total=False):
+    """The logs output from the code interpreter."""
+
     logs: Required[str]
     """The logs output from the code interpreter."""
 
     type: Required[Literal["logs"]]
-    """The type of the output. Always 'logs'."""
+    """The type of the output. Always `logs`."""
 
 
 class OutputImage(TypedDict, total=False):
+    """The image output from the code interpreter."""
+
     type: Required[Literal["image"]]
-    """The type of the output. Always 'image'."""
+    """The type of the output. Always `image`."""
 
     url: Required[str]
     """The URL of the image output from the code interpreter."""
@@ -28,6 +32,8 @@ Output: TypeAlias = Union[OutputLogs, OutputImage]
 
 
 class ResponseCodeInterpreterToolCallParam(TypedDict, total=False):
+    """A tool call to run code."""
+
     id: Required[str]
     """The unique ID of the code interpreter tool call."""
 

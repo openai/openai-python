@@ -25,6 +25,10 @@ __all__ = ["Completions", "AsyncCompletions"]
 
 
 class Completions(SyncAPIResource):
+    """
+    Given a prompt, the model will return one or more predicted completions, and can also return the probabilities of alternative tokens at each position.
+    """
+
     @cached_property
     def with_raw_response(self) -> CompletionsWithRawResponse:
         """
@@ -75,6 +79,9 @@ class Completions(SyncAPIResource):
     ) -> Completion:
         """
         Creates a completion for the provided prompt and parameters.
+
+        Returns a completion object, or a sequence of completion objects if the request
+        is streamed.
 
         Args:
           model: ID of the model to use. You can use the
@@ -231,6 +238,9 @@ class Completions(SyncAPIResource):
         """
         Creates a completion for the provided prompt and parameters.
 
+        Returns a completion object, or a sequence of completion objects if the request
+        is streamed.
+
         Args:
           model: ID of the model to use. You can use the
               [List models](https://platform.openai.com/docs/api-reference/models/list) API to
@@ -385,6 +395,9 @@ class Completions(SyncAPIResource):
     ) -> Completion | Stream[Completion]:
         """
         Creates a completion for the provided prompt and parameters.
+
+        Returns a completion object, or a sequence of completion objects if the request
+        is streamed.
 
         Args:
           model: ID of the model to use. You can use the
@@ -566,7 +579,11 @@ class Completions(SyncAPIResource):
                 else completion_create_params.CompletionCreateParamsNonStreaming,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Completion,
             stream=stream or False,
@@ -575,6 +592,10 @@ class Completions(SyncAPIResource):
 
 
 class AsyncCompletions(AsyncAPIResource):
+    """
+    Given a prompt, the model will return one or more predicted completions, and can also return the probabilities of alternative tokens at each position.
+    """
+
     @cached_property
     def with_raw_response(self) -> AsyncCompletionsWithRawResponse:
         """
@@ -625,6 +646,9 @@ class AsyncCompletions(AsyncAPIResource):
     ) -> Completion:
         """
         Creates a completion for the provided prompt and parameters.
+
+        Returns a completion object, or a sequence of completion objects if the request
+        is streamed.
 
         Args:
           model: ID of the model to use. You can use the
@@ -781,6 +805,9 @@ class AsyncCompletions(AsyncAPIResource):
         """
         Creates a completion for the provided prompt and parameters.
 
+        Returns a completion object, or a sequence of completion objects if the request
+        is streamed.
+
         Args:
           model: ID of the model to use. You can use the
               [List models](https://platform.openai.com/docs/api-reference/models/list) API to
@@ -935,6 +962,9 @@ class AsyncCompletions(AsyncAPIResource):
     ) -> Completion | AsyncStream[Completion]:
         """
         Creates a completion for the provided prompt and parameters.
+
+        Returns a completion object, or a sequence of completion objects if the request
+        is streamed.
 
         Args:
           model: ID of the model to use. You can use the
@@ -1116,7 +1146,11 @@ class AsyncCompletions(AsyncAPIResource):
                 else completion_create_params.CompletionCreateParamsNonStreaming,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Completion,
             stream=stream or False,

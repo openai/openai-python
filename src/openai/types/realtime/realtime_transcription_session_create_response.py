@@ -13,6 +13,8 @@ __all__ = ["RealtimeTranscriptionSessionCreateResponse", "Audio", "AudioInput", 
 
 
 class AudioInputNoiseReduction(BaseModel):
+    """Configuration for input audio noise reduction."""
+
     type: Optional[NoiseReductionType] = None
     """Type of noise reduction.
 
@@ -29,22 +31,25 @@ class AudioInput(BaseModel):
     """Configuration for input audio noise reduction."""
 
     transcription: Optional[AudioTranscription] = None
-    """Configuration of the transcription model."""
 
     turn_detection: Optional[RealtimeTranscriptionSessionTurnDetection] = None
     """Configuration for turn detection.
 
     Can be set to `null` to turn off. Server VAD means that the model will detect
     the start and end of speech based on audio volume and respond at the end of user
-    speech.
+    speech. For `gpt-realtime-whisper`, this must be `null`; VAD is not supported.
     """
 
 
 class Audio(BaseModel):
+    """Configuration for input audio for the session."""
+
     input: Optional[AudioInput] = None
 
 
 class RealtimeTranscriptionSessionCreateResponse(BaseModel):
+    """A Realtime transcription session configuration object."""
+
     id: str
     """Unique identifier for the session that looks like `sess_1234567890abcdef`."""
 

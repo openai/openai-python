@@ -9,6 +9,8 @@ __all__ = ["TextContentBlock"]
 
 
 class TextContentBlock(BaseModel):
+    """The text content that is part of a message."""
+
     text: Text
 
     type: Literal["text"]

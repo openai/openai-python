@@ -10,6 +10,14 @@ __all__ = ["RealtimeResponseUsage"]
 
 
 class RealtimeResponseUsage(BaseModel):
+    """Usage statistics for the Response, this will correspond to billing.
+
+    A
+    Realtime API session will maintain a conversation context and append new
+    Items to the Conversation, thus output from previous turns (text and
+    audio tokens) will become the input for later turns.
+    """
+
     input_token_details: Optional[RealtimeResponseUsageInputTokenDetails] = None
     """Details about the input tokens used in the Response.
 

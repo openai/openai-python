@@ -8,6 +8,12 @@ __all__ = ["InputAudioBufferSpeechStoppedEvent"]
 
 
 class InputAudioBufferSpeechStoppedEvent(BaseModel):
+    """
+    Returned in `server_vad` mode when the server detects the end of speech in
+    the audio buffer. The server will also send an `conversation.item.created`
+    event with the user message item that is created from the audio buffer.
+    """
+
     audio_end_ms: int
     """Milliseconds since the session started when speech stopped.
 

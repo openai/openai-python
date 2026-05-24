@@ -8,6 +8,8 @@ __all__ = ["ResponseFileSearchCallSearchingEvent"]
 
 
 class ResponseFileSearchCallSearchingEvent(BaseModel):
+    """Emitted when a file search is currently searching."""
+
     item_id: str
     """The ID of the output item that the file search call is initiated."""
 

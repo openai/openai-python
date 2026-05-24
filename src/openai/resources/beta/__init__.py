@@ -8,6 +8,14 @@ from .beta import (
     BetaWithStreamingResponse,
     AsyncBetaWithStreamingResponse,
 )
+from .chatkit import (
+    ChatKit,
+    AsyncChatKit,
+    ChatKitWithRawResponse,
+    AsyncChatKitWithRawResponse,
+    ChatKitWithStreamingResponse,
+    AsyncChatKitWithStreamingResponse,
+)
 from .threads import (
     Threads,
     AsyncThreads,
@@ -26,6 +34,12 @@ from .assistants import (
 )
 
 __all__ = [
+    "ChatKit",
+    "AsyncChatKit",
+    "ChatKitWithRawResponse",
+    "AsyncChatKitWithRawResponse",
+    "ChatKitWithStreamingResponse",
+    "AsyncChatKitWithStreamingResponse",
     "Assistants",
     "AsyncAssistants",
     "AssistantsWithRawResponse",

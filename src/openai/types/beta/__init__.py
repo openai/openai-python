@@ -7,6 +7,7 @@ from .assistant import Assistant as Assistant
 from .function_tool import FunctionTool as FunctionTool
 from .assistant_tool import AssistantTool as AssistantTool
 from .thread_deleted import ThreadDeleted as ThreadDeleted
+from .chatkit_workflow import ChatKitWorkflow as ChatKitWorkflow
 from .file_search_tool import FileSearchTool as FileSearchTool
 from .assistant_deleted import AssistantDeleted as AssistantDeleted
 from .function_tool_param import FunctionToolParam as FunctionToolParam

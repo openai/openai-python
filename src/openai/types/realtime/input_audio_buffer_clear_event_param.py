@@ -8,6 +8,12 @@ __all__ = ["InputAudioBufferClearEventParam"]
 
 
 class InputAudioBufferClearEventParam(TypedDict, total=False):
+    """Send this event to clear the audio bytes in the buffer.
+
+    The server will
+    respond with an `input_audio_buffer.cleared` event.
+    """
+
     type: Required[Literal["input_audio_buffer.clear"]]
     """The event type, must be `input_audio_buffer.clear`."""
 

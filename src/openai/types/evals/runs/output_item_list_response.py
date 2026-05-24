@@ -12,6 +12,8 @@ __all__ = ["OutputItemListResponse", "Result", "Sample", "SampleInput", "SampleO
 
 
 class Result(BaseModel):
+    """A single grader result for an evaluation run output item."""
+
     name: str
     """The name of the grader."""
 
@@ -41,6 +43,8 @@ class Result(BaseModel):
 
 
 class SampleInput(BaseModel):
+    """An input message."""
+
     content: str
     """The content of the message."""
 
@@ -57,6 +61,8 @@ class SampleOutput(BaseModel):
 
 
 class SampleUsage(BaseModel):
+    """Token usage details for the sample."""
+
     cached_tokens: int
     """The number of tokens retrieved from cache."""
 
@@ -71,6 +77,8 @@ class SampleUsage(BaseModel):
 
 
 class Sample(BaseModel):
+    """A sample containing the input and output of the evaluation run."""
+
     error: EvalAPIError
     """An object representing an error response from the Eval API."""
 
@@ -103,6 +111,8 @@ class Sample(BaseModel):
 
 
 class OutputItemListResponse(BaseModel):
+    """A schema representing an evaluation run output item."""
+
     id: str
     """Unique identifier for the evaluation run output item."""
 

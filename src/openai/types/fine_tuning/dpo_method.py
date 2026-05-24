@@ -9,5 +9,7 @@ __all__ = ["DpoMethod"]
 
 
 class DpoMethod(BaseModel):
+    """Configuration for the DPO fine-tuning method."""
+
     hyperparameters: Optional[DpoHyperparameters] = None
     """The hyperparameters used for the DPO fine-tuning job."""

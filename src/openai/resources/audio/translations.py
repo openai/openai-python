@@ -9,8 +9,9 @@ from typing_extensions import Literal, overload, assert_never
 import httpx
 
 from ... import _legacy_response
+from ..._files import deepcopy_with_paths
 from ..._types import Body, Omit, Query, Headers, NotGiven, FileTypes, omit, not_given
-from ..._utils import extract_files, maybe_transform, deepcopy_minimal, async_maybe_transform
+from ..._utils import extract_files, maybe_transform, async_maybe_transform
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -27,6 +28,8 @@ log: logging.Logger = logging.getLogger("openai.audio.transcriptions")
 
 
 class Translations(SyncAPIResource):
+    """Turn audio into text or text into audio."""
+
     @cached_property
     def with_raw_response(self) -> TranslationsWithRawResponse:
         """
@@ -144,14 +147,15 @@ class Translations(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        body = deepcopy_minimal(
+        body = deepcopy_with_paths(
             {
                 "file": file,
                 "model": model,
                 "prompt": prompt,
                 "response_format": response_format,
                 "temperature": temperature,
-            }
+            },
+            [["file"]],
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["file"]])
         # It should be noted that the actual Content-Type header that will be
@@ -163,13 +167,19 @@ class Translations(SyncAPIResource):
             body=maybe_transform(body, translation_create_params.TranslationCreateParams),
             files=files,
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=_get_response_format_type(response_format),
         )
 
 
 class AsyncTranslations(AsyncAPIResource):
+    """Turn audio into text or text into audio."""
+
     @cached_property
     def with_raw_response(self) -> AsyncTranslationsWithRawResponse:
         """
@@ -287,14 +297,15 @@ class AsyncTranslations(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        body = deepcopy_minimal(
+        body = deepcopy_with_paths(
             {
                 "file": file,
                 "model": model,
                 "prompt": prompt,
                 "response_format": response_format,
                 "temperature": temperature,
-            }
+            },
+            [["file"]],
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["file"]])
         # It should be noted that the actual Content-Type header that will be
@@ -306,7 +317,11 @@ class AsyncTranslations(AsyncAPIResource):
             body=await async_maybe_transform(body, translation_create_params.TranslationCreateParams),
             files=files,
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=_get_response_format_type(response_format),
         )
@@ -349,7 +364,7 @@ class AsyncTranslationsWithStreamingResponse:
 
 
 def _get_response_format_type(
-    response_format: Literal["json", "text", "srt", "verbose_json", "vtt"] | Omit,
+    response_format: AudioResponseFormat | Omit,
 ) -> type[Translation | TranslationVerbose | str]:
     if isinstance(response_format, Omit) or response_format is None:  # pyright: ignore[reportUnnecessaryComparison]
         return Translation
@@ -360,8 +375,8 @@ def _get_response_format_type(
         return TranslationVerbose
     elif response_format == "srt" or response_format == "text" or response_format == "vtt":
         return str
-    elif TYPE_CHECKING:  # type: ignore[unreachable]
+    elif TYPE_CHECKING and response_format != "diarized_json":  # type: ignore[unreachable]
         assert_never(response_format)
     else:
-        log.warn("Unexpected audio response format: %s", response_format)
-        return Transcription
+        log.warning("Unexpected audio response format: %s", response_format)
+        return Translation

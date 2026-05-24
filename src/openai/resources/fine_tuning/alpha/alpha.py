@@ -19,6 +19,7 @@ __all__ = ["Alpha", "AsyncAlpha"]
 class Alpha(SyncAPIResource):
     @cached_property
     def graders(self) -> Graders:
+        """Manage fine-tuning jobs to tailor a model to your specific training data."""
         return Graders(self._client)
 
     @cached_property
@@ -44,6 +45,7 @@ class Alpha(SyncAPIResource):
 class AsyncAlpha(AsyncAPIResource):
     @cached_property
     def graders(self) -> AsyncGraders:
+        """Manage fine-tuning jobs to tailor a model to your specific training data."""
         return AsyncGraders(self._client)
 
     @cached_property
@@ -72,6 +74,7 @@ class AlphaWithRawResponse:
 
     @cached_property
     def graders(self) -> GradersWithRawResponse:
+        """Manage fine-tuning jobs to tailor a model to your specific training data."""
         return GradersWithRawResponse(self._alpha.graders)
 
 
@@ -81,6 +84,7 @@ class AsyncAlphaWithRawResponse:
 
     @cached_property
     def graders(self) -> AsyncGradersWithRawResponse:
+        """Manage fine-tuning jobs to tailor a model to your specific training data."""
         return AsyncGradersWithRawResponse(self._alpha.graders)
 
 
@@ -90,6 +94,7 @@ class AlphaWithStreamingResponse:
 
     @cached_property
     def graders(self) -> GradersWithStreamingResponse:
+        """Manage fine-tuning jobs to tailor a model to your specific training data."""
         return GradersWithStreamingResponse(self._alpha.graders)
 
 
@@ -99,4 +104,5 @@ class AsyncAlphaWithStreamingResponse:
 
     @cached_property
     def graders(self) -> AsyncGradersWithStreamingResponse:
+        """Manage fine-tuning jobs to tailor a model to your specific training data."""
         return AsyncGradersWithStreamingResponse(self._alpha.graders)

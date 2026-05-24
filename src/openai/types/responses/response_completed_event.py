@@ -9,6 +9,8 @@ __all__ = ["ResponseCompletedEvent"]
 
 
 class ResponseCompletedEvent(BaseModel):
+    """Emitted when the model response is complete."""
+
     response: Response
     """Properties of the completed response."""
 

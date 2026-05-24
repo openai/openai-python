@@ -8,6 +8,8 @@ __all__ = ["ResponseImageGenCallInProgressEvent"]
 
 
 class ResponseImageGenCallInProgressEvent(BaseModel):
+    """Emitted when an image generation tool call is in progress."""
+
     item_id: str
     """The unique identifier of the image generation item being processed."""
 

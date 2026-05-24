@@ -8,6 +8,8 @@ __all__ = ["SummaryTextContent"]
 
 
 class SummaryTextContent(BaseModel):
+    """A summary text from the model."""
+
     text: str
     """A summary of the reasoning output from the model so far."""
 

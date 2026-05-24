@@ -16,6 +16,10 @@ Graders: TypeAlias = Union[StringCheckGrader, TextSimilarityGrader, PythonGrader
 
 
 class MultiGrader(BaseModel):
+    """
+    A MultiGrader object combines the output of multiple graders to produce a single score.
+    """
+
     calculate_output: str
     """A formula to calculate the output based on grader results."""
 

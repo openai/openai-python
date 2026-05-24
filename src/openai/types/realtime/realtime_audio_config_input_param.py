@@ -14,6 +14,13 @@ __all__ = ["RealtimeAudioConfigInputParam", "NoiseReduction"]
 
 
 class NoiseReduction(TypedDict, total=False):
+    """Configuration for input audio noise reduction.
+
+    This can be set to `null` to turn off.
+    Noise reduction filters audio added to the input audio buffer before it is sent to VAD and the model.
+    Filtering the audio can improve VAD and turn detection accuracy (reducing false positives) and model performance by improving perception of the input audio.
+    """
+
     type: NoiseReductionType
     """Type of noise reduction.
 
@@ -62,4 +69,7 @@ class RealtimeAudioConfigInputParam(TypedDict, total=False):
     trails off with "uhhm", the model will score a low probability of turn end and
     wait longer for the user to continue speaking. This can be useful for more
     natural conversations, but may have a higher latency.
+
+    For `gpt-realtime-whisper` transcription sessions, turn detection must be set to
+    `null`; VAD is not supported.
     """

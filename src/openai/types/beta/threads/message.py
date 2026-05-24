@@ -34,11 +34,17 @@ class Attachment(BaseModel):
 
 
 class IncompleteDetails(BaseModel):
+    """On an incomplete message, details about why the message is incomplete."""
+
     reason: Literal["content_filter", "max_tokens", "run_cancelled", "run_expired", "run_failed"]
     """The reason the message is incomplete."""
 
 
 class Message(BaseModel):
+    """
+    Represents a message within a [thread](https://platform.openai.com/docs/api-reference/threads).
+    """
+
     id: str
     """The identifier, which can be referenced in API endpoints."""
 

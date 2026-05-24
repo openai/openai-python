@@ -9,10 +9,15 @@ __all__ = ["ResponseInputImageParam"]
 
 
 class ResponseInputImageParam(TypedDict, total=False):
-    detail: Required[Literal["low", "high", "auto"]]
+    """An image input to the model.
+
+    Learn about [image inputs](https://platform.openai.com/docs/guides/vision).
+    """
+
+    detail: Required[Literal["low", "high", "auto", "original"]]
     """The detail level of the image to be sent to the model.
 
-    One of `high`, `low`, or `auto`. Defaults to `auto`.
+    One of `high`, `low`, `auto`, or `original`. Defaults to `auto`.
     """
 
     type: Required[Literal["input_image"]]

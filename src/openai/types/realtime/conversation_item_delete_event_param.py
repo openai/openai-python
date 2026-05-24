@@ -8,6 +8,14 @@ __all__ = ["ConversationItemDeleteEventParam"]
 
 
 class ConversationItemDeleteEventParam(TypedDict, total=False):
+    """Send this event when you want to remove any item from the conversation
+    history.
+
+    The server will respond with a `conversation.item.deleted` event,
+    unless the item does not exist in the conversation history, in which case the
+    server will respond with an error.
+    """
+
     item_id: Required[str]
     """The ID of the item to delete."""
 

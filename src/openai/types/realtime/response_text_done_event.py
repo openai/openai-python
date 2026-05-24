@@ -8,6 +8,12 @@ __all__ = ["ResponseTextDoneEvent"]
 
 
 class ResponseTextDoneEvent(BaseModel):
+    """Returned when the text value of an "output_text" content part is done streaming.
+
+    Also
+    emitted when a Response is interrupted, incomplete, or cancelled.
+    """
+
     content_index: int
     """The index of the content part in the item's content array."""
 

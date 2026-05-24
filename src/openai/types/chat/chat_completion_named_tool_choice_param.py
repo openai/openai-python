@@ -13,6 +13,11 @@ class Function(TypedDict, total=False):
 
 
 class ChatCompletionNamedToolChoiceParam(TypedDict, total=False):
+    """Specifies a tool the model should use.
+
+    Use to force the model to call a specific function.
+    """
+
     function: Required[Function]
 
     type: Required[Literal["function"]]

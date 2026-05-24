@@ -9,6 +9,11 @@ __all__ = ["RunStepDeltaEvent"]
 
 
 class RunStepDeltaEvent(BaseModel):
+    """Represents a run step delta i.e.
+
+    any changed fields on a run step during streaming.
+    """
+
     id: str
     """The identifier of the run step, which can be referenced in API endpoints."""
 

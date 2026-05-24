@@ -5,4 +5,4 @@ from typing_extensions import Literal, TypeAlias
 
 __all__ = ["ReasoningEffort"]
 
-ReasoningEffort: TypeAlias = Optional[Literal["minimal", "low", "medium", "high"]]
+ReasoningEffort: TypeAlias = Optional[Literal["none", "minimal", "low", "medium", "high", "xhigh"]]

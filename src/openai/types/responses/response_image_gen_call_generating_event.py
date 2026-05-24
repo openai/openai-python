@@ -8,6 +8,10 @@ __all__ = ["ResponseImageGenCallGeneratingEvent"]
 
 
 class ResponseImageGenCallGeneratingEvent(BaseModel):
+    """
+    Emitted when an image generation tool call is actively generating an image (intermediate state).
+    """
+
     item_id: str
     """The unique identifier of the image generation item being processed."""
 

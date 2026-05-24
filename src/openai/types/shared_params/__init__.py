@@ -5,6 +5,7 @@ from .reasoning import Reasoning as Reasoning
 from .chat_model import ChatModel as ChatModel
 from .compound_filter import CompoundFilter as CompoundFilter
 from .responses_model import ResponsesModel as ResponsesModel
+from .oauth_error_code import OAuthErrorCode as OAuthErrorCode
 from .reasoning_effort import ReasoningEffort as ReasoningEffort
 from .comparison_filter import ComparisonFilter as ComparisonFilter
 from .function_definition import FunctionDefinition as FunctionDefinition

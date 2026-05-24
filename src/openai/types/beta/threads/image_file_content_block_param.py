@@ -10,6 +10,10 @@ __all__ = ["ImageFileContentBlockParam"]
 
 
 class ImageFileContentBlockParam(TypedDict, total=False):
+    """
+    References an image [File](https://platform.openai.com/docs/api-reference/files) in the content of a message.
+    """
+
     image_file: Required[ImageFileParam]
 
     type: Required[Literal["image_file"]]

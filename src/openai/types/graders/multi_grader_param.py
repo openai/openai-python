@@ -19,6 +19,10 @@ Graders: TypeAlias = Union[
 
 
 class MultiGraderParam(TypedDict, total=False):
+    """
+    A MultiGrader object combines the output of multiple graders to produce a single score.
+    """
+
     calculate_output: Required[str]
     """A formula to calculate the output based on grader results."""
 

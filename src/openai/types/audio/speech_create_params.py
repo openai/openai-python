@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 from typing import Union
-from typing_extensions import Literal, Required, TypedDict
+from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from .speech_model import SpeechModel
 
-__all__ = ["SpeechCreateParams"]
+__all__ = ["SpeechCreateParams", "Voice", "VoiceID"]
 
 
 class SpeechCreateParams(TypedDict, total=False):
@@ -17,17 +17,16 @@ class SpeechCreateParams(TypedDict, total=False):
     model: Required[Union[str, SpeechModel]]
     """
     One of the available [TTS models](https://platform.openai.com/docs/models#tts):
-    `tts-1`, `tts-1-hd` or `gpt-4o-mini-tts`.
+    `tts-1`, `tts-1-hd`, `gpt-4o-mini-tts`, or `gpt-4o-mini-tts-2025-12-15`.
     """
 
-    voice: Required[
-        Union[str, Literal["alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse", "marin", "cedar"]]
-    ]
+    voice: Required[Voice]
     """The voice to use when generating the audio.
 
-    Supported voices are `alloy`, `ash`, `ballad`, `coral`, `echo`, `fable`, `onyx`,
-    `nova`, `sage`, `shimmer`, and `verse`. Previews of the voices are available in
-    the
+    Supported built-in voices are `alloy`, `ash`, `ballad`, `coral`, `echo`,
+    `fable`, `onyx`, `nova`, `sage`, `shimmer`, `verse`, `marin`, and `cedar`. You
+    may also provide a custom voice object with an `id`, for example
+    `{ "id": "voice_1234" }`. Previews of the voices are available in the
     [Text to speech guide](https://platform.openai.com/docs/guides/text-to-speech#voice-options).
     """
 
@@ -55,3 +54,15 @@ class SpeechCreateParams(TypedDict, total=False):
     Supported formats are `sse` and `audio`. `sse` is not supported for `tts-1` or
     `tts-1-hd`.
     """
+
+
+class VoiceID(TypedDict, total=False):
+    """Custom voice reference."""
+
+    id: Required[str]
+    """The custom voice ID, e.g. `voice_1234`."""
+
+
+Voice: TypeAlias = Union[
+    str, Literal["alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse", "marin", "cedar"], VoiceID
+]

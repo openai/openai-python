@@ -9,6 +9,8 @@ __all__ = ["ResponseFailedEvent"]
 
 
 class ResponseFailedEvent(BaseModel):
+    """An event that is emitted when a response fails."""
+
     response: Response
     """The response that failed."""
 

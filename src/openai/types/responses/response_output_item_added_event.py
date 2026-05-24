@@ -9,6 +9,8 @@ __all__ = ["ResponseOutputItemAddedEvent"]
 
 
 class ResponseOutputItemAddedEvent(BaseModel):
+    """Emitted when a new output item is added."""
+
     item: ResponseOutputItem
     """The output item that was added."""
 

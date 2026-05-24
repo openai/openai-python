@@ -34,6 +34,12 @@ class Result(TypedDict, total=False):
 
 
 class ResponseFileSearchToolCallParam(TypedDict, total=False):
+    """The results of a file search tool call.
+
+    See the
+    [file search guide](https://platform.openai.com/docs/guides/tools-file-search) for more information.
+    """
+
     id: Required[str]
     """The unique ID of the file search tool call."""
 

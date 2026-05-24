@@ -9,6 +9,8 @@ __all__ = ["CodeInterpreterLogs"]
 
 
 class CodeInterpreterLogs(BaseModel):
+    """Text output from the Code Interpreter tool call as part of a run step."""
+
     index: int
     """The index of the output in the outputs array."""
 

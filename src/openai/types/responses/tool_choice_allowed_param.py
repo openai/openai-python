@@ -9,6 +9,8 @@ __all__ = ["ToolChoiceAllowedParam"]
 
 
 class ToolChoiceAllowedParam(TypedDict, total=False):
+    """Constrains the tools available to the model to a pre-defined set."""
+
     mode: Required[Literal["auto", "required"]]
     """Constrains the tools available to the model to a pre-defined set.
 

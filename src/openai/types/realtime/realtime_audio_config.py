@@ -10,6 +10,8 @@ __all__ = ["RealtimeAudioConfig"]
 
 
 class RealtimeAudioConfig(BaseModel):
+    """Configuration for input and output audio."""
+
     input: Optional[RealtimeAudioConfigInput] = None
 
     output: Optional[RealtimeAudioConfigOutput] = None

@@ -18,6 +18,8 @@ Error: TypeAlias = Annotated[
 
 
 class RealtimeMcpToolCall(BaseModel):
+    """A Realtime item representing an invocation of a tool on an MCP server."""
+
     id: str
     """The unique ID of the tool call."""
 

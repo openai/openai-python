@@ -185,13 +185,29 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
     """
 
+    prompt_cache_retention: Optional[Literal["in_memory", "24h"]]
+    """The retention policy for the prompt cache.
+
+    Set to `24h` to enable extended prompt caching, which keeps cached prefixes
+    active for longer, up to a maximum of 24 hours.
+    [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
+    """
+
     reasoning_effort: Optional[ReasoningEffort]
     """
     Constrains effort on reasoning for
     [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
-    supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning
-    effort can result in faster responses and fewer tokens used on reasoning in a
-    response.
+    supported values are `none`, `minimal`, `low`, `medium`, `high`, and `xhigh`.
+    Reducing reasoning effort can result in faster responses and fewer tokens used
+    on reasoning in a response.
+
+    - `gpt-5.1` defaults to `none`, which does not perform reasoning. The supported
+      reasoning values for `gpt-5.1` are `none`, `low`, `medium`, and `high`. Tool
+      calls are supported for all reasoning values in gpt-5.1.
+    - All models before `gpt-5.1` default to `medium` reasoning effort, and do not
+      support `none`.
+    - The `gpt-5-pro` model defaults to (and only supports) `high` reasoning effort.
+    - `xhigh` is supported for all models after `gpt-5.1-codex-max`.
     """
 
     response_format: ResponseFormat
@@ -211,8 +227,9 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     """
     A stable identifier used to help detect users of your application that may be
     violating OpenAI's usage policies. The IDs should be a string that uniquely
-    identifies each user. We recommend hashing their username or email address, in
-    order to avoid sending us any identifying information.
+    identifies each user, with a maximum length of 64 characters. We recommend
+    hashing their username or email address, in order to avoid sending us any
+    identifying information.
     [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
     """
 
@@ -294,8 +311,9 @@ class CompletionCreateParamsBase(TypedDict, total=False):
 
     top_logprobs: Optional[int]
     """
-    An integer between 0 and 20 specifying the number of most likely tokens to
-    return at each token position, each with an associated log probability.
+    An integer between 0 and 20 specifying the maximum number of most likely tokens
+    to return at each token position, each with an associated log probability. In
+    some cases, the number of returned tokens may be fewer than requested.
     `logprobs` must be set to `true` if this parameter is used.
     """
 
@@ -366,6 +384,8 @@ ResponseFormat: TypeAlias = Union[ResponseFormatText, ResponseFormatJSONSchema, 
 
 
 class WebSearchOptionsUserLocationApproximate(TypedDict, total=False):
+    """Approximate location parameters for the search."""
+
     city: str
     """Free text input for the city of the user, e.g. `San Francisco`."""
 
@@ -386,6 +406,8 @@ class WebSearchOptionsUserLocationApproximate(TypedDict, total=False):
 
 
 class WebSearchOptionsUserLocation(TypedDict, total=False):
+    """Approximate location parameters for the search."""
+
     approximate: Required[WebSearchOptionsUserLocationApproximate]
     """Approximate location parameters for the search."""
 
@@ -394,6 +416,11 @@ class WebSearchOptionsUserLocation(TypedDict, total=False):
 
 
 class WebSearchOptions(TypedDict, total=False):
+    """
+    This tool searches the web for relevant results to use in a response.
+    Learn more about the [web search tool](https://platform.openai.com/docs/guides/tools-web-search?api-mode=chat).
+    """
+
     search_context_size: Literal["low", "medium", "high"]
     """
     High level guidance for the amount of context window space to use for the

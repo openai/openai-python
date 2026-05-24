@@ -14,6 +14,11 @@ Variables: TypeAlias = Union[str, ResponseInputText, ResponseInputImage, Respons
 
 
 class ResponsePrompt(BaseModel):
+    """
+    Reference to a prompt template and its variables.
+    [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
+    """
+
     id: str
     """The unique identifier of the prompt template to use."""
 

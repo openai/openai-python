@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Union, Iterable
+from typing import Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from .response_output_text_param import ResponseOutputTextParam
@@ -14,6 +14,8 @@ Content: TypeAlias = Union[ResponseOutputTextParam, ResponseOutputRefusalParam]
 
 
 class ResponseOutputMessageParam(TypedDict, total=False):
+    """An output message from the model."""
+
     id: Required[str]
     """The unique ID of the output message."""
 
@@ -32,3 +34,11 @@ class ResponseOutputMessageParam(TypedDict, total=False):
 
     type: Required[Literal["message"]]
     """The type of the output message. Always `message`."""
+
+    phase: Optional[Literal["commentary", "final_answer"]]
+    """
+    Labels an `assistant` message as intermediate commentary (`commentary`) or the
+    final answer (`final_answer`). For models like `gpt-5.3-codex` and beyond, when
+    sending follow-up requests, preserve and resend phase on all assistant messages
+    — dropping it can degrade performance. Not used for user messages.
+    """

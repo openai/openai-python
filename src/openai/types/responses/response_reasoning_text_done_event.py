@@ -8,6 +8,8 @@ __all__ = ["ResponseReasoningTextDoneEvent"]
 
 
 class ResponseReasoningTextDoneEvent(BaseModel):
+    """Emitted when a reasoning text is completed."""
+
     content_index: int
     """The index of the reasoning content part."""
 

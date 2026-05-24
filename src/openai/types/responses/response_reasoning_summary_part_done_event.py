@@ -8,6 +8,8 @@ __all__ = ["ResponseReasoningSummaryPartDoneEvent", "Part"]
 
 
 class Part(BaseModel):
+    """The completed summary part."""
+
     text: str
     """The text of the summary part."""
 
@@ -16,6 +18,8 @@ class Part(BaseModel):
 
 
 class ResponseReasoningSummaryPartDoneEvent(BaseModel):
+    """Emitted when a reasoning summary part is completed."""
+
     item_id: str
     """The ID of the item this summary part is associated with."""
 

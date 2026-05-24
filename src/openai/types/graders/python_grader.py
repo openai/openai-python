@@ -9,6 +9,8 @@ __all__ = ["PythonGrader"]
 
 
 class PythonGrader(BaseModel):
+    """A PythonGrader object that runs a python script on the input."""
+
     name: str
     """The name of the grader."""
 

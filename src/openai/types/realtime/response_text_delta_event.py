@@ -8,6 +8,8 @@ __all__ = ["ResponseTextDeltaEvent"]
 
 
 class ResponseTextDeltaEvent(BaseModel):
+    """Returned when the text value of an "output_text" content part is updated."""
+
     content_index: int
     """The index of the content part in the item's content array."""
 

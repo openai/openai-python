@@ -6,12 +6,10 @@ from typing_extensions import Annotated, TypeAlias
 from ..._utils import PropertyInfo
 from .response_input_file import ResponseInputFile
 from .response_input_text import ResponseInputText
-from .response_input_audio import ResponseInputAudio
 from .response_input_image import ResponseInputImage
 
 __all__ = ["ResponseInputContent"]
 
 ResponseInputContent: TypeAlias = Annotated[
-    Union[ResponseInputText, ResponseInputImage, ResponseInputFile, ResponseInputAudio],
-    PropertyInfo(discriminator="type"),
+    Union[ResponseInputText, ResponseInputImage, ResponseInputFile], PropertyInfo(discriminator="type")
 ]

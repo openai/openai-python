@@ -9,6 +9,8 @@ __all__ = ["RealtimeTracingConfigParam", "TracingConfiguration"]
 
 
 class TracingConfiguration(TypedDict, total=False):
+    """Granular configuration for tracing."""
+
     group_id: str
     """
     The group id to attach to this trace to enable filtering and grouping in the

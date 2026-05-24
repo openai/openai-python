@@ -19,6 +19,9 @@ __all__ = ["Chat", "AsyncChat"]
 class Chat(SyncAPIResource):
     @cached_property
     def completions(self) -> Completions:
+        """
+        Given a list of messages comprising a conversation, the model will return a response.
+        """
         return Completions(self._client)
 
     @cached_property
@@ -44,6 +47,9 @@ class Chat(SyncAPIResource):
 class AsyncChat(AsyncAPIResource):
     @cached_property
     def completions(self) -> AsyncCompletions:
+        """
+        Given a list of messages comprising a conversation, the model will return a response.
+        """
         return AsyncCompletions(self._client)
 
     @cached_property
@@ -72,6 +78,9 @@ class ChatWithRawResponse:
 
     @cached_property
     def completions(self) -> CompletionsWithRawResponse:
+        """
+        Given a list of messages comprising a conversation, the model will return a response.
+        """
         return CompletionsWithRawResponse(self._chat.completions)
 
 
@@ -81,6 +90,9 @@ class AsyncChatWithRawResponse:
 
     @cached_property
     def completions(self) -> AsyncCompletionsWithRawResponse:
+        """
+        Given a list of messages comprising a conversation, the model will return a response.
+        """
         return AsyncCompletionsWithRawResponse(self._chat.completions)
 
 
@@ -90,6 +102,9 @@ class ChatWithStreamingResponse:
 
     @cached_property
     def completions(self) -> CompletionsWithStreamingResponse:
+        """
+        Given a list of messages comprising a conversation, the model will return a response.
+        """
         return CompletionsWithStreamingResponse(self._chat.completions)
 
 
@@ -99,4 +114,7 @@ class AsyncChatWithStreamingResponse:
 
     @cached_property
     def completions(self) -> AsyncCompletionsWithStreamingResponse:
+        """
+        Given a list of messages comprising a conversation, the model will return a response.
+        """
         return AsyncCompletionsWithStreamingResponse(self._chat.completions)

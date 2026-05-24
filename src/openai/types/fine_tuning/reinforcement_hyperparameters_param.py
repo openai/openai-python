@@ -9,6 +9,8 @@ __all__ = ["ReinforcementHyperparametersParam"]
 
 
 class ReinforcementHyperparametersParam(TypedDict, total=False):
+    """The hyperparameters used for the reinforcement fine-tuning job."""
+
     batch_size: Union[Literal["auto"], int]
     """Number of examples in each batch.
 

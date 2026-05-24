@@ -16,5 +16,7 @@ StepDetails: TypeAlias = Annotated[
 
 
 class RunStepDelta(BaseModel):
+    """The delta containing the fields that have changed on the run step."""
+
     step_details: Optional[StepDetails] = None
     """The details of the run step."""

@@ -9,6 +9,8 @@ __all__ = ["RealtimeAudioFormatsParam", "AudioPCM", "AudioPCMU", "AudioPCMA"]
 
 
 class AudioPCM(TypedDict, total=False):
+    """The PCM audio format. Only a 24kHz sample rate is supported."""
+
     rate: Literal[24000]
     """The sample rate of the audio. Always `24000`."""
 
@@ -17,11 +19,15 @@ class AudioPCM(TypedDict, total=False):
 
 
 class AudioPCMU(TypedDict, total=False):
+    """The G.711 μ-law format."""
+
     type: Literal["audio/pcmu"]
     """The audio format. Always `audio/pcmu`."""
 
 
 class AudioPCMA(TypedDict, total=False):
+    """The G.711 A-law format."""
+
     type: Literal["audio/pcma"]
     """The audio format. Always `audio/pcma`."""
 

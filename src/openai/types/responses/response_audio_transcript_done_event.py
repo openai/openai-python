@@ -8,6 +8,8 @@ __all__ = ["ResponseAudioTranscriptDoneEvent"]
 
 
 class ResponseAudioTranscriptDoneEvent(BaseModel):
+    """Emitted when the full audio transcript is completed."""
+
     sequence_number: int
     """The sequence number of this event."""
 

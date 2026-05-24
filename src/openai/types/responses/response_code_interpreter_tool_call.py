@@ -10,16 +10,20 @@ __all__ = ["ResponseCodeInterpreterToolCall", "Output", "OutputLogs", "OutputIma
 
 
 class OutputLogs(BaseModel):
+    """The logs output from the code interpreter."""
+
     logs: str
     """The logs output from the code interpreter."""
 
     type: Literal["logs"]
-    """The type of the output. Always 'logs'."""
+    """The type of the output. Always `logs`."""
 
 
 class OutputImage(BaseModel):
+    """The image output from the code interpreter."""
+
     type: Literal["image"]
-    """The type of the output. Always 'image'."""
+    """The type of the output. Always `image`."""
 
     url: str
     """The URL of the image output from the code interpreter."""
@@ -29,6 +33,8 @@ Output: TypeAlias = Annotated[Union[OutputLogs, OutputImage], PropertyInfo(discr
 
 
 class ResponseCodeInterpreterToolCall(BaseModel):
+    """A tool call to run code."""
+
     id: str
     """The unique ID of the code interpreter tool call."""
 

@@ -9,17 +9,20 @@ if TYPE_CHECKING:
     from .resources.files import Files
     from .resources.images import Images
     from .resources.models import Models
+    from .resources.videos import Videos
     from .resources.batches import Batches
-    from .resources.webhooks import Webhooks
     from .resources.beta.beta import Beta
     from .resources.chat.chat import Chat
     from .resources.embeddings import Embeddings
+    from .resources.admin.admin import Admin
     from .resources.audio.audio import Audio
     from .resources.completions import Completions
     from .resources.evals.evals import Evals
     from .resources.moderations import Moderations
+    from .resources.skills.skills import Skills
     from .resources.uploads.uploads import Uploads
     from .resources.realtime.realtime import Realtime
+    from .resources.webhooks.webhooks import Webhooks
     from .resources.responses.responses import Responses
     from .resources.containers.containers import Containers
     from .resources.fine_tuning.fine_tuning import FineTuning
@@ -54,6 +57,12 @@ class AudioProxy(LazyProxy["Audio"]):
         return _load_client().audio
 
 
+class AdminProxy(LazyProxy["Admin"]):
+    @override
+    def __load__(self) -> Admin:
+        return _load_client().admin
+
+
 class EvalsProxy(LazyProxy["Evals"]):
     @override
     def __load__(self) -> Evals:
@@ -70,6 +79,18 @@ class ModelsProxy(LazyProxy["Models"]):
     @override
     def __load__(self) -> Models:
         return _load_client().models
+
+
+class SkillsProxy(LazyProxy["Skills"]):
+    @override
+    def __load__(self) -> Skills:
+        return _load_client().skills
+
+
+class VideosProxy(LazyProxy["Videos"]):
+    @override
+    def __load__(self) -> Videos:
+        return _load_client().videos
 
 
 class BatchesProxy(LazyProxy["Batches"]):
@@ -148,9 +169,12 @@ chat: Chat = ChatProxy().__as_proxied__()
 beta: Beta = BetaProxy().__as_proxied__()
 files: Files = FilesProxy().__as_proxied__()
 audio: Audio = AudioProxy().__as_proxied__()
+admin: Admin = AdminProxy().__as_proxied__()
 evals: Evals = EvalsProxy().__as_proxied__()
 images: Images = ImagesProxy().__as_proxied__()
 models: Models = ModelsProxy().__as_proxied__()
+skills: Skills = SkillsProxy().__as_proxied__()
+videos: Videos = VideosProxy().__as_proxied__()
 batches: Batches = BatchesProxy().__as_proxied__()
 uploads: Uploads = UploadsProxy().__as_proxied__()
 webhooks: Webhooks = WebhooksProxy().__as_proxied__()

@@ -8,6 +8,8 @@ __all__ = ["ResponseMcpCallFailedEvent"]
 
 
 class ResponseMcpCallFailedEvent(BaseModel):
+    """Emitted when an MCP  tool call has failed."""
+
     item_id: str
     """The ID of the MCP tool call item that failed."""
 

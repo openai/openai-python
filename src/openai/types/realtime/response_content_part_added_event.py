@@ -9,6 +9,8 @@ __all__ = ["ResponseContentPartAddedEvent", "Part"]
 
 
 class Part(BaseModel):
+    """The content part that was added."""
+
     audio: Optional[str] = None
     """Base64-encoded audio data (if type is "audio")."""
 
@@ -23,6 +25,11 @@ class Part(BaseModel):
 
 
 class ResponseContentPartAddedEvent(BaseModel):
+    """
+    Returned when a new content part is added to an assistant message item during
+    response generation.
+    """
+
     content_index: int
     """The index of the content part in the item's content array."""
 

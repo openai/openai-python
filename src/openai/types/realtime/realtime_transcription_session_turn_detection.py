@@ -8,6 +8,13 @@ __all__ = ["RealtimeTranscriptionSessionTurnDetection"]
 
 
 class RealtimeTranscriptionSessionTurnDetection(BaseModel):
+    """Configuration for turn detection.
+
+    Can be set to `null` to turn off. Server
+    VAD means that the model will detect the start and end of speech based on
+    audio volume and respond at the end of user speech. For `gpt-realtime-whisper`, this must be `null`; VAD is not supported.
+    """
+
     prefix_padding_ms: Optional[int] = None
     """Amount of audio to include before the VAD detected speech (in milliseconds).
 

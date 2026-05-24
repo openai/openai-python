@@ -20,6 +20,12 @@ class VectorStoreCreateParams(TypedDict, total=False):
     non-empty.
     """
 
+    description: str
+    """A description for the vector store.
+
+    Can be used to describe the vector store's purpose.
+    """
+
     expires_after: ExpiresAfter
     """The expiration policy for a vector store."""
 
@@ -45,6 +51,8 @@ class VectorStoreCreateParams(TypedDict, total=False):
 
 
 class ExpiresAfter(TypedDict, total=False):
+    """The expiration policy for a vector store."""
+
     anchor: Required[Literal["last_active_at"]]
     """Anchor timestamp after which the expiration policy applies.
 

@@ -8,6 +8,8 @@ __all__ = ["ResponseCustomToolCallParam"]
 
 
 class ResponseCustomToolCallParam(TypedDict, total=False):
+    """A call to a custom tool created by the model."""
+
     call_id: Required[str]
     """An identifier used to map this custom tool call to a tool call output."""
 
@@ -22,3 +24,6 @@ class ResponseCustomToolCallParam(TypedDict, total=False):
 
     id: str
     """The unique ID of the custom tool call in the OpenAI platform."""
+
+    namespace: str
+    """The namespace of the custom tool being called."""

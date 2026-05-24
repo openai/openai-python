@@ -10,6 +10,10 @@ __all__ = ["ConversationItemInputAudioTranscriptionDeltaEvent"]
 
 
 class ConversationItemInputAudioTranscriptionDeltaEvent(BaseModel):
+    """
+    Returned when the text value of an input audio transcription content part is updated with incremental transcription results.
+    """
+
     event_id: str
     """The unique ID of the server event."""
 

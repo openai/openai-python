@@ -1,6 +1,6 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import Optional
+from typing import List, Optional
 from typing_extensions import Literal
 
 from ..._models import BaseModel
@@ -9,6 +9,8 @@ __all__ = ["WebSearchPreviewTool", "UserLocation"]
 
 
 class UserLocation(BaseModel):
+    """The user's location."""
+
     type: Literal["approximate"]
     """The type of location approximation. Always `approximate`."""
 
@@ -32,11 +34,18 @@ class UserLocation(BaseModel):
 
 
 class WebSearchPreviewTool(BaseModel):
+    """This tool searches the web for relevant results to use in a response.
+
+    Learn more about the [web search tool](https://platform.openai.com/docs/guides/tools-web-search).
+    """
+
     type: Literal["web_search_preview", "web_search_preview_2025_03_11"]
     """The type of the web search tool.
 
     One of `web_search_preview` or `web_search_preview_2025_03_11`.
     """
+
+    search_content_types: Optional[List[Literal["text", "image"]]] = None
 
     search_context_size: Optional[Literal["low", "medium", "high"]] = None
     """High level guidance for the amount of context window space to use for the

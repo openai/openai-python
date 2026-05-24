@@ -5,6 +5,7 @@ from typing_extensions import Literal, Annotated, TypeAlias
 
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
+from .realtime_reasoning import RealtimeReasoning
 from .audio_transcription import AudioTranscription
 from .realtime_truncation import RealtimeTruncation
 from .noise_reduction_type import NoiseReductionType
@@ -13,7 +14,6 @@ from .realtime_function_tool import RealtimeFunctionTool
 from ..responses.response_prompt import ResponsePrompt
 from ..responses.tool_choice_mcp import ToolChoiceMcp
 from ..responses.tool_choice_options import ToolChoiceOptions
-from .realtime_session_client_secret import RealtimeSessionClientSecret
 from ..responses.tool_choice_function import ToolChoiceFunction
 
 __all__ = [
@@ -40,6 +40,13 @@ __all__ = [
 
 
 class AudioInputNoiseReduction(BaseModel):
+    """Configuration for input audio noise reduction.
+
+    This can be set to `null` to turn off.
+    Noise reduction filters audio added to the input audio buffer before it is sent to VAD and the model.
+    Filtering the audio can improve VAD and turn detection accuracy (reducing false positives) and model performance by improving perception of the input audio.
+    """
+
     type: Optional[NoiseReductionType] = None
     """Type of noise reduction.
 
@@ -49,13 +56,22 @@ class AudioInputNoiseReduction(BaseModel):
 
 
 class AudioInputTurnDetectionServerVad(BaseModel):
+    """
+    Server-side voice activity detection (VAD) which flips on when user speech is detected and off after a period of silence.
+    """
+
     type: Literal["server_vad"]
     """Type of turn detection, `server_vad` to turn on simple Server VAD."""
 
     create_response: Optional[bool] = None
-    """
-    Whether or not to automatically generate a response when a VAD stop event
+    """Whether or not to automatically generate a response when a VAD stop event
     occurs.
+
+    If `interrupt_response` is set to `false` this may fail to create a response if
+    the model is already responding.
+
+    If both `create_response` and `interrupt_response` are set to `false`, the model
+    will never respond automatically but VAD events will still be emitted.
     """
 
     idle_timeout_ms: Optional[int] = None
@@ -76,9 +92,13 @@ class AudioInputTurnDetectionServerVad(BaseModel):
 
     interrupt_response: Optional[bool] = None
     """
-    Whether or not to automatically interrupt any ongoing response with output to
-    the default conversation (i.e. `conversation` of `auto`) when a VAD start event
-    occurs.
+    Whether or not to automatically interrupt (cancel) any ongoing response with
+    output to the default conversation (i.e. `conversation` of `auto`) when a VAD
+    start event occurs. If `true` then the response will be cancelled, otherwise it
+    will continue until complete.
+
+    If both `create_response` and `interrupt_response` are set to `false`, the model
+    will never respond automatically but VAD events will still be emitted.
     """
 
     prefix_padding_ms: Optional[int] = None
@@ -106,6 +126,10 @@ class AudioInputTurnDetectionServerVad(BaseModel):
 
 
 class AudioInputTurnDetectionSemanticVad(BaseModel):
+    """
+    Server-side semantic turn detection which uses a model to determine when the user has finished speaking.
+    """
+
     type: Literal["semantic_vad"]
     """Type of turn detection, `semantic_vad` to turn on Semantic VAD."""
 
@@ -152,16 +176,6 @@ class AudioInput(BaseModel):
     """
 
     transcription: Optional[AudioTranscription] = None
-    """
-    Configuration for input audio transcription, defaults to off and can be set to
-    `null` to turn off once on. Input audio transcription is not native to the
-    model, since the model consumes audio directly. Transcription runs
-    asynchronously through
-    [the /audio/transcriptions endpoint](https://platform.openai.com/docs/api-reference/audio/createTranscription)
-    and should be treated as guidance of input audio content rather than precisely
-    what the model heard. The client can optionally set the language and prompt for
-    transcription, these offer additional guidance to the transcription service.
-    """
 
     turn_detection: Optional[AudioInputTurnDetection] = None
     """Configuration for turn detection, ether Server VAD or Semantic VAD.
@@ -178,6 +192,9 @@ class AudioInput(BaseModel):
     trails off with "uhhm", the model will score a low probability of turn end and
     wait longer for the user to continue speaking. This can be useful for more
     natural conversations, but may have a higher latency.
+
+    For `gpt-realtime-whisper` transcription sessions, turn detection must be set to
+    `null`; VAD is not supported.
     """
 
 
@@ -209,6 +226,8 @@ class AudioOutput(BaseModel):
 
 
 class Audio(BaseModel):
+    """Configuration for input and output audio."""
+
     input: Optional[AudioInput] = None
 
     output: Optional[AudioOutput] = None
@@ -218,6 +237,8 @@ ToolChoice: TypeAlias = Union[ToolChoiceOptions, ToolChoiceFunction, ToolChoiceM
 
 
 class ToolMcpToolAllowedToolsMcpToolFilter(BaseModel):
+    """A filter object to specify which tools are allowed."""
+
     read_only: Optional[bool] = None
     """Indicates whether or not a tool modifies data or is read-only.
 
@@ -234,6 +255,8 @@ ToolMcpToolAllowedTools: TypeAlias = Union[List[str], ToolMcpToolAllowedToolsMcp
 
 
 class ToolMcpToolRequireApprovalMcpToolApprovalFilterAlways(BaseModel):
+    """A filter object to specify which tools are allowed."""
+
     read_only: Optional[bool] = None
     """Indicates whether or not a tool modifies data or is read-only.
 
@@ -247,6 +270,8 @@ class ToolMcpToolRequireApprovalMcpToolApprovalFilterAlways(BaseModel):
 
 
 class ToolMcpToolRequireApprovalMcpToolApprovalFilterNever(BaseModel):
+    """A filter object to specify which tools are allowed."""
+
     read_only: Optional[bool] = None
     """Indicates whether or not a tool modifies data or is read-only.
 
@@ -260,6 +285,13 @@ class ToolMcpToolRequireApprovalMcpToolApprovalFilterNever(BaseModel):
 
 
 class ToolMcpToolRequireApprovalMcpToolApprovalFilter(BaseModel):
+    """Specify which of the MCP server's tools require approval.
+
+    Can be
+    `always`, `never`, or a filter object associated with tools
+    that require approval.
+    """
+
     always: Optional[ToolMcpToolRequireApprovalMcpToolApprovalFilterAlways] = None
     """A filter object to specify which tools are allowed."""
 
@@ -273,6 +305,11 @@ ToolMcpToolRequireApproval: TypeAlias = Union[
 
 
 class ToolMcpTool(BaseModel):
+    """
+    Give the model access to additional tools via remote Model Context Protocol
+    (MCP) servers. [Learn more about MCP](https://platform.openai.com/docs/guides/tools-remote-mcp).
+    """
+
     server_label: str
     """A label for this MCP server, used to identify it in tool calls."""
 
@@ -319,6 +356,9 @@ class ToolMcpTool(BaseModel):
     - SharePoint: `connector_sharepoint`
     """
 
+    defer_loading: Optional[bool] = None
+    """Whether this MCP tool is deferred and discovered via tool search."""
+
     headers: Optional[Dict[str, str]] = None
     """Optional HTTP headers to send to the MCP server.
 
@@ -342,6 +382,8 @@ Tool: TypeAlias = Union[RealtimeFunctionTool, ToolMcpTool]
 
 
 class TracingTracingConfiguration(BaseModel):
+    """Granular configuration for tracing."""
+
     group_id: Optional[str] = None
     """
     The group id to attach to this trace to enable filtering and grouping in the
@@ -365,14 +407,22 @@ Tracing: TypeAlias = Union[Literal["auto"], TracingTracingConfiguration, None]
 
 
 class RealtimeSessionCreateResponse(BaseModel):
-    client_secret: RealtimeSessionClientSecret
-    """Ephemeral key returned by the API."""
+    """A Realtime session configuration object."""
+
+    id: str
+    """Unique identifier for the session that looks like `sess_1234567890abcdef`."""
+
+    object: Literal["realtime.session"]
+    """The object type. Always `realtime.session`."""
 
     type: Literal["realtime"]
     """The type of session to create. Always `realtime` for the Realtime API."""
 
     audio: Optional[Audio] = None
     """Configuration for input and output audio."""
+
+    expires_at: Optional[int] = None
+    """Expiration timestamp for the session, in seconds since epoch."""
 
     include: Optional[List[Literal["item.input_audio_transcription.logprobs"]]] = None
     """Additional fields to include in server outputs.
@@ -408,6 +458,8 @@ class RealtimeSessionCreateResponse(BaseModel):
         str,
         Literal[
             "gpt-realtime",
+            "gpt-realtime-1.5",
+            "gpt-realtime-2",
             "gpt-realtime-2025-08-28",
             "gpt-4o-realtime-preview",
             "gpt-4o-realtime-preview-2024-10-01",
@@ -415,6 +467,13 @@ class RealtimeSessionCreateResponse(BaseModel):
             "gpt-4o-realtime-preview-2025-06-03",
             "gpt-4o-mini-realtime-preview",
             "gpt-4o-mini-realtime-preview-2024-12-17",
+            "gpt-realtime-mini",
+            "gpt-realtime-mini-2025-10-06",
+            "gpt-realtime-mini-2025-12-15",
+            "gpt-audio-1.5",
+            "gpt-audio-mini",
+            "gpt-audio-mini-2025-10-06",
+            "gpt-audio-mini-2025-12-15",
         ],
         None,
     ] = None
@@ -434,6 +493,9 @@ class RealtimeSessionCreateResponse(BaseModel):
     [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
     """
 
+    reasoning: Optional[RealtimeReasoning] = None
+    """Configuration for reasoning-capable Realtime models such as `gpt-realtime-2`."""
+
     tool_choice: Optional[ToolChoice] = None
     """How the model chooses tools.
 
@@ -446,8 +508,9 @@ class RealtimeSessionCreateResponse(BaseModel):
     tracing: Optional[Tracing] = None
     """
     Realtime API can write session traces to the
-    [Traces Dashboard](/logs?api=traces). Set to null to disable tracing. Once
-    tracing is enabled for a session, the configuration cannot be modified.
+    [Traces Dashboard](https://platform.openai.com/logs?api=traces). Set to null to
+    disable tracing. Once tracing is enabled for a session, the configuration cannot
+    be modified.
 
     `auto` will create a trace for the session with default values for the workflow
     name, group id, and metadata.
@@ -455,6 +518,22 @@ class RealtimeSessionCreateResponse(BaseModel):
 
     truncation: Optional[RealtimeTruncation] = None
     """
-    Controls how the realtime conversation is truncated prior to model inference.
-    The default is `auto`.
+    When the number of tokens in a conversation exceeds the model's input token
+    limit, the conversation be truncated, meaning messages (starting from the
+    oldest) will not be included in the model's context. A 32k context model with
+    4,096 max output tokens can only include 28,224 tokens in the context before
+    truncation occurs.
+
+    Clients can configure truncation behavior to truncate with a lower max token
+    limit, which is an effective way to control token usage and cost.
+
+    Truncation will reduce the number of cached tokens on the next turn (busting the
+    cache), since messages are dropped from the beginning of the context. However,
+    clients can also configure truncation to retain messages up to a fraction of the
+    maximum context size, which will reduce the need for future truncations and thus
+    improve the cache rate.
+
+    Truncation can be disabled entirely, which means the server will never truncate
+    but would instead return an error if the conversation exceeds the model's input
+    token limit.
     """

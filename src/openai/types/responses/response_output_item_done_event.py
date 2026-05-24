@@ -9,6 +9,8 @@ __all__ = ["ResponseOutputItemDoneEvent"]
 
 
 class ResponseOutputItemDoneEvent(BaseModel):
+    """Emitted when an output item is marked done."""
+
     item: ResponseOutputItem
     """The output item that was marked done."""
 

@@ -9,6 +9,11 @@ __all__ = ["FunctionTool"]
 
 
 class FunctionTool(BaseModel):
+    """Defines a function in your own code the model can choose to call.
+
+    Learn more about [function calling](https://platform.openai.com/docs/guides/function-calling).
+    """
+
     name: str
     """The name of the function to call."""
 
@@ -20,6 +25,9 @@ class FunctionTool(BaseModel):
 
     type: Literal["function"]
     """The type of the function tool. Always `function`."""
+
+    defer_loading: Optional[bool] = None
+    """Whether this function is deferred and loaded via tool search."""
 
     description: Optional[str] = None
     """A description of the function.

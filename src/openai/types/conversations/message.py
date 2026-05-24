@@ -1,6 +1,6 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import List, Union
+from typing import List, Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
 
 from ..._utils import PropertyInfo
@@ -18,6 +18,8 @@ __all__ = ["Message", "Content", "ContentReasoningText"]
 
 
 class ContentReasoningText(BaseModel):
+    """Reasoning text from the model."""
+
     text: str
     """The reasoning text from the model."""
 
@@ -42,6 +44,8 @@ Content: TypeAlias = Annotated[
 
 
 class Message(BaseModel):
+    """A message to or from the model."""
+
     id: str
     """The unique ID of the message."""
 
@@ -64,3 +68,11 @@ class Message(BaseModel):
 
     type: Literal["message"]
     """The type of the message. Always set to `message`."""
+
+    phase: Optional[Literal["commentary", "final_answer"]] = None
+    """
+    Labels an `assistant` message as intermediate commentary (`commentary`) or the
+    final answer (`final_answer`). For models like `gpt-5.3-codex` and beyond, when
+    sending follow-up requests, preserve and resend phase on all assistant messages
+    — dropping it can degrade performance. Not used for user messages.
+    """
