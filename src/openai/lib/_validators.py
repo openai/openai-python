@@ -482,7 +482,7 @@ def read_any_format(
             elif fname.lower().endswith(".txt"):
                 immediate_msg = "\n- Based on your file extension, you provided a text file"
                 necessary_msg = "Your format `TXT` will be converted to `JSONL`"
-                with open(fname, "r") as f:
+                with open(fname, "r", encoding="utf-8") as f:
                     content = f.read()
                     df = pd.DataFrame(
                         [["", line] for line in content.split("\n")],
