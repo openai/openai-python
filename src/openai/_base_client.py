@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import sys
 import json
 import time
@@ -809,11 +810,25 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         return f"stainless-python-retry-{uuid.uuid4()}"
 
 
+def _sanitize_no_proxy(value: str) -> str:
+    if "\n" not in value and "\r" not in value:
+        return value
+
+    return ",".join(part.strip() for part in value.replace("\r", ",").replace("\n", ",").split(",") if part.strip())
+
+
 class _DefaultHttpxClient(httpx.Client):
     def __init__(self, **kwargs: Any) -> None:
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
         kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
+
+        if kwargs.get("trust_env", True):
+            for key in ("NO_PROXY", "no_proxy"):
+                value = os.environ.get(key)
+                if value is not None:
+                    os.environ[key] = _sanitize_no_proxy(value)
+
         super().__init__(**kwargs)
 
 
@@ -1388,6 +1403,13 @@ class _DefaultAsyncHttpxClient(httpx.AsyncClient):
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
         kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
+
+        if kwargs.get("trust_env", True):
+            for key in ("NO_PROXY", "no_proxy"):
+                value = os.environ.get(key)
+                if value is not None:
+                    os.environ[key] = _sanitize_no_proxy(value)
+
         super().__init__(**kwargs)
 
 

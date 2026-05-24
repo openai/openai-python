@@ -1043,6 +1043,14 @@ class TestOpenAI:
         assert len(mounts) == 1
         assert mounts[0][0].pattern == "https://"
 
+    def test_no_proxy_environment_variable_with_newlines(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setenv("NO_PROXY", "localhost\n192.168.1.1")
+
+        client = DefaultHttpxClient()
+
+        patterns = {mount.pattern for mount in client._mounts}
+        assert patterns == {"all://localhost", "all://192.168.1.1"}
+
     @pytest.mark.filterwarnings("ignore:.*deprecated.*:DeprecationWarning")
     def test_default_client_creation(self) -> None:
         # Ensure that the client can be initialized without any exceptions
@@ -2085,6 +2093,14 @@ class TestAsyncOpenAI:
         mounts = tuple(client._mounts.items())
         assert len(mounts) == 1
         assert mounts[0][0].pattern == "https://"
+
+    async def test_no_proxy_environment_variable_with_newlines(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setenv("NO_PROXY", "localhost\n192.168.1.1")
+
+        client = DefaultAsyncHttpxClient()
+
+        patterns = {mount.pattern for mount in client._mounts}
+        assert patterns == {"all://localhost", "all://192.168.1.1"}
 
     @pytest.mark.filterwarnings("ignore:.*deprecated.*:DeprecationWarning")
     async def test_default_client_creation(self) -> None:
