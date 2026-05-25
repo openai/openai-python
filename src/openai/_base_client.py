@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 import sys
 import json
 import time
@@ -817,17 +816,53 @@ def _sanitize_no_proxy(value: str) -> str:
     return ",".join(part.strip() for part in value.replace("\r", ",").replace("\n", ",").split(",") if part.strip())
 
 
+def _get_sanitized_environment_proxies() -> dict[str, str | None]:
+    from urllib.request import getproxies
+
+    from httpx._utils import is_ipv4_hostname, is_ipv6_hostname  # pyright: ignore[reportPrivateImportUsage]
+
+    proxy_info = getproxies()
+    mounts: dict[str, str | None] = {}
+
+    for scheme in ("http", "https", "all"):
+        if proxy_info.get(scheme):
+            hostname = proxy_info[scheme]
+            mounts[f"{scheme}://"] = hostname if "://" in hostname else f"http://{hostname}"
+
+    no_proxy_hosts = [host.strip() for host in _sanitize_no_proxy(proxy_info.get("no", "")).split(",")]
+    for hostname in no_proxy_hosts:
+        if hostname == "*":
+            return {}
+        elif hostname:
+            if "://" in hostname:
+                mounts[hostname] = None
+            elif is_ipv4_hostname(hostname):
+                mounts[f"all://{hostname}"] = None
+            elif is_ipv6_hostname(hostname):
+                mounts[f"all://[{hostname}]"] = None
+            elif hostname.lower() == "localhost":
+                mounts[f"all://{hostname}"] = None
+            else:
+                mounts[f"all://*{hostname}"] = None
+
+    return mounts
+
+
 class _DefaultHttpxClient(httpx.Client):
+    @override
+    def _get_proxy_map(self, proxy: Any | None, allow_env_proxies: bool) -> dict[str, httpx.Proxy | None]:
+        if proxy is None and allow_env_proxies:
+            return {
+                key: None if url is None else httpx.Proxy(url=url)
+                for key, url in _get_sanitized_environment_proxies().items()
+            }
+
+        return super()._get_proxy_map(proxy, allow_env_proxies)
+
     def __init__(self, **kwargs: Any) -> None:
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
         kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
-
-        if kwargs.get("trust_env", True):
-            for key in ("NO_PROXY", "no_proxy"):
-                value = os.environ.get(key)
-                if value is not None:
-                    os.environ[key] = _sanitize_no_proxy(value)
 
         super().__init__(**kwargs)
 
@@ -1399,16 +1434,20 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
 
 
 class _DefaultAsyncHttpxClient(httpx.AsyncClient):
+    @override
+    def _get_proxy_map(self, proxy: Any | None, allow_env_proxies: bool) -> dict[str, httpx.Proxy | None]:
+        if proxy is None and allow_env_proxies:
+            return {
+                key: None if url is None else httpx.Proxy(url=url)
+                for key, url in _get_sanitized_environment_proxies().items()
+            }
+
+        return super()._get_proxy_map(proxy, allow_env_proxies)
+
     def __init__(self, **kwargs: Any) -> None:
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
         kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
-
-        if kwargs.get("trust_env", True):
-            for key in ("NO_PROXY", "no_proxy"):
-                value = os.environ.get(key)
-                if value is not None:
-                    os.environ[key] = _sanitize_no_proxy(value)
 
         super().__init__(**kwargs)
 

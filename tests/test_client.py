@@ -1050,6 +1050,7 @@ class TestOpenAI:
 
         patterns = {mount.pattern for mount in client._mounts}
         assert patterns == {"all://localhost", "all://192.168.1.1"}
+        assert os.environ["NO_PROXY"] == "localhost\n192.168.1.1"
 
     @pytest.mark.filterwarnings("ignore:.*deprecated.*:DeprecationWarning")
     def test_default_client_creation(self) -> None:
@@ -2101,6 +2102,7 @@ class TestAsyncOpenAI:
 
         patterns = {mount.pattern for mount in client._mounts}
         assert patterns == {"all://localhost", "all://192.168.1.1"}
+        assert os.environ["NO_PROXY"] == "localhost\n192.168.1.1"
 
     @pytest.mark.filterwarnings("ignore:.*deprecated.*:DeprecationWarning")
     async def test_default_client_creation(self) -> None:
