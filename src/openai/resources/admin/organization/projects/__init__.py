@@ -56,6 +56,22 @@ from .certificates import (
     CertificatesWithStreamingResponse,
     AsyncCertificatesWithStreamingResponse,
 )
+from .spend_alerts import (
+    SpendAlerts,
+    AsyncSpendAlerts,
+    SpendAlertsWithRawResponse,
+    AsyncSpendAlertsWithRawResponse,
+    SpendAlertsWithStreamingResponse,
+    AsyncSpendAlertsWithStreamingResponse,
+)
+from .data_retention import (
+    DataRetention,
+    AsyncDataRetention,
+    DataRetentionWithRawResponse,
+    AsyncDataRetentionWithRawResponse,
+    DataRetentionWithStreamingResponse,
+    AsyncDataRetentionWithStreamingResponse,
+)
 from .service_accounts import (
     ServiceAccounts,
     AsyncServiceAccounts,
@@ -63,6 +79,22 @@ from .service_accounts import (
     AsyncServiceAccountsWithRawResponse,
     ServiceAccountsWithStreamingResponse,
     AsyncServiceAccountsWithStreamingResponse,
+)
+from .model_permissions import (
+    ModelPermissions,
+    AsyncModelPermissions,
+    ModelPermissionsWithRawResponse,
+    AsyncModelPermissionsWithRawResponse,
+    ModelPermissionsWithStreamingResponse,
+    AsyncModelPermissionsWithStreamingResponse,
+)
+from .hosted_tool_permissions import (
+    HostedToolPermissions,
+    AsyncHostedToolPermissions,
+    HostedToolPermissionsWithRawResponse,
+    AsyncHostedToolPermissionsWithRawResponse,
+    HostedToolPermissionsWithStreamingResponse,
+    AsyncHostedToolPermissionsWithStreamingResponse,
 )
 
 __all__ = [
@@ -90,6 +122,18 @@ __all__ = [
     "AsyncRateLimitsWithRawResponse",
     "RateLimitsWithStreamingResponse",
     "AsyncRateLimitsWithStreamingResponse",
+    "ModelPermissions",
+    "AsyncModelPermissions",
+    "ModelPermissionsWithRawResponse",
+    "AsyncModelPermissionsWithRawResponse",
+    "ModelPermissionsWithStreamingResponse",
+    "AsyncModelPermissionsWithStreamingResponse",
+    "HostedToolPermissions",
+    "AsyncHostedToolPermissions",
+    "HostedToolPermissionsWithRawResponse",
+    "AsyncHostedToolPermissionsWithRawResponse",
+    "HostedToolPermissionsWithStreamingResponse",
+    "AsyncHostedToolPermissionsWithStreamingResponse",
     "Groups",
     "AsyncGroups",
     "GroupsWithRawResponse",
@@ -102,6 +146,18 @@ __all__ = [
     "AsyncRolesWithRawResponse",
     "RolesWithStreamingResponse",
     "AsyncRolesWithStreamingResponse",
+    "DataRetention",
+    "AsyncDataRetention",
+    "DataRetentionWithRawResponse",
+    "AsyncDataRetentionWithRawResponse",
+    "DataRetentionWithStreamingResponse",
+    "AsyncDataRetentionWithStreamingResponse",
+    "SpendAlerts",
+    "AsyncSpendAlerts",
+    "SpendAlertsWithRawResponse",
+    "AsyncSpendAlertsWithRawResponse",
+    "SpendAlertsWithStreamingResponse",
+    "AsyncSpendAlertsWithStreamingResponse",
     "Certificates",
     "AsyncCertificates",
     "CertificatesWithRawResponse",

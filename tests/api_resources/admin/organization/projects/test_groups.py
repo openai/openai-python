@@ -68,6 +68,63 @@ class TestGroups:
             )
 
     @parametrize
+    def test_method_retrieve(self, client: OpenAI) -> None:
+        group = client.admin.organization.projects.groups.retrieve(
+            group_id="group_id",
+            project_id="project_id",
+        )
+        assert_matches_type(ProjectGroup, group, path=["response"])
+
+    @parametrize
+    def test_method_retrieve_with_all_params(self, client: OpenAI) -> None:
+        group = client.admin.organization.projects.groups.retrieve(
+            group_id="group_id",
+            project_id="project_id",
+            group_type="group",
+        )
+        assert_matches_type(ProjectGroup, group, path=["response"])
+
+    @parametrize
+    def test_raw_response_retrieve(self, client: OpenAI) -> None:
+        response = client.admin.organization.projects.groups.with_raw_response.retrieve(
+            group_id="group_id",
+            project_id="project_id",
+        )
+
+        assert response.is_closed is True
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        group = response.parse()
+        assert_matches_type(ProjectGroup, group, path=["response"])
+
+    @parametrize
+    def test_streaming_response_retrieve(self, client: OpenAI) -> None:
+        with client.admin.organization.projects.groups.with_streaming_response.retrieve(
+            group_id="group_id",
+            project_id="project_id",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            group = response.parse()
+            assert_matches_type(ProjectGroup, group, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
+
+    @parametrize
+    def test_path_params_retrieve(self, client: OpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `project_id` but received ''"):
+            client.admin.organization.projects.groups.with_raw_response.retrieve(
+                group_id="group_id",
+                project_id="",
+            )
+
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `group_id` but received ''"):
+            client.admin.organization.projects.groups.with_raw_response.retrieve(
+                group_id="",
+                project_id="project_id",
+            )
+
+    @parametrize
     def test_method_list(self, client: OpenAI) -> None:
         group = client.admin.organization.projects.groups.list(
             project_id="project_id",
@@ -213,6 +270,63 @@ class TestAsyncGroups:
                 project_id="",
                 group_id="group_id",
                 role="role",
+            )
+
+    @parametrize
+    async def test_method_retrieve(self, async_client: AsyncOpenAI) -> None:
+        group = await async_client.admin.organization.projects.groups.retrieve(
+            group_id="group_id",
+            project_id="project_id",
+        )
+        assert_matches_type(ProjectGroup, group, path=["response"])
+
+    @parametrize
+    async def test_method_retrieve_with_all_params(self, async_client: AsyncOpenAI) -> None:
+        group = await async_client.admin.organization.projects.groups.retrieve(
+            group_id="group_id",
+            project_id="project_id",
+            group_type="group",
+        )
+        assert_matches_type(ProjectGroup, group, path=["response"])
+
+    @parametrize
+    async def test_raw_response_retrieve(self, async_client: AsyncOpenAI) -> None:
+        response = await async_client.admin.organization.projects.groups.with_raw_response.retrieve(
+            group_id="group_id",
+            project_id="project_id",
+        )
+
+        assert response.is_closed is True
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        group = response.parse()
+        assert_matches_type(ProjectGroup, group, path=["response"])
+
+    @parametrize
+    async def test_streaming_response_retrieve(self, async_client: AsyncOpenAI) -> None:
+        async with async_client.admin.organization.projects.groups.with_streaming_response.retrieve(
+            group_id="group_id",
+            project_id="project_id",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            group = await response.parse()
+            assert_matches_type(ProjectGroup, group, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
+
+    @parametrize
+    async def test_path_params_retrieve(self, async_client: AsyncOpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `project_id` but received ''"):
+            await async_client.admin.organization.projects.groups.with_raw_response.retrieve(
+                group_id="group_id",
+                project_id="",
+            )
+
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `group_id` but received ''"):
+            await async_client.admin.organization.projects.groups.with_raw_response.retrieve(
+                group_id="",
+                project_id="project_id",
             )
 
     @parametrize

@@ -50,6 +50,14 @@ from .certificates import (
     CertificatesWithStreamingResponse,
     AsyncCertificatesWithStreamingResponse,
 )
+from .spend_alerts import (
+    SpendAlerts,
+    AsyncSpendAlerts,
+    SpendAlertsWithRawResponse,
+    AsyncSpendAlertsWithRawResponse,
+    SpendAlertsWithStreamingResponse,
+    AsyncSpendAlertsWithStreamingResponse,
+)
 from ....._resource import SyncAPIResource, AsyncAPIResource
 from ....._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from .groups.groups import (
@@ -61,6 +69,14 @@ from .groups.groups import (
     AsyncGroupsWithStreamingResponse,
 )
 from .....pagination import SyncConversationCursorPage, AsyncConversationCursorPage
+from .data_retention import (
+    DataRetention,
+    AsyncDataRetention,
+    DataRetentionWithRawResponse,
+    AsyncDataRetentionWithRawResponse,
+    DataRetentionWithStreamingResponse,
+    AsyncDataRetentionWithStreamingResponse,
+)
 from ....._base_client import AsyncPaginator, make_request_options
 from .service_accounts import (
     ServiceAccounts,
@@ -69,6 +85,22 @@ from .service_accounts import (
     AsyncServiceAccountsWithRawResponse,
     ServiceAccountsWithStreamingResponse,
     AsyncServiceAccountsWithStreamingResponse,
+)
+from .model_permissions import (
+    ModelPermissions,
+    AsyncModelPermissions,
+    ModelPermissionsWithRawResponse,
+    AsyncModelPermissionsWithRawResponse,
+    ModelPermissionsWithStreamingResponse,
+    AsyncModelPermissionsWithStreamingResponse,
+)
+from .hosted_tool_permissions import (
+    HostedToolPermissions,
+    AsyncHostedToolPermissions,
+    HostedToolPermissionsWithRawResponse,
+    AsyncHostedToolPermissionsWithRawResponse,
+    HostedToolPermissionsWithStreamingResponse,
+    AsyncHostedToolPermissionsWithStreamingResponse,
 )
 from .....types.admin.organization import project_list_params, project_create_params, project_update_params
 from .....types.admin.organization.project import Project
@@ -94,12 +126,28 @@ class Projects(SyncAPIResource):
         return RateLimits(self._client)
 
     @cached_property
+    def model_permissions(self) -> ModelPermissions:
+        return ModelPermissions(self._client)
+
+    @cached_property
+    def hosted_tool_permissions(self) -> HostedToolPermissions:
+        return HostedToolPermissions(self._client)
+
+    @cached_property
     def groups(self) -> Groups:
         return Groups(self._client)
 
     @cached_property
     def roles(self) -> Roles:
         return Roles(self._client)
+
+    @cached_property
+    def data_retention(self) -> DataRetention:
+        return DataRetention(self._client)
+
+    @cached_property
+    def spend_alerts(self) -> SpendAlerts:
+        return SpendAlerts(self._client)
 
     @cached_property
     def certificates(self) -> Certificates:
@@ -387,12 +435,28 @@ class AsyncProjects(AsyncAPIResource):
         return AsyncRateLimits(self._client)
 
     @cached_property
+    def model_permissions(self) -> AsyncModelPermissions:
+        return AsyncModelPermissions(self._client)
+
+    @cached_property
+    def hosted_tool_permissions(self) -> AsyncHostedToolPermissions:
+        return AsyncHostedToolPermissions(self._client)
+
+    @cached_property
     def groups(self) -> AsyncGroups:
         return AsyncGroups(self._client)
 
     @cached_property
     def roles(self) -> AsyncRoles:
         return AsyncRoles(self._client)
+
+    @cached_property
+    def data_retention(self) -> AsyncDataRetention:
+        return AsyncDataRetention(self._client)
+
+    @cached_property
+    def spend_alerts(self) -> AsyncSpendAlerts:
+        return AsyncSpendAlerts(self._client)
 
     @cached_property
     def certificates(self) -> AsyncCertificates:
@@ -699,12 +763,28 @@ class ProjectsWithRawResponse:
         return RateLimitsWithRawResponse(self._projects.rate_limits)
 
     @cached_property
+    def model_permissions(self) -> ModelPermissionsWithRawResponse:
+        return ModelPermissionsWithRawResponse(self._projects.model_permissions)
+
+    @cached_property
+    def hosted_tool_permissions(self) -> HostedToolPermissionsWithRawResponse:
+        return HostedToolPermissionsWithRawResponse(self._projects.hosted_tool_permissions)
+
+    @cached_property
     def groups(self) -> GroupsWithRawResponse:
         return GroupsWithRawResponse(self._projects.groups)
 
     @cached_property
     def roles(self) -> RolesWithRawResponse:
         return RolesWithRawResponse(self._projects.roles)
+
+    @cached_property
+    def data_retention(self) -> DataRetentionWithRawResponse:
+        return DataRetentionWithRawResponse(self._projects.data_retention)
+
+    @cached_property
+    def spend_alerts(self) -> SpendAlertsWithRawResponse:
+        return SpendAlertsWithRawResponse(self._projects.spend_alerts)
 
     @cached_property
     def certificates(self) -> CertificatesWithRawResponse:
@@ -748,12 +828,28 @@ class AsyncProjectsWithRawResponse:
         return AsyncRateLimitsWithRawResponse(self._projects.rate_limits)
 
     @cached_property
+    def model_permissions(self) -> AsyncModelPermissionsWithRawResponse:
+        return AsyncModelPermissionsWithRawResponse(self._projects.model_permissions)
+
+    @cached_property
+    def hosted_tool_permissions(self) -> AsyncHostedToolPermissionsWithRawResponse:
+        return AsyncHostedToolPermissionsWithRawResponse(self._projects.hosted_tool_permissions)
+
+    @cached_property
     def groups(self) -> AsyncGroupsWithRawResponse:
         return AsyncGroupsWithRawResponse(self._projects.groups)
 
     @cached_property
     def roles(self) -> AsyncRolesWithRawResponse:
         return AsyncRolesWithRawResponse(self._projects.roles)
+
+    @cached_property
+    def data_retention(self) -> AsyncDataRetentionWithRawResponse:
+        return AsyncDataRetentionWithRawResponse(self._projects.data_retention)
+
+    @cached_property
+    def spend_alerts(self) -> AsyncSpendAlertsWithRawResponse:
+        return AsyncSpendAlertsWithRawResponse(self._projects.spend_alerts)
 
     @cached_property
     def certificates(self) -> AsyncCertificatesWithRawResponse:
@@ -797,12 +893,28 @@ class ProjectsWithStreamingResponse:
         return RateLimitsWithStreamingResponse(self._projects.rate_limits)
 
     @cached_property
+    def model_permissions(self) -> ModelPermissionsWithStreamingResponse:
+        return ModelPermissionsWithStreamingResponse(self._projects.model_permissions)
+
+    @cached_property
+    def hosted_tool_permissions(self) -> HostedToolPermissionsWithStreamingResponse:
+        return HostedToolPermissionsWithStreamingResponse(self._projects.hosted_tool_permissions)
+
+    @cached_property
     def groups(self) -> GroupsWithStreamingResponse:
         return GroupsWithStreamingResponse(self._projects.groups)
 
     @cached_property
     def roles(self) -> RolesWithStreamingResponse:
         return RolesWithStreamingResponse(self._projects.roles)
+
+    @cached_property
+    def data_retention(self) -> DataRetentionWithStreamingResponse:
+        return DataRetentionWithStreamingResponse(self._projects.data_retention)
+
+    @cached_property
+    def spend_alerts(self) -> SpendAlertsWithStreamingResponse:
+        return SpendAlertsWithStreamingResponse(self._projects.spend_alerts)
 
     @cached_property
     def certificates(self) -> CertificatesWithStreamingResponse:
@@ -846,12 +958,28 @@ class AsyncProjectsWithStreamingResponse:
         return AsyncRateLimitsWithStreamingResponse(self._projects.rate_limits)
 
     @cached_property
+    def model_permissions(self) -> AsyncModelPermissionsWithStreamingResponse:
+        return AsyncModelPermissionsWithStreamingResponse(self._projects.model_permissions)
+
+    @cached_property
+    def hosted_tool_permissions(self) -> AsyncHostedToolPermissionsWithStreamingResponse:
+        return AsyncHostedToolPermissionsWithStreamingResponse(self._projects.hosted_tool_permissions)
+
+    @cached_property
     def groups(self) -> AsyncGroupsWithStreamingResponse:
         return AsyncGroupsWithStreamingResponse(self._projects.groups)
 
     @cached_property
     def roles(self) -> AsyncRolesWithStreamingResponse:
         return AsyncRolesWithStreamingResponse(self._projects.roles)
+
+    @cached_property
+    def data_retention(self) -> AsyncDataRetentionWithStreamingResponse:
+        return AsyncDataRetentionWithStreamingResponse(self._projects.data_retention)
+
+    @cached_property
+    def spend_alerts(self) -> AsyncSpendAlertsWithStreamingResponse:
+        return AsyncSpendAlertsWithStreamingResponse(self._projects.spend_alerts)
 
     @cached_property
     def certificates(self) -> AsyncCertificatesWithStreamingResponse:
