@@ -9,8 +9,9 @@ import httpx
 
 from .. import _legacy_response
 from ..types import image_edit_params, image_generate_params, image_create_variation_params
+from .._files import deepcopy_with_paths
 from .._types import Body, Omit, Query, Headers, NotGiven, FileTypes, SequenceNotStr, omit, not_given
-from .._utils import extract_files, required_args, maybe_transform, deepcopy_minimal, async_maybe_transform
+from .._utils import extract_files, required_args, maybe_transform, async_maybe_transform
 from .._compat import cached_property
 from .._resource import SyncAPIResource, AsyncAPIResource
 from .._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -25,6 +26,8 @@ __all__ = ["Images", "AsyncImages"]
 
 
 class Images(SyncAPIResource):
+    """Given a prompt and/or an input image, the model will generate a new image."""
+
     @cached_property
     def with_raw_response(self) -> ImagesWithRawResponse:
         """
@@ -92,7 +95,7 @@ class Images(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        body = deepcopy_minimal(
+        body = deepcopy_with_paths(
             {
                 "image": image,
                 "model": model,
@@ -100,7 +103,8 @@ class Images(SyncAPIResource):
                 "response_format": response_format,
                 "size": size,
                 "user": user,
-            }
+            },
+            [["image"]],
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["image"]])
         # It should be noted that the actual Content-Type header that will be
@@ -112,7 +116,11 @@ class Images(SyncAPIResource):
             body=maybe_transform(body, image_create_variation_params.ImageCreateVariationParams),
             files=files,
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ImagesResponse,
         )
@@ -133,7 +141,8 @@ class Images(SyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
-        size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]] | Omit = omit,
+        size: Union[str, Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"], None]
+        | Omit = omit,
         stream: Optional[Literal[False]] | Omit = omit,
         user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -147,14 +156,15 @@ class Images(SyncAPIResource):
         prompt.
 
         This endpoint supports GPT Image models (`gpt-image-1.5`, `gpt-image-1`,
-        and `gpt-image-1-mini`) and `dall-e-2`.
+        `gpt-image-1-mini`, and `chatgpt-image-latest`) and `dall-e-2`.
 
         Args:
           image: The image(s) to edit. Must be a supported image file or an array of images.
 
-              For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`, and
-              `gpt-image-1.5`), each image should be a `png`, `webp`, or `jpg` file less than
-              50MB. You can provide up to 16 images.
+              For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`,
+              `gpt-image-2`, `gpt-image-2-2026-04-21`, and `chatgpt-image-latest`), each image
+              should be a `png`, `webp`, or `jpg` file less than 50MB. You can provide up to
+              16 images.
 
               For `dall-e-2`, you can only provide one image, and it should be a square `png`
               file less than 4MB.
@@ -163,26 +173,32 @@ class Images(SyncAPIResource):
               characters for `dall-e-2`, and 32000 characters for the GPT image models.
 
           background: Allows to set transparency for the background of the generated image(s). This
-              parameter is only supported for the GPT image models. Must be one of
-              `transparent`, `opaque` or `auto` (default value). When `auto` is used, the
-              model will automatically determine the best background for the image.
+              parameter is only supported for GPT image models that support transparent
+              backgrounds. Must be one of `transparent`, `opaque`, or `auto` (default value).
+              When `auto` is used, the model will automatically determine the best background
+              for the image.
+
+              `gpt-image-2` and `gpt-image-2-2026-04-21` do not support transparent
+              backgrounds. Requests with `background` set to `transparent` will return an
+              error for these models; use `opaque` or `auto` instead.
 
               If `transparent`, the output format needs to support transparency, so it should
               be set to either `png` (default value) or `webp`.
 
           input_fidelity: Control how much effort the model will exert to match the style and features,
               especially facial features, of input images. This parameter is only supported
-              for `gpt-image-1`. Unsupported for `gpt-image-1-mini`. Supports `high` and
-              `low`. Defaults to `low`.
+              for `gpt-image-1` and `gpt-image-1.5` and later models, unsupported for
+              `gpt-image-1-mini`. Supports `high` and `low`. Defaults to `low`.
 
           mask: An additional image whose fully transparent areas (e.g. where alpha is zero)
               indicate where `image` should be edited. If there are multiple images provided,
               the mask will be applied on the first image. Must be a valid PNG file, less than
               4MB, and have the same dimensions as `image`.
 
-          model: The model to use for image generation. Only `dall-e-2` and the GPT image models
-              are supported. Defaults to `dall-e-2` unless a parameter specific to the GPT
-              image models is used.
+          model: The model to use for image generation. One of `dall-e-2` or a GPT image model
+              (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+              `gpt-image-2-2026-04-21`, or `chatgpt-image-latest`). Defaults to
+              `gpt-image-1.5`.
 
           n: The number of images to generate. Must be between 1 and 10.
 
@@ -201,18 +217,25 @@ class Images(SyncAPIResource):
               Note that the final image may be sent before the full number of partial images
               are generated if the full image is generated more quickly.
 
-          quality: The quality of the image that will be generated. `high`, `medium` and `low` are
-              only supported for the GPT image models. `dall-e-2` only supports `standard`
-              quality. Defaults to `auto`.
+          quality: The quality of the image that will be generated for GPT image models. Defaults
+              to `auto`.
 
           response_format: The format in which the generated images are returned. Must be one of `url` or
               `b64_json`. URLs are only valid for 60 minutes after the image has been
-              generated. This parameter is only supported for `dall-e-2`, as the GPT image
-              models always return base64-encoded images.
+              generated. This parameter is only supported for `dall-e-2` (default is `url` for
+              `dall-e-2`), as GPT image models always return base64-encoded images.
 
-          size: The size of the generated images. Must be one of `1024x1024`, `1536x1024`
-              (landscape), `1024x1536` (portrait), or `auto` (default value) for the GPT image
-              models, and one of `256x256`, `512x512`, or `1024x1024` for `dall-e-2`.
+          size: The size of the generated images. For `gpt-image-2` and
+              `gpt-image-2-2026-04-21`, arbitrary resolutions are supported as `WIDTHxHEIGHT`
+              strings, for example `1536x864`. Width and height must both be divisible by 16
+              and the requested aspect ratio must be between 1:3 and 3:1. Resolutions above
+              `2560x1440` are experimental, and the maximum supported resolution is
+              `3840x2160`. The requested size must also satisfy the model's current pixel and
+              edge limits. The standard sizes `1024x1024`, `1536x1024`, and `1024x1536` are
+              supported by the GPT image models; `auto` is supported for models that allow
+              automatic sizing. For `dall-e-2`, use one of `256x256`, `512x512`, or
+              `1024x1024`. For `dall-e-3`, use one of `1024x1024`, `1792x1024`, or
+              `1024x1792`.
 
           stream: Edit the image in streaming mode. Defaults to `false`. See the
               [Image generation guide](https://platform.openai.com/docs/guides/image-generation)
@@ -249,7 +272,8 @@ class Images(SyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
-        size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]] | Omit = omit,
+        size: Union[str, Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"], None]
+        | Omit = omit,
         user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -262,14 +286,15 @@ class Images(SyncAPIResource):
         prompt.
 
         This endpoint supports GPT Image models (`gpt-image-1.5`, `gpt-image-1`,
-        and `gpt-image-1-mini`) and `dall-e-2`.
+        `gpt-image-1-mini`, and `chatgpt-image-latest`) and `dall-e-2`.
 
         Args:
           image: The image(s) to edit. Must be a supported image file or an array of images.
 
-              For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`, and
-              `gpt-image-1.5`), each image should be a `png`, `webp`, or `jpg` file less than
-              50MB. You can provide up to 16 images.
+              For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`,
+              `gpt-image-2`, `gpt-image-2-2026-04-21`, and `chatgpt-image-latest`), each image
+              should be a `png`, `webp`, or `jpg` file less than 50MB. You can provide up to
+              16 images.
 
               For `dall-e-2`, you can only provide one image, and it should be a square `png`
               file less than 4MB.
@@ -282,26 +307,32 @@ class Images(SyncAPIResource):
               for more information.
 
           background: Allows to set transparency for the background of the generated image(s). This
-              parameter is only supported for the GPT image models. Must be one of
-              `transparent`, `opaque` or `auto` (default value). When `auto` is used, the
-              model will automatically determine the best background for the image.
+              parameter is only supported for GPT image models that support transparent
+              backgrounds. Must be one of `transparent`, `opaque`, or `auto` (default value).
+              When `auto` is used, the model will automatically determine the best background
+              for the image.
+
+              `gpt-image-2` and `gpt-image-2-2026-04-21` do not support transparent
+              backgrounds. Requests with `background` set to `transparent` will return an
+              error for these models; use `opaque` or `auto` instead.
 
               If `transparent`, the output format needs to support transparency, so it should
               be set to either `png` (default value) or `webp`.
 
           input_fidelity: Control how much effort the model will exert to match the style and features,
               especially facial features, of input images. This parameter is only supported
-              for `gpt-image-1`. Unsupported for `gpt-image-1-mini`. Supports `high` and
-              `low`. Defaults to `low`.
+              for `gpt-image-1` and `gpt-image-1.5` and later models, unsupported for
+              `gpt-image-1-mini`. Supports `high` and `low`. Defaults to `low`.
 
           mask: An additional image whose fully transparent areas (e.g. where alpha is zero)
               indicate where `image` should be edited. If there are multiple images provided,
               the mask will be applied on the first image. Must be a valid PNG file, less than
               4MB, and have the same dimensions as `image`.
 
-          model: The model to use for image generation. Only `dall-e-2` and the GPT image models
-              are supported. Defaults to `dall-e-2` unless a parameter specific to the GPT
-              image models is used.
+          model: The model to use for image generation. One of `dall-e-2` or a GPT image model
+              (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+              `gpt-image-2-2026-04-21`, or `chatgpt-image-latest`). Defaults to
+              `gpt-image-1.5`.
 
           n: The number of images to generate. Must be between 1 and 10.
 
@@ -320,18 +351,25 @@ class Images(SyncAPIResource):
               Note that the final image may be sent before the full number of partial images
               are generated if the full image is generated more quickly.
 
-          quality: The quality of the image that will be generated. `high`, `medium` and `low` are
-              only supported for the GPT image models. `dall-e-2` only supports `standard`
-              quality. Defaults to `auto`.
+          quality: The quality of the image that will be generated for GPT image models. Defaults
+              to `auto`.
 
           response_format: The format in which the generated images are returned. Must be one of `url` or
               `b64_json`. URLs are only valid for 60 minutes after the image has been
-              generated. This parameter is only supported for `dall-e-2`, as the GPT image
-              models always return base64-encoded images.
+              generated. This parameter is only supported for `dall-e-2` (default is `url` for
+              `dall-e-2`), as GPT image models always return base64-encoded images.
 
-          size: The size of the generated images. Must be one of `1024x1024`, `1536x1024`
-              (landscape), `1024x1536` (portrait), or `auto` (default value) for the GPT image
-              models, and one of `256x256`, `512x512`, or `1024x1024` for `dall-e-2`.
+          size: The size of the generated images. For `gpt-image-2` and
+              `gpt-image-2-2026-04-21`, arbitrary resolutions are supported as `WIDTHxHEIGHT`
+              strings, for example `1536x864`. Width and height must both be divisible by 16
+              and the requested aspect ratio must be between 1:3 and 3:1. Resolutions above
+              `2560x1440` are experimental, and the maximum supported resolution is
+              `3840x2160`. The requested size must also satisfy the model's current pixel and
+              edge limits. The standard sizes `1024x1024`, `1536x1024`, and `1024x1536` are
+              supported by the GPT image models; `auto` is supported for models that allow
+              automatic sizing. For `dall-e-2`, use one of `256x256`, `512x512`, or
+              `1024x1024`. For `dall-e-3`, use one of `1024x1024`, `1792x1024`, or
+              `1024x1792`.
 
           user: A unique identifier representing your end-user, which can help OpenAI to monitor
               and detect abuse.
@@ -364,7 +402,8 @@ class Images(SyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
-        size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]] | Omit = omit,
+        size: Union[str, Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"], None]
+        | Omit = omit,
         user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -377,14 +416,15 @@ class Images(SyncAPIResource):
         prompt.
 
         This endpoint supports GPT Image models (`gpt-image-1.5`, `gpt-image-1`,
-        and `gpt-image-1-mini`) and `dall-e-2`.
+        `gpt-image-1-mini`, and `chatgpt-image-latest`) and `dall-e-2`.
 
         Args:
           image: The image(s) to edit. Must be a supported image file or an array of images.
 
-              For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`, and
-              `gpt-image-1.5`), each image should be a `png`, `webp`, or `jpg` file less than
-              50MB. You can provide up to 16 images.
+              For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`,
+              `gpt-image-2`, `gpt-image-2-2026-04-21`, and `chatgpt-image-latest`), each image
+              should be a `png`, `webp`, or `jpg` file less than 50MB. You can provide up to
+              16 images.
 
               For `dall-e-2`, you can only provide one image, and it should be a square `png`
               file less than 4MB.
@@ -397,26 +437,32 @@ class Images(SyncAPIResource):
               for more information.
 
           background: Allows to set transparency for the background of the generated image(s). This
-              parameter is only supported for the GPT image models. Must be one of
-              `transparent`, `opaque` or `auto` (default value). When `auto` is used, the
-              model will automatically determine the best background for the image.
+              parameter is only supported for GPT image models that support transparent
+              backgrounds. Must be one of `transparent`, `opaque`, or `auto` (default value).
+              When `auto` is used, the model will automatically determine the best background
+              for the image.
+
+              `gpt-image-2` and `gpt-image-2-2026-04-21` do not support transparent
+              backgrounds. Requests with `background` set to `transparent` will return an
+              error for these models; use `opaque` or `auto` instead.
 
               If `transparent`, the output format needs to support transparency, so it should
               be set to either `png` (default value) or `webp`.
 
           input_fidelity: Control how much effort the model will exert to match the style and features,
               especially facial features, of input images. This parameter is only supported
-              for `gpt-image-1`. Unsupported for `gpt-image-1-mini`. Supports `high` and
-              `low`. Defaults to `low`.
+              for `gpt-image-1` and `gpt-image-1.5` and later models, unsupported for
+              `gpt-image-1-mini`. Supports `high` and `low`. Defaults to `low`.
 
           mask: An additional image whose fully transparent areas (e.g. where alpha is zero)
               indicate where `image` should be edited. If there are multiple images provided,
               the mask will be applied on the first image. Must be a valid PNG file, less than
               4MB, and have the same dimensions as `image`.
 
-          model: The model to use for image generation. Only `dall-e-2` and the GPT image models
-              are supported. Defaults to `dall-e-2` unless a parameter specific to the GPT
-              image models is used.
+          model: The model to use for image generation. One of `dall-e-2` or a GPT image model
+              (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+              `gpt-image-2-2026-04-21`, or `chatgpt-image-latest`). Defaults to
+              `gpt-image-1.5`.
 
           n: The number of images to generate. Must be between 1 and 10.
 
@@ -435,18 +481,25 @@ class Images(SyncAPIResource):
               Note that the final image may be sent before the full number of partial images
               are generated if the full image is generated more quickly.
 
-          quality: The quality of the image that will be generated. `high`, `medium` and `low` are
-              only supported for the GPT image models. `dall-e-2` only supports `standard`
-              quality. Defaults to `auto`.
+          quality: The quality of the image that will be generated for GPT image models. Defaults
+              to `auto`.
 
           response_format: The format in which the generated images are returned. Must be one of `url` or
               `b64_json`. URLs are only valid for 60 minutes after the image has been
-              generated. This parameter is only supported for `dall-e-2`, as the GPT image
-              models always return base64-encoded images.
+              generated. This parameter is only supported for `dall-e-2` (default is `url` for
+              `dall-e-2`), as GPT image models always return base64-encoded images.
 
-          size: The size of the generated images. Must be one of `1024x1024`, `1536x1024`
-              (landscape), `1024x1536` (portrait), or `auto` (default value) for the GPT image
-              models, and one of `256x256`, `512x512`, or `1024x1024` for `dall-e-2`.
+          size: The size of the generated images. For `gpt-image-2` and
+              `gpt-image-2-2026-04-21`, arbitrary resolutions are supported as `WIDTHxHEIGHT`
+              strings, for example `1536x864`. Width and height must both be divisible by 16
+              and the requested aspect ratio must be between 1:3 and 3:1. Resolutions above
+              `2560x1440` are experimental, and the maximum supported resolution is
+              `3840x2160`. The requested size must also satisfy the model's current pixel and
+              edge limits. The standard sizes `1024x1024`, `1536x1024`, and `1024x1536` are
+              supported by the GPT image models; `auto` is supported for models that allow
+              automatic sizing. For `dall-e-2`, use one of `256x256`, `512x512`, or
+              `1024x1024`. For `dall-e-3`, use one of `1024x1024`, `1792x1024`, or
+              `1024x1792`.
 
           user: A unique identifier representing your end-user, which can help OpenAI to monitor
               and detect abuse.
@@ -478,7 +531,8 @@ class Images(SyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
-        size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]] | Omit = omit,
+        size: Union[str, Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"], None]
+        | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
         user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -488,7 +542,7 @@ class Images(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse | Stream[ImageEditStreamEvent]:
-        body = deepcopy_minimal(
+        body = deepcopy_with_paths(
             {
                 "image": image,
                 "prompt": prompt,
@@ -505,7 +559,8 @@ class Images(SyncAPIResource):
                 "size": size,
                 "stream": stream,
                 "user": user,
-            }
+            },
+            [["image"], ["image", "<array>"], ["mask"]],
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["image"], ["image", "<array>"], ["mask"]])
         # It should be noted that the actual Content-Type header that will be
@@ -520,7 +575,11 @@ class Images(SyncAPIResource):
             ),
             files=files,
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ImagesResponse,
             stream=stream or False,
@@ -541,8 +600,10 @@ class Images(SyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
-        size: Optional[
-            Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"]
+        size: Union[
+            str,
+            Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"],
+            None,
         ]
         | Omit = omit,
         stream: Optional[Literal[False]] | Omit = omit,
@@ -565,16 +626,22 @@ class Images(SyncAPIResource):
               characters for `dall-e-3`.
 
           background: Allows to set transparency for the background of the generated image(s). This
-              parameter is only supported for the GPT image models. Must be one of
-              `transparent`, `opaque` or `auto` (default value). When `auto` is used, the
-              model will automatically determine the best background for the image.
+              parameter is only supported for GPT image models that support transparent
+              backgrounds. Must be one of `transparent`, `opaque`, or `auto` (default value).
+              When `auto` is used, the model will automatically determine the best background
+              for the image.
+
+              `gpt-image-2` and `gpt-image-2-2026-04-21` do not support transparent
+              backgrounds. Requests with `background` set to `transparent` will return an
+              error for these models; use `opaque` or `auto` instead.
 
               If `transparent`, the output format needs to support transparency, so it should
               be set to either `png` (default value) or `webp`.
 
           model: The model to use for image generation. One of `dall-e-2`, `dall-e-3`, or a GPT
-              image model (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`). Defaults to
-              `dall-e-2` unless a parameter specific to the GPT image models is used.
+              image model (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+              or `gpt-image-2-2026-04-21`). Defaults to `dall-e-2` unless a parameter specific
+              to the GPT image models is used.
 
           moderation: Control the content-moderation level for images generated by the GPT image
               models. Must be either `low` for less restrictive filtering or `auto` (default
@@ -610,10 +677,17 @@ class Images(SyncAPIResource):
               after the image has been generated. This parameter isn't supported for the GPT
               image models, which always return base64-encoded images.
 
-          size: The size of the generated images. Must be one of `1024x1024`, `1536x1024`
-              (landscape), `1024x1536` (portrait), or `auto` (default value) for the GPT image
-              models, one of `256x256`, `512x512`, or `1024x1024` for `dall-e-2`, and one of
-              `1024x1024`, `1792x1024`, or `1024x1792` for `dall-e-3`.
+          size: The size of the generated images. For `gpt-image-2` and
+              `gpt-image-2-2026-04-21`, arbitrary resolutions are supported as `WIDTHxHEIGHT`
+              strings, for example `1536x864`. Width and height must both be divisible by 16
+              and the requested aspect ratio must be between 1:3 and 3:1. Resolutions above
+              `2560x1440` are experimental, and the maximum supported resolution is
+              `3840x2160`. The requested size must also satisfy the model's current pixel and
+              edge limits. The standard sizes `1024x1024`, `1536x1024`, and `1024x1536` are
+              supported by the GPT image models; `auto` is supported for models that allow
+              automatic sizing. For `dall-e-2`, use one of `256x256`, `512x512`, or
+              `1024x1024`. For `dall-e-3`, use one of `1024x1024`, `1792x1024`, or
+              `1024x1792`.
 
           stream: Generate the image in streaming mode. Defaults to `false`. See the
               [Image generation guide](https://platform.openai.com/docs/guides/image-generation)
@@ -653,8 +727,10 @@ class Images(SyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
-        size: Optional[
-            Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"]
+        size: Union[
+            str,
+            Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"],
+            None,
         ]
         | Omit = omit,
         style: Optional[Literal["vivid", "natural"]] | Omit = omit,
@@ -680,16 +756,22 @@ class Images(SyncAPIResource):
               for more information. This parameter is only supported for the GPT image models.
 
           background: Allows to set transparency for the background of the generated image(s). This
-              parameter is only supported for the GPT image models. Must be one of
-              `transparent`, `opaque` or `auto` (default value). When `auto` is used, the
-              model will automatically determine the best background for the image.
+              parameter is only supported for GPT image models that support transparent
+              backgrounds. Must be one of `transparent`, `opaque`, or `auto` (default value).
+              When `auto` is used, the model will automatically determine the best background
+              for the image.
+
+              `gpt-image-2` and `gpt-image-2-2026-04-21` do not support transparent
+              backgrounds. Requests with `background` set to `transparent` will return an
+              error for these models; use `opaque` or `auto` instead.
 
               If `transparent`, the output format needs to support transparency, so it should
               be set to either `png` (default value) or `webp`.
 
           model: The model to use for image generation. One of `dall-e-2`, `dall-e-3`, or a GPT
-              image model (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`). Defaults to
-              `dall-e-2` unless a parameter specific to the GPT image models is used.
+              image model (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+              or `gpt-image-2-2026-04-21`). Defaults to `dall-e-2` unless a parameter specific
+              to the GPT image models is used.
 
           moderation: Control the content-moderation level for images generated by the GPT image
               models. Must be either `low` for less restrictive filtering or `auto` (default
@@ -725,10 +807,17 @@ class Images(SyncAPIResource):
               after the image has been generated. This parameter isn't supported for the GPT
               image models, which always return base64-encoded images.
 
-          size: The size of the generated images. Must be one of `1024x1024`, `1536x1024`
-              (landscape), `1024x1536` (portrait), or `auto` (default value) for the GPT image
-              models, one of `256x256`, `512x512`, or `1024x1024` for `dall-e-2`, and one of
-              `1024x1024`, `1792x1024`, or `1024x1792` for `dall-e-3`.
+          size: The size of the generated images. For `gpt-image-2` and
+              `gpt-image-2-2026-04-21`, arbitrary resolutions are supported as `WIDTHxHEIGHT`
+              strings, for example `1536x864`. Width and height must both be divisible by 16
+              and the requested aspect ratio must be between 1:3 and 3:1. Resolutions above
+              `2560x1440` are experimental, and the maximum supported resolution is
+              `3840x2160`. The requested size must also satisfy the model's current pixel and
+              edge limits. The standard sizes `1024x1024`, `1536x1024`, and `1024x1536` are
+              supported by the GPT image models; `auto` is supported for models that allow
+              automatic sizing. For `dall-e-2`, use one of `256x256`, `512x512`, or
+              `1024x1024`. For `dall-e-3`, use one of `1024x1024`, `1792x1024`, or
+              `1024x1792`.
 
           style: The style of the generated images. This parameter is only supported for
               `dall-e-3`. Must be one of `vivid` or `natural`. Vivid causes the model to lean
@@ -764,8 +853,10 @@ class Images(SyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
-        size: Optional[
-            Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"]
+        size: Union[
+            str,
+            Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"],
+            None,
         ]
         | Omit = omit,
         style: Optional[Literal["vivid", "natural"]] | Omit = omit,
@@ -791,16 +882,22 @@ class Images(SyncAPIResource):
               for more information. This parameter is only supported for the GPT image models.
 
           background: Allows to set transparency for the background of the generated image(s). This
-              parameter is only supported for the GPT image models. Must be one of
-              `transparent`, `opaque` or `auto` (default value). When `auto` is used, the
-              model will automatically determine the best background for the image.
+              parameter is only supported for GPT image models that support transparent
+              backgrounds. Must be one of `transparent`, `opaque`, or `auto` (default value).
+              When `auto` is used, the model will automatically determine the best background
+              for the image.
+
+              `gpt-image-2` and `gpt-image-2-2026-04-21` do not support transparent
+              backgrounds. Requests with `background` set to `transparent` will return an
+              error for these models; use `opaque` or `auto` instead.
 
               If `transparent`, the output format needs to support transparency, so it should
               be set to either `png` (default value) or `webp`.
 
           model: The model to use for image generation. One of `dall-e-2`, `dall-e-3`, or a GPT
-              image model (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`). Defaults to
-              `dall-e-2` unless a parameter specific to the GPT image models is used.
+              image model (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+              or `gpt-image-2-2026-04-21`). Defaults to `dall-e-2` unless a parameter specific
+              to the GPT image models is used.
 
           moderation: Control the content-moderation level for images generated by the GPT image
               models. Must be either `low` for less restrictive filtering or `auto` (default
@@ -836,10 +933,17 @@ class Images(SyncAPIResource):
               after the image has been generated. This parameter isn't supported for the GPT
               image models, which always return base64-encoded images.
 
-          size: The size of the generated images. Must be one of `1024x1024`, `1536x1024`
-              (landscape), `1024x1536` (portrait), or `auto` (default value) for the GPT image
-              models, one of `256x256`, `512x512`, or `1024x1024` for `dall-e-2`, and one of
-              `1024x1024`, `1792x1024`, or `1024x1792` for `dall-e-3`.
+          size: The size of the generated images. For `gpt-image-2` and
+              `gpt-image-2-2026-04-21`, arbitrary resolutions are supported as `WIDTHxHEIGHT`
+              strings, for example `1536x864`. Width and height must both be divisible by 16
+              and the requested aspect ratio must be between 1:3 and 3:1. Resolutions above
+              `2560x1440` are experimental, and the maximum supported resolution is
+              `3840x2160`. The requested size must also satisfy the model's current pixel and
+              edge limits. The standard sizes `1024x1024`, `1536x1024`, and `1024x1536` are
+              supported by the GPT image models; `auto` is supported for models that allow
+              automatic sizing. For `dall-e-2`, use one of `256x256`, `512x512`, or
+              `1024x1024`. For `dall-e-3`, use one of `1024x1024`, `1792x1024`, or
+              `1024x1792`.
 
           style: The style of the generated images. This parameter is only supported for
               `dall-e-3`. Must be one of `vivid` or `natural`. Vivid causes the model to lean
@@ -874,8 +978,10 @@ class Images(SyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
-        size: Optional[
-            Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"]
+        size: Union[
+            str,
+            Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"],
+            None,
         ]
         | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
@@ -912,7 +1018,11 @@ class Images(SyncAPIResource):
                 else image_generate_params.ImageGenerateParamsNonStreaming,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ImagesResponse,
             stream=stream or False,
@@ -921,6 +1031,8 @@ class Images(SyncAPIResource):
 
 
 class AsyncImages(AsyncAPIResource):
+    """Given a prompt and/or an input image, the model will generate a new image."""
+
     @cached_property
     def with_raw_response(self) -> AsyncImagesWithRawResponse:
         """
@@ -988,7 +1100,7 @@ class AsyncImages(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        body = deepcopy_minimal(
+        body = deepcopy_with_paths(
             {
                 "image": image,
                 "model": model,
@@ -996,7 +1108,8 @@ class AsyncImages(AsyncAPIResource):
                 "response_format": response_format,
                 "size": size,
                 "user": user,
-            }
+            },
+            [["image"]],
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["image"]])
         # It should be noted that the actual Content-Type header that will be
@@ -1008,7 +1121,11 @@ class AsyncImages(AsyncAPIResource):
             body=await async_maybe_transform(body, image_create_variation_params.ImageCreateVariationParams),
             files=files,
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ImagesResponse,
         )
@@ -1029,7 +1146,8 @@ class AsyncImages(AsyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
-        size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]] | Omit = omit,
+        size: Union[str, Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"], None]
+        | Omit = omit,
         stream: Optional[Literal[False]] | Omit = omit,
         user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -1043,14 +1161,15 @@ class AsyncImages(AsyncAPIResource):
         prompt.
 
         This endpoint supports GPT Image models (`gpt-image-1.5`, `gpt-image-1`,
-        and `gpt-image-1-mini`) and `dall-e-2`.
+        `gpt-image-1-mini`, and `chatgpt-image-latest`) and `dall-e-2`.
 
         Args:
           image: The image(s) to edit. Must be a supported image file or an array of images.
 
-              For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`, and
-              `gpt-image-1.5`), each image should be a `png`, `webp`, or `jpg` file less than
-              50MB. You can provide up to 16 images.
+              For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`,
+              `gpt-image-2`, `gpt-image-2-2026-04-21`, and `chatgpt-image-latest`), each image
+              should be a `png`, `webp`, or `jpg` file less than 50MB. You can provide up to
+              16 images.
 
               For `dall-e-2`, you can only provide one image, and it should be a square `png`
               file less than 4MB.
@@ -1059,26 +1178,32 @@ class AsyncImages(AsyncAPIResource):
               characters for `dall-e-2`, and 32000 characters for the GPT image models.
 
           background: Allows to set transparency for the background of the generated image(s). This
-              parameter is only supported for the GPT image models. Must be one of
-              `transparent`, `opaque` or `auto` (default value). When `auto` is used, the
-              model will automatically determine the best background for the image.
+              parameter is only supported for GPT image models that support transparent
+              backgrounds. Must be one of `transparent`, `opaque`, or `auto` (default value).
+              When `auto` is used, the model will automatically determine the best background
+              for the image.
+
+              `gpt-image-2` and `gpt-image-2-2026-04-21` do not support transparent
+              backgrounds. Requests with `background` set to `transparent` will return an
+              error for these models; use `opaque` or `auto` instead.
 
               If `transparent`, the output format needs to support transparency, so it should
               be set to either `png` (default value) or `webp`.
 
           input_fidelity: Control how much effort the model will exert to match the style and features,
               especially facial features, of input images. This parameter is only supported
-              for `gpt-image-1`. Unsupported for `gpt-image-1-mini`. Supports `high` and
-              `low`. Defaults to `low`.
+              for `gpt-image-1` and `gpt-image-1.5` and later models, unsupported for
+              `gpt-image-1-mini`. Supports `high` and `low`. Defaults to `low`.
 
           mask: An additional image whose fully transparent areas (e.g. where alpha is zero)
               indicate where `image` should be edited. If there are multiple images provided,
               the mask will be applied on the first image. Must be a valid PNG file, less than
               4MB, and have the same dimensions as `image`.
 
-          model: The model to use for image generation. Only `dall-e-2` and the GPT image models
-              are supported. Defaults to `dall-e-2` unless a parameter specific to the GPT
-              image models is used.
+          model: The model to use for image generation. One of `dall-e-2` or a GPT image model
+              (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+              `gpt-image-2-2026-04-21`, or `chatgpt-image-latest`). Defaults to
+              `gpt-image-1.5`.
 
           n: The number of images to generate. Must be between 1 and 10.
 
@@ -1097,18 +1222,25 @@ class AsyncImages(AsyncAPIResource):
               Note that the final image may be sent before the full number of partial images
               are generated if the full image is generated more quickly.
 
-          quality: The quality of the image that will be generated. `high`, `medium` and `low` are
-              only supported for the GPT image models. `dall-e-2` only supports `standard`
-              quality. Defaults to `auto`.
+          quality: The quality of the image that will be generated for GPT image models. Defaults
+              to `auto`.
 
           response_format: The format in which the generated images are returned. Must be one of `url` or
               `b64_json`. URLs are only valid for 60 minutes after the image has been
-              generated. This parameter is only supported for `dall-e-2`, as the GPT image
-              models always return base64-encoded images.
+              generated. This parameter is only supported for `dall-e-2` (default is `url` for
+              `dall-e-2`), as GPT image models always return base64-encoded images.
 
-          size: The size of the generated images. Must be one of `1024x1024`, `1536x1024`
-              (landscape), `1024x1536` (portrait), or `auto` (default value) for the GPT image
-              models, and one of `256x256`, `512x512`, or `1024x1024` for `dall-e-2`.
+          size: The size of the generated images. For `gpt-image-2` and
+              `gpt-image-2-2026-04-21`, arbitrary resolutions are supported as `WIDTHxHEIGHT`
+              strings, for example `1536x864`. Width and height must both be divisible by 16
+              and the requested aspect ratio must be between 1:3 and 3:1. Resolutions above
+              `2560x1440` are experimental, and the maximum supported resolution is
+              `3840x2160`. The requested size must also satisfy the model's current pixel and
+              edge limits. The standard sizes `1024x1024`, `1536x1024`, and `1024x1536` are
+              supported by the GPT image models; `auto` is supported for models that allow
+              automatic sizing. For `dall-e-2`, use one of `256x256`, `512x512`, or
+              `1024x1024`. For `dall-e-3`, use one of `1024x1024`, `1792x1024`, or
+              `1024x1792`.
 
           stream: Edit the image in streaming mode. Defaults to `false`. See the
               [Image generation guide](https://platform.openai.com/docs/guides/image-generation)
@@ -1145,7 +1277,8 @@ class AsyncImages(AsyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
-        size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]] | Omit = omit,
+        size: Union[str, Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"], None]
+        | Omit = omit,
         user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1158,14 +1291,15 @@ class AsyncImages(AsyncAPIResource):
         prompt.
 
         This endpoint supports GPT Image models (`gpt-image-1.5`, `gpt-image-1`,
-        and `gpt-image-1-mini`) and `dall-e-2`.
+        `gpt-image-1-mini`, and `chatgpt-image-latest`) and `dall-e-2`.
 
         Args:
           image: The image(s) to edit. Must be a supported image file or an array of images.
 
-              For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`, and
-              `gpt-image-1.5`), each image should be a `png`, `webp`, or `jpg` file less than
-              50MB. You can provide up to 16 images.
+              For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`,
+              `gpt-image-2`, `gpt-image-2-2026-04-21`, and `chatgpt-image-latest`), each image
+              should be a `png`, `webp`, or `jpg` file less than 50MB. You can provide up to
+              16 images.
 
               For `dall-e-2`, you can only provide one image, and it should be a square `png`
               file less than 4MB.
@@ -1178,26 +1312,32 @@ class AsyncImages(AsyncAPIResource):
               for more information.
 
           background: Allows to set transparency for the background of the generated image(s). This
-              parameter is only supported for the GPT image models. Must be one of
-              `transparent`, `opaque` or `auto` (default value). When `auto` is used, the
-              model will automatically determine the best background for the image.
+              parameter is only supported for GPT image models that support transparent
+              backgrounds. Must be one of `transparent`, `opaque`, or `auto` (default value).
+              When `auto` is used, the model will automatically determine the best background
+              for the image.
+
+              `gpt-image-2` and `gpt-image-2-2026-04-21` do not support transparent
+              backgrounds. Requests with `background` set to `transparent` will return an
+              error for these models; use `opaque` or `auto` instead.
 
               If `transparent`, the output format needs to support transparency, so it should
               be set to either `png` (default value) or `webp`.
 
           input_fidelity: Control how much effort the model will exert to match the style and features,
               especially facial features, of input images. This parameter is only supported
-              for `gpt-image-1`. Unsupported for `gpt-image-1-mini`. Supports `high` and
-              `low`. Defaults to `low`.
+              for `gpt-image-1` and `gpt-image-1.5` and later models, unsupported for
+              `gpt-image-1-mini`. Supports `high` and `low`. Defaults to `low`.
 
           mask: An additional image whose fully transparent areas (e.g. where alpha is zero)
               indicate where `image` should be edited. If there are multiple images provided,
               the mask will be applied on the first image. Must be a valid PNG file, less than
               4MB, and have the same dimensions as `image`.
 
-          model: The model to use for image generation. Only `dall-e-2` and the GPT image models
-              are supported. Defaults to `dall-e-2` unless a parameter specific to the GPT
-              image models is used.
+          model: The model to use for image generation. One of `dall-e-2` or a GPT image model
+              (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+              `gpt-image-2-2026-04-21`, or `chatgpt-image-latest`). Defaults to
+              `gpt-image-1.5`.
 
           n: The number of images to generate. Must be between 1 and 10.
 
@@ -1216,18 +1356,25 @@ class AsyncImages(AsyncAPIResource):
               Note that the final image may be sent before the full number of partial images
               are generated if the full image is generated more quickly.
 
-          quality: The quality of the image that will be generated. `high`, `medium` and `low` are
-              only supported for the GPT image models. `dall-e-2` only supports `standard`
-              quality. Defaults to `auto`.
+          quality: The quality of the image that will be generated for GPT image models. Defaults
+              to `auto`.
 
           response_format: The format in which the generated images are returned. Must be one of `url` or
               `b64_json`. URLs are only valid for 60 minutes after the image has been
-              generated. This parameter is only supported for `dall-e-2`, as the GPT image
-              models always return base64-encoded images.
+              generated. This parameter is only supported for `dall-e-2` (default is `url` for
+              `dall-e-2`), as GPT image models always return base64-encoded images.
 
-          size: The size of the generated images. Must be one of `1024x1024`, `1536x1024`
-              (landscape), `1024x1536` (portrait), or `auto` (default value) for the GPT image
-              models, and one of `256x256`, `512x512`, or `1024x1024` for `dall-e-2`.
+          size: The size of the generated images. For `gpt-image-2` and
+              `gpt-image-2-2026-04-21`, arbitrary resolutions are supported as `WIDTHxHEIGHT`
+              strings, for example `1536x864`. Width and height must both be divisible by 16
+              and the requested aspect ratio must be between 1:3 and 3:1. Resolutions above
+              `2560x1440` are experimental, and the maximum supported resolution is
+              `3840x2160`. The requested size must also satisfy the model's current pixel and
+              edge limits. The standard sizes `1024x1024`, `1536x1024`, and `1024x1536` are
+              supported by the GPT image models; `auto` is supported for models that allow
+              automatic sizing. For `dall-e-2`, use one of `256x256`, `512x512`, or
+              `1024x1024`. For `dall-e-3`, use one of `1024x1024`, `1792x1024`, or
+              `1024x1792`.
 
           user: A unique identifier representing your end-user, which can help OpenAI to monitor
               and detect abuse.
@@ -1260,7 +1407,8 @@ class AsyncImages(AsyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
-        size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]] | Omit = omit,
+        size: Union[str, Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"], None]
+        | Omit = omit,
         user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1273,14 +1421,15 @@ class AsyncImages(AsyncAPIResource):
         prompt.
 
         This endpoint supports GPT Image models (`gpt-image-1.5`, `gpt-image-1`,
-        and `gpt-image-1-mini`) and `dall-e-2`.
+        `gpt-image-1-mini`, and `chatgpt-image-latest`) and `dall-e-2`.
 
         Args:
           image: The image(s) to edit. Must be a supported image file or an array of images.
 
-              For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`, and
-              `gpt-image-1.5`), each image should be a `png`, `webp`, or `jpg` file less than
-              50MB. You can provide up to 16 images.
+              For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`,
+              `gpt-image-2`, `gpt-image-2-2026-04-21`, and `chatgpt-image-latest`), each image
+              should be a `png`, `webp`, or `jpg` file less than 50MB. You can provide up to
+              16 images.
 
               For `dall-e-2`, you can only provide one image, and it should be a square `png`
               file less than 4MB.
@@ -1293,26 +1442,32 @@ class AsyncImages(AsyncAPIResource):
               for more information.
 
           background: Allows to set transparency for the background of the generated image(s). This
-              parameter is only supported for the GPT image models. Must be one of
-              `transparent`, `opaque` or `auto` (default value). When `auto` is used, the
-              model will automatically determine the best background for the image.
+              parameter is only supported for GPT image models that support transparent
+              backgrounds. Must be one of `transparent`, `opaque`, or `auto` (default value).
+              When `auto` is used, the model will automatically determine the best background
+              for the image.
+
+              `gpt-image-2` and `gpt-image-2-2026-04-21` do not support transparent
+              backgrounds. Requests with `background` set to `transparent` will return an
+              error for these models; use `opaque` or `auto` instead.
 
               If `transparent`, the output format needs to support transparency, so it should
               be set to either `png` (default value) or `webp`.
 
           input_fidelity: Control how much effort the model will exert to match the style and features,
               especially facial features, of input images. This parameter is only supported
-              for `gpt-image-1`. Unsupported for `gpt-image-1-mini`. Supports `high` and
-              `low`. Defaults to `low`.
+              for `gpt-image-1` and `gpt-image-1.5` and later models, unsupported for
+              `gpt-image-1-mini`. Supports `high` and `low`. Defaults to `low`.
 
           mask: An additional image whose fully transparent areas (e.g. where alpha is zero)
               indicate where `image` should be edited. If there are multiple images provided,
               the mask will be applied on the first image. Must be a valid PNG file, less than
               4MB, and have the same dimensions as `image`.
 
-          model: The model to use for image generation. Only `dall-e-2` and the GPT image models
-              are supported. Defaults to `dall-e-2` unless a parameter specific to the GPT
-              image models is used.
+          model: The model to use for image generation. One of `dall-e-2` or a GPT image model
+              (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+              `gpt-image-2-2026-04-21`, or `chatgpt-image-latest`). Defaults to
+              `gpt-image-1.5`.
 
           n: The number of images to generate. Must be between 1 and 10.
 
@@ -1331,18 +1486,25 @@ class AsyncImages(AsyncAPIResource):
               Note that the final image may be sent before the full number of partial images
               are generated if the full image is generated more quickly.
 
-          quality: The quality of the image that will be generated. `high`, `medium` and `low` are
-              only supported for the GPT image models. `dall-e-2` only supports `standard`
-              quality. Defaults to `auto`.
+          quality: The quality of the image that will be generated for GPT image models. Defaults
+              to `auto`.
 
           response_format: The format in which the generated images are returned. Must be one of `url` or
               `b64_json`. URLs are only valid for 60 minutes after the image has been
-              generated. This parameter is only supported for `dall-e-2`, as the GPT image
-              models always return base64-encoded images.
+              generated. This parameter is only supported for `dall-e-2` (default is `url` for
+              `dall-e-2`), as GPT image models always return base64-encoded images.
 
-          size: The size of the generated images. Must be one of `1024x1024`, `1536x1024`
-              (landscape), `1024x1536` (portrait), or `auto` (default value) for the GPT image
-              models, and one of `256x256`, `512x512`, or `1024x1024` for `dall-e-2`.
+          size: The size of the generated images. For `gpt-image-2` and
+              `gpt-image-2-2026-04-21`, arbitrary resolutions are supported as `WIDTHxHEIGHT`
+              strings, for example `1536x864`. Width and height must both be divisible by 16
+              and the requested aspect ratio must be between 1:3 and 3:1. Resolutions above
+              `2560x1440` are experimental, and the maximum supported resolution is
+              `3840x2160`. The requested size must also satisfy the model's current pixel and
+              edge limits. The standard sizes `1024x1024`, `1536x1024`, and `1024x1536` are
+              supported by the GPT image models; `auto` is supported for models that allow
+              automatic sizing. For `dall-e-2`, use one of `256x256`, `512x512`, or
+              `1024x1024`. For `dall-e-3`, use one of `1024x1024`, `1792x1024`, or
+              `1024x1792`.
 
           user: A unique identifier representing your end-user, which can help OpenAI to monitor
               and detect abuse.
@@ -1374,7 +1536,8 @@ class AsyncImages(AsyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
-        size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]] | Omit = omit,
+        size: Union[str, Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"], None]
+        | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
         user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -1384,7 +1547,7 @@ class AsyncImages(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse | AsyncStream[ImageEditStreamEvent]:
-        body = deepcopy_minimal(
+        body = deepcopy_with_paths(
             {
                 "image": image,
                 "prompt": prompt,
@@ -1401,7 +1564,8 @@ class AsyncImages(AsyncAPIResource):
                 "size": size,
                 "stream": stream,
                 "user": user,
-            }
+            },
+            [["image"], ["image", "<array>"], ["mask"]],
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["image"], ["image", "<array>"], ["mask"]])
         # It should be noted that the actual Content-Type header that will be
@@ -1416,7 +1580,11 @@ class AsyncImages(AsyncAPIResource):
             ),
             files=files,
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ImagesResponse,
             stream=stream or False,
@@ -1437,8 +1605,10 @@ class AsyncImages(AsyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
-        size: Optional[
-            Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"]
+        size: Union[
+            str,
+            Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"],
+            None,
         ]
         | Omit = omit,
         stream: Optional[Literal[False]] | Omit = omit,
@@ -1461,16 +1631,22 @@ class AsyncImages(AsyncAPIResource):
               characters for `dall-e-3`.
 
           background: Allows to set transparency for the background of the generated image(s). This
-              parameter is only supported for the GPT image models. Must be one of
-              `transparent`, `opaque` or `auto` (default value). When `auto` is used, the
-              model will automatically determine the best background for the image.
+              parameter is only supported for GPT image models that support transparent
+              backgrounds. Must be one of `transparent`, `opaque`, or `auto` (default value).
+              When `auto` is used, the model will automatically determine the best background
+              for the image.
+
+              `gpt-image-2` and `gpt-image-2-2026-04-21` do not support transparent
+              backgrounds. Requests with `background` set to `transparent` will return an
+              error for these models; use `opaque` or `auto` instead.
 
               If `transparent`, the output format needs to support transparency, so it should
               be set to either `png` (default value) or `webp`.
 
           model: The model to use for image generation. One of `dall-e-2`, `dall-e-3`, or a GPT
-              image model (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`). Defaults to
-              `dall-e-2` unless a parameter specific to the GPT image models is used.
+              image model (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+              or `gpt-image-2-2026-04-21`). Defaults to `dall-e-2` unless a parameter specific
+              to the GPT image models is used.
 
           moderation: Control the content-moderation level for images generated by the GPT image
               models. Must be either `low` for less restrictive filtering or `auto` (default
@@ -1506,10 +1682,17 @@ class AsyncImages(AsyncAPIResource):
               after the image has been generated. This parameter isn't supported for the GPT
               image models, which always return base64-encoded images.
 
-          size: The size of the generated images. Must be one of `1024x1024`, `1536x1024`
-              (landscape), `1024x1536` (portrait), or `auto` (default value) for the GPT image
-              models, one of `256x256`, `512x512`, or `1024x1024` for `dall-e-2`, and one of
-              `1024x1024`, `1792x1024`, or `1024x1792` for `dall-e-3`.
+          size: The size of the generated images. For `gpt-image-2` and
+              `gpt-image-2-2026-04-21`, arbitrary resolutions are supported as `WIDTHxHEIGHT`
+              strings, for example `1536x864`. Width and height must both be divisible by 16
+              and the requested aspect ratio must be between 1:3 and 3:1. Resolutions above
+              `2560x1440` are experimental, and the maximum supported resolution is
+              `3840x2160`. The requested size must also satisfy the model's current pixel and
+              edge limits. The standard sizes `1024x1024`, `1536x1024`, and `1024x1536` are
+              supported by the GPT image models; `auto` is supported for models that allow
+              automatic sizing. For `dall-e-2`, use one of `256x256`, `512x512`, or
+              `1024x1024`. For `dall-e-3`, use one of `1024x1024`, `1792x1024`, or
+              `1024x1792`.
 
           stream: Generate the image in streaming mode. Defaults to `false`. See the
               [Image generation guide](https://platform.openai.com/docs/guides/image-generation)
@@ -1549,8 +1732,10 @@ class AsyncImages(AsyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
-        size: Optional[
-            Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"]
+        size: Union[
+            str,
+            Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"],
+            None,
         ]
         | Omit = omit,
         style: Optional[Literal["vivid", "natural"]] | Omit = omit,
@@ -1576,16 +1761,22 @@ class AsyncImages(AsyncAPIResource):
               for more information. This parameter is only supported for the GPT image models.
 
           background: Allows to set transparency for the background of the generated image(s). This
-              parameter is only supported for the GPT image models. Must be one of
-              `transparent`, `opaque` or `auto` (default value). When `auto` is used, the
-              model will automatically determine the best background for the image.
+              parameter is only supported for GPT image models that support transparent
+              backgrounds. Must be one of `transparent`, `opaque`, or `auto` (default value).
+              When `auto` is used, the model will automatically determine the best background
+              for the image.
+
+              `gpt-image-2` and `gpt-image-2-2026-04-21` do not support transparent
+              backgrounds. Requests with `background` set to `transparent` will return an
+              error for these models; use `opaque` or `auto` instead.
 
               If `transparent`, the output format needs to support transparency, so it should
               be set to either `png` (default value) or `webp`.
 
           model: The model to use for image generation. One of `dall-e-2`, `dall-e-3`, or a GPT
-              image model (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`). Defaults to
-              `dall-e-2` unless a parameter specific to the GPT image models is used.
+              image model (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+              or `gpt-image-2-2026-04-21`). Defaults to `dall-e-2` unless a parameter specific
+              to the GPT image models is used.
 
           moderation: Control the content-moderation level for images generated by the GPT image
               models. Must be either `low` for less restrictive filtering or `auto` (default
@@ -1621,10 +1812,17 @@ class AsyncImages(AsyncAPIResource):
               after the image has been generated. This parameter isn't supported for the GPT
               image models, which always return base64-encoded images.
 
-          size: The size of the generated images. Must be one of `1024x1024`, `1536x1024`
-              (landscape), `1024x1536` (portrait), or `auto` (default value) for the GPT image
-              models, one of `256x256`, `512x512`, or `1024x1024` for `dall-e-2`, and one of
-              `1024x1024`, `1792x1024`, or `1024x1792` for `dall-e-3`.
+          size: The size of the generated images. For `gpt-image-2` and
+              `gpt-image-2-2026-04-21`, arbitrary resolutions are supported as `WIDTHxHEIGHT`
+              strings, for example `1536x864`. Width and height must both be divisible by 16
+              and the requested aspect ratio must be between 1:3 and 3:1. Resolutions above
+              `2560x1440` are experimental, and the maximum supported resolution is
+              `3840x2160`. The requested size must also satisfy the model's current pixel and
+              edge limits. The standard sizes `1024x1024`, `1536x1024`, and `1024x1536` are
+              supported by the GPT image models; `auto` is supported for models that allow
+              automatic sizing. For `dall-e-2`, use one of `256x256`, `512x512`, or
+              `1024x1024`. For `dall-e-3`, use one of `1024x1024`, `1792x1024`, or
+              `1024x1792`.
 
           style: The style of the generated images. This parameter is only supported for
               `dall-e-3`. Must be one of `vivid` or `natural`. Vivid causes the model to lean
@@ -1660,8 +1858,10 @@ class AsyncImages(AsyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
-        size: Optional[
-            Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"]
+        size: Union[
+            str,
+            Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"],
+            None,
         ]
         | Omit = omit,
         style: Optional[Literal["vivid", "natural"]] | Omit = omit,
@@ -1687,16 +1887,22 @@ class AsyncImages(AsyncAPIResource):
               for more information. This parameter is only supported for the GPT image models.
 
           background: Allows to set transparency for the background of the generated image(s). This
-              parameter is only supported for the GPT image models. Must be one of
-              `transparent`, `opaque` or `auto` (default value). When `auto` is used, the
-              model will automatically determine the best background for the image.
+              parameter is only supported for GPT image models that support transparent
+              backgrounds. Must be one of `transparent`, `opaque`, or `auto` (default value).
+              When `auto` is used, the model will automatically determine the best background
+              for the image.
+
+              `gpt-image-2` and `gpt-image-2-2026-04-21` do not support transparent
+              backgrounds. Requests with `background` set to `transparent` will return an
+              error for these models; use `opaque` or `auto` instead.
 
               If `transparent`, the output format needs to support transparency, so it should
               be set to either `png` (default value) or `webp`.
 
           model: The model to use for image generation. One of `dall-e-2`, `dall-e-3`, or a GPT
-              image model (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`). Defaults to
-              `dall-e-2` unless a parameter specific to the GPT image models is used.
+              image model (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+              or `gpt-image-2-2026-04-21`). Defaults to `dall-e-2` unless a parameter specific
+              to the GPT image models is used.
 
           moderation: Control the content-moderation level for images generated by the GPT image
               models. Must be either `low` for less restrictive filtering or `auto` (default
@@ -1732,10 +1938,17 @@ class AsyncImages(AsyncAPIResource):
               after the image has been generated. This parameter isn't supported for the GPT
               image models, which always return base64-encoded images.
 
-          size: The size of the generated images. Must be one of `1024x1024`, `1536x1024`
-              (landscape), `1024x1536` (portrait), or `auto` (default value) for the GPT image
-              models, one of `256x256`, `512x512`, or `1024x1024` for `dall-e-2`, and one of
-              `1024x1024`, `1792x1024`, or `1024x1792` for `dall-e-3`.
+          size: The size of the generated images. For `gpt-image-2` and
+              `gpt-image-2-2026-04-21`, arbitrary resolutions are supported as `WIDTHxHEIGHT`
+              strings, for example `1536x864`. Width and height must both be divisible by 16
+              and the requested aspect ratio must be between 1:3 and 3:1. Resolutions above
+              `2560x1440` are experimental, and the maximum supported resolution is
+              `3840x2160`. The requested size must also satisfy the model's current pixel and
+              edge limits. The standard sizes `1024x1024`, `1536x1024`, and `1024x1536` are
+              supported by the GPT image models; `auto` is supported for models that allow
+              automatic sizing. For `dall-e-2`, use one of `256x256`, `512x512`, or
+              `1024x1024`. For `dall-e-3`, use one of `1024x1024`, `1792x1024`, or
+              `1024x1792`.
 
           style: The style of the generated images. This parameter is only supported for
               `dall-e-3`. Must be one of `vivid` or `natural`. Vivid causes the model to lean
@@ -1770,8 +1983,10 @@ class AsyncImages(AsyncAPIResource):
         partial_images: Optional[int] | Omit = omit,
         quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | Omit = omit,
         response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
-        size: Optional[
-            Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"]
+        size: Union[
+            str,
+            Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"],
+            None,
         ]
         | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
@@ -1808,7 +2023,11 @@ class AsyncImages(AsyncAPIResource):
                 else image_generate_params.ImageGenerateParamsNonStreaming,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ImagesResponse,
             stream=stream or False,

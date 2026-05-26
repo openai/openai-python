@@ -15,8 +15,8 @@ from .tool_choice_custom_param import ToolChoiceCustomParam
 from .response_input_item_param import ResponseInputItemParam
 from .tool_choice_allowed_param import ToolChoiceAllowedParam
 from .tool_choice_function_param import ToolChoiceFunctionParam
-from .response_conversation_param import ResponseConversationParam
 from .tool_choice_apply_patch_param import ToolChoiceApplyPatchParam
+from .response_conversation_param_param import ResponseConversationParamParam
 from .response_format_text_config_param import ResponseFormatTextConfigParam
 
 __all__ = ["InputTokenCountParams", "Conversation", "Text", "ToolChoice"]
@@ -97,7 +97,7 @@ class InputTokenCountParams(TypedDict, total=False):
     """
 
 
-Conversation: TypeAlias = Union[str, ResponseConversationParam]
+Conversation: TypeAlias = Union[str, ResponseConversationParamParam]
 
 
 class Text(TypedDict, total=False):

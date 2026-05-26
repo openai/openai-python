@@ -1,11 +1,11 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import Optional
+from typing import List, Optional
 from typing_extensions import Literal
 
 from .._models import BaseModel
 
-__all__ = ["ContainerRetrieveResponse", "ExpiresAfter"]
+__all__ = ["ContainerRetrieveResponse", "ExpiresAfter", "NetworkPolicy"]
 
 
 class ExpiresAfter(BaseModel):
@@ -20,6 +20,16 @@ class ExpiresAfter(BaseModel):
 
     minutes: Optional[int] = None
     """The number of minutes after the anchor before the container expires."""
+
+
+class NetworkPolicy(BaseModel):
+    """Network access policy for the container."""
+
+    type: Literal["allowlist", "disabled"]
+    """The network policy mode."""
+
+    allowed_domains: Optional[List[str]] = None
+    """Allowed outbound domains when `type` is `allowlist`."""
 
 
 class ContainerRetrieveResponse(BaseModel):
@@ -50,3 +60,6 @@ class ContainerRetrieveResponse(BaseModel):
 
     memory_limit: Optional[Literal["1g", "4g", "16g", "64g"]] = None
     """The memory limit configured for the container."""
+
+    network_policy: Optional[NetworkPolicy] = None
+    """Network access policy for the container."""

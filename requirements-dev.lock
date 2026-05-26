@@ -12,14 +12,14 @@
 -e file:.
 aiohappyeyeballs==2.6.1
     # via aiohttp
-aiohttp==3.13.2
+aiohttp==3.13.3
     # via httpx-aiohttp
     # via openai
 aiosignal==1.4.0
     # via aiohttp
 annotated-types==0.7.0
     # via pydantic
-anyio==4.12.0
+anyio==4.12.1
     # via httpx
     # via openai
 argcomplete==3.6.3
@@ -38,7 +38,7 @@ azure-core==1.36.0
 azure-identity==1.25.1
 backports-asyncio-runner==1.2.0
     # via pytest-asyncio
-certifi==2025.11.12
+certifi==2026.1.4
     # via httpcore
     # via httpx
     # via requests
@@ -84,7 +84,7 @@ httpx==0.28.1
     # via httpx-aiohttp
     # via openai
     # via respx
-httpx-aiohttp==0.1.9
+httpx-aiohttp==0.1.12
     # via openai
 humanize==4.13.0
     # via nox
@@ -94,7 +94,7 @@ idna==3.11
     # via requests
     # via trio
     # via yarl
-importlib-metadata==8.7.0
+importlib-metadata==8.7.1
 iniconfig==2.1.0
     # via pytest
 inline-snapshot==0.31.1
@@ -182,7 +182,7 @@ sortedcontainers==2.4.0
 sounddevice==0.5.3
     # via openai
 time-machine==2.19.0
-tomli==2.3.0
+tomli==2.4.0
     # via dependency-groups
     # via inline-snapshot
     # via mypy

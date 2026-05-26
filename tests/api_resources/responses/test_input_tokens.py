@@ -47,6 +47,7 @@ class TestInputTokens:
                     "parameters": {"foo": "bar"},
                     "strict": True,
                     "type": "function",
+                    "defer_loading": True,
                     "description": "description",
                 }
             ],
@@ -110,6 +111,7 @@ class TestAsyncInputTokens:
                     "parameters": {"foo": "bar"},
                     "strict": True,
                     "type": "function",
+                    "defer_loading": True,
                     "description": "description",
                 }
             ],

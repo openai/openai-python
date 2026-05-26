@@ -16,6 +16,14 @@ from .chat import (
     ChatWithStreamingResponse,
     AsyncChatWithStreamingResponse,
 )
+from .admin import (
+    Admin,
+    AsyncAdmin,
+    AdminWithRawResponse,
+    AsyncAdminWithRawResponse,
+    AdminWithStreamingResponse,
+    AsyncAdminWithStreamingResponse,
+)
 from .audio import (
     Audio,
     AsyncAudio,
@@ -55,6 +63,14 @@ from .models import (
     AsyncModelsWithRawResponse,
     ModelsWithStreamingResponse,
     AsyncModelsWithStreamingResponse,
+)
+from .skills import (
+    Skills,
+    AsyncSkills,
+    SkillsWithRawResponse,
+    AsyncSkillsWithRawResponse,
+    SkillsWithStreamingResponse,
+    AsyncSkillsWithStreamingResponse,
 )
 from .videos import (
     Videos,
@@ -208,6 +224,12 @@ __all__ = [
     "AsyncUploadsWithRawResponse",
     "UploadsWithStreamingResponse",
     "AsyncUploadsWithStreamingResponse",
+    "Admin",
+    "AsyncAdmin",
+    "AdminWithRawResponse",
+    "AsyncAdminWithRawResponse",
+    "AdminWithStreamingResponse",
+    "AsyncAdminWithStreamingResponse",
     "Evals",
     "AsyncEvals",
     "EvalsWithRawResponse",
@@ -220,6 +242,12 @@ __all__ = [
     "AsyncContainersWithRawResponse",
     "ContainersWithStreamingResponse",
     "AsyncContainersWithStreamingResponse",
+    "Skills",
+    "AsyncSkills",
+    "SkillsWithRawResponse",
+    "AsyncSkillsWithRawResponse",
+    "SkillsWithStreamingResponse",
+    "AsyncSkillsWithStreamingResponse",
     "Videos",
     "AsyncVideos",
     "VideosWithRawResponse",

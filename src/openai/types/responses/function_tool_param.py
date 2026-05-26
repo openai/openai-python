@@ -26,6 +26,9 @@ class FunctionToolParam(TypedDict, total=False):
     type: Required[Literal["function"]]
     """The type of the function tool. Always `function`."""
 
+    defer_loading: bool
+    """Whether this function is deferred and loaded via tool search."""
+
     description: Optional[str]
     """A description of the function.
 

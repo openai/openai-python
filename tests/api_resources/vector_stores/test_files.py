@@ -635,7 +635,6 @@ def test_create_and_poll_method_in_sync(sync: bool, client: OpenAI, async_client
     assert_signatures_in_sync(
         checking_client.vector_stores.files.create,
         checking_client.vector_stores.files.create_and_poll,
-        exclude_params={"extra_headers", "extra_query", "extra_body", "timeout"},
     )
 
 

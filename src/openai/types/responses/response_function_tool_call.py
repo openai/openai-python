@@ -30,6 +30,9 @@ class ResponseFunctionToolCall(BaseModel):
     id: Optional[str] = None
     """The unique ID of the function tool call."""
 
+    namespace: Optional[str] = None
+    """The namespace of the function to run."""
+
     status: Optional[Literal["in_progress", "completed", "incomplete"]] = None
     """The status of the item.
 

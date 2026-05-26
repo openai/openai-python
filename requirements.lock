@@ -12,21 +12,21 @@
 -e file:.
 aiohappyeyeballs==2.6.1
     # via aiohttp
-aiohttp==3.13.2
+aiohttp==3.13.3
     # via httpx-aiohttp
     # via openai
 aiosignal==1.4.0
     # via aiohttp
 annotated-types==0.7.0
     # via pydantic
-anyio==4.12.0
+anyio==4.12.1
     # via httpx
     # via openai
 async-timeout==5.0.1
     # via aiohttp
 attrs==25.4.0
     # via aiohttp
-certifi==2025.11.12
+certifi==2026.1.4
     # via httpcore
     # via httpx
 cffi==2.0.0
@@ -45,7 +45,7 @@ httpcore==1.0.9
 httpx==0.28.1
     # via httpx-aiohttp
     # via openai
-httpx-aiohttp==0.1.9
+httpx-aiohttp==0.1.12
     # via openai
 idna==3.11
     # via anyio

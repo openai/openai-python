@@ -47,8 +47,9 @@ class TestCalls:
                         },
                         "noise_reduction": {"type": "near_field"},
                         "transcription": {
+                            "delay": "minimal",
                             "language": "language",
-                            "model": "string",
+                            "model": "whisper-1",
                             "prompt": "prompt",
                         },
                         "turn_detection": {
@@ -67,19 +68,21 @@ class TestCalls:
                             "type": "audio/pcm",
                         },
                         "speed": 0.25,
-                        "voice": "ash",
+                        "voice": "alloy",
                     },
                 },
                 "include": ["item.input_audio_transcription.logprobs"],
                 "instructions": "instructions",
-                "max_output_tokens": 0,
-                "model": "string",
+                "max_output_tokens": "inf",
+                "model": "gpt-realtime",
                 "output_modalities": ["text"],
+                "parallel_tool_calls": True,
                 "prompt": {
                     "id": "id",
                     "variables": {"foo": "string"},
                     "version": "version",
                 },
+                "reasoning": {"effort": "minimal"},
                 "tool_choice": "none",
                 "tools": [
                     {
@@ -146,8 +149,9 @@ class TestCalls:
                     },
                     "noise_reduction": {"type": "near_field"},
                     "transcription": {
+                        "delay": "minimal",
                         "language": "language",
-                        "model": "string",
+                        "model": "whisper-1",
                         "prompt": "prompt",
                     },
                     "turn_detection": {
@@ -166,19 +170,21 @@ class TestCalls:
                         "type": "audio/pcm",
                     },
                     "speed": 0.25,
-                    "voice": "ash",
+                    "voice": "alloy",
                 },
             },
             include=["item.input_audio_transcription.logprobs"],
             instructions="instructions",
-            max_output_tokens=0,
-            model="string",
+            max_output_tokens="inf",
+            model="gpt-realtime",
             output_modalities=["text"],
+            parallel_tool_calls=True,
             prompt={
                 "id": "id",
                 "variables": {"foo": "string"},
                 "version": "version",
             },
+            reasoning={"effort": "minimal"},
             tool_choice="none",
             tools=[
                 {
@@ -385,8 +391,9 @@ class TestAsyncCalls:
                         },
                         "noise_reduction": {"type": "near_field"},
                         "transcription": {
+                            "delay": "minimal",
                             "language": "language",
-                            "model": "string",
+                            "model": "whisper-1",
                             "prompt": "prompt",
                         },
                         "turn_detection": {
@@ -405,19 +412,21 @@ class TestAsyncCalls:
                             "type": "audio/pcm",
                         },
                         "speed": 0.25,
-                        "voice": "ash",
+                        "voice": "alloy",
                     },
                 },
                 "include": ["item.input_audio_transcription.logprobs"],
                 "instructions": "instructions",
-                "max_output_tokens": 0,
-                "model": "string",
+                "max_output_tokens": "inf",
+                "model": "gpt-realtime",
                 "output_modalities": ["text"],
+                "parallel_tool_calls": True,
                 "prompt": {
                     "id": "id",
                     "variables": {"foo": "string"},
                     "version": "version",
                 },
+                "reasoning": {"effort": "minimal"},
                 "tool_choice": "none",
                 "tools": [
                     {
@@ -484,8 +493,9 @@ class TestAsyncCalls:
                     },
                     "noise_reduction": {"type": "near_field"},
                     "transcription": {
+                        "delay": "minimal",
                         "language": "language",
-                        "model": "string",
+                        "model": "whisper-1",
                         "prompt": "prompt",
                     },
                     "turn_detection": {
@@ -504,19 +514,21 @@ class TestAsyncCalls:
                         "type": "audio/pcm",
                     },
                     "speed": 0.25,
-                    "voice": "ash",
+                    "voice": "alloy",
                 },
             },
             include=["item.input_audio_transcription.logprobs"],
             instructions="instructions",
-            max_output_tokens=0,
-            model="string",
+            max_output_tokens="inf",
+            model="gpt-realtime",
             output_modalities=["text"],
+            parallel_tool_calls=True,
             prompt={
                 "id": "id",
                 "variables": {"foo": "string"},
                 "version": "version",
             },
+            reasoning={"effort": "minimal"},
             tool_choice="none",
             tools=[
                 {

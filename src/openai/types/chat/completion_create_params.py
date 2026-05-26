@@ -185,7 +185,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
     """
 
-    prompt_cache_retention: Optional[Literal["in-memory", "24h"]]
+    prompt_cache_retention: Optional[Literal["in_memory", "24h"]]
     """The retention policy for the prompt cache.
 
     Set to `24h` to enable extended prompt caching, which keeps cached prefixes
@@ -227,8 +227,9 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     """
     A stable identifier used to help detect users of your application that may be
     violating OpenAI's usage policies. The IDs should be a string that uniquely
-    identifies each user. We recommend hashing their username or email address, in
-    order to avoid sending us any identifying information.
+    identifies each user, with a maximum length of 64 characters. We recommend
+    hashing their username or email address, in order to avoid sending us any
+    identifying information.
     [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
     """
 
@@ -310,8 +311,9 @@ class CompletionCreateParamsBase(TypedDict, total=False):
 
     top_logprobs: Optional[int]
     """
-    An integer between 0 and 20 specifying the number of most likely tokens to
-    return at each token position, each with an associated log probability.
+    An integer between 0 and 20 specifying the maximum number of most likely tokens
+    to return at each token position, each with an associated log probability. In
+    some cases, the number of returned tokens may be fewer than requested.
     `logprobs` must be set to `true` if this parameter is used.
     """
 

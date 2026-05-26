@@ -11,6 +11,12 @@ __all__ = ["ComputerScreenshotContent"]
 class ComputerScreenshotContent(BaseModel):
     """A screenshot of a computer."""
 
+    detail: Literal["low", "high", "auto", "original"]
+    """The detail level of the screenshot image to be sent to the model.
+
+    One of `high`, `low`, `auto`, or `original`. Defaults to `auto`.
+    """
+
     file_id: Optional[str] = None
     """The identifier of an uploaded file that contains the screenshot."""
 

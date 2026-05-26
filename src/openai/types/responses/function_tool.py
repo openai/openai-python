@@ -26,6 +26,9 @@ class FunctionTool(BaseModel):
     type: Literal["function"]
     """The type of the function tool. Always `function`."""
 
+    defer_loading: Optional[bool] = None
+    """Whether this function is deferred and loaded via tool search."""
+
     description: Optional[str] = None
     """A description of the function.
 

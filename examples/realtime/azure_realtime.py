@@ -41,10 +41,7 @@ async def main() -> None:
     # The APIs are compatible with the OpenAI client library.
     # You can use the OpenAI client library to access the Azure OpenAI APIs.
     # Make sure to set the baseURL and apiKey to use the Azure OpenAI endpoint and token.
-    client = AsyncOpenAI(
-        websocket_base_url=base_url,
-        api_key=token
-    )
+    client = AsyncOpenAI(websocket_base_url=base_url, api_key=token)
     async with client.realtime.connect(
         model=deployment_name,
     ) as connection:

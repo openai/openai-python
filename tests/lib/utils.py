@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import inspect
+import re
 from typing import Any, Iterable
 from typing_extensions import TypeAlias
 
@@ -28,27 +28,7 @@ def print_obj(obj: object, monkeypatch: pytest.MonkeyPatch) -> str:
 
         string = rich_print_str(obj)
 
-        # we remove all `fn_name.<locals>.` occurrences
-        # so that we can share the same snapshots between
-        # pydantic v1 and pydantic v2 as their output for
-        # generic models differs, e.g.
-        #
-        # v2: `ParsedChatCompletion[test_parse_pydantic_model.<locals>.Location]`
-        # v1: `ParsedChatCompletion[Location]`
-        return clear_locals(string, stacklevel=2)
-
-
-def get_caller_name(*, stacklevel: int = 1) -> str:
-    frame = inspect.currentframe()
-    assert frame is not None
-
-    for i in range(stacklevel):
-        frame = frame.f_back
-        assert frame is not None, f"no {i}th frame"
-
-    return frame.f_code.co_name
-
-
-def clear_locals(string: str, *, stacklevel: int) -> str:
-    caller = get_caller_name(stacklevel=stacklevel + 1)
-    return string.replace(f"{caller}.<locals>.", "")
+        # Pydantic v1 and v2 have different implementations of __repr__ and print out
+        # generics differently, so we strip out generic type parameters to ensure
+        # consistent snapshot tests across both versions
+        return re.sub(r"([A-Za-z_]\w*)\[[^\[\]]+\](?=\()", r"\1", string)

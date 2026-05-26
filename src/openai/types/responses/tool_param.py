@@ -11,11 +11,16 @@ from ..._types import SequenceNotStr
 from .custom_tool_param import CustomToolParam
 from .computer_tool_param import ComputerToolParam
 from .function_tool_param import FunctionToolParam
+from .namespace_tool_param import NamespaceToolParam
 from .web_search_tool_param import WebSearchToolParam
 from .apply_patch_tool_param import ApplyPatchToolParam
 from .file_search_tool_param import FileSearchToolParam
+from .tool_search_tool_param import ToolSearchToolParam
 from .function_shell_tool_param import FunctionShellToolParam
 from .web_search_preview_tool_param import WebSearchPreviewToolParam
+from .computer_use_preview_tool_param import ComputerUsePreviewToolParam
+from .container_network_policy_disabled_param import ContainerNetworkPolicyDisabledParam
+from .container_network_policy_allowlist_param import ContainerNetworkPolicyAllowlistParam
 
 __all__ = [
     "ToolParam",
@@ -29,6 +34,7 @@ __all__ = [
     "CodeInterpreter",
     "CodeInterpreterContainer",
     "CodeInterpreterContainerCodeInterpreterToolAuto",
+    "CodeInterpreterContainerCodeInterpreterToolAutoNetworkPolicy",
     "ImageGeneration",
     "ImageGenerationInputImageMask",
     "LocalShell",
@@ -155,6 +161,9 @@ class Mcp(TypedDict, total=False):
     - SharePoint: `connector_sharepoint`
     """
 
+    defer_loading: bool
+    """Whether this MCP tool is deferred and discovered via tool search."""
+
     headers: Optional[Dict[str, str]]
     """Optional HTTP headers to send to the MCP server.
 
@@ -174,6 +183,11 @@ class Mcp(TypedDict, total=False):
     """
 
 
+CodeInterpreterContainerCodeInterpreterToolAutoNetworkPolicy: TypeAlias = Union[
+    ContainerNetworkPolicyDisabledParam, ContainerNetworkPolicyAllowlistParam
+]
+
+
 class CodeInterpreterContainerCodeInterpreterToolAuto(TypedDict, total=False):
     """Configuration for a code interpreter container.
 
@@ -188,6 +202,9 @@ class CodeInterpreterContainerCodeInterpreterToolAuto(TypedDict, total=False):
 
     memory_limit: Optional[Literal["1g", "4g", "16g", "64g"]]
     """The memory limit for the code interpreter container."""
+
+    network_policy: CodeInterpreterContainerCodeInterpreterToolAutoNetworkPolicy
+    """Network access policy for the container."""
 
 
 CodeInterpreterContainer: TypeAlias = Union[str, CodeInterpreterContainerCodeInterpreterToolAuto]
@@ -231,17 +248,27 @@ class ImageGeneration(TypedDict, total=False):
     """Whether to generate a new image or edit an existing image. Default: `auto`."""
 
     background: Literal["transparent", "opaque", "auto"]
-    """Background type for the generated image.
+    """
+    Allows to set transparency for the background of the generated image(s). This
+    parameter is only supported for GPT image models that support transparent
+    backgrounds. Must be one of `transparent`, `opaque`, or `auto` (default value).
+    When `auto` is used, the model will automatically determine the best background
+    for the image.
 
-    One of `transparent`, `opaque`, or `auto`. Default: `auto`.
+    `gpt-image-2` and `gpt-image-2-2026-04-21` do not support transparent
+    backgrounds. Requests with `background` set to `transparent` will return an
+    error for these models; use `opaque` or `auto` instead.
+
+    If `transparent`, the output format needs to support transparency, so it should
+    be set to either `png` (default value) or `webp`.
     """
 
     input_fidelity: Optional[Literal["high", "low"]]
     """
     Control how much effort the model will exert to match the style and features,
     especially facial features, of input images. This parameter is only supported
-    for `gpt-image-1`. Unsupported for `gpt-image-1-mini`. Supports `high` and
-    `low`. Defaults to `low`.
+    for `gpt-image-1` and `gpt-image-1.5` and later models, unsupported for
+    `gpt-image-1-mini`. Supports `high` and `low`. Defaults to `low`.
     """
 
     input_image_mask: ImageGenerationInputImageMask
@@ -250,7 +277,17 @@ class ImageGeneration(TypedDict, total=False):
     Contains `image_url` (string, optional) and `file_id` (string, optional).
     """
 
-    model: Union[str, Literal["gpt-image-1", "gpt-image-1-mini", "gpt-image-1.5"]]
+    model: Union[
+        str,
+        Literal[
+            "gpt-image-1",
+            "gpt-image-1-mini",
+            "gpt-image-2",
+            "gpt-image-2-2026-04-21",
+            "gpt-image-1.5",
+            "chatgpt-image-latest",
+        ],
+    ]
     """The image generation model to use. Default: `gpt-image-1`."""
 
     moderation: Literal["auto", "low"]
@@ -277,10 +314,19 @@ class ImageGeneration(TypedDict, total=False):
     One of `low`, `medium`, `high`, or `auto`. Default: `auto`.
     """
 
-    size: Literal["1024x1024", "1024x1536", "1536x1024", "auto"]
-    """The size of the generated image.
+    size: Union[str, Literal["1024x1024", "1024x1536", "1536x1024", "auto"]]
+    """The size of the generated images.
 
-    One of `1024x1024`, `1024x1536`, `1536x1024`, or `auto`. Default: `auto`.
+    For `gpt-image-2` and `gpt-image-2-2026-04-21`, arbitrary resolutions are
+    supported as `WIDTHxHEIGHT` strings, for example `1536x864`. Width and height
+    must both be divisible by 16 and the requested aspect ratio must be between 1:3
+    and 3:1. Resolutions above `2560x1440` are experimental, and the maximum
+    supported resolution is `3840x2160`. The requested size must also satisfy the
+    model's current pixel and edge limits. The standard sizes `1024x1024`,
+    `1536x1024`, and `1024x1536` are supported by the GPT image models; `auto` is
+    supported for models that allow automatic sizing. For `dall-e-2`, use one of
+    `256x256`, `512x512`, or `1024x1024`. For `dall-e-3`, use one of `1024x1024`,
+    `1792x1024`, or `1024x1792`.
     """
 
 
@@ -295,6 +341,7 @@ ToolParam: TypeAlias = Union[
     FunctionToolParam,
     FileSearchToolParam,
     ComputerToolParam,
+    ComputerUsePreviewToolParam,
     WebSearchToolParam,
     Mcp,
     CodeInterpreter,
@@ -302,6 +349,8 @@ ToolParam: TypeAlias = Union[
     LocalShell,
     FunctionShellToolParam,
     CustomToolParam,
+    NamespaceToolParam,
+    ToolSearchToolParam,
     WebSearchPreviewToolParam,
     ApplyPatchToolParam,
 ]

@@ -65,7 +65,10 @@ class InputTokens(SyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> InputTokenCountResponse:
         """
-        Get input token counts
+        Returns input token counts of the request.
+
+        Returns an object with `object` set to `response.input_tokens` and an
+        `input_tokens` count.
 
         Args:
           conversation: The conversation that this response belongs to. Items from this conversation are
@@ -140,7 +143,11 @@ class InputTokens(SyncAPIResource):
                 input_token_count_params.InputTokenCountParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=InputTokenCountResponse,
         )
@@ -188,7 +195,10 @@ class AsyncInputTokens(AsyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> InputTokenCountResponse:
         """
-        Get input token counts
+        Returns input token counts of the request.
+
+        Returns an object with `object` set to `response.input_tokens` and an
+        `input_tokens` count.
 
         Args:
           conversation: The conversation that this response belongs to. Items from this conversation are
@@ -263,7 +273,11 @@ class AsyncInputTokens(AsyncAPIResource):
                 input_token_count_params.InputTokenCountParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=InputTokenCountResponse,
         )

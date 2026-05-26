@@ -16,6 +16,7 @@ from ._response import APIResponse as APIResponse, AsyncAPIResponse as AsyncAPIR
 from ._constants import DEFAULT_TIMEOUT, DEFAULT_MAX_RETRIES, DEFAULT_CONNECTION_LIMITS
 from ._exceptions import (
     APIError,
+    OAuthError,
     OpenAIError,
     ConflictError,
     NotFoundError,
@@ -28,14 +29,17 @@ from ._exceptions import (
     InternalServerError,
     PermissionDeniedError,
     LengthFinishReasonError,
+    WebSocketQueueFullError,
     UnprocessableEntityError,
     APIResponseValidationError,
     InvalidWebhookSignatureError,
     ContentFilterFinishReasonError,
+    WebSocketConnectionClosedError,
 )
 from ._base_client import DefaultHttpxClient, DefaultAioHttpClient, DefaultAsyncHttpxClient
 from ._utils._logs import setup_logging as _setup_logging
 from ._legacy_response import HttpxBinaryResponseContent as HttpxBinaryResponseContent
+from .types.websocket_reconnection import ReconnectingEvent, ReconnectingOverrides
 
 __all__ = [
     "types",
@@ -57,6 +61,7 @@ __all__ = [
     "APIResponseValidationError",
     "BadRequestError",
     "AuthenticationError",
+    "OAuthError",
     "PermissionDeniedError",
     "NotFoundError",
     "ConflictError",
@@ -82,6 +87,10 @@ __all__ = [
     "DefaultHttpxClient",
     "DefaultAsyncHttpxClient",
     "DefaultAioHttpClient",
+    "ReconnectingEvent",
+    "ReconnectingOverrides",
+    "WebSocketQueueFullError",
+    "WebSocketConnectionClosedError",
 ]
 
 if not _t.TYPE_CHECKING:
@@ -120,6 +129,8 @@ import httpx as _httpx
 from ._base_client import DEFAULT_TIMEOUT, DEFAULT_MAX_RETRIES
 
 api_key: str | None = None
+
+admin_api_key: str | None = None
 
 organization: str | None = None
 
@@ -166,6 +177,17 @@ class _ModuleClient(OpenAI):
         global api_key
 
         api_key = value
+
+    @property  # type: ignore
+    @override
+    def admin_api_key(self) -> str | None:
+        return admin_api_key
+
+    @admin_api_key.setter  # type: ignore
+    def admin_api_key(self, value: str | None) -> None:  # type: ignore
+        global admin_api_key
+
+        admin_api_key = value
 
     @property  # type: ignore
     @override
@@ -350,6 +372,7 @@ def _load_client() -> OpenAI:  # type: ignore[reportUnusedFunction]
 
         _client = _ModuleClient(
             api_key=api_key,
+            admin_api_key=admin_api_key,
             organization=organization,
             project=project,
             webhook_secret=webhook_secret,
@@ -359,6 +382,7 @@ def _load_client() -> OpenAI:  # type: ignore[reportUnusedFunction]
             default_headers=default_headers,
             default_query=default_query,
             http_client=http_client,
+            _enforce_credentials=False,
         )
         return _client
 
@@ -374,11 +398,13 @@ def _reset_client() -> None:  # type: ignore[reportUnusedFunction]
 from ._module_client import (
     beta as beta,
     chat as chat,
+    admin as admin,
     audio as audio,
     evals as evals,
     files as files,
     images as images,
     models as models,
+    skills as skills,
     videos as videos,
     batches as batches,
     uploads as uploads,
