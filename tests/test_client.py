@@ -1292,6 +1292,23 @@ class TestOpenAI:
         assert len(mounts) == 1
         assert mounts[0][0].pattern == "https://"
 
+    def test_no_proxy_with_whitespace_does_not_raise(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        # Regression test for openai/openai-python#3303: NO_PROXY values that
+        # contain newlines or other whitespace (common in Docker, .env files,
+        # and shell scripts) used to break client construction with
+        # httpx.InvalidURL because httpx splits NO_PROXY only by comma.
+        # The sanitizer in _DefaultHttpxClient.__init__ normalizes whitespace
+        # to commas just for the duration of the httpx init, then restores
+        # the original env var.
+        monkeypatch.setenv("NO_PROXY", "localhost\nexample.com\t192.168.1.1")
+        monkeypatch.delenv("no_proxy", raising=False)
+
+        # Construction must not raise.
+        DefaultHttpxClient()
+
+        # The original env var is restored so user code observes what it set.
+        assert os.environ["NO_PROXY"] == "localhost\nexample.com\t192.168.1.1"
+
     @pytest.mark.filterwarnings("ignore:.*deprecated.*:DeprecationWarning")
     def test_default_client_creation(self) -> None:
         # Ensure that the client can be initialized without any exceptions
@@ -2551,6 +2568,15 @@ class TestAsyncOpenAI:
         mounts = tuple(client._mounts.items())
         assert len(mounts) == 1
         assert mounts[0][0].pattern == "https://"
+
+    async def test_no_proxy_with_whitespace_does_not_raise(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        # Async counterpart of the sync regression test for #3303.
+        monkeypatch.setenv("NO_PROXY", "localhost\nexample.com\t192.168.1.1")
+        monkeypatch.delenv("no_proxy", raising=False)
+
+        DefaultAsyncHttpxClient()
+
+        assert os.environ["NO_PROXY"] == "localhost\nexample.com\t192.168.1.1"
 
     @pytest.mark.filterwarnings("ignore:.*deprecated.*:DeprecationWarning")
     async def test_default_client_creation(self) -> None:
