@@ -1309,6 +1309,39 @@ class TestOpenAI:
         # The original env var is restored so user code observes what it set.
         assert os.environ["NO_PROXY"] == "localhost\nexample.com\t192.168.1.1"
 
+    def test_no_proxy_concurrent_construction_preserves_original(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        # Without the lock around _sanitized_proxy_env, two threads that
+        # construct clients at the same time could snapshot each other's
+        # already-cleaned value as the "original" and leave NO_PROXY
+        # permanently sanitized for the rest of the process. Spin up
+        # several constructions in parallel and assert the env is the
+        # same string the caller set when everything has finished.
+        import threading
+
+        original = "localhost\nexample.com\t192.168.1.1\n10.0.0.0/8"
+        monkeypatch.setenv("NO_PROXY", original)
+        monkeypatch.delenv("no_proxy", raising=False)
+
+        errors: list[BaseException] = []
+
+        def construct() -> None:
+            try:
+                for _ in range(20):
+                    DefaultHttpxClient()
+            except BaseException as e:
+                errors.append(e)
+
+        threads = [threading.Thread(target=construct) for _ in range(8)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+
+        assert not errors, f"client construction raised: {errors!r}"
+        assert os.environ["NO_PROXY"] == original
+
     @pytest.mark.filterwarnings("ignore:.*deprecated.*:DeprecationWarning")
     def test_default_client_creation(self) -> None:
         # Ensure that the client can be initialized without any exceptions

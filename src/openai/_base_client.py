@@ -11,6 +11,7 @@ import asyncio
 import inspect
 import logging
 import platform
+import threading
 import warnings
 import contextlib
 import email.utils
@@ -834,6 +835,12 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         return f"stainless-python-retry-{uuid.uuid4()}"
 
 
+# Serializes the temporary NO_PROXY mutation in `_sanitized_proxy_env` so
+# overlapping client constructions from multiple threads cannot snapshot
+# each other's cleaned value and leave the env permanently sanitized.
+_proxy_env_lock = threading.Lock()
+
+
 @contextlib.contextmanager
 def _sanitized_proxy_env() -> Iterator[None]:
     """Temporarily replace any whitespace inside `NO_PROXY` / `no_proxy` with commas.
@@ -842,24 +849,31 @@ def _sanitized_proxy_env() -> Iterator[None]:
     tabs that sneak in via Docker, .env files, or shell scripts become part
     of the hostname and trigger `httpx.InvalidURL` during client construction.
     Normalize them just for the duration of the wrapped httpx initialization
-    so the parsed proxy bypass list is well-formed. See openai/openai-python#3303.
+    so the parsed proxy bypass list is well-formed, then restore the
+    original value. See openai/openai-python#3303.
+
+    The mutation is serialized by `_proxy_env_lock` because `os.environ` is
+    process-wide; without the lock, concurrent client constructions could
+    snapshot each other's already-cleaned value as their "original" and
+    leave NO_PROXY permanently sanitized for the rest of the process.
     """
-    saved: Dict[str, Optional[str]] = {}
-    for name in ("NO_PROXY", "no_proxy"):
-        original = os.environ.get(name)
-        saved[name] = original
-        if original is not None and re.search(r"\s", original):
-            cleaned = re.sub(r"\s+", ",", original.strip())
-            cleaned = re.sub(r",+", ",", cleaned).strip(",")
-            os.environ[name] = cleaned
-    try:
-        yield
-    finally:
-        for name, original in saved.items():
-            if original is None:
-                os.environ.pop(name, None)
-            else:
-                os.environ[name] = original
+    with _proxy_env_lock:
+        saved: Dict[str, Optional[str]] = {}
+        for name in ("NO_PROXY", "no_proxy"):
+            original = os.environ.get(name)
+            saved[name] = original
+            if original is not None and re.search(r"\s", original):
+                cleaned = re.sub(r"\s+", ",", original.strip())
+                cleaned = re.sub(r",+", ",", cleaned).strip(",")
+                os.environ[name] = cleaned
+        try:
+            yield
+        finally:
+            for name, original in saved.items():
+                if original is None:
+                    os.environ.pop(name, None)
+                else:
+                    os.environ[name] = original
 
 
 class _DefaultHttpxClient(httpx.Client):
