@@ -379,15 +379,10 @@ from openai import OpenAI
 
 client = OpenAI()
 
-response = client.chat.responses.create(
-    input=[
-        {
-            "role": "user",
-            "content": "How much ?",
-        }
-    ],
+response = client.responses.create(
     model="gpt-5.2",
-    response_format={"type": "json_object"},
+    input="Generate an example JSON object describing a fruit.",
+    text={"format": {"type": "json_object"}},
 )
 ```
 
