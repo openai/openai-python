@@ -1,13 +1,22 @@
 from __future__ import annotations
 
+from typing import Any
 from typing_extensions import TypeVar
 
 import pytest
 from respx import MockRouter
 from inline_snapshot import snapshot
+from pydantic import BaseModel
 
 from openai import OpenAI, AsyncOpenAI
 from openai._utils import assert_signatures_in_sync
+from openai.types.responses import Response
+from openai.lib._parsing._responses import parse_response
+from openai.types.responses.parsed_response import (
+    ParsedResponse,
+    ParsedResponseOutputText,
+    ParsedResponseOutputMessage,
+)
 
 from ...conftest import base_url
 from ..snapshots import make_snapshot_request
@@ -61,3 +70,78 @@ def test_parse_method_definition_in_sync(sync: bool, client: OpenAI, async_clien
         checking_client.responses.parse,
         exclude_params={"tools"},
     )
+
+
+def test_parse_response_uses_non_parameterized_runtime_types(monkeypatch: pytest.MonkeyPatch) -> None:
+    class Payload(BaseModel):
+        message: str
+
+    response = Response.model_validate(
+        {
+            "id": "resp_123",
+            "object": "response",
+            "created_at": 0,
+            "status": "completed",
+            "background": False,
+            "error": None,
+            "incomplete_details": None,
+            "instructions": None,
+            "max_output_tokens": None,
+            "max_tool_calls": None,
+            "model": "gpt-4o-mini",
+            "output": [
+                {
+                    "id": "msg_123",
+                    "type": "message",
+                    "status": "completed",
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "output_text",
+                            "annotations": [],
+                            "logprobs": [],
+                            "text": '{"message":"hello"}',
+                        }
+                    ],
+                }
+            ],
+            "parallel_tool_calls": True,
+            "previous_response_id": None,
+            "prompt_cache_key": None,
+            "reasoning": {"effort": None, "summary": None},
+            "safety_identifier": None,
+            "service_tier": "default",
+            "store": True,
+            "temperature": 1.0,
+            "text": {"format": {"type": "text"}, "verbosity": "medium"},
+            "tool_choice": "auto",
+            "tools": [],
+            "top_logprobs": 0,
+            "top_p": 1.0,
+            "truncation": "disabled",
+            "usage": {
+                "input_tokens": 1,
+                "input_tokens_details": {"cached_tokens": 0},
+                "output_tokens": 1,
+                "output_tokens_details": {"reasoning_tokens": 0},
+                "total_tokens": 2,
+            },
+            "user": None,
+            "metadata": {},
+        }
+    )
+
+    seen_types: list[object] = []
+
+    def capture_construct_type_unchecked(*, value: object, type_: object) -> Any:
+        seen_types.append(type_)
+        from openai._models import construct_type_unchecked
+
+        return construct_type_unchecked(value=value, type_=type_)  # type: ignore[arg-type]
+
+    monkeypatch.setattr("openai.lib._parsing._responses.construct_type_unchecked", capture_construct_type_unchecked)
+
+    parsed = parse_response(text_format=Payload, input_tools=None, response=response)
+
+    assert parsed.output_parsed == Payload(message="hello")
+    assert seen_types == [ParsedResponseOutputText, ParsedResponseOutputMessage, ParsedResponse]
