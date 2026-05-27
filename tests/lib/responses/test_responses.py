@@ -83,6 +83,26 @@ def test_parse_incomplete_message_skips_text_parsing() -> None:
     assert parsed.output[0].content[0].parsed is None
 
 
+def test_parse_response_handles_null_output() -> None:
+    class Location(BaseModel):
+        city: str
+
+    response = Response.model_construct(
+        id="resp_123",
+        object="response",
+        created_at=0,
+        model="gpt-4o-mini",
+        output=None,
+        parallel_tool_calls=True,
+        tool_choice="auto",
+        tools=[],
+    )
+
+    parsed = parse_response(text_format=Location, input_tools=[], response=response)
+
+    assert parsed.output == []
+
+
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
 def test_stream_method_definition_in_sync(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
     checking_client: OpenAI | AsyncOpenAI = client if sync else async_client
