@@ -52,7 +52,7 @@ class TestResponses:
                 "version": "version",
             },
             prompt_cache_key="prompt-cache-key-1234",
-            prompt_cache_retention="in-memory",
+            prompt_cache_retention="in_memory",
             reasoning={
                 "effort": "none",
                 "generate_summary": "auto",
@@ -139,7 +139,7 @@ class TestResponses:
                 "version": "version",
             },
             prompt_cache_key="prompt-cache-key-1234",
-            prompt_cache_retention="in-memory",
+            prompt_cache_retention="in_memory",
             reasoning={
                 "effort": "none",
                 "generate_summary": "auto",
@@ -460,7 +460,7 @@ class TestAsyncResponses:
                 "version": "version",
             },
             prompt_cache_key="prompt-cache-key-1234",
-            prompt_cache_retention="in-memory",
+            prompt_cache_retention="in_memory",
             reasoning={
                 "effort": "none",
                 "generate_summary": "auto",
@@ -547,7 +547,7 @@ class TestAsyncResponses:
                 "version": "version",
             },
             prompt_cache_key="prompt-cache-key-1234",
-            prompt_cache_retention="in-memory",
+            prompt_cache_retention="in_memory",
             reasoning={
                 "effort": "none",
                 "generate_summary": "auto",
