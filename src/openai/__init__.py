@@ -97,6 +97,10 @@ if not _t.TYPE_CHECKING:
     from ._utils._resources_proxy import resources as resources
 
 from .lib import azure as _azure, pydantic_function_tool as pydantic_function_tool
+from .lib.aws import (
+    AwsOpenAI as AwsOpenAI,
+    AsyncAwsOpenAI as AsyncAwsOpenAI,
+)
 from .version import VERSION as VERSION
 from .lib.azure import AzureOpenAI as AzureOpenAI, AsyncAzureOpenAI as AsyncAzureOpenAI
 from .lib._old_api import *

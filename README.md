@@ -926,6 +926,41 @@ In addition to the options provided in the base `OpenAI` client, the following o
 
 An example of using the client with Microsoft Entra ID (formerly known as Azure Active Directory) can be found [here](https://github.com/openai/openai-python/blob/main/examples/azure_ad.py).
 
+## AWS Bedrock Mantle
+
+To use this library with [AWS Bedrock Mantle](https://docs.aws.amazon.com/bedrock/latest/userguide/bedrock-mantle.html), use the `AwsOpenAI`
+class instead of the `OpenAI` class.
+
+> [!IMPORTANT]
+> This requires `botocore` to be installed for SigV4 request signing. Install it with: `pip install 'openai[aws]'`
+
+```py
+from openai import AwsOpenAI
+
+# uses the default botocore credential chain (env vars, ~/.aws/credentials, IAM role, etc.)
+client = AwsOpenAI(
+    region="us-west-2",
+)
+
+response = client.responses.create(
+    model="openai.gpt-oss-120b",
+    input=[
+        {
+            "role": "user",
+            "content": "How do I output all files in a directory using Python?",
+        },
+    ],
+)
+print(response.output_text)
+```
+
+In addition to the options provided in the base `OpenAI` client, the following options are provided:
+
+- `region` (or the `AWS_REGION` / `AWS_DEFAULT_REGION` environment variable)
+- `credential_provider` - a callable that returns credentials with `access_key`, `secret_key`, and optional `token` attributes
+
+An example of using the client with a custom credential provider and STS assume-role refresh can be found [here](https://github.com/openai/openai-python/blob/main/examples/aws_credential_provider.py).
+
 ## Versioning
 
 This package generally follows [SemVer](https://semver.org/spec/v2.0.0.html) conventions, though certain backwards-incompatible changes may be released as minor versions:
