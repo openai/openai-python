@@ -1,6 +1,6 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 from typing_extensions import Literal
 
 from ..._models import BaseModel
@@ -60,3 +60,14 @@ class ResponseReasoningItem(BaseModel):
     One of `in_progress`, `completed`, or `incomplete`. Populated when items are
     returned via API.
     """
+
+    def as_input(self) -> Dict[str, Any]:
+        """Return a dict representation of this item suitable for use as input in a subsequent response.
+
+        This strips output-only fields (``status``, ``encrypted_content``) that the
+        API does not accept as input.
+        """
+        data = self.to_dict()
+        data.pop("status", None)
+        data.pop("encrypted_content", None)
+        return data
