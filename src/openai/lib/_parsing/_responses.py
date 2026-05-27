@@ -58,7 +58,14 @@ def parse_response(
 ) -> ParsedResponse[TextFormatT]:
     output_list: List[ParsedResponseOutputItem[TextFormatT]] = []
 
-    for output in response.output:
+    # Some Responses-API backends emit a terminal payload with
+    # ``output: null`` instead of ``output: []`` (observed on the ChatGPT
+    # codex backend for newer models). The Response type annotation is
+    # ``List[ResponseOutputItem]`` so pydantic doesn't coerce None to [],
+    # which would raise ``TypeError: 'NoneType' object is not iterable``
+    # here. Treat None defensively as an empty list so streaming clients
+    # can recover from the deltas they already received.
+    for output in (response.output or []):
         if output.type == "message":
             content_list: List[ParsedContent[TextFormatT]] = []
             for item in output.content:
