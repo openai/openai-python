@@ -30,7 +30,7 @@ class ActionSearchSource(TypedDict, total=False):
 class ActionSearch(TypedDict, total=False):
     """Action type "search" - Performs a web search query."""
 
-    query: Required[str]
+    query: str
     """[DEPRECATED] The search query."""
 
     type: Required[Literal["search"]]
