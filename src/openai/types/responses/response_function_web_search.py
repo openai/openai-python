@@ -29,7 +29,7 @@ class ActionSearchSource(BaseModel):
 class ActionSearch(BaseModel):
     """Action type "search" - Performs a web search query."""
 
-    query: str
+    query: Optional[str] = None
     """[DEPRECATED] The search query."""
 
     type: Literal["search"]
