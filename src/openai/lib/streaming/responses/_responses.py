@@ -357,9 +357,12 @@ class ResponseStreamState(Generic[TextFormatT]):
             if output.type == "function_call":
                 output.arguments += event.delta
         elif event.type == "response.completed":
+            completed_response = event.response
+            if completed_response.output is None and snapshot.output is not None:  # pyright: ignore[reportUnnecessaryComparison]
+                completed_response = completed_response.model_copy(update={"output": snapshot.output})
             self._completed_response = parse_response(
                 text_format=self._text_format,
-                response=event.response,
+                response=completed_response,
                 input_tools=self._input_tools,
             )
 
