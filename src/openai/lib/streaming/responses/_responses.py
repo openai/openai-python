@@ -15,6 +15,7 @@ from ._events import (
 )
 from ...._types import Omit, omit
 from ...._utils import is_given, consume_sync_iterator, consume_async_iterator
+from ...._compat import model_copy
 from ...._models import build, construct_type_unchecked
 from ...._streaming import Stream, AsyncStream
 from ....types.responses import ParsedResponse, ResponseStreamEvent as RawResponseStreamEvent
@@ -357,9 +358,14 @@ class ResponseStreamState(Generic[TextFormatT]):
             if output.type == "function_call":
                 output.arguments += event.delta
         elif event.type == "response.completed":
+            response = event.response
+            if response.output is None:
+                response = model_copy(response)
+                response.output = snapshot.output
+
             self._completed_response = parse_response(
                 text_format=self._text_format,
-                response=event.response,
+                response=response,
                 input_tools=self._input_tools,
             )
 

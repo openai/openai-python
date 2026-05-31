@@ -111,7 +111,7 @@ class ParsedResponse(Response, GenericModel, Generic[ContentType]):
 
     @property
     def output_parsed(self) -> Optional[ContentType]:
-        for output in self.output:
+        for output in self.output or []:
             if output.type == "message":
                 for content in output.content:
                     if content.type == "output_text" and content.parsed:

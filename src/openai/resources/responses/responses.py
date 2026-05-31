@@ -4093,9 +4093,11 @@ class AsyncResponsesConnectionManager:
         except ImportError as exc:
             raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
 
-        url = self._prepare_url().copy_with(
+        prepared_url = self._prepare_url()
+        url = prepared_url.copy_with(
             params={
                 **self.__client.base_url.params,
+                **prepared_url.params,
                 **extra_query,
             },
         )
@@ -4123,7 +4125,9 @@ class AsyncResponsesConnectionManager:
             ws_scheme = "ws" if scheme == "http" else "wss"
             base_url = self.__client._base_url.copy_with(scheme=ws_scheme)
 
-        merge_raw_path = base_url.raw_path.rstrip(b"/") + b"/responses"
+        merge_raw_path = base_url.raw_path.split(b"?")[0].rstrip(b"/") + b"/responses"
+        if base_url.query:
+            merge_raw_path += b"?" + base_url.query
         return base_url.copy_with(raw_path=merge_raw_path)
 
     async def __aexit__(
@@ -4538,9 +4542,11 @@ class ResponsesConnectionManager:
         except ImportError as exc:
             raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
 
-        url = self._prepare_url().copy_with(
+        prepared_url = self._prepare_url()
+        url = prepared_url.copy_with(
             params={
                 **self.__client.base_url.params,
+                **prepared_url.params,
                 **extra_query,
             },
         )
@@ -4568,7 +4574,9 @@ class ResponsesConnectionManager:
             ws_scheme = "ws" if scheme == "http" else "wss"
             base_url = self.__client._base_url.copy_with(scheme=ws_scheme)
 
-        merge_raw_path = base_url.raw_path.rstrip(b"/") + b"/responses"
+        merge_raw_path = base_url.raw_path.split(b"?")[0].rstrip(b"/") + b"/responses"
+        if base_url.query:
+            merge_raw_path += b"?" + base_url.query
         return base_url.copy_with(raw_path=merge_raw_path)
 
     def __exit__(
