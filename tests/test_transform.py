@@ -458,3 +458,16 @@ async def test_strips_notgiven(use_async: bool) -> None:
 async def test_strips_omit(use_async: bool) -> None:
     assert await transform({"foo_bar": "bar"}, Foo1, use_async) == {"fooBar": "bar"}
     assert await transform({"foo_bar": omit}, Foo1, use_async) == {}
+
+
+class TypedDictBareDict(TypedDict):
+    metadata: dict  # bare dict, no type parameters
+
+
+@parametrize
+@pytest.mark.asyncio
+async def test_bare_dict_no_indexerror(use_async: bool) -> None:
+    # bare `dict` annotation (no type params) must not raise IndexError
+    assert await transform({"metadata": {"key": "value"}}, TypedDictBareDict, use_async) == {
+        "metadata": {"key": "value"}
+    }
