@@ -79,6 +79,8 @@ __all__ = [
     "AsyncStream",
     "OpenAI",
     "AsyncOpenAI",
+    "BedrockOpenAI",
+    "AsyncBedrockOpenAI",
     "file_from_path",
     "BaseModel",
     "DEFAULT_TIMEOUT",
@@ -96,9 +98,10 @@ __all__ = [
 if not _t.TYPE_CHECKING:
     from ._utils._resources_proxy import resources as resources
 
-from .lib import azure as _azure, pydantic_function_tool as pydantic_function_tool
+from .lib import azure as _azure, bedrock as _bedrock, pydantic_function_tool as pydantic_function_tool
 from .version import VERSION as VERSION
 from .lib.azure import AzureOpenAI as AzureOpenAI, AsyncAzureOpenAI as AsyncAzureOpenAI
+from .lib.bedrock import BedrockOpenAI as BedrockOpenAI, AsyncBedrockOpenAI as AsyncBedrockOpenAI
 from .lib._old_api import *
 from .lib.streaming import (
     AssistantEventHandler as AssistantEventHandler,
@@ -150,7 +153,7 @@ default_query: _t.Mapping[str, object] | None = None
 
 http_client: _httpx.Client | None = None
 
-_ApiType = _te.Literal["openai", "azure"]
+_ApiType = _te.Literal["openai", "azure", "amazon-bedrock"]
 
 api_type: _ApiType | None = _t.cast(_ApiType, _os.environ.get("OPENAI_API_TYPE"))
 
@@ -161,6 +164,10 @@ azure_endpoint: str | None = _os.environ.get("AZURE_OPENAI_ENDPOINT")
 azure_ad_token: str | None = _os.environ.get("AZURE_OPENAI_AD_TOKEN")
 
 azure_ad_token_provider: _azure.AzureADTokenProvider | None = None
+
+_bedrock_api_key: str | None = None
+
+bedrock_token_provider: _bedrock.BedrockTokenProvider | None = None
 
 
 class _ModuleClient(OpenAI):
@@ -294,10 +301,23 @@ class _AzureModuleClient(_ModuleClient, AzureOpenAI):  # type: ignore
     ...
 
 
+class _BedrockModuleClient(_ModuleClient, BedrockOpenAI):  # type: ignore
+    @property  # type: ignore
+    @override
+    def api_key(self) -> str | None:
+        return _bedrock_api_key if _bedrock_api_key is not None else api_key
+
+    @api_key.setter  # type: ignore
+    def api_key(self, value: str | None) -> None:  # type: ignore
+        global _bedrock_api_key
+
+        _bedrock_api_key = value
+
+
 class _AmbiguousModuleClientUsageError(OpenAIError):
     def __init__(self) -> None:
         super().__init__(
-            "Ambiguous use of module client; please set `openai.api_type` or the `OPENAI_API_TYPE` environment variable to `openai` or `azure`"
+            "Ambiguous use of module client; please set `openai.api_type` or the `OPENAI_API_TYPE` environment variable to `openai`, `azure`, or `amazon-bedrock`"
         )
 
 
@@ -361,6 +381,22 @@ def _load_client() -> OpenAI:  # type: ignore[reportUnusedFunction]
                 azure_ad_token=azure_ad_token,
                 azure_ad_token_provider=azure_ad_token_provider,
                 organization=organization,
+                base_url=base_url,
+                timeout=timeout,
+                max_retries=max_retries,
+                default_headers=default_headers,
+                default_query=default_query,
+                http_client=http_client,
+            )
+            return _client
+
+        if api_type == "amazon-bedrock":
+            _client = _BedrockModuleClient(  # type: ignore
+                api_key=api_key,
+                bedrock_token_provider=bedrock_token_provider,
+                organization=organization,
+                project=project,
+                webhook_secret=webhook_secret,
                 base_url=base_url,
                 timeout=timeout,
                 max_retries=max_retries,

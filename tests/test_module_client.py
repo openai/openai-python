@@ -30,6 +30,8 @@ def reset_state() -> None:
     openai.azure_endpoint = None
     openai.azure_ad_token = None
     openai.azure_ad_token_provider = None
+    openai._bedrock_api_key = None
+    openai.bedrock_token_provider = None
 
 
 @pytest.fixture(autouse=True)
@@ -102,6 +104,7 @@ import contextlib
 from typing import Iterator
 
 from openai.lib.azure import AzureOpenAI
+from openai.lib.bedrock import BedrockOpenAI
 
 
 @contextlib.contextmanager
@@ -184,3 +187,64 @@ def test_azure_azure_ad_token_provider_version_and_endpoint_env() -> None:
         assert isinstance(client, AzureOpenAI)
         assert client._azure_ad_token_provider is not None
         assert client._azure_ad_token_provider() == "token"
+
+
+def test_bedrock_token_and_region_env() -> None:
+    with fresh_env():
+        openai.api_type = "amazon-bedrock"
+        _os.environ["AWS_BEARER_TOKEN_BEDROCK"] = "example Bedrock token"
+        _os.environ["AWS_REGION"] = "us-west-2"
+
+        client = openai.responses._client
+        assert isinstance(client, BedrockOpenAI)
+        assert client.base_url == URL("https://bedrock-mantle.us-west-2.api.aws/openai/v1/")
+
+
+def test_bedrock_api_type_env() -> None:
+    with fresh_env():
+        _os.environ["OPENAI_API_TYPE"] = "amazon-bedrock"
+        _os.environ["AWS_BEARER_TOKEN_BEDROCK"] = "example Bedrock token"
+        _os.environ["AWS_REGION"] = "us-west-2"
+        reset_state()
+
+        client = openai.responses._client
+        assert isinstance(client, BedrockOpenAI)
+        assert openai.api_type == "amazon-bedrock"
+
+
+def test_bedrock_api_type_uses_bedrock_credentials() -> None:
+    with fresh_env():
+        openai.api_type = "amazon-bedrock"
+        _os.environ["OPENAI_API_KEY"] = "openai api key"
+        _os.environ["AWS_BEARER_TOKEN_BEDROCK"] = "example Bedrock token"
+        _os.environ["AWS_REGION"] = "us-west-2"
+
+        client = openai.responses._client
+        assert isinstance(client, BedrockOpenAI)
+        assert client.api_key == "example Bedrock token"
+        assert openai.api_key is None
+
+
+def test_bedrock_api_type_uses_explicit_module_api_key() -> None:
+    with fresh_env():
+        openai.api_type = "amazon-bedrock"
+        openai.api_key = "explicit Bedrock token"
+        _os.environ["AWS_BEARER_TOKEN_BEDROCK"] = "env Bedrock token"
+        _os.environ["AWS_REGION"] = "us-west-2"
+
+        client = openai.responses._client
+        assert isinstance(client, BedrockOpenAI)
+        assert client.api_key == "explicit Bedrock token"
+        assert openai.api_key == "explicit Bedrock token"
+
+
+def test_bedrock_api_type_uses_token_provider_without_mutating_module_api_key() -> None:
+    with fresh_env():
+        openai.api_type = "amazon-bedrock"
+        openai.bedrock_token_provider = lambda: "provider Bedrock token"
+        _os.environ["AWS_REGION"] = "us-west-2"
+
+        client = openai.responses._client
+        assert isinstance(client, BedrockOpenAI)
+        assert client._refresh_api_key() == "provider Bedrock token"
+        assert openai.api_key is None
