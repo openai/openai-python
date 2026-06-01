@@ -103,6 +103,7 @@ def parse_response(
             or output.type == "web_search_call"
             or output.type == "tool_search_call"
             or output.type == "tool_search_output"
+            or output.type == "additional_tools"
             or output.type == "reasoning"
             or output.type == "compaction"
             or output.type == "mcp_call"

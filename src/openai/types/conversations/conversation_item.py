@@ -6,6 +6,7 @@ from typing_extensions import Literal, Annotated, TypeAlias
 from .message import Message
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
+from ..responses.tool import Tool
 from ..responses.response_reasoning_item import ResponseReasoningItem
 from ..responses.response_compaction_item import ResponseCompactionItem
 from ..responses.response_custom_tool_call import ResponseCustomToolCall
@@ -27,6 +28,7 @@ from ..responses.response_function_shell_tool_call_output import ResponseFunctio
 __all__ = [
     "ConversationItem",
     "ImageGenerationCall",
+    "AdditionalTools",
     "LocalShellCall",
     "LocalShellCallAction",
     "LocalShellCallOutput",
@@ -52,6 +54,20 @@ class ImageGenerationCall(BaseModel):
 
     type: Literal["image_generation_call"]
     """The type of the image generation call. Always `image_generation_call`."""
+
+
+class AdditionalTools(BaseModel):
+    id: str
+    """The unique ID of the additional tools item."""
+
+    role: Literal["unknown", "user", "assistant", "system", "critic", "discriminator", "developer", "tool"]
+    """The role that provided the additional tools."""
+
+    tools: List[Tool]
+    """The additional tool definitions made available at this item."""
+
+    type: Literal["additional_tools"]
+    """The type of the item. Always `additional_tools`."""
 
 
 class LocalShellCallAction(BaseModel):
@@ -234,6 +250,7 @@ ConversationItem: TypeAlias = Annotated[
         ResponseComputerToolCallOutputItem,
         ResponseToolSearchCall,
         ResponseToolSearchOutputItem,
+        AdditionalTools,
         ResponseReasoningItem,
         ResponseCompactionItem,
         ResponseCodeInterpreterToolCall,

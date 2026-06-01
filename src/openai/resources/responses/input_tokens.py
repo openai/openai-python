@@ -51,6 +51,7 @@ class InputTokens(SyncAPIResource):
         instructions: Optional[str] | Omit = omit,
         model: Optional[str] | Omit = omit,
         parallel_tool_calls: Optional[bool] | Omit = omit,
+        personality: Union[str, Literal["friendly", "pragmatic"]] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         text: Optional[input_token_count_params.Text] | Omit = omit,
@@ -90,6 +91,10 @@ class InputTokens(SyncAPIResource):
               available models.
 
           parallel_tool_calls: Whether to allow the model to run tool calls in parallel.
+
+          personality: A model-owned style preset to apply to this request. Omit this parameter to use
+              the model's default style. Supported values may expand over time. Values must be
+              at most 64 characters.
 
           previous_response_id: The unique ID of the previous response to the model. Use this to create
               multi-turn conversations. Learn more about
@@ -133,6 +138,7 @@ class InputTokens(SyncAPIResource):
                     "instructions": instructions,
                     "model": model,
                     "parallel_tool_calls": parallel_tool_calls,
+                    "personality": personality,
                     "previous_response_id": previous_response_id,
                     "reasoning": reasoning,
                     "text": text,
@@ -181,6 +187,7 @@ class AsyncInputTokens(AsyncAPIResource):
         instructions: Optional[str] | Omit = omit,
         model: Optional[str] | Omit = omit,
         parallel_tool_calls: Optional[bool] | Omit = omit,
+        personality: Union[str, Literal["friendly", "pragmatic"]] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         text: Optional[input_token_count_params.Text] | Omit = omit,
@@ -220,6 +227,10 @@ class AsyncInputTokens(AsyncAPIResource):
               available models.
 
           parallel_tool_calls: Whether to allow the model to run tool calls in parallel.
+
+          personality: A model-owned style preset to apply to this request. Omit this parameter to use
+              the model's default style. Supported values may expand over time. Values must be
+              at most 64 characters.
 
           previous_response_id: The unique ID of the previous response to the model. Use this to create
               multi-turn conversations. Learn more about
@@ -263,6 +274,7 @@ class AsyncInputTokens(AsyncAPIResource):
                     "instructions": instructions,
                     "model": model,
                     "parallel_tool_calls": parallel_tool_calls,
+                    "personality": personality,
                     "previous_response_id": previous_response_id,
                     "reasoning": reasoning,
                     "text": text,
