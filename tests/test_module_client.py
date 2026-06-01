@@ -238,6 +238,21 @@ def test_bedrock_api_type_uses_explicit_module_api_key() -> None:
         assert openai.api_key == "explicit Bedrock token"
 
 
+def test_bedrock_module_api_key_overrides_cached_env_token_after_load() -> None:
+    with fresh_env():
+        openai.api_type = "amazon-bedrock"
+        _os.environ["AWS_BEARER_TOKEN_BEDROCK"] = "env Bedrock token"
+        _os.environ["AWS_REGION"] = "us-west-2"
+
+        client = openai.responses._client
+        assert isinstance(client, BedrockOpenAI)
+        assert client.api_key == "env Bedrock token"
+
+        openai.api_key = "new Bedrock token"
+
+        assert client.api_key == "new Bedrock token"
+
+
 def test_bedrock_api_type_uses_token_provider_without_mutating_module_api_key() -> None:
     with fresh_env():
         openai.api_type = "amazon-bedrock"

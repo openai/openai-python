@@ -305,7 +305,7 @@ class _BedrockModuleClient(_ModuleClient, BedrockOpenAI):  # type: ignore
     @property  # type: ignore
     @override
     def api_key(self) -> str | None:
-        return _bedrock_api_key if _bedrock_api_key is not None else api_key
+        return api_key if api_key is not None else _bedrock_api_key
 
     @api_key.setter  # type: ignore
     def api_key(self, value: str | None) -> None:  # type: ignore
