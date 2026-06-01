@@ -61,3 +61,33 @@ def test_parse_method_definition_in_sync(sync: bool, client: OpenAI, async_clien
         checking_client.responses.parse,
         exclude_params={"tools"},
     )
+
+
+def test_parse_response_with_null_output() -> None:
+    # some backends (e.g. Codex) emit a terminal `response.completed` event where
+    # `output` is null; the SDK constructs the model leniently so `.output` ends
+    # up as None and parsing must not crash, see #3312/#3313/#3314/#3321/#3325
+    from openai._types import omit
+    from openai._models import construct_type
+    from openai.types.responses.response import Response
+    from openai.lib._parsing._responses import parse_response
+
+    response = construct_type(
+        type_=Response,
+        value={
+            "id": "resp_123",
+            "created_at": 0,
+            "model": "gpt-5",
+            "object": "response",
+            "output": None,
+            "parallel_tool_calls": True,
+            "tool_choice": "auto",
+            "tools": [],
+            "status": "incomplete",
+        },
+    )
+    assert isinstance(response, Response)
+    assert response.output is None
+
+    parsed = parse_response(text_format=omit, input_tools=omit, response=response)
+    assert parsed.output == []
