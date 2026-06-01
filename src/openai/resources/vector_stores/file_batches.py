@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import time
 import asyncio
 from typing import Dict, Iterable, Optional
 from typing_extensions import Union, Literal
@@ -18,6 +19,7 @@ from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from ...pagination import SyncCursorPage, AsyncCursorPage
+from ..._exceptions import PollingTimeoutError
 from ..._base_client import AsyncPaginator, make_request_options
 from ...types.file_object import FileObject
 from ...types.vector_stores import file_batch_create_params, file_batch_list_files_params
@@ -223,6 +225,7 @@ class FileBatches(SyncAPIResource):
         file_ids: SequenceNotStr[str] | Omit = omit,
         files: Iterable[file_batch_create_params.File] | Omit = omit,
         poll_interval_ms: int | Omit = omit,
+        max_wait_seconds: float | None = 600,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -247,6 +250,7 @@ class FileBatches(SyncAPIResource):
             batch.id,
             vector_store_id=vector_store_id,
             poll_interval_ms=poll_interval_ms,
+            max_wait_seconds=max_wait_seconds,
         )
 
     def list_files(
@@ -334,6 +338,7 @@ class FileBatches(SyncAPIResource):
         *,
         vector_store_id: str,
         poll_interval_ms: int | Omit = omit,
+        max_wait_seconds: float | None = 600,
     ) -> VectorStoreFileBatch:
         """Wait for the given file batch to be processed.
 
@@ -344,6 +349,7 @@ class FileBatches(SyncAPIResource):
         if is_given(poll_interval_ms):
             headers["X-Stainless-Custom-Poll-Interval"] = str(poll_interval_ms)
 
+        started_at = time.monotonic()
         while True:
             response = self.with_raw_response.retrieve(
                 batch_id,
@@ -353,6 +359,12 @@ class FileBatches(SyncAPIResource):
 
             batch = response.parse()
             if batch.file_counts.in_progress > 0:
+                elapsed = time.monotonic() - started_at
+                if max_wait_seconds is not None and elapsed >= max_wait_seconds:
+                    raise PollingTimeoutError(
+                        f"Polling timed out after {max_wait_seconds}s: file batch {batch_id} is still in_progress"
+                    )
+
                 if not is_given(poll_interval_ms):
                     from_header = response.headers.get("openai-poll-after-ms")
                     if from_header is not None:
@@ -360,7 +372,10 @@ class FileBatches(SyncAPIResource):
                     else:
                         poll_interval_ms = 1000
 
-                self._sleep(poll_interval_ms / 1000)
+                sleep_seconds = poll_interval_ms / 1000
+                if max_wait_seconds is not None:
+                    sleep_seconds = min(sleep_seconds, max_wait_seconds - elapsed)
+                self._sleep(sleep_seconds)
                 continue
 
             return batch
@@ -373,6 +388,7 @@ class FileBatches(SyncAPIResource):
         max_concurrency: int = 5,
         file_ids: SequenceNotStr[str] = [],
         poll_interval_ms: int | Omit = omit,
+        max_wait_seconds: float | None = 600,
         chunking_strategy: FileChunkingStrategyParam | Omit = omit,
     ) -> VectorStoreFileBatch:
         """Uploads the given files concurrently and then creates a vector store file batch.
@@ -411,6 +427,7 @@ class FileBatches(SyncAPIResource):
             vector_store_id=vector_store_id,
             file_ids=[*file_ids, *(f.id for f in results)],
             poll_interval_ms=poll_interval_ms,
+            max_wait_seconds=max_wait_seconds,
             chunking_strategy=chunking_strategy,
         )
         return batch
@@ -611,6 +628,7 @@ class AsyncFileBatches(AsyncAPIResource):
         file_ids: SequenceNotStr[str] | Omit = omit,
         files: Iterable[file_batch_create_params.File] | Omit = omit,
         poll_interval_ms: int | Omit = omit,
+        max_wait_seconds: float | None = 600,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -635,6 +653,7 @@ class AsyncFileBatches(AsyncAPIResource):
             batch.id,
             vector_store_id=vector_store_id,
             poll_interval_ms=poll_interval_ms,
+            max_wait_seconds=max_wait_seconds,
         )
 
     def list_files(
@@ -722,6 +741,7 @@ class AsyncFileBatches(AsyncAPIResource):
         *,
         vector_store_id: str,
         poll_interval_ms: int | Omit = omit,
+        max_wait_seconds: float | None = 600,
     ) -> VectorStoreFileBatch:
         """Wait for the given file batch to be processed.
 
@@ -732,6 +752,7 @@ class AsyncFileBatches(AsyncAPIResource):
         if is_given(poll_interval_ms):
             headers["X-Stainless-Custom-Poll-Interval"] = str(poll_interval_ms)
 
+        started_at = time.monotonic()
         while True:
             response = await self.with_raw_response.retrieve(
                 batch_id,
@@ -741,6 +762,12 @@ class AsyncFileBatches(AsyncAPIResource):
 
             batch = response.parse()
             if batch.file_counts.in_progress > 0:
+                elapsed = time.monotonic() - started_at
+                if max_wait_seconds is not None and elapsed >= max_wait_seconds:
+                    raise PollingTimeoutError(
+                        f"Polling timed out after {max_wait_seconds}s: file batch {batch_id} is still in_progress"
+                    )
+
                 if not is_given(poll_interval_ms):
                     from_header = response.headers.get("openai-poll-after-ms")
                     if from_header is not None:
@@ -748,7 +775,10 @@ class AsyncFileBatches(AsyncAPIResource):
                     else:
                         poll_interval_ms = 1000
 
-                await self._sleep(poll_interval_ms / 1000)
+                sleep_seconds = poll_interval_ms / 1000
+                if max_wait_seconds is not None:
+                    sleep_seconds = min(sleep_seconds, max_wait_seconds - elapsed)
+                await self._sleep(sleep_seconds)
                 continue
 
             return batch
@@ -761,6 +791,7 @@ class AsyncFileBatches(AsyncAPIResource):
         max_concurrency: int = 5,
         file_ids: SequenceNotStr[str] = [],
         poll_interval_ms: int | Omit = omit,
+        max_wait_seconds: float | None = 600,
         chunking_strategy: FileChunkingStrategyParam | Omit = omit,
     ) -> VectorStoreFileBatch:
         """Uploads the given files concurrently and then creates a vector store file batch.
@@ -822,6 +853,7 @@ class AsyncFileBatches(AsyncAPIResource):
             vector_store_id=vector_store_id,
             file_ids=[*file_ids, *(f.id for f in uploaded_files)],
             poll_interval_ms=poll_interval_ms,
+            max_wait_seconds=max_wait_seconds,
             chunking_strategy=chunking_strategy,
         )
         return batch
