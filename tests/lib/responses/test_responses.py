@@ -12,8 +12,9 @@ from openai import OpenAI, AsyncOpenAI
 from openai._types import omit
 from openai._utils import assert_signatures_in_sync
 from openai._models import construct_type_unchecked
-from openai.types.responses import Response
+from openai.types.responses import Response, ResponseCreatedEvent, ResponseCompletedEvent
 from openai.lib._parsing._responses import parse_response
+from openai.lib.streaming.responses._responses import ResponseStreamState
 
 from ...conftest import base_url
 from ..snapshots import make_snapshot_request
@@ -101,6 +102,45 @@ def test_parse_response_does_not_leak_schema_validators() -> None:
 
     gc.collect()
     assert sum(1 for obj in gc.get_objects() if type(obj) is SchemaValidator) == validator_count
+
+
+def test_response_stream_completed_preserves_function_call_and_compaction_items() -> None:
+    state = ResponseStreamState(text_format=omit, input_tools=omit)
+    created_response = _minimal_response([], status="in_progress")
+    completed_response = _minimal_response(
+        [
+            {
+                "id": "fc_test",
+                "type": "function_call",
+                "call_id": "call_test",
+                "name": "lookup",
+                "arguments": "{}",
+                "status": "completed",
+            },
+            {
+                "id": "cmp_test",
+                "type": "compaction",
+                "encrypted_content": "encrypted",
+            },
+        ]
+    )
+
+    state.handle_event(
+        construct_type_unchecked(
+            type_=ResponseCreatedEvent,
+            value={"type": "response.created", "sequence_number": 0, "response": created_response},
+        )
+    )
+    events = state.handle_event(
+        construct_type_unchecked(
+            type_=ResponseCompletedEvent,
+            value={"type": "response.completed", "sequence_number": 1, "response": completed_response},
+        )
+    )
+
+    completed_event = events[0]
+    assert completed_event.type == "response.completed"
+    assert [item.type for item in completed_event.response.output] == ["function_call", "compaction"]
 
 
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
