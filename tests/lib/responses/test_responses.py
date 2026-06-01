@@ -163,6 +163,45 @@ def test_response_stream_completed_uses_snapshot_when_event_output_is_null() -> 
     assert completed_event.response.output_text == "hello"
 
 
+def test_response_stream_completed_preserves_function_call_and_compaction_items() -> None:
+    state = ResponseStreamState(text_format=omit, input_tools=omit)
+    created_response = _minimal_response([], status="in_progress")
+    completed_response = _minimal_response(
+        [
+            {
+                "id": "fc_test",
+                "type": "function_call",
+                "call_id": "call_test",
+                "name": "lookup",
+                "arguments": "{}",
+                "status": "completed",
+            },
+            {
+                "id": "cmp_test",
+                "type": "compaction",
+                "encrypted_content": "encrypted",
+            },
+        ]
+    )
+
+    state.handle_event(
+        construct_type_unchecked(
+            type_=ResponseCreatedEvent,
+            value={"type": "response.created", "sequence_number": 0, "response": created_response},
+        )
+    )
+    events = state.handle_event(
+        construct_type_unchecked(
+            type_=ResponseCompletedEvent,
+            value={"type": "response.completed", "sequence_number": 1, "response": completed_response},
+        )
+    )
+
+    completed_event = events[0]
+    assert completed_event.type == "response.completed"
+    assert [item.type for item in completed_event.response.output] == ["function_call", "compaction"]
+
+
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
 def test_stream_method_definition_in_sync(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
     checking_client: OpenAI | AsyncOpenAI = client if sync else async_client
