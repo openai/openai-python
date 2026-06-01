@@ -252,6 +252,55 @@ def test_preserves_token_provider_across_with_options() -> None:
     assert copied_client._refresh_api_key() == "provider token"
 
 
+@pytest.mark.parametrize("client_cls", [BedrockOpenAI, AsyncBedrockOpenAI])
+def test_with_options_api_key_replaces_token_provider(client_cls: type[Client]) -> None:
+    client = (
+        make_sync_client(
+            base_url="https://example.com/openai/v1",
+            bedrock_token_provider=lambda: "provider token",
+        )
+        if client_cls is BedrockOpenAI
+        else make_async_client(
+            base_url="https://example.com/openai/v1",
+            bedrock_token_provider=lambda: "provider token",
+        )
+    )
+
+    copied_client = client.with_options(api_key="static token")
+
+    assert copied_client.api_key == "static token"
+    assert copied_client._bedrock_token_provider is None
+
+
+@pytest.mark.parametrize("client_cls", [BedrockOpenAI, AsyncBedrockOpenAI])
+def test_with_options_aws_region_recomputes_region_derived_base_url(client_cls: type[Client]) -> None:
+    with update_env(AWS_BEDROCK_BASE_URL=Omit(), AWS_REGION=Omit(), AWS_DEFAULT_REGION=Omit()):
+        client = (
+            make_sync_client(aws_region="us-east-1", api_key="token")
+            if client_cls is BedrockOpenAI
+            else make_async_client(aws_region="us-east-1", api_key="token")
+        )
+
+        copied_client = client.with_options(aws_region="eu-west-1")
+
+    assert copied_client.aws_region == "eu-west-1"
+    assert copied_client.base_url == URL("https://bedrock-mantle.eu-west-1.api.aws/openai/v1/")
+
+
+@pytest.mark.parametrize("client_cls", [BedrockOpenAI, AsyncBedrockOpenAI])
+def test_with_options_aws_region_keeps_explicit_base_url(client_cls: type[Client]) -> None:
+    client = (
+        make_sync_client(base_url="https://example.com/openai/v1", aws_region="us-east-1", api_key="token")
+        if client_cls is BedrockOpenAI
+        else make_async_client(base_url="https://example.com/openai/v1", aws_region="us-east-1", api_key="token")
+    )
+
+    copied_client = client.with_options(aws_region="eu-west-1")
+
+    assert copied_client.aws_region == "eu-west-1"
+    assert copied_client.base_url == URL("https://example.com/openai/v1/")
+
+
 @pytest.mark.parametrize(
     "copy_kwargs",
     [

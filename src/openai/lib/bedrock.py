@@ -54,6 +54,17 @@ def _resolve_bedrock_base_url(base_url: str | httpx.URL | None, aws_region: str 
     return _normalize_bedrock_base_url(base_url)
 
 
+def _uses_region_derived_bedrock_base_url(base_url: str | httpx.URL | None) -> bool:
+    if isinstance(base_url, str) and not base_url.strip():
+        base_url = None
+
+    if base_url is not None:
+        return False
+
+    env_base_url = os.environ.get("AWS_BEDROCK_BASE_URL")
+    return env_base_url is None or not env_base_url.strip()
+
+
 def _bedrock_token_provider(provider: BedrockTokenProvider) -> BedrockTokenProvider:
     """Adapt a sync Bedrock token provider to the base client's api_key callback."""
 
@@ -87,6 +98,7 @@ class BedrockOpenAI(OpenAI):
     """API client for Amazon Bedrock's OpenAI-compatible endpoint."""
 
     _bedrock_token_provider: BedrockTokenProvider | None
+    _uses_region_derived_base_url: bool
     aws_region: str | None
 
     def __init__(
@@ -133,6 +145,7 @@ class BedrockOpenAI(OpenAI):
             )
 
         self._bedrock_token_provider = bedrock_token_provider
+        self._uses_region_derived_base_url = _uses_region_derived_bedrock_base_url(base_url)
         self.aws_region = aws_region
 
         super().__init__(
@@ -223,10 +236,17 @@ class BedrockOpenAI(OpenAI):
         elif set_default_query is not None:
             params = set_default_query
 
-        next_token_provider = (
-            bedrock_token_provider if bedrock_token_provider is not None else self._bedrock_token_provider
-        )
+        if api_key is not None:
+            next_token_provider = None
+        elif bedrock_token_provider is not None:
+            next_token_provider = bedrock_token_provider
+        else:
+            next_token_provider = self._bedrock_token_provider
+
         next_api_key = api_key if api_key is not None else (None if next_token_provider is not None else self.api_key)
+        next_base_url = base_url
+        if next_base_url is None and not (aws_region is not None and self._uses_region_derived_base_url):
+            next_base_url = self.base_url
 
         return self.__class__(
             api_key=next_api_key,
@@ -236,7 +256,7 @@ class BedrockOpenAI(OpenAI):
             project=project if project is not None else self.project,
             webhook_secret=webhook_secret if webhook_secret is not None else self.webhook_secret,
             websocket_base_url=websocket_base_url if websocket_base_url is not None else self.websocket_base_url,
-            base_url=base_url if base_url is not None else self.base_url,
+            base_url=next_base_url,
             timeout=self.timeout if isinstance(timeout, NotGiven) else timeout,
             http_client=http_client or self._client,
             max_retries=max_retries if is_given(max_retries) else self.max_retries,
@@ -253,6 +273,7 @@ class AsyncBedrockOpenAI(AsyncOpenAI):
     """Async API client for Amazon Bedrock's OpenAI-compatible endpoint."""
 
     _bedrock_token_provider: AsyncBedrockTokenProvider | None
+    _uses_region_derived_base_url: bool
     aws_region: str | None
 
     def __init__(
@@ -299,6 +320,7 @@ class AsyncBedrockOpenAI(AsyncOpenAI):
             )
 
         self._bedrock_token_provider = bedrock_token_provider
+        self._uses_region_derived_base_url = _uses_region_derived_bedrock_base_url(base_url)
         self.aws_region = aws_region
 
         super().__init__(
@@ -391,10 +413,17 @@ class AsyncBedrockOpenAI(AsyncOpenAI):
         elif set_default_query is not None:
             params = set_default_query
 
-        next_token_provider = (
-            bedrock_token_provider if bedrock_token_provider is not None else self._bedrock_token_provider
-        )
+        if api_key is not None:
+            next_token_provider = None
+        elif bedrock_token_provider is not None:
+            next_token_provider = bedrock_token_provider
+        else:
+            next_token_provider = self._bedrock_token_provider
+
         next_api_key = api_key if api_key is not None else (None if next_token_provider is not None else self.api_key)
+        next_base_url = base_url
+        if next_base_url is None and not (aws_region is not None and self._uses_region_derived_base_url):
+            next_base_url = self.base_url
 
         return self.__class__(
             api_key=next_api_key,
@@ -404,7 +433,7 @@ class AsyncBedrockOpenAI(AsyncOpenAI):
             project=project if project is not None else self.project,
             webhook_secret=webhook_secret if webhook_secret is not None else self.webhook_secret,
             websocket_base_url=websocket_base_url if websocket_base_url is not None else self.websocket_base_url,
-            base_url=base_url if base_url is not None else self.base_url,
+            base_url=next_base_url,
             timeout=self.timeout if isinstance(timeout, NotGiven) else timeout,
             http_client=http_client or self._client,
             max_retries=max_retries if is_given(max_retries) else self.max_retries,
