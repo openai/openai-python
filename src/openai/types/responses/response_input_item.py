@@ -3,6 +3,7 @@
 from typing import Dict, List, Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
 
+from .tool import Tool
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
 from .local_environment import LocalEnvironment
@@ -31,6 +32,7 @@ __all__ = [
     "ComputerCallOutputAcknowledgedSafetyCheck",
     "FunctionCallOutput",
     "ToolSearchCall",
+    "AdditionalTools",
     "ImageGenerationCall",
     "LocalShellCall",
     "LocalShellCallAction",
@@ -168,6 +170,20 @@ class ToolSearchCall(BaseModel):
 
     status: Optional[Literal["in_progress", "completed", "incomplete"]] = None
     """The status of the tool search call."""
+
+
+class AdditionalTools(BaseModel):
+    role: Literal["developer"]
+    """The role that provided the additional tools. Only `developer` is supported."""
+
+    tools: List[Tool]
+    """A list of additional tools made available at this item."""
+
+    type: Literal["additional_tools"]
+    """The item type. Always `additional_tools`."""
+
+    id: Optional[str] = None
+    """The unique ID of this additional tools item."""
 
 
 class ImageGenerationCall(BaseModel):
@@ -558,6 +574,7 @@ ResponseInputItem: TypeAlias = Annotated[
         FunctionCallOutput,
         ToolSearchCall,
         ResponseToolSearchOutputItemParam,
+        AdditionalTools,
         ResponseReasoningItem,
         ResponseCompactionItemParam,
         ImageGenerationCall,
