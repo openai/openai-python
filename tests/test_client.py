@@ -1002,6 +1002,30 @@ class TestOpenAI:
 
         assert response.http_request.headers.get("x-stainless-retry-count") == "42"
 
+    @pytest.mark.respx(base_url=base_url)
+    @pytest.mark.parametrize(
+        ("timeout", "extra_headers", "expected"),
+        [
+            (12.5, {}, "12500"),
+            (httpx.Timeout(12.5), {}, None),
+            (12.5, {"request-timeout-ms": Omit()}, None),
+            (12.5, {"request-timeout-ms": "42"}, "42"),
+        ],
+    )
+    def test_request_timeout_ms_header(
+        self, client: OpenAI, respx_mock: MockRouter, timeout: float | httpx.Timeout, extra_headers: dict[str, Any], expected: str | None
+    ) -> None:
+        respx_mock.post("/chat/completions").mock(return_value=httpx.Response(200))
+
+        response = client.chat.completions.with_raw_response.create(
+            messages=[{"content": "string", "role": "developer"}],
+            model="gpt-4o",
+            timeout=timeout,
+            extra_headers=extra_headers,
+        )
+
+        assert response.http_request.headers.get("request-timeout-ms") == expected
+
     @pytest.mark.parametrize("failures_before_success", [0, 2, 4])
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
