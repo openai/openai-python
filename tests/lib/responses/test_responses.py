@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import gc
 from typing_extensions import TypeVar
 
 import pytest
 from respx import MockRouter
+from pydantic_core import SchemaValidator
 from inline_snapshot import snapshot
 
 from openai import OpenAI, AsyncOpenAI
@@ -83,6 +85,41 @@ def test_response_handles_null_output() -> None:
 
     assert response.output is None
     assert response.output_text == ""
+
+
+def test_parse_response_does_not_leak_schema_validators() -> None:
+    response = _minimal_response(
+        [
+            {
+                "id": "msg_test",
+                "type": "message",
+                "status": "completed",
+                "role": "assistant",
+                "content": [
+                    {
+                        "type": "output_text",
+                        "annotations": [],
+                        "text": "hello",
+                    }
+                ],
+            }
+        ]
+    )
+
+    for _ in range(100):
+        parse_response(text_format=omit, input_tools=omit, response=response)
+
+    for _ in range(100):
+        parse_response(text_format=omit, input_tools=omit, response=response)
+
+    gc.collect()
+    validator_count = sum(1 for obj in gc.get_objects() if type(obj) is SchemaValidator)
+
+    for _ in range(100):
+        parse_response(text_format=omit, input_tools=omit, response=response)
+
+    gc.collect()
+    assert sum(1 for obj in gc.get_objects() if type(obj) is SchemaValidator) == validator_count
 
 
 def test_response_stream_completed_uses_snapshot_when_event_output_is_null() -> None:
