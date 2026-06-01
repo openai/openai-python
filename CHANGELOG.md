@@ -4,6 +4,9 @@
 
 Full Changelog: [v2.39.0...v2.40.0](https://github.com/openai/openai-python/compare/v2.39.0...v2.40.0)
 
+### Features
+* **api:** Add Amazon Bedrock Responses support
+
 ### Bug Fixes
 
 * **api:** allow setting bedrock api keys on the client directly ([4d5bfde](https://github.com/openai/openai-python/commit/4d5bfdec37fa8a2b2a0413724755e586e627e28d))
