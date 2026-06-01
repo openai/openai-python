@@ -54,6 +54,13 @@ class InputTokenCountParams(TypedDict, total=False):
     parallel_tool_calls: Optional[bool]
     """Whether to allow the model to run tool calls in parallel."""
 
+    personality: Union[str, Literal["friendly", "pragmatic"]]
+    """A model-owned style preset to apply to this request.
+
+    Omit this parameter to use the model's default style. Supported values may
+    expand over time. Values must be at most 64 characters.
+    """
+
     previous_response_id: Optional[str]
     """The unique ID of the previous response to the model.
 

@@ -30,6 +30,7 @@ class TestInputTokens:
             instructions="instructions",
             model="model",
             parallel_tool_calls=True,
+            personality="friendly",
             previous_response_id="resp_123",
             reasoning={
                 "effort": "none",
@@ -94,6 +95,7 @@ class TestAsyncInputTokens:
             instructions="instructions",
             model="model",
             parallel_tool_calls=True,
+            personality="friendly",
             previous_response_id="resp_123",
             reasoning={
                 "effort": "none",

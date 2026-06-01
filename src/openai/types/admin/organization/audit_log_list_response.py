@@ -80,6 +80,12 @@ __all__ = [
     "UserDeleted",
     "UserUpdated",
     "UserUpdatedChangesRequested",
+    "WorkloadIdentityProviderMappingCreated",
+    "WorkloadIdentityProviderMappingDeleted",
+    "WorkloadIdentityProviderMappingUpdated",
+    "WorkloadIdentityProviderCreated",
+    "WorkloadIdentityProviderDeleted",
+    "WorkloadIdentityProviderUpdated",
 ]
 
 
@@ -804,6 +810,78 @@ class UserUpdated(BaseModel):
     """The payload used to update the user."""
 
 
+class WorkloadIdentityProviderMappingCreated(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The workload identity provider mapping ID."""
+
+    data: Optional[object] = None
+    """The payload used to create the workload identity provider mapping."""
+
+    identity_provider_id: Optional[str] = None
+    """The workload identity provider ID."""
+
+
+class WorkloadIdentityProviderMappingDeleted(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The workload identity provider mapping ID."""
+
+    identity_provider_id: Optional[str] = None
+    """The workload identity provider ID."""
+
+    project_id: Optional[str] = None
+    """The project ID."""
+
+    service_account_id: Optional[str] = None
+    """The mapped service account ID."""
+
+
+class WorkloadIdentityProviderMappingUpdated(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The workload identity provider mapping ID."""
+
+    changes_requested: Optional[object] = None
+    """The payload used to update the workload identity provider mapping."""
+
+    identity_provider_id: Optional[str] = None
+    """The workload identity provider ID."""
+
+
+class WorkloadIdentityProviderCreated(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The workload identity provider ID."""
+
+    data: Optional[object] = None
+    """The payload used to create the workload identity provider."""
+
+
+class WorkloadIdentityProviderDeleted(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The workload identity provider ID."""
+
+    name: Optional[str] = None
+    """The workload identity provider name."""
+
+
+class WorkloadIdentityProviderUpdated(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The workload identity provider ID."""
+
+    changes_requested: Optional[object] = None
+    """The payload used to update the workload identity provider."""
+
+
 class AuditLogListResponse(BaseModel):
     """A log of a user action or configuration change within this organization."""
 
@@ -852,6 +930,12 @@ class AuditLogListResponse(BaseModel):
         "tunnel.created",
         "tunnel.updated",
         "tunnel.deleted",
+        "workload_identity_provider.created",
+        "workload_identity_provider.updated",
+        "workload_identity_provider.deleted",
+        "workload_identity_provider_mapping.created",
+        "workload_identity_provider_mapping.updated",
+        "workload_identity_provider_mapping.deleted",
         "role.created",
         "role.updated",
         "role.deleted",
@@ -1030,4 +1114,34 @@ class AuditLogListResponse(BaseModel):
     """The details for events with this `type`."""
 
     user_updated: Optional[UserUpdated] = FieldInfo(alias="user.updated", default=None)
+    """The details for events with this `type`."""
+
+    workload_identity_provider_mapping_created: Optional[WorkloadIdentityProviderMappingCreated] = FieldInfo(
+        alias="workload_identity_provider_mapping.created", default=None
+    )
+    """The details for events with this `type`."""
+
+    workload_identity_provider_mapping_deleted: Optional[WorkloadIdentityProviderMappingDeleted] = FieldInfo(
+        alias="workload_identity_provider_mapping.deleted", default=None
+    )
+    """The details for events with this `type`."""
+
+    workload_identity_provider_mapping_updated: Optional[WorkloadIdentityProviderMappingUpdated] = FieldInfo(
+        alias="workload_identity_provider_mapping.updated", default=None
+    )
+    """The details for events with this `type`."""
+
+    workload_identity_provider_created: Optional[WorkloadIdentityProviderCreated] = FieldInfo(
+        alias="workload_identity_provider.created", default=None
+    )
+    """The details for events with this `type`."""
+
+    workload_identity_provider_deleted: Optional[WorkloadIdentityProviderDeleted] = FieldInfo(
+        alias="workload_identity_provider.deleted", default=None
+    )
+    """The details for events with this `type`."""
+
+    workload_identity_provider_updated: Optional[WorkloadIdentityProviderUpdated] = FieldInfo(
+        alias="workload_identity_provider.updated", default=None
+    )
     """The details for events with this `type`."""
