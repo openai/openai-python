@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import json
 from typing_extensions import TypeVar
 
+import httpx
 import pytest
 from respx import MockRouter
 from inline_snapshot import snapshot
@@ -50,6 +52,69 @@ def test_stream_method_definition_in_sync(sync: bool, client: OpenAI, async_clie
         checking_client.responses.stream,
         exclude_params={"stream", "tools"},
     )
+
+
+@pytest.mark.respx(base_url=base_url)
+@pytest.mark.parametrize("client", [False], indirect=True)
+def test_stream_function_call_arguments_done_includes_name(client: OpenAI, respx_mock: MockRouter) -> None:
+    response = {
+        "id": "resp_123",
+        "object": "response",
+        "created_at": 1720000000,
+        "status": "in_progress",
+        "error": None,
+        "incomplete_details": None,
+        "instructions": None,
+        "model": "gpt-4o-mini-2024-07-18",
+        "output": [],
+        "parallel_tool_calls": True,
+        "temperature": 1.0,
+        "tool_choice": "auto",
+        "tools": [],
+        "top_p": 1.0,
+        "metadata": {},
+    }
+    arguments = '{"part_number":"ABC-123"}'
+    events = [
+        {
+            "type": "response.created",
+            "sequence_number": 0,
+            "response": response,
+        },
+        {
+            "type": "response.output_item.added",
+            "sequence_number": 1,
+            "output_index": 0,
+            "item": {
+                "id": "fc_123",
+                "type": "function_call",
+                "status": "in_progress",
+                "call_id": "call_123",
+                "name": "search_parts",
+                "arguments": "",
+            },
+        },
+        {
+            "type": "response.function_call_arguments.done",
+            "sequence_number": 2,
+            "item_id": "fc_123",
+            "output_index": 0,
+            "name": None,
+            "arguments": arguments,
+        },
+    ]
+    sse = "".join(f"event: {event['type']}\ndata: {json.dumps(event)}\n\n" for event in events)
+
+    respx_mock.post("/responses").mock(
+        return_value=httpx.Response(200, text=sse, headers={"Content-Type": "text/event-stream"})
+    )
+
+    with client.responses.stream(model="gpt-4o-mini", input="search for a part") as stream:
+        streamed_events = list(stream)
+
+    done_event = next(event for event in streamed_events if event.type == "response.function_call_arguments.done")
+    assert done_event.name == "search_parts"
+    assert done_event.arguments == arguments
 
 
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
