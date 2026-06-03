@@ -8,7 +8,6 @@ responses are preserved end-to-end.
 """
 
 import os
-import asyncio
 
 import httpx
 
