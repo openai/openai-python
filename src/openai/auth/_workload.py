@@ -28,6 +28,7 @@ class SubjectTokenProvider(TypedDict):
 
 class WorkloadIdentity(TypedDict):
     """Identity provider resource id in WIFAPI."""
+
     identity_provider_id: str
 
     """Service account id to bind the verified external identity to."""
