@@ -28,7 +28,8 @@ def run_sync_example() -> None:
         messages=[{"role": "user", "content": "Hello!"}],
     ) as stream:
         for event in stream:
-            print(event.content or "", end="", flush=True)
+            if event.type == "content.delta":
+                print(event.delta, end="", flush=True)
 
 
 async def run_async_example() -> None:
@@ -39,7 +40,8 @@ async def run_async_example() -> None:
         messages=[{"role": "user", "content": "Hi!"}],
     ) as stream:
         async for event in stream:
-            print(event.content or "", end="", flush=True)
+            if event.type == "content.delta":
+                print(event.delta, end="", flush=True)
 
 
 if __name__ == "__main__":
