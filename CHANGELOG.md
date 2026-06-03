@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.41.0 (2026-06-03)
+
+Full Changelog: [v2.40.0...v2.41.0](https://github.com/openai/openai-python/compare/v2.40.0...v2.41.0)
+
+### Features
+
+* **api:** responses.moderation and chat_completions.moderation ([87e46c2](https://github.com/openai/openai-python/commit/87e46c25ac9ca8cff407b52ad9fb33e326c059d6))
+
 ## 2.40.0 (2026-06-01)
 
 Full Changelog: [v2.39.0...v2.40.0](https://github.com/openai/openai-python/compare/v2.39.0...v2.40.0)
