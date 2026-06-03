@@ -23,7 +23,14 @@ from .tool_choice_apply_patch_param import ToolChoiceApplyPatchParam
 from ..shared_params.responses_model import ResponsesModel
 from .response_conversation_param_param import ResponseConversationParamParam
 
-__all__ = ["ResponsesClientEventParam", "ContextManagement", "Conversation", "StreamOptions", "ToolChoice"]
+__all__ = [
+    "ResponsesClientEventParam",
+    "ContextManagement",
+    "Conversation",
+    "Moderation",
+    "StreamOptions",
+    "ToolChoice",
+]
 
 
 class ContextManagement(TypedDict, total=False):
@@ -35,6 +42,16 @@ class ContextManagement(TypedDict, total=False):
 
 
 Conversation: TypeAlias = Union[str, ResponseConversationParamParam]
+
+
+class Moderation(TypedDict, total=False):
+    """Configuration for running moderation on the input and output of this response."""
+
+    model: Required[str]
+    """The moderation model to use for moderated completions, e.g.
+
+    'omni-moderation-latest'.
+    """
 
 
 class StreamOptions(TypedDict, total=False):
@@ -160,6 +177,9 @@ class ResponsesClientEventParam(TypedDict, total=False):
     [model guide](https://platform.openai.com/docs/models) to browse and compare
     available models.
     """
+
+    moderation: Optional[Moderation]
+    """Configuration for running moderation on the input and output of this response."""
 
     parallel_tool_calls: Optional[bool]
     """Whether to allow the model to run tool calls in parallel."""
