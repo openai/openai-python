@@ -787,7 +787,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         # Apply exponential backoff, but not more than the max.
         sleep_seconds = min(INITIAL_RETRY_DELAY * pow(2.0, nb_retries), MAX_RETRY_DELAY)
 
-        # Apply some jitter, plus-or-minus half a second.
+        # Apply jitter, scaling the delay down by up to 25%.
         jitter = 1 - 0.25 * random()
         timeout = sleep_seconds * jitter
         return timeout if timeout >= 0 else 0
