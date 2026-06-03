@@ -30,6 +30,8 @@ async_client = AsyncAzureOpenAI(
     azure_endpoint="https://example-resource.azure.openai.com",
 )
 
+AZURE_AD_JWT_API_KEY = "eyJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJodHRwczovL2NvZ25pdGl2ZXNlcnZpY2VzLmF6dXJlLmNvbS8ifQ.signature"
+
 
 class MockRequestCall(Protocol):
     request: httpx.Request
@@ -303,6 +305,105 @@ async def test_client_token_provider_refresh_async(respx_mock: MockRouter) -> No
 
     assert calls[0].request.headers.get("Authorization") == "Bearer first"
     assert calls[1].request.headers.get("Authorization") == "Bearer second"
+
+
+@pytest.mark.respx()
+def test_sync_jwt_like_api_key_uses_authorization_header(respx_mock: MockRouter) -> None:
+    respx_mock.post(
+        "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-02-01"
+    ).mock(return_value=httpx.Response(200, json={"model": "gpt-4"}))
+
+    client = AzureOpenAI(
+        api_version="2024-02-01",
+        api_key=f"Bearer {AZURE_AD_JWT_API_KEY}",
+        azure_endpoint="https://example-resource.azure.openai.com",
+    )
+    client.chat.completions.create(messages=[], model="gpt-4")
+
+    calls = cast("list[MockRequestCall]", respx_mock.calls)
+    assert calls[0].request.headers.get("Authorization") == f"Bearer {AZURE_AD_JWT_API_KEY}"
+    assert calls[0].request.headers.get("api-key") is None
+
+
+@pytest.mark.asyncio
+@pytest.mark.respx()
+async def test_async_jwt_like_api_key_uses_authorization_header(respx_mock: MockRouter) -> None:
+    respx_mock.post(
+        "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-02-01"
+    ).mock(return_value=httpx.Response(200, json={"model": "gpt-4"}))
+
+    client = AsyncAzureOpenAI(
+        api_version="2024-02-01",
+        api_key=AZURE_AD_JWT_API_KEY,
+        azure_endpoint="https://example-resource.azure.openai.com",
+    )
+    await client.chat.completions.create(messages=[], model="gpt-4")
+
+    calls = cast("list[MockRequestCall]", respx_mock.calls)
+    assert calls[0].request.headers.get("Authorization") == f"Bearer {AZURE_AD_JWT_API_KEY}"
+    assert calls[0].request.headers.get("api-key") is None
+
+
+@pytest.mark.respx()
+def test_sync_regular_api_key_uses_api_key_header(respx_mock: MockRouter) -> None:
+    respx_mock.post(
+        "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-02-01"
+    ).mock(return_value=httpx.Response(200, json={"model": "gpt-4"}))
+
+    client = AzureOpenAI(
+        api_version="2024-02-01",
+        api_key="regular-api-key",
+        azure_endpoint="https://example-resource.azure.openai.com",
+    )
+    client.chat.completions.create(messages=[], model="gpt-4")
+
+    calls = cast("list[MockRequestCall]", respx_mock.calls)
+    assert calls[0].request.headers.get("api-key") == "regular-api-key"
+    assert calls[0].request.headers.get("Authorization") is None
+
+
+@pytest.mark.asyncio
+@pytest.mark.respx()
+async def test_async_regular_api_key_uses_api_key_header(respx_mock: MockRouter) -> None:
+    respx_mock.post(
+        "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-02-01"
+    ).mock(return_value=httpx.Response(200, json={"model": "gpt-4"}))
+
+    client = AsyncAzureOpenAI(
+        api_version="2024-02-01",
+        api_key="regular-api-key",
+        azure_endpoint="https://example-resource.azure.openai.com",
+    )
+    await client.chat.completions.create(messages=[], model="gpt-4")
+
+    calls = cast("list[MockRequestCall]", respx_mock.calls)
+    assert calls[0].request.headers.get("api-key") == "regular-api-key"
+    assert calls[0].request.headers.get("Authorization") is None
+
+
+def test_sync_jwt_like_api_key_configures_realtime_authorization_header() -> None:
+    client = AzureOpenAI(
+        api_version="2024-02-01",
+        api_key=AZURE_AD_JWT_API_KEY,
+        azure_endpoint="https://example-resource.azure.openai.com",
+    )
+
+    _, headers = client._configure_realtime("gpt-4o-realtime", {})
+
+    assert headers == {"Authorization": f"Bearer {AZURE_AD_JWT_API_KEY}"}
+
+
+@pytest.mark.asyncio
+async def test_async_jwt_like_api_key_configures_realtime_authorization_header() -> None:
+    client = AsyncAzureOpenAI(
+        api_version="2024-02-01",
+        api_key=AZURE_AD_JWT_API_KEY,
+        azure_endpoint="https://example-resource.azure.openai.com",
+    )
+
+    _, headers = await client._configure_realtime("gpt-4o-realtime", {})
+
+    assert headers == {"Authorization": f"Bearer {AZURE_AD_JWT_API_KEY}"}
 
 
 class TestAzureLogging:

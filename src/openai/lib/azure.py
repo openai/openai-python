@@ -43,6 +43,15 @@ _DefaultStreamT = TypeVar("_DefaultStreamT", bound=Union[Stream[Any], AsyncStrea
 API_KEY_SENTINEL = "".join(["<", "missing API key", ">"])
 
 
+def _azure_ad_token_from_api_key(value: str) -> str | None:
+    token = value.strip().removeprefix("Bearer ").strip()
+    parts = token.split(".")
+    if len(parts) == 3 and parts[0].startswith("eyJ"):
+        return token
+
+    return None
+
+
 def _has_header(headers: Headers, header: str) -> bool:
     header = header.lower()
     return any(key.lower() == header for key in headers)
@@ -352,6 +361,10 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
             return {"Authorization": f"Bearer {self._azure_ad_token}"}
 
         if self.api_key and self.api_key != API_KEY_SENTINEL:
+            azure_ad_token = _azure_ad_token_from_api_key(self.api_key)
+            if azure_ad_token is not None:
+                return {"Authorization": f"Bearer {azure_ad_token}"}
+
             return {"api-key": self.api_key}
 
         return {}
@@ -377,7 +390,11 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
             if not _has_header(headers, "Authorization"):
                 headers["Authorization"] = f"Bearer {azure_ad_token}"
         elif self.api_key and self.api_key != API_KEY_SENTINEL:
-            if not _has_header(headers, "api-key"):
+            api_key_ad_token = _azure_ad_token_from_api_key(self.api_key)
+            if api_key_ad_token is not None:
+                if not _has_auth_header(headers):
+                    headers["Authorization"] = f"Bearer {api_key_ad_token}"
+            elif not _has_header(headers, "api-key"):
                 headers["api-key"] = self.api_key
         elif _has_auth_header(headers) or _has_auth_header(self.default_headers):
             pass
@@ -394,12 +411,15 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
             "api-version": self._api_version,
             "deployment": self._azure_deployment or model,
         }
-        if self.api_key and self.api_key != "<missing API key>":
-            auth_headers = {"api-key": self.api_key}
-        else:
-            token = self._get_azure_ad_token()
-            if token:
-                auth_headers = {"Authorization": f"Bearer {token}"}
+        token = self._get_azure_ad_token()
+        if token:
+            auth_headers = {"Authorization": f"Bearer {token}"}
+        elif self.api_key and self.api_key != API_KEY_SENTINEL:
+            api_key_ad_token = _azure_ad_token_from_api_key(self.api_key)
+            if api_key_ad_token is not None:
+                auth_headers = {"Authorization": f"Bearer {api_key_ad_token}"}
+            else:
+                auth_headers = {"api-key": self.api_key}
 
         if self.websocket_base_url is not None:
             base_url = httpx.URL(self.websocket_base_url)
@@ -674,6 +694,10 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
             return {"Authorization": f"Bearer {self._azure_ad_token}"}
 
         if self.api_key and self.api_key != API_KEY_SENTINEL:
+            azure_ad_token = _azure_ad_token_from_api_key(self.api_key)
+            if azure_ad_token is not None:
+                return {"Authorization": f"Bearer {azure_ad_token}"}
+
             return {"api-key": self.api_key}
 
         return {}
@@ -699,7 +723,11 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
             if not _has_header(headers, "Authorization"):
                 headers["Authorization"] = f"Bearer {azure_ad_token}"
         elif self.api_key and self.api_key != API_KEY_SENTINEL:
-            if not _has_header(headers, "api-key"):
+            api_key_ad_token = _azure_ad_token_from_api_key(self.api_key)
+            if api_key_ad_token is not None:
+                if not _has_auth_header(headers):
+                    headers["Authorization"] = f"Bearer {api_key_ad_token}"
+            elif not _has_header(headers, "api-key"):
                 headers["api-key"] = self.api_key
         elif _has_auth_header(headers) or _has_auth_header(self.default_headers):
             pass
@@ -716,12 +744,15 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
             "api-version": self._api_version,
             "deployment": self._azure_deployment or model,
         }
-        if self.api_key and self.api_key != "<missing API key>":
-            auth_headers = {"api-key": self.api_key}
-        else:
-            token = await self._get_azure_ad_token()
-            if token:
-                auth_headers = {"Authorization": f"Bearer {token}"}
+        token = await self._get_azure_ad_token()
+        if token:
+            auth_headers = {"Authorization": f"Bearer {token}"}
+        elif self.api_key and self.api_key != API_KEY_SENTINEL:
+            api_key_ad_token = _azure_ad_token_from_api_key(self.api_key)
+            if api_key_ad_token is not None:
+                auth_headers = {"Authorization": f"Bearer {api_key_ad_token}"}
+            else:
+                auth_headers = {"api-key": self.api_key}
 
         if self.websocket_base_url is not None:
             base_url = httpx.URL(self.websocket_base_url)
