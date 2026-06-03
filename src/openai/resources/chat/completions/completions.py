@@ -93,6 +93,7 @@ class Completions(SyncAPIResource):
         max_tokens: Optional[int] | Omit = omit,
         metadata: Optional[Metadata] | Omit = omit,
         modalities: Optional[List[Literal["text", "audio"]]] | Omit = omit,
+        moderation: Optional[completion_create_params.Moderation] | Omit = omit,
         n: Optional[int] | Omit = omit,
         parallel_tool_calls: bool | Omit = omit,
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
@@ -228,6 +229,8 @@ class Completions(SyncAPIResource):
               this model generate both text and audio responses, you can use:
 
               `["text", "audio"]`
+
+          moderation: Configuration for running moderation on the request input and generated output.
 
           n: How many chat completion choices to generate for each input message. Note that
               you will be charged based on the number of generated tokens across all of the
@@ -409,6 +412,7 @@ class Completions(SyncAPIResource):
         max_tokens: Optional[int] | Omit = omit,
         metadata: Optional[Metadata] | Omit = omit,
         modalities: Optional[List[Literal["text", "audio"]]] | Omit = omit,
+        moderation: Optional[completion_create_params.Moderation] | Omit = omit,
         n: Optional[int] | Omit = omit,
         parallel_tool_calls: bool | Omit = omit,
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
@@ -552,6 +556,8 @@ class Completions(SyncAPIResource):
               this model generate both text and audio responses, you can use:
 
               `["text", "audio"]`
+
+          moderation: Configuration for running moderation on the request input and generated output.
 
           n: How many chat completion choices to generate for each input message. Note that
               you will be charged based on the number of generated tokens across all of the
@@ -724,6 +730,7 @@ class Completions(SyncAPIResource):
         max_tokens: Optional[int] | Omit = omit,
         metadata: Optional[Metadata] | Omit = omit,
         modalities: Optional[List[Literal["text", "audio"]]] | Omit = omit,
+        moderation: Optional[completion_create_params.Moderation] | Omit = omit,
         n: Optional[int] | Omit = omit,
         parallel_tool_calls: bool | Omit = omit,
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
@@ -867,6 +874,8 @@ class Completions(SyncAPIResource):
               this model generate both text and audio responses, you can use:
 
               `["text", "audio"]`
+
+          moderation: Configuration for running moderation on the request input and generated output.
 
           n: How many chat completion choices to generate for each input message. Note that
               you will be charged based on the number of generated tokens across all of the
@@ -1038,6 +1047,7 @@ class Completions(SyncAPIResource):
         max_tokens: Optional[int] | Omit = omit,
         metadata: Optional[Metadata] | Omit = omit,
         modalities: Optional[List[Literal["text", "audio"]]] | Omit = omit,
+        moderation: Optional[completion_create_params.Moderation] | Omit = omit,
         n: Optional[int] | Omit = omit,
         parallel_tool_calls: bool | Omit = omit,
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
@@ -1084,6 +1094,7 @@ class Completions(SyncAPIResource):
                     "max_tokens": max_tokens,
                     "metadata": metadata,
                     "modalities": modalities,
+                    "moderation": moderation,
                     "n": n,
                     "parallel_tool_calls": parallel_tool_calls,
                     "prediction": prediction,
@@ -1365,6 +1376,7 @@ class AsyncCompletions(AsyncAPIResource):
         max_tokens: Optional[int] | Omit = omit,
         metadata: Optional[Metadata] | Omit = omit,
         modalities: Optional[List[Literal["text", "audio"]]] | Omit = omit,
+        moderation: Optional[completion_create_params.Moderation] | Omit = omit,
         n: Optional[int] | Omit = omit,
         parallel_tool_calls: bool | Omit = omit,
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
@@ -1500,6 +1512,8 @@ class AsyncCompletions(AsyncAPIResource):
               this model generate both text and audio responses, you can use:
 
               `["text", "audio"]`
+
+          moderation: Configuration for running moderation on the request input and generated output.
 
           n: How many chat completion choices to generate for each input message. Note that
               you will be charged based on the number of generated tokens across all of the
@@ -1681,6 +1695,7 @@ class AsyncCompletions(AsyncAPIResource):
         max_tokens: Optional[int] | Omit = omit,
         metadata: Optional[Metadata] | Omit = omit,
         modalities: Optional[List[Literal["text", "audio"]]] | Omit = omit,
+        moderation: Optional[completion_create_params.Moderation] | Omit = omit,
         n: Optional[int] | Omit = omit,
         parallel_tool_calls: bool | Omit = omit,
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
@@ -1824,6 +1839,8 @@ class AsyncCompletions(AsyncAPIResource):
               this model generate both text and audio responses, you can use:
 
               `["text", "audio"]`
+
+          moderation: Configuration for running moderation on the request input and generated output.
 
           n: How many chat completion choices to generate for each input message. Note that
               you will be charged based on the number of generated tokens across all of the
@@ -1996,6 +2013,7 @@ class AsyncCompletions(AsyncAPIResource):
         max_tokens: Optional[int] | Omit = omit,
         metadata: Optional[Metadata] | Omit = omit,
         modalities: Optional[List[Literal["text", "audio"]]] | Omit = omit,
+        moderation: Optional[completion_create_params.Moderation] | Omit = omit,
         n: Optional[int] | Omit = omit,
         parallel_tool_calls: bool | Omit = omit,
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
@@ -2139,6 +2157,8 @@ class AsyncCompletions(AsyncAPIResource):
               this model generate both text and audio responses, you can use:
 
               `["text", "audio"]`
+
+          moderation: Configuration for running moderation on the request input and generated output.
 
           n: How many chat completion choices to generate for each input message. Note that
               you will be charged based on the number of generated tokens across all of the
@@ -2310,6 +2330,7 @@ class AsyncCompletions(AsyncAPIResource):
         max_tokens: Optional[int] | Omit = omit,
         metadata: Optional[Metadata] | Omit = omit,
         modalities: Optional[List[Literal["text", "audio"]]] | Omit = omit,
+        moderation: Optional[completion_create_params.Moderation] | Omit = omit,
         n: Optional[int] | Omit = omit,
         parallel_tool_calls: bool | Omit = omit,
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
@@ -2356,6 +2377,7 @@ class AsyncCompletions(AsyncAPIResource):
                     "max_tokens": max_tokens,
                     "metadata": metadata,
                     "modalities": modalities,
+                    "moderation": moderation,
                     "n": n,
                     "parallel_tool_calls": parallel_tool_calls,
                     "prediction": prediction,

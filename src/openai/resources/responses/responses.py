@@ -119,6 +119,7 @@ class Responses(SyncAPIResource):
         max_tool_calls: Optional[int] | Omit = omit,
         metadata: Optional[Metadata] | Omit = omit,
         model: ResponsesModel | Omit = omit,
+        moderation: Optional[response_create_params.Moderation] | Omit = omit,
         parallel_tool_calls: Optional[bool] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
@@ -226,6 +227,8 @@ class Responses(SyncAPIResource):
               and price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
               available models.
+
+          moderation: Configuration for running moderation on the input and output of this response.
 
           parallel_tool_calls: Whether to allow the model to run tool calls in parallel.
 
@@ -378,6 +381,7 @@ class Responses(SyncAPIResource):
         max_tool_calls: Optional[int] | Omit = omit,
         metadata: Optional[Metadata] | Omit = omit,
         model: ResponsesModel | Omit = omit,
+        moderation: Optional[response_create_params.Moderation] | Omit = omit,
         parallel_tool_calls: Optional[bool] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
@@ -491,6 +495,8 @@ class Responses(SyncAPIResource):
               and price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
               available models.
+
+          moderation: Configuration for running moderation on the input and output of this response.
 
           parallel_tool_calls: Whether to allow the model to run tool calls in parallel.
 
@@ -636,6 +642,7 @@ class Responses(SyncAPIResource):
         max_tool_calls: Optional[int] | Omit = omit,
         metadata: Optional[Metadata] | Omit = omit,
         model: ResponsesModel | Omit = omit,
+        moderation: Optional[response_create_params.Moderation] | Omit = omit,
         parallel_tool_calls: Optional[bool] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
@@ -749,6 +756,8 @@ class Responses(SyncAPIResource):
               and price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
               available models.
+
+          moderation: Configuration for running moderation on the input and output of this response.
 
           parallel_tool_calls: Whether to allow the model to run tool calls in parallel.
 
@@ -892,6 +901,7 @@ class Responses(SyncAPIResource):
         max_tool_calls: Optional[int] | Omit = omit,
         metadata: Optional[Metadata] | Omit = omit,
         model: ResponsesModel | Omit = omit,
+        moderation: Optional[response_create_params.Moderation] | Omit = omit,
         parallel_tool_calls: Optional[bool] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
@@ -932,6 +942,7 @@ class Responses(SyncAPIResource):
                     "max_tool_calls": max_tool_calls,
                     "metadata": metadata,
                     "model": model,
+                    "moderation": moderation,
                     "parallel_tool_calls": parallel_tool_calls,
                     "previous_response_id": previous_response_id,
                     "prompt": prompt,
@@ -1483,6 +1494,7 @@ class AsyncResponses(AsyncAPIResource):
         max_tool_calls: Optional[int] | Omit = omit,
         metadata: Optional[Metadata] | Omit = omit,
         model: ResponsesModel | Omit = omit,
+        moderation: Optional[response_create_params.Moderation] | Omit = omit,
         parallel_tool_calls: Optional[bool] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
@@ -1590,6 +1602,8 @@ class AsyncResponses(AsyncAPIResource):
               and price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
               available models.
+
+          moderation: Configuration for running moderation on the input and output of this response.
 
           parallel_tool_calls: Whether to allow the model to run tool calls in parallel.
 
@@ -1742,6 +1756,7 @@ class AsyncResponses(AsyncAPIResource):
         max_tool_calls: Optional[int] | Omit = omit,
         metadata: Optional[Metadata] | Omit = omit,
         model: ResponsesModel | Omit = omit,
+        moderation: Optional[response_create_params.Moderation] | Omit = omit,
         parallel_tool_calls: Optional[bool] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
@@ -1855,6 +1870,8 @@ class AsyncResponses(AsyncAPIResource):
               and price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
               available models.
+
+          moderation: Configuration for running moderation on the input and output of this response.
 
           parallel_tool_calls: Whether to allow the model to run tool calls in parallel.
 
@@ -2000,6 +2017,7 @@ class AsyncResponses(AsyncAPIResource):
         max_tool_calls: Optional[int] | Omit = omit,
         metadata: Optional[Metadata] | Omit = omit,
         model: ResponsesModel | Omit = omit,
+        moderation: Optional[response_create_params.Moderation] | Omit = omit,
         parallel_tool_calls: Optional[bool] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
@@ -2113,6 +2131,8 @@ class AsyncResponses(AsyncAPIResource):
               and price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
               available models.
+
+          moderation: Configuration for running moderation on the input and output of this response.
 
           parallel_tool_calls: Whether to allow the model to run tool calls in parallel.
 
@@ -2256,6 +2276,7 @@ class AsyncResponses(AsyncAPIResource):
         max_tool_calls: Optional[int] | Omit = omit,
         metadata: Optional[Metadata] | Omit = omit,
         model: ResponsesModel | Omit = omit,
+        moderation: Optional[response_create_params.Moderation] | Omit = omit,
         parallel_tool_calls: Optional[bool] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
@@ -2296,6 +2317,7 @@ class AsyncResponses(AsyncAPIResource):
                     "max_tool_calls": max_tool_calls,
                     "metadata": metadata,
                     "model": model,
+                    "moderation": moderation,
                     "parallel_tool_calls": parallel_tool_calls,
                     "previous_response_id": previous_response_id,
                     "prompt": prompt,
@@ -3842,6 +3864,7 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
         max_tool_calls: Optional[int] | Omit = omit,
         metadata: Optional[Metadata] | Omit = omit,
         model: ResponsesModel | Omit = omit,
+        moderation: Optional[responses_client_event_param.Moderation] | Omit = omit,
         parallel_tool_calls: Optional[bool] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
@@ -3878,6 +3901,7 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
                         "max_tool_calls": max_tool_calls,
                         "metadata": metadata,
                         "model": model,
+                        "moderation": moderation,
                         "parallel_tool_calls": parallel_tool_calls,
                         "previous_response_id": previous_response_id,
                         "prompt": prompt,
@@ -3922,6 +3946,7 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
         max_tool_calls: Optional[int] | Omit = omit,
         metadata: Optional[Metadata] | Omit = omit,
         model: ResponsesModel | Omit = omit,
+        moderation: Optional[responses_client_event_param.Moderation] | Omit = omit,
         parallel_tool_calls: Optional[bool] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
@@ -3958,6 +3983,7 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
                         "max_tool_calls": max_tool_calls,
                         "metadata": metadata,
                         "model": model,
+                        "moderation": moderation,
                         "parallel_tool_calls": parallel_tool_calls,
                         "previous_response_id": previous_response_id,
                         "prompt": prompt,

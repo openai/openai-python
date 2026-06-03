@@ -64,6 +64,7 @@ class TestCompletions:
             max_tokens=0,
             metadata={"foo": "string"},
             modalities=["text"],
+            moderation={"model": "model"},
             n=1,
             parallel_tool_calls=True,
             prediction={
@@ -198,6 +199,7 @@ class TestCompletions:
             max_tokens=0,
             metadata={"foo": "string"},
             modalities=["text"],
+            moderation={"model": "model"},
             n=1,
             parallel_tool_calls=True,
             prediction={
@@ -490,6 +492,7 @@ class TestAsyncCompletions:
             max_tokens=0,
             metadata={"foo": "string"},
             modalities=["text"],
+            moderation={"model": "model"},
             n=1,
             parallel_tool_calls=True,
             prediction={
@@ -624,6 +627,7 @@ class TestAsyncCompletions:
             max_tokens=0,
             metadata={"foo": "string"},
             modalities=["text"],
+            moderation={"model": "model"},
             n=1,
             parallel_tool_calls=True,
             prediction={

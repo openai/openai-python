@@ -25,6 +25,7 @@ __all__ = [
     "CompletionCreateParamsBase",
     "FunctionCall",
     "Function",
+    "Moderation",
     "ResponseFormat",
     "WebSearchOptions",
     "WebSearchOptionsUserLocation",
@@ -150,6 +151,9 @@ class CompletionCreateParamsBase(TypedDict, total=False):
 
     `["text", "audio"]`
     """
+
+    moderation: Optional[Moderation]
+    """Configuration for running moderation on the request input and generated output."""
 
     n: Optional[int]
     """How many chat completion choices to generate for each input message.
@@ -385,6 +389,16 @@ class Function(TypedDict, total=False):
     documentation about the format.
 
     Omitting `parameters` defines a function with an empty parameter list.
+    """
+
+
+class Moderation(TypedDict, total=False):
+    """Configuration for running moderation on the request input and generated output."""
+
+    model: Required[str]
+    """The moderation model to use for moderated completions, e.g.
+
+    'omni-moderation-latest'.
     """
 
 

@@ -43,6 +43,7 @@ class TestResponses:
             max_tool_calls=0,
             metadata={"foo": "string"},
             model="gpt-5.1",
+            moderation={"model": "model"},
             parallel_tool_calls=True,
             previous_response_id="previous_response_id",
             prompt={
@@ -131,6 +132,7 @@ class TestResponses:
             max_tool_calls=0,
             metadata={"foo": "string"},
             model="gpt-5.1",
+            moderation={"model": "model"},
             parallel_tool_calls=True,
             previous_response_id="previous_response_id",
             prompt={
@@ -445,6 +447,7 @@ class TestAsyncResponses:
             max_tool_calls=0,
             metadata={"foo": "string"},
             model="gpt-5.1",
+            moderation={"model": "model"},
             parallel_tool_calls=True,
             previous_response_id="previous_response_id",
             prompt={
@@ -533,6 +536,7 @@ class TestAsyncResponses:
             max_tool_calls=0,
             metadata={"foo": "string"},
             model="gpt-5.1",
+            moderation={"model": "model"},
             parallel_tool_calls=True,
             previous_response_id="previous_response_id",
             prompt={

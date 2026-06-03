@@ -1,9 +1,10 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import List, Union, Optional
-from typing_extensions import Literal, TypeAlias
+from typing import Dict, List, Union, Optional
+from typing_extensions import Literal, Annotated, TypeAlias
 
 from .tool import Tool
+from ..._utils import PropertyInfo
 from ..._models import BaseModel
 from .response_error import ResponseError
 from .response_usage import ResponseUsage
@@ -24,7 +25,19 @@ from .tool_choice_function import ToolChoiceFunction
 from ..shared.responses_model import ResponsesModel
 from .tool_choice_apply_patch import ToolChoiceApplyPatch
 
-__all__ = ["Response", "IncompleteDetails", "ToolChoice", "Conversation"]
+__all__ = [
+    "Response",
+    "IncompleteDetails",
+    "ToolChoice",
+    "Conversation",
+    "Moderation",
+    "ModerationInput",
+    "ModerationInputModerationResult",
+    "ModerationInputError",
+    "ModerationOutput",
+    "ModerationOutputModerationResult",
+    "ModerationOutputError",
+]
 
 
 class IncompleteDetails(BaseModel):
@@ -54,6 +67,110 @@ class Conversation(BaseModel):
 
     id: str
     """The unique ID of the conversation that this response was associated with."""
+
+
+class ModerationInputModerationResult(BaseModel):
+    """A moderation result produced for the response input or output."""
+
+    categories: Dict[str, bool]
+    """
+    A dictionary of moderation categories to booleans, True if the input is flagged
+    under this category.
+    """
+
+    category_applied_input_types: Dict[str, List[Literal["text", "image"]]]
+    """Which modalities of input are reflected by the score for each category."""
+
+    category_scores: Dict[str, float]
+    """A dictionary of moderation categories to scores."""
+
+    flagged: bool
+    """A boolean indicating whether the content was flagged by any category."""
+
+    model: str
+    """The moderation model that produced this result."""
+
+    type: Literal["moderation_result"]
+    """
+    The object type, which was always `moderation_result` for successful moderation
+    results.
+    """
+
+
+class ModerationInputError(BaseModel):
+    """An error produced while attempting moderation for the response input or output."""
+
+    code: str
+    """The error code."""
+
+    message: str
+    """The error message."""
+
+    type: Literal["error"]
+    """The object type, which was always `error` for moderation failures."""
+
+
+ModerationInput: TypeAlias = Annotated[
+    Union[ModerationInputModerationResult, ModerationInputError], PropertyInfo(discriminator="type")
+]
+
+
+class ModerationOutputModerationResult(BaseModel):
+    """A moderation result produced for the response input or output."""
+
+    categories: Dict[str, bool]
+    """
+    A dictionary of moderation categories to booleans, True if the input is flagged
+    under this category.
+    """
+
+    category_applied_input_types: Dict[str, List[Literal["text", "image"]]]
+    """Which modalities of input are reflected by the score for each category."""
+
+    category_scores: Dict[str, float]
+    """A dictionary of moderation categories to scores."""
+
+    flagged: bool
+    """A boolean indicating whether the content was flagged by any category."""
+
+    model: str
+    """The moderation model that produced this result."""
+
+    type: Literal["moderation_result"]
+    """
+    The object type, which was always `moderation_result` for successful moderation
+    results.
+    """
+
+
+class ModerationOutputError(BaseModel):
+    """An error produced while attempting moderation for the response input or output."""
+
+    code: str
+    """The error code."""
+
+    message: str
+    """The error message."""
+
+    type: Literal["error"]
+    """The object type, which was always `error` for moderation failures."""
+
+
+ModerationOutput: TypeAlias = Annotated[
+    Union[ModerationOutputModerationResult, ModerationOutputError], PropertyInfo(discriminator="type")
+]
+
+
+class Moderation(BaseModel):
+    """
+    Moderation results for the response input and output, if moderated completions were requested.
+    """
+
+    input: ModerationInput
+    """Moderation for the response input."""
+
+    output: ModerationOutput
+    """Moderation for the response output."""
 
 
 class Response(BaseModel):
@@ -191,6 +308,12 @@ class Response(BaseModel):
     response. This maximum number applies across all built-in tool calls, not per
     individual tool. Any further attempts to call a tool by the model will be
     ignored.
+    """
+
+    moderation: Optional[Moderation] = None
+    """
+    Moderation results for the response input and output, if moderated completions
+    were requested.
     """
 
     previous_response_id: Optional[str] = None
