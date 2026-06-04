@@ -12,6 +12,10 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.repository == 'openai/openai-python'
     runs-on: ubuntu-latest
     environment: publish
+    outputs:
+      releases_created: ${{ steps.release.outputs.releases_created }}
+    permissions:
+      contents: read
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -22,16 +26,55 @@ jobs:
           repo: ${{ github.event.repository.full_name }}
           stainless-api-key: ${{ secrets.STAINLESS_API_KEY }}
 
+  build:
+    name: build
+    needs: release
+    if: ${{ needs.release.outputs.releases_created == 'true' }}
+    runs-on: ubuntu-latest
+    # Build distributions without OIDC access so package build code cannot mint
+    # a PyPI publishing token. The publish job handles only the upload.
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
       - name: Set up Rye
-        if: ${{ steps.release.outputs.releases_created }}
         uses: eifinger/setup-rye@c694239a43768373e87d0103d7f547027a23f3c8
         with:
           version: '0.44.0'
           enable-cache: true
 
-      - name: Publish to PyPI
-        if: ${{ steps.release.outputs.releases_created }}
+      - name: Build package
         run: |
-          bash ./bin/publish-pypi
-        env:
-          PYPI_TOKEN: ${{ secrets.OPENAI_PYPI_TOKEN || secrets.PYPI_TOKEN }}
+          mkdir -p dist
+          rye build --clean
+
+      - name: Upload package distributions
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: python-package-distributions
+          path: dist/
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    name: publish
+    needs: build
+    runs-on: ubuntu-latest
+    environment: publish
+    # PyPI Trusted Publishing requires id-token: write. Keep it scoped to this
+    # minimal upload-only job rather than the build job.
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Download package distributions
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: python-package-distributions
+          path: dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b # v1.14.0
