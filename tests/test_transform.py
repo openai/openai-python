@@ -458,3 +458,47 @@ async def test_strips_notgiven(use_async: bool) -> None:
 async def test_strips_omit(use_async: bool) -> None:
     assert await transform({"foo_bar": "bar"}, Foo1, use_async) == {"fooBar": "bar"}
     assert await transform({"foo_bar": omit}, Foo1, use_async) == {}
+
+
+# Tests for bare dict/list type annotations (no type parameters)
+# Regression tests for https://github.com/openai/openai-python/issues/3338 and #3341
+
+
+class TypedDictWithBareDict(TypedDict, total=False):
+    """TypedDict with bare dict annotation (no type parameters)."""
+
+    metadata: dict
+
+
+class TypedDictWithBareList(TypedDict, total=False):
+    """TypedDict with bare list annotation (no type parameters)."""
+
+    items: list
+
+
+@parametrize
+@pytest.mark.asyncio
+async def test_bare_dict_annotation(use_async: bool) -> None:
+    """Test that bare `dict` annotation doesn't crash (issue #3338)."""
+    result = await transform({"metadata": {"key": "value", "nested": {"a": 1}}}, TypedDictWithBareDict, use_async)
+    assert result == {"metadata": {"key": "value", "nested": {"a": 1}}}
+
+
+@parametrize
+@pytest.mark.asyncio
+async def test_bare_list_annotation(use_async: bool) -> None:
+    """Test that bare `list` annotation doesn't crash."""
+    result = await transform({"items": [1, "two", {"three": 3}]}, TypedDictWithBareList, use_async)
+    assert result == {"items": [1, "two", {"three": 3}]}
+
+
+@parametrize
+@pytest.mark.asyncio
+async def test_bare_dict_with_typeddict_field(use_async: bool) -> None:
+    """Test bare dict containing TypedDict values."""
+
+    class Container(TypedDict, total=False):
+        data: dict
+
+    result = await transform({"data": {"foo": {"foo_bar": "hello"}}}, Container, use_async)
+    assert result == {"data": {"foo": {"foo_bar": "hello"}}}
