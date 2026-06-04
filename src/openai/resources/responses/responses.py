@@ -3855,7 +3855,12 @@ class AsyncResponsesConnection:
             raw = data if isinstance(data, str) else data.decode("utf-8")
             self._send_queue.enqueue(raw)
             return
-        await self._connection.send(data)
+        try:
+            await self._connection.send(data)
+        except Exception:
+            raw = data if isinstance(data, str) else data.decode("utf-8")
+            self._send_queue.enqueue(raw)
+            raise
 
     async def close(self, *, code: int = 1000, reason: str = "") -> None:
         self._intentionally_closed = True
@@ -4312,7 +4317,12 @@ class ResponsesConnection:
             raw = data if isinstance(data, str) else data.decode("utf-8")
             self._send_queue.enqueue(raw)
             return
-        self._connection.send(data)
+        try:
+            self._connection.send(data)
+        except Exception:
+            raw = data if isinstance(data, str) else data.decode("utf-8")
+            self._send_queue.enqueue(raw)
+            raise
 
     def close(self, *, code: int = 1000, reason: str = "") -> None:
         self._intentionally_closed = True
