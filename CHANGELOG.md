@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.41.1 (2026-06-05)
+
+Full Changelog: [v2.41.0...v2.41.1](https://github.com/openai/openai-python/compare/v2.41.0...v2.41.1)
+
+### Build System
+
+* Remove scheduled release workflow trigger ([#3366](https://github.com/openai/openai-python/issues/3366)) ([2a91011](https://github.com/openai/openai-python/commit/2a91011abc21032db9566b98068afefb5fbb9b24))
+
 ## 2.41.0 (2026-06-03)
 
 Full Changelog: [v2.40.0...v2.41.0](https://github.com/openai/openai-python/compare/v2.40.0...v2.41.0)
