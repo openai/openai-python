@@ -129,9 +129,10 @@ class Images(SyncAPIResource):
     def edit(
         self,
         *,
-        image: Union[FileTypes, SequenceNotStr[FileTypes]],
+        image: Union[FileTypes, SequenceNotStr[FileTypes]] | Omit = omit,
         prompt: str,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        image_url: str | Omit = omit,
         input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
         mask: FileTypes | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
@@ -184,6 +185,10 @@ class Images(SyncAPIResource):
 
               If `transparent`, the output format needs to support transparency, so it should
               be set to either `png` (default value) or `webp`.
+
+          image_url: A fully qualified URL or base64-encoded data URL for the image to edit.
+              This parameter can be used as an alternative to `image` when you want to
+              reference an image by URL instead of uploading a file.
 
           input_fidelity: Control how much effort the model will exert to match the style and features,
               especially facial features, of input images. This parameter is only supported
@@ -259,10 +264,11 @@ class Images(SyncAPIResource):
     def edit(
         self,
         *,
-        image: Union[FileTypes, SequenceNotStr[FileTypes]],
+        image: Union[FileTypes, SequenceNotStr[FileTypes]] | Omit = omit,
         prompt: str,
         stream: Literal[True],
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        image_url: str | Omit = omit,
         input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
         mask: FileTypes | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
@@ -389,10 +395,11 @@ class Images(SyncAPIResource):
     def edit(
         self,
         *,
-        image: Union[FileTypes, SequenceNotStr[FileTypes]],
+        image: Union[FileTypes, SequenceNotStr[FileTypes]] | Omit = omit,
         prompt: str,
         stream: bool,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        image_url: str | Omit = omit,
         input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
         mask: FileTypes | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
@@ -515,11 +522,12 @@ class Images(SyncAPIResource):
         """
         ...
 
-    @required_args(["image", "prompt"], ["image", "prompt", "stream"])
+    @required_args(["image", "prompt"], ["image", "prompt", "stream"], ["image_url", "prompt"], ["image_url", "prompt", "stream"])
     def edit(
         self,
         *,
-        image: Union[FileTypes, SequenceNotStr[FileTypes]],
+        image: Union[FileTypes, SequenceNotStr[FileTypes]] | Omit = omit,
+        image_url: str | Omit = omit,
         prompt: str,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
         input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
@@ -545,6 +553,7 @@ class Images(SyncAPIResource):
         body = deepcopy_with_paths(
             {
                 "image": image,
+                "image_url": image_url,
                 "prompt": prompt,
                 "background": background,
                 "input_fidelity": input_fidelity,
@@ -1134,9 +1143,10 @@ class AsyncImages(AsyncAPIResource):
     async def edit(
         self,
         *,
-        image: Union[FileTypes, SequenceNotStr[FileTypes]],
+        image: Union[FileTypes, SequenceNotStr[FileTypes]] | Omit = omit,
         prompt: str,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        image_url: str | Omit = omit,
         input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
         mask: FileTypes | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
@@ -1264,10 +1274,11 @@ class AsyncImages(AsyncAPIResource):
     async def edit(
         self,
         *,
-        image: Union[FileTypes, SequenceNotStr[FileTypes]],
+        image: Union[FileTypes, SequenceNotStr[FileTypes]] | Omit = omit,
         prompt: str,
         stream: Literal[True],
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        image_url: str | Omit = omit,
         input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
         mask: FileTypes | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
@@ -1394,10 +1405,11 @@ class AsyncImages(AsyncAPIResource):
     async def edit(
         self,
         *,
-        image: Union[FileTypes, SequenceNotStr[FileTypes]],
+        image: Union[FileTypes, SequenceNotStr[FileTypes]] | Omit = omit,
         prompt: str,
         stream: bool,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        image_url: str | Omit = omit,
         input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
         mask: FileTypes | Omit = omit,
         model: Union[str, ImageModel, None] | Omit = omit,
@@ -1520,11 +1532,12 @@ class AsyncImages(AsyncAPIResource):
         """
         ...
 
-    @required_args(["image", "prompt"], ["image", "prompt", "stream"])
+    @required_args(["image", "prompt"], ["image", "prompt", "stream"], ["image_url", "prompt"], ["image_url", "prompt", "stream"])
     async def edit(
         self,
         *,
-        image: Union[FileTypes, SequenceNotStr[FileTypes]],
+        image: Union[FileTypes, SequenceNotStr[FileTypes]] | Omit = omit,
+        image_url: str | Omit = omit,
         prompt: str,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
         input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
@@ -1550,6 +1563,7 @@ class AsyncImages(AsyncAPIResource):
         body = deepcopy_with_paths(
             {
                 "image": image,
+                "image_url": image_url,
                 "prompt": prompt,
                 "background": background,
                 "input_fidelity": input_fidelity,

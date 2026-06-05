@@ -12,7 +12,7 @@ __all__ = ["ImageEditParamsBase", "ImageEditParamsNonStreaming", "ImageEditParam
 
 
 class ImageEditParamsBase(TypedDict, total=False):
-    image: Required[Union[FileTypes, SequenceNotStr[FileTypes]]]
+    image: Union[FileTypes, SequenceNotStr[FileTypes]]
     """The image(s) to edit. Must be a supported image file or an array of images.
 
     For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`,
@@ -22,6 +22,13 @@ class ImageEditParamsBase(TypedDict, total=False):
 
     For `dall-e-2`, you can only provide one image, and it should be a square `png`
     file less than 4MB.
+    """
+
+    image_url: Optional[str]
+    """A fully qualified URL or base64-encoded data URL for the image to edit.
+
+    This parameter can be used as an alternative to `image` when you want to
+    reference an image by URL instead of uploading a file.
     """
 
     prompt: Required[str]
