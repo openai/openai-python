@@ -33,6 +33,7 @@ from typing import (
 from typing_extensions import Unpack, Literal, override, get_origin
 
 import anyio
+import socket
 import httpx
 import distro
 import pydantic
@@ -831,11 +832,39 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         return f"stainless-python-retry-{uuid.uuid4()}"
 
 
+def _build_keepalive_socket_options() -> list[tuple[int, int, int | bool]]:
+    """Build socket options for TCP keepalive.
+
+    Enables SO_KEEPALIVE and sets platform-appropriate TCP keepalive
+    parameters to prevent NAT gateways from silently dropping idle
+    connections during long-running non-streaming requests.
+    """
+    opts: list[tuple[int, int, int | bool]] = [(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)]
+
+    if hasattr(socket, "TCP_KEEPIDLE"):
+        # Linux: seconds before sending the first keepalive probe
+        opts.append((socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 60))
+    elif hasattr(socket, "TCP_KEEPALIVE"):
+        # macOS: seconds before sending the first keepalive probe
+        opts.append((socket.IPPROTO_TCP, socket.TCP_KEEPALIVE, 60))
+
+    if hasattr(socket, "TCP_KEEPINTVL"):
+        # Seconds between subsequent keepalive probes
+        opts.append((socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 60))
+
+    if hasattr(socket, "TCP_KEEPCNT"):
+        # Number of unacknowledged probes before declaring the connection dead
+        opts.append((socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 5))
+
+    return opts
+
+
 class _DefaultHttpxClient(httpx.Client):
     def __init__(self, **kwargs: Any) -> None:
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
         kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
+        kwargs.setdefault("transport", httpx.HTTPTransport(socket_options=_build_keepalive_socket_options()))
         super().__init__(**kwargs)
 
 
@@ -1423,6 +1452,7 @@ class _DefaultAsyncHttpxClient(httpx.AsyncClient):
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
         kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
+        kwargs.setdefault("transport", httpx.AsyncHTTPTransport(socket_options=_build_keepalive_socket_options()))
         super().__init__(**kwargs)
 
 
