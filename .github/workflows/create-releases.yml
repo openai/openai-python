@@ -9,7 +9,8 @@ jobs:
     name: release
     if: github.ref == 'refs/heads/main' && github.repository == 'openai/openai-python'
     runs-on: ubuntu-latest
-    environment: publish
+    outputs:
+      releases_created: ${{ steps.release.outputs.releases_created }}
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -20,15 +21,23 @@ jobs:
           repo: ${{ github.event.repository.full_name }}
           stainless-api-key: ${{ secrets.STAINLESS_API_KEY }}
 
+  publish:
+    name: publish
+    needs: release
+    if: ${{ needs.release.outputs.releases_created == 'true' }}
+    runs-on: ubuntu-latest
+    environment: publish
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
       - name: Set up Rye
-        if: ${{ steps.release.outputs.releases_created }}
         uses: eifinger/setup-rye@c694239a43768373e87d0103d7f547027a23f3c8
         with:
           version: '0.44.0'
           enable-cache: true
 
       - name: Publish to PyPI
-        if: ${{ steps.release.outputs.releases_created }}
         run: |
           bash ./bin/publish-pypi
         env:
