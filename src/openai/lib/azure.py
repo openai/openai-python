@@ -347,11 +347,13 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         return None
 
     @override
-    def _auth_headers(self, security: SecurityOptions) -> dict[str, str]:  # noqa: ARG002
+    def _auth_headers(self, security: SecurityOptions) -> dict[str, str]:
         if self._azure_ad_token is not None:
             return {"Authorization": f"Bearer {self._azure_ad_token}"}
 
         if self.api_key and self.api_key != API_KEY_SENTINEL:
+            if security.get("bearer_auth", False):
+                return {"Authorization": f"Bearer {self.api_key}"}
             return {"api-key": self.api_key}
 
         return {}
@@ -669,11 +671,13 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         return None
 
     @override
-    def _auth_headers(self, security: SecurityOptions) -> dict[str, str]:  # noqa: ARG002
+    def _auth_headers(self, security: SecurityOptions) -> dict[str, str]:
         if self._azure_ad_token is not None:
             return {"Authorization": f"Bearer {self._azure_ad_token}"}
 
         if self.api_key and self.api_key != API_KEY_SENTINEL:
+            if security.get("bearer_auth", False):
+                return {"Authorization": f"Bearer {self.api_key}"}
             return {"api-key": self.api_key}
 
         return {}
