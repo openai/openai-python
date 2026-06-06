@@ -1,4 +1,4 @@
-#!/usr/bin/env -S poetry run python
+#!/usr/bin/env -S rye run python
 
 import asyncio
 
@@ -12,11 +12,14 @@ from openai import OpenAI, AsyncOpenAI
 
 def sync_main() -> None:
     client = OpenAI()
-    response = client.completions.create(
-        model="gpt-3.5-turbo-instruct",
-        prompt="1,2,3,",
-        max_tokens=5,
-        temperature=0,
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {
+                "role": "user",
+                "content": "Count from 1 to 5.",
+            },
+        ],
         stream=True,
     )
 
@@ -32,11 +35,14 @@ def sync_main() -> None:
 
 async def async_main() -> None:
     client = AsyncOpenAI()
-    response = await client.completions.create(
-        model="gpt-3.5-turbo-instruct",
-        prompt="1,2,3,",
-        max_tokens=5,
-        temperature=0,
+    response = await client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {
+                "role": "user",
+                "content": "Count from 1 to 5.",
+            },
+        ],
         stream=True,
     )
 
