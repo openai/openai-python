@@ -5,6 +5,8 @@ from types import TracebackType
 from typing import Any, List, Generic, Iterable, Awaitable, cast
 from typing_extensions import Self, Callable, Iterator, AsyncIterator
 
+import pydantic
+
 from ._types import ParsedResponseSnapshot
 from ._events import (
     ResponseStreamEvent,
@@ -291,7 +293,7 @@ class ResponseStreamState(Generic[TextFormatT]):
                     logprobs=event.logprobs,
                     type="response.output_text.done",
                     text=event.text,
-                    parsed=parse_text(event.text, text_format=self._text_format, phase=output.phase),
+                    parsed=self._parse_text_done_event(event.text, phase=output.phase),
                 )
             )
         elif event.type == "response.function_call_arguments.delta":
@@ -397,3 +399,16 @@ class ResponseStreamState(Generic[TextFormatT]):
         # Stream indexes can have gaps when a provider emits an empty added event.
         self._output_items = dict(enumerate(snapshot.output or []))
         return snapshot
+
+    def _parse_text_done_event(self, text: str, *, phase: str | None) -> TextFormatT | None:
+        try:
+            return parse_text(text, text_format=self._text_format, phase=phase)
+        except pydantic.ValidationError as exc:
+            if not _is_json_parse_error(exc):
+                raise
+
+            return None
+
+
+def _is_json_parse_error(exc: pydantic.ValidationError) -> bool:
+    return any("json" in str(error.get("type", "")).lower() for error in exc.errors())
