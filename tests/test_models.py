@@ -133,6 +133,16 @@ def test_raw_dictionary() -> None:
     assert cast(Any, m.nested) is False
 
 
+def test_bare_dictionary_passthrough() -> None:
+    bare = construct_type(value={"hello": {"foo": "bar"}}, type_=dict)
+    assert bare == {"hello": {"foo": "bar"}}
+
+    typed = construct_type(value={"hello": {"foo": "bar"}}, type_=Dict[str, BasicModel])
+    assert isinstance(typed, dict)
+    assert isinstance(typed["hello"], BasicModel)
+    assert typed["hello"].foo == "bar"
+
+
 def test_nested_dictionary_model() -> None:
     class NestedModel(BaseModel):
         nested: Dict[str, BasicModel]
