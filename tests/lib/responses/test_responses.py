@@ -7,7 +7,11 @@ from respx import MockRouter
 from inline_snapshot import snapshot
 
 from openai import OpenAI, AsyncOpenAI
+from openai._types import omit
 from openai._utils import assert_signatures_in_sync
+from openai._models import construct_type_unchecked
+from openai.types.responses import Response
+from openai.lib._parsing._responses import parse_response
 
 from ...conftest import base_url
 from ..snapshots import make_snapshot_request
@@ -61,3 +65,54 @@ def test_parse_method_definition_in_sync(sync: bool, client: OpenAI, async_clien
         checking_client.responses.parse,
         exclude_params={"tools"},
     )
+
+
+def test_parse_response_allows_null_output() -> None:
+    response = construct_type_unchecked(
+        type_=Response,
+        value={
+            "id": "resp_689a0b2545288193953c892439b42e2800b2e36c65a1fd4b",
+            "object": "response",
+            "created_at": 1754925861,
+            "status": "completed",
+            "background": False,
+            "error": None,
+            "incomplete_details": None,
+            "instructions": None,
+            "max_output_tokens": None,
+            "max_tool_calls": None,
+            "model": "gpt-4o-mini-2024-07-18",
+            "output": None,
+            "parallel_tool_calls": True,
+            "previous_response_id": None,
+            "prompt_cache_key": None,
+            "reasoning": {"effort": None, "summary": None},
+            "safety_identifier": None,
+            "service_tier": "default",
+            "store": True,
+            "temperature": 1.0,
+            "text": {"format": {"type": "text"}, "verbosity": "medium"},
+            "tool_choice": "auto",
+            "tools": [],
+            "top_logprobs": 0,
+            "top_p": 1.0,
+            "truncation": "disabled",
+            "usage": {
+                "input_tokens": 14,
+                "input_tokens_details": {"cached_tokens": 0},
+                "output_tokens": 50,
+                "output_tokens_details": {"reasoning_tokens": 0},
+                "total_tokens": 64,
+            },
+            "user": None,
+            "metadata": {},
+        },
+    )
+
+    parsed = parse_response(
+        text_format=omit,
+        input_tools=omit,
+        response=response,
+    )
+
+    assert parsed.output == []
