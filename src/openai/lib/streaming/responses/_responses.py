@@ -352,6 +352,12 @@ class ResponseStreamState(Generic[TextFormatT]):
                 content = output.content[event.content_index]
                 assert content.type == "output_text"
                 content.text += event.delta
+        elif event.type == "response.refusal.delta":
+            output = snapshot.output[event.output_index]
+            if output.type == "message":
+                content = output.content[event.content_index]
+                assert content.type == "refusal"
+                content.refusal += event.delta
         elif event.type == "response.function_call_arguments.delta":
             output = snapshot.output[event.output_index]
             if output.type == "function_call":
