@@ -26,6 +26,10 @@ async-timeout==5.0.1
     # via aiohttp
 attrs==25.4.0
     # via aiohttp
+awscrt==0.31.2
+    # via botocore
+botocore==1.42.97
+    # via openai
 certifi==2026.1.4
     # via httpcore
     # via httpx
@@ -53,6 +57,8 @@ idna==3.11
     # via yarl
 jiter==0.12.0
     # via openai
+jmespath==1.1.0
+    # via botocore
 multidict==6.7.0
     # via aiohttp
     # via yarl
@@ -100,6 +106,8 @@ typing-inspection==0.4.2
     # via pydantic
 tzdata==2025.2
     # via pandas
+urllib3==1.26.20
+    # via botocore
 websockets==15.0.1
     # via openai
 yarl==1.22.0

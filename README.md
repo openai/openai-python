@@ -944,7 +944,7 @@ response = client.responses.create(
 print(response.output_text)
 ```
 
-`BedrockOpenAI` configures AWS bearer auth and the Bedrock Mantle endpoint, then uses the normal SDK resources. AWS controls which endpoints and features are supported; unsupported calls surface the provider's normal HTTP errors through the SDK.
+`BedrockOpenAI` configures AWS authentication and the Bedrock Mantle endpoint, then uses the normal SDK resources. AWS controls which endpoints and features are supported; unsupported calls surface the provider's normal HTTP errors through the SDK.
 
 Pass `base_url` or set `AWS_BEDROCK_BASE_URL` to override the derived `https://bedrock-mantle.<region>.api.aws/openai/v1` endpoint. The legacy module client supports `openai.api_type = "amazon-bedrock"` or `OPENAI_API_TYPE=amazon-bedrock`.
 
@@ -956,6 +956,21 @@ client = BedrockOpenAI(
     bedrock_token_provider=lambda: refresh_bedrock_token(),
 )
 ```
+
+To use the standard AWS credential chain and SigV4 authentication, install the Bedrock extra and omit bearer-token configuration:
+
+```sh
+pip install 'openai[bedrock]'
+```
+
+```py
+client = BedrockOpenAI(
+    aws_region="us-west-2",
+    aws_profile="my-profile",  # optional; otherwise uses the default AWS credential chain
+)
+```
+
+You can also pass explicit temporary credentials or an `aws_credentials_provider` that returns botocore-compatible credentials. Explicit bearer and AWS credential options are mutually exclusive. Without explicit authentication, `AWS_BEARER_TOKEN_BEDROCK` takes precedence over the default AWS credential chain.
 
 ## Versioning
 

@@ -3,13 +3,14 @@ from __future__ import annotations
 import os
 import re
 import inspect
+import importlib
 from typing import Any, Mapping, Callable, Awaitable, cast
 from typing_extensions import Self, override
 
 import httpx
 
 from ..auth import WorkloadIdentity
-from .._types import NOT_GIVEN, Timeout, NotGiven
+from .._types import NOT_GIVEN, Headers, Timeout, NotGiven
 from .._utils import is_given
 from .._client import OpenAI, AsyncOpenAI
 from .._models import SecurityOptions, FinalRequestOptions
@@ -18,6 +19,181 @@ from .._base_client import DEFAULT_MAX_RETRIES
 
 BedrockTokenProvider = Callable[[], str]
 AsyncBedrockTokenProvider = Callable[[], "str | Awaitable[str]"]
+AwsCredentialsProvider = Callable[[], object]
+
+
+class _BedrockAwsBearerAuth:
+    def __init__(self) -> None:
+        try:
+            auth_module = importlib.import_module("botocore.auth")
+            awsrequest_module = importlib.import_module("botocore.awsrequest")
+            tokens_module = importlib.import_module("botocore.tokens")
+        except ImportError:
+            self._bearer_auth_cls = None
+            self._aws_request_cls = None
+            self._frozen_auth_token_cls = None
+            return
+
+        self._bearer_auth_cls = auth_module.BearerAuth
+        self._aws_request_cls = awsrequest_module.AWSRequest
+        self._frozen_auth_token_cls = tokens_module.FrozenAuthToken
+
+    def sign(self, request: httpx.Request, token: str) -> None:
+        if self._bearer_auth_cls is None or self._aws_request_cls is None or self._frozen_auth_token_cls is None:
+            return
+
+        headers = dict(request.headers)
+        headers.pop("authorization", None)
+        aws_request = self._aws_request_cls(
+            method=request.method,
+            url=str(request.url),
+            data=request.read(),
+            headers=headers,
+        )
+        self._bearer_auth_cls(self._frozen_auth_token_cls(token)).add_auth(aws_request)
+        request.headers.clear()
+        request.headers.update(dict(aws_request.headers.items()))
+
+
+class _BedrockAwsAuth:
+    def __init__(
+        self,
+        *,
+        region: str,
+        profile: str | None,
+        access_key_id: str | None,
+        secret_access_key: str | None,
+        session_token: str | None,
+        credentials_provider: AwsCredentialsProvider | None,
+    ) -> None:
+        try:
+            auth_module = importlib.import_module("botocore.auth")
+            session_module = importlib.import_module("botocore.session")
+            awsrequest_module = importlib.import_module("botocore.awsrequest")
+            credentials_module = importlib.import_module("botocore.credentials")
+        except ImportError as exc:
+            raise OpenAIError(
+                "AWS credential authentication requires botocore. Install it with `pip install openai[bedrock]`."
+            ) from exc
+
+        session = session_module.Session(profile=profile)
+        service_model = session.get_service_model("bedrock-runtime")
+        auth_options = cast("list[str]", service_model.metadata.get("auth", []))
+        if auth_module.resolve_auth_scheme_preference(["sigv4"], auth_options) != "v4":
+            raise OpenAIError("The installed botocore version does not support Bedrock SigV4 authentication.")
+
+        self._region = region
+        self._session = session
+        self._credentials_provider = credentials_provider
+        self._explicit_credentials = (
+            credentials_module.Credentials(access_key_id, secret_access_key, session_token)
+            if access_key_id is not None and secret_access_key is not None
+            else None
+        )
+        self._aws_request_cls = awsrequest_module.AWSRequest
+        self._sigv4_auth_cls = auth_module.SigV4Auth
+
+    def sign(self, request: httpx.Request) -> None:
+        credentials = (
+            self._credentials_provider()
+            if self._credentials_provider is not None
+            else self._explicit_credentials or self._session.get_credentials()
+        )
+        if credentials is None:
+            raise OpenAIError(
+                "Could not resolve AWS credentials. Configure the standard AWS credential chain or pass explicit "
+                "AWS credentials to the Bedrock client."
+            )
+
+        get_frozen_credentials = getattr(credentials, "get_frozen_credentials", None)
+        if callable(get_frozen_credentials):
+            credentials = get_frozen_credentials()
+
+        headers = dict(request.headers)
+        headers.pop("authorization", None)
+        aws_request = self._aws_request_cls(
+            method=request.method,
+            url=str(request.url),
+            data=request.read(),
+            headers=headers,
+        )
+        self._sigv4_auth_cls(credentials, "bedrock-mantle", self._region).add_auth(aws_request)
+        request.headers.clear()
+        request.headers.update(dict(aws_request.headers.items()))
+
+
+def _has_explicit_aws_auth(
+    *,
+    aws_profile: str | None,
+    aws_access_key_id: str | None,
+    aws_secret_access_key: str | None,
+    aws_session_token: str | None,
+    aws_credentials_provider: AwsCredentialsProvider | None,
+) -> bool:
+    return any(
+        value is not None
+        for value in (
+            aws_profile,
+            aws_access_key_id,
+            aws_secret_access_key,
+            aws_session_token,
+            aws_credentials_provider,
+        )
+    )
+
+
+def _validate_explicit_aws_auth(
+    *,
+    aws_profile: str | None,
+    aws_access_key_id: str | None,
+    aws_secret_access_key: str | None,
+    aws_session_token: str | None,
+    aws_credentials_provider: AwsCredentialsProvider | None,
+) -> None:
+    if (aws_access_key_id is None) != (aws_secret_access_key is None):
+        raise OpenAIError("The `aws_access_key_id` and `aws_secret_access_key` arguments must be provided together.")
+
+    credential_sources = sum(
+        (
+            aws_profile is not None,
+            aws_access_key_id is not None,
+            aws_credentials_provider is not None,
+        )
+    )
+    if credential_sources > 1:
+        raise OpenAIError(
+            "The `aws_profile`, explicit AWS credentials, and `aws_credentials_provider` arguments are mutually exclusive."
+        )
+
+    if aws_session_token is not None and aws_access_key_id is None:
+        raise OpenAIError("The `aws_session_token` argument requires explicit AWS access key credentials.")
+
+
+def _resolve_aws_region(aws_region: str | None) -> str:
+    region = aws_region or os.environ.get("AWS_REGION") or os.environ.get("AWS_DEFAULT_REGION")
+    if region is None or not region.strip():
+        raise OpenAIError("AWS credential authentication requires `aws_region`, `AWS_REGION`, or `AWS_DEFAULT_REGION`.")
+    return region.strip()
+
+
+def _resolve_bedrock_env_token() -> str | None:
+    if "AWS_BEARER_TOKEN_BEDROCK" not in os.environ:
+        return None
+
+    try:
+        session_module = importlib.import_module("botocore.session")
+    except ImportError:
+        return os.environ.get("AWS_BEARER_TOKEN_BEDROCK") or None
+
+    auth_token = session_module.Session().get_auth_token(signing_name="bedrock")
+    if auth_token is None:
+        return None
+
+    get_frozen_token = getattr(auth_token, "get_frozen_token", None)
+    if callable(get_frozen_token):
+        auth_token = get_frozen_token()
+    token = cast(str, auth_token.token)
+    return token or None
 
 
 def _normalize_bedrock_base_url(base_url: str | httpx.URL) -> httpx.URL:
@@ -98,7 +274,14 @@ class BedrockOpenAI(OpenAI):
     """API client for Amazon Bedrock's OpenAI-compatible endpoint."""
 
     _bedrock_token_provider: BedrockTokenProvider | None
+    _bedrock_aws_bearer_auth: _BedrockAwsBearerAuth | None
+    _bedrock_aws_auth: _BedrockAwsAuth | None
     _uses_region_derived_base_url: bool
+    _aws_profile: str | None
+    _aws_access_key_id: str | None
+    _aws_secret_access_key: str | None
+    _aws_session_token: str | None
+    _aws_credentials_provider: AwsCredentialsProvider | None
     aws_region: str | None
 
     def __init__(
@@ -107,6 +290,11 @@ class BedrockOpenAI(OpenAI):
         api_key: str | None = None,
         bedrock_token_provider: BedrockTokenProvider | None = None,
         aws_region: str | None = None,
+        aws_profile: str | None = None,
+        aws_access_key_id: str | None = None,
+        aws_secret_access_key: str | None = None,
+        aws_session_token: str | None = None,
+        aws_credentials_provider: AwsCredentialsProvider | None = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -123,30 +311,68 @@ class BedrockOpenAI(OpenAI):
         """Construct a new synchronous Amazon Bedrock client instance.
 
         This automatically infers the following arguments from their corresponding environment variables if they are not provided:
-        - `api_key` from `AWS_BEARER_TOKEN_BEDROCK`
+        - bearer authentication from `AWS_BEARER_TOKEN_BEDROCK`
         - `aws_region` from `AWS_REGION` or `AWS_DEFAULT_REGION` when `base_url` and `AWS_BEDROCK_BASE_URL` are not set
         - `base_url` from `AWS_BEDROCK_BASE_URL`
 
-        `bedrock_token_provider` is invoked before each request when provided.
+        `bedrock_token_provider` is invoked before each request when provided. When no bearer token is configured,
+        the client uses the standard AWS credential chain and SigV4 authentication.
         """
-        if api_key is None and bedrock_token_provider is None:
-            api_key = os.environ.get("AWS_BEARER_TOKEN_BEDROCK")
-
         if callable(cast(object, api_key)):
             raise OpenAIError("Pass refreshable Bedrock credentials via `bedrock_token_provider`, not `api_key`.")
+
+        if api_key == "":
+            raise OpenAIError("The `api_key` argument must not be empty.")
 
         if api_key is not None and bedrock_token_provider is not None:
             raise OpenAIError("The `api_key` and `bedrock_token_provider` arguments are mutually exclusive.")
 
-        if _enforce_credentials and not api_key and bedrock_token_provider is None:
-            raise OpenAIError(
-                "Missing credentials. Please pass an `api_key` or `bedrock_token_provider`, or set the "
-                "`AWS_BEARER_TOKEN_BEDROCK` environment variable."
-            )
+        explicit_bearer_auth = api_key is not None or bedrock_token_provider is not None
+        explicit_aws_auth = _has_explicit_aws_auth(
+            aws_profile=aws_profile,
+            aws_access_key_id=aws_access_key_id,
+            aws_secret_access_key=aws_secret_access_key,
+            aws_session_token=aws_session_token,
+            aws_credentials_provider=aws_credentials_provider,
+        )
+        if explicit_bearer_auth and explicit_aws_auth:
+            raise OpenAIError("Bearer token and AWS credential authentication arguments are mutually exclusive.")
+
+        _validate_explicit_aws_auth(
+            aws_profile=aws_profile,
+            aws_access_key_id=aws_access_key_id,
+            aws_secret_access_key=aws_secret_access_key,
+            aws_session_token=aws_session_token,
+            aws_credentials_provider=aws_credentials_provider,
+        )
+
+        if not explicit_bearer_auth and not explicit_aws_auth:
+            api_key = _resolve_bedrock_env_token()
+
+        use_aws_auth = api_key is None and bedrock_token_provider is None
+        resolved_region = _resolve_aws_region(aws_region) if use_aws_auth else aws_region
 
         self._bedrock_token_provider = bedrock_token_provider
+        self._bedrock_aws_bearer_auth = _BedrockAwsBearerAuth() if not use_aws_auth else None
+        self._bedrock_aws_auth = (
+            _BedrockAwsAuth(
+                region=cast(str, resolved_region),
+                profile=aws_profile,
+                access_key_id=aws_access_key_id,
+                secret_access_key=aws_secret_access_key,
+                session_token=aws_session_token,
+                credentials_provider=aws_credentials_provider,
+            )
+            if use_aws_auth and _enforce_credentials
+            else None
+        )
         self._uses_region_derived_base_url = _uses_region_derived_bedrock_base_url(base_url)
-        self.aws_region = aws_region
+        self._aws_profile = aws_profile
+        self._aws_access_key_id = aws_access_key_id
+        self._aws_secret_access_key = aws_secret_access_key
+        self._aws_session_token = aws_session_token
+        self._aws_credentials_provider = aws_credentials_provider
+        self.aws_region = resolved_region
 
         super().__init__(
             api_key=_bedrock_token_provider(bedrock_token_provider)
@@ -156,7 +382,7 @@ class BedrockOpenAI(OpenAI):
             organization=organization,
             project=project,
             webhook_secret=webhook_secret,
-            base_url=_resolve_bedrock_base_url(base_url, aws_region),
+            base_url=_resolve_bedrock_base_url(base_url, resolved_region),
             websocket_base_url=websocket_base_url,
             timeout=timeout,
             max_retries=max_retries,
@@ -169,10 +395,20 @@ class BedrockOpenAI(OpenAI):
 
     @override
     def _auth_headers(self, security: SecurityOptions) -> dict[str, str]:
+        if self._bedrock_aws_auth is not None:
+            return {}
+
         if security.get("bearer_auth", False) or security.get("admin_api_key_auth", False):
             return self._bearer_auth
 
         return {}
+
+    @override
+    def _validate_headers(self, headers: Headers, custom_headers: Headers) -> None:
+        if self._bedrock_aws_auth is not None:
+            return
+
+        super()._validate_headers(headers, custom_headers)
 
     @override
     def _prepare_options(self, options: FinalRequestOptions) -> FinalRequestOptions:
@@ -186,6 +422,13 @@ class BedrockOpenAI(OpenAI):
         return super()._prepare_options(options)
 
     @override
+    def _prepare_request(self, request: httpx.Request) -> None:
+        if self._bedrock_aws_auth is not None:
+            self._bedrock_aws_auth.sign(request)
+        elif self._bedrock_aws_bearer_auth is not None:
+            self._bedrock_aws_bearer_auth.sign(request, self.api_key)
+
+    @override
     def copy(
         self,
         *,
@@ -194,6 +437,11 @@ class BedrockOpenAI(OpenAI):
         workload_identity: WorkloadIdentity | None = None,
         bedrock_token_provider: BedrockTokenProvider | None = None,
         aws_region: str | None = None,
+        aws_profile: str | None = None,
+        aws_access_key_id: str | None = None,
+        aws_secret_access_key: str | None = None,
+        aws_session_token: str | None = None,
+        aws_credentials_provider: AwsCredentialsProvider | None = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -219,7 +467,7 @@ class BedrockOpenAI(OpenAI):
             raise OpenAIError("Pass refreshable Bedrock credentials via `bedrock_token_provider`, not `api_key`.")
 
         if admin_api_key is not None or workload_identity is not None:
-            raise OpenAIError("BedrockOpenAI only supports Bedrock bearer token authentication.")
+            raise OpenAIError("BedrockOpenAI only supports Bedrock bearer token or AWS credential authentication.")
 
         if api_key is not None and bedrock_token_provider is not None:
             raise OpenAIError("The `api_key` and `bedrock_token_provider` arguments are mutually exclusive.")
@@ -236,14 +484,33 @@ class BedrockOpenAI(OpenAI):
         elif set_default_query is not None:
             params = set_default_query
 
-        if api_key is not None:
+        aws_auth_override = _has_explicit_aws_auth(
+            aws_profile=aws_profile,
+            aws_access_key_id=aws_access_key_id,
+            aws_secret_access_key=aws_secret_access_key,
+            aws_session_token=aws_session_token,
+            aws_credentials_provider=aws_credentials_provider,
+        )
+        if api_key is not None or aws_auth_override:
             next_token_provider = None
         elif bedrock_token_provider is not None:
             next_token_provider = bedrock_token_provider
         else:
             next_token_provider = self._bedrock_token_provider
 
-        next_api_key = api_key if api_key is not None else (None if next_token_provider is not None else self.api_key)
+        preserve_aws_auth = (
+            self._bedrock_aws_auth is not None
+            and not aws_auth_override
+            and api_key is None
+            and next_token_provider is None
+        )
+        next_api_key = (
+            api_key
+            if api_key is not None
+            else None
+            if next_token_provider is not None or preserve_aws_auth or aws_auth_override
+            else self.api_key
+        )
         next_base_url = base_url
         if next_base_url is None and not (aws_region is not None and self._uses_region_derived_base_url):
             next_base_url = self.base_url
@@ -252,6 +519,35 @@ class BedrockOpenAI(OpenAI):
             api_key=next_api_key,
             bedrock_token_provider=next_token_provider,
             aws_region=aws_region if aws_region is not None else self.aws_region,
+            aws_profile=aws_profile if aws_profile is not None else self._aws_profile if preserve_aws_auth else None,
+            aws_access_key_id=(
+                aws_access_key_id
+                if aws_access_key_id is not None
+                else self._aws_access_key_id
+                if preserve_aws_auth
+                else None
+            ),
+            aws_secret_access_key=(
+                aws_secret_access_key
+                if aws_secret_access_key is not None
+                else self._aws_secret_access_key
+                if preserve_aws_auth
+                else None
+            ),
+            aws_session_token=(
+                aws_session_token
+                if aws_session_token is not None
+                else self._aws_session_token
+                if preserve_aws_auth
+                else None
+            ),
+            aws_credentials_provider=(
+                aws_credentials_provider
+                if aws_credentials_provider is not None
+                else self._aws_credentials_provider
+                if preserve_aws_auth
+                else None
+            ),
             organization=organization if organization is not None else self.organization,
             project=project if project is not None else self.project,
             webhook_secret=webhook_secret if webhook_secret is not None else self.webhook_secret,
@@ -273,7 +569,14 @@ class AsyncBedrockOpenAI(AsyncOpenAI):
     """Async API client for Amazon Bedrock's OpenAI-compatible endpoint."""
 
     _bedrock_token_provider: AsyncBedrockTokenProvider | None
+    _bedrock_aws_bearer_auth: _BedrockAwsBearerAuth | None
+    _bedrock_aws_auth: _BedrockAwsAuth | None
     _uses_region_derived_base_url: bool
+    _aws_profile: str | None
+    _aws_access_key_id: str | None
+    _aws_secret_access_key: str | None
+    _aws_session_token: str | None
+    _aws_credentials_provider: AwsCredentialsProvider | None
     aws_region: str | None
 
     def __init__(
@@ -282,6 +585,11 @@ class AsyncBedrockOpenAI(AsyncOpenAI):
         api_key: str | None = None,
         bedrock_token_provider: AsyncBedrockTokenProvider | None = None,
         aws_region: str | None = None,
+        aws_profile: str | None = None,
+        aws_access_key_id: str | None = None,
+        aws_secret_access_key: str | None = None,
+        aws_session_token: str | None = None,
+        aws_credentials_provider: AwsCredentialsProvider | None = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -298,30 +606,68 @@ class AsyncBedrockOpenAI(AsyncOpenAI):
         """Construct a new asynchronous Amazon Bedrock client instance.
 
         This automatically infers the following arguments from their corresponding environment variables if they are not provided:
-        - `api_key` from `AWS_BEARER_TOKEN_BEDROCK`
+        - bearer authentication from `AWS_BEARER_TOKEN_BEDROCK`
         - `aws_region` from `AWS_REGION` or `AWS_DEFAULT_REGION` when `base_url` and `AWS_BEDROCK_BASE_URL` are not set
         - `base_url` from `AWS_BEDROCK_BASE_URL`
 
-        `bedrock_token_provider` is invoked before each request when provided.
+        `bedrock_token_provider` is invoked before each request when provided. When no bearer token is configured,
+        the client uses the standard AWS credential chain and SigV4 authentication.
         """
-        if api_key is None and bedrock_token_provider is None:
-            api_key = os.environ.get("AWS_BEARER_TOKEN_BEDROCK")
-
         if callable(cast(object, api_key)):
             raise OpenAIError("Pass refreshable Bedrock credentials via `bedrock_token_provider`, not `api_key`.")
+
+        if api_key == "":
+            raise OpenAIError("The `api_key` argument must not be empty.")
 
         if api_key is not None and bedrock_token_provider is not None:
             raise OpenAIError("The `api_key` and `bedrock_token_provider` arguments are mutually exclusive.")
 
-        if _enforce_credentials and not api_key and bedrock_token_provider is None:
-            raise OpenAIError(
-                "Missing credentials. Please pass an `api_key` or `bedrock_token_provider`, or set the "
-                "`AWS_BEARER_TOKEN_BEDROCK` environment variable."
-            )
+        explicit_bearer_auth = api_key is not None or bedrock_token_provider is not None
+        explicit_aws_auth = _has_explicit_aws_auth(
+            aws_profile=aws_profile,
+            aws_access_key_id=aws_access_key_id,
+            aws_secret_access_key=aws_secret_access_key,
+            aws_session_token=aws_session_token,
+            aws_credentials_provider=aws_credentials_provider,
+        )
+        if explicit_bearer_auth and explicit_aws_auth:
+            raise OpenAIError("Bearer token and AWS credential authentication arguments are mutually exclusive.")
+
+        _validate_explicit_aws_auth(
+            aws_profile=aws_profile,
+            aws_access_key_id=aws_access_key_id,
+            aws_secret_access_key=aws_secret_access_key,
+            aws_session_token=aws_session_token,
+            aws_credentials_provider=aws_credentials_provider,
+        )
+
+        if not explicit_bearer_auth and not explicit_aws_auth:
+            api_key = _resolve_bedrock_env_token()
+
+        use_aws_auth = api_key is None and bedrock_token_provider is None
+        resolved_region = _resolve_aws_region(aws_region) if use_aws_auth else aws_region
 
         self._bedrock_token_provider = bedrock_token_provider
+        self._bedrock_aws_bearer_auth = _BedrockAwsBearerAuth() if not use_aws_auth else None
+        self._bedrock_aws_auth = (
+            _BedrockAwsAuth(
+                region=cast(str, resolved_region),
+                profile=aws_profile,
+                access_key_id=aws_access_key_id,
+                secret_access_key=aws_secret_access_key,
+                session_token=aws_session_token,
+                credentials_provider=aws_credentials_provider,
+            )
+            if use_aws_auth and _enforce_credentials
+            else None
+        )
         self._uses_region_derived_base_url = _uses_region_derived_bedrock_base_url(base_url)
-        self.aws_region = aws_region
+        self._aws_profile = aws_profile
+        self._aws_access_key_id = aws_access_key_id
+        self._aws_secret_access_key = aws_secret_access_key
+        self._aws_session_token = aws_session_token
+        self._aws_credentials_provider = aws_credentials_provider
+        self.aws_region = resolved_region
 
         super().__init__(
             api_key=(
@@ -333,7 +679,7 @@ class AsyncBedrockOpenAI(AsyncOpenAI):
             organization=organization,
             project=project,
             webhook_secret=webhook_secret,
-            base_url=_resolve_bedrock_base_url(base_url, aws_region),
+            base_url=_resolve_bedrock_base_url(base_url, resolved_region),
             websocket_base_url=websocket_base_url,
             timeout=timeout,
             max_retries=max_retries,
@@ -346,10 +692,20 @@ class AsyncBedrockOpenAI(AsyncOpenAI):
 
     @override
     def _auth_headers(self, security: SecurityOptions) -> dict[str, str]:
+        if self._bedrock_aws_auth is not None:
+            return {}
+
         if security.get("bearer_auth", False) or security.get("admin_api_key_auth", False):
             return self._bearer_auth
 
         return {}
+
+    @override
+    def _validate_headers(self, headers: Headers, custom_headers: Headers) -> None:
+        if self._bedrock_aws_auth is not None:
+            return
+
+        super()._validate_headers(headers, custom_headers)
 
     @override
     async def _prepare_options(self, options: FinalRequestOptions) -> FinalRequestOptions:
@@ -363,6 +719,13 @@ class AsyncBedrockOpenAI(AsyncOpenAI):
         return await super()._prepare_options(options)
 
     @override
+    async def _prepare_request(self, request: httpx.Request) -> None:
+        if self._bedrock_aws_auth is not None:
+            self._bedrock_aws_auth.sign(request)
+        elif self._bedrock_aws_bearer_auth is not None:
+            self._bedrock_aws_bearer_auth.sign(request, self.api_key)
+
+    @override
     def copy(
         self,
         *,
@@ -371,6 +734,11 @@ class AsyncBedrockOpenAI(AsyncOpenAI):
         workload_identity: WorkloadIdentity | None = None,
         bedrock_token_provider: AsyncBedrockTokenProvider | None = None,
         aws_region: str | None = None,
+        aws_profile: str | None = None,
+        aws_access_key_id: str | None = None,
+        aws_secret_access_key: str | None = None,
+        aws_session_token: str | None = None,
+        aws_credentials_provider: AwsCredentialsProvider | None = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -396,7 +764,7 @@ class AsyncBedrockOpenAI(AsyncOpenAI):
             raise OpenAIError("Pass refreshable Bedrock credentials via `bedrock_token_provider`, not `api_key`.")
 
         if admin_api_key is not None or workload_identity is not None:
-            raise OpenAIError("AsyncBedrockOpenAI only supports Bedrock bearer token authentication.")
+            raise OpenAIError("AsyncBedrockOpenAI only supports Bedrock bearer token or AWS credential authentication.")
 
         if api_key is not None and bedrock_token_provider is not None:
             raise OpenAIError("The `api_key` and `bedrock_token_provider` arguments are mutually exclusive.")
@@ -413,14 +781,33 @@ class AsyncBedrockOpenAI(AsyncOpenAI):
         elif set_default_query is not None:
             params = set_default_query
 
-        if api_key is not None:
+        aws_auth_override = _has_explicit_aws_auth(
+            aws_profile=aws_profile,
+            aws_access_key_id=aws_access_key_id,
+            aws_secret_access_key=aws_secret_access_key,
+            aws_session_token=aws_session_token,
+            aws_credentials_provider=aws_credentials_provider,
+        )
+        if api_key is not None or aws_auth_override:
             next_token_provider = None
         elif bedrock_token_provider is not None:
             next_token_provider = bedrock_token_provider
         else:
             next_token_provider = self._bedrock_token_provider
 
-        next_api_key = api_key if api_key is not None else (None if next_token_provider is not None else self.api_key)
+        preserve_aws_auth = (
+            self._bedrock_aws_auth is not None
+            and not aws_auth_override
+            and api_key is None
+            and next_token_provider is None
+        )
+        next_api_key = (
+            api_key
+            if api_key is not None
+            else None
+            if next_token_provider is not None or preserve_aws_auth or aws_auth_override
+            else self.api_key
+        )
         next_base_url = base_url
         if next_base_url is None and not (aws_region is not None and self._uses_region_derived_base_url):
             next_base_url = self.base_url
@@ -429,6 +816,35 @@ class AsyncBedrockOpenAI(AsyncOpenAI):
             api_key=next_api_key,
             bedrock_token_provider=next_token_provider,
             aws_region=aws_region if aws_region is not None else self.aws_region,
+            aws_profile=aws_profile if aws_profile is not None else self._aws_profile if preserve_aws_auth else None,
+            aws_access_key_id=(
+                aws_access_key_id
+                if aws_access_key_id is not None
+                else self._aws_access_key_id
+                if preserve_aws_auth
+                else None
+            ),
+            aws_secret_access_key=(
+                aws_secret_access_key
+                if aws_secret_access_key is not None
+                else self._aws_secret_access_key
+                if preserve_aws_auth
+                else None
+            ),
+            aws_session_token=(
+                aws_session_token
+                if aws_session_token is not None
+                else self._aws_session_token
+                if preserve_aws_auth
+                else None
+            ),
+            aws_credentials_provider=(
+                aws_credentials_provider
+                if aws_credentials_provider is not None
+                else self._aws_credentials_provider
+                if preserve_aws_auth
+                else None
+            ),
             organization=organization if organization is not None else self.organization,
             project=project if project is not None else self.project,
             webhook_secret=webhook_secret if webhook_secret is not None else self.webhook_secret,

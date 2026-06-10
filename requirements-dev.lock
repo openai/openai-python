@@ -33,11 +33,15 @@ attrs==25.4.0
     # via nox
     # via outcome
     # via trio
+awscrt==0.31.2
+    # via botocore
 azure-core==1.36.0
     # via azure-identity
 azure-identity==1.25.1
 backports-asyncio-runner==1.2.0
     # via pytest-asyncio
+botocore==1.42.97
+    # via openai
 certifi==2026.1.4
     # via httpcore
     # via httpx
@@ -100,6 +104,8 @@ iniconfig==2.1.0
 inline-snapshot==0.31.1
 jiter==0.12.0
     # via openai
+jmespath==1.1.0
+    # via botocore
 markdown-it-py==3.0.0
     # via rich
 mdurl==0.1.2
@@ -218,6 +224,7 @@ typing-inspection==0.4.2
 tzdata==2025.2
     # via pandas
 urllib3==2.5.0
+    # via botocore
     # via requests
     # via types-requests
 virtualenv==20.35.4
