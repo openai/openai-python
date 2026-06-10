@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import json
 import inspect
 from types import TracebackType
 from typing import Any, List, Generic, Iterable, Awaitable, cast
 from typing_extensions import Self, Callable, Iterator, AsyncIterator
+
+import pydantic
 
 from ._types import ParsedResponseSnapshot
 from ._events import (
@@ -276,6 +279,11 @@ class ResponseStreamState(Generic[TextFormatT]):
             content = output.content[event.content_index]
             assert content.type == "output_text"
 
+            try:
+                parsed = parse_text(event.text, text_format=self._text_format)
+            except (pydantic.ValidationError, json.JSONDecodeError):
+                parsed = None
+
             events.append(
                 build(
                     ResponseTextDoneEvent[TextFormatT],
@@ -286,7 +294,7 @@ class ResponseStreamState(Generic[TextFormatT]):
                     logprobs=event.logprobs,
                     type="response.output_text.done",
                     text=event.text,
-                    parsed=parse_text(event.text, text_format=self._text_format),
+                    parsed=parsed,
                 )
             )
         elif event.type == "response.function_call_arguments.delta":
