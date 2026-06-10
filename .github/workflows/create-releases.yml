@@ -13,7 +13,7 @@ jobs:
     outputs:
       releases_created: ${{ steps.release.outputs.releases_created }}
     permissions:
-      contents: read
+      contents: write
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
