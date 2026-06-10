@@ -23,6 +23,7 @@ The REST API documentation can be found on [platform.openai.com](https://platfor
 ## Installation
 
 ```sh
+
 # install from PyPI
 pip install openai
 ```
@@ -256,6 +257,7 @@ By default, the async client uses `httpx` for HTTP requests. However, for improv
 You can enable this by installing `aiohttp`:
 
 ```sh
+
 # install from PyPI
 pip install openai[aiohttp]
 ```
@@ -414,6 +416,7 @@ from openai import OpenAI
 client = OpenAI()
 
 all_jobs = []
+
 # Automatically fetches more pages as needed.
 for job in client.fine_tuning.jobs.list(
     limit=20,
@@ -654,7 +657,7 @@ Note that unlike other properties that use an `_` prefix, the `_request_id` prop
 _is_ public. Unless documented otherwise, _all_ other `_` prefix properties,
 methods and modules are _private_.
 
-> [!IMPORTANT]  
+> [!IMPORTANT]
 > If you need to access request IDs for failed requests you must catch the `APIStatusError` exception
 
 ```python
