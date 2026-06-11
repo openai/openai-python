@@ -100,6 +100,7 @@ jobs:
   examples:
     timeout-minutes: 10
     name: examples
+    environment: CI
     runs-on: ${{ github.repository == 'stainless-sdks/openai-python' && 'depot-ubuntu-24.04' || 'ubuntu-latest' }}
     if: github.repository == 'openai/openai-python' && (github.event_name == 'push' || github.event.pull_request.head.repo.fork) && (github.event_name != 'push' || github.event.head_commit.message != 'codegen metadata')
 
