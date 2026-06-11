@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import os
 import inspect
-from typing import Any, Union, Mapping, TypeVar, Callable, Awaitable, cast, overload
+from typing import Any, Type, Union, Mapping, TypeVar, Callable, Awaitable, cast, overload
 from typing_extensions import Self, override
 
 import httpx
 
 from ..auth import WorkloadIdentity
-from .._types import NOT_GIVEN, Omit, Query, Headers, Timeout, NotGiven
+from .._types import NOT_GIVEN, Omit, Query, Headers, Timeout, NotGiven, ResponseT
 from .._utils import is_given, is_mapping
 from .._client import OpenAI, AsyncOpenAI
 from .._compat import model_copy
@@ -412,6 +412,44 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         url = realtime_url.copy_with(params={**query})
         return url, auth_headers
 
+    @override
+    def _process_response(
+        self,
+        *,
+        cast_to: Type[ResponseT],
+        options: FinalRequestOptions,
+        response: httpx.Response,
+        stream: bool,
+        stream_cls: type[Stream[Any]] | type[AsyncStream[Any]] | None,
+        retries_taken: int = 0,
+    ) -> ResponseT:
+        result = super()._process_response(
+            cast_to=cast_to,
+            options=options,
+            response=response,
+            stream=stream,
+            stream_cls=stream_cls,
+            retries_taken=retries_taken,
+        )
+        if options.url.startswith("/responses"):
+            served_model = response.headers.get("x-ms-served-model", "").strip()
+            if served_model:
+                from ..types.responses.response import Response as _ResponseType
+
+                if not stream and isinstance(result, _ResponseType):
+                    result.model = served_model
+                elif stream and isinstance(result, Stream):
+                    _orig_iter = result._iterator
+
+                    def _patched_iter(orig: Any = _orig_iter, model: str = served_model):  # type: ignore[return]
+                        for event in orig:
+                            if hasattr(event, "response") and isinstance(event.response, _ResponseType):
+                                event.response.model = model
+                            yield event
+
+                    result._iterator = _patched_iter()
+        return result
+
 
 class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], AsyncOpenAI):
     @overload
@@ -733,3 +771,41 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
 
         url = realtime_url.copy_with(params={**query})
         return url, auth_headers
+
+    @override
+    async def _process_response(
+        self,
+        *,
+        cast_to: Type[ResponseT],
+        options: FinalRequestOptions,
+        response: httpx.Response,
+        stream: bool,
+        stream_cls: type[Stream[Any]] | type[AsyncStream[Any]] | None,
+        retries_taken: int = 0,
+    ) -> ResponseT:
+        result = await super()._process_response(
+            cast_to=cast_to,
+            options=options,
+            response=response,
+            stream=stream,
+            stream_cls=stream_cls,
+            retries_taken=retries_taken,
+        )
+        if options.url.startswith("/responses"):
+            served_model = response.headers.get("x-ms-served-model", "").strip()
+            if served_model:
+                from ..types.responses.response import Response as _ResponseType
+
+                if not stream and isinstance(result, _ResponseType):
+                    result.model = served_model
+                elif stream and isinstance(result, AsyncStream):
+                    _orig_iter = result._iterator
+
+                    async def _patched_iter(orig: Any = _orig_iter, model: str = served_model):  # type: ignore[return]
+                        async for event in orig:
+                            if hasattr(event, "response") and isinstance(event.response, _ResponseType):
+                                event.response.model = model
+                            yield event
+
+                    result._iterator = _patched_iter()
+        return result
