@@ -859,12 +859,45 @@ def _build_keepalive_socket_options() -> list[tuple[int, int, int | bool]]:
     return opts
 
 
+# ``socket_options`` was added to httpx's transports in httpx 0.25.0. This SDK
+# still supports ``httpx>=0.23.0``, so detect support at runtime rather than
+# raising the dependency floor (which would be a breaking change for users).
+_HTTPX_TRANSPORT_SUPPORTS_SOCKET_OPTIONS = (
+    "socket_options" in inspect.signature(httpx.HTTPTransport.__init__).parameters
+)
+
+# ``httpx.Client``/``httpx.AsyncClient`` normally apply these options when they
+# build their own default transport. Supplying a pre-built transport bypasses
+# that step, so the effective values must be forwarded to avoid silently
+# dropping ``DEFAULT_CONNECTION_LIMITS`` and customizations like ``http2=True``.
+_TRANSPORT_PASSTHROUGH_KEYS = ("verify", "cert", "trust_env", "http1", "http2", "limits")
+
+
+def _build_keepalive_transport(
+    transport_cls: type[httpx.HTTPTransport] | type[httpx.AsyncHTTPTransport],
+    kwargs: dict[str, Any],
+) -> httpx.HTTPTransport | httpx.AsyncHTTPTransport:
+    """Build a default transport with TCP keepalive enabled.
+
+    The relevant httpx client options are forwarded so that constructing the
+    transport explicitly does not discard them, and ``socket_options`` is only
+    passed when the installed httpx version supports it.
+    """
+    transport_kwargs: dict[str, Any] = {
+        key: kwargs[key] for key in _TRANSPORT_PASSTHROUGH_KEYS if key in kwargs
+    }
+    if _HTTPX_TRANSPORT_SUPPORTS_SOCKET_OPTIONS:
+        transport_kwargs["socket_options"] = _build_keepalive_socket_options()
+    return transport_cls(**transport_kwargs)
+
+
 class _DefaultHttpxClient(httpx.Client):
     def __init__(self, **kwargs: Any) -> None:
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
         kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
-        kwargs.setdefault("transport", httpx.HTTPTransport(socket_options=_build_keepalive_socket_options()))
+        if "transport" not in kwargs:
+            kwargs["transport"] = _build_keepalive_transport(httpx.HTTPTransport, kwargs)
         super().__init__(**kwargs)
 
 
@@ -1452,7 +1485,8 @@ class _DefaultAsyncHttpxClient(httpx.AsyncClient):
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
         kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
-        kwargs.setdefault("transport", httpx.AsyncHTTPTransport(socket_options=_build_keepalive_socket_options()))
+        if "transport" not in kwargs:
+            kwargs["transport"] = _build_keepalive_transport(httpx.AsyncHTTPTransport, kwargs)
         super().__init__(**kwargs)
 
 
