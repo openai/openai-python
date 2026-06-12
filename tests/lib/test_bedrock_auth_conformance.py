@@ -117,6 +117,8 @@ def test_auth_selection_fixture(case: dict[str, Any], monkeypatch: pytest.Monkey
     if "aws" in explicit:
         kwargs["aws_access_key_id"] = explicit["aws"]["access_key_id"]
         kwargs["aws_secret_access_key"] = explicit["aws"]["secret_access_key"]
+    if "profile" in explicit:
+        kwargs["aws_profile"] = explicit["profile"]
 
     if case["expected"].get("error") == "bedrock_conflicting_auth":
         with pytest.raises(OpenAIError, match="authentication is ambiguous"):

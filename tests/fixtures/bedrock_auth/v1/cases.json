@@ -40,6 +40,23 @@
       }
     },
     {
+      "id": "auth.explicit-profile-over-environment-bearer",
+      "kind": "auth_selection",
+      "given": {
+        "explicit": {
+          "profile": "fixture-profile"
+        },
+        "environment": {
+          "AWS_BEARER_TOKEN_BEDROCK": "environment-bearer-token"
+        },
+        "default_chain_available": true
+      },
+      "expected": {
+        "auth_mode": "sigv4",
+        "auth_source": "profile"
+      }
+    },
+    {
       "id": "auth.environment-bearer-over-default-chain",
       "kind": "auth_selection",
       "given": {
