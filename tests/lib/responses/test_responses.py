@@ -7,7 +7,15 @@ from respx import MockRouter
 from inline_snapshot import snapshot
 
 from openai import OpenAI, AsyncOpenAI
+from openai._types import omit
 from openai._utils import assert_signatures_in_sync
+from openai.types.responses import (
+    ResponseCreatedEvent,
+    ResponseOutputItemAddedEvent,
+    ResponseContentPartAddedEvent,
+    ResponseReasoningTextDeltaEvent,
+)
+from openai.lib.streaming.responses._responses import ResponseStreamState
 
 from ...conftest import base_url
 from ..snapshots import make_snapshot_request
@@ -61,3 +69,83 @@ def test_parse_method_definition_in_sync(sync: bool, client: OpenAI, async_clien
         checking_client.responses.parse,
         exclude_params={"tools"},
     )
+
+
+_RESPONSE_CREATED_PAYLOAD = {
+    "type": "response.created",
+    "sequence_number": 0,
+    "response": {
+        "id": "resp_1",
+        "object": "response",
+        "created_at": 0,
+        "status": "in_progress",
+        "error": None,
+        "incomplete_details": None,
+        "instructions": None,
+        "max_output_tokens": None,
+        "model": "o3",
+        "output": [],
+        "parallel_tool_calls": True,
+        "temperature": 1.0,
+        "tool_choice": "auto",
+        "tools": [],
+        "top_p": 1.0,
+        "metadata": {},
+    },
+}
+
+
+def test_stream_state_accumulates_reasoning_text_delta() -> None:
+    state: ResponseStreamState[object] = ResponseStreamState(input_tools=omit, text_format=omit)
+
+    state.handle_event(ResponseCreatedEvent.model_validate(_RESPONSE_CREATED_PAYLOAD))
+    state.handle_event(
+        ResponseOutputItemAddedEvent.model_validate(
+            {
+                "type": "response.output_item.added",
+                "sequence_number": 1,
+                "output_index": 0,
+                "item": {
+                    "id": "rs_1",
+                    "type": "reasoning",
+                    "status": "in_progress",
+                    "summary": [],
+                    "content": None,
+                },
+            }
+        )
+    )
+    state.handle_event(
+        ResponseContentPartAddedEvent.model_validate(
+            {
+                "type": "response.content_part.added",
+                "sequence_number": 2,
+                "output_index": 0,
+                "content_index": 0,
+                "item_id": "rs_1",
+                "part": {"type": "reasoning_text", "text": ""},
+            }
+        )
+    )
+    for index, delta in enumerate(["Let me ", "think ", "carefully."]):
+        state.handle_event(
+            ResponseReasoningTextDeltaEvent.model_validate(
+                {
+                    "type": "response.reasoning_text.delta",
+                    "sequence_number": 3 + index,
+                    "output_index": 0,
+                    "content_index": 0,
+                    "item_id": "rs_1",
+                    "delta": delta,
+                }
+            )
+        )
+
+    current_snapshot = state._ResponseStreamState__current_snapshot  # type: ignore[attr-defined]
+    assert current_snapshot is not None
+    reasoning = current_snapshot.output[0]
+    assert reasoning.type == "reasoning"
+    assert reasoning.content is not None
+    assert len(reasoning.content) == 1
+    assert reasoning.content[0].type == "reasoning_text"
+    assert reasoning.content[0].text == "Let me think carefully."  # type: ignore[union-attr]

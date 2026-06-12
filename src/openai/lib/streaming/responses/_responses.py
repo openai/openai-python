@@ -25,6 +25,7 @@ from ....types.responses.parsed_response import (
     ParsedResponseOutputMessage,
     ParsedResponseFunctionToolCall,
 )
+from ....types.responses.response_reasoning_item import Content as ReasoningItemContent
 
 
 class ResponseStream(Generic[TextFormatT]):
@@ -346,6 +347,10 @@ class ResponseStreamState(Generic[TextFormatT]):
                 output.content.append(
                     construct_type_unchecked(type_=cast(Any, ParsedContent), value=event.part.to_dict())
                 )
+            elif output.type == "reasoning" and event.part.type == "reasoning_text":
+                if output.content is None:
+                    output.content = []
+                output.content.append(construct_type_unchecked(type_=ReasoningItemContent, value=event.part.to_dict()))
         elif event.type == "response.output_text.delta":
             output = snapshot.output[event.output_index]
             if output.type == "message":
@@ -356,6 +361,12 @@ class ResponseStreamState(Generic[TextFormatT]):
             output = snapshot.output[event.output_index]
             if output.type == "function_call":
                 output.arguments += event.delta
+        elif event.type == "response.reasoning_text.delta":
+            output = snapshot.output[event.output_index]
+            if output.type == "reasoning" and output.content is not None:
+                content = output.content[event.content_index]
+                assert content.type == "reasoning_text"
+                content.text += event.delta
         elif event.type == "response.completed":
             self._completed_response = parse_response(
                 text_format=self._text_format,
