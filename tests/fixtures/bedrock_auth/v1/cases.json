@@ -6,11 +6,18 @@
       "id": "auth.explicit-bearer",
       "kind": "auth_selection",
       "given": {
-        "explicit": { "bearer": "explicit-bearer-token" },
-        "environment": { "AWS_BEARER_TOKEN_BEDROCK": "environment-bearer-token" },
+        "explicit": {
+          "bearer": "explicit-bearer-token"
+        },
+        "environment": {
+          "AWS_BEARER_TOKEN_BEDROCK": "environment-bearer-token"
+        },
         "default_chain_available": true
       },
-      "expected": { "auth_mode": "bearer", "auth_source": "explicit" }
+      "expected": {
+        "auth_mode": "bearer",
+        "auth_source": "explicit"
+      }
     },
     {
       "id": "auth.explicit-aws-over-environment-bearer",
@@ -22,20 +29,30 @@
             "secret_access_key": "fixture-secret-access-key"
           }
         },
-        "environment": { "AWS_BEARER_TOKEN_BEDROCK": "environment-bearer-token" },
+        "environment": {
+          "AWS_BEARER_TOKEN_BEDROCK": "environment-bearer-token"
+        },
         "default_chain_available": true
       },
-      "expected": { "auth_mode": "sigv4", "auth_source": "static" }
+      "expected": {
+        "auth_mode": "sigv4",
+        "auth_source": "static"
+      }
     },
     {
       "id": "auth.environment-bearer-over-default-chain",
       "kind": "auth_selection",
       "given": {
         "explicit": {},
-        "environment": { "AWS_BEARER_TOKEN_BEDROCK": "environment-bearer-token" },
+        "environment": {
+          "AWS_BEARER_TOKEN_BEDROCK": "environment-bearer-token"
+        },
         "default_chain_available": true
       },
-      "expected": { "auth_mode": "bearer", "auth_source": "environment" }
+      "expected": {
+        "auth_mode": "bearer",
+        "auth_source": "environment"
+      }
     },
     {
       "id": "auth.default-chain",
@@ -45,17 +62,25 @@
         "environment": {},
         "default_chain_available": true
       },
-      "expected": { "auth_mode": "sigv4", "auth_source": "default" }
+      "expected": {
+        "auth_mode": "sigv4",
+        "auth_source": "default"
+      }
     },
     {
       "id": "auth.empty-environment-bearer-is-absent",
       "kind": "auth_selection",
       "given": {
         "explicit": {},
-        "environment": { "AWS_BEARER_TOKEN_BEDROCK": "" },
+        "environment": {
+          "AWS_BEARER_TOKEN_BEDROCK": ""
+        },
         "default_chain_available": true
       },
-      "expected": { "auth_mode": "sigv4", "auth_source": "default" }
+      "expected": {
+        "auth_mode": "sigv4",
+        "auth_source": "default"
+      }
     },
     {
       "id": "auth.conflicting-explicit-modes",
@@ -71,7 +96,9 @@
         "environment": {},
         "default_chain_available": true
       },
-      "expected": { "error": "bedrock_conflicting_auth" }
+      "expected": {
+        "error": "bedrock_conflicting_auth"
+      }
     },
     {
       "id": "sigv4.responses.static-credentials",
@@ -99,10 +126,11 @@
       },
       "expected": {
         "payload_sha256": "9d161ca213ef31dd5b8f01f52294bcd5057bc778cf6ee7719e67b7ff43ef1022",
-        "canonical_request_sha256": "2941daa7f544cd6d05e5c14615ca3ed4fe206a230214a71971092254690c0f1c",
+        "canonical_request_sha256": "c8da8b3104c310e27f93e2b58560f59a9397cbca97d954f50654e9305dc1c9ab",
         "headers": {
+          "x-amz-content-sha256": "9d161ca213ef31dd5b8f01f52294bcd5057bc778cf6ee7719e67b7ff43ef1022",
           "x-amz-date": "20260601T123456Z",
-          "authorization": "AWS4-HMAC-SHA256 Credential=AKIDEXAMPLE/20260601/us-east-1/bedrock-mantle/aws4_request, SignedHeaders=content-length;content-type;host;x-amz-date, Signature=85b44442b454238644a1605b04febb4ecf96d2c5a7698db21ce563c0a5646cb6"
+          "authorization": "AWS4-HMAC-SHA256 Credential=AKIDEXAMPLE/20260601/us-east-1/bedrock-mantle/aws4_request, SignedHeaders=content-length;content-type;host;x-amz-content-sha256;x-amz-date, Signature=bba77a80c7b39301d1aa29db9bc2f2b349deb932ae2dc5f800cec17baaf0f5de"
         }
       }
     },
@@ -133,44 +161,12 @@
       },
       "expected": {
         "payload_sha256": "9d161ca213ef31dd5b8f01f52294bcd5057bc778cf6ee7719e67b7ff43ef1022",
-        "canonical_request_sha256": "f60762d083c88cc0956eb3e9d3b3a966bfe3f396efd49bc1ef7c8922395bcecb",
+        "canonical_request_sha256": "fe294f3ccfa69899816c7e59516dbfae6bf89959da4d64296aa7e0fcb1f9d130",
         "headers": {
+          "x-amz-content-sha256": "9d161ca213ef31dd5b8f01f52294bcd5057bc778cf6ee7719e67b7ff43ef1022",
           "x-amz-date": "20260601T123456Z",
           "x-amz-security-token": "fixture-session-token",
-          "authorization": "AWS4-HMAC-SHA256 Credential=AKIDEXAMPLE/20260601/us-east-1/bedrock-mantle/aws4_request, SignedHeaders=content-length;content-type;host;x-amz-date;x-amz-security-token, Signature=d17a0ba1525dfe52b63f163b4a0ac1109723905e5ac9711bcdb6c35befdbaac2"
-        }
-      }
-    },
-    {
-      "id": "sigv4.responses.unsigned-payload",
-      "kind": "sigv4",
-      "given": {
-        "credentials": {
-          "access_key_id": "AKIDEXAMPLE",
-          "secret_access_key": "wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY"
-        },
-        "signing": {
-          "service": "bedrock-mantle",
-          "region": "us-east-1",
-          "timestamp": "2026-06-01T12:34:56Z"
-        },
-        "request": {
-          "method": "POST",
-          "url": "https://bedrock-mantle.us-east-1.api.aws/openai/v1/responses",
-          "headers": {
-            "content-type": "application/octet-stream",
-            "host": "bedrock-mantle.us-east-1.api.aws"
-          },
-          "body_mode": "unsigned"
-        }
-      },
-      "expected": {
-        "payload_sha256": "UNSIGNED-PAYLOAD",
-        "canonical_request_sha256": "9d9a089a0d274e69db40db264ea8ec6f9f6afaf03cf779121ec8dfa55278337d",
-        "headers": {
-          "x-amz-content-sha256": "UNSIGNED-PAYLOAD",
-          "x-amz-date": "20260601T123456Z",
-          "authorization": "AWS4-HMAC-SHA256 Credential=AKIDEXAMPLE/20260601/us-east-1/bedrock-mantle/aws4_request, SignedHeaders=content-type;host;x-amz-content-sha256;x-amz-date, Signature=f0d51439dfe33967eb590c0e33bc26fd7f8103d9345f5ac613ca299e90b555c8"
+          "authorization": "AWS4-HMAC-SHA256 Credential=AKIDEXAMPLE/20260601/us-east-1/bedrock-mantle/aws4_request, SignedHeaders=content-length;content-type;host;x-amz-content-sha256;x-amz-date;x-amz-security-token, Signature=693a4fef0373c0929f1f71d0da29c748f6bf42e75059648ceb97d52a204fb37c"
         }
       }
     },
@@ -178,15 +174,27 @@
       "id": "retry.fresh-credentials-and-time",
       "kind": "retry_signing",
       "given": {
-        "response_statuses": [500, 200],
-        "timestamps": ["2026-06-01T12:34:56Z", "2026-06-01T12:35:01Z"],
-        "access_key_ids": ["FIRSTACCESSKEY", "SECONDACCESSKEY"],
+        "response_statuses": [
+          500,
+          200
+        ],
+        "timestamps": [
+          "2026-06-01T12:34:56Z",
+          "2026-06-01T12:35:01Z"
+        ],
+        "access_key_ids": [
+          "FIRSTACCESSKEY",
+          "SECONDACCESSKEY"
+        ],
         "body_base64": "eyJpbnB1dCI6ImhlbGxvIiwibW9kZWwiOiJvcGVuYWkuZ3B0LW9zcy0xMjBiIn0="
       },
       "expected": {
         "attempts": 2,
         "credential_provider_calls": 2,
-        "x_amz_dates": ["20260601T123456Z", "20260601T123501Z"],
+        "x_amz_dates": [
+          "20260601T123456Z",
+          "20260601T123501Z"
+        ],
         "body_sha256": [
           "9d161ca213ef31dd5b8f01f52294bcd5057bc778cf6ee7719e67b7ff43ef1022",
           "9d161ca213ef31dd5b8f01f52294bcd5057bc778cf6ee7719e67b7ff43ef1022"
@@ -199,34 +207,46 @@
       "given": {
         "body_kind": "bytes",
         "body_base64": "eyJpbnB1dCI6ImhlbGxvIiwibW9kZWwiOiJvcGVuYWkuZ3B0LW9zcy0xMjBiIn0=",
-        "response_statuses": [500, 200]
+        "response_statuses": [
+          500,
+          200
+        ]
       },
-      "expected": { "attempts": 2, "result": "replayed" }
+      "expected": {
+        "attempts": 2,
+        "result": "replayed"
+      }
     },
     {
       "id": "body.non-replayable-stream-with-retries",
       "kind": "body_replay",
       "given": {
         "body_kind": "one_shot_stream",
-        "chunks_base64": ["Zmlyc3Q=", "c2Vjb25k"],
+        "chunks_base64": [
+          "Zmlyc3Q=",
+          "c2Vjb25k"
+        ],
         "max_retries": 1
       },
-      "expected": { "network_attempts": 0, "result": "bedrock_non_replayable_body" }
+      "expected": {
+        "network_attempts": 0,
+        "result": "bedrock_non_replayable_body"
+      }
     },
     {
-      "id": "body.unsigned-one-shot-stream",
+      "id": "body.non-replayable-stream-without-retries",
       "kind": "body_replay",
       "given": {
         "body_kind": "one_shot_stream",
-        "chunks_base64": ["Zmlyc3Q=", "c2Vjb25k"],
+        "chunks_base64": [
+          "Zmlyc3Q=",
+          "c2Vjb25k"
+        ],
         "max_retries": 0
       },
       "expected": {
-        "attempts": 1,
-        "credential_provider_calls": 1,
-        "body_reads": 1,
-        "x_amz_content_sha256": "UNSIGNED-PAYLOAD",
-        "result": "unsigned_payload"
+        "network_attempts": 0,
+        "result": "bedrock_non_replayable_body"
       }
     },
     {
@@ -245,7 +265,10 @@
           "x-amz-security-token": "<redacted>",
           "x-request-id": "req_fixture"
         },
-        "forbidden_substrings": ["fixture-authorization", "fixture-session-token"]
+        "forbidden_substrings": [
+          "fixture-authorization",
+          "fixture-session-token"
+        ]
       }
     }
   ]

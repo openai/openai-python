@@ -14,7 +14,6 @@ from openai import OpenAIError, NotFoundError
 from tests.utils import update_env
 from openai._types import Omit
 from openai.lib.bedrock import BedrockOpenAI, AsyncBedrockOpenAI
-from openai.lib._bedrock_auth import BedrockAwsAuthConfig
 
 Client = Union[BedrockOpenAI, AsyncBedrockOpenAI]
 
@@ -168,8 +167,9 @@ def test_empty_env_bearer_without_botocore_uses_aws_credentials(monkeypatch: pyt
 
     monkeypatch.setattr(bedrock_auth_module.importlib, "import_module", import_module)
     with update_env(AWS_BEARER_TOKEN_BEDROCK="", AWS_REGION="us-east-1"):
+        client = make_sync_client()
         with pytest.raises(OpenAIError, match="requires optional AWS dependencies"):
-            BedrockOpenAI()
+            client.get("/models", cast_to=httpx.Response)
 
 
 @pytest.mark.respx()
@@ -203,7 +203,7 @@ def test_empty_env_bearer_falls_back_to_aws_credentials(client_cls: type[Client]
         client = make_sync_client() if client_cls is BedrockOpenAI else make_async_client()
 
     assert client.api_key == ""
-    assert client._bedrock_aws_auth is not None
+    assert client._uses_aws_auth()
 
 
 @pytest.mark.parametrize("client_cls", [BedrockOpenAI, AsyncBedrockOpenAI])
@@ -277,7 +277,7 @@ def test_does_not_use_openai_api_key(client_cls: type[Client]) -> None:
         client = make_sync_client() if client_cls is BedrockOpenAI else make_async_client()
 
     assert client.api_key == ""
-    assert client._bedrock_aws_auth is not None
+    assert client._uses_aws_auth()
 
 
 @pytest.mark.parametrize("client_cls", [BedrockOpenAI, AsyncBedrockOpenAI])
@@ -438,6 +438,214 @@ def test_preserves_token_provider_across_with_options() -> None:
     assert copied_client._refresh_api_key() == "provider token"
 
 
+def test_preserves_environment_bearer_across_with_options() -> None:
+    requests: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        return httpx.Response(200, request=request, json={})
+
+    with update_env(AWS_BEARER_TOKEN_BEDROCK="first token"):
+        client = BedrockOpenAI(
+            base_url="https://example.com/openai/v1",
+            http_client=httpx.Client(transport=httpx.MockTransport(handler), trust_env=False),
+        )
+
+    with update_env(AWS_BEARER_TOKEN_BEDROCK="second token"):
+        copied_client = client.with_options(timeout=1)
+        copied_client.get("/models", cast_to=httpx.Response)
+
+    assert copied_client.api_key == "first token"
+    assert requests[0].headers["Authorization"] == "Bearer first token"
+
+
+def test_environment_bearer_routing_copy_remains_mutable() -> None:
+    requests: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        return httpx.Response(200, request=request, json={})
+
+    with update_env(AWS_BEARER_TOKEN_BEDROCK="first token"):
+        client = BedrockOpenAI(
+            aws_region="us-east-1",
+            http_client=httpx.Client(transport=httpx.MockTransport(handler), trust_env=False),
+        )
+    copied_client = client.with_options(aws_region="us-west-2")
+    copied_client.api_key = "second token"
+    copied_client.get("/models", cast_to=httpx.Response)
+
+    assert copied_client.api_key == "second token"
+    assert requests[0].headers["Authorization"] == "Bearer second token"
+
+
+def test_legacy_api_key_mutation_updates_requests_and_copies() -> None:
+    requests: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        return httpx.Response(200, request=request, json={})
+
+    client = BedrockOpenAI(
+        base_url="https://example.com/openai/v1",
+        api_key="first token",
+        http_client=httpx.Client(transport=httpx.MockTransport(handler), trust_env=False),
+    )
+    client.api_key = "second token"
+    client.get("/models", cast_to=httpx.Response)
+    copied_client = client.with_options(timeout=1)
+    copied_client.get("/models", cast_to=httpx.Response)
+    client.api_key = "first token"
+    reverted_client = client.with_options(timeout=2)
+    reverted_client.get("/models", cast_to=httpx.Response)
+
+    assert copied_client.api_key == "second token"
+    assert reverted_client.api_key == "first token"
+    assert [request.headers["Authorization"] for request in requests] == [
+        "Bearer second token",
+        "Bearer second token",
+        "Bearer first token",
+    ]
+
+
+def test_legacy_api_key_mutation_switches_aws_client_to_bearer() -> None:
+    requests: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        return httpx.Response(200, request=request, json={})
+
+    client = BedrockOpenAI(
+        base_url="https://example.com/openai/v1",
+        aws_region="us-east-1",
+        aws_access_key_id="access key",
+        aws_secret_access_key="secret key",
+        http_client=httpx.Client(transport=httpx.MockTransport(handler), trust_env=False),
+    )
+    client.api_key = "bearer token"
+    client.get("/models", cast_to=httpx.Response, options={"follow_redirects": True})
+
+    assert requests[0].headers["Authorization"] == "Bearer bearer token"
+
+
+def test_explicit_aws_copy_override_wins_over_mutated_api_key() -> None:
+    client = BedrockOpenAI(
+        base_url="https://example.com/openai/v1",
+        api_key="first token",
+        http_client=httpx.Client(trust_env=False),
+    )
+    client.api_key = "second token"
+
+    copied_client = client.with_options(
+        aws_region="us-east-1",
+        aws_access_key_id="access key",
+        aws_secret_access_key="secret key",
+    )
+
+    assert copied_client._uses_aws_auth()
+    assert copied_client.api_key == ""
+
+
+def test_clearing_legacy_bearer_does_not_switch_to_aws_authentication() -> None:
+    network_calls = 0
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        nonlocal network_calls
+        network_calls += 1
+        return httpx.Response(200, request=request)
+
+    with update_env(AWS_ACCESS_KEY_ID="access key", AWS_SECRET_ACCESS_KEY="secret key"):
+        client = BedrockOpenAI(
+            base_url="https://example.com/openai/v1",
+            api_key="bearer token",
+            http_client=httpx.Client(transport=httpx.MockTransport(handler), trust_env=False),
+        )
+        client.api_key = None  # type: ignore[assignment]
+        with pytest.raises(OpenAIError, match="bearer credential must not be empty"):
+            client.get("/models", cast_to=httpx.Response)
+
+    assert network_calls == 0
+
+
+def test_legacy_state_repr_does_not_expose_credentials() -> None:
+    client = BedrockOpenAI(
+        base_url="https://example.com/openai/v1",
+        aws_region="us-east-1",
+        aws_access_key_id="secret access key id",
+        aws_secret_access_key="secret access key",
+        aws_session_token="secret session token",
+        http_client=httpx.Client(trust_env=False),
+    )
+
+    assert "secret" not in repr(client._bedrock_state)
+
+    bearer_client = BedrockOpenAI(
+        base_url="https://example.com/openai/v1",
+        api_key="secret bearer token",
+        http_client=httpx.Client(trust_env=False),
+    )
+    assert "secret bearer token" not in repr(bearer_client._bedrock_runtime_signature)
+
+
+@pytest.mark.parametrize("client_cls", [BedrockOpenAI, AsyncBedrockOpenAI])
+def test_direct_routing_mutations_survive_clone(client_cls: type[Client]) -> None:
+    client = (
+        make_sync_client(base_url="https://first.example/openai/v1", aws_region="us-east-1", api_key="token")
+        if client_cls is BedrockOpenAI
+        else make_async_client(
+            base_url="https://first.example/openai/v1",
+            aws_region="us-east-1",
+            api_key="token",
+        )
+    )
+    client.base_url = "https://second.example/openai/v1"
+    client.aws_region = "us-west-2"
+
+    copied_client = client.with_options(timeout=1)
+
+    assert copied_client.base_url == URL("https://second.example/openai/v1/")
+    assert copied_client.aws_region == "us-west-2"
+    assert not copied_client._bedrock_state.uses_region_derived_base_url
+
+
+@pytest.mark.parametrize("client_cls", [BedrockOpenAI, AsyncBedrockOpenAI])
+def test_direct_region_mutation_survives_clone(client_cls: type[Client]) -> None:
+    with update_env(AWS_BEDROCK_BASE_URL=Omit(), AWS_REGION=Omit(), AWS_DEFAULT_REGION=Omit()):
+        client = (
+            make_sync_client(aws_region="us-east-1", api_key="token")
+            if client_cls is BedrockOpenAI
+            else make_async_client(aws_region="us-east-1", api_key="token")
+        )
+        client.aws_region = "us-west-2"
+        copied_client = client.with_options(timeout=1)
+
+    assert copied_client.aws_region == "us-west-2"
+    assert copied_client.base_url == URL("https://bedrock-mantle.us-west-2.api.aws/openai/v1/")
+
+
+@pytest.mark.parametrize("client_cls", [BedrockOpenAI, AsyncBedrockOpenAI])
+def test_direct_base_url_mutation_survives_auth_override(client_cls: type[Client]) -> None:
+    with update_env(AWS_BEDROCK_BASE_URL=Omit(), AWS_REGION=Omit(), AWS_DEFAULT_REGION=Omit()):
+        client = (
+            make_sync_client(
+                aws_region="us-east-1",
+                aws_access_key_id="access key",
+                aws_secret_access_key="secret key",
+            )
+            if client_cls is BedrockOpenAI
+            else make_async_client(
+                aws_region="us-east-1",
+                aws_access_key_id="access key",
+                aws_secret_access_key="secret key",
+            )
+        )
+        client.base_url = "https://custom.example/openai/v1"
+        copied_client = client.with_options(api_key="bearer token")
+
+    assert copied_client.base_url == URL("https://custom.example/openai/v1/")
+    assert not copied_client._uses_aws_auth()
+
+
 def test_preserves_aws_credentials_across_with_options() -> None:
     client = BedrockOpenAI(
         base_url="https://example.com/openai/v1",
@@ -449,9 +657,8 @@ def test_preserves_aws_credentials_across_with_options() -> None:
 
     copied_client = client.with_options(timeout=1)
 
-    assert copied_client._bedrock_aws_auth is not None
-    assert isinstance(copied_client._bedrock_auth_config, BedrockAwsAuthConfig)
-    assert copied_client._bedrock_auth_config.access_key_id == "access key"
+    assert copied_client._uses_aws_auth()
+    assert copied_client._bedrock_state.aws_access_key_id == "access key"
 
 
 @pytest.mark.parametrize("client_cls", [BedrockOpenAI, AsyncBedrockOpenAI])
@@ -462,8 +669,10 @@ def test_preserves_default_chain_mode_across_with_options(client_cls: type[Clien
     with update_env(AWS_BEARER_TOKEN_BEDROCK="late bearer", AWS_REGION="us-east-1"):
         copied_client = client.with_options(timeout=1)
 
-    assert isinstance(copied_client._bedrock_auth_config, BedrockAwsAuthConfig)
-    assert copied_client._bedrock_auth_config.source == "default"
+    assert copied_client._uses_aws_auth()
+    assert copied_client._bedrock_state.aws_profile is None
+    assert copied_client._bedrock_state.aws_access_key_id is None
+    assert copied_client._bedrock_state.aws_credentials_provider is None
     assert copied_client.api_key == ""
 
 
@@ -478,6 +687,22 @@ def test_preserves_region_derived_url_provenance_across_multiple_copies(client_c
         copied_client = client.with_options(timeout=1).with_options(aws_region="eu-west-1")
 
     assert copied_client.base_url == URL("https://bedrock-mantle.eu-west-1.api.aws/openai/v1/")
+
+
+@pytest.mark.parametrize("client_cls", [BedrockOpenAI, AsyncBedrockOpenAI])
+def test_preserves_region_derived_url_after_auth_override(client_cls: type[Client]) -> None:
+    with update_env(AWS_BEDROCK_BASE_URL=Omit(), AWS_REGION=Omit(), AWS_DEFAULT_REGION=Omit()):
+        client = (
+            make_sync_client(aws_region="us-east-1", api_key="token")
+            if client_cls is BedrockOpenAI
+            else make_async_client(aws_region="us-east-1", api_key="token")
+        )
+        copied_client = client.with_options(
+            aws_access_key_id="access key",
+            aws_secret_access_key="secret key",
+        ).with_options(aws_region="us-west-2")
+
+    assert copied_client.base_url == URL("https://bedrock-mantle.us-west-2.api.aws/openai/v1/")
 
 
 @pytest.mark.parametrize("client_cls", [BedrockOpenAI, AsyncBedrockOpenAI])
@@ -515,20 +740,18 @@ def test_with_options_replaces_the_aws_credential_source(client_cls: type[Client
     with update_env(AWS_CONFIG_FILE=str(config_path)):
         profile_client = explicit_credentials_client.with_options(aws_profile="other-profile")
 
-    assert isinstance(profile_client._bedrock_auth_config, BedrockAwsAuthConfig)
-    assert profile_client._bedrock_auth_config.profile == "other-profile"
-    assert profile_client._bedrock_auth_config.access_key_id is None
-    assert profile_client._bedrock_auth_config.secret_access_key is None
+    assert profile_client._bedrock_state.aws_profile == "other-profile"
+    assert profile_client._bedrock_state.aws_access_key_id is None
+    assert profile_client._bedrock_state.aws_secret_access_key is None
 
     explicit_credentials_client = profile_client.with_options(
         aws_access_key_id="replacement access key",
         aws_secret_access_key="replacement secret key",
     )
 
-    assert isinstance(explicit_credentials_client._bedrock_auth_config, BedrockAwsAuthConfig)
-    assert explicit_credentials_client._bedrock_auth_config.profile is None
-    assert explicit_credentials_client._bedrock_auth_config.access_key_id == "replacement access key"
-    assert explicit_credentials_client._bedrock_auth_config.secret_access_key == "replacement secret key"
+    assert explicit_credentials_client._bedrock_state.aws_profile is None
+    assert explicit_credentials_client._bedrock_state.aws_access_key_id == "replacement access key"
+    assert explicit_credentials_client._bedrock_state.aws_secret_access_key == "replacement secret key"
 
 
 @pytest.mark.parametrize("client_cls", [BedrockOpenAI, AsyncBedrockOpenAI])
@@ -560,8 +783,49 @@ def test_with_options_replacing_profile_re_resolves_profile_region(client_cls: t
 
     assert copied_client.aws_region == "us-west-2"
     assert copied_client.base_url == URL("https://bedrock-mantle.us-west-2.api.aws/openai/v1/")
-    assert isinstance(copied_client._bedrock_auth_config, BedrockAwsAuthConfig)
-    assert copied_client._bedrock_auth_config.profile == "west"
+    assert copied_client._bedrock_state.aws_profile == "west"
+
+
+@pytest.mark.parametrize("client_cls", [BedrockOpenAI, AsyncBedrockOpenAI])
+@pytest.mark.parametrize(
+    ("copy_kwargs", "uses_aws_auth"),
+    [
+        ({"api_key": "bearer token"}, False),
+        (
+            {
+                "aws_access_key_id": "access key",
+                "aws_secret_access_key": "secret key",
+            },
+            True,
+        ),
+    ],
+)
+def test_profile_derived_region_survives_auth_override(
+    client_cls: type[Client],
+    copy_kwargs: dict[str, Any],
+    uses_aws_auth: bool,
+    tmp_path: Path,
+) -> None:
+    config_path = tmp_path / "config"
+    config_path.write_text("[profile west]\nregion = us-west-2\n")
+
+    with update_env(
+        AWS_CONFIG_FILE=str(config_path),
+        AWS_BEARER_TOKEN_BEDROCK=Omit(),
+        AWS_BEDROCK_BASE_URL=Omit(),
+        AWS_REGION=Omit(),
+        AWS_DEFAULT_REGION=Omit(),
+    ):
+        client = (
+            make_sync_client(aws_profile="west")
+            if client_cls is BedrockOpenAI
+            else make_async_client(aws_profile="west")
+        )
+        copied_client = client.with_options(**copy_kwargs)
+
+    assert copied_client.aws_region == "us-west-2"
+    assert copied_client.base_url == URL("https://bedrock-mantle.us-west-2.api.aws/openai/v1/")
+    assert copied_client._uses_aws_auth() is uses_aws_auth
 
 
 @pytest.mark.parametrize("client_cls", [BedrockOpenAI, AsyncBedrockOpenAI])
@@ -637,10 +901,11 @@ def test_with_options_supports_subclasses_with_the_previous_constructor_signatur
         http_client=httpx.Client(trust_env=False),
     )
 
-    copied_client = client.with_options(timeout=1)
+    copied_client = client.with_options(timeout=1).with_options(aws_region="us-west-2")
 
     assert isinstance(copied_client, LegacyBedrockOpenAI)
     assert copied_client.api_key == "token"
+    assert copied_client.base_url == URL("https://bedrock-mantle.us-west-2.api.aws/openai/v1/")
 
 
 @pytest.mark.parametrize("client_cls", [BedrockOpenAI, AsyncBedrockOpenAI])

@@ -13,16 +13,18 @@ import httpx
 import pytest
 import jsonschema
 
-from openai import OpenAIError, APIStatusError
-from openai._types import Omit
+from openai import OpenAI, AsyncOpenAI, OpenAIError, APIStatusError
 from openai._utils import SensitiveHeadersFilter
-from openai.lib.bedrock import BedrockOpenAI, AsyncBedrockOpenAI
-from openai.lib._bedrock_auth import BedrockAwsAuth, BedrockAwsAuthConfig, BedrockBearerAuthConfig
+from openai.providers import bedrock
+from openai.lib.bedrock import BedrockOpenAI
+from openai.lib._bedrock_auth import BedrockAwsAuth, BedrockAwsAuthConfig
 
 FIXTURE_PATH = Path(__file__).parents[1] / "fixtures" / "bedrock_auth" / "v1" / "cases.json"
 SCHEMA_PATH = FIXTURE_PATH.with_name("schema.json")
+SHARED_SIGV4_FIXTURE_PATH = Path(__file__).parents[1] / "fixtures" / "bedrock" / "v1" / "sigv4.json"
 FIXTURES = cast(dict[str, Any], json.loads(FIXTURE_PATH.read_text()))
 SCHEMA = cast(dict[str, Any], json.loads(SCHEMA_PATH.read_text()))
+SHARED_SIGV4_FIXTURE = cast(dict[str, Any], json.loads(SHARED_SIGV4_FIXTURE_PATH.read_text()))
 
 
 def _cases(kind: str) -> list[dict[str, Any]]:
@@ -56,6 +58,47 @@ def _canonical_request_sha256(case: dict[str, Any], signed_headers: dict[str, st
     return hashlib.sha256(canonical_request.encode()).hexdigest()
 
 
+def test_shared_sigv4_fixture_matches_node(monkeypatch: pytest.MonkeyPatch) -> None:
+    fixture = SHARED_SIGV4_FIXTURE
+    credentials = fixture["credentials"]
+    request = fixture["request"]
+    body = request["body"].encode()
+    payload_hash = hashlib.sha256(body).hexdigest()
+    botocore_auth = pytest.importorskip("botocore.auth")
+    monkeypatch.setattr(botocore_auth, "get_current_datetime", lambda: _fixed_datetime(fixture["signingDate"]))
+
+    auth = BedrockAwsAuth(
+        BedrockAwsAuthConfig(
+            region=fixture["region"],
+            source="static",
+            access_key_id=credentials["accessKeyId"],
+            secret_access_key=credentials["secretAccessKey"],
+            session_token=credentials["sessionToken"],
+        )
+    )
+    signed_headers = _lower_headers(
+        auth.sign(
+            method=request["method"],
+            url=request["url"],
+            headers={
+                "content-type": request["contentType"],
+                "host": httpx.URL(request["url"]).host,
+            },
+            body=body,
+        )
+    )
+    canonical_case = {"given": {"request": request}}
+
+    assert fixture["service"] == "bedrock-mantle"
+    assert payload_hash == fixture["expected"]["payloadHash"]
+    assert (
+        _canonical_request_sha256(canonical_case, signed_headers, payload_hash)
+        == fixture["expected"]["canonicalRequestHash"]
+    )
+    assert signed_headers["authorization"] == fixture["expected"]["authorization"]
+    assert signed_headers["x-amz-date"] == fixture["expected"]["date"]
+
+
 @pytest.mark.parametrize("case", _cases("auth_selection"), ids=lambda case: case["id"])
 def test_auth_selection_fixture(case: dict[str, Any], monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("AWS_BEARER_TOKEN_BEDROCK", raising=False)
@@ -82,14 +125,23 @@ def test_auth_selection_fixture(case: dict[str, Any], monkeypatch: pytest.Monkey
         return
 
     with BedrockOpenAI(**kwargs) as client:
-        config = client._bedrock_auth_config
-        if isinstance(config, BedrockBearerAuthConfig):
+        state = client._bedrock_state
+        if not client._uses_aws_auth():
             mode = "bearer"
+            source = "explicit" if state.explicit_api_key is not None else "environment"
         else:
             mode = "sigv4"
+            if state.aws_access_key_id is not None:
+                source = "static"
+            elif state.aws_profile is not None:
+                source = "profile"
+            elif state.aws_credentials_provider is not None:
+                source = "provider"
+            else:
+                source = "default"
 
         assert mode == case["expected"]["auth_mode"]
-        assert config.source == case["expected"]["auth_source"]
+        assert source == case["expected"]["auth_source"]
 
 
 @pytest.mark.parametrize("case", _cases("sigv4"), ids=lambda case: case["id"])
@@ -97,8 +149,8 @@ def test_sigv4_fixture(case: dict[str, Any], monkeypatch: pytest.MonkeyPatch) ->
     credentials = case["given"]["credentials"]
     signing = case["given"]["signing"]
     request = case["given"]["request"]
-    body = None if request.get("body_mode") == "unsigned" else base64.b64decode(request["body_base64"])
-    payload_hash = "UNSIGNED-PAYLOAD" if body is None else hashlib.sha256(body).hexdigest()
+    body = base64.b64decode(request["body_base64"])
+    payload_hash = hashlib.sha256(body).hexdigest()
 
     auth = BedrockAwsAuth(
         BedrockAwsAuthConfig(
@@ -159,10 +211,12 @@ def test_retry_signing_fixture(monkeypatch: pytest.MonkeyPatch) -> None:
         return httpx.Response(next(statuses), request=request, json={})
 
     body = base64.b64decode(case["given"]["body_base64"])
-    with BedrockOpenAI(
-        base_url="https://bedrock-mantle.us-east-1.api.aws/openai/v1",
-        aws_region="us-east-1",
-        aws_credentials_provider=credentials_provider,
+    with OpenAI(
+        provider=bedrock(
+            base_url="https://bedrock-mantle.us-east-1.api.aws/openai/v1",
+            region="us-east-1",
+            credential_provider=credentials_provider,
+        ),
         max_retries=case["given"].get("max_retries", 1),
         http_client=httpx.Client(transport=httpx.MockTransport(handler), trust_env=False),
     ) as client:
@@ -214,10 +268,12 @@ def test_body_replay_fixture(case: dict[str, Any]) -> None:
         assert body_kind == "one_shot_stream"
         content = body()
 
-    with BedrockOpenAI(
-        base_url="https://bedrock-mantle.us-east-1.api.aws/openai/v1",
-        aws_region="us-east-1",
-        aws_credentials_provider=credentials_provider,
+    with OpenAI(
+        provider=bedrock(
+            base_url="https://bedrock-mantle.us-east-1.api.aws/openai/v1",
+            region="us-east-1",
+            credential_provider=credentials_provider,
+        ),
         max_retries=case["given"].get("max_retries", 1),
         http_client=httpx.Client(transport=httpx.MockTransport(handler), trust_env=False),
     ) as client:
@@ -231,11 +287,6 @@ def test_body_replay_fixture(case: dict[str, Any]) -> None:
     if body_kind == "bytes":
         assert all(request.content == content for request in requests)
         assert provider_calls == case["expected"]["attempts"]
-    elif case["expected"]["result"] == "unsigned_payload":
-        assert body_reads == case["expected"]["body_reads"]
-        assert provider_calls == case["expected"]["credential_provider_calls"]
-        assert requests[0].headers["X-Amz-Content-SHA256"] == case["expected"]["x_amz_content_sha256"]
-        assert "x-amz-content-sha256" in requests[0].headers["Authorization"]
     else:
         assert (body_reads, provider_calls) == (0, 0)
 
@@ -261,43 +312,18 @@ async def test_non_replayable_async_body_fails_before_credentials_or_network() -
         network_calls += 1
         return httpx.Response(200, request=request)
 
-    async with AsyncBedrockOpenAI(
-        base_url="https://bedrock-mantle.us-east-1.api.aws/openai/v1",
-        aws_region="us-east-1",
-        aws_credentials_provider=credentials_provider,
+    async with AsyncOpenAI(
+        provider=bedrock(
+            base_url="https://bedrock-mantle.us-east-1.api.aws/openai/v1",
+            region="us-east-1",
+            credential_provider=credentials_provider,
+        ),
         http_client=httpx.AsyncClient(transport=httpx.MockTransport(handler), trust_env=False),
     ) as client:
         with pytest.raises(OpenAIError, match="requires a replayable request body"):
             await client.post("/responses", content=body(), cast_to=httpx.Response)
 
     assert (body_reads, provider_calls, network_calls) == (0, 0, 0)
-
-
-@pytest.mark.asyncio
-async def test_async_one_shot_body_uses_unsigned_payload_when_retries_are_disabled() -> None:
-    case = next(case for case in _cases("body_replay") if case["expected"]["result"] == "unsigned_payload")
-    requests: list[httpx.Request] = []
-
-    async def body() -> AsyncIterator[bytes]:
-        for chunk in case["given"]["chunks_base64"]:
-            yield base64.b64decode(chunk)
-
-    async def handler(request: httpx.Request) -> httpx.Response:
-        requests.append(request)
-        return httpx.Response(200, request=request, json={})
-
-    async with AsyncBedrockOpenAI(
-        base_url="https://bedrock-mantle.us-east-1.api.aws/openai/v1",
-        aws_region="us-east-1",
-        aws_access_key_id="access-key",
-        aws_secret_access_key="secret-key",
-        max_retries=0,
-        http_client=httpx.AsyncClient(transport=httpx.MockTransport(handler), trust_env=False),
-    ) as client:
-        await client.post("/responses", content=body(), cast_to=httpx.Response)
-
-    assert requests[0].headers["X-Amz-Content-SHA256"] == case["expected"]["x_amz_content_sha256"]
-    assert "x-amz-content-sha256" in requests[0].headers["Authorization"]
 
 
 @pytest.mark.asyncio
@@ -312,10 +338,12 @@ async def test_async_credentials_are_resolved_off_event_loop() -> None:
     async def handler(request: httpx.Request) -> httpx.Response:
         return httpx.Response(200, request=request, json={})
 
-    async with AsyncBedrockOpenAI(
-        base_url="https://bedrock-mantle.us-east-1.api.aws/openai/v1",
-        aws_region="us-east-1",
-        aws_credentials_provider=credentials_provider,
+    async with AsyncOpenAI(
+        provider=bedrock(
+            base_url="https://bedrock-mantle.us-east-1.api.aws/openai/v1",
+            region="us-east-1",
+            credential_provider=credentials_provider,
+        ),
         http_client=httpx.AsyncClient(transport=httpx.MockTransport(handler), trust_env=False),
     ) as client:
         await client.post("/responses", content=b"{}", cast_to=httpx.Response)
@@ -324,38 +352,29 @@ async def test_async_credentials_are_resolved_off_event_loop() -> None:
     assert all(thread_id != event_loop_thread for thread_id in provider_threads)
 
 
-def test_explicit_authorization_omit_and_override_are_preserved() -> None:
+def test_custom_http_client_auth_cannot_replace_sigv4() -> None:
     requests: list[httpx.Request] = []
 
     def handler(request: httpx.Request) -> httpx.Response:
         requests.append(request)
         return httpx.Response(200, request=request, json={})
 
-    with BedrockOpenAI(
-        base_url="https://bedrock-mantle.us-east-1.api.aws/openai/v1",
-        aws_region="us-east-1",
-        aws_access_key_id="access-key",
-        aws_secret_access_key="secret-key",
+    with OpenAI(
+        provider=bedrock(
+            base_url="https://bedrock-mantle.us-east-1.api.aws/openai/v1",
+            region="us-east-1",
+            access_key_id="access-key",
+            secret_access_key="secret-key",
+        ),
         http_client=httpx.Client(
-            headers={"Authorization": "Bearer client-default"},
             auth=httpx.BasicAuth("username", "password"),
             transport=httpx.MockTransport(handler),
             trust_env=False,
         ),
     ) as client:
-        client.get(
-            "/models",
-            cast_to=httpx.Response,
-            options={"headers": {"Authorization": Omit()}},
-        )
-        client.get(
-            "/models",
-            cast_to=httpx.Response,
-            options={"headers": {"Authorization": "Bearer explicit-override"}},
-        )
+        client.get("/models", cast_to=httpx.Response)
 
-    assert "Authorization" not in requests[0].headers
-    assert requests[1].headers["Authorization"] == "Bearer explicit-override"
+    assert requests[0].headers["Authorization"].startswith("AWS4-HMAC-SHA256 Credential=access-key/")
 
 
 def test_sigv4_redirects_are_not_followed() -> None:
@@ -367,11 +386,13 @@ def test_sigv4_redirects_are_not_followed() -> None:
             return httpx.Response(307, request=request, headers={"Location": "/redirected"})
         return httpx.Response(200, request=request)
 
-    with BedrockOpenAI(
-        base_url="https://bedrock-mantle.us-east-1.api.aws/openai/v1",
-        aws_region="us-east-1",
-        aws_access_key_id="access-key",
-        aws_secret_access_key="secret-key",
+    with OpenAI(
+        provider=bedrock(
+            base_url="https://bedrock-mantle.us-east-1.api.aws/openai/v1",
+            region="us-east-1",
+            access_key_id="access-key",
+            secret_access_key="secret-key",
+        ),
         http_client=httpx.Client(transport=httpx.MockTransport(handler), trust_env=False),
     ) as client:
         with pytest.raises(APIStatusError) as exc:

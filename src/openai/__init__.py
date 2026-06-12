@@ -320,6 +320,12 @@ class _BedrockModuleClient(_ModuleClient, BedrockOpenAI):  # type: ignore
 
         return super()._refresh_api_key()
 
+    @override
+    def _legacy_auth_configuration(self) -> _bedrock._LegacyAuthConfiguration:
+        if api_key is not None:
+            return ("bearer", api_key)
+        return super()._legacy_auth_configuration()
+
 
 class _AmbiguousModuleClientUsageError(OpenAIError):
     def __init__(self) -> None:

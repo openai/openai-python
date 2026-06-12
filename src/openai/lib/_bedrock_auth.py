@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import hashlib
 import importlib
 from typing import Literal, Mapping, Callable, Protocol, cast
 from dataclasses import field, dataclass
@@ -15,19 +16,12 @@ class _BotocoreSession(Protocol):
 
 
 _AUTHORIZATION = "authorization"
-_UNSIGNED_PAYLOAD = "UNSIGNED-PAYLOAD"
 _AWS_SIGNING_HEADERS = (
     _AUTHORIZATION,
     "x-amz-content-sha256",
     "x-amz-date",
     "x-amz-security-token",
 )
-
-
-@dataclass(frozen=True)
-class BedrockBearerAuthConfig:
-    source: Literal["explicit", "provider", "environment"]
-    region_source: Literal["explicit", "environment"] | None = None
 
 
 @dataclass(frozen=True)
@@ -137,7 +131,8 @@ class BedrockAwsAuth:
             )
             if credentials is None:
                 raise OpenAIError(
-                    "Could not find credentials for Bedrock. Pass a bearer credential or AWS credentials, "
+                    "Could not find credentials for Bedrock. Pass a bearer credential or AWS credentials to "
+                    "`bedrock(...)`, "
                     "set `AWS_BEARER_TOKEN_BEDROCK`, or configure the default AWS credential chain."
                 )
 
@@ -148,9 +143,7 @@ class BedrockAwsAuth:
             signed_headers = {
                 name: value for name, value in headers.items() if name.lower() not in _AWS_SIGNING_HEADERS
             }
-            if body is None:
-                signed_headers["X-Amz-Content-SHA256"] = _UNSIGNED_PAYLOAD
-
+            signed_headers["X-Amz-Content-SHA256"] = hashlib.sha256(body or b"").hexdigest()
             aws_request = self._aws_request_cls(
                 method=method,
                 url=url,
@@ -185,69 +178,8 @@ def resolve_aws_region_with_source(
 
     if region is None or not region.strip():
         raise OpenAIError(
-            "Bedrock requires an AWS region. Pass `aws_region`, or set `AWS_REGION` or `AWS_DEFAULT_REGION`."
+            "Bedrock requires an AWS region. Pass `region` to `bedrock(...)`, or set `AWS_REGION` or "
+            "`AWS_DEFAULT_REGION`."
         )
 
     return region.strip(), source
-
-
-def resolve_aws_region(aws_region: str | None, *, session: object | None = None) -> str:
-    return resolve_aws_region_with_source(aws_region, session=session)[0]
-
-
-def resolve_bedrock_env_token() -> str | None:
-    return os.environ.get("AWS_BEARER_TOKEN_BEDROCK") or None
-
-
-def has_explicit_aws_auth(
-    *,
-    aws_profile: str | None,
-    aws_access_key_id: str | None,
-    aws_secret_access_key: str | None,
-    aws_session_token: str | None,
-    aws_credentials_provider: AwsCredentialsProvider | None,
-) -> bool:
-    return any(
-        value is not None
-        for value in (
-            aws_profile,
-            aws_access_key_id,
-            aws_secret_access_key,
-            aws_session_token,
-            aws_credentials_provider,
-        )
-    )
-
-
-def validate_explicit_aws_auth(
-    *,
-    aws_profile: str | None,
-    aws_access_key_id: str | None,
-    aws_secret_access_key: str | None,
-    aws_session_token: str | None,
-    aws_credentials_provider: AwsCredentialsProvider | None,
-) -> None:
-    if (aws_access_key_id is None) != (aws_secret_access_key is None):
-        raise OpenAIError(
-            "Static AWS credentials require both `aws_access_key_id` and `aws_secret_access_key`. "
-            "An `aws_session_token` may only be used with both."
-        )
-
-    credential_sources = sum(
-        (
-            aws_profile is not None,
-            aws_access_key_id is not None,
-            aws_credentials_provider is not None,
-        )
-    )
-    if credential_sources > 1:
-        raise OpenAIError(
-            "Bedrock authentication is ambiguous. Configure exactly one explicit mode: bearer credential, "
-            "static AWS credentials, profile, or credential provider."
-        )
-
-    if aws_session_token is not None and aws_access_key_id is None:
-        raise OpenAIError(
-            "Static AWS credentials require both `aws_access_key_id` and `aws_secret_access_key`. "
-            "An `aws_session_token` may only be used with both."
-        )
