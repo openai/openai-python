@@ -930,11 +930,18 @@ An example of using the client with Microsoft Entra ID (formerly known as Azure 
 
 To use this library with [Amazon Bedrock's OpenAI-compatible API](https://docs.aws.amazon.com/bedrock/latest/userguide/models-api-compatibility.html), use the `BedrockOpenAI` class instead of the `OpenAI` class.
 
+Install the optional Bedrock dependencies to use the standard AWS credential chain and SigV4 authentication:
+
+```sh
+pip install 'openai[bedrock]'
+```
+
 ```py
 from openai import BedrockOpenAI
 
-# gets the bearer token from AWS_BEARER_TOKEN_BEDROCK and the region from AWS_REGION/AWS_DEFAULT_REGION
-client = BedrockOpenAI()
+# Uses your normal AWS credentials. You can omit aws_region when it is
+# configured through AWS_REGION, AWS_DEFAULT_REGION, or your AWS profile.
+client = BedrockOpenAI(aws_region="us-west-2")
 
 response = client.responses.create(
     model="openai.gpt-5.4",
@@ -946,9 +953,21 @@ print(response.output_text)
 
 `BedrockOpenAI` configures AWS authentication and the Bedrock Mantle endpoint, then uses the normal SDK resources. AWS controls which endpoints and features are supported; unsupported calls surface the provider's normal HTTP errors through the SDK.
 
+The default AWS credential chain supports environment credentials, shared credentials and config files, named profiles, SSO and assume-role profiles, and workload credentials such as ECS, EKS, and EC2 metadata. To select a named profile:
+
+```py
+client = BedrockOpenAI(
+    aws_profile="my-profile",
+)
+```
+
+You can also pass explicit temporary credentials or an `aws_credentials_provider` that returns botocore-compatible credentials. Explicit bearer and AWS credential options are mutually exclusive.
+
 Pass `base_url` or set `AWS_BEDROCK_BASE_URL` to override the derived `https://bedrock-mantle.<region>.api.aws/openai/v1` endpoint. The legacy module client supports `openai.api_type = "amazon-bedrock"` or `OPENAI_API_TYPE=amazon-bedrock`.
 
-Set `AWS_BEARER_TOKEN_BEDROCK` to an [Amazon Bedrock API key](https://docs.aws.amazon.com/bedrock/latest/userguide/api-keys.html). To refresh tokens yourself, pass a provider instead of `api_key`:
+Normal SDK requests use replayable, fully signed bodies. Low-level one-shot request streams are signed with `UNSIGNED-PAYLOAD` only when retries are disabled with `max_retries=0`; buffering is recommended because streamed request bodies cannot be safely retried.
+
+Bearer tokens remain available as a compatibility or manual authentication mode. Set `AWS_BEARER_TOKEN_BEDROCK` to an [Amazon Bedrock API key](https://docs.aws.amazon.com/bedrock/latest/userguide/api-keys.html), pass `api_key`, or provide a refresh callback:
 
 ```py
 client = BedrockOpenAI(
@@ -957,20 +976,7 @@ client = BedrockOpenAI(
 )
 ```
 
-To use the standard AWS credential chain and SigV4 authentication, install the Bedrock extra and omit bearer-token configuration:
-
-```sh
-pip install 'openai[bedrock]'
-```
-
-```py
-client = BedrockOpenAI(
-    aws_region="us-west-2",
-    aws_profile="my-profile",  # optional; otherwise uses the default AWS credential chain
-)
-```
-
-You can also pass explicit temporary credentials or an `aws_credentials_provider` that returns botocore-compatible credentials. Explicit bearer and AWS credential options are mutually exclusive. Without explicit authentication, `AWS_BEARER_TOKEN_BEDROCK` takes precedence over the default AWS credential chain.
+Without explicit authentication, `AWS_BEARER_TOKEN_BEDROCK` takes precedence over the default AWS credential chain for backwards compatibility.
 
 ## Versioning
 

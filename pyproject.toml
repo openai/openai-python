@@ -61,6 +61,7 @@ dev-dependencies = [
     "respx",
     "pytest",
     "pytest-asyncio",
+    "jsonschema>=4.23.0",
     "ruff",
     "time-machine",
     "nox",

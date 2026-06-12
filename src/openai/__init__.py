@@ -313,6 +313,13 @@ class _BedrockModuleClient(_ModuleClient, BedrockOpenAI):  # type: ignore
 
         _bedrock_api_key = value
 
+    @override
+    def _refresh_api_key(self) -> str:
+        if api_key is not None:
+            return api_key
+
+        return super()._refresh_api_key()
+
 
 class _AmbiguousModuleClientUsageError(OpenAIError):
     def __init__(self) -> None:
