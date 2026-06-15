@@ -146,6 +146,79 @@ def test_auth_selection_fixture(case: dict[str, Any], monkeypatch: pytest.Monkey
         assert source == case["expected"]["auth_source"]
 
 
+def test_default_chain_uses_environment_session_credentials(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("AWS_BEARER_TOKEN_BEDROCK", raising=False)
+    monkeypatch.delenv("AWS_PROFILE", raising=False)
+    monkeypatch.delenv("AWS_DEFAULT_PROFILE", raising=False)
+    monkeypatch.setenv("AWS_ACCESS_KEY_ID", "environment-access-key")
+    monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", "environment-secret-key")
+    monkeypatch.setenv("AWS_SESSION_TOKEN", "environment-session-token")
+    monkeypatch.setenv("AWS_REGION", "us-east-1")
+
+    requests: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        return httpx.Response(200, request=request, json={})
+
+    with OpenAI(
+        provider=bedrock(),
+        http_client=httpx.Client(transport=httpx.MockTransport(handler), trust_env=False),
+    ) as client:
+        client.get("/models", cast_to=httpx.Response)
+
+    assert "Credential=environment-access-key/" in requests[0].headers["Authorization"]
+    assert requests[0].headers["X-Amz-Security-Token"] == "environment-session-token"
+
+
+def test_default_chain_uses_aws_profile_and_shared_files(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    credentials_path = tmp_path / "credentials"
+    credentials_path.write_text(
+        "[work]\n"
+        "aws_access_key_id = profile-access-key\n"
+        "aws_secret_access_key = profile-secret-key\n"
+        "aws_session_token = profile-session-token\n"
+    )
+    config_path = tmp_path / "config"
+    config_path.write_text("[profile work]\nregion = us-west-2\n")
+
+    for name in (
+        "AWS_ACCESS_KEY_ID",
+        "AWS_SECRET_ACCESS_KEY",
+        "AWS_SESSION_TOKEN",
+        "AWS_SECURITY_TOKEN",
+        "AWS_DEFAULT_PROFILE",
+        "AWS_REGION",
+        "AWS_DEFAULT_REGION",
+        "AWS_BEARER_TOKEN_BEDROCK",
+        "AWS_WEB_IDENTITY_TOKEN_FILE",
+        "AWS_ROLE_ARN",
+        "AWS_CONTAINER_CREDENTIALS_FULL_URI",
+        "AWS_CONTAINER_CREDENTIALS_RELATIVE_URI",
+    ):
+        monkeypatch.delenv(name, raising=False)
+    monkeypatch.setenv("AWS_PROFILE", "work")
+    monkeypatch.setenv("AWS_SHARED_CREDENTIALS_FILE", str(credentials_path))
+    monkeypatch.setenv("AWS_CONFIG_FILE", str(config_path))
+    monkeypatch.setenv("AWS_EC2_METADATA_DISABLED", "true")
+
+    requests: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        return httpx.Response(200, request=request, json={})
+
+    with OpenAI(
+        provider=bedrock(),
+        http_client=httpx.Client(transport=httpx.MockTransport(handler), trust_env=False),
+    ) as client:
+        client.get("/models", cast_to=httpx.Response)
+
+    assert requests[0].url.host == "bedrock-mantle.us-west-2.api.aws"
+    assert "Credential=profile-access-key/" in requests[0].headers["Authorization"]
+    assert requests[0].headers["X-Amz-Security-Token"] == "profile-session-token"
+
+
 @pytest.mark.parametrize("case", _cases("sigv4"), ids=lambda case: case["id"])
 def test_sigv4_fixture(case: dict[str, Any], monkeypatch: pytest.MonkeyPatch) -> None:
     credentials = case["given"]["credentials"]
