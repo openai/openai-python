@@ -11,10 +11,10 @@ variables take precedence over values from the file.
 
 Useful environment variables:
 
-- ``BEDROCK_LIVE_MODEL`` (defaults to ``openai.gpt-5.4``)
+- ``BEDROCK_LIVE_MODEL`` (defaults to ``openai.gpt-oss-120b``)
 - ``BEDROCK_LIVE_REGION`` (otherwise uses the normal AWS region chain)
 - ``BEDROCK_LIVE_PROFILE`` (otherwise uses the normal AWS credential chain)
-- ``AWS_BEDROCK_BASE_URL`` (optional endpoint override)
+- ``AWS_BEDROCK_BASE_URL`` (required; GPT-OSS uses the ``/v1`` endpoint)
 
 The normal AWS environment variables, shared config, credential-process, SSO,
 and workload credential sources are resolved by botocore. The test explicitly
@@ -68,14 +68,21 @@ _load_env_file()
 
 
 def test_bedrock_live_response() -> None:
-    model = os.environ.get("BEDROCK_LIVE_MODEL") or "openai.gpt-5.4"
+    model = os.environ.get("BEDROCK_LIVE_MODEL") or "openai.gpt-oss-120b"
     region = os.environ.get("BEDROCK_LIVE_REGION") or None
     profile = os.environ.get("BEDROCK_LIVE_PROFILE") or None
+    base_url = os.environ.get("AWS_BEDROCK_BASE_URL") or None
+    if base_url is None:
+        raise RuntimeError(
+            "Set AWS_BEDROCK_BASE_URL to the Bedrock GPT-OSS endpoint, for example "
+            "https://bedrock-mantle.us-west-2.api.aws/v1."
+        )
 
     with OpenAI(
         provider=bedrock(
             region=region,
             profile=profile,
+            base_url=base_url,
             api_key=None,
         ),
         timeout=60,
@@ -84,7 +91,7 @@ def test_bedrock_live_response() -> None:
         response = client.responses.create(
             model=model,
             input="Reply with exactly: bedrock live test ok",
-            max_output_tokens=64,
+            store=False,
         )
 
     output_text = response.output_text.strip()
