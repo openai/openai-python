@@ -166,7 +166,7 @@ def test_empty_env_bearer_without_botocore_uses_aws_credentials(monkeypatch: pyt
         return real_import_module(name)
 
     monkeypatch.setattr(bedrock_auth_module.importlib, "import_module", import_module)
-    with update_env(AWS_BEARER_TOKEN_BEDROCK="", AWS_REGION="us-east-1"):
+    with update_env(AWS_BEDROCK_BASE_URL=Omit(), AWS_BEARER_TOKEN_BEDROCK="", AWS_REGION="us-east-1"):
         client = make_sync_client()
         with pytest.raises(OpenAIError, match="requires optional AWS dependencies"):
             client.get("/models", cast_to=httpx.Response)
@@ -942,13 +942,14 @@ def test_with_options_supports_subclasses_with_the_previous_constructor_signatur
                 _enforce_credentials=_enforce_credentials,
             )
 
-    client = LegacyBedrockOpenAI(
-        api_key="token",
-        aws_region="us-east-1",
-        http_client=httpx.Client(trust_env=False),
-    )
+    with update_env(AWS_BEDROCK_BASE_URL=Omit()):
+        client = LegacyBedrockOpenAI(
+            api_key="token",
+            aws_region="us-east-1",
+            http_client=httpx.Client(trust_env=False),
+        )
 
-    copied_client = client.with_options(timeout=1).with_options(aws_region="us-west-2")
+        copied_client = client.with_options(timeout=1).with_options(aws_region="us-west-2")
 
     assert isinstance(copied_client, LegacyBedrockOpenAI)
     assert copied_client.api_key == "token"
