@@ -458,3 +458,25 @@ async def test_strips_notgiven(use_async: bool) -> None:
 async def test_strips_omit(use_async: bool) -> None:
     assert await transform({"foo_bar": "bar"}, Foo1, use_async) == {"fooBar": "bar"}
     assert await transform({"foo_bar": omit}, Foo1, use_async) == {}
+
+
+class TestBareDict:
+    def test_transform_bare_dict_does_not_crash(self) -> None:
+        """Bare `dict` annotation (no type args) must not raise IndexError (issues #3338 / #3341)."""
+        from typing import TypedDict
+
+        class Params(TypedDict, total=False):
+            metadata: dict  # bare, unparameterised dict
+
+        result = _transform({"metadata": {"k": "v"}}, Params)
+        assert result == {"metadata": {"k": "v"}}
+
+    def test_transform_parameterised_dict_still_works(self) -> None:
+        """dict[str, str] annotation must still recurse into values."""
+        from typing import Dict, TypedDict
+
+        class Params(TypedDict, total=False):
+            tags: Dict[str, str]
+
+        result = _transform({"tags": {"a": "b"}}, Params)
+        assert result == {"tags": {"a": "b"}}
