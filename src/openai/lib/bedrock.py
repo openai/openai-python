@@ -18,7 +18,7 @@ from .._models import FinalRequestOptions
 from .._provider import _Provider, _configure_provider
 from .._exceptions import OpenAIError
 from .._base_client import DEFAULT_MAX_RETRIES
-from ..providers.bedrock import AwsCredentialsProvider, bedrock
+from ..providers.bedrock import AwsCredentialsProvider, bedrock, _BedrockProviderRuntime
 
 BedrockTokenProvider = Callable[[], str]
 AsyncBedrockTokenProvider = Callable[[], "str | Awaitable[str]"]
@@ -122,6 +122,7 @@ def _legacy_provider(
     aws_session_token: str | None,
     aws_credentials_provider: AwsCredentialsProvider | None,
     base_url: str | httpx.URL | None,
+    region_was_explicit: bool | None = None,
 ) -> tuple[_Provider, _LegacyBedrockState, str]:
     if callable(cast(object, api_key)):
         raise OpenAIError("Pass refreshable Bedrock credentials via `bedrock_token_provider`, not `api_key`.")
@@ -176,7 +177,9 @@ def _legacy_provider(
         explicit_api_key=api_key,
         token_provider=token_provider,
         aws_region=resolved_region,
-        region_was_explicit=bool(aws_region and aws_region.strip()),
+        region_was_explicit=(
+            bool(aws_region and aws_region.strip()) if region_was_explicit is None else region_was_explicit
+        ),
         aws_profile=aws_profile,
         aws_access_key_id=aws_access_key_id,
         aws_secret_access_key=aws_secret_access_key,
@@ -263,6 +266,7 @@ def _copy_configuration(
         next_credentials_provider = state.aws_credentials_provider
 
     next_region = aws_region if aws_region is not None else client.aws_region
+    next_region_was_explicit = aws_region is not None or state.region_was_explicit
     if aws_profile is not None and aws_region is None and not state.region_was_explicit:
         next_region = None
 
@@ -273,21 +277,21 @@ def _copy_configuration(
     else:
         next_base_url = client.base_url
 
-    return (
-        {
-            "api_key": next_api_key,
-            "bedrock_token_provider": next_token_provider,
-            "aws_region": next_region,
-            "aws_profile": next_profile,
-            "aws_access_key_id": next_access_key_id,
-            "aws_secret_access_key": next_secret_access_key,
-            "aws_session_token": next_session_token,
-            "aws_credentials_provider": next_credentials_provider,
-            "base_url": next_base_url,
-        },
-        None,
-        None,
-    )
+    provider_kwargs: dict[str, object] = {
+        "api_key": next_api_key,
+        "bedrock_token_provider": next_token_provider,
+        "aws_region": next_region,
+        "aws_profile": next_profile,
+        "aws_access_key_id": next_access_key_id,
+        "aws_secret_access_key": next_secret_access_key,
+        "aws_session_token": next_session_token,
+        "aws_credentials_provider": next_credentials_provider,
+        "base_url": next_base_url,
+    }
+    if _constructor_accepts_keyword(client.__class__.__init__, "_region_was_explicit"):
+        provider_kwargs["_region_was_explicit"] = next_region_was_explicit
+
+    return provider_kwargs, None, None
 
 
 def _legacy_runtime_signature(
@@ -368,7 +372,14 @@ def _refresh_legacy_provider_runtime(client: BedrockOpenAI | AsyncBedrockOpenAI)
     client._bedrock_provider = provider
     client._provider = provider
     client._provider_runtime = _configure_provider(provider)
-    client._bedrock_runtime_signature = signature
+    if (
+        isinstance(client._provider_runtime, _BedrockProviderRuntime)
+        and client.aws_region is None
+        and client._provider_runtime.region is not None
+    ):
+        client.aws_region = client._provider_runtime.region
+        client._bedrock_state = replace(client._bedrock_state, aws_region=client.aws_region)
+    client._bedrock_runtime_signature = _legacy_runtime_signature(client, configuration)
 
 
 class BedrockOpenAI(OpenAI):
@@ -406,6 +417,7 @@ class BedrockOpenAI(OpenAI):
         _enforce_credentials: bool = True,
         _provider: _Provider | None = None,
         _state: _LegacyBedrockState | None = None,
+        _region_was_explicit: bool | None = None,
     ) -> None:
         if _provider is None or _state is None:
             _provider, _state, public_api_key = _legacy_provider(
@@ -418,6 +430,7 @@ class BedrockOpenAI(OpenAI):
                 aws_session_token=aws_session_token,
                 aws_credentials_provider=aws_credentials_provider,
                 base_url=base_url,
+                region_was_explicit=_region_was_explicit,
             )
         else:
             public_api_key = (
@@ -446,7 +459,15 @@ class BedrockOpenAI(OpenAI):
         self._bedrock_token_provider = cast("BedrockTokenProvider | None", _state.token_provider)
         self._uses_region_derived_base_url = _state.uses_region_derived_base_url
         canonical_region = re.fullmatch(r"bedrock-mantle\.([a-z0-9-]+)\.api\.aws", self.base_url.host)
-        self.aws_region = _state.aws_region or (canonical_region.group(1) if canonical_region is not None else None)
+        provider_region = (
+            self._provider_runtime.region if isinstance(self._provider_runtime, _BedrockProviderRuntime) else None
+        )
+        self.aws_region = (
+            _state.aws_region
+            or provider_region
+            or (canonical_region.group(1) if canonical_region is not None else None)
+        )
+        self._bedrock_state = replace(_state, aws_region=self.aws_region)
         self.api_key = public_api_key or ""
         self._bedrock_runtime_signature = _legacy_runtime_signature(self, self._legacy_auth_configuration())
 
@@ -630,6 +651,7 @@ class AsyncBedrockOpenAI(AsyncOpenAI):
         _enforce_credentials: bool = True,
         _provider: _Provider | None = None,
         _state: _LegacyBedrockState | None = None,
+        _region_was_explicit: bool | None = None,
     ) -> None:
         if _provider is None or _state is None:
             _provider, _state, public_api_key = _legacy_provider(
@@ -642,6 +664,7 @@ class AsyncBedrockOpenAI(AsyncOpenAI):
                 aws_session_token=aws_session_token,
                 aws_credentials_provider=aws_credentials_provider,
                 base_url=base_url,
+                region_was_explicit=_region_was_explicit,
             )
         else:
             public_api_key = (
@@ -670,7 +693,15 @@ class AsyncBedrockOpenAI(AsyncOpenAI):
         self._bedrock_token_provider = cast("AsyncBedrockTokenProvider | None", _state.token_provider)
         self._uses_region_derived_base_url = _state.uses_region_derived_base_url
         canonical_region = re.fullmatch(r"bedrock-mantle\.([a-z0-9-]+)\.api\.aws", self.base_url.host)
-        self.aws_region = _state.aws_region or (canonical_region.group(1) if canonical_region is not None else None)
+        provider_region = (
+            self._provider_runtime.region if isinstance(self._provider_runtime, _BedrockProviderRuntime) else None
+        )
+        self.aws_region = (
+            _state.aws_region
+            or provider_region
+            or (canonical_region.group(1) if canonical_region is not None else None)
+        )
+        self._bedrock_state = replace(_state, aws_region=self.aws_region)
         self.api_key = public_api_key or ""
         self._bedrock_runtime_signature = _legacy_runtime_signature(self, self._legacy_auth_configuration())
 

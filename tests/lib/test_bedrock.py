@@ -829,6 +829,53 @@ def test_profile_derived_region_survives_auth_override(
 
 
 @pytest.mark.parametrize("client_cls", [BedrockOpenAI, AsyncBedrockOpenAI])
+@pytest.mark.parametrize(
+    ("aws_profile", "config_contents"),
+    [
+        ("west", "[profile west]\nregion = us-west-2\n[profile east]\nregion = us-east-1\n"),
+        (None, "[default]\nregion = us-west-2\n[profile east]\nregion = us-east-1\n"),
+    ],
+    ids=["named-profile", "default-profile"],
+)
+def test_profile_derived_region_survives_credential_override_with_custom_base_url(
+    client_cls: type[Client], aws_profile: str | None, config_contents: str, tmp_path: Path
+) -> None:
+    config_path = tmp_path / "config"
+    config_path.write_text(config_contents)
+
+    with update_env(
+        AWS_CONFIG_FILE=str(config_path),
+        AWS_PROFILE=Omit(),
+        AWS_BEARER_TOKEN_BEDROCK=Omit(),
+        AWS_REGION=Omit(),
+        AWS_DEFAULT_REGION=Omit(),
+    ):
+        client = (
+            make_sync_client(base_url="https://custom.example/openai/v1", aws_profile=aws_profile)
+            if client_cls is BedrockOpenAI
+            else make_async_client(base_url="https://custom.example/openai/v1", aws_profile=aws_profile)
+        )
+        assert client.aws_region == "us-west-2"
+
+        client.aws_region = None
+        client.with_options(timeout=1)
+
+        copied_client = client.with_options(
+            aws_access_key_id="replacement access key",
+            aws_secret_access_key="replacement secret key",
+        )
+        profile_client = copied_client.with_options(aws_profile="east")
+
+    assert client.aws_region == "us-west-2"
+    assert copied_client.aws_region == "us-west-2"
+    assert copied_client._bedrock_state.aws_region == "us-west-2"
+    assert copied_client.base_url == URL("https://custom.example/openai/v1/")
+    assert copied_client._uses_aws_auth()
+    assert profile_client.aws_region == "us-east-1"
+    assert profile_client.base_url == URL("https://custom.example/openai/v1/")
+
+
+@pytest.mark.parametrize("client_cls", [BedrockOpenAI, AsyncBedrockOpenAI])
 def test_with_options_switching_from_bearer_to_profile_re_resolves_environment_region(
     client_cls: type[Client], tmp_path: Path
 ) -> None:

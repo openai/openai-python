@@ -188,6 +188,11 @@ class _BedrockSigV4Auth:
         request.headers.update(signed_headers)
 
 
+@dataclass
+class _BedrockProviderRuntime(_ProviderRuntime):
+    region: str | None = None
+
+
 @dataclass(frozen=True)
 class _BedrockProviderDefinition:
     configured_region: str | None
@@ -282,17 +287,19 @@ class _BedrockProviderDefinition:
 
         assert auth is not None
         if isinstance(auth, _BedrockSigV4Auth):
-            return _ProviderRuntime(
+            return _BedrockProviderRuntime(
                 name=self.name,
                 base_url=base_url,
+                region=region,
                 transform_request=_without_redirects,
                 prepare_request=auth.prepare_request,
                 prepare_async_request=auth.prepare_async_request,
             )
 
-        return _ProviderRuntime(
+        return _BedrockProviderRuntime(
             name=self.name,
             base_url=base_url,
+            region=region,
             prepare_request=auth.prepare_request,
             prepare_async_request=auth.prepare_async_request,
         )
