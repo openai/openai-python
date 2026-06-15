@@ -357,9 +357,23 @@ class ResponseStreamState(Generic[TextFormatT]):
             if output.type == "function_call":
                 output.arguments += event.delta
         elif event.type == "response.completed":
+            # Some backends (e.g. the chatgpt.com Codex backend) send
+            # `output: null` in the final `response.completed` event even when
+            # valid output items were already delivered via `output_item.done`
+            # events and accumulated into `snapshot.output`.  In that case we
+            # must not let parse_response iterate over null and produce an empty
+            # output list; instead we patch the completed event's response with
+            # the accumulated snapshot output before parsing so that the final
+            # ParsedResponse contains the real content.
+            completed_response = event.response
+            if completed_response.output is None and snapshot is not None:
+                completed_response = build(
+                    type(completed_response),
+                    **{**completed_response.to_dict(), "output": [item.to_dict() for item in snapshot.output]},
+                )
             self._completed_response = parse_response(
                 text_format=self._text_format,
-                response=event.response,
+                response=completed_response,
                 input_tools=self._input_tools,
             )
 
