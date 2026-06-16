@@ -12,6 +12,7 @@ from .response_prompt import ResponsePrompt
 from .response_status import ResponseStatus
 from .tool_choice_mcp import ToolChoiceMcp
 from ..shared.metadata import Metadata
+from ..shared.reasoning import Reasoning
 from .tool_choice_shell import ToolChoiceShell
 from .tool_choice_types import ToolChoiceTypes
 from .tool_choice_custom import ToolChoiceCustom
@@ -36,7 +37,6 @@ __all__ = [
     "ModerationOutput",
     "ModerationOutputModerationResult",
     "ModerationOutputError",
-    "Reasoning",
 ]
 
 
@@ -171,22 +171,6 @@ class Moderation(BaseModel):
 
     output: ModerationOutput
     """Moderation for the response output."""
-
-
-class Reasoning(BaseModel):
-    """Reasoning configuration and metadata that were used for the response."""
-
-    context: Optional[Literal["current_turn", "all_turns"]] = None
-    """The effective reasoning context mode used for the response."""
-
-    effort: Optional[Literal["none", "minimal", "low", "medium", "high", "xhigh"]] = None
-    """The reasoning effort that was requested for the model, if specified."""
-
-    summary: Optional[Literal["concise", "detailed", "auto"]] = None
-    """A model-generated summary of its reasoning that was produced, if available."""
-
-    generate_summary: Optional[Literal["concise", "detailed", "auto"]] = None
-    """Deprecated. `summary` was used instead."""
 
 
 class Response(BaseModel):
@@ -370,7 +354,11 @@ class Response(BaseModel):
     """
 
     reasoning: Optional[Reasoning] = None
-    """Reasoning configuration and metadata that were used for the response."""
+    """**gpt-5 and o-series models only**
+
+    Configuration options for
+    [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+    """
 
     safety_identifier: Optional[str] = None
     """
