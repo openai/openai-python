@@ -47,6 +47,7 @@ class AdminAPIKeys(SyncAPIResource):
         self,
         *,
         name: str,
+        expires_in_seconds: int | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -58,6 +59,9 @@ class AdminAPIKeys(SyncAPIResource):
         Create an organization admin API key
 
         Args:
+          expires_in_seconds: The number of seconds until the API key expires. Omit this field for a key that
+              does not expire.
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -68,7 +72,13 @@ class AdminAPIKeys(SyncAPIResource):
         """
         return self._post(
             "/organization/admin_api_keys",
-            body=maybe_transform({"name": name}, admin_api_key_create_params.AdminAPIKeyCreateParams),
+            body=maybe_transform(
+                {
+                    "name": name,
+                    "expires_in_seconds": expires_in_seconds,
+                },
+                admin_api_key_create_params.AdminAPIKeyCreateParams,
+            ),
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -234,6 +244,7 @@ class AsyncAdminAPIKeys(AsyncAPIResource):
         self,
         *,
         name: str,
+        expires_in_seconds: int | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -245,6 +256,9 @@ class AsyncAdminAPIKeys(AsyncAPIResource):
         Create an organization admin API key
 
         Args:
+          expires_in_seconds: The number of seconds until the API key expires. Omit this field for a key that
+              does not expire.
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -255,7 +269,13 @@ class AsyncAdminAPIKeys(AsyncAPIResource):
         """
         return await self._post(
             "/organization/admin_api_keys",
-            body=await async_maybe_transform({"name": name}, admin_api_key_create_params.AdminAPIKeyCreateParams),
+            body=await async_maybe_transform(
+                {
+                    "name": name,
+                    "expires_in_seconds": expires_in_seconds,
+                },
+                admin_api_key_create_params.AdminAPIKeyCreateParams,
+            ),
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
