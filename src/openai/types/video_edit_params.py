@@ -19,7 +19,7 @@ class VideoEditParams(TypedDict, total=False):
 
 
 class VideoVideoReferenceInputParam(TypedDict, total=False):
-    """Reference to the completed video to edit."""
+    """Reference to the completed video."""
 
     id: Required[str]
     """The identifier of the completed video."""
