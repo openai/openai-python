@@ -441,15 +441,14 @@ class OpenAI(SyncAPIClient):
 
     @override
     def _auth_headers(self, security: SecurityOptions) -> dict[str, str]:
+        headers: dict[str, str] = {}
         if security.get("bearer_auth", False):
-            headers = self._bearer_auth
-            if headers:
-                return headers
-
+            for key, value in self._bearer_auth.items():
+                headers.setdefault(key, value)
         if security.get("admin_api_key_auth", False):
-            return self._admin_api_key_auth
-
-        return {}
+            for key, value in self._admin_api_key_auth.items():
+                headers.setdefault(key, value)
+        return headers
 
     @property
     def _bearer_auth(self) -> dict[str, str]:
@@ -947,15 +946,14 @@ class AsyncOpenAI(AsyncAPIClient):
 
     @override
     def _auth_headers(self, security: SecurityOptions) -> dict[str, str]:
+        headers: dict[str, str] = {}
         if security.get("bearer_auth", False):
-            headers = self._bearer_auth
-            if headers:
-                return headers
-
+            for key, value in self._bearer_auth.items():
+                headers.setdefault(key, value)
         if security.get("admin_api_key_auth", False):
-            return self._admin_api_key_auth
-
-        return {}
+            for key, value in self._admin_api_key_auth.items():
+                headers.setdefault(key, value)
+        return headers
 
     @property
     def _bearer_auth(self) -> dict[str, str]:
