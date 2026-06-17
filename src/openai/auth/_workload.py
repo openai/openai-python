@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import os
 import time
+import base64
 import threading
-from typing import Any, Callable, TypedDict, cast
+from typing import Any, Callable, Awaitable, TypedDict, cast
 from pathlib import Path
 from typing_extensions import Literal, NotRequired
 
@@ -168,6 +170,119 @@ def gcp_id_token_provider(
             raise SubjectTokenProviderError(f"Failed to fetch GCP subject token from metadata server: {e}") from e
 
     return {"token_type": "id", "get_token": get_token}
+
+
+def _make_bedrock_token_generator(
+    *,
+    region: str | None = None,
+    profile: str | None = None,
+) -> Callable[[], str]:
+
+    _session: list[Any] = [None]
+
+    def get_token() -> str:
+        try:
+            import botocore.session
+            from botocore.auth import SigV4QueryAuth
+            from botocore.awsrequest import AWSRequest
+        except ImportError as e:
+            raise ImportError(
+                "botocore is required for AWS Bedrock token generation. Install it with: pip install 'openai[bedrock]'"
+            ) from e
+
+        try:
+            resolved_region = region or os.environ.get("AWS_REGION") or os.environ.get("AWS_DEFAULT_REGION")
+            if not resolved_region:
+                raise SubjectTokenProviderError(
+                    "AWS region must be provided via the 'region' parameter, "
+                    "or the AWS_REGION / AWS_DEFAULT_REGION environment variable."
+                )
+
+            if _session[0] is None:
+                _session[0] = botocore.session.Session(profile=profile)
+
+            credentials = _session[0].get_credentials()
+            if credentials is None:
+                raise SubjectTokenProviderError("No AWS credentials found. Ensure your AWS credentials are configured.")
+            frozen_credentials = credentials.get_frozen_credentials()
+
+            request = AWSRequest(
+                method="POST",
+                url="https://bedrock.amazonaws.com/",
+                headers={"host": "bedrock.amazonaws.com"},
+                params={"Action": "CallWithBearerToken"},
+            )
+
+            signer = SigV4QueryAuth(frozen_credentials, "bedrock", resolved_region)
+            signer.add_auth(request)
+
+            signed_url = request.url
+            # Strip the https:// prefix before encoding
+            url_without_scheme = signed_url[len("https://") :]
+            encoded_token = base64.b64encode(f"{url_without_scheme}&Version=1".encode()).decode()
+
+            return f"bedrock-api-key-{encoded_token}"
+        except (ImportError, SubjectTokenProviderError):
+            raise
+        except Exception as e:
+            raise SubjectTokenProviderError(f"Failed to generate AWS Bedrock token: {e}") from e
+
+    return get_token
+
+
+def aws_bedrock_token_provider(
+    *,
+    region: str | None = None,
+    profile: str | None = None,
+) -> Callable[[], str]:
+    """
+    Get a sync token provider for AWS Bedrock. Use with ``OpenAI``.
+
+    Returns a callable that generates a bearer token from a SigV4 presigned URL.
+    Pass it directly to ``api_key`` when creating an OpenAI client pointed at a
+    Bedrock runtime endpoint. Credentials are resolved from the standard AWS credential chain:
+    https://docs.aws.amazon.com/sdkref/latest/guide/standardized-credentials.html
+
+    The botocore session is cached so credential resolution is efficient, while
+    the token itself is regenerated on each call to ensure it always reflects
+    the latest valid credentials (important for short-lived STS/assumed-role sessions).
+
+    For ``AsyncOpenAI``, use :func:`async_aws_bedrock_token_provider` instead.
+
+    Args:
+        region: AWS region. Must match the region in the ``base_url`` passed to the client.
+            Defaults to ``AWS_REGION`` or ``AWS_DEFAULT_REGION`` environment variable.
+        profile: AWS profile name. If not set, botocore resolves credentials from the standard chain.
+    """
+    return _make_bedrock_token_generator(region=region, profile=profile)
+
+
+def async_aws_bedrock_token_provider(
+    *,
+    region: str | None = None,
+    profile: str | None = None,
+) -> Callable[[], Awaitable[str]]:
+    """
+    Get an async token provider for AWS Bedrock. Use with ``AsyncOpenAI``.
+
+    Returns an async callable that generates a bearer token from a SigV4 presigned URL.
+    Pass it directly to ``api_key`` when creating an AsyncOpenAI client pointed at a
+    Bedrock runtime endpoint. Credentials are resolved from the standard AWS credential chain:
+    https://docs.aws.amazon.com/sdkref/latest/guide/standardized-credentials.html
+
+    For ``OpenAI`` (sync), use :func:`aws_bedrock_token_provider` instead.
+
+    Args:
+        region: AWS region. Must match the region in the ``base_url`` passed to the client.
+            Defaults to ``AWS_REGION`` or ``AWS_DEFAULT_REGION`` environment variable.
+        profile: AWS profile name. If not set, botocore resolves credentials from the standard chain.
+    """
+    _sync = _make_bedrock_token_generator(region=region, profile=profile)
+
+    async def get_token() -> str:
+        return await to_thread(_sync)
+
+    return get_token
 
 
 class WorkloadIdentityAuth:
