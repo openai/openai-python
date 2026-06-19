@@ -102,6 +102,8 @@ class AuditLogs(SyncAPIResource):
                 "role.deleted",
                 "role.assignment.created",
                 "role.assignment.deleted",
+                "role.bound_to_resource",
+                "role.unbound_from_resource",
                 "scim.enabled",
                 "scim.disabled",
                 "service_account.created",
@@ -116,6 +118,7 @@ class AuditLogs(SyncAPIResource):
         limit: int | Omit = omit,
         project_ids: SequenceNotStr[str] | Omit = omit,
         resource_ids: SequenceNotStr[str] | Omit = omit,
+        tenant_only: bool | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -154,7 +157,13 @@ class AuditLogs(SyncAPIResource):
           project_ids: Return only events for these projects.
 
           resource_ids: Return only events performed on these targets. For example, a project ID
-              updated.
+              updated. For ChatGPT connector role events, use the workspace connector resource
+              ID shown in `details.id`, such as `<workspace_id>__<connector_id>`.
+
+          tenant_only: Return only tenant-scoped events associated with this organization. Required for
+              tenant-scoped events such as `role.bound_to_resource` and
+              `role.unbound_from_resource`. When `true`, all supplied event types must be
+              tenant-scoped.
 
           extra_headers: Send extra headers
 
@@ -183,6 +192,7 @@ class AuditLogs(SyncAPIResource):
                         "limit": limit,
                         "project_ids": project_ids,
                         "resource_ids": resource_ids,
+                        "tenant_only": tenant_only,
                     },
                     audit_log_list_params.AuditLogListParams,
                 ),
@@ -273,6 +283,8 @@ class AsyncAuditLogs(AsyncAPIResource):
                 "role.deleted",
                 "role.assignment.created",
                 "role.assignment.deleted",
+                "role.bound_to_resource",
+                "role.unbound_from_resource",
                 "scim.enabled",
                 "scim.disabled",
                 "service_account.created",
@@ -287,6 +299,7 @@ class AsyncAuditLogs(AsyncAPIResource):
         limit: int | Omit = omit,
         project_ids: SequenceNotStr[str] | Omit = omit,
         resource_ids: SequenceNotStr[str] | Omit = omit,
+        tenant_only: bool | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -325,7 +338,13 @@ class AsyncAuditLogs(AsyncAPIResource):
           project_ids: Return only events for these projects.
 
           resource_ids: Return only events performed on these targets. For example, a project ID
-              updated.
+              updated. For ChatGPT connector role events, use the workspace connector resource
+              ID shown in `details.id`, such as `<workspace_id>__<connector_id>`.
+
+          tenant_only: Return only tenant-scoped events associated with this organization. Required for
+              tenant-scoped events such as `role.bound_to_resource` and
+              `role.unbound_from_resource`. When `true`, all supplied event types must be
+              tenant-scoped.
 
           extra_headers: Send extra headers
 
@@ -354,6 +373,7 @@ class AsyncAuditLogs(AsyncAPIResource):
                         "limit": limit,
                         "project_ids": project_ids,
                         "resource_ids": resource_ids,
+                        "tenant_only": tenant_only,
                     },
                     audit_log_list_params.AuditLogListParams,
                 ),

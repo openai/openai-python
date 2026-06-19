@@ -33,6 +33,7 @@ class TestInputTokens:
             personality="friendly",
             previous_response_id="resp_123",
             reasoning={
+                "context": "auto",
                 "effort": "none",
                 "generate_summary": "auto",
                 "summary": "auto",
@@ -98,6 +99,7 @@ class TestAsyncInputTokens:
             personality="friendly",
             previous_response_id="resp_123",
             reasoning={
+                "context": "auto",
                 "effort": "none",
                 "generate_summary": "auto",
                 "summary": "auto",
