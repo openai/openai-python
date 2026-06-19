@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from pydantic import BaseModel
 import pytest
+from pydantic import BaseModel
 
+from openai.types.realtime import RealtimeResponseStatus
 from openai.types.beta.realtime import RealtimeResponseStatus as BetaRealtimeResponseStatus
-from openai.types.realtime import RealtimeResponseStatus as RealtimeResponseStatus
 
 
 @pytest.mark.parametrize(

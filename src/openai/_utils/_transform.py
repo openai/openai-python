@@ -353,7 +353,10 @@ async def _async_transform_recursive(
         if len(args) < 2:
             return data
         items_type = args[1]
-        return {key: _transform_recursive(value, annotation=items_type) for key, value in data.items()}
+        result: dict[str, object] = {}
+        for key, value in data.items():
+            result[key] = await _async_transform_recursive(value, annotation=items_type)
+        return result
 
     if (
         # List[T]
