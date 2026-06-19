@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import sys
 import json
 import time
@@ -30,6 +31,7 @@ from typing import (
     cast,
     overload,
 )
+from contextlib import contextmanager
 from typing_extensions import Unpack, Literal, override, get_origin
 
 import anyio
@@ -116,6 +118,33 @@ else:
     except ImportError:
         # taken from https://github.com/encode/httpx/blob/3ba5fe0d7ac70222590e759c31442b1cab263791/httpx/_config.py#L366
         HTTPX_DEFAULT_TIMEOUT = Timeout(5.0)
+
+
+@contextmanager
+def _sanitize_proxy_environment() -> Iterator[None]:
+    """Normalize proxy-related environment variables for httpx client creation."""
+    proxy_env_vars = ("NO_PROXY", "no_proxy")
+    original_values = {name: os.environ.get(name) for name in proxy_env_vars}
+
+    try:
+        for name, value in original_values.items():
+            if value is None:
+                continue
+
+            normalized = ",".join(
+                part.strip()
+                for part in value.replace("\r", ",").replace("\n", ",").split(",")
+                if part.strip()
+            )
+            if normalized != value:
+                os.environ[name] = normalized
+        yield
+    finally:
+        for name, value in original_values.items():
+            if value is None:
+                os.environ.pop(name, None)
+            else:
+                os.environ[name] = value
 
 
 class PageInfo:
@@ -836,7 +865,8 @@ class _DefaultHttpxClient(httpx.Client):
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
         kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
-        super().__init__(**kwargs)
+        with _sanitize_proxy_environment():
+            super().__init__(**kwargs)
 
 
 if TYPE_CHECKING:
@@ -906,11 +936,12 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
             custom_headers=custom_headers,
             _strict_response_validation=_strict_response_validation,
         )
-        self._client = http_client or SyncHttpxClientWrapper(
-            base_url=base_url,
-            # cast to a valid type because mypy doesn't understand our type narrowing
-            timeout=cast(Timeout, timeout),
-        )
+        with _sanitize_proxy_environment():
+            self._client = http_client or SyncHttpxClientWrapper(
+                base_url=base_url,
+                # cast to a valid type because mypy doesn't understand our type narrowing
+                timeout=cast(Timeout, timeout),
+            )
 
     def is_closed(self) -> bool:
         return self._client.is_closed
@@ -1423,7 +1454,8 @@ class _DefaultAsyncHttpxClient(httpx.AsyncClient):
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
         kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
-        super().__init__(**kwargs)
+        with _sanitize_proxy_environment():
+            super().__init__(**kwargs)
 
 
 try:
@@ -1441,7 +1473,8 @@ else:
             kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
             kwargs.setdefault("follow_redirects", True)
 
-            super().__init__(**kwargs)
+            with _sanitize_proxy_environment():
+                super().__init__(**kwargs)
 
 
 if TYPE_CHECKING:
@@ -1516,11 +1549,12 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
             custom_headers=custom_headers,
             _strict_response_validation=_strict_response_validation,
         )
-        self._client = http_client or AsyncHttpxClientWrapper(
-            base_url=base_url,
-            # cast to a valid type because mypy doesn't understand our type narrowing
-            timeout=cast(Timeout, timeout),
-        )
+        with _sanitize_proxy_environment():
+            self._client = http_client or AsyncHttpxClientWrapper(
+                base_url=base_url,
+                # cast to a valid type because mypy doesn't understand our type narrowing
+                timeout=cast(Timeout, timeout),
+            )
 
     def is_closed(self) -> bool:
         return self._client.is_closed
