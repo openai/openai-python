@@ -38,6 +38,7 @@ from ._exceptions import (
 )
 from ._base_client import DefaultHttpxClient, DefaultAioHttpClient, DefaultAsyncHttpxClient
 from ._utils._logs import setup_logging as _setup_logging
+from .patch_openai import patch_openai_client
 from ._legacy_response import HttpxBinaryResponseContent as HttpxBinaryResponseContent
 from .types.websocket_reconnection import ReconnectingEvent, ReconnectingOverrides
 
@@ -109,6 +110,8 @@ from .lib.streaming import (
 )
 
 _setup_logging()
+
+patch_openai_client()
 
 # Update the __module__ attribute for exported symbols so that
 # error messages point to this module instead of the module
