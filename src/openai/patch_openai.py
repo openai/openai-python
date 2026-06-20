@@ -13,7 +13,9 @@ Si le score heuristique est invalide, la requête est bloquée avant envoi.
 # pyright: reportUnknownVariableType=false
 
 from typing import Any, Dict, List, cast
+
 from openai._client import SyncAPIClient
+
 
 def patch_openai_client() -> None:
     from .heuristics import HeuristicGuard

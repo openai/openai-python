@@ -1,18 +1,18 @@
-from typing import Dict, Any, List, Set
+import typing
 
 class HeuristicGuard:
     """
     Filtre heuristique pour requêtes LLM en Français.
     """
     
-    OPERANTS: Set[str] = {
+    OPERANTS: typing.Set[str] = {
         'donne', 'fais', 'analyse', 'génère', 'genere', 'calcule', 
         'audit', 'verdict', 'système', 'crée', 'cree', 'optimise', 
         'explique', 'compare', 'résume', 'resume', 'évalue', 'evalue', 
         'teste', 'montre', 'prouve', 'liste', 'décris', 'decris', 'generate'
     }
     
-    FORMATS: Set[str] = {
+    FORMATS: typing.Set[str] = {
         'json', 'tableau', 'liste', 'markdown', 'csv', 'expert', 
         'physique', 'code', 'python', 'sql'
     }
@@ -21,12 +21,12 @@ class HeuristicGuard:
     THRESH_ADMISSIBLE: float = 1.0
 
     @classmethod
-    def analyze(cls, prompt: str) -> Dict[str, Any]:
+    def analyze(cls, prompt: str) -> typing.Dict[str, typing.Any]:
         prompt = prompt.strip()
         if len(prompt) < 3:
             return {"S": 0.0, "verdict": "INCOHERENCE", "valid": False}
 
-        tokens: List[str] = prompt.lower().split()
+        tokens: typing.List[str] = prompt.lower().split()
         t_len: int = len(tokens)
         
         # Calcul de base
