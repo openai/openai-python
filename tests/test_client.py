@@ -1302,6 +1302,13 @@ class TestOpenAI:
         assert os.environ["NO_PROXY"] == "localhost,192.168.1.1"
         assert os.environ["no_proxy"] == "internal.host,10.0.0.1"
 
+    def test_no_proxy_newline_skipped_when_trust_env_false(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        # When trust_env=False, httpx never reads NO_PROXY so we must not
+        # mutate os.environ unnecessarily.
+        monkeypatch.setenv("NO_PROXY", "localhost\n192.168.1.1")
+        DefaultHttpxClient(trust_env=False)
+        assert os.environ["NO_PROXY"] == "localhost\n192.168.1.1"
+
     @pytest.mark.filterwarnings("ignore:.*deprecated.*:DeprecationWarning")
     def test_default_client_creation(self) -> None:
         # Ensure that the client can be initialized without any exceptions
@@ -2571,6 +2578,13 @@ class TestAsyncOpenAI:
         DefaultAsyncHttpxClient()
         assert os.environ["NO_PROXY"] == "localhost,192.168.1.1"
         assert os.environ["no_proxy"] == "internal.host,10.0.0.1"
+
+    async def test_no_proxy_newline_skipped_when_trust_env_false(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        # When trust_env=False, httpx never reads NO_PROXY so we must not
+        # mutate os.environ unnecessarily.
+        monkeypatch.setenv("NO_PROXY", "localhost\n192.168.1.1")
+        DefaultAsyncHttpxClient(trust_env=False)
+        assert os.environ["NO_PROXY"] == "localhost\n192.168.1.1"
 
     @pytest.mark.filterwarnings("ignore:.*deprecated.*:DeprecationWarning")
     async def test_default_client_creation(self) -> None:

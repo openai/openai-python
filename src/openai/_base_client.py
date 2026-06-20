@@ -849,7 +849,8 @@ class _DefaultHttpxClient(httpx.Client):
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
         kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
-        _sanitize_no_proxy_env_vars()
+        if kwargs.get("trust_env", True):
+            _sanitize_no_proxy_env_vars()
         super().__init__(**kwargs)
 
 
@@ -1437,7 +1438,8 @@ class _DefaultAsyncHttpxClient(httpx.AsyncClient):
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
         kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
-        _sanitize_no_proxy_env_vars()
+        if kwargs.get("trust_env", True):
+            _sanitize_no_proxy_env_vars()
         super().__init__(**kwargs)
 
 
