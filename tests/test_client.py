@@ -1292,6 +1292,16 @@ class TestOpenAI:
         assert len(mounts) == 1
         assert mounts[0][0].pattern == "https://"
 
+    def test_no_proxy_newline_sanitization(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        # Docker and .env files can inject newlines into NO_PROXY, which httpx
+        # rejects as invalid non-printable characters in URLs.
+        monkeypatch.setenv("NO_PROXY", "localhost\n192.168.1.1")
+        monkeypatch.setenv("no_proxy", "internal.host\n10.0.0.1")
+        # Must not raise httpx.InvalidURL
+        DefaultHttpxClient()
+        assert os.environ["NO_PROXY"] == "localhost,192.168.1.1"
+        assert os.environ["no_proxy"] == "internal.host,10.0.0.1"
+
     @pytest.mark.filterwarnings("ignore:.*deprecated.*:DeprecationWarning")
     def test_default_client_creation(self) -> None:
         # Ensure that the client can be initialized without any exceptions
@@ -2551,6 +2561,16 @@ class TestAsyncOpenAI:
         mounts = tuple(client._mounts.items())
         assert len(mounts) == 1
         assert mounts[0][0].pattern == "https://"
+
+    async def test_no_proxy_newline_sanitization(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        # Docker and .env files can inject newlines into NO_PROXY, which httpx
+        # rejects as invalid non-printable characters in URLs.
+        monkeypatch.setenv("NO_PROXY", "localhost\n192.168.1.1")
+        monkeypatch.setenv("no_proxy", "internal.host\n10.0.0.1")
+        # Must not raise httpx.InvalidURL
+        DefaultAsyncHttpxClient()
+        assert os.environ["NO_PROXY"] == "localhost,192.168.1.1"
+        assert os.environ["no_proxy"] == "internal.host,10.0.0.1"
 
     @pytest.mark.filterwarnings("ignore:.*deprecated.*:DeprecationWarning")
     async def test_default_client_creation(self) -> None:

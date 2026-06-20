@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import sys
 import json
 import time
@@ -831,11 +832,24 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         return f"stainless-python-retry-{uuid.uuid4()}"
 
 
+def _sanitize_no_proxy_env_vars() -> None:
+    # Docker environments and .env files sometimes inject newline characters into
+    # NO_PROXY, which httpx's URL parser then rejects as invalid. Normalize any
+    # newlines to commas so the value is well-formed before httpx reads it.
+    for key in ("NO_PROXY", "no_proxy"):
+        value = os.environ.get(key)
+        if value and "\n" in value:
+            os.environ[key] = ",".join(
+                entry.strip() for entry in value.replace("\n", ",").split(",") if entry.strip()
+            )
+
+
 class _DefaultHttpxClient(httpx.Client):
     def __init__(self, **kwargs: Any) -> None:
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
         kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
+        _sanitize_no_proxy_env_vars()
         super().__init__(**kwargs)
 
 
@@ -1423,6 +1437,7 @@ class _DefaultAsyncHttpxClient(httpx.AsyncClient):
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
         kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
+        _sanitize_no_proxy_env_vars()
         super().__init__(**kwargs)
 
 
