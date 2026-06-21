@@ -163,6 +163,7 @@ class OpenAI(SyncAPIClient):
 
         self.workload_identity = workload_identity
 
+        _api_key_explicitly_provided = False
         if workload_identity is not None:
             self.api_key = WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER
             self._api_key_provider = None
@@ -170,6 +171,7 @@ class OpenAI(SyncAPIClient):
                 workload_identity=workload_identity,
             )
         else:
+            _api_key_explicitly_provided = api_key is not None
             if api_key is None:
                 api_key = os.environ.get("OPENAI_API_KEY")
             if callable(api_key):
@@ -180,6 +182,8 @@ class OpenAI(SyncAPIClient):
                 self._api_key_provider = None
             self._workload_identity_auth = None
 
+        self._api_key_explicitly_provided = _api_key_explicitly_provided
+
         if admin_api_key is None:
             admin_api_key = os.environ.get("OPENAI_ADMIN_KEY")
         self.admin_api_key = admin_api_key
@@ -187,6 +191,7 @@ class OpenAI(SyncAPIClient):
         if (
             _enforce_credentials
             and not self.api_key
+            and not _api_key_explicitly_provided
             and self._api_key_provider is None
             and workload_identity is None
             and self.admin_api_key is None
@@ -489,6 +494,9 @@ class OpenAI(SyncAPIClient):
         if _has_header(headers, "Authorization") or _has_omitted_header(custom_headers, "Authorization"):
             return
 
+        if self._api_key_explicitly_provided:
+            return
+
         raise TypeError(
             '"Could not resolve authentication method. Expected either api_key or admin_api_key to be set. Or for one of the `Authorization` or `Authorization` headers to be explicitly omitted"'
         )
@@ -669,6 +677,7 @@ class AsyncOpenAI(AsyncAPIClient):
 
         self.workload_identity = workload_identity
 
+        _api_key_explicitly_provided = False
         if workload_identity is not None:
             self.api_key = WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER
             self._api_key_provider = None
@@ -676,6 +685,7 @@ class AsyncOpenAI(AsyncAPIClient):
                 workload_identity=workload_identity,
             )
         else:
+            _api_key_explicitly_provided = api_key is not None
             if api_key is None:
                 api_key = os.environ.get("OPENAI_API_KEY")
             if callable(api_key):
@@ -686,6 +696,8 @@ class AsyncOpenAI(AsyncAPIClient):
                 self._api_key_provider = None
             self._workload_identity_auth = None
 
+        self._api_key_explicitly_provided = _api_key_explicitly_provided
+
         if admin_api_key is None:
             admin_api_key = os.environ.get("OPENAI_ADMIN_KEY")
         self.admin_api_key = admin_api_key
@@ -693,6 +705,7 @@ class AsyncOpenAI(AsyncAPIClient):
         if (
             _enforce_credentials
             and not self.api_key
+            and not _api_key_explicitly_provided
             and self._api_key_provider is None
             and workload_identity is None
             and self.admin_api_key is None
@@ -993,6 +1006,9 @@ class AsyncOpenAI(AsyncAPIClient):
     @override
     def _validate_headers(self, headers: Headers, custom_headers: Headers) -> None:
         if _has_header(headers, "Authorization") or _has_omitted_header(custom_headers, "Authorization"):
+            return
+
+        if self._api_key_explicitly_provided:
             return
 
         raise TypeError(
