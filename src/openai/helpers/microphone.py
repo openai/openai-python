@@ -54,7 +54,7 @@ class Microphone(Generic[DType]):
     async def record(self, return_ndarray: None = ...) -> FileTypes: ...
 
     async def record(self, return_ndarray: Union[bool, None] = False) -> Union[npt.NDArray[DType], FileTypes]:
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         event = asyncio.Event()
         self.buffer_chunks: list[npt.NDArray[DType]] = []
         start_time = time.perf_counter()
