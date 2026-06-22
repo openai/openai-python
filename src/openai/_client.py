@@ -602,7 +602,11 @@ class OpenAI(SyncAPIClient):
         if default_query is not None and set_default_query is not None:
             raise ValueError("The `default_query` and `set_default_query` arguments are mutually exclusive")
 
-        headers = self._custom_headers
+        provider_changed = not isinstance(provider, NotGiven) and provider is not self._provider
+        inherited_organization = None if provider_changed else self.organization
+        inherited_project = None if provider_changed else self.project
+
+        headers: Mapping[str, str] = {} if provider_changed else self._custom_headers
         if default_headers is not None:
             headers = {**headers, **default_headers}
         elif set_default_headers is not None:
@@ -642,8 +646,8 @@ class OpenAI(SyncAPIClient):
             }
 
         return self.__class__(
-            organization=organization or self.organization,
-            project=project or self.project,
+            organization=organization or inherited_organization,
+            project=project or inherited_project,
             webhook_secret=webhook_secret or self.webhook_secret,
             websocket_base_url=websocket_base_url or self.websocket_base_url,
             timeout=self.timeout if isinstance(timeout, NotGiven) else timeout,
@@ -1206,7 +1210,11 @@ class AsyncOpenAI(AsyncAPIClient):
         if default_query is not None and set_default_query is not None:
             raise ValueError("The `default_query` and `set_default_query` arguments are mutually exclusive")
 
-        headers = self._custom_headers
+        provider_changed = not isinstance(provider, NotGiven) and provider is not self._provider
+        inherited_organization = None if provider_changed else self.organization
+        inherited_project = None if provider_changed else self.project
+
+        headers: Mapping[str, str] = {} if provider_changed else self._custom_headers
         if default_headers is not None:
             headers = {**headers, **default_headers}
         elif set_default_headers is not None:
@@ -1245,8 +1253,8 @@ class AsyncOpenAI(AsyncAPIClient):
             }
 
         return self.__class__(
-            organization=organization or self.organization,
-            project=project or self.project,
+            organization=organization or inherited_organization,
+            project=project or inherited_project,
             webhook_secret=webhook_secret or self.webhook_secret,
             websocket_base_url=websocket_base_url or self.websocket_base_url,
             timeout=self.timeout if isinstance(timeout, NotGiven) else timeout,

@@ -35,6 +35,21 @@ def _fixed_datetime(value: str) -> datetime:
     return datetime.fromisoformat(value.replace("Z", "+00:00"))
 
 
+def _freeze_botocore_time(monkeypatch: pytest.MonkeyPatch, timestamps: Iterator[datetime]) -> None:
+    botocore_auth = pytest.importorskip("botocore.auth")
+
+    if hasattr(botocore_auth, "get_current_datetime"):
+        monkeypatch.setattr(botocore_auth, "get_current_datetime", lambda: next(timestamps))
+        return
+
+    class FrozenDatetime:
+        @classmethod
+        def utcnow(cls) -> datetime:
+            return next(timestamps).replace(tzinfo=None)
+
+    monkeypatch.setattr(botocore_auth.datetime, "datetime", FrozenDatetime)
+
+
 def _lower_headers(headers: httpx.Headers | dict[str, str]) -> dict[str, str]:
     return {name.lower(): value for name, value in headers.items()}
 
@@ -64,8 +79,7 @@ def test_shared_sigv4_fixture_matches_node(monkeypatch: pytest.MonkeyPatch) -> N
     request = fixture["request"]
     body = request["body"].encode()
     payload_hash = hashlib.sha256(body).hexdigest()
-    botocore_auth = pytest.importorskip("botocore.auth")
-    monkeypatch.setattr(botocore_auth, "get_current_datetime", lambda: _fixed_datetime(fixture["signingDate"]))
+    _freeze_botocore_time(monkeypatch, iter([_fixed_datetime(fixture["signingDate"])]))
 
     auth = BedrockAwsAuth(
         BedrockAwsAuthConfig(
@@ -163,8 +177,7 @@ def test_sigv4_fixture(case: dict[str, Any], monkeypatch: pytest.MonkeyPatch) ->
             session_token=credentials.get("session_token"),
         )
     )
-    botocore_auth = pytest.importorskip("botocore.auth")
-    monkeypatch.setattr(botocore_auth, "get_current_datetime", lambda: _fixed_datetime(signing["timestamp"]))
+    _freeze_botocore_time(monkeypatch, iter([_fixed_datetime(signing["timestamp"])]))
 
     signed_headers = _lower_headers(
         auth.sign(
@@ -202,8 +215,7 @@ def test_retry_signing_fixture(monkeypatch: pytest.MonkeyPatch) -> None:
         provider_calls += 1
         return next(credentials)
 
-    botocore_auth = pytest.importorskip("botocore.auth")
-    monkeypatch.setattr(botocore_auth, "get_current_datetime", lambda: next(timestamps))
+    _freeze_botocore_time(monkeypatch, timestamps)
 
     requests: list[httpx.Request] = []
     statuses = iter(case["given"]["response_statuses"])

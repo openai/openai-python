@@ -1,4 +1,5 @@
 {
+  "$comment": "Uses AWS SigV4 documentation test credentials. These are public examples, not real AWS credentials.",
   "signingDate": "2025-01-02T03:04:05.000Z",
   "region": "us-east-1",
   "service": "bedrock-mantle",

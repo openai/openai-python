@@ -48,8 +48,8 @@ realtime = ["websockets >= 13, < 16"]
 datalib = ["numpy >= 1", "pandas >= 1.2.3", "pandas-stubs >= 1.1.0.11"]
 voice_helpers = ["sounddevice>=0.5.1", "numpy>=2.0.2"]
 bedrock = [
-  "botocore[crt]>=1.42.0,<1.43; python_version < '3.10'",
-  "botocore[crt]>=1.42.0,<2; python_version >= '3.10'",
+  "botocore>=1.40.0,<1.43; python_version < '3.10'",
+  "botocore>=1.40.0,<2; python_version >= '3.10'",
 ]
 
 [tool.rye]

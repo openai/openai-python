@@ -35,6 +35,12 @@ class _ProviderDefinition(Protocol):
     def configure(self) -> _ProviderRuntime: ...
 
 
+# Provider factories capture configuration in definitions, while every client
+# gets fresh runtime state from ``definition.configure()``. Keeping definitions
+# outside the opaque provider object prevents arbitrary objects (including a
+# directly constructed ``_Provider``) from imitating an OpenAI-owned provider
+# and keeps credentials out of the object's representation. The weak mapping
+# also avoids retaining provider configuration after the public handle is gone.
 _provider_definitions: WeakKeyDictionary[_Provider, _ProviderDefinition] = WeakKeyDictionary()
 
 

@@ -8,6 +8,7 @@ import pytest
 import openai.lib._bedrock_auth as bedrock_auth_module
 from openai import OpenAI, AsyncOpenAI, OpenAIError
 from tests.utils import update_env
+from openai._types import Omit
 from openai._provider import _create_provider, _ProviderRuntime
 from openai.providers import bedrock
 
@@ -100,6 +101,92 @@ def test_provider_survives_with_options_and_can_be_replaced() -> None:
     assert replaced._provider is not client._provider
 
 
+def test_switching_to_provider_drops_inherited_openai_metadata() -> None:
+    requests: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        return httpx.Response(200, request=request, json={})
+
+    with update_env(
+        OPENAI_CUSTOM_HEADERS="X-OpenAI-Ambient: leak",
+        OPENAI_ORG_ID="ambient-org",
+        OPENAI_PROJECT_ID="ambient-project",
+    ):
+        client = OpenAI(
+            api_key="openai token",
+            default_headers={"X-OpenAI-Custom": "leak"},
+            http_client=httpx.Client(transport=httpx.MockTransport(handler), trust_env=False),
+        )
+        provider_client = client.with_options(provider=bedrock(region="us-east-1", api_key="bedrock token"))
+
+    provider_client.get("/models", cast_to=httpx.Response)
+
+    headers = requests[0].headers
+    assert headers["Authorization"] == "Bearer bedrock token"
+    assert "X-OpenAI-Ambient" not in headers
+    assert "X-OpenAI-Custom" not in headers
+    assert "OpenAI-Organization" not in headers
+    assert "OpenAI-Project" not in headers
+
+
+@pytest.mark.asyncio
+async def test_async_switching_to_provider_drops_inherited_openai_metadata() -> None:
+    requests: list[httpx.Request] = []
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        return httpx.Response(200, request=request, json={})
+
+    client = AsyncOpenAI(
+        api_key="openai token",
+        organization="openai-org",
+        project="openai-project",
+        default_headers={"X-OpenAI-Custom": "leak"},
+        http_client=httpx.AsyncClient(transport=httpx.MockTransport(handler), trust_env=False),
+    )
+    provider_client = client.with_options(provider=bedrock(region="us-east-1", api_key="bedrock token"))
+
+    await provider_client.get("/models", cast_to=httpx.Response)
+    await provider_client.close()
+
+    headers = requests[0].headers
+    assert headers["Authorization"] == "Bearer bedrock token"
+    assert "X-OpenAI-Custom" not in headers
+    assert "OpenAI-Organization" not in headers
+    assert "OpenAI-Project" not in headers
+
+
+def test_provider_metadata_survives_same_provider_clone_but_not_replacement() -> None:
+    requests: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        return httpx.Response(200, request=request, json={})
+
+    first_provider = bedrock(region="us-east-1", api_key="first token")
+    client = OpenAI(
+        provider=first_provider,
+        organization="provider-org",
+        project="provider-project",
+        default_headers={"X-Provider-Custom": "preserve-me"},
+        http_client=httpx.Client(transport=httpx.MockTransport(handler), trust_env=False),
+    )
+
+    client.with_options(timeout=1).get("/models", cast_to=httpx.Response)
+    client.with_options(provider=bedrock(region="us-east-1", api_key="second token")).get(
+        "/models", cast_to=httpx.Response
+    )
+
+    same_provider_headers, replacement_headers = (request.headers for request in requests)
+    assert same_provider_headers["X-Provider-Custom"] == "preserve-me"
+    assert same_provider_headers["OpenAI-Organization"] == "provider-org"
+    assert same_provider_headers["OpenAI-Project"] == "provider-project"
+    assert "X-Provider-Custom" not in replacement_headers
+    assert "OpenAI-Organization" not in replacement_headers
+    assert "OpenAI-Project" not in replacement_headers
+
+
 def test_provider_normalizes_responses_before_status_handling() -> None:
     class NormalizingProvider:
         name = "normalizing"
@@ -151,13 +238,22 @@ def test_environment_bearer_mode_survives_clone_and_refreshes_each_attempt() -> 
 
 
 def test_provider_can_be_removed_with_explicit_openai_credentials() -> None:
-    client = OpenAI(provider=bedrock(region="us-east-1", api_key="bedrock token"))
+    with update_env(OPENAI_CUSTOM_HEADERS=Omit(), OPENAI_ORG_ID=Omit(), OPENAI_PROJECT_ID=Omit()):
+        client = OpenAI(
+            provider=bedrock(region="us-east-1", api_key="bedrock token"),
+            organization="provider-org",
+            project="provider-project",
+            default_headers={"X-Provider-Custom": "provider value"},
+        )
 
-    copied = client.with_options(provider=None, api_key="openai token")
+        copied = client.with_options(provider=None, api_key="openai token")
 
     assert copied._provider is None
     assert copied.api_key == "openai token"
     assert copied.base_url == httpx.URL("https://api.openai.com/v1/")
+    assert copied.organization is None
+    assert copied.project is None
+    assert "X-Provider-Custom" not in copied.default_headers
 
 
 def test_bearer_provider_does_not_load_botocore(monkeypatch: pytest.MonkeyPatch) -> None:

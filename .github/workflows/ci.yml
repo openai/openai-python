@@ -58,6 +58,9 @@ jobs:
       - name: Run build
         run: rye build
 
+      - name: Validate Bedrock wheel
+        run: rye run python scripts/utils/validate-bedrock-wheel.py
+
       - name: Get GitHub OIDC Token
         if: |-
           github.repository == 'stainless-sdks/openai-python' &&

@@ -35,8 +35,6 @@ attrs==25.4.0
     # via outcome
     # via referencing
     # via trio
-awscrt==0.31.2
-    # via botocore
 azure-core==1.36.0
     # via azure-identity
 azure-identity==1.25.1

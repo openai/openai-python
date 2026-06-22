@@ -26,8 +26,6 @@ async-timeout==5.0.1
     # via aiohttp
 attrs==25.4.0
     # via aiohttp
-awscrt==0.31.2
-    # via botocore
 botocore==1.42.97
     # via openai
 certifi==2026.1.4
@@ -80,6 +78,7 @@ pydantic==2.12.5
 pydantic-core==2.41.5
     # via pydantic
 python-dateutil==2.9.0.post0
+    # via botocore
     # via pandas
 pytz==2025.2
     # via pandas
