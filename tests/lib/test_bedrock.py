@@ -134,14 +134,10 @@ def test_bedrock_config_precedence(client_cls: type[Client]) -> None:
 
 @pytest.mark.respx()
 def test_env_bearer_does_not_require_botocore(monkeypatch: pytest.MonkeyPatch, respx_mock: MockRouter) -> None:
-    real_import_module = bedrock_auth_module.importlib.import_module
+    def load_botocore() -> None:
+        raise AssertionError("bearer authentication must not import botocore")
 
-    def import_module(name: str) -> Any:
-        if name.startswith("botocore"):
-            raise ImportError(name)
-        return real_import_module(name)
-
-    monkeypatch.setattr(bedrock_auth_module.importlib, "import_module", import_module)
+    monkeypatch.setattr(bedrock_auth_module, "_load_botocore", load_botocore)
     respx_mock.post("https://example.com/openai/v1/responses").mock(
         return_value=httpx.Response(200, json=RESPONSE_BODY)
     )
@@ -158,14 +154,13 @@ def test_env_bearer_does_not_require_botocore(monkeypatch: pytest.MonkeyPatch, r
 
 
 def test_empty_env_bearer_without_botocore_uses_aws_credentials(monkeypatch: pytest.MonkeyPatch) -> None:
-    real_import_module = bedrock_auth_module.importlib.import_module
+    def load_botocore() -> None:
+        raise OpenAIError(
+            "Bedrock AWS authentication requires optional AWS dependencies. "
+            "Install them with `pip install openai[bedrock]` and try again."
+        )
 
-    def import_module(name: str) -> Any:
-        if name.startswith("botocore"):
-            raise ImportError(name)
-        return real_import_module(name)
-
-    monkeypatch.setattr(bedrock_auth_module.importlib, "import_module", import_module)
+    monkeypatch.setattr(bedrock_auth_module, "_load_botocore", load_botocore)
     with update_env(AWS_BEDROCK_BASE_URL=Omit(), AWS_BEARER_TOKEN_BEDROCK="", AWS_REGION="us-east-1"):
         client = make_sync_client()
         with pytest.raises(OpenAIError, match="requires optional AWS dependencies"):
@@ -174,7 +169,7 @@ def test_empty_env_bearer_without_botocore_uses_aws_credentials(monkeypatch: pyt
 
 @pytest.mark.respx()
 def test_env_bearer_does_not_use_botocore_bearer_auth(monkeypatch: pytest.MonkeyPatch, respx_mock: MockRouter) -> None:
-    auth_module = bedrock_auth_module.importlib.import_module("botocore.auth")
+    auth_module = pytest.importorskip("botocore.auth")
     calls = 0
     real_add_auth = auth_module.BearerAuth.add_auth
 

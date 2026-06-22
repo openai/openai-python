@@ -1,9 +1,10 @@
+# pyright: reportMissingTypeStubs=false
+
 from __future__ import annotations
 
 import os
 import hashlib
-import importlib
-from typing import Literal, Mapping, Callable, Protocol, cast
+from typing import Any, Literal, Mapping, Callable, Protocol, cast
 from dataclasses import field, dataclass
 
 from .._exceptions import OpenAIError
@@ -24,6 +25,21 @@ _AWS_SIGNING_HEADERS = (
 )
 
 
+def _load_botocore() -> tuple[Any, Any, Any, Any]:
+    try:
+        from botocore.auth import SigV4Auth  # type: ignore[import-untyped]
+        from botocore.session import Session  # type: ignore[import-untyped]
+        from botocore.awsrequest import AWSRequest  # type: ignore[import-untyped]
+        from botocore.credentials import Credentials  # type: ignore[import-untyped]
+    except ImportError as exc:
+        raise OpenAIError(
+            "Bedrock AWS authentication requires optional AWS dependencies. "
+            "Install them with `pip install openai[bedrock]` and try again."
+        ) from exc
+
+    return SigV4Auth, AWSRequest, Credentials, Session
+
+
 @dataclass(frozen=True)
 class BedrockAwsAuthConfig:
     region: str
@@ -38,20 +54,11 @@ class BedrockAwsAuthConfig:
 
 class BedrockAwsAuth:
     def __init__(self, config: BedrockAwsAuthConfig, *, session: _BotocoreSession | None = None) -> None:
-        try:
-            auth_module = importlib.import_module("botocore.auth")
-            session_module = importlib.import_module("botocore.session")
-            awsrequest_module = importlib.import_module("botocore.awsrequest")
-            credentials_module = importlib.import_module("botocore.credentials")
-        except ImportError as exc:
-            raise OpenAIError(
-                "Bedrock AWS authentication requires optional AWS dependencies. "
-                "Install them with `pip install openai[bedrock]` and try again."
-            ) from exc
+        sigv4_auth_cls, aws_request_cls, credentials_cls, session_cls = _load_botocore()
 
         if session is None:
             try:
-                session = session_module.Session(profile=config.profile)
+                session = session_cls(profile=config.profile)
             except Exception as exc:
                 raise OpenAIError(
                     "Failed to resolve AWS credentials for Bedrock. Verify your AWS profile, environment variables, "
@@ -63,12 +70,12 @@ class BedrockAwsAuth:
         self._session = session
         self._credentials_provider = config.credentials_provider
         self._explicit_credentials = (
-            credentials_module.Credentials(config.access_key_id, config.secret_access_key, config.session_token)
+            credentials_cls(config.access_key_id, config.secret_access_key, config.session_token)
             if config.access_key_id is not None and config.secret_access_key is not None
             else None
         )
-        self._aws_request_cls = awsrequest_module.AWSRequest
-        self._sigv4_auth_cls = auth_module.SigV4Auth
+        self._aws_request_cls = aws_request_cls
+        self._sigv4_auth_cls = sigv4_auth_cls
 
     @classmethod
     def resolve(
@@ -81,16 +88,10 @@ class BedrockAwsAuth:
         session_token: str | None,
         credentials_provider: AwsCredentialsProvider | None,
     ) -> BedrockAwsAuth:
-        try:
-            session_module = importlib.import_module("botocore.session")
-        except ImportError as exc:
-            raise OpenAIError(
-                "Bedrock AWS authentication requires optional AWS dependencies. "
-                "Install them with `pip install openai[bedrock]` and try again."
-            ) from exc
+        _, _, _, session_cls = _load_botocore()
 
         try:
-            session = session_module.Session(profile=profile)
+            session = session_cls(profile=profile)
             resolved_region, region_source = resolve_aws_region_with_source(region, session=session)
         except OpenAIError:
             raise

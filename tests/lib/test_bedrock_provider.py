@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import builtins
 from typing import Any, Iterator, cast
 
 import httpx
@@ -257,14 +258,10 @@ def test_provider_can_be_removed_with_explicit_openai_credentials() -> None:
 
 
 def test_bearer_provider_does_not_load_botocore(monkeypatch: pytest.MonkeyPatch) -> None:
-    real_import_module = bedrock_auth_module.importlib.import_module
+    def load_botocore() -> None:
+        raise AssertionError("bearer authentication must not import botocore")
 
-    def import_module(name: str) -> Any:
-        if name.startswith("botocore"):
-            raise AssertionError("bearer authentication must not import botocore")
-        return real_import_module(name)
-
-    monkeypatch.setattr(bedrock_auth_module.importlib, "import_module", import_module)
+    monkeypatch.setattr(bedrock_auth_module, "_load_botocore", load_botocore)
 
     client = OpenAI(provider=bedrock(region="us-east-1", api_key="bedrock token"))
     request = client._build_request(client._prepare_options(_get_options()))
@@ -274,20 +271,26 @@ def test_bearer_provider_does_not_load_botocore(monkeypatch: pytest.MonkeyPatch)
 
 
 def test_missing_aws_dependency_is_actionable_and_lazy(monkeypatch: pytest.MonkeyPatch) -> None:
-    real_import_module = bedrock_auth_module.importlib.import_module
+    real_import = builtins.__import__
     network_calls = 0
 
-    def import_module(name: str) -> Any:
+    def import_module(
+        name: str,
+        globals: dict[str, Any] | None = None,
+        locals: dict[str, Any] | None = None,
+        fromlist: tuple[str, ...] = (),
+        level: int = 0,
+    ) -> Any:
         if name.startswith("botocore"):
             raise ImportError(name)
-        return real_import_module(name)
+        return real_import(name, globals, locals, fromlist, level)
 
     def handler(request: httpx.Request) -> httpx.Response:
         nonlocal network_calls
         network_calls += 1
         return httpx.Response(200, request=request)
 
-    monkeypatch.setattr(bedrock_auth_module.importlib, "import_module", import_module)
+    monkeypatch.setattr(builtins, "__import__", import_module)
     client = OpenAI(
         provider=bedrock(region="us-east-1"),
         http_client=httpx.Client(transport=httpx.MockTransport(handler), trust_env=False),
