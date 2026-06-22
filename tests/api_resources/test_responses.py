@@ -55,6 +55,7 @@ class TestResponses:
             prompt_cache_key="prompt-cache-key-1234",
             prompt_cache_retention="in_memory",
             reasoning={
+                "context": "auto",
                 "effort": "none",
                 "generate_summary": "auto",
                 "summary": "auto",
@@ -144,6 +145,7 @@ class TestResponses:
             prompt_cache_key="prompt-cache-key-1234",
             prompt_cache_retention="in_memory",
             reasoning={
+                "context": "auto",
                 "effort": "none",
                 "generate_summary": "auto",
                 "summary": "auto",
@@ -470,6 +472,7 @@ class TestAsyncResponses:
             prompt_cache_key="prompt-cache-key-1234",
             prompt_cache_retention="in_memory",
             reasoning={
+                "context": "auto",
                 "effort": "none",
                 "generate_summary": "auto",
                 "summary": "auto",
@@ -559,6 +562,7 @@ class TestAsyncResponses:
             prompt_cache_key="prompt-cache-key-1234",
             prompt_cache_retention="in_memory",
             reasoning={
+                "context": "auto",
                 "effort": "none",
                 "generate_summary": "auto",
                 "summary": "auto",
