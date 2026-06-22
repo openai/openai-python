@@ -61,3 +61,34 @@ def test_parse_method_definition_in_sync(sync: bool, client: OpenAI, async_clien
         checking_client.responses.parse,
         exclude_params={"tools"},
     )
+
+
+def test_parse_response_handles_null_output() -> None:
+    from openai._models import construct_type_unchecked
+    from openai._types import omit
+    from openai.lib._parsing._responses import parse_response
+    from openai.types.responses import Response
+
+    response = construct_type_unchecked(
+        type_=Response,
+        value={
+            "id": "resp_test",
+            "object": "response",
+            "created_at": 0,
+            "model": "gpt-4o-mini",
+            "output": None,
+            "parallel_tool_calls": True,
+            "temperature": 1,
+            "tool_choice": "auto",
+            "tools": [],
+            "top_p": 1,
+            "metadata": {},
+            "reasoning": {},
+            "status": "completed",
+            "text": {"format": {"type": "text"}},
+        },
+    )
+
+    parsed = parse_response(text_format=omit, input_tools=None, response=response)
+
+    assert parsed.output == []
