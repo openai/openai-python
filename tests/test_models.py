@@ -11,6 +11,8 @@ from pydantic import Field
 from openai._utils import PropertyInfo
 from openai._compat import PYDANTIC_V1, parse_obj, model_dump, model_json
 from openai._models import DISCRIMINATOR_CACHE, BaseModel, EagerIterable, construct_type
+from openai.types.responses import ResponseOutputTextAnnotationAddedEvent
+from openai.types.responses.response_output_text import AnnotationURLCitation
 
 
 class BasicModel(BaseModel):
@@ -131,6 +133,27 @@ def test_raw_dictionary() -> None:
     # mismatched types
     m = NestedModel.construct(nested=False)
     assert cast(Any, m.nested) is False
+
+
+def test_response_output_text_annotation_added_event_constructs_annotation() -> None:
+    event = ResponseOutputTextAnnotationAddedEvent(
+        annotation={
+            "type": "url_citation",
+            "title": "Example",
+            "url": "https://example.com",
+            "start_index": 0,
+            "end_index": 10,
+        },
+        annotation_index=0,
+        content_index=0,
+        item_id="item_123",
+        output_index=0,
+        sequence_number=1,
+        type="response.output_text.annotation.added",
+    )
+
+    assert isinstance(event.annotation, AnnotationURLCitation)
+    assert event.annotation.url == "https://example.com"
 
 
 def test_nested_dictionary_model() -> None:
