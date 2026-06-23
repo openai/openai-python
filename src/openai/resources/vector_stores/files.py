@@ -387,7 +387,9 @@ class Files(SyncAPIResource):
 
             file = response.parse()
             if file.status == "in_progress":
-                if time.time() - start > max_wait_seconds:
+                elapsed = time.time() - start
+                remaining = max_wait_seconds - elapsed
+                if remaining <= 0:
                     raise RuntimeError(
                         f"Giving up on waiting for vector store file {file_id} to finish processing after {max_wait_seconds} seconds."
                     )
@@ -399,7 +401,7 @@ class Files(SyncAPIResource):
                     else:
                         poll_interval_ms = 1000
 
-                self._sleep(poll_interval_ms / 1000)
+                self._sleep(min(poll_interval_ms / 1000, remaining))
             elif file.status == "cancelled" or file.status == "completed" or file.status == "failed":
                 return file
             else:
@@ -852,7 +854,9 @@ class AsyncFiles(AsyncAPIResource):
 
             file = response.parse()
             if file.status == "in_progress":
-                if time.time() - start > max_wait_seconds:
+                elapsed = time.time() - start
+                remaining = max_wait_seconds - elapsed
+                if remaining <= 0:
                     raise RuntimeError(
                         f"Giving up on waiting for vector store file {file_id} to finish processing after {max_wait_seconds} seconds."
                     )
@@ -864,7 +868,7 @@ class AsyncFiles(AsyncAPIResource):
                     else:
                         poll_interval_ms = 1000
 
-                await self._sleep(poll_interval_ms / 1000)
+                await self._sleep(min(poll_interval_ms / 1000, remaining))
             elif file.status == "cancelled" or file.status == "completed" or file.status == "failed":
                 return file
             else:

@@ -115,6 +115,28 @@ class TestFiles:
                 max_wait_seconds=1.0,
             )
 
+    def test_poll_limits_sleep_to_remaining_timeout(self, client: OpenAI, monkeypatch: pytest.MonkeyPatch) -> None:
+        files = client.vector_stores.files
+        sleep_durations: list[float] = []
+        times = iter([0.0, 0.25, 1.25])
+
+        def retrieve(*_args: object, **_kwargs: object) -> _VectorStoreFilePollResponse:
+            return _VectorStoreFilePollResponse()
+
+        monkeypatch.setattr(files.with_raw_response, "retrieve", retrieve)
+        monkeypatch.setattr(files, "_sleep", sleep_durations.append)
+        monkeypatch.setattr(files_module.time, "time", lambda: next(times))
+
+        with pytest.raises(RuntimeError):
+            files.poll(
+                "file-abc123",
+                vector_store_id="vs_abc123",
+                poll_interval_ms=60_000,
+                max_wait_seconds=1.0,
+            )
+
+        assert sleep_durations == [pytest.approx(0.75)]
+
     @parametrize
     def test_method_retrieve(self, client: OpenAI) -> None:
         file = client.vector_stores.files.retrieve(
@@ -446,6 +468,33 @@ class TestAsyncFiles:
                 poll_interval_ms=1,
                 max_wait_seconds=1.0,
             )
+
+    async def test_poll_limits_sleep_to_remaining_timeout(
+        self, async_client: AsyncOpenAI, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        files = async_client.vector_stores.files
+        sleep_durations: list[float] = []
+        times = iter([0.0, 0.25, 1.25])
+
+        async def retrieve(*_args: object, **_kwargs: object) -> _VectorStoreFilePollResponse:
+            return _VectorStoreFilePollResponse()
+
+        async def sleep(seconds: float) -> None:
+            sleep_durations.append(seconds)
+
+        monkeypatch.setattr(files.with_raw_response, "retrieve", retrieve)
+        monkeypatch.setattr(files, "_sleep", sleep)
+        monkeypatch.setattr(files_module.time, "time", lambda: next(times))
+
+        with pytest.raises(RuntimeError):
+            await files.poll(
+                "file-abc123",
+                vector_store_id="vs_abc123",
+                poll_interval_ms=60_000,
+                max_wait_seconds=1.0,
+            )
+
+        assert sleep_durations == [pytest.approx(0.75)]
 
     @parametrize
     async def test_method_retrieve(self, async_client: AsyncOpenAI) -> None:
