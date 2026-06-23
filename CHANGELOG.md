@@ -1,5 +1,64 @@
 # Changelog
 
+## 2.43.0 (2026-06-17)
+
+Full Changelog: [v2.42.0...v2.43.0](https://github.com/openai/openai-python/compare/v2.42.0...v2.43.0)
+
+### Features
+
+* **api:** update OpenAPI spec or Stainless config ([2254235](https://github.com/openai/openai-python/commit/22542358490ef8f31f0d373e17f7b791b3d983ca))
+
+## 2.42.0 (2026-06-16)
+
+Full Changelog: [v2.41.1...v2.42.0](https://github.com/openai/openai-python/compare/v2.41.1...v2.42.0)
+
+### Features
+
+* **api:** admin spend_alerts ([6134198](https://github.com/openai/openai-python/commit/6134198a488996c4ff6fca4551afd55fb3294fdc))
+* **api:** manual updates ([f337bf4](https://github.com/openai/openai-python/commit/f337bf43276c880d2daf09a5d7f9fc9a886c4bf2))
+* **api:** update OpenAPI spec or Stainless config ([7015158](https://github.com/openai/openai-python/commit/7015158c3119acf57af6c20903587cef928530a9))
+
+
+### Build System
+
+* fix release workflow permissions ([#3389](https://github.com/openai/openai-python/issues/3389)) ([a526ee8](https://github.com/openai/openai-python/commit/a526ee813f085318fe3c6923ac3fa10c1cf56420))
+* Use CI environment for examples API key ([#3394](https://github.com/openai/openai-python/issues/3394)) ([d64d811](https://github.com/openai/openai-python/commit/d64d811e82aff724397e32d593e50657fee3f905))
+
+## 2.41.1 (2026-06-05)
+
+Full Changelog: [v2.41.0...v2.41.1](https://github.com/openai/openai-python/compare/v2.41.0...v2.41.1)
+
+### Build System
+
+* Remove scheduled release workflow trigger ([#3366](https://github.com/openai/openai-python/issues/3366)) ([2a91011](https://github.com/openai/openai-python/commit/2a91011abc21032db9566b98068afefb5fbb9b24))
+
+## 2.41.0 (2026-06-03)
+
+Full Changelog: [v2.40.0...v2.41.0](https://github.com/openai/openai-python/compare/v2.40.0...v2.41.0)
+
+### Features
+
+* **api:** responses.moderation and chat_completions.moderation ([87e46c2](https://github.com/openai/openai-python/commit/87e46c25ac9ca8cff407b52ad9fb33e326c059d6))
+
+## 2.40.0 (2026-06-01)
+
+Full Changelog: [v2.39.0...v2.40.0](https://github.com/openai/openai-python/compare/v2.39.0...v2.40.0)
+
+### Features
+* **api:** Add Amazon Bedrock Responses support
+
+### Bug Fixes
+
+* **api:** allow setting bedrock api keys on the client directly ([4d5bfde](https://github.com/openai/openai-python/commit/4d5bfdec37fa8a2b2a0413724755e586e627e28d))
+
+## 2.39.0 (2026-06-01)
+
+Full Changelog: [v2.38.0...v2.39.0](https://github.com/openai/openai-python/compare/v2.38.0...v2.39.0)
+
+### Features
+
+* **api:** workload identity in audit logs, additional_tools item in responses, fix ActionSearch.query to be optional. ([ab60d7a](https://github.com/openai/openai-python/commit/ab60d7a52c310bb0490ff36b8bdc33b8d4ea725f))
+
 ## 2.38.0 (2026-05-21)
 
 Full Changelog: [v2.37.0...v2.38.0](https://github.com/openai/openai-python/compare/v2.37.0...v2.38.0)

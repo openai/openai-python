@@ -3,6 +3,7 @@
 from typing import Dict, List, Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
 
+from .tool import Tool
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
 from .response_output_message import ResponseOutputMessage
@@ -26,6 +27,7 @@ from .response_function_shell_tool_call_output import ResponseFunctionShellToolC
 
 __all__ = [
     "ResponseOutputItem",
+    "AdditionalTools",
     "ImageGenerationCall",
     "LocalShellCall",
     "LocalShellCallAction",
@@ -36,6 +38,20 @@ __all__ = [
     "McpApprovalRequest",
     "McpApprovalResponse",
 ]
+
+
+class AdditionalTools(BaseModel):
+    id: str
+    """The unique ID of the additional tools item."""
+
+    role: Literal["unknown", "user", "assistant", "system", "critic", "discriminator", "developer", "tool"]
+    """The role that provided the additional tools."""
+
+    tools: List[Tool]
+    """The additional tool definitions made available at this item."""
+
+    type: Literal["additional_tools"]
+    """The type of the item. Always `additional_tools`."""
 
 
 class ImageGenerationCall(BaseModel):
@@ -234,6 +250,7 @@ ResponseOutputItem: TypeAlias = Annotated[
         ResponseReasoningItem,
         ResponseToolSearchCall,
         ResponseToolSearchOutputItem,
+        AdditionalTools,
         ResponseCompactionItem,
         ImageGenerationCall,
         ResponseCodeInterpreterToolCall,

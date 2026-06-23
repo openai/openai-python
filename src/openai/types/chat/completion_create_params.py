@@ -25,6 +25,7 @@ __all__ = [
     "CompletionCreateParamsBase",
     "FunctionCall",
     "Function",
+    "Moderation",
     "ResponseFormat",
     "WebSearchOptions",
     "WebSearchOptionsUserLocation",
@@ -151,6 +152,9 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     `["text", "audio"]`
     """
 
+    moderation: Optional[Moderation]
+    """Configuration for running moderation on the request input and generated output."""
+
     n: Optional[int]
     """How many chat completion choices to generate for each input message.
 
@@ -191,6 +195,14 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     Set to `24h` to enable extended prompt caching, which keeps cached prefixes
     active for longer, up to a maximum of 24 hours.
     [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
+    For `gpt-5.5`, `gpt-5.5-pro`, and future models, only `24h` is supported.
+
+    For older models that support both `in_memory` and `24h`, the default depends on
+    your organization's data retention policy:
+
+    - Organizations without ZDR enabled default to `24h`.
+    - Organizations with ZDR enabled default to `in_memory` when
+      `prompt_cache_retention` is not specified.
     """
 
     reasoning_effort: Optional[ReasoningEffort]
@@ -377,6 +389,16 @@ class Function(TypedDict, total=False):
     documentation about the format.
 
     Omitting `parameters` defines a function with an empty parameter list.
+    """
+
+
+class Moderation(TypedDict, total=False):
+    """Configuration for running moderation on the request input and generated output."""
+
+    model: Required[str]
+    """The moderation model to use for moderated completions, e.g.
+
+    'omni-moderation-latest'.
     """
 
 

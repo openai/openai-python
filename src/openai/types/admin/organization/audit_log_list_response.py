@@ -64,8 +64,10 @@ __all__ = [
     "RateLimitUpdatedChangesRequested",
     "RoleAssignmentCreated",
     "RoleAssignmentDeleted",
+    "RoleBoundToResource",
     "RoleCreated",
     "RoleDeleted",
+    "RoleUnboundFromResource",
     "RoleUpdated",
     "RoleUpdatedChangesRequested",
     "ScimDisabled",
@@ -80,6 +82,12 @@ __all__ = [
     "UserDeleted",
     "UserUpdated",
     "UserUpdatedChangesRequested",
+    "WorkloadIdentityProviderMappingCreated",
+    "WorkloadIdentityProviderMappingDeleted",
+    "WorkloadIdentityProviderMappingUpdated",
+    "WorkloadIdentityProviderCreated",
+    "WorkloadIdentityProviderDeleted",
+    "WorkloadIdentityProviderUpdated",
 ]
 
 
@@ -647,6 +655,48 @@ class RoleAssignmentDeleted(BaseModel):
     """The type of resource the role assignment was scoped to."""
 
 
+class RoleBoundToResource(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The ID of the resource the role was bound to.
+
+    ChatGPT workspace connector resources use `<workspace_id>__<connector_id>`.
+    """
+
+    connector_id: Optional[str] = None
+    """The connector ID for a ChatGPT workspace connector resource."""
+
+    connector_name: Optional[str] = None
+    """
+    The connector display name for a ChatGPT workspace connector resource, or the
+    connector ID when the display name could not be resolved.
+    """
+
+    enabled: Optional[bool] = None
+    """Whether the connector is enabled for the role."""
+
+    permissions: Optional[List[str]] = None
+    """The permissions granted to the role for the resource."""
+
+    resource_id: Optional[str] = None
+    """The ID of the resource the role was bound to."""
+
+    resource_type: Optional[str] = None
+    """The type of resource the role was bound to."""
+
+    role_id: Optional[str] = None
+    """The ID of the role that was bound to the resource."""
+
+    source: Optional[
+        Literal["role_toggle", "role_connector_update", "role_delete", "workspace_permissions", "connector_publish"]
+    ] = None
+    """The connector role mutation path that produced the event."""
+
+    workspace_id: Optional[str] = None
+    """The workspace ID for a ChatGPT workspace connector resource."""
+
+
 class RoleCreated(BaseModel):
     """The details for events with this `type`."""
 
@@ -671,6 +721,48 @@ class RoleDeleted(BaseModel):
 
     id: Optional[str] = None
     """The role ID."""
+
+
+class RoleUnboundFromResource(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The ID of the resource the role was unbound from.
+
+    ChatGPT workspace connector resources use `<workspace_id>__<connector_id>`.
+    """
+
+    connector_id: Optional[str] = None
+    """The connector ID for a ChatGPT workspace connector resource."""
+
+    connector_name: Optional[str] = None
+    """
+    The connector display name for a ChatGPT workspace connector resource, or the
+    connector ID when the display name could not be resolved.
+    """
+
+    enabled: Optional[bool] = None
+    """Whether the connector is enabled for the role."""
+
+    permissions: Optional[List[str]] = None
+    """The permissions remaining for the role after the change."""
+
+    resource_id: Optional[str] = None
+    """The ID of the resource the role was unbound from."""
+
+    resource_type: Optional[str] = None
+    """The type of resource the role was unbound from."""
+
+    role_id: Optional[str] = None
+    """The ID of the role that was unbound from the resource."""
+
+    source: Optional[
+        Literal["role_toggle", "role_connector_update", "role_delete", "workspace_permissions", "connector_publish"]
+    ] = None
+    """The connector role mutation path that produced the event."""
+
+    workspace_id: Optional[str] = None
+    """The workspace ID for a ChatGPT workspace connector resource."""
 
 
 class RoleUpdatedChangesRequested(BaseModel):
@@ -804,6 +896,78 @@ class UserUpdated(BaseModel):
     """The payload used to update the user."""
 
 
+class WorkloadIdentityProviderMappingCreated(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The workload identity provider mapping ID."""
+
+    data: Optional[object] = None
+    """The payload used to create the workload identity provider mapping."""
+
+    identity_provider_id: Optional[str] = None
+    """The workload identity provider ID."""
+
+
+class WorkloadIdentityProviderMappingDeleted(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The workload identity provider mapping ID."""
+
+    identity_provider_id: Optional[str] = None
+    """The workload identity provider ID."""
+
+    project_id: Optional[str] = None
+    """The project ID."""
+
+    service_account_id: Optional[str] = None
+    """The mapped service account ID."""
+
+
+class WorkloadIdentityProviderMappingUpdated(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The workload identity provider mapping ID."""
+
+    changes_requested: Optional[object] = None
+    """The payload used to update the workload identity provider mapping."""
+
+    identity_provider_id: Optional[str] = None
+    """The workload identity provider ID."""
+
+
+class WorkloadIdentityProviderCreated(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The workload identity provider ID."""
+
+    data: Optional[object] = None
+    """The payload used to create the workload identity provider."""
+
+
+class WorkloadIdentityProviderDeleted(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The workload identity provider ID."""
+
+    name: Optional[str] = None
+    """The workload identity provider name."""
+
+
+class WorkloadIdentityProviderUpdated(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The workload identity provider ID."""
+
+    changes_requested: Optional[object] = None
+    """The payload used to update the workload identity provider."""
+
+
 class AuditLogListResponse(BaseModel):
     """A log of a user action or configuration change within this organization."""
 
@@ -852,11 +1016,19 @@ class AuditLogListResponse(BaseModel):
         "tunnel.created",
         "tunnel.updated",
         "tunnel.deleted",
+        "workload_identity_provider.created",
+        "workload_identity_provider.updated",
+        "workload_identity_provider.deleted",
+        "workload_identity_provider_mapping.created",
+        "workload_identity_provider_mapping.updated",
+        "workload_identity_provider_mapping.deleted",
         "role.created",
         "role.updated",
         "role.deleted",
         "role.assignment.created",
         "role.assignment.deleted",
+        "role.bound_to_resource",
+        "role.unbound_from_resource",
         "scim.enabled",
         "scim.disabled",
         "service_account.created",
@@ -999,10 +1171,18 @@ class AuditLogListResponse(BaseModel):
     role_assignment_deleted: Optional[RoleAssignmentDeleted] = FieldInfo(alias="role.assignment.deleted", default=None)
     """The details for events with this `type`."""
 
+    role_bound_to_resource: Optional[RoleBoundToResource] = FieldInfo(alias="role.bound_to_resource", default=None)
+    """The details for events with this `type`."""
+
     role_created: Optional[RoleCreated] = FieldInfo(alias="role.created", default=None)
     """The details for events with this `type`."""
 
     role_deleted: Optional[RoleDeleted] = FieldInfo(alias="role.deleted", default=None)
+    """The details for events with this `type`."""
+
+    role_unbound_from_resource: Optional[RoleUnboundFromResource] = FieldInfo(
+        alias="role.unbound_from_resource", default=None
+    )
     """The details for events with this `type`."""
 
     role_updated: Optional[RoleUpdated] = FieldInfo(alias="role.updated", default=None)
@@ -1030,4 +1210,34 @@ class AuditLogListResponse(BaseModel):
     """The details for events with this `type`."""
 
     user_updated: Optional[UserUpdated] = FieldInfo(alias="user.updated", default=None)
+    """The details for events with this `type`."""
+
+    workload_identity_provider_mapping_created: Optional[WorkloadIdentityProviderMappingCreated] = FieldInfo(
+        alias="workload_identity_provider_mapping.created", default=None
+    )
+    """The details for events with this `type`."""
+
+    workload_identity_provider_mapping_deleted: Optional[WorkloadIdentityProviderMappingDeleted] = FieldInfo(
+        alias="workload_identity_provider_mapping.deleted", default=None
+    )
+    """The details for events with this `type`."""
+
+    workload_identity_provider_mapping_updated: Optional[WorkloadIdentityProviderMappingUpdated] = FieldInfo(
+        alias="workload_identity_provider_mapping.updated", default=None
+    )
+    """The details for events with this `type`."""
+
+    workload_identity_provider_created: Optional[WorkloadIdentityProviderCreated] = FieldInfo(
+        alias="workload_identity_provider.created", default=None
+    )
+    """The details for events with this `type`."""
+
+    workload_identity_provider_deleted: Optional[WorkloadIdentityProviderDeleted] = FieldInfo(
+        alias="workload_identity_provider.deleted", default=None
+    )
+    """The details for events with this `type`."""
+
+    workload_identity_provider_updated: Optional[WorkloadIdentityProviderUpdated] = FieldInfo(
+        alias="workload_identity_provider.updated", default=None
+    )
     """The details for events with this `type`."""

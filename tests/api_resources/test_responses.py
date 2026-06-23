@@ -44,6 +44,7 @@ class TestResponses:
             max_tool_calls=0,
             metadata={"foo": "string"},
             model="gpt-5.1",
+            moderation={"model": "model"},
             parallel_tool_calls=True,
             previous_response_id="previous_response_id",
             prompt={
@@ -54,6 +55,7 @@ class TestResponses:
             prompt_cache_key="prompt-cache-key-1234",
             prompt_cache_retention="in_memory",
             reasoning={
+                "context": "auto",
                 "effort": "none",
                 "generate_summary": "auto",
                 "summary": "auto",
@@ -132,6 +134,7 @@ class TestResponses:
             max_tool_calls=0,
             metadata={"foo": "string"},
             model="gpt-5.1",
+            moderation={"model": "model"},
             parallel_tool_calls=True,
             previous_response_id="previous_response_id",
             prompt={
@@ -142,6 +145,7 @@ class TestResponses:
             prompt_cache_key="prompt-cache-key-1234",
             prompt_cache_retention="in_memory",
             reasoning={
+                "context": "auto",
                 "effort": "none",
                 "generate_summary": "auto",
                 "summary": "auto",
@@ -457,6 +461,7 @@ class TestAsyncResponses:
             max_tool_calls=0,
             metadata={"foo": "string"},
             model="gpt-5.1",
+            moderation={"model": "model"},
             parallel_tool_calls=True,
             previous_response_id="previous_response_id",
             prompt={
@@ -467,6 +472,7 @@ class TestAsyncResponses:
             prompt_cache_key="prompt-cache-key-1234",
             prompt_cache_retention="in_memory",
             reasoning={
+                "context": "auto",
                 "effort": "none",
                 "generate_summary": "auto",
                 "summary": "auto",
@@ -545,6 +551,7 @@ class TestAsyncResponses:
             max_tool_calls=0,
             metadata={"foo": "string"},
             model="gpt-5.1",
+            moderation={"model": "model"},
             parallel_tool_calls=True,
             previous_response_id="previous_response_id",
             prompt={
@@ -555,6 +562,7 @@ class TestAsyncResponses:
             prompt_cache_key="prompt-cache-key-1234",
             prompt_cache_retention="in_memory",
             reasoning={
+                "context": "auto",
                 "effort": "none",
                 "generate_summary": "auto",
                 "summary": "auto",

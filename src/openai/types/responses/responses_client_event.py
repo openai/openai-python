@@ -22,7 +22,7 @@ from ..shared.responses_model import ResponsesModel
 from .tool_choice_apply_patch import ToolChoiceApplyPatch
 from .response_conversation_param import ResponseConversationParam
 
-__all__ = ["ResponsesClientEvent", "ContextManagement", "Conversation", "StreamOptions", "ToolChoice"]
+__all__ = ["ResponsesClientEvent", "ContextManagement", "Conversation", "Moderation", "StreamOptions", "ToolChoice"]
 
 
 class ContextManagement(BaseModel):
@@ -34,6 +34,16 @@ class ContextManagement(BaseModel):
 
 
 Conversation: TypeAlias = Union[str, ResponseConversationParam, None]
+
+
+class Moderation(BaseModel):
+    """Configuration for running moderation on the input and output of this response."""
+
+    model: str
+    """The moderation model to use for moderated completions, e.g.
+
+    'omni-moderation-latest'.
+    """
 
 
 class StreamOptions(BaseModel):
@@ -160,6 +170,9 @@ class ResponsesClientEvent(BaseModel):
     available models.
     """
 
+    moderation: Optional[Moderation] = None
+    """Configuration for running moderation on the input and output of this response."""
+
     parallel_tool_calls: Optional[bool] = None
     """Whether to allow the model to run tool calls in parallel."""
 
@@ -190,6 +203,14 @@ class ResponsesClientEvent(BaseModel):
     Set to `24h` to enable extended prompt caching, which keeps cached prefixes
     active for longer, up to a maximum of 24 hours.
     [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
+    For `gpt-5.5`, `gpt-5.5-pro`, and future models, only `24h` is supported.
+
+    For older models that support both `in_memory` and `24h`, the default depends on
+    your organization's data retention policy:
+
+    - Organizations without ZDR enabled default to `24h`.
+    - Organizations with ZDR enabled default to `in_memory` when
+      `prompt_cache_retention` is not specified.
     """
 
     reasoning: Optional[Reasoning] = None

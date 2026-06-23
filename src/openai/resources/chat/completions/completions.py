@@ -104,6 +104,7 @@ class Completions(SyncAPIResource):
         max_tokens: Optional[int] | Omit = omit,
         metadata: Optional[Metadata] | Omit = omit,
         modalities: Optional[List[Literal["text", "audio"]]] | Omit = omit,
+        moderation: Optional[completion_create_params.Moderation] | Omit = omit,
         n: Optional[int] | Omit = omit,
         parallel_tool_calls: bool | Omit = omit,
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
@@ -204,6 +205,7 @@ class Completions(SyncAPIResource):
                     "max_tokens": max_tokens,
                     "metadata": metadata,
                     "modalities": modalities,
+                    "moderation": moderation,
                     "n": n,
                     "parallel_tool_calls": parallel_tool_calls,
                     "prediction": prediction,
@@ -260,6 +262,7 @@ class Completions(SyncAPIResource):
         max_tokens: Optional[int] | Omit = omit,
         metadata: Optional[Metadata] | Omit = omit,
         modalities: Optional[List[Literal["text", "audio"]]] | Omit = omit,
+        moderation: Optional[completion_create_params.Moderation] | Omit = omit,
         n: Optional[int] | Omit = omit,
         parallel_tool_calls: bool | Omit = omit,
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
@@ -396,6 +399,8 @@ class Completions(SyncAPIResource):
 
               `["text", "audio"]`
 
+          moderation: Configuration for running moderation on the request input and generated output.
+
           n: How many chat completion choices to generate for each input message. Note that
               you will be charged based on the number of generated tokens across all of the
               choices. Keep `n` as `1` to minimize costs.
@@ -419,6 +424,14 @@ class Completions(SyncAPIResource):
               prompt caching, which keeps cached prefixes active for longer, up to a maximum
               of 24 hours.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
+              For `gpt-5.5`, `gpt-5.5-pro`, and future models, only `24h` is supported.
+
+              For older models that support both `in_memory` and `24h`, the default depends on
+              your organization's data retention policy:
+
+              - Organizations without ZDR enabled default to `24h`.
+              - Organizations with ZDR enabled default to `in_memory` when
+                `prompt_cache_retention` is not specified.
 
           reasoning_effort: Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
@@ -568,6 +581,7 @@ class Completions(SyncAPIResource):
         max_tokens: Optional[int] | Omit = omit,
         metadata: Optional[Metadata] | Omit = omit,
         modalities: Optional[List[Literal["text", "audio"]]] | Omit = omit,
+        moderation: Optional[completion_create_params.Moderation] | Omit = omit,
         n: Optional[int] | Omit = omit,
         parallel_tool_calls: bool | Omit = omit,
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
@@ -712,6 +726,8 @@ class Completions(SyncAPIResource):
 
               `["text", "audio"]`
 
+          moderation: Configuration for running moderation on the request input and generated output.
+
           n: How many chat completion choices to generate for each input message. Note that
               you will be charged based on the number of generated tokens across all of the
               choices. Keep `n` as `1` to minimize costs.
@@ -735,6 +751,14 @@ class Completions(SyncAPIResource):
               prompt caching, which keeps cached prefixes active for longer, up to a maximum
               of 24 hours.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
+              For `gpt-5.5`, `gpt-5.5-pro`, and future models, only `24h` is supported.
+
+              For older models that support both `in_memory` and `24h`, the default depends on
+              your organization's data retention policy:
+
+              - Organizations without ZDR enabled default to `24h`.
+              - Organizations with ZDR enabled default to `in_memory` when
+                `prompt_cache_retention` is not specified.
 
           reasoning_effort: Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
@@ -875,6 +899,7 @@ class Completions(SyncAPIResource):
         max_tokens: Optional[int] | Omit = omit,
         metadata: Optional[Metadata] | Omit = omit,
         modalities: Optional[List[Literal["text", "audio"]]] | Omit = omit,
+        moderation: Optional[completion_create_params.Moderation] | Omit = omit,
         n: Optional[int] | Omit = omit,
         parallel_tool_calls: bool | Omit = omit,
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
@@ -1019,6 +1044,8 @@ class Completions(SyncAPIResource):
 
               `["text", "audio"]`
 
+          moderation: Configuration for running moderation on the request input and generated output.
+
           n: How many chat completion choices to generate for each input message. Note that
               you will be charged based on the number of generated tokens across all of the
               choices. Keep `n` as `1` to minimize costs.
@@ -1042,6 +1069,14 @@ class Completions(SyncAPIResource):
               prompt caching, which keeps cached prefixes active for longer, up to a maximum
               of 24 hours.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
+              For `gpt-5.5`, `gpt-5.5-pro`, and future models, only `24h` is supported.
+
+              For older models that support both `in_memory` and `24h`, the default depends on
+              your organization's data retention policy:
+
+              - Organizations without ZDR enabled default to `24h`.
+              - Organizations with ZDR enabled default to `in_memory` when
+                `prompt_cache_retention` is not specified.
 
           reasoning_effort: Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
@@ -1181,6 +1216,7 @@ class Completions(SyncAPIResource):
         max_tokens: Optional[int] | Omit = omit,
         metadata: Optional[Metadata] | Omit = omit,
         modalities: Optional[List[Literal["text", "audio"]]] | Omit = omit,
+        moderation: Optional[completion_create_params.Moderation] | Omit = omit,
         n: Optional[int] | Omit = omit,
         parallel_tool_calls: bool | Omit = omit,
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
@@ -1228,6 +1264,7 @@ class Completions(SyncAPIResource):
                     "max_tokens": max_tokens,
                     "metadata": metadata,
                     "modalities": modalities,
+                    "moderation": moderation,
                     "n": n,
                     "parallel_tool_calls": parallel_tool_calls,
                     "prediction": prediction,
@@ -1477,6 +1514,7 @@ class Completions(SyncAPIResource):
         max_tokens: Optional[int] | Omit = omit,
         metadata: Optional[Metadata] | Omit = omit,
         modalities: Optional[List[Literal["text", "audio"]]] | Omit = omit,
+        moderation: Optional[completion_create_params.Moderation] | Omit = omit,
         n: Optional[int] | Omit = omit,
         parallel_tool_calls: bool | Omit = omit,
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
@@ -1548,6 +1586,7 @@ class Completions(SyncAPIResource):
             max_tokens=max_tokens,
             metadata=metadata,
             modalities=modalities,
+            moderation=moderation,
             n=n,
             parallel_tool_calls=parallel_tool_calls,
             prediction=prediction,
@@ -1628,6 +1667,7 @@ class AsyncCompletions(AsyncAPIResource):
         max_tokens: Optional[int] | Omit = omit,
         metadata: Optional[Metadata] | Omit = omit,
         modalities: Optional[List[Literal["text", "audio"]]] | Omit = omit,
+        moderation: Optional[completion_create_params.Moderation] | Omit = omit,
         n: Optional[int] | Omit = omit,
         parallel_tool_calls: bool | Omit = omit,
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
@@ -1728,6 +1768,7 @@ class AsyncCompletions(AsyncAPIResource):
                     "max_tokens": max_tokens,
                     "metadata": metadata,
                     "modalities": modalities,
+                    "moderation": moderation,
                     "n": n,
                     "parallel_tool_calls": parallel_tool_calls,
                     "prediction": prediction,
@@ -1784,6 +1825,7 @@ class AsyncCompletions(AsyncAPIResource):
         max_tokens: Optional[int] | Omit = omit,
         metadata: Optional[Metadata] | Omit = omit,
         modalities: Optional[List[Literal["text", "audio"]]] | Omit = omit,
+        moderation: Optional[completion_create_params.Moderation] | Omit = omit,
         n: Optional[int] | Omit = omit,
         parallel_tool_calls: bool | Omit = omit,
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
@@ -1920,6 +1962,8 @@ class AsyncCompletions(AsyncAPIResource):
 
               `["text", "audio"]`
 
+          moderation: Configuration for running moderation on the request input and generated output.
+
           n: How many chat completion choices to generate for each input message. Note that
               you will be charged based on the number of generated tokens across all of the
               choices. Keep `n` as `1` to minimize costs.
@@ -1943,6 +1987,14 @@ class AsyncCompletions(AsyncAPIResource):
               prompt caching, which keeps cached prefixes active for longer, up to a maximum
               of 24 hours.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
+              For `gpt-5.5`, `gpt-5.5-pro`, and future models, only `24h` is supported.
+
+              For older models that support both `in_memory` and `24h`, the default depends on
+              your organization's data retention policy:
+
+              - Organizations without ZDR enabled default to `24h`.
+              - Organizations with ZDR enabled default to `in_memory` when
+                `prompt_cache_retention` is not specified.
 
           reasoning_effort: Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
@@ -2092,6 +2144,7 @@ class AsyncCompletions(AsyncAPIResource):
         max_tokens: Optional[int] | Omit = omit,
         metadata: Optional[Metadata] | Omit = omit,
         modalities: Optional[List[Literal["text", "audio"]]] | Omit = omit,
+        moderation: Optional[completion_create_params.Moderation] | Omit = omit,
         n: Optional[int] | Omit = omit,
         parallel_tool_calls: bool | Omit = omit,
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
@@ -2236,6 +2289,8 @@ class AsyncCompletions(AsyncAPIResource):
 
               `["text", "audio"]`
 
+          moderation: Configuration for running moderation on the request input and generated output.
+
           n: How many chat completion choices to generate for each input message. Note that
               you will be charged based on the number of generated tokens across all of the
               choices. Keep `n` as `1` to minimize costs.
@@ -2259,6 +2314,14 @@ class AsyncCompletions(AsyncAPIResource):
               prompt caching, which keeps cached prefixes active for longer, up to a maximum
               of 24 hours.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
+              For `gpt-5.5`, `gpt-5.5-pro`, and future models, only `24h` is supported.
+
+              For older models that support both `in_memory` and `24h`, the default depends on
+              your organization's data retention policy:
+
+              - Organizations without ZDR enabled default to `24h`.
+              - Organizations with ZDR enabled default to `in_memory` when
+                `prompt_cache_retention` is not specified.
 
           reasoning_effort: Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
@@ -2399,6 +2462,7 @@ class AsyncCompletions(AsyncAPIResource):
         max_tokens: Optional[int] | Omit = omit,
         metadata: Optional[Metadata] | Omit = omit,
         modalities: Optional[List[Literal["text", "audio"]]] | Omit = omit,
+        moderation: Optional[completion_create_params.Moderation] | Omit = omit,
         n: Optional[int] | Omit = omit,
         parallel_tool_calls: bool | Omit = omit,
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
@@ -2543,6 +2607,8 @@ class AsyncCompletions(AsyncAPIResource):
 
               `["text", "audio"]`
 
+          moderation: Configuration for running moderation on the request input and generated output.
+
           n: How many chat completion choices to generate for each input message. Note that
               you will be charged based on the number of generated tokens across all of the
               choices. Keep `n` as `1` to minimize costs.
@@ -2566,6 +2632,14 @@ class AsyncCompletions(AsyncAPIResource):
               prompt caching, which keeps cached prefixes active for longer, up to a maximum
               of 24 hours.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
+              For `gpt-5.5`, `gpt-5.5-pro`, and future models, only `24h` is supported.
+
+              For older models that support both `in_memory` and `24h`, the default depends on
+              your organization's data retention policy:
+
+              - Organizations without ZDR enabled default to `24h`.
+              - Organizations with ZDR enabled default to `in_memory` when
+                `prompt_cache_retention` is not specified.
 
           reasoning_effort: Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
@@ -2705,6 +2779,7 @@ class AsyncCompletions(AsyncAPIResource):
         max_tokens: Optional[int] | Omit = omit,
         metadata: Optional[Metadata] | Omit = omit,
         modalities: Optional[List[Literal["text", "audio"]]] | Omit = omit,
+        moderation: Optional[completion_create_params.Moderation] | Omit = omit,
         n: Optional[int] | Omit = omit,
         parallel_tool_calls: bool | Omit = omit,
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
@@ -2752,6 +2827,7 @@ class AsyncCompletions(AsyncAPIResource):
                     "max_tokens": max_tokens,
                     "metadata": metadata,
                     "modalities": modalities,
+                    "moderation": moderation,
                     "n": n,
                     "parallel_tool_calls": parallel_tool_calls,
                     "prediction": prediction,
@@ -3001,6 +3077,7 @@ class AsyncCompletions(AsyncAPIResource):
         max_tokens: Optional[int] | Omit = omit,
         metadata: Optional[Metadata] | Omit = omit,
         modalities: Optional[List[Literal["text", "audio"]]] | Omit = omit,
+        moderation: Optional[completion_create_params.Moderation] | Omit = omit,
         n: Optional[int] | Omit = omit,
         parallel_tool_calls: bool | Omit = omit,
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
@@ -3073,6 +3150,7 @@ class AsyncCompletions(AsyncAPIResource):
             max_tokens=max_tokens,
             metadata=metadata,
             modalities=modalities,
+            moderation=moderation,
             n=n,
             parallel_tool_calls=parallel_tool_calls,
             prediction=prediction,

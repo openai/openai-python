@@ -81,11 +81,19 @@ class AuditLogListParams(TypedDict, total=False):
             "tunnel.created",
             "tunnel.updated",
             "tunnel.deleted",
+            "workload_identity_provider.created",
+            "workload_identity_provider.updated",
+            "workload_identity_provider.deleted",
+            "workload_identity_provider_mapping.created",
+            "workload_identity_provider_mapping.updated",
+            "workload_identity_provider_mapping.deleted",
             "role.created",
             "role.updated",
             "role.deleted",
             "role.assignment.created",
             "role.assignment.deleted",
+            "role.bound_to_resource",
+            "role.unbound_from_resource",
             "scim.enabled",
             "scim.disabled",
             "service_account.created",
@@ -114,7 +122,17 @@ class AuditLogListParams(TypedDict, total=False):
     resource_ids: SequenceNotStr[str]
     """Return only events performed on these targets.
 
-    For example, a project ID updated.
+    For example, a project ID updated. For ChatGPT connector role events, use the
+    workspace connector resource ID shown in `details.id`, such as
+    `<workspace_id>__<connector_id>`.
+    """
+
+    tenant_only: bool
+    """Return only tenant-scoped events associated with this organization.
+
+    Required for tenant-scoped events such as `role.bound_to_resource` and
+    `role.unbound_from_resource`. When `true`, all supplied event types must be
+    tenant-scoped.
     """
 
 

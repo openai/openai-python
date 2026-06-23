@@ -119,9 +119,8 @@ the changes aren't made through the automated pipeline, you may want to make rel
 
 ### Publish with a GitHub workflow
 
-You can release to package managers by using [the `Publish PyPI` GitHub action](https://www.github.com/openai/openai-python/actions/workflows/publish-pypi.yml). This requires a setup organization or repository secret to be set up.
+You can release to package managers by using [the `Publish PyPI` GitHub action](https://www.github.com/openai/openai-python/actions/workflows/publish-pypi.yml). PyPI publishing uses Trusted Publishing, so the PyPI project must trust this repository's GitHub Actions workflow and the `publish` environment.
 
 ### Publish manually
 
-If you need to manually release a package, you can run the `bin/publish-pypi` script with a `PYPI_TOKEN` set on
-the environment.
+If you need to retry a PyPI release, use the `Publish PyPI` GitHub action. Local manual publishing is not the standard release path because the GitHub workflow uses OIDC instead of a long-lived PyPI token.

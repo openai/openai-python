@@ -17,6 +17,13 @@ class Reasoning(TypedDict, total=False):
     [reasoning models](https://platform.openai.com/docs/guides/reasoning).
     """
 
+    context: Optional[Literal["auto", "current_turn", "all_turns"]]
+    """
+    Controls which reasoning items are rendered back to the model on later turns.
+    When returned on a response, this is the effective reasoning context mode used
+    for the response.
+    """
+
     effort: Optional[ReasoningEffort]
     """
     Constrains effort on reasoning for
