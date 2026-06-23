@@ -8,6 +8,8 @@ from inline_snapshot import snapshot
 
 from openai import OpenAI, AsyncOpenAI
 from openai._utils import assert_signatures_in_sync
+from openai.types.responses import Response, ResponseCreatedEvent, ResponseOutputItemAddedEvent
+from openai.lib.streaming.responses._responses import ResponseStreamState
 
 from ...conftest import base_url
 from ..snapshots import make_snapshot_request
@@ -61,3 +63,35 @@ def test_parse_method_definition_in_sync(sync: bool, client: OpenAI, async_clien
         checking_client.responses.parse,
         exclude_params={"tools"},
     )
+
+
+def test_response_stream_ignores_null_output_item_added() -> None:
+    response = Response.model_construct(
+        id="resp_123",
+        created_at=0.0,
+        model="gpt-4o",
+        object="response",
+        output=[],
+        parallel_tool_calls=True,
+        tool_choice="auto",
+        tools=[],
+    )
+    state = ResponseStreamState(input_tools=[], text_format=str)
+
+    state.handle_event(
+        ResponseCreatedEvent.model_construct(
+            type="response.created",
+            sequence_number=0,
+            response=response,
+        )
+    )
+    events = state.handle_event(
+        ResponseOutputItemAddedEvent.model_construct(
+            type="response.output_item.added",
+            sequence_number=1,
+            output_index=0,
+            item=None,
+        )
+    )
+
+    assert [event.type for event in events] == ["response.output_item.added"]
