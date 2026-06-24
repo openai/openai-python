@@ -1,8 +1,8 @@
 # OpenAI Python API library
 
-
 <!-- prettier-ignore -->
 [![PyPI version](https://img.shields.io/pypi/v/openai.svg?label=pypi%20(stable))](https://pypi.org/project/openai/)
+
 
 The OpenAI Python library provides convenient access to the OpenAI REST API from any Python 3.9+
 application. The library includes type definitions for all request params and response fields,
