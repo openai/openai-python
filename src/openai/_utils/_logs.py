@@ -8,7 +8,7 @@ logger: logging.Logger = logging.getLogger("openai")
 httpx_logger: logging.Logger = logging.getLogger("httpx")
 
 
-SENSITIVE_HEADERS = {"api-key", "authorization"}
+SENSITIVE_HEADERS = {"api-key", "authorization", "x-amz-security-token"}
 
 
 def _basic_config() -> None:
