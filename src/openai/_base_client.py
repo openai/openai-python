@@ -837,7 +837,9 @@ class SyncHttpxClientWrapper(DefaultHttpxClient):
         try:
             self.close()
         except Exception:
-            pass
+            # Suppress destructor cleanup errors; object finalizers should not raise
+            # during garbage collection or interpreter shutdown.
+            return
 
 
 class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
@@ -1434,7 +1436,9 @@ class AsyncHttpxClientWrapper(DefaultAsyncHttpxClient):
             # TODO(someday): support non asyncio runtimes here
             asyncio.get_running_loop().create_task(self.aclose())
         except Exception:
-            pass
+            # Suppress destructor cleanup errors; object finalizers should not raise
+            # during garbage collection or interpreter shutdown.
+            return
 
 
 class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
