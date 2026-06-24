@@ -58,7 +58,7 @@ def parse_response(
 ) -> ParsedResponse[TextFormatT]:
     output_list: List[ParsedResponseOutputItem[TextFormatT]] = []
 
-    for output in response.output:
+    for output in response.output or []:
         if output.type == "message":
             content_list: List[ParsedContent[TextFormatT]] = []
             for item in output.content:
@@ -71,7 +71,11 @@ def parse_response(
                         type_=ParsedResponseOutputText[TextFormatT],
                         value={
                             **item.to_dict(),
-                            "parsed": parse_text(item.text, text_format=text_format),
+                            "parsed": (
+                                None
+                                if output.status == "incomplete"
+                                else parse_text(item.text, text_format=text_format)
+                            ),
                         },
                     )
                 )
