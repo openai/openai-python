@@ -7,7 +7,10 @@ from respx import MockRouter
 from inline_snapshot import snapshot
 
 from openai import OpenAI, AsyncOpenAI
+from openai._types import NOT_GIVEN
 from openai._utils import assert_signatures_in_sync
+from openai.types.responses import Response
+from openai.lib._parsing._responses import parse_response
 
 from ...conftest import base_url
 from ..snapshots import make_snapshot_request
@@ -39,6 +42,23 @@ def test_output_text(client: OpenAI, respx_mock: MockRouter) -> None:
     assert response.output_text == snapshot(
         "I can't provide real-time updates, but you can easily check the current weather in San Francisco using a weather website or app. Typically, San Francisco has cool, foggy summers and mild winters, so it's good to be prepared for variable weather!"
     )
+
+
+def test_parse_response_allows_null_output() -> None:
+    response = Response.construct(
+        id="resp_123",
+        object="response",
+        created_at=0,
+        model="gpt-4o-mini",
+        output=None,
+        parallel_tool_calls=True,
+        tool_choice="auto",
+        tools=[],
+    )
+
+    parsed = parse_response(text_format=NOT_GIVEN, input_tools=NOT_GIVEN, response=response)
+
+    assert parsed.output == []
 
 
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
