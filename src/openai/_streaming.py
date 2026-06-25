@@ -112,9 +112,11 @@ class Stream(Generic[_T]):
             # h11's their_state won't advance to DONE, causing httpcore to
             # destroy the connection (TCP FIN) instead of returning it to the pool.
             # See: https://github.com/openai/openai-python/issues/3440
-            for _ in iterator:
-                pass
-            response.close()
+            try:
+                for _ in iterator:
+                    pass
+            finally:
+                response.close()
 
     def __enter__(self) -> Self:
         return self
@@ -225,9 +227,11 @@ class AsyncStream(Generic[_T]):
         finally:
             # Drain remaining events so the chunked terminator is consumed before close.
             # See: https://github.com/openai/openai-python/issues/3440
-            async for _ in iterator:
-                pass
-            await response.aclose()
+            try:
+                async for _ in iterator:
+                    pass
+            finally:
+                await response.aclose()
 
     async def __aenter__(self) -> Self:
         return self

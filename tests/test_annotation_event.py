@@ -1,6 +1,7 @@
 # Tests for https://github.com/openai/openai-python/issues/3419
 # ResponseOutputTextAnnotationAddedEvent.annotation should be typed as Annotation, not object
 
+from openai._compat import get_model_fields
 from openai._models import construct_type
 from openai.types.responses.response_output_text_annotation_added_event import ResponseOutputTextAnnotationAddedEvent
 from openai.types.responses.response_output_text import (
@@ -117,7 +118,7 @@ def test_annotation_type_is_union() -> None:
     """Test that the annotation field accepts all annotation types."""
     # Verify the field is typed as Annotation (Union of all annotation types), not object
     # We check by inspecting the model's field info directly
-    field_info = ResponseOutputTextAnnotationAddedEvent.model_fields["annotation"]
+    field_info = get_model_fields(ResponseOutputTextAnnotationAddedEvent)["annotation"]
     annotation_type = field_info.annotation
 
     # The Annotation type is an Annotated[Union[...], ...]
