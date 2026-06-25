@@ -7,6 +7,11 @@ from respx import MockRouter
 from inline_snapshot import snapshot
 
 from openai import OpenAI, AsyncOpenAI
+from openai._types import NOT_GIVEN
+from openai.types.responses.response import Response
+from openai.types.responses.response_output_text import ResponseOutputText
+from openai.types.responses.response_output_message import ResponseOutputMessage
+from openai.lib.streaming.responses._responses import ResponseStreamState
 from openai._utils import assert_signatures_in_sync
 
 from ...conftest import base_url
@@ -61,3 +66,115 @@ def test_parse_method_definition_in_sync(sync: bool, client: OpenAI, async_clien
         checking_client.responses.parse,
         exclude_params={"tools"},
     )
+
+
+def test_output_text_tolerates_none_output() -> None:
+    response = Response.construct(
+        id="resp_test",
+        object="response",
+        created_at=0,
+        model="gpt-test",
+        output=None,
+        parallel_tool_calls=False,
+        tool_choice="auto",
+        tools=[],
+    )
+
+    assert response.output_text == ""
+
+
+def test_parse_response_tolerates_none_output() -> None:
+    from openai.lib._parsing._responses import parse_response
+    response = Response.construct(
+        id="resp_test",
+        object="response",
+        created_at=0,
+        model="gpt-test",
+        output=None,
+        parallel_tool_calls=False,
+        tool_choice="auto",
+        tools=[],
+    )
+
+    parsed = parse_response(text_format=NOT_GIVEN, input_tools=NOT_GIVEN, response=response)
+
+    assert parsed.output == []
+
+
+@pytest.mark.parametrize("terminal_output", [None, []])
+def test_response_stream_preserves_snapshot_when_terminal_output_is_missing(terminal_output: object) -> None:
+    state = ResponseStreamState(input_tools=[], text_format=NOT_GIVEN)
+
+    state.handle_event(
+        _Event(
+            type="response.created",
+            response=Response.construct(
+                id="resp_test",
+                object="response",
+                created_at=0,
+                model="gpt-test",
+                output=[],
+                parallel_tool_calls=False,
+                tool_choice="auto",
+                tools=[],
+            ),
+        )
+    )
+    state.handle_event(
+        _Event(
+            type="response.output_item.added",
+            output_index=0,
+            item=ResponseOutputMessage.construct(
+                id="msg_test",
+                type="message",
+                role="assistant",
+                status="in_progress",
+                content=[],
+            ),
+        )
+    )
+    state.handle_event(
+        _Event(
+            type="response.content_part.added",
+            output_index=0,
+            content_index=0,
+            part=ResponseOutputText.construct(type="output_text", text="", annotations=[]),
+        )
+    )
+    state.handle_event(
+        _Event(
+            type="response.output_text.delta",
+            output_index=0,
+            content_index=0,
+            item_id="msg_test",
+            delta="streamed text",
+            sequence_number=1,
+            logprobs=[],
+        )
+    )
+
+    events = state.handle_event(
+        _Event(
+            type="response.completed",
+            sequence_number=2,
+            response=Response.construct(
+                id="resp_test",
+                object="response",
+                created_at=0,
+                model="gpt-test",
+                output=terminal_output,
+                parallel_tool_calls=False,
+                tool_choice="auto",
+                tools=[],
+            ),
+        )
+    )
+
+    completed = events[0].response
+    assert completed.output_text == "streamed text"
+    assert completed.output[0].content[0].text == "streamed text"
+
+
+class _Event:
+    def __init__(self, **kwargs: object) -> None:
+        self.__dict__.update(kwargs)
