@@ -3,16 +3,107 @@ from __future__ import annotations
 from typing_extensions import TypeVar
 
 import pytest
+import pydantic
 from respx import MockRouter
 from inline_snapshot import snapshot
 
 from openai import OpenAI, AsyncOpenAI
 from openai._utils import assert_signatures_in_sync
+from openai._models import construct_type_unchecked
+from openai.types.responses import (
+    ResponseCreatedEvent,
+    ResponseTextDoneEvent,
+    ResponseCompletedEvent as RawResponseCompletedEvent,
+    ResponseIncompleteEvent,
+    ResponseOutputItemAddedEvent,
+    ResponseContentPartAddedEvent,
+)
+from openai.lib.streaming.responses._responses import ResponseStreamState
 
 from ...conftest import base_url
 from ..snapshots import make_snapshot_request
 
 _T = TypeVar("_T")
+
+
+class _StructuredText(pydantic.BaseModel):
+    answer: str
+
+
+def _response_payload(*, status: str, output: list[object] | None = None) -> dict[str, object]:
+    return {
+        "id": "resp_test",
+        "object": "response",
+        "created_at": 0,
+        "model": "gpt-4.1",
+        "output": output or [],
+        "parallel_tool_calls": True,
+        "temperature": None,
+        "tool_choice": "auto",
+        "tools": [],
+        "top_p": None,
+        "status": status,
+    }
+
+
+def _message_payload(*, text: str, status: str) -> dict[str, object]:
+    return {
+        "id": "msg_test",
+        "type": "message",
+        "role": "assistant",
+        "status": status,
+        "content": [
+            {
+                "type": "output_text",
+                "text": text,
+                "annotations": [],
+                "logprobs": [],
+            }
+        ],
+    }
+
+
+def _start_response_stream(state: ResponseStreamState[_StructuredText]) -> None:
+    state.handle_event(
+        construct_type_unchecked(
+            type_=ResponseCreatedEvent,
+            value={
+                "type": "response.created",
+                "sequence_number": 0,
+                "response": _response_payload(status="in_progress"),
+            },
+        )
+    )
+    state.handle_event(
+        construct_type_unchecked(
+            type_=ResponseOutputItemAddedEvent,
+            value={
+                "type": "response.output_item.added",
+                "sequence_number": 1,
+                "output_index": 0,
+                "item": _message_payload(text="", status="in_progress"),
+            },
+        )
+    )
+    state.handle_event(
+        construct_type_unchecked(
+            type_=ResponseContentPartAddedEvent,
+            value={
+                "type": "response.content_part.added",
+                "sequence_number": 2,
+                "output_index": 0,
+                "content_index": 0,
+                "item_id": "msg_test",
+                "part": {
+                    "type": "output_text",
+                    "text": "",
+                    "annotations": [],
+                    "logprobs": [],
+                },
+            },
+        )
+    )
+
 
 # all the snapshots in this file are auto-generated from the live API
 #
@@ -39,6 +130,104 @@ def test_output_text(client: OpenAI, respx_mock: MockRouter) -> None:
     assert response.output_text == snapshot(
         "I can't provide real-time updates, but you can easily check the current weather in San Francisco using a weather website or app. Typically, San Francisco has cool, foggy summers and mild winters, so it's good to be prepared for variable weather!"
     )
+
+
+def test_stream_output_text_done_defers_invalid_structured_parse() -> None:
+    state = ResponseStreamState(text_format=_StructuredText, input_tools=[])
+    _start_response_stream(state)
+
+    events = state.handle_event(
+        construct_type_unchecked(
+            type_=ResponseTextDoneEvent,
+            value={
+                "type": "response.output_text.done",
+                "sequence_number": 3,
+                "output_index": 0,
+                "content_index": 0,
+                "item_id": "msg_test",
+                "logprobs": [],
+                "text": '{"answer":',
+            },
+        )
+    )
+
+    assert len(events) == 1
+    assert events[0].type == "response.output_text.done"
+    assert events[0].parsed is None
+
+    incomplete_events = state.handle_event(
+        construct_type_unchecked(
+            type_=ResponseIncompleteEvent,
+            value={
+                "type": "response.incomplete",
+                "sequence_number": 4,
+                "response": {
+                    **_response_payload(
+                        status="incomplete",
+                        output=[_message_payload(text='{"answer":', status="incomplete")],
+                    ),
+                    "incomplete_details": {"reason": "max_output_tokens"},
+                },
+            },
+        )
+    )
+    assert incomplete_events[0].type == "response.incomplete"
+
+
+def test_stream_output_text_done_preserves_structured_validation_errors() -> None:
+    state = ResponseStreamState(text_format=_StructuredText, input_tools=[])
+    _start_response_stream(state)
+
+    with pytest.raises(pydantic.ValidationError):
+        state.handle_event(
+            construct_type_unchecked(
+                type_=ResponseTextDoneEvent,
+                value={
+                    "type": "response.output_text.done",
+                    "sequence_number": 3,
+                    "output_index": 0,
+                    "content_index": 0,
+                    "item_id": "msg_test",
+                    "logprobs": [],
+                    "text": "{}",
+                },
+            )
+        )
+
+
+def test_stream_completed_response_still_raises_invalid_structured_parse() -> None:
+    state = ResponseStreamState(text_format=_StructuredText, input_tools=[])
+    _start_response_stream(state)
+
+    state.handle_event(
+        construct_type_unchecked(
+            type_=ResponseTextDoneEvent,
+            value={
+                "type": "response.output_text.done",
+                "sequence_number": 3,
+                "output_index": 0,
+                "content_index": 0,
+                "item_id": "msg_test",
+                "logprobs": [],
+                "text": '{"answer":',
+            },
+        )
+    )
+
+    with pytest.raises(pydantic.ValidationError):
+        state.handle_event(
+            construct_type_unchecked(
+                type_=RawResponseCompletedEvent,
+                value={
+                    "type": "response.completed",
+                    "sequence_number": 4,
+                    "response": _response_payload(
+                        status="completed",
+                        output=[_message_payload(text='{"answer":', status="completed")],
+                    ),
+                },
+            )
+        )
 
 
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
