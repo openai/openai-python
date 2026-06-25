@@ -977,10 +977,37 @@ def accumulate_event(
     return current_message_snapshot, new_content
 
 
+def _normalize_indexed_list(items: list[object]) -> list[object]:
+    """Merge list entries that share the same `index` key.
+
+    Some providers send multiple delta entries with the same index in a single
+    chunk (e.g. first tool_call chunk contains both the id/name AND the start
+    of arguments, both at index 0).  Without merging, the second entry is
+    stranded and never accumulated into.
+    """
+    by_index: dict[int, dict[object, object]] = {}
+    order: list[int] = []
+    for item in items:
+        if not is_dict(item):
+            return items  # non-dict list → nothing to normalise
+        idx = item.get("index")  # type: ignore[union-attr]
+        if not isinstance(idx, int):
+            return items  # no integer index → nothing to normalise
+        if idx not in by_index:
+            by_index[idx] = item  # type: ignore[assignment]
+            order.append(idx)
+        else:
+            by_index[idx] = accumulate_delta(by_index[idx], item)  # type: ignore[arg-type]
+    return [by_index[i] for i in order]  # type: ignore[misc]
+
+
 def accumulate_delta(acc: dict[object, object], delta: dict[object, object]) -> dict[object, object]:
     for key, delta_value in delta.items():
         if key not in acc:
-            acc[key] = delta_value
+            if is_list(delta_value) and delta_value:
+                acc[key] = _normalize_indexed_list(delta_value)
+            else:
+                acc[key] = delta_value
             continue
 
         acc_value = acc[key]
