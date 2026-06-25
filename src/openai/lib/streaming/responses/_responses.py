@@ -250,11 +250,16 @@ class ResponseStreamState(Generic[TextFormatT]):
         events: List[ResponseStreamEvent[TextFormatT]] = []
 
         if event.type == "response.output_text.delta":
+            if event.output_index >= len(snapshot.output):
+                return events
             output = snapshot.output[event.output_index]
-            assert output.type == "message"
-
+            if output.type != "message":
+                return events
+            if event.content_index >= len(output.content):
+                return events
             content = output.content[event.content_index]
-            assert content.type == "output_text"
+            if content.type != "output_text":
+                return events
 
             events.append(
                 build(
@@ -270,11 +275,16 @@ class ResponseStreamState(Generic[TextFormatT]):
                 )
             )
         elif event.type == "response.output_text.done":
+            if event.output_index >= len(snapshot.output):
+                return events
             output = snapshot.output[event.output_index]
-            assert output.type == "message"
-
+            if output.type != "message":
+                return events
+            if event.content_index >= len(output.content):
+                return events
             content = output.content[event.content_index]
-            assert content.type == "output_text"
+            if content.type != "output_text":
+                return events
 
             events.append(
                 build(
@@ -290,8 +300,11 @@ class ResponseStreamState(Generic[TextFormatT]):
                 )
             )
         elif event.type == "response.function_call_arguments.delta":
+            if event.output_index >= len(snapshot.output):
+                return events
             output = snapshot.output[event.output_index]
-            assert output.type == "function_call"
+            if output.type != "function_call":
+                return events
 
             events.append(
                 build(
@@ -341,18 +354,26 @@ class ResponseStreamState(Generic[TextFormatT]):
             else:
                 snapshot.output.append(event.item)
         elif event.type == "response.content_part.added":
+            if event.output_index >= len(snapshot.output):
+                return snapshot
             output = snapshot.output[event.output_index]
             if output.type == "message":
                 output.content.append(
                     construct_type_unchecked(type_=cast(Any, ParsedContent), value=event.part.to_dict())
                 )
         elif event.type == "response.output_text.delta":
+            if event.output_index >= len(snapshot.output):
+                return snapshot
             output = snapshot.output[event.output_index]
             if output.type == "message":
+                if event.content_index >= len(output.content):
+                    return snapshot
                 content = output.content[event.content_index]
                 assert content.type == "output_text"
                 content.text += event.delta
         elif event.type == "response.function_call_arguments.delta":
+            if event.output_index >= len(snapshot.output):
+                return snapshot
             output = snapshot.output[event.output_index]
             if output.type == "function_call":
                 output.arguments += event.delta
