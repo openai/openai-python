@@ -20,6 +20,35 @@ if TYPE_CHECKING:
 _T = TypeVar("_T")
 
 
+def _build_streaming_api_error(
+    *,
+    data: object,
+    request: httpx.Request,
+    is_error_event: bool,
+) -> APIError | None:
+    if not is_mapping(data):
+        return None
+
+    error = data.get("error")
+    if is_error_event:
+        body = error if error is not None else data
+    elif error is not None:
+        body = error
+    else:
+        return None
+
+    message = data.get("message")
+    if not isinstance(message, str) and is_mapping(error):
+        nested_message = error.get("message")
+        if isinstance(nested_message, str):
+            message = nested_message
+
+    if not isinstance(message, str) or not message:
+        message = "An error occurred during streaming"
+
+    return APIError(message=message, request=request, body=body)
+
+
 class Stream(Generic[_T]):
     """Provides the core interface to iterate over a synchronous stream response."""
 
@@ -63,41 +92,19 @@ class Stream(Generic[_T]):
                 if sse.data.startswith("[DONE]"):
                     break
 
+                data = sse.json()
+                api_error = _build_streaming_api_error(
+                    data=data,
+                    request=self.response.request,
+                    is_error_event=sse.event == "error",
+                )
+                if api_error is not None:
+                    raise api_error
+
                 # we have to special case the Assistants `thread.` events since we won't have an "event" key in the data
                 if sse.event and sse.event.startswith("thread."):
-                    data = sse.json()
-
-                    if sse.event == "error" and is_mapping(data) and data.get("error"):
-                        message = None
-                        error = data.get("error")
-                        if is_mapping(error):
-                            message = error.get("message")
-                        if not message or not isinstance(message, str):
-                            message = "An error occurred during streaming"
-
-                        raise APIError(
-                            message=message,
-                            request=self.response.request,
-                            body=data["error"],
-                        )
-
                     yield process_data(data={"data": data, "event": sse.event}, cast_to=cast_to, response=response)
                 else:
-                    data = sse.json()
-                    if is_mapping(data) and data.get("error"):
-                        message = None
-                        error = data.get("error")
-                        if is_mapping(error):
-                            message = error.get("message")
-                        if not message or not isinstance(message, str):
-                            message = "An error occurred during streaming"
-
-                        raise APIError(
-                            message=message,
-                            request=self.response.request,
-                            body=data["error"],
-                        )
-
                     yield process_data(
                         data={"data": data, "event": sse.event}
                         if self._options is not None and self._options.synthesize_event_and_data
@@ -173,41 +180,19 @@ class AsyncStream(Generic[_T]):
                 if sse.data.startswith("[DONE]"):
                     break
 
+                data = sse.json()
+                api_error = _build_streaming_api_error(
+                    data=data,
+                    request=self.response.request,
+                    is_error_event=sse.event == "error",
+                )
+                if api_error is not None:
+                    raise api_error
+
                 # we have to special case the Assistants `thread.` events since we won't have an "event" key in the data
                 if sse.event and sse.event.startswith("thread."):
-                    data = sse.json()
-
-                    if sse.event == "error" and is_mapping(data) and data.get("error"):
-                        message = None
-                        error = data.get("error")
-                        if is_mapping(error):
-                            message = error.get("message")
-                        if not message or not isinstance(message, str):
-                            message = "An error occurred during streaming"
-
-                        raise APIError(
-                            message=message,
-                            request=self.response.request,
-                            body=data["error"],
-                        )
-
                     yield process_data(data={"data": data, "event": sse.event}, cast_to=cast_to, response=response)
                 else:
-                    data = sse.json()
-                    if is_mapping(data) and data.get("error"):
-                        message = None
-                        error = data.get("error")
-                        if is_mapping(error):
-                            message = error.get("message")
-                        if not message or not isinstance(message, str):
-                            message = "An error occurred during streaming"
-
-                        raise APIError(
-                            message=message,
-                            request=self.response.request,
-                            body=data["error"],
-                        )
-
                     yield process_data(
                         data={"data": data, "event": sse.event}
                         if self._options is not None and self._options.synthesize_event_and_data
