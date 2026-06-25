@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import sys
 import json
 import time
@@ -831,8 +832,30 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         return f"stainless-python-retry-{uuid.uuid4()}"
 
 
+def _sanitize_proxy_env_vars() -> None:
+    """Sanitize NO_PROXY environment variables to avoid httpx InvalidURL errors.
+
+    httpx's ``get_environment_proxies()`` splits ``NO_PROXY`` only by commas,
+    not by newlines.  When the variable contains embedded newlines (common in
+    Docker, ``.env`` files, or shell scripts), the newline becomes part of the
+    hostname, which causes ``httpx.InvalidURL`` on client creation.
+
+    This function normalises the value so that each line becomes a separate
+    comma-separated entry.
+    """
+    for key in ("NO_PROXY", "no_proxy"):
+        val = os.environ.get(key)
+        if val and "\n" in val:
+            os.environ[key] = ",".join(
+                part.strip()
+                for part in val.replace("\n", ",").split(",")
+                if part.strip()
+            )
+
+
 class _DefaultHttpxClient(httpx.Client):
     def __init__(self, **kwargs: Any) -> None:
+        _sanitize_proxy_env_vars()
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
         kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
@@ -1420,6 +1443,7 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
 
 class _DefaultAsyncHttpxClient(httpx.AsyncClient):
     def __init__(self, **kwargs: Any) -> None:
+        _sanitize_proxy_env_vars()
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
         kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
