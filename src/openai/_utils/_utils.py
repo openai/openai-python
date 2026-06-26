@@ -447,3 +447,32 @@ def is_async_azure_client(client: object) -> TypeGuard[AsyncAzureOpenAI]:
     from ..lib.azure import AsyncAzureOpenAI
 
     return isinstance(client, AsyncAzureOpenAI)
+
+
+_PROXY_ENV_VARS = (
+    "HTTP_PROXY",
+    "http_proxy",
+    "HTTPS_PROXY",
+    "https_proxy",
+    "ALL_PROXY",
+    "all_proxy",
+    "NO_PROXY",
+    "no_proxy",
+)
+
+
+def sanitize_proxy_env_vars() -> None:
+    """Sanitize proxy-related environment variables by removing newline characters.
+
+    This works around an issue where httpx's proxy parsing only splits by comma
+    and fails with InvalidURL when newlines are present in the value.
+    """
+    for var in _PROXY_ENV_VARS:
+        value = os.environ.get(var)
+        if value and ("\n" in value or "\r" in value):
+            sanitized = ",".join(
+                part.strip()
+                for part in value.replace("\n", ",").replace("\r", ",").split(",")
+                if part.strip()
+            )
+            os.environ[var] = sanitized
