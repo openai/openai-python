@@ -8,6 +8,9 @@ from inline_snapshot import snapshot
 
 from openai import OpenAI, AsyncOpenAI
 from openai._utils import assert_signatures_in_sync
+from openai._models import construct_type_unchecked
+from openai.lib._parsing._responses import parse_response
+from openai.types.responses import Response
 
 from ...conftest import base_url
 from ..snapshots import make_snapshot_request
@@ -61,3 +64,24 @@ def test_parse_method_definition_in_sync(sync: bool, client: OpenAI, async_clien
         checking_client.responses.parse,
         exclude_params={"tools"},
     )
+
+
+def test_parse_response_with_none_output() -> None:
+    response_data = {
+        "id": "resp_test123",
+        "created_at": 1754925861,
+        "model": "gpt-4o-mini",
+        "object": "response",
+        "output": None,
+        "parallel_tool_calls": True,
+        "tool_choice": "auto",
+        "tools": [],
+        "status": "completed",
+    }
+
+    response = construct_type_unchecked(type_=Response, value=response_data)
+    parsed = parse_response(response=response, text_format=None, input_tools=None)
+
+    assert parsed.id == "resp_test123"
+    assert parsed.output == []
+    assert parsed.status == "completed"
