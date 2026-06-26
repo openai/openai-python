@@ -6,6 +6,7 @@ import httpx
 import pytest
 
 from openai import OpenAI, AsyncOpenAI
+from openai._exceptions import APIError
 from openai._streaming import Stream, AsyncStream, ServerSentEvent
 
 
@@ -216,6 +217,40 @@ async def test_multi_byte_character_multiple_chunks(
     assert sse.json() == {"content": "известни"}
 
 
+@pytest.mark.asyncio
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+async def test_error_event_raises_api_error(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
+    """Error events should raise APIError regardless of whether they occur in thread.* context."""
+
+    def body() -> Iterator[bytes]:
+        yield b'event: error\n'
+        yield b'data: {"error": {"message": "Something went wrong", "type": "invalid_request_error"}}\n'
+        yield b"\n"
+
+    stream = make_stream(content=body(), sync=sync, client=client, async_client=async_client)
+
+    with pytest.raises(APIError, match="Something went wrong"):
+        await consume_stream(stream, sync=sync)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+async def test_error_event_without_structure_raises_api_error(
+    sync: bool, client: OpenAI, async_client: AsyncOpenAI
+) -> None:
+    """Error events without expected error structure should still raise APIError."""
+
+    def body() -> Iterator[bytes]:
+        yield b'event: error\n'
+        yield b'data: {"unexpected": "structure"}\n'
+        yield b"\n"
+
+    stream = make_stream(content=body(), sync=sync, client=client, async_client=async_client)
+
+    with pytest.raises(APIError, match="An error occurred during streaming"):
+        await consume_stream(stream, sync=sync)
+
+
 async def to_aiter(iter: Iterator[bytes]) -> AsyncIterator[bytes]:
     for chunk in iter:
         yield chunk
@@ -246,3 +281,28 @@ def make_event_iterator(
     return AsyncStream(
         cast_to=object, client=async_client, response=httpx.Response(200, content=to_aiter(content))
     )._iter_events()
+
+
+def make_stream(
+    content: Iterator[bytes],
+    *,
+    sync: bool,
+    client: OpenAI,
+    async_client: AsyncOpenAI,
+) -> Stream[object] | AsyncStream[object]:
+    request = httpx.Request("POST", "https://api.openai.com/v1/chat/completions")
+    if sync:
+        return Stream(cast_to=object, client=client, response=httpx.Response(200, content=content, request=request))
+
+    return AsyncStream(
+        cast_to=object, client=async_client, response=httpx.Response(200, content=to_aiter(content), request=request)
+    )
+
+
+async def consume_stream(stream: Stream[object] | AsyncStream[object], *, sync: bool) -> None:
+    if sync:
+        for _ in stream:
+            pass
+    else:
+        async for _ in stream:
+            pass
