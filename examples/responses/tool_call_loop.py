@@ -188,6 +188,12 @@ def run_agent(user_message: str) -> str:
 
         # Continue the conversation: pass tool outputs and reference the previous response
         # so the model has full context without us manually rebuilding the input list.
+        #
+        # In production, scope per-turn timeout and retry policy to this call with
+        # `.with_options()`, e.g.:
+        #     client.with_options(timeout=30.0, max_retries=3).responses.create(...)
+        # That bounds how long any single turn can hang and how many times the SDK
+        # transparently retries transient errors, while MAX_TURNS bounds the loop itself.
         response = client.responses.create(
             model="gpt-4o-mini",
             previous_response_id=response.id,
