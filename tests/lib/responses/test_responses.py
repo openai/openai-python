@@ -85,3 +85,93 @@ def test_parse_response_with_none_output() -> None:
     assert parsed.id == "resp_test123"
     assert parsed.output == []
     assert parsed.status == "completed"
+
+
+def test_output_text_with_null_text() -> None:
+    """Test that output_text property handles null text values gracefully."""
+    response_data = {
+        "id": "resp_null_text",
+        "object": "response",
+        "created_at": 0,
+        "status": "completed",
+        "model": "gpt-4o-mini",
+        "output": [
+            {
+                "id": "msg_null_text",
+                "type": "message",
+                "status": "completed",
+                "role": "assistant",
+                "content": [
+                    {
+                        "type": "output_text",
+                        "annotations": [],
+                        "logprobs": [],
+                        "text": None,
+                    },
+                    {
+                        "type": "output_text",
+                        "annotations": [],
+                        "logprobs": [],
+                        "text": '{"message":"hello"}',
+                    },
+                ],
+            }
+        ],
+        "parallel_tool_calls": True,
+        "tool_choice": "auto",
+        "tools": [],
+    }
+
+    response = construct_type_unchecked(type_=Response, value=response_data)
+    # Should not raise TypeError and should skip null text values
+    assert response.output_text == '{"message":"hello"}'
+
+
+def test_parse_response_with_null_text() -> None:
+    """Test that parse_response handles null text values in output_text items."""
+    response_data = {
+        "id": "resp_null_text_parse",
+        "object": "response",
+        "created_at": 0,
+        "status": "completed",
+        "model": "gpt-4o-mini",
+        "output": [
+            {
+                "id": "msg_null_text_parse",
+                "type": "message",
+                "status": "completed",
+                "role": "assistant",
+                "content": [
+                    {
+                        "type": "output_text",
+                        "annotations": [],
+                        "logprobs": [],
+                        "text": None,
+                    },
+                    {
+                        "type": "output_text",
+                        "annotations": [],
+                        "logprobs": [],
+                        "text": "Hello world",
+                    },
+                ],
+            }
+        ],
+        "parallel_tool_calls": True,
+        "tool_choice": "auto",
+        "tools": [],
+    }
+
+    response = construct_type_unchecked(type_=Response, value=response_data)
+    parsed = parse_response(response=response, text_format=None, input_tools=None)
+
+    assert parsed.id == "resp_null_text_parse"
+    assert len(parsed.output) == 1
+    message = parsed.output[0]
+    assert message.type == "message"
+    assert len(message.content) == 2
+    # First content item should have null text and parsed=None
+    assert message.content[0].text is None
+    assert message.content[0].parsed is None
+    # Second content item should have normal text
+    assert message.content[1].text == "Hello world"
