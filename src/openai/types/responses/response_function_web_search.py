@@ -19,11 +19,15 @@ __all__ = [
 class ActionSearchSource(BaseModel):
     """A source used in the search."""
 
-    type: Literal["url"]
-    """The type of source. Always `url`."""
+    type: Literal["url", "api"]
+    """The type of source. `url` for a web page, `api` for a built-in OpenAI data source."""
 
-    url: str
-    """The URL of the source."""
+    url: Optional[str] = None
+    """The URL of the source. Present when type is `url`."""
+
+    name: Optional[str] = None
+    """The name of the built-in data source (e.g. `oai-weather`, `oai-sports`, `oai-finance`).
+    Present when type is `api`."""
 
 
 class ActionSearch(BaseModel):
@@ -78,7 +82,7 @@ class ResponseFunctionWebSearch(BaseModel):
     id: str
     """The unique ID of the web search tool call."""
 
-    action: Action
+    action: Optional[Action] = None
     """
     An object describing the specific action taken in this web search call. Includes
     details on how the model used the web (search, open_page, find_in_page).

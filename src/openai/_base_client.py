@@ -833,6 +833,9 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
 
 class _DefaultHttpxClient(httpx.Client):
     def __init__(self, **kwargs: Any) -> None:
+        from ._utils import sanitize_proxy_env_vars
+
+        sanitize_proxy_env_vars()
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
         kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
@@ -1420,6 +1423,9 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
 
 class _DefaultAsyncHttpxClient(httpx.AsyncClient):
     def __init__(self, **kwargs: Any) -> None:
+        from ._utils import sanitize_proxy_env_vars
+
+        sanitize_proxy_env_vars()
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
         kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
@@ -1437,6 +1443,9 @@ else:
 
     class _DefaultAioHttpClient(httpx_aiohttp.HttpxAiohttpClient):  # type: ignore
         def __init__(self, **kwargs: Any) -> None:
+            from ._utils import sanitize_proxy_env_vars
+
+            sanitize_proxy_env_vars()
             kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
             kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
             kwargs.setdefault("follow_redirects", True)
