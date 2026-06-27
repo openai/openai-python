@@ -839,7 +839,7 @@ class SyncHttpxClientWrapper(DefaultHttpxClient):
         except Exception:
             # Suppress destructor cleanup errors; object finalizers should not raise
             # during garbage collection or interpreter shutdown.
-            return
+            log.debug("Failed to close sync HTTP client during object finalization", exc_info=True)
 
 
 class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
@@ -1438,7 +1438,7 @@ class AsyncHttpxClientWrapper(DefaultAsyncHttpxClient):
         except Exception:
             # Suppress destructor cleanup errors; object finalizers should not raise
             # during garbage collection or interpreter shutdown.
-            return
+            log.debug("Failed to close async HTTP client during object finalization", exc_info=True)
 
 
 class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
