@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.44.0 (2026-06-24)
+
+Full Changelog: [v2.43.0...v2.44.0](https://github.com/openai/openai-python/compare/v2.43.0...v2.44.0)
+
+### Bug Fixes
+
+* **auth:** prioritize first auth header ([797e336](https://github.com/openai/openai-python/commit/797e3362e222ae14e587a4543b76a54d8992d66c))
+
 ## 2.43.0 (2026-06-17)
 
 Full Changelog: [v2.42.0...v2.43.0](https://github.com/openai/openai-python/compare/v2.42.0...v2.43.0)

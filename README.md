@@ -929,13 +929,25 @@ An example of using the client with Microsoft Entra ID (formerly known as Azure 
 
 ## Amazon Bedrock
 
-To use this library with [Amazon Bedrock's OpenAI-compatible API](https://docs.aws.amazon.com/bedrock/latest/userguide/models-api-compatibility.html), use the `BedrockOpenAI` class instead of the `OpenAI` class.
+To use this library with [Amazon Bedrock's OpenAI-compatible API](https://docs.aws.amazon.com/bedrock/latest/userguide/models-api-compatibility.html), configure the standard `OpenAI` client with the Bedrock provider.
+
+Install the optional Bedrock dependencies to use the standard AWS credential chain and SigV4 authentication:
+
+```sh
+pip install 'openai[bedrock]'
+```
 
 ```py
-from openai import BedrockOpenAI
+from openai import OpenAI
+from openai.providers import bedrock
 
-# gets the bearer token from AWS_BEARER_TOKEN_BEDROCK and the region from AWS_REGION/AWS_DEFAULT_REGION
-client = BedrockOpenAI()
+# Uses your normal AWS credentials. You can omit region when it is
+# configured through AWS_REGION, AWS_DEFAULT_REGION, or your AWS profile.
+client = OpenAI(
+    provider=bedrock(
+        region="us-west-2",
+    )
+)
 
 response = client.responses.create(
     model="openai.gpt-5.4",
@@ -945,18 +957,51 @@ response = client.responses.create(
 print(response.output_text)
 ```
 
-`BedrockOpenAI` configures AWS bearer auth and the Bedrock Mantle endpoint, then uses the normal SDK resources. AWS controls which endpoints and features are supported; unsupported calls surface the provider's normal HTTP errors through the SDK.
+The provider configures AWS authentication and the Bedrock Mantle endpoint while retaining the normal SDK resources, retries, streaming, and error handling. AWS controls which endpoints and features are supported; unsupported calls surface the provider's normal HTTP errors through the SDK.
 
-Pass `base_url` or set `AWS_BEDROCK_BASE_URL` to override the derived `https://bedrock-mantle.<region>.api.aws/openai/v1` endpoint. The legacy module client supports `openai.api_type = "amazon-bedrock"` or `OPENAI_API_TYPE=amazon-bedrock`.
-
-Set `AWS_BEARER_TOKEN_BEDROCK` to an [Amazon Bedrock API key](https://docs.aws.amazon.com/bedrock/latest/userguide/api-keys.html). To refresh tokens yourself, pass a provider instead of `api_key`:
+The default AWS credential chain supports environment credentials, shared credentials and config files, named profiles, SSO and assume-role profiles, and workload credentials such as ECS, EKS, and EC2 metadata. To select a named profile:
 
 ```py
-client = BedrockOpenAI(
-    aws_region="us-west-2",
-    bedrock_token_provider=lambda: refresh_bedrock_token(),
+client = OpenAI(
+    provider=bedrock(
+        profile="my-profile",
+    )
 )
 ```
+
+You can also pass `access_key_id` and `secret_access_key`, with an optional `session_token`, or a refreshable `credential_provider` that returns botocore-compatible credentials. Explicit bearer and AWS credential options are mutually exclusive.
+
+Pass `base_url` to `bedrock(...)` or set `AWS_BEDROCK_BASE_URL` to override the derived `https://bedrock-mantle.<region>.api.aws/openai/v1` endpoint.
+
+SigV4 requests require replayable, fully serialized request bodies. Standard JSON requests already meet this requirement, and response streaming is unaffected. Low-level one-shot request streams must be buffered before sending, or sent with bearer authentication and retries disabled.
+
+Bearer tokens remain available as a compatibility or manual authentication mode. Set `AWS_BEARER_TOKEN_BEDROCK` to an [Amazon Bedrock API key](https://docs.aws.amazon.com/bedrock/latest/userguide/api-keys.html), pass `api_key`, or provide a refresh callback:
+
+```py
+client = OpenAI(
+    provider=bedrock(
+        region="us-west-2",
+        token_provider=lambda: refresh_bedrock_token(),
+    )
+)
+```
+
+Without explicit authentication, `AWS_BEARER_TOKEN_BEDROCK` takes precedence over the default AWS credential chain for backwards compatibility.
+
+### Legacy `BedrockOpenAI` client
+
+`BedrockOpenAI` and `AsyncBedrockOpenAI` remain available for existing applications and delegate to the same provider implementation. New applications should prefer `OpenAI(provider=bedrock(...))`.
+
+```py
+from openai import BedrockOpenAI
+
+client = BedrockOpenAI(
+    aws_region="us-west-2",
+    aws_profile="my-profile",
+)
+```
+
+The legacy module client also continues to support `openai.api_type = "amazon-bedrock"` or `OPENAI_API_TYPE=amazon-bedrock`.
 
 ## Versioning
 

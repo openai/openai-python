@@ -1,9 +1,11 @@
-from openai import BedrockOpenAI
+from openai import OpenAI
+from openai.providers import bedrock
 
-client = BedrockOpenAI()
-
-# For refreshed Bedrock bearer tokens:
-# client = BedrockOpenAI(aws_region="us-west-2", bedrock_token_provider=get_bedrock_token)
+client = OpenAI(
+    provider=bedrock(
+        region="us-west-2",
+    )
+)
 
 response = client.responses.create(
     model="openai.gpt-5.4",
