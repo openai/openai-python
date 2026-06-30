@@ -961,3 +961,9 @@ def test_extra_properties() -> None:
     assert model.a.prop == 1
     assert isinstance(model.a, Item)
     assert model.other == "foo"
+
+
+def test_construct_type_with_bare_dict() -> None:
+    value = {"key": "value"}
+
+    assert construct_type(value=value, type_=dict) == value
