@@ -458,3 +458,11 @@ async def test_strips_notgiven(use_async: bool) -> None:
 async def test_strips_omit(use_async: bool) -> None:
     assert await transform({"foo_bar": "bar"}, Foo1, use_async) == {"fooBar": "bar"}
     assert await transform({"foo_bar": omit}, Foo1, use_async) == {}
+
+
+@parametrize
+@pytest.mark.asyncio
+async def test_transform_with_bare_dict_annotation(use_async: bool) -> None:
+    data = {"key": "value"}
+
+    assert await transform(data, dict, use_async) == data
