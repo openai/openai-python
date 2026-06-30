@@ -20,6 +20,7 @@ import openai
 from openai import OpenAI, AsyncOpenAI
 from openai._utils import consume_sync_iterator, assert_signatures_in_sync
 from openai._compat import model_copy
+from openai._models import construct_type
 from openai.types.chat import ChatCompletionChunk
 from openai.lib.streaming.chat import (
     ContentDoneEvent,
@@ -1017,6 +1018,125 @@ FunctionToolCallArgumentsDoneEvent(
 ]
 """
     )
+
+
+def _make_chat_completion_chunk(delta: dict[str, object]) -> ChatCompletionChunk:
+    return construct_type(
+        type_=ChatCompletionChunk,
+        value={
+            "id": "chatcmpl_123",
+            "object": "chat.completion.chunk",
+            "created": 1727346167,
+            "model": "gpt-4o-2024-08-06",
+            "choices": [
+                {
+                    "index": 0,
+                    "delta": delta,
+                }
+            ],
+        },
+    )
+
+
+def test_tool_call_delta_without_index_starts_single_tool_call() -> None:
+    state = ChatCompletionStreamState()
+
+    chunk = _make_chat_completion_chunk(
+        {
+            "role": "assistant",
+            "tool_calls": [
+                {
+                    "id": "call_123",
+                    "type": "function",
+                    "function": {"name": "get_weather", "arguments": '{"location":"Chicago, IL"}'},
+                }
+            ],
+        }
+    )
+
+    events = list(state.handle_chunk(chunk))
+
+    tool_call_delta = chunk.choices[0].delta.tool_calls[0]
+    tool_call = state.current_completion_snapshot.choices[0].message.tool_calls[0]
+    assert tool_call_delta.index == 0
+    assert tool_call.index == 0
+    assert tool_call.function.arguments == '{"location":"Chicago, IL"}'
+    assert [event.type for event in events] == ["chunk", "tool_calls.function.arguments.delta"]
+
+
+def test_tool_call_delta_without_index_continues_active_tool_call() -> None:
+    state = ChatCompletionStreamState()
+
+    first_chunk = _make_chat_completion_chunk(
+        {
+            "role": "assistant",
+            "tool_calls": [
+                {
+                    "index": 0,
+                    "id": "call_123",
+                    "type": "function",
+                    "function": {"name": "get_weather", "arguments": ""},
+                }
+            ],
+        }
+    )
+    second_chunk = _make_chat_completion_chunk(
+        {
+            "tool_calls": [
+                {
+                    "function": {"arguments": '{"city":"Chicago"}'},
+                }
+            ],
+        }
+    )
+
+    state.handle_chunk(first_chunk)
+    events = list(state.handle_chunk(second_chunk))
+
+    tool_call_delta = second_chunk.choices[0].delta.tool_calls[0]
+    tool_call = state.current_completion_snapshot.choices[0].message.tool_calls[0]
+    assert tool_call_delta.index == 0
+    assert tool_call.function.arguments == '{"city":"Chicago"}'
+    assert [event.type for event in events] == ["chunk", "tool_calls.function.arguments.delta"]
+
+
+def test_tool_call_delta_without_index_does_not_start_second_tool_call() -> None:
+    state = ChatCompletionStreamState()
+
+    first_chunk = _make_chat_completion_chunk(
+        {
+            "role": "assistant",
+            "tool_calls": [
+                {
+                    "index": 0,
+                    "id": "call_123",
+                    "type": "function",
+                    "function": {"name": "get_weather", "arguments": '{"city":"Chicago"}'},
+                }
+            ],
+        }
+    )
+    second_chunk = _make_chat_completion_chunk(
+        {
+            "tool_calls": [
+                {
+                    "id": "call_456",
+                    "type": "function",
+                    "function": {"name": "get_time", "arguments": '{"city":"Chicago"}'},
+                }
+            ],
+        }
+    )
+
+    state.handle_chunk(first_chunk)
+    with pytest.raises(RuntimeError, match="Expected list delta entry to have an `index` key"):
+        state.handle_chunk(second_chunk)
+
+    tool_call_delta = second_chunk.choices[0].delta.tool_calls[0]
+    tool_call = state.current_completion_snapshot.choices[0].message.tool_calls[0]
+    assert tool_call_delta.index is None
+    assert tool_call.id == "call_123"
+    assert tool_call.function.name == "get_weather"
 
 
 @pytest.mark.respx(base_url=base_url)
