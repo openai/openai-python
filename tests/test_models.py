@@ -10,6 +10,8 @@ from pydantic import Field
 from openai._utils import PropertyInfo
 from openai._compat import PYDANTIC_V1, parse_obj, model_dump, model_json
 from openai._models import DISCRIMINATOR_CACHE, BaseModel, construct_type
+from openai.types.responses import ResponseOutputTextAnnotationAddedEvent
+from openai.types.responses.response_output_text import AnnotationURLCitation
 
 
 class BasicModel(BaseModel):
@@ -961,3 +963,26 @@ def test_extra_properties() -> None:
     assert model.a.prop == 1
     assert isinstance(model.a, Item)
     assert model.other == "foo"
+
+
+def test_response_output_text_annotation_added_event_uses_annotation_union() -> None:
+    event = ResponseOutputTextAnnotationAddedEvent.model_validate(
+        {
+            "annotation": {
+                "type": "url_citation",
+                "title": "Example",
+                "url": "https://example.com",
+                "start_index": 0,
+                "end_index": 7,
+            },
+            "annotation_index": 0,
+            "content_index": 0,
+            "item_id": "item_123",
+            "output_index": 0,
+            "sequence_number": 1,
+            "type": "response.output_text.annotation.added",
+        }
+    )
+
+    assert isinstance(event.annotation, AnnotationURLCitation)
+    assert event.annotation.url == "https://example.com"
