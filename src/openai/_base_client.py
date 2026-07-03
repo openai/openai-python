@@ -5,12 +5,14 @@ import json
 import time
 import uuid
 import email
+import os
 import asyncio
 import inspect
 import logging
 import platform
 import warnings
 import email.utils
+from contextlib import contextmanager
 from types import TracebackType
 from random import random
 from typing import (
@@ -79,6 +81,30 @@ from ._constants import (
     OVERRIDE_CAST_TO_HEADER,
     DEFAULT_CONNECTION_LIMITS,
 )
+
+
+def _normalize_no_proxy_value(value: str) -> str:
+    entries = [entry.strip() for entry in value.replace("\r", ",").replace("\n", ",").split(",")]
+    return ",".join(entry for entry in entries if entry)
+
+
+@contextmanager
+def _sanitized_proxy_env() -> Generator[None, None, None]:
+    original: dict[str, str] = {}
+
+    try:
+        for key in ("NO_PROXY", "no_proxy"):
+            value = os.environ.get(key)
+            if value is None or ("\n" not in value and "\r" not in value):
+                continue
+
+            original[key] = value
+            os.environ[key] = _normalize_no_proxy_value(value)
+
+        yield
+    finally:
+        for key, value in original.items():
+            os.environ[key] = value
 from ._streaming import Stream, SSEDecoder, AsyncStream, SSEBytesDecoder
 from ._exceptions import (
     APIStatusError,
@@ -814,7 +840,8 @@ class _DefaultHttpxClient(httpx.Client):
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
         kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
-        super().__init__(**kwargs)
+        with _sanitized_proxy_env():
+            super().__init__(**kwargs)
 
 
 if TYPE_CHECKING:
@@ -1388,7 +1415,8 @@ class _DefaultAsyncHttpxClient(httpx.AsyncClient):
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
         kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
-        super().__init__(**kwargs)
+        with _sanitized_proxy_env():
+            super().__init__(**kwargs)
 
 
 try:
