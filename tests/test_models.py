@@ -8,7 +8,7 @@ import pydantic
 from pydantic import Field
 
 from openai._utils import PropertyInfo
-from openai._compat import PYDANTIC_V1, parse_obj, model_dump, model_json
+from openai._compat import PYDANTIC_V1, model_dump, model_json, model_parse, parse_obj
 from openai._models import DISCRIMINATOR_CACHE, BaseModel, construct_type
 from openai.types.responses import ResponseOutputTextAnnotationAddedEvent
 from openai.types.responses.response_output_text import AnnotationURLCitation
@@ -966,7 +966,8 @@ def test_extra_properties() -> None:
 
 
 def test_response_output_text_annotation_added_event_uses_annotation_union() -> None:
-    event = ResponseOutputTextAnnotationAddedEvent.model_validate(
+    event = model_parse(
+        ResponseOutputTextAnnotationAddedEvent,
         {
             "annotation": {
                 "type": "url_citation",
