@@ -1434,7 +1434,8 @@ else:
             kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
             kwargs.setdefault("follow_redirects", True)
 
-            super().__init__(**kwargs)
+            with _sanitized_proxy_env():
+                super().__init__(**kwargs)
 
 
 if TYPE_CHECKING:
