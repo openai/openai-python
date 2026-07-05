@@ -8,6 +8,9 @@ from inline_snapshot import snapshot
 
 from openai import OpenAI, AsyncOpenAI
 from openai._utils import assert_signatures_in_sync
+from openai.types.responses.response import Response
+from openai.types.responses.response_output_message import ResponseOutputMessage
+from openai.types.responses.response_output_text import ResponseOutputText
 
 from ...conftest import base_url
 from ..snapshots import make_snapshot_request
@@ -39,6 +42,77 @@ def test_output_text(client: OpenAI, respx_mock: MockRouter) -> None:
     assert response.output_text == snapshot(
         "I can't provide real-time updates, but you can easily check the current weather in San Francisco using a weather website or app. Typically, San Francisco has cool, foggy summers and mild winters, so it's good to be prepared for variable weather!"
     )
+
+
+def _make_response_with_text(text: str | None) -> Response:
+    """Build a minimal Response via model_construct, bypassing validation to simulate
+    raw API payloads where `text` may be null."""
+    content_block = ResponseOutputText.model_construct(
+        type="output_text",
+        annotations=[],
+        logprobs=None,
+        text=text,
+    )
+    message = ResponseOutputMessage.model_construct(
+        id="msg_test",
+        type="message",
+        status="completed",
+        role="assistant",
+        content=[content_block],
+    )
+    return Response.model_construct(
+        id="resp_test",
+        object="response",
+        created_at=0,
+        status="completed",
+        model="gpt-4o-mini",
+        output=[message],
+        parallel_tool_calls=True,
+        text=None,
+        tool_choice="auto",
+        tools=[],
+        truncation="disabled",
+    )
+
+
+def test_output_text_null_guard() -> None:
+    """output_text must not crash when content items have text=None (issue #3063)."""
+    # Single null text block -> empty string
+    response = _make_response_with_text(None)
+    assert response.output_text == ""
+
+    # Valid text block -> the text is returned
+    response = _make_response_with_text("hello")
+    assert response.output_text == "hello"
+
+    # Mixed: null and valid in the same message -> only valid text joined
+    null_block = ResponseOutputText.model_construct(
+        type="output_text", annotations=[], logprobs=None, text=None
+    )
+    valid_block = ResponseOutputText.model_construct(
+        type="output_text", annotations=[], logprobs=None, text="world"
+    )
+    message = ResponseOutputMessage.model_construct(
+        id="msg_mixed",
+        type="message",
+        status="completed",
+        role="assistant",
+        content=[null_block, valid_block],
+    )
+    response = Response.model_construct(
+        id="resp_mixed",
+        object="response",
+        created_at=0,
+        status="completed",
+        model="gpt-4o-mini",
+        output=[message],
+        parallel_tool_calls=True,
+        text=None,
+        tool_choice="auto",
+        tools=[],
+        truncation="disabled",
+    )
+    assert response.output_text == "world"
 
 
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
