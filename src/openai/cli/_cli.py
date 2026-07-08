@@ -13,13 +13,11 @@ _BASH_COMPLETION_SCRIPT = """# openai completion for bash
 #   eval "$(openai completion -s bash)"
 
 _openai_completion() {
-    local cur prev words cword
-    _init_completion || return
+    local cur
 
     # Collect all words up to current position for context
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
-    prev="${COMP_WORDS[COMP_CWORD-1]}"
 
     # Complete using the CLI itself
     local IFS=$'\\n'
@@ -62,6 +60,7 @@ _FISH_COMPLETION_SCRIPT = """# openai completion for fish
 function _openai_completion
     set -l args (commandline -opc)
     set -l current (commandline -ct)
+    set -e args[1]
     set -l completions (OPENAI_COMPLETE=fish_source openai $args 2>/dev/null)
     if test $status -eq 0
         for comp in $completions

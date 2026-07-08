@@ -24,6 +24,7 @@ def test_completion_bash() -> None:
     )
     assert result.returncode == 0
     assert "complete -F _openai_completion openai" in result.stdout
+    assert "_init_completion" not in result.stdout
 
 
 def test_completion_zsh() -> None:
@@ -46,6 +47,7 @@ def test_completion_fish() -> None:
     )
     assert result.returncode == 0
     assert "complete -f -c openai" in result.stdout
+    assert "set -e args[1]" in result.stdout
 
 
 def test_completion_powershell() -> None:
