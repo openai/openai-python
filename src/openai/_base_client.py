@@ -39,6 +39,13 @@ import pydantic
 from httpx import URL
 from pydantic import PrivateAttr
 
+try:
+    import h2  # noqa: F401
+
+    _HTTP2_AVAILABLE = True
+except ImportError:
+    _HTTP2_AVAILABLE = False
+
 from . import _exceptions
 from ._qs import Querystring
 from ._files import to_httpx_files, async_to_httpx_files
@@ -836,7 +843,7 @@ class _DefaultHttpxClient(httpx.Client):
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
         kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
-        kwargs.setdefault("http2", True)
+        kwargs.setdefault("http2", _HTTP2_AVAILABLE)
         super().__init__(**kwargs)
 
 
@@ -1424,7 +1431,7 @@ class _DefaultAsyncHttpxClient(httpx.AsyncClient):
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
         kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
-        kwargs.setdefault("http2", True)
+        kwargs.setdefault("http2", _HTTP2_AVAILABLE)
         super().__init__(**kwargs)
 
 
