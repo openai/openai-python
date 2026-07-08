@@ -143,6 +143,17 @@ class TestDeepcopyWithPaths:
         assert original == {"file": file_bytes, "other": "value"}
         assert copied == {"other": "value"}
 
+    def test_extract_files_accepts_file_tuple(self) -> None:
+        file_tuple = ("custom-name.jsonl", b"contents", "application/jsonl")
+        original = {"file": file_tuple, "purpose": "batch"}
+
+        copied = deepcopy_with_paths(original, [["file"]])
+        extracted = extract_files(copied, paths=[["file"]])
+
+        assert extracted == [("file", file_tuple)]
+        assert original == {"file": file_tuple, "purpose": "batch"}
+        assert copied == {"purpose": "batch"}
+
     def test_extract_files_does_not_mutate_original_nested_array_path(self) -> None:
         file1 = b"f1"
         file2 = b"f2"
