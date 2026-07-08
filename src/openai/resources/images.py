@@ -550,10 +550,51 @@ class Images(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse | Stream[ImageEditStreamEvent]:
+        if image_url is not omit:
+            if image is not omit:
+                raise ValueError("Cannot specify both `image` and `image_url`.")
+            if mask is not omit:
+                raise ValueError("`mask` file uploads are not supported when using `image_url`.")
+
+            image_url_value = cast(str, image_url)
+            return self._post(
+                "/images/edits",
+                body=maybe_transform(
+                    {
+                        "images": [{"image_url": image_url_value}],
+                        "prompt": prompt,
+                        "background": background,
+                        "input_fidelity": input_fidelity,
+                        "model": model,
+                        "n": n,
+                        "output_compression": output_compression,
+                        "output_format": output_format,
+                        "partial_images": partial_images,
+                        "quality": quality,
+                        "response_format": response_format,
+                        "size": size,
+                        "stream": stream,
+                        "user": user,
+                    },
+                    image_edit_params.ImageEditParamsStreaming
+                    if stream
+                    else image_edit_params.ImageEditParamsNonStreaming,
+                ),
+                options=make_request_options(
+                    extra_headers=extra_headers,
+                    extra_query=extra_query,
+                    extra_body=extra_body,
+                    timeout=timeout,
+                    security={"bearer_auth": True},
+                ),
+                cast_to=ImagesResponse,
+                stream=stream or False,
+                stream_cls=Stream[ImageEditStreamEvent],
+            )
+
         body = deepcopy_with_paths(
             {
                 "image": image,
-                "image_url": image_url,
                 "prompt": prompt,
                 "background": background,
                 "input_fidelity": input_fidelity,
@@ -1560,10 +1601,51 @@ class AsyncImages(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse | AsyncStream[ImageEditStreamEvent]:
+        if image_url is not omit:
+            if image is not omit:
+                raise ValueError("Cannot specify both `image` and `image_url`.")
+            if mask is not omit:
+                raise ValueError("`mask` file uploads are not supported when using `image_url`.")
+
+            image_url_value = cast(str, image_url)
+            return await self._post(
+                "/images/edits",
+                body=await async_maybe_transform(
+                    {
+                        "images": [{"image_url": image_url_value}],
+                        "prompt": prompt,
+                        "background": background,
+                        "input_fidelity": input_fidelity,
+                        "model": model,
+                        "n": n,
+                        "output_compression": output_compression,
+                        "output_format": output_format,
+                        "partial_images": partial_images,
+                        "quality": quality,
+                        "response_format": response_format,
+                        "size": size,
+                        "stream": stream,
+                        "user": user,
+                    },
+                    image_edit_params.ImageEditParamsStreaming
+                    if stream
+                    else image_edit_params.ImageEditParamsNonStreaming,
+                ),
+                options=make_request_options(
+                    extra_headers=extra_headers,
+                    extra_query=extra_query,
+                    extra_body=extra_body,
+                    timeout=timeout,
+                    security={"bearer_auth": True},
+                ),
+                cast_to=ImagesResponse,
+                stream=stream or False,
+                stream_cls=AsyncStream[ImageEditStreamEvent],
+            )
+
         body = deepcopy_with_paths(
             {
                 "image": image,
-                "image_url": image_url,
                 "prompt": prompt,
                 "background": background,
                 "input_fidelity": input_fidelity,

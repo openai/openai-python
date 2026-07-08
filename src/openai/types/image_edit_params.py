@@ -2,13 +2,21 @@
 
 from __future__ import annotations
 
-from typing import Union, Optional
+from typing import Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypedDict
 
 from .._types import FileTypes, SequenceNotStr
 from .image_model import ImageModel
 
 __all__ = ["ImageEditParamsBase", "ImageEditParamsNonStreaming", "ImageEditParamsStreaming"]
+
+
+class Image(TypedDict, total=False):
+    file_id: str
+    """The ID of an uploaded image file to edit."""
+
+    image_url: str
+    """A fully qualified URL or base64-encoded data URL for the image to edit."""
 
 
 class ImageEditParamsBase(TypedDict, total=False):
@@ -24,11 +32,10 @@ class ImageEditParamsBase(TypedDict, total=False):
     file less than 4MB.
     """
 
-    image_url: Optional[str]
-    """A fully qualified URL or base64-encoded data URL for the image to edit.
+    images: Iterable[Image]
+    """The image references to edit.
 
-    This parameter can be used as an alternative to `image` when you want to
-    reference an image by URL instead of uploading a file.
+    Each item can reference an image by URL or file ID.
     """
 
     prompt: Required[str]
