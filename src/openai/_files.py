@@ -27,9 +27,7 @@ def is_base64_file_input(obj: object) -> TypeGuard[Base64FileInput]:
 
 
 def is_file_content(obj: object) -> TypeGuard[FileContent]:
-    return (
-        isinstance(obj, bytes) or isinstance(obj, tuple) or isinstance(obj, io.IOBase) or isinstance(obj, os.PathLike)
-    )
+    return isinstance(obj, bytes) or isinstance(obj, io.IOBase) or isinstance(obj, os.PathLike)
 
 
 def assert_is_file_content(obj: object, *, key: str | None = None) -> None:

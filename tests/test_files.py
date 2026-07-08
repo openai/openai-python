@@ -22,6 +22,18 @@ def test_tuple_input() -> None:
     assert result == IsList(IsTuple("file", IsTuple("README.md", IsBytes())))
 
 
+def test_file_tuple_with_pathlike_content() -> None:
+    result = to_httpx_files({"file": ("custom-name.md", readme_path)})
+    print(result)
+    assert result == IsDict({"file": IsTuple("custom-name.md", IsBytes())})
+
+
+def test_file_tuple_with_pathlike_content_and_metadata() -> None:
+    result = to_httpx_files({"file": ("custom-name.md", readme_path, "text/markdown")})
+    print(result)
+    assert result == IsDict({"file": IsTuple("custom-name.md", IsBytes(), "text/markdown")})
+
+
 @pytest.mark.asyncio
 async def test_async_pathlib_includes_file_name() -> None:
     result = await async_to_httpx_files({"file": readme_path})
@@ -41,6 +53,20 @@ async def test_async_tuple_input() -> None:
     result = await async_to_httpx_files([("file", readme_path)])
     print(result)
     assert result == IsList(IsTuple("file", IsTuple("README.md", IsBytes())))
+
+
+@pytest.mark.asyncio
+async def test_async_file_tuple_with_pathlike_content() -> None:
+    result = await async_to_httpx_files({"file": ("custom-name.md", readme_path)})
+    print(result)
+    assert result == IsDict({"file": IsTuple("custom-name.md", IsBytes())})
+
+
+@pytest.mark.asyncio
+async def test_async_file_tuple_with_pathlike_content_and_metadata() -> None:
+    result = await async_to_httpx_files({"file": ("custom-name.md", readme_path, "text/markdown")})
+    print(result)
+    assert result == IsDict({"file": IsTuple("custom-name.md", IsBytes(), "text/markdown")})
 
 
 def test_string_not_allowed() -> None:
