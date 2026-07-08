@@ -22,6 +22,30 @@ def test_tuple_input() -> None:
     assert result == IsList(IsTuple("file", IsTuple("README.md", IsBytes())))
 
 
+def test_tuple_pathlike_content() -> None:
+    result = to_httpx_files({"file": ("custom.txt", readme_path)})
+    print(result)
+    assert result == IsDict({"file": IsTuple("custom.txt", IsBytes())})
+
+
+def test_sequence_tuple_pathlike_content() -> None:
+    result = to_httpx_files([("file", ("custom.txt", readme_path))])
+    print(result)
+    assert result == IsList(IsTuple("file", IsTuple("custom.txt", IsBytes())))
+
+
+def test_tuple_pathlike_content_with_content_type() -> None:
+    result = to_httpx_files({"file": ("custom.txt", readme_path, "text/markdown")})
+    print(result)
+    assert result == IsDict({"file": IsTuple("custom.txt", IsBytes(), "text/markdown")})
+
+
+def test_tuple_pathlike_content_with_headers() -> None:
+    result = to_httpx_files({"file": ("custom.txt", readme_path, "text/markdown", {"X-Test": "1"})})
+    print(result)
+    assert result == IsDict({"file": IsTuple("custom.txt", IsBytes(), "text/markdown", {"X-Test": "1"})})
+
+
 @pytest.mark.asyncio
 async def test_async_pathlib_includes_file_name() -> None:
     result = await async_to_httpx_files({"file": readme_path})
@@ -41,6 +65,36 @@ async def test_async_tuple_input() -> None:
     result = await async_to_httpx_files([("file", readme_path)])
     print(result)
     assert result == IsList(IsTuple("file", IsTuple("README.md", IsBytes())))
+
+
+@pytest.mark.asyncio
+async def test_async_tuple_pathlike_content() -> None:
+    result = await async_to_httpx_files({"file": ("custom.txt", anyio.Path(readme_path))})
+    print(result)
+    assert result == IsDict({"file": IsTuple("custom.txt", IsBytes())})
+
+
+@pytest.mark.asyncio
+async def test_async_sequence_tuple_pathlike_content() -> None:
+    result = await async_to_httpx_files([("file", ("custom.txt", anyio.Path(readme_path)))])
+    print(result)
+    assert result == IsList(IsTuple("file", IsTuple("custom.txt", IsBytes())))
+
+
+@pytest.mark.asyncio
+async def test_async_tuple_pathlike_content_with_content_type() -> None:
+    result = await async_to_httpx_files({"file": ("custom.txt", anyio.Path(readme_path), "text/markdown")})
+    print(result)
+    assert result == IsDict({"file": IsTuple("custom.txt", IsBytes(), "text/markdown")})
+
+
+@pytest.mark.asyncio
+async def test_async_tuple_pathlike_content_with_headers() -> None:
+    result = await async_to_httpx_files(
+        {"file": ("custom.txt", anyio.Path(readme_path), "text/markdown", {"X-Test": "1"})}
+    )
+    print(result)
+    assert result == IsDict({"file": IsTuple("custom.txt", IsBytes(), "text/markdown", {"X-Test": "1"})})
 
 
 def test_string_not_allowed() -> None:
