@@ -7,7 +7,15 @@ from respx import MockRouter
 from inline_snapshot import snapshot
 
 from openai import OpenAI, AsyncOpenAI
+from openai._types import omit
 from openai._utils import assert_signatures_in_sync
+from openai.types.responses import (
+    ResponseCreatedEvent,
+    ResponseRefusalDeltaEvent,
+    ResponseOutputItemAddedEvent,
+    ResponseContentPartAddedEvent,
+)
+from openai.lib.streaming.responses._responses import ResponseStreamState
 
 from ...conftest import base_url
 from ..snapshots import make_snapshot_request
@@ -61,3 +69,81 @@ def test_parse_method_definition_in_sync(sync: bool, client: OpenAI, async_clien
         checking_client.responses.parse,
         exclude_params={"tools"},
     )
+
+
+def test_stream_state_accumulates_refusal_delta() -> None:
+    state: ResponseStreamState[object] = ResponseStreamState(input_tools=omit, text_format=omit)
+
+    state.handle_event(
+        ResponseCreatedEvent.model_validate(
+            {
+                "type": "response.created",
+                "sequence_number": 0,
+                "response": {
+                    "id": "resp_1",
+                    "object": "response",
+                    "created_at": 0,
+                    "status": "in_progress",
+                    "error": None,
+                    "incomplete_details": None,
+                    "instructions": None,
+                    "max_output_tokens": None,
+                    "model": "gpt-4o",
+                    "output": [],
+                    "parallel_tool_calls": True,
+                    "temperature": 1.0,
+                    "tool_choice": "auto",
+                    "tools": [],
+                    "top_p": 1.0,
+                    "metadata": {},
+                },
+            }
+        )
+    )
+    state.handle_event(
+        ResponseOutputItemAddedEvent.model_validate(
+            {
+                "type": "response.output_item.added",
+                "sequence_number": 1,
+                "output_index": 0,
+                "item": {
+                    "id": "msg_1",
+                    "type": "message",
+                    "status": "in_progress",
+                    "role": "assistant",
+                    "content": [],
+                },
+            }
+        )
+    )
+    state.handle_event(
+        ResponseContentPartAddedEvent.model_validate(
+            {
+                "type": "response.content_part.added",
+                "sequence_number": 2,
+                "output_index": 0,
+                "content_index": 0,
+                "item_id": "msg_1",
+                "part": {"type": "refusal", "refusal": ""},
+            }
+        )
+    )
+    for index, delta in enumerate(["I cannot ", "help with ", "that."]):
+        state.handle_event(
+            ResponseRefusalDeltaEvent.model_validate(
+                {
+                    "type": "response.refusal.delta",
+                    "sequence_number": 3 + index,
+                    "output_index": 0,
+                    "content_index": 0,
+                    "item_id": "msg_1",
+                    "delta": delta,
+                }
+            )
+        )
+
+    current_snapshot = state._ResponseStreamState__current_snapshot  # type: ignore[attr-defined]
+    assert current_snapshot is not None
+    content = current_snapshot.output[0].content[0]
+    assert content.type == "refusal"
+    assert content.refusal == "I cannot help with that."
