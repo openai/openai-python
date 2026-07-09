@@ -145,6 +145,25 @@ class TestConstructionAndGate:
         async with AsyncOpenAI(api_key=api_key, http_client=bare) as client:
             _assert_sdk_default_timeout(client.timeout)
 
+    def test_explicit_library_default_timeout_is_treated_as_uncustomised(self) -> None:
+        # Documented parity with classic httpx: the SDK's structural check treats a
+        # client whose timeout equals the *library's own default* (httpx2's 5s) as
+        # "not customised" and substitutes DEFAULT_TIMEOUT (600s) -- exactly as it
+        # already does for a classic `httpx.Client(timeout=5.0)`. Callers who truly
+        # want 5s must pass `timeout=` to `OpenAI(...)` directly. This asserts the
+        # behaviour is intentional, not an accident of the footgun fix.
+        explicit = httpx2.Client(timeout=httpx2.Timeout(5.0), transport=httpx2.MockTransport(_model_handler))
+        with OpenAI(api_key=api_key, http_client=explicit) as client:
+            _assert_sdk_default_timeout(client.timeout)
+
+    def test_non_default_httpx2_timeout_is_respected(self) -> None:
+        # Conversely, a genuinely non-default httpx2 timeout IS honoured (it differs
+        # from both the classic and httpx2 library defaults).
+        explicit = httpx2.Client(timeout=httpx2.Timeout(30.0), transport=httpx2.MockTransport(_model_handler))
+        with OpenAI(api_key=api_key, http_client=explicit) as client:
+            timeout: Any = client.timeout
+            assert timeout.read == 30
+
 
 class TestUrlCoercion:
     """A successful request implicitly proves the classic-httpx `URL` -> `str`
