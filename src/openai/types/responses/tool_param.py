@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Dict, Union, Optional
+from typing import Dict, List, Union, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from . import web_search_tool_param
@@ -35,6 +35,7 @@ __all__ = [
     "CodeInterpreterContainer",
     "CodeInterpreterContainerCodeInterpreterToolAuto",
     "CodeInterpreterContainerCodeInterpreterToolAutoNetworkPolicy",
+    "ProgrammaticToolCalling",
     "ImageGeneration",
     "ImageGenerationInputImageMask",
     "LocalShell",
@@ -122,6 +123,9 @@ class Mcp(TypedDict, total=False):
 
     type: Required[Literal["mcp"]]
     """The type of the MCP tool. Always `mcp`."""
+
+    allowed_callers: Optional[List[Literal["direct", "programmatic"]]]
+    """The tool invocation context(s)."""
 
     allowed_tools: Optional[McpAllowedTools]
     """List of allowed tool names or a filter object."""
@@ -228,6 +232,14 @@ class CodeInterpreter(TypedDict, total=False):
 
     type: Required[Literal["code_interpreter"]]
     """The type of the code interpreter tool. Always `code_interpreter`."""
+
+    allowed_callers: Optional[List[Literal["direct", "programmatic"]]]
+    """The tool invocation context(s)."""
+
+
+class ProgrammaticToolCalling(TypedDict, total=False):
+    type: Required[Literal["programmatic_tool_calling"]]
+    """The type of the tool. Always `programmatic_tool_calling`."""
 
 
 class ImageGenerationInputImageMask(TypedDict, total=False):
@@ -351,6 +363,7 @@ ToolParam: TypeAlias = Union[
     WebSearchToolParam,
     Mcp,
     CodeInterpreter,
+    ProgrammaticToolCalling,
     ImageGeneration,
     LocalShell,
     FunctionShellToolParam,

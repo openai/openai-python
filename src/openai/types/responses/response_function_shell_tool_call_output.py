@@ -12,6 +12,9 @@ __all__ = [
     "OutputOutcome",
     "OutputOutcomeTimeout",
     "OutputOutcomeExit",
+    "Caller",
+    "CallerDirect",
+    "CallerProgram",
 ]
 
 
@@ -54,6 +57,20 @@ class Output(BaseModel):
     """The identifier of the actor that created the item."""
 
 
+class CallerDirect(BaseModel):
+    type: Literal["direct"]
+
+
+class CallerProgram(BaseModel):
+    caller_id: str
+    """The call ID of the program item that produced this tool call."""
+
+    type: Literal["program"]
+
+
+Caller: TypeAlias = Annotated[Union[CallerDirect, CallerProgram, None], PropertyInfo(discriminator="type")]
+
+
 class ResponseFunctionShellToolCallOutput(BaseModel):
     """The output of a shell tool call that was emitted."""
 
@@ -83,6 +100,9 @@ class ResponseFunctionShellToolCallOutput(BaseModel):
 
     type: Literal["shell_call_output"]
     """The type of the shell call output. Always `shell_call_output`."""
+
+    caller: Optional[Caller] = None
+    """The execution context that produced this tool call."""
 
     created_by: Optional[str] = None
     """The identifier of the actor that created the item."""

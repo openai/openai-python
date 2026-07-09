@@ -28,8 +28,13 @@ __all__ = [
     "ContextManagement",
     "Conversation",
     "Moderation",
+    "ModerationPolicy",
+    "ModerationPolicyInput",
+    "ModerationPolicyOutput",
+    "PromptCacheOptions",
     "StreamOptions",
     "ToolChoice",
+    "ToolChoiceSpecificProgrammaticToolCallingParam",
     "ResponseCreateParamsNonStreaming",
     "ResponseCreateParamsStreaming",
 ]
@@ -156,13 +161,31 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
     """
 
-    prompt_cache_retention: Optional[Literal["in_memory", "24h"]]
-    """The retention policy for the prompt cache.
+    prompt_cache_options: PromptCacheOptions
+    """Options for prompt caching.
 
-    Set to `24h` to enable extended prompt caching, which keeps cached prefixes
-    active for longer, up to a maximum of 24 hours.
+    Supported for `gpt-5.6` and later models. By default, OpenAI automatically
+    chooses one implicit cache breakpoint. You can add explicit breakpoints to
+    content blocks with `prompt_cache_breakpoint`. Each request can write up to four
+    breakpoints. For cache matching, OpenAI considers up to the latest 80
+    breakpoints in the conversation, without a content-block lookback limit. Set
+    `mode` to `explicit` to disable the implicit breakpoint. The `ttl` defaults to
+    `30m`, which is currently the only supported value. See the
+    [prompt caching guide](https://platform.openai.com/docs/guides/prompt-caching)
+    for current details.
+    """
+
+    prompt_cache_retention: Optional[Literal["in_memory", "24h"]]
+    """Deprecated. Use `prompt_cache_options.ttl` instead.
+
+    The retention policy for the prompt cache. Set to `24h` to enable extended
+    prompt caching, which keeps cached prefixes active for longer, up to a maximum
+    of 24 hours.
     [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
-    For `gpt-5.5`, `gpt-5.5-pro`, and future models, only `24h` is supported.
+    This field expresses a maximum retention policy, while
+    `prompt_cache_options.ttl` expresses a minimum cache lifetime. The two fields
+    are independent and do not interact. For `gpt-5.5`, `gpt-5.5-pro`, and future
+    models, only `24h` is supported.
 
     For older models that support both `in_memory` and `24h`, the default depends on
     your organization's data retention policy:
@@ -308,6 +331,28 @@ class ContextManagement(TypedDict, total=False):
 Conversation: TypeAlias = Union[str, ResponseConversationParamParam]
 
 
+class ModerationPolicyInput(TypedDict, total=False):
+    """The moderation policy for the response input."""
+
+    mode: Required[Literal["score", "block"]]
+
+
+class ModerationPolicyOutput(TypedDict, total=False):
+    """The moderation policy for the response output."""
+
+    mode: Required[Literal["score", "block"]]
+
+
+class ModerationPolicy(TypedDict, total=False):
+    """The policy to apply to moderated response input and output."""
+
+    input: Optional[ModerationPolicyInput]
+    """The moderation policy for the response input."""
+
+    output: Optional[ModerationPolicyOutput]
+    """The moderation policy for the response output."""
+
+
 class Moderation(TypedDict, total=False):
     """Configuration for running moderation on the input and output of this response."""
 
@@ -315,6 +360,33 @@ class Moderation(TypedDict, total=False):
     """The moderation model to use for moderated completions, e.g.
 
     'omni-moderation-latest'.
+    """
+
+    policy: Optional[ModerationPolicy]
+    """The policy to apply to moderated response input and output."""
+
+
+class PromptCacheOptions(TypedDict, total=False):
+    """Options for prompt caching.
+
+    Supported for `gpt-5.6` and later models. By default, OpenAI automatically chooses one implicit cache breakpoint. You can add explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each request can write up to four breakpoints. For cache matching, OpenAI considers up to the latest 80 breakpoints in the conversation, without a content-block lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The `ttl` defaults to `30m`, which is currently the only supported value. See the [prompt caching guide](https://platform.openai.com/docs/guides/prompt-caching) for current details.
+    """
+
+    mode: Literal["implicit", "explicit"]
+    """Controls whether OpenAI automatically creates an implicit cache breakpoint.
+
+    Defaults to `implicit`. With `implicit`, OpenAI creates one implicit breakpoint
+    and writes up to the latest three explicit breakpoints in the request. With
+    `explicit`, OpenAI does not create an implicit breakpoint and writes up to the
+    latest four explicit breakpoints. If there are no explicit breakpoints, the
+    request does not use prompt caching.
+    """
+
+    ttl: Literal["30m"]
+    """
+    The minimum lifetime applied to every implicit and explicit cache breakpoint
+    written by the request. Defaults to `30m`, which is currently the only supported
+    value. The backend may retain cache entries for longer.
     """
 
 
@@ -333,6 +405,11 @@ class StreamOptions(TypedDict, total=False):
     """
 
 
+class ToolChoiceSpecificProgrammaticToolCallingParam(TypedDict, total=False):
+    type: Required[Literal["programmatic_tool_calling"]]
+    """The tool to call. Always `programmatic_tool_calling`."""
+
+
 ToolChoice: TypeAlias = Union[
     ToolChoiceOptions,
     ToolChoiceAllowedParam,
@@ -340,6 +417,7 @@ ToolChoice: TypeAlias = Union[
     ToolChoiceFunctionParam,
     ToolChoiceMcpParam,
     ToolChoiceCustomParam,
+    ToolChoiceSpecificProgrammaticToolCallingParam,
     ToolChoiceApplyPatchParam,
     ToolChoiceShellParam,
 ]

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from typing import List, Optional
 from typing_extensions import Literal, Required, TypedDict
 
 __all__ = ["ApplyPatchToolParam"]
@@ -12,3 +13,6 @@ class ApplyPatchToolParam(TypedDict, total=False):
 
     type: Required[Literal["apply_patch"]]
     """The type of the tool. Always `apply_patch`."""
+
+    allowed_callers: Optional[List[Literal["direct", "programmatic"]]]
+    """The tool invocation context(s)."""

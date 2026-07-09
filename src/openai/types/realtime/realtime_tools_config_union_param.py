@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Dict, Union, Optional
+from typing import Dict, List, Union, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from ..._types import SequenceNotStr
@@ -97,6 +97,9 @@ class Mcp(TypedDict, total=False):
 
     type: Required[Literal["mcp"]]
     """The type of the MCP tool. Always `mcp`."""
+
+    allowed_callers: Optional[List[Literal["direct", "programmatic"]]]
+    """The tool invocation context(s)."""
 
     allowed_tools: Optional[McpAllowedTools]
     """List of allowed tool names or a filter object."""

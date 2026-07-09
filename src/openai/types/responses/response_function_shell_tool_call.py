@@ -8,7 +8,7 @@ from ..._models import BaseModel
 from .response_local_environment import ResponseLocalEnvironment
 from .response_container_reference import ResponseContainerReference
 
-__all__ = ["ResponseFunctionShellToolCall", "Action", "Environment"]
+__all__ = ["ResponseFunctionShellToolCall", "Action", "Environment", "Caller", "CallerDirect", "CallerProgram"]
 
 
 class Action(BaseModel):
@@ -26,6 +26,20 @@ class Action(BaseModel):
 Environment: TypeAlias = Annotated[
     Union[ResponseLocalEnvironment, ResponseContainerReference, None], PropertyInfo(discriminator="type")
 ]
+
+
+class CallerDirect(BaseModel):
+    type: Literal["direct"]
+
+
+class CallerProgram(BaseModel):
+    caller_id: str
+    """The call ID of the program item that produced this tool call."""
+
+    type: Literal["program"]
+
+
+Caller: TypeAlias = Annotated[Union[CallerDirect, CallerProgram, None], PropertyInfo(discriminator="type")]
 
 
 class ResponseFunctionShellToolCall(BaseModel):
@@ -54,6 +68,9 @@ class ResponseFunctionShellToolCall(BaseModel):
 
     type: Literal["shell_call"]
     """The type of the item. Always `shell_call`."""
+
+    caller: Optional[Caller] = None
+    """The execution context that produced this tool call."""
 
     created_by: Optional[str] = None
     """The ID of the entity that created this tool call."""

@@ -36,6 +36,7 @@ class TestInputTokens:
                 "context": "auto",
                 "effort": "none",
                 "generate_summary": "auto",
+                "mode": "standard",
                 "summary": "auto",
             },
             text={
@@ -49,8 +50,10 @@ class TestInputTokens:
                     "parameters": {"foo": "bar"},
                     "strict": True,
                     "type": "function",
+                    "allowed_callers": ["direct"],
                     "defer_loading": True,
                     "description": "description",
+                    "output_schema": {"foo": "bar"},
                 }
             ],
             truncation="auto",
@@ -102,6 +105,7 @@ class TestAsyncInputTokens:
                 "context": "auto",
                 "effort": "none",
                 "generate_summary": "auto",
+                "mode": "standard",
                 "summary": "auto",
             },
             text={
@@ -115,8 +119,10 @@ class TestAsyncInputTokens:
                     "parameters": {"foo": "bar"},
                     "strict": True,
                     "type": "function",
+                    "allowed_callers": ["direct"],
                     "defer_loading": True,
                     "description": "description",
+                    "output_schema": {"foo": "bar"},
                 }
             ],
             truncation="auto",

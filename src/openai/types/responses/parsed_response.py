@@ -8,7 +8,9 @@ from .response import Response
 from ..._models import GenericModel
 from .response_output_item import (
     McpCall,
+    Program,
     McpListTools,
+    ProgramOutput,
     LocalShellCall,
     AdditionalTools,
     McpApprovalRequest,
@@ -83,6 +85,8 @@ ParsedResponseOutputItem: TypeAlias = Annotated[
         ResponseToolSearchOutputItem,
         AdditionalTools,
         ResponseReasoningItem,
+        Program,
+        ProgramOutput,
         McpCall,
         McpApprovalRequest,
         McpApprovalResponse,
