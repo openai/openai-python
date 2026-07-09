@@ -831,6 +831,32 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         return f"stainless-python-retry-{uuid.uuid4()}"
 
 
+def _sanitize_proxy_env() -> None:
+    """Sanitize proxy-related environment variables.
+
+    httpx get_environment_proxies() splits NO_PROXY only by comma,
+    but the value often contains newlines (from Docker, .env files, or shell
+    scripts). Newlines inside a hostname cause httpx.InvalidURL at client
+    creation time. This helper normalises the values so that newlines are
+    treated as delimiters equivalent to commas.
+    """
+    import os
+
+    for key in ("NO_PROXY", "no_proxy"):
+        val = os.environ.get(key)
+        if val and "\n" in val:
+            os.environ[key] = ",".join(
+                part.strip() for part in val.replace("\n", ",").split(",") if part.strip()
+            )
+
+
+# Best-effort: run once at import time so every httpx client benefits.
+try:
+    _sanitize_proxy_env()
+except Exception:
+    pass
+
+
 class _DefaultHttpxClient(httpx.Client):
     def __init__(self, **kwargs: Any) -> None:
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
