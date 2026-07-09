@@ -133,6 +133,22 @@ def test_raw_dictionary() -> None:
     assert cast(Any, m.nested) is False
 
 
+
+def test_bare_dict_annotation() -> None:
+    """construct_type should not crash on bare dict annotations without type parameters."""
+    # This was crashing with ValueError: not enough values to unpack
+    # because get_args(dict) returns () for unparameterised dict.
+    result = construct_type(value={"key": "value"}, type_=dict)
+    assert result == {"key": "value"}
+
+    result = construct_type(value={"a": 1, "b": 2}, type_=dict)
+    assert result == {"a": 1, "b": 2}
+
+    # empty dict
+    result = construct_type(value={}, type_=dict)
+    assert result == {}
+
+
 def test_nested_dictionary_model() -> None:
     class NestedModel(BaseModel):
         nested: Dict[str, BasicModel]
