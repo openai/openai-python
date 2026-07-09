@@ -99,6 +99,9 @@ class Mcp(TypedDict, total=False):
     type: Required[Literal["mcp"]]
     """The type of the MCP tool. Always `mcp`."""
 
+    allowed_callers: Optional[List[Literal["direct", "programmatic"]]]
+    """The tool invocation context(s)."""
+
     allowed_tools: Optional[McpAllowedTools]
     """List of allowed tool names or a filter object."""
 

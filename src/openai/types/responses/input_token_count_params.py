@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from typing import Union, Iterable, Optional
-from typing_extensions import Literal, TypeAlias, TypedDict
+from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from .tool_param import ToolParam
 from .tool_choice_options import ToolChoiceOptions
@@ -19,7 +19,13 @@ from .tool_choice_apply_patch_param import ToolChoiceApplyPatchParam
 from .response_conversation_param_param import ResponseConversationParamParam
 from .response_format_text_config_param import ResponseFormatTextConfigParam
 
-__all__ = ["InputTokenCountParams", "Conversation", "Text", "ToolChoice"]
+__all__ = [
+    "InputTokenCountParams",
+    "Conversation",
+    "Text",
+    "ToolChoice",
+    "ToolChoiceSpecificProgrammaticToolCallingParam",
+]
 
 
 class InputTokenCountParams(TypedDict, total=False):
@@ -141,6 +147,11 @@ class Text(TypedDict, total=False):
     """
 
 
+class ToolChoiceSpecificProgrammaticToolCallingParam(TypedDict, total=False):
+    type: Required[Literal["programmatic_tool_calling"]]
+    """The tool to call. Always `programmatic_tool_calling`."""
+
+
 ToolChoice: TypeAlias = Union[
     ToolChoiceOptions,
     ToolChoiceAllowedParam,
@@ -148,6 +159,7 @@ ToolChoice: TypeAlias = Union[
     ToolChoiceFunctionParam,
     ToolChoiceMcpParam,
     ToolChoiceCustomParam,
+    ToolChoiceSpecificProgrammaticToolCallingParam,
     ToolChoiceApplyPatchParam,
     ToolChoiceShellParam,
 ]

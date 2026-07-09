@@ -14,6 +14,7 @@ class ResponseError(BaseModel):
         "server_error",
         "rate_limit_exceeded",
         "invalid_prompt",
+        "bio_policy",
         "vector_store_timeout",
         "invalid_image",
         "invalid_image_format",

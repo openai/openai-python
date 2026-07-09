@@ -316,6 +316,9 @@ class ToolMcpTool(BaseModel):
     type: Literal["mcp"]
     """The type of the MCP tool. Always `mcp`."""
 
+    allowed_callers: Optional[List[Literal["direct", "programmatic"]]] = None
+    """The tool invocation context(s)."""
+
     allowed_tools: Optional[ToolMcpToolAllowedTools] = None
     """List of allowed tool names or a filter object."""
 
@@ -466,6 +469,8 @@ class RealtimeSessionCreateResponse(BaseModel):
             "gpt-realtime",
             "gpt-realtime-1.5",
             "gpt-realtime-2",
+            "gpt-realtime-2.1",
+            "gpt-realtime-2.1-mini",
             "gpt-realtime-2025-08-28",
             "gpt-4o-realtime-preview",
             "gpt-4o-realtime-preview-2024-10-01",

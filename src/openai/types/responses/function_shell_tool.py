@@ -1,6 +1,6 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import Union, Optional
+from typing import List, Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
 
 from ..._utils import PropertyInfo
@@ -21,5 +21,8 @@ class FunctionShellTool(BaseModel):
 
     type: Literal["shell"]
     """The type of the shell tool. Always `shell`."""
+
+    allowed_callers: Optional[List[Literal["direct", "programmatic"]]] = None
+    """The tool invocation context(s)."""
 
     environment: Optional[Environment] = None

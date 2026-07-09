@@ -34,6 +34,7 @@ __all__ = [
     "CodeInterpreterContainer",
     "CodeInterpreterContainerCodeInterpreterToolAuto",
     "CodeInterpreterContainerCodeInterpreterToolAutoNetworkPolicy",
+    "ProgrammaticToolCalling",
     "ImageGeneration",
     "ImageGenerationInputImageMask",
     "LocalShell",
@@ -120,6 +121,9 @@ class Mcp(BaseModel):
 
     type: Literal["mcp"]
     """The type of the MCP tool. Always `mcp`."""
+
+    allowed_callers: Optional[List[Literal["direct", "programmatic"]]] = None
+    """The tool invocation context(s)."""
 
     allowed_tools: Optional[McpAllowedTools] = None
     """List of allowed tool names or a filter object."""
@@ -228,6 +232,14 @@ class CodeInterpreter(BaseModel):
 
     type: Literal["code_interpreter"]
     """The type of the code interpreter tool. Always `code_interpreter`."""
+
+    allowed_callers: Optional[List[Literal["direct", "programmatic"]]] = None
+    """The tool invocation context(s)."""
+
+
+class ProgrammaticToolCalling(BaseModel):
+    type: Literal["programmatic_tool_calling"]
+    """The type of the tool. Always `programmatic_tool_calling`."""
 
 
 class ImageGenerationInputImageMask(BaseModel):
@@ -353,6 +365,7 @@ Tool: TypeAlias = Annotated[
         WebSearchTool,
         Mcp,
         CodeInterpreter,
+        ProgrammaticToolCalling,
         ImageGeneration,
         LocalShell,
         FunctionShellTool,
