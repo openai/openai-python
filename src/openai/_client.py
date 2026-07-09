@@ -39,6 +39,7 @@ from ._base_client import (
     SyncAPIClient,
     AsyncAPIClient,
 )
+from ._httpx2_compat import noop_auth_for
 
 if TYPE_CHECKING:
     from .resources import (
@@ -560,7 +561,7 @@ class OpenAI(SyncAPIClient):
     @override
     def _custom_auth(self, security: SecurityOptions) -> httpx.Auth | None:
         if self._provider_runtime is not None:
-            return httpx.Auth()
+            return noop_auth_for(self._client)
 
         return super()._custom_auth(security)
 
@@ -1167,7 +1168,7 @@ class AsyncOpenAI(AsyncAPIClient):
     @override
     def custom_auth(self) -> httpx.Auth | None:
         if self._provider_runtime is not None:
-            return httpx.Auth()
+            return noop_auth_for(self._client)
 
         return super().custom_auth
 

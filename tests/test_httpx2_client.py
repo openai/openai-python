@@ -11,6 +11,8 @@ against the openai client's request/response pipeline:
   * retries (and the `x-stainless-retry-count` header) over an httpx2 transport
   * the Bedrock SigV4 body-signing seam, where httpx2's `RequestNotRead` must map
     onto the SDK's friendly `OpenAIError`
+  * provider-managed auth over an httpx2 backend: the no-op `Auth` handed to `send()`
+    must come from the client's own backend (httpx2 rejects a classic `httpx.Auth`)
 
 httpx2 is an opt-in extra that isn't installable on Python 3.9, so the whole module
 is skipped cleanly when it isn't present.
@@ -21,6 +23,7 @@ from __future__ import annotations
 from typing import Any, Callable
 from unittest import mock
 
+import httpx
 import pytest
 
 httpx2 = pytest.importorskip("httpx2")
@@ -330,6 +333,49 @@ class TestBedrockBodySigning:
 
         request: Any = httpx2.Request("POST", "http://localhost/test", content=b"chunk")
         assert _body_for_signing(request) == b"chunk"
+
+
+class TestProviderAuth:
+    """Provider-managed clients (e.g. Bedrock) pass a no-op `Auth` to `send()` so the
+    provider's request hooks own authentication. httpx2's `send` rejects a classic
+    `httpx.Auth` instance (`TypeError: Invalid "auth" argument`) -- which the SDK's
+    generic exception handling would then surface as a misleading `APIConnectionError`
+    -- so the no-op auth must come from the client's own backend (`noop_auth_for`)."""
+
+    def test_sync_bedrock_provider_over_httpx2(self) -> None:
+        from openai.providers import bedrock
+
+        requests: list[Any] = []
+
+        def handler(request: Any) -> Any:
+            requests.append(request)
+            return httpx2.Response(200, json={})
+
+        client = OpenAI(
+            provider=bedrock(region="us-east-1", api_key="bedrock token"),
+            http_client=DefaultHttpx2Client(transport=httpx2.MockTransport(handler), trust_env=False),
+        )
+        client.get("/models", cast_to=httpx.Response)
+
+        assert requests[0].headers["Authorization"] == "Bearer bedrock token"
+
+    async def test_async_bedrock_provider_over_httpx2(self) -> None:
+        from openai.providers import bedrock
+
+        requests: list[Any] = []
+
+        def handler(request: Any) -> Any:
+            requests.append(request)
+            return httpx2.Response(200, json={})
+
+        client = AsyncOpenAI(
+            provider=bedrock(region="us-east-1", token_provider=lambda: "bedrock token"),
+            http_client=DefaultAsyncHttpx2Client(transport=httpx2.MockTransport(handler), trust_env=False),
+        )
+        await client.get("/models", cast_to=httpx.Response)
+        await client.close()
+
+        assert requests[0].headers["Authorization"] == "Bearer bedrock token"
 
 
 class TestStreamConsumed:

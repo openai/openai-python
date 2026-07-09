@@ -12,7 +12,7 @@
 # accepted `DefaultAioHttpClient` pattern.
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 import httpx
 
@@ -37,6 +37,7 @@ __all__ = [
     "REQUEST_NOT_READ_ERRORS",
     "HTTPX2_DEFAULT_TIMEOUT",
     "coerce_httpx2_request_url",
+    "noop_auth_for",
 ]
 
 _NOT_INSTALLED_MESSAGE = "To use the httpx2 client you must have installed the package with the `httpx2` extra"
@@ -66,6 +67,7 @@ if TYPE_CHECKING:
     HTTPX2_DEFAULT_TIMEOUT: httpx.Timeout | None = None
 
     _HTTPX2_CLIENT_TYPES: tuple[type[Any], ...] = ()
+    _HTTPX2_AUTH_CLASS: type[Any] | None = None
 
     # Aliased to httpx.* for type checking, exactly like `DefaultAioHttpClient`. The
     # real runtime classes are defined below.
@@ -82,6 +84,7 @@ elif httpx2 is None:
     ASYNC_HTTP_CLIENT_NAMES = "`httpx.AsyncClient`"
     HTTPX2_DEFAULT_TIMEOUT = None
     _HTTPX2_CLIENT_TYPES = ()
+    _HTTPX2_AUTH_CLASS = None
 
     class DefaultHttpx2Client(httpx.Client):
         def __init__(self, **_kwargs: Any) -> None:
@@ -104,6 +107,7 @@ else:
     SYNC_HTTP_CLIENT_NAMES = "`httpx.Client` or `httpx2.Client`"
     ASYNC_HTTP_CLIENT_NAMES = "`httpx.AsyncClient` or `httpx2.AsyncClient`"
     _HTTPX2_CLIENT_TYPES = (_h2.Client, _h2.AsyncClient)
+    _HTTPX2_AUTH_CLASS = _h2.Auth
 
     try:
         HTTPX2_DEFAULT_TIMEOUT = _h2._config.DEFAULT_TIMEOUT_CONFIG
@@ -148,3 +152,14 @@ def coerce_httpx2_request_url(client: httpx.Client | httpx.AsyncClient, url: htt
     if _HTTPX2_CLIENT_TYPES and isinstance(client, _HTTPX2_CLIENT_TYPES):
         return str(url)
     return url
+
+
+def noop_auth_for(client: httpx.Client | httpx.AsyncClient) -> httpx.Auth:
+    """A no-op ``Auth`` matched to the client's backend. The SDK passes a bare
+    ``httpx.Auth()`` to ``send()`` for provider-managed clients (the real auth headers
+    are applied by the provider's request hooks), but httpx2's ``send`` rejects a
+    classic ``httpx.Auth`` instance (``Invalid "auth" argument``), so httpx2 clients
+    must be handed an ``httpx2.Auth()`` instead."""
+    if _HTTPX2_AUTH_CLASS is not None and isinstance(client, _HTTPX2_CLIENT_TYPES):
+        return cast("httpx.Auth", _HTTPX2_AUTH_CLASS())
+    return httpx.Auth()
