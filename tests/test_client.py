@@ -905,6 +905,27 @@ class TestOpenAI:
             client = OpenAI(api_key=api_key, admin_api_key=admin_api_key, _strict_response_validation=True)
             assert client.base_url == "http://localhost:5000/from/env/"
 
+    def test_realtime_url_preserves_http_query_param(self) -> None:
+        client = OpenAI(
+            base_url="https://proxy.com/forward?target=http://backend.internal/v1",
+            api_key=api_key,
+            _strict_response_validation=True,
+        )
+        assert client.base_url == "https://proxy.com/forward/?target=http://backend.internal/v1"
+
+        url = (
+            client.realtime.connect(model="gpt-realtime")
+            ._prepare_url()
+            .copy_with(
+                params={**client.base_url.params, "model": "gpt-realtime"},
+            )
+        )
+
+        assert str(url) == (
+            "wss://proxy.com/forward/realtime?target=http%3A%2F%2Fbackend.internal%2Fv1&model=gpt-realtime"
+        )
+        client.close()
+
     @pytest.mark.parametrize(
         "client",
         [
