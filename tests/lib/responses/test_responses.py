@@ -8,6 +8,9 @@ from inline_snapshot import snapshot
 
 from openai import OpenAI, AsyncOpenAI
 from openai._utils import assert_signatures_in_sync
+from openai._types import omit
+from openai.types.responses import Response
+from openai.lib._parsing._responses import parse_response
 
 from ...conftest import base_url
 from ..snapshots import make_snapshot_request
@@ -61,3 +64,34 @@ def test_parse_method_definition_in_sync(sync: bool, client: OpenAI, async_clien
         checking_client.responses.parse,
         exclude_params={"tools"},
     )
+
+
+def test_parse_response_handles_null_output() -> None:
+    """Regression test: some Responses-API backends emit a terminal
+    payload with ``output: null`` (observed on the ChatGPT codex backend
+    for newer models). ``parse_response`` should treat None defensively
+    as an empty list rather than raising
+    ``TypeError: 'NoneType' object is not iterable``.
+    """
+    response = Response.model_construct(
+        id="resp_test_null_output",
+        object="response",
+        created_at=0,
+        status="completed",
+        error=None,
+        incomplete_details=None,
+        instructions=None,
+        model="test-model",
+        output=None,  # the bug-trigger
+        parallel_tool_calls=True,
+        temperature=1.0,
+        tool_choice="auto",
+        tools=[],
+        top_p=1.0,
+        metadata={},
+    )
+
+    parsed = parse_response(text_format=omit, input_tools=omit, response=response)
+
+    assert parsed.output == []
+    assert parsed.output_parsed is None
