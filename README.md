@@ -346,6 +346,7 @@ A few things to be aware of when using `httpx2`:
 - `httpx2` requires Python 3.10 or newer (it dropped support for 3.9), so the `httpx2` extra installs nothing on Python 3.9.
 - When streaming raw responses, the exceptions raised come from `httpx2` (e.g. `httpx2.StreamConsumed`), not from `httpx`.
 - `cast_to=httpx.Response` still works but returns a duck-compatible `httpx2.Response`, which is not an `isinstance` of `httpx.Response`. Passing `cast_to=httpx2.Response` is not supported.
+- As with classic `httpx`, a client whose timeout equals the library's own default (`httpx2.Timeout(5.0)`) is treated as "not customised" and the SDK's default of 10 minutes is used instead. To actually get a 5 second timeout, pass `timeout=5.0` to the `OpenAI(...)` constructor rather than to the http client.
 
 ## Streaming responses
 
