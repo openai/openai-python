@@ -36,7 +36,13 @@ from ._exceptions import (
     ContentFilterFinishReasonError,
     WebSocketConnectionClosedError,
 )
-from ._base_client import DefaultHttpxClient, DefaultAioHttpClient, DefaultAsyncHttpxClient
+from ._base_client import (
+    DefaultHttpxClient,
+    DefaultHttpx2Client,
+    DefaultAioHttpClient,
+    DefaultAsyncHttpxClient,
+    DefaultAsyncHttpx2Client,
+)
 from ._utils._logs import setup_logging as _setup_logging
 from ._legacy_response import HttpxBinaryResponseContent as HttpxBinaryResponseContent
 from .types.websocket_reconnection import ReconnectingEvent, ReconnectingOverrides
@@ -89,6 +95,8 @@ __all__ = [
     "DefaultHttpxClient",
     "DefaultAsyncHttpxClient",
     "DefaultAioHttpClient",
+    "DefaultHttpx2Client",
+    "DefaultAsyncHttpx2Client",
     "ReconnectingEvent",
     "ReconnectingOverrides",
     "WebSocketQueueFullError",

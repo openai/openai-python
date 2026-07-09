@@ -30,6 +30,7 @@ from ._models import BaseModel, is_basemodel, add_request_id
 from ._constants import RAW_RESPONSE_HEADER, OVERRIDE_CAST_TO_HEADER
 from ._streaming import Stream, AsyncStream, is_stream_class_type, extract_stream_chunk_type
 from ._exceptions import OpenAIError, APIResponseValidationError
+from ._httpx2_compat import STREAM_CONSUMED_ERRORS
 
 if TYPE_CHECKING:
     from ._models import FinalRequestOptions
@@ -337,7 +338,7 @@ class APIResponse(BaseAPIResponse[R]):
         """Read and return the binary response content."""
         try:
             return self.http_response.read()
-        except httpx.StreamConsumed as exc:
+        except STREAM_CONSUMED_ERRORS as exc:
             # The default error raised by httpx isn't very
             # helpful in our case so we re-raise it with
             # a different error message.
@@ -444,7 +445,7 @@ class AsyncAPIResponse(BaseAPIResponse[R]):
         """Read and return the binary response content."""
         try:
             return await self.http_response.aread()
-        except httpx.StreamConsumed as exc:
+        except STREAM_CONSUMED_ERRORS as exc:
             # the default error raised by httpx isn't very
             # helpful in our case so we re-raise it with
             # a different error message
