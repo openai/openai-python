@@ -27,6 +27,7 @@ __all__ = [
     "LengthFinishReasonError",
     "ContentFilterFinishReasonError",
     "InvalidWebhookSignatureError",
+    "PollingTimeoutError",
     "SubjectTokenProviderError",
     "WebSocketConnectionClosedError",
     "WebSocketQueueFullError",
@@ -34,6 +35,10 @@ __all__ = [
 
 
 class OpenAIError(Exception):
+    pass
+
+
+class PollingTimeoutError(OpenAIError):
     pass
 
 

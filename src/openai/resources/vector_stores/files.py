@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import time
 from typing import TYPE_CHECKING, Dict, Union, Optional
 from typing_extensions import Literal, assert_never
 
@@ -15,6 +16,7 @@ from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from ...pagination import SyncPage, AsyncPage, SyncCursorPage, AsyncCursorPage
+from ..._exceptions import PollingTimeoutError
 from ..._base_client import AsyncPaginator, make_request_options
 from ...types.vector_stores import file_list_params, file_create_params, file_update_params
 from ...types.file_chunking_strategy_param import FileChunkingStrategyParam
@@ -331,6 +333,7 @@ class Files(SyncAPIResource):
         vector_store_id: str,
         attributes: Optional[Dict[str, Union[str, float, bool]]] | Omit = omit,
         poll_interval_ms: int | Omit = omit,
+        max_wait_seconds: float | None = 600,
         chunking_strategy: FileChunkingStrategyParam | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -355,6 +358,7 @@ class Files(SyncAPIResource):
             file_id,
             vector_store_id=vector_store_id,
             poll_interval_ms=poll_interval_ms,
+            max_wait_seconds=max_wait_seconds,
         )
 
     def poll(
@@ -363,6 +367,7 @@ class Files(SyncAPIResource):
         *,
         vector_store_id: str,
         poll_interval_ms: int | Omit = omit,
+        max_wait_seconds: float | None = 600,
     ) -> VectorStoreFile:
         """Wait for the vector store file to finish processing.
 
@@ -373,6 +378,7 @@ class Files(SyncAPIResource):
         if is_given(poll_interval_ms):
             headers["X-Stainless-Custom-Poll-Interval"] = str(poll_interval_ms)
 
+        started_at = time.monotonic()
         while True:
             response = self.with_raw_response.retrieve(
                 file_id,
@@ -382,6 +388,12 @@ class Files(SyncAPIResource):
 
             file = response.parse()
             if file.status == "in_progress":
+                elapsed = time.monotonic() - started_at
+                if max_wait_seconds is not None and elapsed >= max_wait_seconds:
+                    raise PollingTimeoutError(
+                        f"Polling timed out after {max_wait_seconds}s: file {file_id} is still in_progress"
+                    )
+
                 if not is_given(poll_interval_ms):
                     from_header = response.headers.get("openai-poll-after-ms")
                     if from_header is not None:
@@ -389,7 +401,10 @@ class Files(SyncAPIResource):
                     else:
                         poll_interval_ms = 1000
 
-                self._sleep(poll_interval_ms / 1000)
+                sleep_seconds = poll_interval_ms / 1000
+                if max_wait_seconds is not None:
+                    sleep_seconds = min(sleep_seconds, max_wait_seconds - elapsed)
+                self._sleep(sleep_seconds)
             elif file.status == "cancelled" or file.status == "completed" or file.status == "failed":
                 return file
             else:
@@ -420,6 +435,7 @@ class Files(SyncAPIResource):
         file: FileTypes,
         attributes: Optional[Dict[str, Union[str, float, bool]]] | Omit = omit,
         poll_interval_ms: int | Omit = omit,
+        max_wait_seconds: float | None = 600,
         chunking_strategy: FileChunkingStrategyParam | Omit = omit,
     ) -> VectorStoreFile:
         """Add a file to a vector store and poll until processing is complete."""
@@ -429,6 +445,7 @@ class Files(SyncAPIResource):
             file_id=file_obj.id,
             chunking_strategy=chunking_strategy,
             poll_interval_ms=poll_interval_ms,
+            max_wait_seconds=max_wait_seconds,
             attributes=attributes,
         )
 
@@ -785,6 +802,7 @@ class AsyncFiles(AsyncAPIResource):
         vector_store_id: str,
         attributes: Optional[Dict[str, Union[str, float, bool]]] | Omit = omit,
         poll_interval_ms: int | Omit = omit,
+        max_wait_seconds: float | None = 600,
         chunking_strategy: FileChunkingStrategyParam | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -809,6 +827,7 @@ class AsyncFiles(AsyncAPIResource):
             file_id,
             vector_store_id=vector_store_id,
             poll_interval_ms=poll_interval_ms,
+            max_wait_seconds=max_wait_seconds,
         )
 
     async def poll(
@@ -817,6 +836,7 @@ class AsyncFiles(AsyncAPIResource):
         *,
         vector_store_id: str,
         poll_interval_ms: int | Omit = omit,
+        max_wait_seconds: float | None = 600,
     ) -> VectorStoreFile:
         """Wait for the vector store file to finish processing.
 
@@ -827,6 +847,7 @@ class AsyncFiles(AsyncAPIResource):
         if is_given(poll_interval_ms):
             headers["X-Stainless-Custom-Poll-Interval"] = str(poll_interval_ms)
 
+        started_at = time.monotonic()
         while True:
             response = await self.with_raw_response.retrieve(
                 file_id,
@@ -836,6 +857,12 @@ class AsyncFiles(AsyncAPIResource):
 
             file = response.parse()
             if file.status == "in_progress":
+                elapsed = time.monotonic() - started_at
+                if max_wait_seconds is not None and elapsed >= max_wait_seconds:
+                    raise PollingTimeoutError(
+                        f"Polling timed out after {max_wait_seconds}s: file {file_id} is still in_progress"
+                    )
+
                 if not is_given(poll_interval_ms):
                     from_header = response.headers.get("openai-poll-after-ms")
                     if from_header is not None:
@@ -843,7 +870,10 @@ class AsyncFiles(AsyncAPIResource):
                     else:
                         poll_interval_ms = 1000
 
-                await self._sleep(poll_interval_ms / 1000)
+                sleep_seconds = poll_interval_ms / 1000
+                if max_wait_seconds is not None:
+                    sleep_seconds = min(sleep_seconds, max_wait_seconds - elapsed)
+                await self._sleep(sleep_seconds)
             elif file.status == "cancelled" or file.status == "completed" or file.status == "failed":
                 return file
             else:
@@ -876,6 +906,7 @@ class AsyncFiles(AsyncAPIResource):
         file: FileTypes,
         attributes: Optional[Dict[str, Union[str, float, bool]]] | Omit = omit,
         poll_interval_ms: int | Omit = omit,
+        max_wait_seconds: float | None = 600,
         chunking_strategy: FileChunkingStrategyParam | Omit = omit,
     ) -> VectorStoreFile:
         """Add a file to a vector store and poll until processing is complete."""
@@ -884,6 +915,7 @@ class AsyncFiles(AsyncAPIResource):
             vector_store_id=vector_store_id,
             file_id=file_obj.id,
             poll_interval_ms=poll_interval_ms,
+            max_wait_seconds=max_wait_seconds,
             chunking_strategy=chunking_strategy,
             attributes=attributes,
         )

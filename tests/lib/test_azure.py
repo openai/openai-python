@@ -17,6 +17,15 @@ from openai.lib.azure import AzureOpenAI, AsyncAzureOpenAI
 
 Client = Union[AzureOpenAI, AsyncAzureOpenAI]
 
+AZURE_AD_JWT = (
+    "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9."
+    "eyJpc3MiOiJodHRwczovL2xvZ2luLm1pY3Jvc29mdG9ubGluZS5jb20vMDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAt"
+    "MDAwMDAwMDAwMDAwL3YyLjAiLCJhdWQiOiJodHRwczovL2NvZ25pdGl2ZXNlcnZpY2VzLmF6dXJlLmNvbSIsInRp"
+    "ZCI6IjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMCIsInN1YiI6InVzZXIifQ."
+    "signature"
+)
+NON_AZURE_JWT_LIKE_API_KEY = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJ1c2VyIn0.signature"
+
 
 sync_client = AzureOpenAI(
     api_version="2023-07-01",
@@ -818,6 +827,166 @@ def test_prepare_url_realtime(client: AzureOpenAI, base_url: str, json_data: dic
     assert client.base_url == base_url
 
 
+def test_prepare_url_realtime_preserves_http_in_query_params() -> None:
+    client = AzureOpenAI(
+        api_version="2024-02-01",
+        api_key="example API key",
+        base_url="https://example.azure-api.net/PTU/?next=http://example.test/callback",
+    )
+
+    url, _ = client._configure_realtime("deployment-body", {})
+
+    assert str(url) == (
+        "wss://example.azure-api.net/PTU/realtime?next=http%3A%2F%2Fexample.test%2Fcallback"
+        "%2F&api-version=2024-02-01&deployment=deployment-body"
+    )
+
+
+def test_prepare_url_realtime_preserves_websocket_base_url_query_params() -> None:
+    client = AzureOpenAI(
+        api_version="2024-02-01",
+        api_key="example API key",
+        azure_endpoint="https://example-resource.azure.openai.com",
+        websocket_base_url="wss://example.azure-api.net/PTU/?next=http://example.test/callback",
+    )
+
+    url, _ = client._configure_realtime("deployment-body", {})
+
+    assert str(url) == (
+        "wss://example.azure-api.net/PTU/realtime?next=http%3A%2F%2Fexample.test%2Fcallback"
+        "&api-version=2024-02-01&deployment=deployment-body"
+    )
+
+
+def test_azure_api_key_accepts_legacy_bearer_token_value() -> None:
+    token = f"Bearer {AZURE_AD_JWT}"
+    client = AzureOpenAI(
+        api_version="2024-02-01",
+        api_key=token,
+        azure_endpoint="https://example-resource.azure.openai.com",
+    )
+    request = client._build_request(FinalRequestOptions.construct(method="get", url="/models"))
+
+    assert request.headers.get("Authorization") == f"Bearer {AZURE_AD_JWT}"
+    assert "api-key" not in request.headers
+
+
+def test_azure_api_key_accepts_legacy_azure_ad_jwt_value() -> None:
+    client = AzureOpenAI(
+        api_version="2024-02-01",
+        api_key=AZURE_AD_JWT,
+        azure_endpoint="https://example-resource.azure.openai.com",
+    )
+    request = client._build_request(FinalRequestOptions.construct(method="get", url="/models"))
+
+    assert request.headers.get("Authorization") == f"Bearer {AZURE_AD_JWT}"
+    assert "api-key" not in request.headers
+
+
+def test_azure_api_key_keeps_non_azure_jwt_like_value_as_api_key() -> None:
+    client = AzureOpenAI(
+        api_version="2024-02-01",
+        api_key=NON_AZURE_JWT_LIKE_API_KEY,
+        azure_endpoint="https://example-resource.azure.openai.com",
+    )
+    request = client._build_request(FinalRequestOptions.construct(method="get", url="/models"))
+
+    assert request.headers.get("api-key") == NON_AZURE_JWT_LIKE_API_KEY
+    assert "Authorization" not in request.headers
+
+
+def test_azure_ad_token_takes_priority_over_legacy_api_key_token() -> None:
+    client = AzureOpenAI(
+        api_version="2024-02-01",
+        api_key=f"Bearer {AZURE_AD_JWT}",
+        azure_ad_token="documented-token",
+        azure_endpoint="https://example-resource.azure.openai.com",
+    )
+    request = client._build_request(FinalRequestOptions.construct(method="get", url="/models"))
+
+    assert request.headers.get("Authorization") == "Bearer documented-token"
+    assert "api-key" not in request.headers
+
+
+@pytest.mark.respx()
+def test_azure_ad_token_provider_takes_priority_over_legacy_api_key_token(respx_mock: MockRouter) -> None:
+    respx_mock.post(
+        "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-02-01"
+    ).mock(return_value=httpx.Response(200, json={"model": "gpt-4"}))
+
+    client = AzureOpenAI(
+        api_version="2024-02-01",
+        api_key=f"Bearer {AZURE_AD_JWT}",
+        azure_ad_token_provider=lambda: "documented-provider-token",
+        azure_endpoint="https://example-resource.azure.openai.com",
+    )
+    client.chat.completions.create(messages=[], model="gpt-4")
+
+    calls = cast("list[MockRequestCall]", respx_mock.calls)
+    assert calls[0].request.headers.get("Authorization") == "Bearer documented-provider-token"
+    assert calls[0].request.headers.get("api-key") is None
+
+
+@pytest.mark.asyncio
+@pytest.mark.respx()
+async def test_async_azure_api_key_accepts_legacy_azure_ad_jwt_value(respx_mock: MockRouter) -> None:
+    respx_mock.post(
+        "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-02-01"
+    ).mock(return_value=httpx.Response(200, json={"model": "gpt-4"}))
+
+    client = AsyncAzureOpenAI(
+        api_version="2024-02-01",
+        api_key=AZURE_AD_JWT,
+        azure_endpoint="https://example-resource.azure.openai.com",
+    )
+    await client.chat.completions.create(messages=[], model="gpt-4")
+
+    calls = cast("list[MockRequestCall]", respx_mock.calls)
+    assert calls[0].request.headers.get("Authorization") == f"Bearer {AZURE_AD_JWT}"
+    assert calls[0].request.headers.get("api-key") is None
+
+
+@pytest.mark.asyncio
+@pytest.mark.respx()
+async def test_async_azure_api_key_keeps_non_azure_jwt_like_value_as_api_key(respx_mock: MockRouter) -> None:
+    respx_mock.post(
+        "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-02-01"
+    ).mock(return_value=httpx.Response(200, json={"model": "gpt-4"}))
+
+    client = AsyncAzureOpenAI(
+        api_version="2024-02-01",
+        api_key=NON_AZURE_JWT_LIKE_API_KEY,
+        azure_endpoint="https://example-resource.azure.openai.com",
+    )
+    await client.chat.completions.create(messages=[], model="gpt-4")
+
+    calls = cast("list[MockRequestCall]", respx_mock.calls)
+    assert calls[0].request.headers.get("api-key") == NON_AZURE_JWT_LIKE_API_KEY
+    assert calls[0].request.headers.get("Authorization") is None
+
+
+@pytest.mark.asyncio
+@pytest.mark.respx()
+async def test_async_azure_ad_token_provider_takes_priority_over_legacy_api_key_token(
+    respx_mock: MockRouter,
+) -> None:
+    respx_mock.post(
+        "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-02-01"
+    ).mock(return_value=httpx.Response(200, json={"model": "gpt-4"}))
+
+    client = AsyncAzureOpenAI(
+        api_version="2024-02-01",
+        api_key=f"Bearer {AZURE_AD_JWT}",
+        azure_ad_token_provider=lambda: "documented-provider-token",
+        azure_endpoint="https://example-resource.azure.openai.com",
+    )
+    await client.chat.completions.create(messages=[], model="gpt-4")
+
+    calls = cast("list[MockRequestCall]", respx_mock.calls)
+    assert calls[0].request.headers.get("Authorization") == "Bearer documented-provider-token"
+    assert calls[0].request.headers.get("api-key") is None
+
+
 @pytest.mark.parametrize(
     "client,base_url,json_data,expected",
     [
@@ -899,6 +1068,37 @@ async def test_prepare_url_realtime_async(
     url, _ = await client._configure_realtime(json_data["model"], {})
     assert str(url) == expected
     assert client.base_url == base_url
+
+
+async def test_prepare_url_realtime_async_preserves_http_in_query_params() -> None:
+    client = AsyncAzureOpenAI(
+        api_version="2024-02-01",
+        api_key="example API key",
+        base_url="https://example.azure-api.net/PTU/?next=http://example.test/callback",
+    )
+
+    url, _ = await client._configure_realtime("deployment-body", {})
+
+    assert str(url) == (
+        "wss://example.azure-api.net/PTU/realtime?next=http%3A%2F%2Fexample.test%2Fcallback"
+        "%2F&api-version=2024-02-01&deployment=deployment-body"
+    )
+
+
+async def test_prepare_url_realtime_async_preserves_websocket_base_url_query_params() -> None:
+    client = AsyncAzureOpenAI(
+        api_version="2024-02-01",
+        api_key="example API key",
+        azure_endpoint="https://example-resource.azure.openai.com",
+        websocket_base_url="wss://example.azure-api.net/PTU/?next=http://example.test/callback",
+    )
+
+    url, _ = await client._configure_realtime("deployment-body", {})
+
+    assert str(url) == (
+        "wss://example.azure-api.net/PTU/realtime?next=http%3A%2F%2Fexample.test%2Fcallback"
+        "&api-version=2024-02-01&deployment=deployment-body"
+    )
 
 
 def test_client_sets_base_url(client: Client) -> None:

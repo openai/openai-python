@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import os
+import json
+import base64
 import inspect
+import binascii
 from typing import Any, Union, Mapping, TypeVar, Callable, Awaitable, cast, overload
 from typing_extensions import Self, override
 
@@ -51,6 +54,59 @@ def _has_header(headers: Headers, header: str) -> bool:
 
 def _has_auth_header(headers: Headers) -> bool:
     return _has_header(headers, "Authorization") or _has_header(headers, "api-key")
+
+
+def _strip_bearer_prefix(value: str) -> str:
+    value = value.strip()
+    if value.lower().startswith("bearer "):
+        return value[7:].strip()
+
+    return value
+
+
+def _decode_jwt_part(part: str) -> Mapping[str, object] | None:
+    try:
+        decoded = base64.urlsafe_b64decode(part + "=" * (-len(part) % 4))
+        data = json.loads(decoded)
+    except (binascii.Error, UnicodeDecodeError, json.JSONDecodeError):
+        return None
+
+    if not isinstance(data, dict):
+        return None
+
+    return data
+
+
+def _is_probable_azure_ad_token(value: str) -> bool:
+    token = _strip_bearer_prefix(value)
+    parts = token.split(".")
+    if len(parts) != 3:
+        return False
+
+    header = _decode_jwt_part(parts[0])
+    payload = _decode_jwt_part(parts[1])
+    if header is None or payload is None:
+        return False
+
+    if "alg" not in header:
+        return False
+
+    issuer = payload.get("iss")
+    if isinstance(issuer, str) and (
+        "login.microsoftonline.com/" in issuer or "sts.windows.net/" in issuer
+    ):
+        return True
+
+    audience = payload.get("aud")
+    audiences = audience if isinstance(audience, list) else [audience]
+    return "tid" in payload and any(
+        isinstance(value, str) and value.rstrip("/") == "https://cognitiveservices.azure.com"
+        for value in audiences
+    )
+
+
+def _api_key_is_legacy_azure_ad_token(api_key: str) -> bool:
+    return api_key.strip().lower().startswith("bearer ") or _is_probable_azure_ad_token(api_key)
 
 
 class MutuallyExclusiveAuthError(OpenAIError):
@@ -216,6 +272,11 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         if azure_ad_token is None:
             azure_ad_token = os.environ.get("AZURE_OPENAI_AD_TOKEN")
 
+        if azure_ad_token is None and azure_ad_token_provider is None and isinstance(api_key, str):
+            if _api_key_is_legacy_azure_ad_token(api_key):
+                azure_ad_token = _strip_bearer_prefix(api_key)
+                api_key = None
+
         if _enforce_credentials and api_key is None and azure_ad_token is None and azure_ad_token_provider is None:
             raise OpenAIError(
                 "Missing credentials. Please pass one of `api_key`, `azure_ad_token`, `azure_ad_token_provider`, or the `AZURE_OPENAI_API_KEY` or `AZURE_OPENAI_AD_TOKEN` environment variables."
@@ -356,6 +417,9 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         if self._azure_ad_token is not None:
             return {"Authorization": f"Bearer {self._azure_ad_token}"}
 
+        if self._azure_ad_token_provider is not None:
+            return {}
+
         if self.api_key and self.api_key != API_KEY_SENTINEL:
             return {"api-key": self.api_key}
 
@@ -408,13 +472,18 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
 
         if self.websocket_base_url is not None:
             base_url = httpx.URL(self.websocket_base_url)
-            merge_raw_path = base_url.raw_path.rstrip(b"/") + b"/realtime"
-            realtime_url = base_url.copy_with(raw_path=merge_raw_path)
+            base_params = dict(base_url.params)
+            raw_path = base_url.raw_path.split(b"?")[0].rstrip(b"/") + b"/realtime"
+            realtime_url = base_url.copy_with(raw_path=raw_path)
         else:
-            base_url = self._prepare_url("/realtime")
-            realtime_url = base_url.copy_with(scheme="wss")
+            base_url = self._prepare_url("/realtime") if self._azure_endpoint else self.base_url
+            base_params = dict(base_url.params)
+            raw_path = base_url.raw_path.split(b"?")[0].rstrip(b"/")
+            if not raw_path.endswith(b"/realtime"):
+                raw_path += b"/realtime"
+            realtime_url = base_url.copy_with(scheme="wss", raw_path=raw_path)
 
-        url = realtime_url.copy_with(params={**query})
+        url = realtime_url.copy_with(params={**base_params, **query})
         return url, auth_headers
 
 
@@ -539,6 +608,11 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
 
         if azure_ad_token is None:
             azure_ad_token = os.environ.get("AZURE_OPENAI_AD_TOKEN")
+
+        if azure_ad_token is None and azure_ad_token_provider is None and isinstance(api_key, str):
+            if _api_key_is_legacy_azure_ad_token(api_key):
+                azure_ad_token = _strip_bearer_prefix(api_key)
+                api_key = None
 
         if _enforce_credentials and api_key is None and azure_ad_token is None and azure_ad_token_provider is None:
             raise OpenAIError(
@@ -682,6 +756,9 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         if self._azure_ad_token is not None:
             return {"Authorization": f"Bearer {self._azure_ad_token}"}
 
+        if self._azure_ad_token_provider is not None:
+            return {}
+
         if self.api_key and self.api_key != API_KEY_SENTINEL:
             return {"api-key": self.api_key}
 
@@ -734,11 +811,16 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
 
         if self.websocket_base_url is not None:
             base_url = httpx.URL(self.websocket_base_url)
-            merge_raw_path = base_url.raw_path.rstrip(b"/") + b"/realtime"
-            realtime_url = base_url.copy_with(raw_path=merge_raw_path)
+            base_params = dict(base_url.params)
+            raw_path = base_url.raw_path.split(b"?")[0].rstrip(b"/") + b"/realtime"
+            realtime_url = base_url.copy_with(raw_path=raw_path)
         else:
-            base_url = self._prepare_url("/realtime")
-            realtime_url = base_url.copy_with(scheme="wss")
+            base_url = self._prepare_url("/realtime") if self._azure_endpoint else self.base_url
+            base_params = dict(base_url.params)
+            raw_path = base_url.raw_path.split(b"?")[0].rstrip(b"/")
+            if not raw_path.endswith(b"/realtime"):
+                raw_path += b"/realtime"
+            realtime_url = base_url.copy_with(scheme="wss", raw_path=raw_path)
 
-        url = realtime_url.copy_with(params={**query})
+        url = realtime_url.copy_with(params={**base_params, **query})
         return url, auth_headers

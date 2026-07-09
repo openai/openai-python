@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import sys
 import json
 import time
@@ -30,6 +31,7 @@ from typing import (
     cast,
     overload,
 )
+from contextlib import contextmanager
 from typing_extensions import Unpack, Literal, override, get_origin
 
 import anyio
@@ -91,6 +93,26 @@ from ._utils._json import openapi_dumps
 from ._legacy_response import LegacyAPIResponse
 
 log: logging.Logger = logging.getLogger(__name__)
+
+
+@contextmanager
+def _normalized_no_proxy_env() -> Iterator[None]:
+    originals: dict[str, str] = {}
+    for name in ("NO_PROXY", "no_proxy"):
+        value = os.environ.get(name)
+        if value is not None and ("\n" in value or "\r" in value):
+            originals[name] = value
+            os.environ[name] = ",".join(
+                part.strip() for part in value.replace("\r", "\n").split("\n") if part.strip()
+            )
+
+    try:
+        yield
+    finally:
+        for name, value in originals.items():
+            os.environ[name] = value
+
+
 log.addFilter(SensitiveHeadersFilter())
 
 # TODO: make base page type vars covariant
@@ -836,7 +858,8 @@ class _DefaultHttpxClient(httpx.Client):
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
         kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
-        super().__init__(**kwargs)
+        with _normalized_no_proxy_env():
+            super().__init__(**kwargs)
 
 
 if TYPE_CHECKING:
@@ -1423,7 +1446,8 @@ class _DefaultAsyncHttpxClient(httpx.AsyncClient):
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
         kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
-        super().__init__(**kwargs)
+        with _normalized_no_proxy_env():
+            super().__init__(**kwargs)
 
 
 try:

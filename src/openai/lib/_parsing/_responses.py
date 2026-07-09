@@ -58,7 +58,7 @@ def parse_response(
 ) -> ParsedResponse[TextFormatT]:
     output_list: List[ParsedResponseOutputItem[TextFormatT]] = []
 
-    for output in response.output:
+    for output in response.output or []:
         if output.type == "message":
             content_list: List[ParsedContent[TextFormatT]] = []
             for item in output.content:
@@ -68,7 +68,7 @@ def parse_response(
 
                 content_list.append(
                     construct_type_unchecked(
-                        type_=ParsedResponseOutputText[TextFormatT],
+                        type_=ParsedResponseOutputText,
                         value={
                             **item.to_dict(),
                             "parsed": parse_text(item.text, text_format=text_format),
@@ -78,7 +78,7 @@ def parse_response(
 
             output_list.append(
                 construct_type_unchecked(
-                    type_=ParsedResponseOutputMessage[TextFormatT],
+                    type_=ParsedResponseOutputMessage,
                     value={
                         **output.to_dict(),
                         "content": content_list,
@@ -131,7 +131,7 @@ def parse_response(
             output_list.append(output)
 
     return construct_type_unchecked(
-        type_=ParsedResponse[TextFormatT],
+        type_=ParsedResponse,
         value={
             **response.to_dict(),
             "output": output_list,
