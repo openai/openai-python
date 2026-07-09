@@ -71,7 +71,7 @@ def parse_response(
                         type_=ParsedResponseOutputText[TextFormatT],
                         value={
                             **item.to_dict(),
-                            "parsed": parse_text(item.text, text_format=text_format),
+                            "parsed": parse_text(item.text, text_format=text_format) if item.text is not None else None,
                         },
                     )
                 )
