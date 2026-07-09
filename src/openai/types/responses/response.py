@@ -29,6 +29,7 @@ __all__ = [
     "Response",
     "IncompleteDetails",
     "ToolChoice",
+    "ToolChoiceSpecificProgrammaticToolCallingParam",
     "Conversation",
     "Moderation",
     "ModerationInput",
@@ -37,6 +38,7 @@ __all__ = [
     "ModerationOutput",
     "ModerationOutputModerationResult",
     "ModerationOutputError",
+    "PromptCacheOptions",
 ]
 
 
@@ -47,6 +49,11 @@ class IncompleteDetails(BaseModel):
     """The reason why the response is incomplete."""
 
 
+class ToolChoiceSpecificProgrammaticToolCallingParam(BaseModel):
+    type: Literal["programmatic_tool_calling"]
+    """The tool to call. Always `programmatic_tool_calling`."""
+
+
 ToolChoice: TypeAlias = Union[
     ToolChoiceOptions,
     ToolChoiceAllowed,
@@ -54,6 +61,7 @@ ToolChoice: TypeAlias = Union[
     ToolChoiceFunction,
     ToolChoiceMcp,
     ToolChoiceCustom,
+    ToolChoiceSpecificProgrammaticToolCallingParam,
     ToolChoiceApplyPatch,
     ToolChoiceShell,
 ]
@@ -171,6 +179,19 @@ class Moderation(BaseModel):
 
     output: ModerationOutput
     """Moderation for the response output."""
+
+
+class PromptCacheOptions(BaseModel):
+    """The prompt-caching options that were applied to the response.
+
+    Supported for `gpt-5.6` and later models.
+    """
+
+    mode: Literal["implicit", "explicit"]
+    """Whether implicit prompt-cache breakpoints were enabled."""
+
+    ttl: Literal["30m"]
+    """The minimum lifetime applied to each cache breakpoint."""
 
 
 class Response(BaseModel):
@@ -337,13 +358,23 @@ class Response(BaseModel):
     [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
     """
 
-    prompt_cache_retention: Optional[Literal["in_memory", "24h"]] = None
-    """The retention policy for the prompt cache.
+    prompt_cache_options: Optional[PromptCacheOptions] = None
+    """The prompt-caching options that were applied to the response.
 
-    Set to `24h` to enable extended prompt caching, which keeps cached prefixes
-    active for longer, up to a maximum of 24 hours.
+    Supported for `gpt-5.6` and later models.
+    """
+
+    prompt_cache_retention: Optional[Literal["in_memory", "24h"]] = None
+    """Deprecated. Use `prompt_cache_options.ttl` instead.
+
+    The retention policy for the prompt cache. Set to `24h` to enable extended
+    prompt caching, which keeps cached prefixes active for longer, up to a maximum
+    of 24 hours.
     [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
-    For `gpt-5.5`, `gpt-5.5-pro`, and future models, only `24h` is supported.
+    This field expresses a maximum retention policy, while
+    `prompt_cache_options.ttl` expresses a minimum cache lifetime. The two fields
+    are independent and do not interact. For `gpt-5.5`, `gpt-5.5-pro`, and future
+    models, only `24h` is supported.
 
     For older models that support both `in_memory` and `24h`, the default depends on
     your organization's data retention policy:

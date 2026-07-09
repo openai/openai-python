@@ -124,6 +124,7 @@ class Responses(SyncAPIResource):
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
+        prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: str | Omit = omit,
@@ -244,11 +245,26 @@ class Responses(SyncAPIResource):
               hit rates. Replaces the `user` field.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
 
-          prompt_cache_retention: The retention policy for the prompt cache. Set to `24h` to enable extended
+          prompt_cache_options: Options for prompt caching. Supported for `gpt-5.6` and later models. By
+              default, OpenAI automatically chooses one implicit cache breakpoint. You can add
+              explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each
+              request can write up to four breakpoints. For cache matching, OpenAI considers
+              up to the latest 80 breakpoints in the conversation, without a content-block
+              lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The
+              `ttl` defaults to `30m`, which is currently the only supported value. See the
+              [prompt caching guide](https://platform.openai.com/docs/guides/prompt-caching)
+              for current details.
+
+          prompt_cache_retention: Deprecated. Use `prompt_cache_options.ttl` instead.
+
+              The retention policy for the prompt cache. Set to `24h` to enable extended
               prompt caching, which keeps cached prefixes active for longer, up to a maximum
               of 24 hours.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
-              For `gpt-5.5`, `gpt-5.5-pro`, and future models, only `24h` is supported.
+              This field expresses a maximum retention policy, while
+              `prompt_cache_options.ttl` expresses a minimum cache lifetime. The two fields
+              are independent and do not interact. For `gpt-5.5`, `gpt-5.5-pro`, and future
+              models, only `24h` is supported.
 
               For older models that support both `in_memory` and `24h`, the default depends on
               your organization's data retention policy:
@@ -386,6 +402,7 @@ class Responses(SyncAPIResource):
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
+        prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: str | Omit = omit,
@@ -512,11 +529,26 @@ class Responses(SyncAPIResource):
               hit rates. Replaces the `user` field.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
 
-          prompt_cache_retention: The retention policy for the prompt cache. Set to `24h` to enable extended
+          prompt_cache_options: Options for prompt caching. Supported for `gpt-5.6` and later models. By
+              default, OpenAI automatically chooses one implicit cache breakpoint. You can add
+              explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each
+              request can write up to four breakpoints. For cache matching, OpenAI considers
+              up to the latest 80 breakpoints in the conversation, without a content-block
+              lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The
+              `ttl` defaults to `30m`, which is currently the only supported value. See the
+              [prompt caching guide](https://platform.openai.com/docs/guides/prompt-caching)
+              for current details.
+
+          prompt_cache_retention: Deprecated. Use `prompt_cache_options.ttl` instead.
+
+              The retention policy for the prompt cache. Set to `24h` to enable extended
               prompt caching, which keeps cached prefixes active for longer, up to a maximum
               of 24 hours.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
-              For `gpt-5.5`, `gpt-5.5-pro`, and future models, only `24h` is supported.
+              This field expresses a maximum retention policy, while
+              `prompt_cache_options.ttl` expresses a minimum cache lifetime. The two fields
+              are independent and do not interact. For `gpt-5.5`, `gpt-5.5-pro`, and future
+              models, only `24h` is supported.
 
               For older models that support both `in_memory` and `24h`, the default depends on
               your organization's data retention policy:
@@ -647,6 +679,7 @@ class Responses(SyncAPIResource):
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
+        prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: str | Omit = omit,
@@ -773,11 +806,26 @@ class Responses(SyncAPIResource):
               hit rates. Replaces the `user` field.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
 
-          prompt_cache_retention: The retention policy for the prompt cache. Set to `24h` to enable extended
+          prompt_cache_options: Options for prompt caching. Supported for `gpt-5.6` and later models. By
+              default, OpenAI automatically chooses one implicit cache breakpoint. You can add
+              explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each
+              request can write up to four breakpoints. For cache matching, OpenAI considers
+              up to the latest 80 breakpoints in the conversation, without a content-block
+              lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The
+              `ttl` defaults to `30m`, which is currently the only supported value. See the
+              [prompt caching guide](https://platform.openai.com/docs/guides/prompt-caching)
+              for current details.
+
+          prompt_cache_retention: Deprecated. Use `prompt_cache_options.ttl` instead.
+
+              The retention policy for the prompt cache. Set to `24h` to enable extended
               prompt caching, which keeps cached prefixes active for longer, up to a maximum
               of 24 hours.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
-              For `gpt-5.5`, `gpt-5.5-pro`, and future models, only `24h` is supported.
+              This field expresses a maximum retention policy, while
+              `prompt_cache_options.ttl` expresses a minimum cache lifetime. The two fields
+              are independent and do not interact. For `gpt-5.5`, `gpt-5.5-pro`, and future
+              models, only `24h` is supported.
 
               For older models that support both `in_memory` and `24h`, the default depends on
               your organization's data retention policy:
@@ -906,6 +954,7 @@ class Responses(SyncAPIResource):
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
+        prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: str | Omit = omit,
@@ -947,6 +996,7 @@ class Responses(SyncAPIResource):
                     "previous_response_id": previous_response_id,
                     "prompt": prompt,
                     "prompt_cache_key": prompt_cache_key,
+                    "prompt_cache_options": prompt_cache_options,
                     "prompt_cache_retention": prompt_cache_retention,
                     "reasoning": reasoning,
                     "safety_identifier": safety_identifier,
@@ -1249,6 +1299,9 @@ class Responses(SyncAPIResource):
         *,
         model: Union[
             Literal[
+                "gpt-5.6-sol",
+                "gpt-5.6-terra",
+                "gpt-5.6-luna",
                 "gpt-5.4",
                 "gpt-5.4-mini",
                 "gpt-5.4-nano",
@@ -1349,6 +1402,7 @@ class Responses(SyncAPIResource):
         instructions: Optional[str] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt_cache_key: Optional[str] | Omit = omit,
+        prompt_cache_options: Optional[response_compact_params.PromptCacheOptions] | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "flex", "priority"]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -1388,6 +1442,16 @@ class Responses(SyncAPIResource):
 
           prompt_cache_key: A key to use when reading from or writing to the prompt cache.
 
+          prompt_cache_options: Options for prompt caching. Supported for `gpt-5.6` and later models. By
+              default, OpenAI automatically chooses one implicit cache breakpoint. You can add
+              explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each
+              request can write up to four breakpoints. For cache matching, OpenAI considers
+              up to the latest 80 breakpoints in the conversation, without a content-block
+              lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The
+              `ttl` defaults to `30m`, which is currently the only supported value. See the
+              [prompt caching guide](https://platform.openai.com/docs/guides/prompt-caching)
+              for current details.
+
           prompt_cache_retention: How long to retain a prompt cache entry created by this request.
 
           service_tier: The service tier to use for this request.
@@ -1409,6 +1473,7 @@ class Responses(SyncAPIResource):
                     "instructions": instructions,
                     "previous_response_id": previous_response_id,
                     "prompt_cache_key": prompt_cache_key,
+                    "prompt_cache_options": prompt_cache_options,
                     "prompt_cache_retention": prompt_cache_retention,
                     "service_tier": service_tier,
                 },
@@ -1499,6 +1564,7 @@ class AsyncResponses(AsyncAPIResource):
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
+        prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: str | Omit = omit,
@@ -1619,11 +1685,26 @@ class AsyncResponses(AsyncAPIResource):
               hit rates. Replaces the `user` field.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
 
-          prompt_cache_retention: The retention policy for the prompt cache. Set to `24h` to enable extended
+          prompt_cache_options: Options for prompt caching. Supported for `gpt-5.6` and later models. By
+              default, OpenAI automatically chooses one implicit cache breakpoint. You can add
+              explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each
+              request can write up to four breakpoints. For cache matching, OpenAI considers
+              up to the latest 80 breakpoints in the conversation, without a content-block
+              lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The
+              `ttl` defaults to `30m`, which is currently the only supported value. See the
+              [prompt caching guide](https://platform.openai.com/docs/guides/prompt-caching)
+              for current details.
+
+          prompt_cache_retention: Deprecated. Use `prompt_cache_options.ttl` instead.
+
+              The retention policy for the prompt cache. Set to `24h` to enable extended
               prompt caching, which keeps cached prefixes active for longer, up to a maximum
               of 24 hours.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
-              For `gpt-5.5`, `gpt-5.5-pro`, and future models, only `24h` is supported.
+              This field expresses a maximum retention policy, while
+              `prompt_cache_options.ttl` expresses a minimum cache lifetime. The two fields
+              are independent and do not interact. For `gpt-5.5`, `gpt-5.5-pro`, and future
+              models, only `24h` is supported.
 
               For older models that support both `in_memory` and `24h`, the default depends on
               your organization's data retention policy:
@@ -1761,6 +1842,7 @@ class AsyncResponses(AsyncAPIResource):
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
+        prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: str | Omit = omit,
@@ -1887,11 +1969,26 @@ class AsyncResponses(AsyncAPIResource):
               hit rates. Replaces the `user` field.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
 
-          prompt_cache_retention: The retention policy for the prompt cache. Set to `24h` to enable extended
+          prompt_cache_options: Options for prompt caching. Supported for `gpt-5.6` and later models. By
+              default, OpenAI automatically chooses one implicit cache breakpoint. You can add
+              explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each
+              request can write up to four breakpoints. For cache matching, OpenAI considers
+              up to the latest 80 breakpoints in the conversation, without a content-block
+              lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The
+              `ttl` defaults to `30m`, which is currently the only supported value. See the
+              [prompt caching guide](https://platform.openai.com/docs/guides/prompt-caching)
+              for current details.
+
+          prompt_cache_retention: Deprecated. Use `prompt_cache_options.ttl` instead.
+
+              The retention policy for the prompt cache. Set to `24h` to enable extended
               prompt caching, which keeps cached prefixes active for longer, up to a maximum
               of 24 hours.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
-              For `gpt-5.5`, `gpt-5.5-pro`, and future models, only `24h` is supported.
+              This field expresses a maximum retention policy, while
+              `prompt_cache_options.ttl` expresses a minimum cache lifetime. The two fields
+              are independent and do not interact. For `gpt-5.5`, `gpt-5.5-pro`, and future
+              models, only `24h` is supported.
 
               For older models that support both `in_memory` and `24h`, the default depends on
               your organization's data retention policy:
@@ -2022,6 +2119,7 @@ class AsyncResponses(AsyncAPIResource):
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
+        prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: str | Omit = omit,
@@ -2148,11 +2246,26 @@ class AsyncResponses(AsyncAPIResource):
               hit rates. Replaces the `user` field.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
 
-          prompt_cache_retention: The retention policy for the prompt cache. Set to `24h` to enable extended
+          prompt_cache_options: Options for prompt caching. Supported for `gpt-5.6` and later models. By
+              default, OpenAI automatically chooses one implicit cache breakpoint. You can add
+              explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each
+              request can write up to four breakpoints. For cache matching, OpenAI considers
+              up to the latest 80 breakpoints in the conversation, without a content-block
+              lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The
+              `ttl` defaults to `30m`, which is currently the only supported value. See the
+              [prompt caching guide](https://platform.openai.com/docs/guides/prompt-caching)
+              for current details.
+
+          prompt_cache_retention: Deprecated. Use `prompt_cache_options.ttl` instead.
+
+              The retention policy for the prompt cache. Set to `24h` to enable extended
               prompt caching, which keeps cached prefixes active for longer, up to a maximum
               of 24 hours.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
-              For `gpt-5.5`, `gpt-5.5-pro`, and future models, only `24h` is supported.
+              This field expresses a maximum retention policy, while
+              `prompt_cache_options.ttl` expresses a minimum cache lifetime. The two fields
+              are independent and do not interact. For `gpt-5.5`, `gpt-5.5-pro`, and future
+              models, only `24h` is supported.
 
               For older models that support both `in_memory` and `24h`, the default depends on
               your organization's data retention policy:
@@ -2281,6 +2394,7 @@ class AsyncResponses(AsyncAPIResource):
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
+        prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: str | Omit = omit,
@@ -2322,6 +2436,7 @@ class AsyncResponses(AsyncAPIResource):
                     "previous_response_id": previous_response_id,
                     "prompt": prompt,
                     "prompt_cache_key": prompt_cache_key,
+                    "prompt_cache_options": prompt_cache_options,
                     "prompt_cache_retention": prompt_cache_retention,
                     "reasoning": reasoning,
                     "safety_identifier": safety_identifier,
@@ -2624,6 +2739,9 @@ class AsyncResponses(AsyncAPIResource):
         *,
         model: Union[
             Literal[
+                "gpt-5.6-sol",
+                "gpt-5.6-terra",
+                "gpt-5.6-luna",
                 "gpt-5.4",
                 "gpt-5.4-mini",
                 "gpt-5.4-nano",
@@ -2724,6 +2842,7 @@ class AsyncResponses(AsyncAPIResource):
         instructions: Optional[str] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt_cache_key: Optional[str] | Omit = omit,
+        prompt_cache_options: Optional[response_compact_params.PromptCacheOptions] | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "flex", "priority"]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -2763,6 +2882,16 @@ class AsyncResponses(AsyncAPIResource):
 
           prompt_cache_key: A key to use when reading from or writing to the prompt cache.
 
+          prompt_cache_options: Options for prompt caching. Supported for `gpt-5.6` and later models. By
+              default, OpenAI automatically chooses one implicit cache breakpoint. You can add
+              explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each
+              request can write up to four breakpoints. For cache matching, OpenAI considers
+              up to the latest 80 breakpoints in the conversation, without a content-block
+              lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The
+              `ttl` defaults to `30m`, which is currently the only supported value. See the
+              [prompt caching guide](https://platform.openai.com/docs/guides/prompt-caching)
+              for current details.
+
           prompt_cache_retention: How long to retain a prompt cache entry created by this request.
 
           service_tier: The service tier to use for this request.
@@ -2784,6 +2913,7 @@ class AsyncResponses(AsyncAPIResource):
                     "instructions": instructions,
                     "previous_response_id": previous_response_id,
                     "prompt_cache_key": prompt_cache_key,
+                    "prompt_cache_options": prompt_cache_options,
                     "prompt_cache_retention": prompt_cache_retention,
                     "service_tier": service_tier,
                 },
@@ -3869,6 +3999,7 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
+        prompt_cache_options: responses_client_event_param.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: str | Omit = omit,
@@ -3906,6 +4037,7 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
                         "previous_response_id": previous_response_id,
                         "prompt": prompt,
                         "prompt_cache_key": prompt_cache_key,
+                        "prompt_cache_options": prompt_cache_options,
                         "prompt_cache_retention": prompt_cache_retention,
                         "reasoning": reasoning,
                         "safety_identifier": safety_identifier,
@@ -3951,6 +4083,7 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
+        prompt_cache_options: responses_client_event_param.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: str | Omit = omit,
@@ -3988,6 +4121,7 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
                         "previous_response_id": previous_response_id,
                         "prompt": prompt,
                         "prompt_cache_key": prompt_cache_key,
+                        "prompt_cache_options": prompt_cache_options,
                         "prompt_cache_retention": prompt_cache_retention,
                         "reasoning": reasoning,
                         "safety_identifier": safety_identifier,

@@ -64,7 +64,13 @@ class TestCompletions:
             max_tokens=0,
             metadata={"foo": "string"},
             modalities=["text"],
-            moderation={"model": "model"},
+            moderation={
+                "model": "model",
+                "policy": {
+                    "input": {"mode": "score"},
+                    "output": {"mode": "score"},
+                },
+            },
             n=1,
             parallel_tool_calls=True,
             prediction={
@@ -73,6 +79,10 @@ class TestCompletions:
             },
             presence_penalty=-2,
             prompt_cache_key="prompt-cache-key-1234",
+            prompt_cache_options={
+                "mode": "implicit",
+                "ttl": "30m",
+            },
             prompt_cache_retention="in_memory",
             reasoning_effort="none",
             response_format={"type": "text"},
@@ -199,7 +209,13 @@ class TestCompletions:
             max_tokens=0,
             metadata={"foo": "string"},
             modalities=["text"],
-            moderation={"model": "model"},
+            moderation={
+                "model": "model",
+                "policy": {
+                    "input": {"mode": "score"},
+                    "output": {"mode": "score"},
+                },
+            },
             n=1,
             parallel_tool_calls=True,
             prediction={
@@ -208,6 +224,10 @@ class TestCompletions:
             },
             presence_penalty=-2,
             prompt_cache_key="prompt-cache-key-1234",
+            prompt_cache_options={
+                "mode": "implicit",
+                "ttl": "30m",
+            },
             prompt_cache_retention="in_memory",
             reasoning_effort="none",
             response_format={"type": "text"},
@@ -492,7 +512,13 @@ class TestAsyncCompletions:
             max_tokens=0,
             metadata={"foo": "string"},
             modalities=["text"],
-            moderation={"model": "model"},
+            moderation={
+                "model": "model",
+                "policy": {
+                    "input": {"mode": "score"},
+                    "output": {"mode": "score"},
+                },
+            },
             n=1,
             parallel_tool_calls=True,
             prediction={
@@ -501,6 +527,10 @@ class TestAsyncCompletions:
             },
             presence_penalty=-2,
             prompt_cache_key="prompt-cache-key-1234",
+            prompt_cache_options={
+                "mode": "implicit",
+                "ttl": "30m",
+            },
             prompt_cache_retention="in_memory",
             reasoning_effort="none",
             response_format={"type": "text"},
@@ -627,7 +657,13 @@ class TestAsyncCompletions:
             max_tokens=0,
             metadata={"foo": "string"},
             modalities=["text"],
-            moderation={"model": "model"},
+            moderation={
+                "model": "model",
+                "policy": {
+                    "input": {"mode": "score"},
+                    "output": {"mode": "score"},
+                },
+            },
             n=1,
             parallel_tool_calls=True,
             prediction={
@@ -636,6 +672,10 @@ class TestAsyncCompletions:
             },
             presence_penalty=-2,
             prompt_cache_key="prompt-cache-key-1234",
+            prompt_cache_options={
+                "mode": "implicit",
+                "ttl": "30m",
+            },
             prompt_cache_retention="in_memory",
             reasoning_effort="none",
             response_format={"type": "text"},

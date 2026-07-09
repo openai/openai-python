@@ -94,6 +94,9 @@ class RealtimeResponseCreateMcpTool(BaseModel):
     type: Literal["mcp"]
     """The type of the MCP tool. Always `mcp`."""
 
+    allowed_callers: Optional[List[Literal["direct", "programmatic"]]] = None
+    """The tool invocation context(s)."""
+
     allowed_tools: Optional[AllowedTools] = None
     """List of allowed tool names or a filter object."""
 
