@@ -29,9 +29,12 @@ __all__ = [
     "DefaultAsyncHttpx2Client",
     "SYNC_HTTP_CLIENT_TYPES",
     "ASYNC_HTTP_CLIENT_TYPES",
+    "SYNC_HTTP_CLIENT_NAMES",
+    "ASYNC_HTTP_CLIENT_NAMES",
     "TIMEOUT_EXCEPTIONS",
     "HTTP_STATUS_ERRORS",
     "STREAM_CONSUMED_ERRORS",
+    "REQUEST_NOT_READ_ERRORS",
     "HTTPX2_DEFAULT_TIMEOUT",
     "coerce_httpx2_request_url",
 ]
@@ -49,6 +52,12 @@ if TYPE_CHECKING:
     TIMEOUT_EXCEPTIONS: tuple[type[httpx.TimeoutException], ...] = (httpx.TimeoutException,)
     HTTP_STATUS_ERRORS: tuple[type[httpx.HTTPStatusError], ...] = (httpx.HTTPStatusError,)
     STREAM_CONSUMED_ERRORS: tuple[type[httpx.StreamConsumed], ...] = (httpx.StreamConsumed,)
+    REQUEST_NOT_READ_ERRORS: tuple[type[httpx.RequestNotRead], ...] = (httpx.RequestNotRead,)
+
+    # Human-readable names of the accepted client types, for `TypeError` messages in
+    # `_base_client.py` (mentions httpx2 only when the extra is actually importable).
+    SYNC_HTTP_CLIENT_NAMES: str = "`httpx.Client`"
+    ASYNC_HTTP_CLIENT_NAMES: str = "`httpx.AsyncClient`"
 
     # Sentinel for the cross-class default-timeout comparison in `_base_client.py`
     # (a bare httpx2 client reports httpx2's 5s default, which is `!=` the classic
@@ -68,6 +77,9 @@ elif httpx2 is None:
     TIMEOUT_EXCEPTIONS = (httpx.TimeoutException,)
     HTTP_STATUS_ERRORS = (httpx.HTTPStatusError,)
     STREAM_CONSUMED_ERRORS = (httpx.StreamConsumed,)
+    REQUEST_NOT_READ_ERRORS = (httpx.RequestNotRead,)
+    SYNC_HTTP_CLIENT_NAMES = "`httpx.Client`"
+    ASYNC_HTTP_CLIENT_NAMES = "`httpx.AsyncClient`"
     HTTPX2_DEFAULT_TIMEOUT = None
     _HTTPX2_CLIENT_TYPES = ()
 
@@ -88,6 +100,9 @@ else:
     TIMEOUT_EXCEPTIONS = (httpx.TimeoutException, _h2.TimeoutException)
     HTTP_STATUS_ERRORS = (httpx.HTTPStatusError, _h2.HTTPStatusError)
     STREAM_CONSUMED_ERRORS = (httpx.StreamConsumed, _h2.StreamConsumed)
+    REQUEST_NOT_READ_ERRORS = (httpx.RequestNotRead, _h2.RequestNotRead)
+    SYNC_HTTP_CLIENT_NAMES = "`httpx.Client` or `httpx2.Client`"
+    ASYNC_HTTP_CLIENT_NAMES = "`httpx.AsyncClient` or `httpx2.AsyncClient`"
     _HTTPX2_CLIENT_TYPES = (_h2.Client, _h2.AsyncClient)
 
     try:

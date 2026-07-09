@@ -13,6 +13,7 @@ from .._utils import asyncify
 from .._models import FinalRequestOptions
 from .._provider import _Provider, _create_provider, _ProviderRuntime
 from .._exceptions import OpenAIError
+from .._httpx2_compat import REQUEST_NOT_READ_ERRORS
 from ..lib._bedrock_auth import (
     BedrockAwsAuth,
     BedrockAwsAuthConfig,
@@ -50,7 +51,7 @@ def _same_origin(left: httpx.URL, right: httpx.URL) -> bool:
 def _body_for_signing(request: httpx.Request) -> bytes:
     try:
         return request.content
-    except httpx.RequestNotRead as exc:
+    except REQUEST_NOT_READ_ERRORS as exc:
         raise OpenAIError(
             "Bedrock SigV4 authentication requires a replayable request body. "
             "Buffer the body before sending or use bearer authentication."

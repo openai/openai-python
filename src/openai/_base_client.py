@@ -92,7 +92,9 @@ from ._httpx2_compat import (
     HTTP_STATUS_ERRORS,
     TIMEOUT_EXCEPTIONS,
     HTTPX2_DEFAULT_TIMEOUT,
+    SYNC_HTTP_CLIENT_NAMES,
     SYNC_HTTP_CLIENT_TYPES,
+    ASYNC_HTTP_CLIENT_NAMES,
     ASYNC_HTTP_CLIENT_TYPES,
     DefaultHttpx2Client as DefaultHttpx2Client,
     DefaultAsyncHttpx2Client as DefaultAsyncHttpx2Client,
@@ -909,7 +911,7 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
 
         if http_client is not None and not isinstance(http_client, SYNC_HTTP_CLIENT_TYPES):  # pyright: ignore[reportUnnecessaryIsInstance]
             raise TypeError(
-                f"Invalid `http_client` argument; Expected an instance of `httpx.Client` but got {type(http_client)}"
+                f"Invalid `http_client` argument; Expected an instance of {SYNC_HTTP_CLIENT_NAMES} but got {type(http_client)}"
             )
 
         super().__init__(
@@ -1525,7 +1527,7 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
 
         if http_client is not None and not isinstance(http_client, ASYNC_HTTP_CLIENT_TYPES):  # pyright: ignore[reportUnnecessaryIsInstance]
             raise TypeError(
-                f"Invalid `http_client` argument; Expected an instance of `httpx.AsyncClient` but got {type(http_client)}"
+                f"Invalid `http_client` argument; Expected an instance of {ASYNC_HTTP_CLIENT_NAMES} but got {type(http_client)}"
             )
 
         super().__init__(

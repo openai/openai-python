@@ -9,6 +9,8 @@ against the openai client's request/response pipeline:
   * the widened exception tuples that map httpx2's *independent* exception
     hierarchy onto the SDK's error classes (status errors, timeouts, connect errors)
   * retries (and the `x-stainless-retry-count` header) over an httpx2 transport
+  * the Bedrock SigV4 body-signing seam, where httpx2's `RequestNotRead` must map
+    onto the SDK's friendly `OpenAIError`
 
 httpx2 is an opt-in extra that isn't installable on Python 3.9, so the whole module
 is skipped cleanly when it isn't present.
@@ -26,6 +28,7 @@ httpx2 = pytest.importorskip("httpx2")
 from openai import (
     OpenAI,
     AsyncOpenAI,
+    OpenAIError,
     NotFoundError,
     APIStatusError,
     RateLimitError,
@@ -110,11 +113,12 @@ class TestConstructionAndGate:
             assert isinstance(client._client, httpx2.AsyncClient)
 
     def test_sync_openai_rejects_async_httpx2_client(self) -> None:
-        with pytest.raises(TypeError):
+        # the message should name both accepted types now that the extra is installed
+        with pytest.raises(TypeError, match=r"`httpx\.Client` or `httpx2\.Client`"):
             OpenAI(api_key=api_key, http_client=httpx2.AsyncClient())
 
     async def test_async_openai_rejects_sync_httpx2_client(self) -> None:
-        with pytest.raises(TypeError):
+        with pytest.raises(TypeError, match=r"`httpx\.AsyncClient` or `httpx2\.AsyncClient`"):
             AsyncOpenAI(api_key=api_key, http_client=httpx2.Client())
 
     def test_default_httpx2_client_uses_sdk_timeout_not_httpx2_default(self) -> None:
@@ -303,6 +307,29 @@ class TestRetries:
         assert nb_calls == 2
         assert response.http_request.headers.get("x-stainless-retry-count") == "1"
         assert response.parse().id == "gpt-4"
+
+
+class TestBedrockBodySigning:
+    """Bedrock SigV4 signing reads `request.content` to build the signature. With an
+    httpx2 backend the request is an `httpx2.Request`, and an unbuffered (streaming)
+    body raises httpx2's own `RequestNotRead` -- a distinct class from httpx's that
+    the widened `REQUEST_NOT_READ_ERRORS` tuple must catch so the caller sees the
+    actionable `OpenAIError` instead of a raw httpx2 exception."""
+
+    def test_httpx2_request_not_read_maps_to_openai_error(self) -> None:
+        from openai.providers.bedrock import _body_for_signing
+
+        # an iterator body is a one-shot stream: `.content` raises RequestNotRead
+        # until the request is explicitly buffered with `.read()`
+        request: Any = httpx2.Request("POST", "http://localhost/test", content=iter([b"chunk"]))
+        with pytest.raises(OpenAIError, match="replayable request body"):
+            _body_for_signing(request)
+
+    def test_buffered_httpx2_request_body_is_returned(self) -> None:
+        from openai.providers.bedrock import _body_for_signing
+
+        request: Any = httpx2.Request("POST", "http://localhost/test", content=b"chunk")
+        assert _body_for_signing(request) == b"chunk"
 
 
 class TestStreamConsumed:
