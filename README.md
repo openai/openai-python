@@ -281,6 +281,72 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
+### With httpx2
+
+`httpx2` is Pydantic's maintained fork of `httpx`. You may use it as the HTTP backend for either client.
+
+You can enable this by installing `httpx2`:
+
+```sh
+# install from PyPI
+pip install openai[httpx2]
+```
+
+Then you can enable it by instantiating the client with `http_client=DefaultHttpx2Client()`:
+
+```python
+import os
+from openai import OpenAI, DefaultHttpx2Client
+
+client = OpenAI(
+    api_key=os.environ.get("OPENAI_API_KEY"),  # This is the default and can be omitted
+    http_client=DefaultHttpx2Client(),
+)
+
+chat_completion = client.chat.completions.create(
+    messages=[
+        {
+            "role": "user",
+            "content": "Say this is a test",
+        }
+    ],
+    model="gpt-5.5",
+)
+```
+
+Or with the async client, using `DefaultAsyncHttpx2Client()`:
+
+```python
+import os
+import asyncio
+from openai import AsyncOpenAI, DefaultAsyncHttpx2Client
+
+
+async def main() -> None:
+    async with AsyncOpenAI(
+        api_key=os.environ.get("OPENAI_API_KEY"),  # This is the default and can be omitted
+        http_client=DefaultAsyncHttpx2Client(),
+    ) as client:
+        chat_completion = await client.chat.completions.create(
+            messages=[
+                {
+                    "role": "user",
+                    "content": "Say this is a test",
+                }
+            ],
+            model="gpt-5.5",
+        )
+
+
+asyncio.run(main())
+```
+
+A few things to be aware of when using `httpx2`:
+
+- `httpx2` requires Python 3.10 or newer (it dropped support for 3.9), so the `httpx2` extra installs nothing on Python 3.9.
+- When streaming raw responses, the exceptions raised come from `httpx2` (e.g. `httpx2.StreamConsumed`), not from `httpx`.
+- `cast_to=httpx.Response` still works but returns a duck-compatible `httpx2.Response`, which is not an `isinstance` of `httpx.Response`. Passing `cast_to=httpx2.Response` is not supported.
+
 ## Streaming responses
 
 We provide support for streaming responses using Server Side Events (SSE).
