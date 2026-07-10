@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import sys
 import json
 import time
@@ -92,6 +93,36 @@ from ._legacy_response import LegacyAPIResponse
 
 log: logging.Logger = logging.getLogger(__name__)
 log.addFilter(SensitiveHeadersFilter())
+
+
+def _sanitize_proxy_env() -> None:
+    """Strip whitespace/newlines from proxy-related environment variables.
+
+    In Docker/Kubernetes environments, proxy env vars (especially ``NO_PROXY``)
+    can contain embedded newlines that cause httpx/urllib to raise
+    ``InvalidURL`` when parsing proxy URLs.
+    """
+    # Comma-separated host lists: split, strip each entry, rejoin
+    for key in ("NO_PROXY", "no_proxy"):
+        val = os.environ.get(key)
+        if val and "\n" in val:
+            os.environ[key] = ",".join(
+                part.strip() for part in val.replace("\n", ",").split(",") if part.strip()
+            )
+
+    # Single-URL vars: just strip surrounding whitespace
+    for key in (
+        "HTTP_PROXY",
+        "http_proxy",
+        "HTTPS_PROXY",
+        "https_proxy",
+        "ALL_PROXY",
+        "all_proxy",
+    ):
+        val = os.environ.get(key)
+        if val:
+            os.environ[key] = val.strip()
+
 
 # TODO: make base page type vars covariant
 SyncPageT = TypeVar("SyncPageT", bound="BaseSyncPage[Any]")
@@ -836,6 +867,7 @@ class _DefaultHttpxClient(httpx.Client):
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
         kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
+        _sanitize_proxy_env()
         super().__init__(**kwargs)
 
 
@@ -1423,6 +1455,7 @@ class _DefaultAsyncHttpxClient(httpx.AsyncClient):
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
         kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
+        _sanitize_proxy_env()
         super().__init__(**kwargs)
 
 
