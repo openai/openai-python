@@ -1292,6 +1292,56 @@ class TestOpenAI:
         assert len(mounts) == 1
         assert mounts[0][0].pattern == "https://"
 
+    def test_no_proxy_with_whitespace_does_not_raise(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        # Regression test for openai/openai-python#3303: NO_PROXY values that
+        # contain newlines or other whitespace (common in Docker, .env files,
+        # and shell scripts) used to break client construction with
+        # httpx.InvalidURL because httpx splits NO_PROXY only by comma.
+        # The sanitizer in _DefaultHttpxClient.__init__ normalizes whitespace
+        # to commas just for the duration of the httpx init, then restores
+        # the original env var.
+        monkeypatch.setenv("NO_PROXY", "localhost\nexample.com\t192.168.1.1")
+        monkeypatch.delenv("no_proxy", raising=False)
+
+        # Construction must not raise.
+        DefaultHttpxClient()
+
+        # The original env var is restored so user code observes what it set.
+        assert os.environ["NO_PROXY"] == "localhost\nexample.com\t192.168.1.1"
+
+    def test_no_proxy_concurrent_construction_preserves_original(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        # Without the lock around _sanitized_proxy_env, two threads that
+        # construct clients at the same time could snapshot each other's
+        # already-cleaned value as the "original" and leave NO_PROXY
+        # permanently sanitized for the rest of the process. Spin up
+        # several constructions in parallel and assert the env is the
+        # same string the caller set when everything has finished.
+        import threading
+
+        original = "localhost\nexample.com\t192.168.1.1\n10.0.0.0/8"
+        monkeypatch.setenv("NO_PROXY", original)
+        monkeypatch.delenv("no_proxy", raising=False)
+
+        errors: list[BaseException] = []
+
+        def construct() -> None:
+            try:
+                for _ in range(20):
+                    DefaultHttpxClient()
+            except BaseException as e:
+                errors.append(e)
+
+        threads = [threading.Thread(target=construct) for _ in range(8)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+
+        assert not errors, f"client construction raised: {errors!r}"
+        assert os.environ["NO_PROXY"] == original
+
     @pytest.mark.filterwarnings("ignore:.*deprecated.*:DeprecationWarning")
     def test_default_client_creation(self) -> None:
         # Ensure that the client can be initialized without any exceptions
@@ -2551,6 +2601,15 @@ class TestAsyncOpenAI:
         mounts = tuple(client._mounts.items())
         assert len(mounts) == 1
         assert mounts[0][0].pattern == "https://"
+
+    async def test_no_proxy_with_whitespace_does_not_raise(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        # Async counterpart of the sync regression test for #3303.
+        monkeypatch.setenv("NO_PROXY", "localhost\nexample.com\t192.168.1.1")
+        monkeypatch.delenv("no_proxy", raising=False)
+
+        DefaultAsyncHttpxClient()
+
+        assert os.environ["NO_PROXY"] == "localhost\nexample.com\t192.168.1.1"
 
     @pytest.mark.filterwarnings("ignore:.*deprecated.*:DeprecationWarning")
     async def test_default_client_creation(self) -> None:
