@@ -161,6 +161,18 @@ async def test_ignores_invalid_input(use_async: bool) -> None:
     assert await transform({"foo": "<foo>"}, Foo7, use_async) == {"foo": "<foo>"}
 
 
+class BareDictTypedDict(TypedDict, total=False):
+    metadata: dict
+
+
+@parametrize
+@pytest.mark.asyncio
+async def test_bare_dict_annotation(use_async: bool) -> None:
+    data = {"metadata": {"hello": "world"}}
+
+    assert await transform(data, BareDictTypedDict, use_async) == data
+
+
 class DatetimeDict(TypedDict, total=False):
     foo: Annotated[datetime, PropertyInfo(format="iso8601")]
 
