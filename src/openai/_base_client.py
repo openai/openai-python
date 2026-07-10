@@ -458,6 +458,9 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         if isinstance(replayable_files, ReplayableFiles):
             replayable_files.rewind()
 
+    def _should_prepare_replayable_files(self, options: FinalRequestOptions) -> bool:
+        return options.files is not None and options.get_max_retries(self.max_retries) > 0
+
     def _build_headers(self, options: FinalRequestOptions, *, retries_taken: int = 0) -> httpx.Headers:
         custom_headers = options.headers or {}
         headers_dict = _merge_mappings({**self._auth_headers(options.security), **self.default_headers}, custom_headers)
@@ -1015,8 +1018,10 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
             # ensure the idempotency key is reused between requests
             input_options.idempotency_key = self._idempotency_key()
 
-        replayable_files = ReplayableFiles(input_options.files)
-        input_options.files = replayable_files.files
+        replayable_files: ReplayableFiles | None = None
+        if self._should_prepare_replayable_files(input_options):
+            replayable_files = ReplayableFiles(input_options.files)
+            input_options.files = replayable_files.files
         try:
             return self._request_with_retries(
                 cast_to=cast_to,
@@ -1026,14 +1031,15 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
                 stream_cls=stream_cls,
             )
         finally:
-            replayable_files.close()
+            if replayable_files is not None:
+                replayable_files.close()
 
     def _request_with_retries(
         self,
         *,
         cast_to: type[ResponseT],
         input_options: FinalRequestOptions,
-        replayable_files: ReplayableFiles,
+        replayable_files: ReplayableFiles | None,
         stream: bool,
         stream_cls: type[_StreamT] | None,
     ) -> ResponseT | _StreamT:
@@ -1043,13 +1049,14 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
         retries_taken = 0
         options: FinalRequestOptions | None = None
         for retries_taken in range(max_retries + 1):
-            replayable_files.rewind()
+            if replayable_files is not None:
+                replayable_files.rewind()
             options = model_copy(input_options)
             options = self._prepare_options(options)
 
             remaining_retries = max_retries - retries_taken
             request = self._build_request(options, retries_taken=retries_taken)
-            if input_options.files is not None:
+            if replayable_files is not None:
                 request.extensions["openai_replayable_files"] = replayable_files
             self._prepare_request(request)
 
@@ -1654,8 +1661,10 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
             # ensure the idempotency key is reused between requests
             input_options.idempotency_key = self._idempotency_key()
 
-        replayable_files = ReplayableFiles(input_options.files)
-        input_options.files = replayable_files.files
+        replayable_files: ReplayableFiles | None = None
+        if self._should_prepare_replayable_files(input_options):
+            replayable_files = ReplayableFiles(input_options.files)
+            input_options.files = replayable_files.files
         try:
             return await self._request_with_retries(
                 cast_to=cast_to,
@@ -1665,14 +1674,15 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
                 stream_cls=stream_cls,
             )
         finally:
-            replayable_files.close()
+            if replayable_files is not None:
+                replayable_files.close()
 
     async def _request_with_retries(
         self,
         *,
         cast_to: type[ResponseT],
         input_options: FinalRequestOptions,
-        replayable_files: ReplayableFiles,
+        replayable_files: ReplayableFiles | None,
         stream: bool,
         stream_cls: type[_AsyncStreamT] | None,
     ) -> ResponseT | _AsyncStreamT:
@@ -1682,13 +1692,14 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
         retries_taken = 0
         options: FinalRequestOptions | None = None
         for retries_taken in range(max_retries + 1):
-            replayable_files.rewind()
+            if replayable_files is not None:
+                replayable_files.rewind()
             options = model_copy(input_options)
             options = await self._prepare_options(options)
 
             remaining_retries = max_retries - retries_taken
             request = self._build_request(options, retries_taken=retries_taken)
-            if input_options.files is not None:
+            if replayable_files is not None:
                 request.extensions["openai_replayable_files"] = replayable_files
             await self._prepare_request(request)
 

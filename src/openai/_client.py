@@ -469,6 +469,14 @@ class OpenAI(SyncAPIClient):
         return response
 
     @override
+    def _should_prepare_replayable_files(self, options: FinalRequestOptions) -> bool:
+        return super()._should_prepare_replayable_files(options) or (
+            options.files is not None
+            and self._workload_identity_auth is not None
+            and options.security.get("bearer_auth", False)
+        )
+
+    @override
     def _send_request(
         self,
         request: httpx.Request,
@@ -1064,6 +1072,14 @@ class AsyncOpenAI(AsyncAPIClient):
             return await self._send_with_auth_retry(request, stream=stream, retried=True, **kwargs)
 
         return response
+
+    @override
+    def _should_prepare_replayable_files(self, options: FinalRequestOptions) -> bool:
+        return super()._should_prepare_replayable_files(options) or (
+            options.files is not None
+            and self._workload_identity_auth is not None
+            and options.security.get("bearer_auth", False)
+        )
 
     @override
     async def _send_request(
