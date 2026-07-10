@@ -92,6 +92,14 @@ __all__ = ["Timeout", "Transport", "ProxiesTypes", "RequestOptions", "OpenAI", "
 WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER = "workload-identity-auth"
 
 
+def _is_websocket_unauthorized(exc: Exception) -> bool:
+    status_code = getattr(exc, "status_code", None)
+    if status_code is None:
+        response = getattr(exc, "response", None)
+        status_code = getattr(response, "status_code", None)
+    return status_code == 401
+
+
 def _has_header(headers: Headers, header: str) -> bool:
     header = header.lower()
     return any(key.lower() == header for key in headers)
@@ -445,13 +453,12 @@ class OpenAI(SyncAPIClient):
         retried: bool = False,
         **kwargs: Unpack[HttpxSendArgs],
     ) -> httpx.Response:
-        used_workload_identity_auth = False
-
-        if self._workload_identity_auth is not None:
-            authorization = request.headers.get("Authorization")
-            if authorization == f"Bearer {WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER}":
-                request.headers["Authorization"] = f"Bearer {self._workload_identity_auth.get_token()}"
-                used_workload_identity_auth = True
+        authorization, used_workload_identity_auth = self._resolve_auth_header(
+            request.headers.get("Authorization"),
+            workload_identity_placeholder_required=True,
+        )
+        if authorization is not None:
+            request.headers["Authorization"] = authorization
 
         response = super()._send_request(request, stream=stream, **kwargs)
         if (
@@ -466,6 +473,28 @@ class OpenAI(SyncAPIClient):
             return self._send_with_auth_retry(request, stream=stream, retried=True, **kwargs)
 
         return response
+
+    def _resolve_auth_header(
+        self, authorization: str | None, *, workload_identity_placeholder_required: bool = False
+    ) -> tuple[str | None, bool]:
+        if self._workload_identity_auth is None:
+            return authorization, False
+        if (
+            workload_identity_placeholder_required
+            and authorization != f"Bearer {WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER}"
+        ):
+            return authorization, False
+        return f"Bearer {self._workload_identity_auth.get_token()}", True
+
+    def _websocket_auth_headers(self) -> dict[str, str]:
+        authorization, _ = self._resolve_auth_header(self.auth_headers.get("Authorization"))
+        return {"Authorization": authorization} if authorization is not None else {}
+
+    def _retry_websocket_auth_headers(self, exc: Exception) -> dict[str, str] | None:
+        if self._workload_identity_auth is None or not _is_websocket_unauthorized(exc):
+            return None
+        self._workload_identity_auth.invalidate_token()
+        return self._websocket_auth_headers()
 
     @override
     def _send_request(
@@ -1041,13 +1070,12 @@ class AsyncOpenAI(AsyncAPIClient):
         retried: bool = False,
         **kwargs: Unpack[HttpxSendArgs],
     ) -> httpx.Response:
-        used_workload_identity_auth = False
-
-        if self._workload_identity_auth is not None:
-            authorization = request.headers.get("Authorization")
-            if authorization == f"Bearer {WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER}":
-                request.headers["Authorization"] = f"Bearer {await self._workload_identity_auth.get_token_async()}"
-                used_workload_identity_auth = True
+        authorization, used_workload_identity_auth = await self._resolve_auth_header(
+            request.headers.get("Authorization"),
+            workload_identity_placeholder_required=True,
+        )
+        if authorization is not None:
+            request.headers["Authorization"] = authorization
 
         response = await super()._send_request(request, stream=stream, **kwargs)
         if (
@@ -1062,6 +1090,28 @@ class AsyncOpenAI(AsyncAPIClient):
             return await self._send_with_auth_retry(request, stream=stream, retried=True, **kwargs)
 
         return response
+
+    async def _resolve_auth_header(
+        self, authorization: str | None, *, workload_identity_placeholder_required: bool = False
+    ) -> tuple[str | None, bool]:
+        if self._workload_identity_auth is None:
+            return authorization, False
+        if (
+            workload_identity_placeholder_required
+            and authorization != f"Bearer {WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER}"
+        ):
+            return authorization, False
+        return f"Bearer {await self._workload_identity_auth.get_token_async()}", True
+
+    async def _websocket_auth_headers(self) -> dict[str, str]:
+        authorization, _ = await self._resolve_auth_header(self.auth_headers.get("Authorization"))
+        return {"Authorization": authorization} if authorization is not None else {}
+
+    async def _retry_websocket_auth_headers(self, exc: Exception) -> dict[str, str] | None:
+        if self._workload_identity_auth is None or not _is_websocket_unauthorized(exc):
+            return None
+        self._workload_identity_auth.invalidate_token()
+        return await self._websocket_auth_headers()
 
     @override
     async def _send_request(

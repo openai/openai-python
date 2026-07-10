@@ -101,6 +101,14 @@ class Counter:
     value: int = 0
 
 
+class MockWebSocketUnauthorized(Exception):
+    status_code = 401
+
+
+class MockWebSocketUnauthorizedWithResponse(Exception):
+    response = httpx.Response(401)
+
+
 def _make_sync_iterator(iterable: Iterable[T], counter: Optional[Counter] = None) -> Iterator[T]:
     for item in iterable:
         if counter:
@@ -2949,3 +2957,47 @@ class TestAsyncWorkloadIdentity401Retry:
             assert len(calls) == 2
 
             assert provider_call_count == 1
+
+
+class TestWorkloadIdentityWebSocketAuth:
+    def test_resolves_token_and_refreshes_after_unauthorized_handshake(self) -> None:
+        client = OpenAI(workload_identity=workload_identity)
+        auth = mock.Mock()
+        auth.get_token.side_effect = ["openai-access-token-1", "openai-access-token-2"]
+        client._workload_identity_auth = auth
+
+        assert client._websocket_auth_headers() == {"Authorization": "Bearer openai-access-token-1"}
+        assert client._retry_websocket_auth_headers(MockWebSocketUnauthorized()) == {
+            "Authorization": "Bearer openai-access-token-2"
+        }
+        auth.invalidate_token.assert_called_once_with()
+
+    def test_does_not_refresh_after_non_unauthorized_handshake_error(self) -> None:
+        client = OpenAI(workload_identity=workload_identity)
+        auth = mock.Mock()
+        client._workload_identity_auth = auth
+
+        assert client._retry_websocket_auth_headers(Exception("connection failed")) is None
+        auth.invalidate_token.assert_not_called()
+
+
+class TestAsyncWorkloadIdentityWebSocketAuth:
+    async def test_resolves_token_and_refreshes_after_unauthorized_handshake(self) -> None:
+        client = AsyncOpenAI(workload_identity=workload_identity)
+        auth = mock.Mock()
+        auth.get_token_async = mock.AsyncMock(side_effect=["openai-access-token-1", "openai-access-token-2"])
+        client._workload_identity_auth = auth
+
+        assert await client._websocket_auth_headers() == {"Authorization": "Bearer openai-access-token-1"}
+        assert await client._retry_websocket_auth_headers(MockWebSocketUnauthorizedWithResponse()) == {
+            "Authorization": "Bearer openai-access-token-2"
+        }
+        auth.invalidate_token.assert_called_once_with()
+
+    async def test_does_not_refresh_after_non_unauthorized_handshake_error(self) -> None:
+        client = AsyncOpenAI(workload_identity=workload_identity)
+        auth = mock.Mock()
+        client._workload_identity_auth = auth
+
+        assert await client._retry_websocket_auth_headers(Exception("connection failed")) is None
+        auth.invalidate_token.assert_not_called()
