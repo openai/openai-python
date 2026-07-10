@@ -431,6 +431,197 @@ Methods:
 
 # Beta
 
+## Responses
+
+Types:
+
+```python
+from openai.types.beta import (
+    BetaApplyPatchTool,
+    BetaCompactedResponse,
+    BetaComputerAction,
+    BetaComputerActionList,
+    BetaComputerTool,
+    BetaComputerUsePreviewTool,
+    BetaContainerAuto,
+    BetaContainerNetworkPolicyAllowlist,
+    BetaContainerNetworkPolicyDisabled,
+    BetaContainerNetworkPolicyDomainSecret,
+    BetaContainerReference,
+    BetaCustomTool,
+    BetaEasyInputMessage,
+    BetaFileSearchTool,
+    BetaFunctionShellTool,
+    BetaFunctionTool,
+    BetaInlineSkill,
+    BetaInlineSkillSource,
+    BetaLocalEnvironment,
+    BetaLocalSkill,
+    BetaNamespaceTool,
+    BetaResponse,
+    BetaResponseApplyPatchToolCall,
+    BetaResponseApplyPatchToolCallOutput,
+    BetaResponseAudioDeltaEvent,
+    BetaResponseAudioDoneEvent,
+    BetaResponseAudioTranscriptDeltaEvent,
+    BetaResponseAudioTranscriptDoneEvent,
+    BetaResponseCodeInterpreterCallCodeDeltaEvent,
+    BetaResponseCodeInterpreterCallCodeDoneEvent,
+    BetaResponseCodeInterpreterCallCompletedEvent,
+    BetaResponseCodeInterpreterCallInProgressEvent,
+    BetaResponseCodeInterpreterCallInterpretingEvent,
+    BetaResponseCodeInterpreterToolCall,
+    BetaResponseCompactionItem,
+    BetaResponseCompactionItemParam,
+    BetaResponseCompletedEvent,
+    BetaResponseComputerToolCall,
+    BetaResponseComputerToolCallOutputItem,
+    BetaResponseComputerToolCallOutputScreenshot,
+    BetaResponseContainerReference,
+    BetaResponseContent,
+    BetaResponseContentPartAddedEvent,
+    BetaResponseContentPartDoneEvent,
+    BetaResponseConversationParam,
+    BetaResponseCreatedEvent,
+    BetaResponseCustomToolCall,
+    BetaResponseCustomToolCallInputDeltaEvent,
+    BetaResponseCustomToolCallInputDoneEvent,
+    BetaResponseCustomToolCallItem,
+    BetaResponseCustomToolCallOutput,
+    BetaResponseCustomToolCallOutputItem,
+    BetaResponseError,
+    BetaResponseErrorEvent,
+    BetaResponseFailedEvent,
+    BetaResponseFileSearchCallCompletedEvent,
+    BetaResponseFileSearchCallInProgressEvent,
+    BetaResponseFileSearchCallSearchingEvent,
+    BetaResponseFileSearchToolCall,
+    BetaResponseFormatTextConfig,
+    BetaResponseFormatTextJSONSchemaConfig,
+    BetaResponseFunctionCallArgumentsDeltaEvent,
+    BetaResponseFunctionCallArgumentsDoneEvent,
+    BetaResponseFunctionCallOutputItem,
+    BetaResponseFunctionCallOutputItemList,
+    BetaResponseFunctionShellCallOutputContent,
+    BetaResponseFunctionShellToolCall,
+    BetaResponseFunctionShellToolCallOutput,
+    BetaResponseFunctionToolCall,
+    BetaResponseFunctionToolCallItem,
+    BetaResponseFunctionToolCallOutputItem,
+    BetaResponseFunctionWebSearch,
+    BetaResponseImageGenCallCompletedEvent,
+    BetaResponseImageGenCallGeneratingEvent,
+    BetaResponseImageGenCallInProgressEvent,
+    BetaResponseImageGenCallPartialImageEvent,
+    BetaResponseInProgressEvent,
+    BetaResponseIncludable,
+    BetaResponseIncompleteEvent,
+    BetaResponseInjectCreatedEvent,
+    BetaResponseInjectEvent,
+    BetaResponseInjectFailedEvent,
+    BetaResponseInput,
+    BetaResponseInputAudio,
+    BetaResponseInputContent,
+    BetaResponseInputFile,
+    BetaResponseInputFileContent,
+    BetaResponseInputImage,
+    BetaResponseInputImageContent,
+    BetaResponseInputItem,
+    BetaResponseInputMessageContentList,
+    BetaResponseInputMessageItem,
+    BetaResponseInputText,
+    BetaResponseInputTextContent,
+    BetaResponseItem,
+    BetaResponseLocalEnvironment,
+    BetaResponseMcpCallArgumentsDeltaEvent,
+    BetaResponseMcpCallArgumentsDoneEvent,
+    BetaResponseMcpCallCompletedEvent,
+    BetaResponseMcpCallFailedEvent,
+    BetaResponseMcpCallInProgressEvent,
+    BetaResponseMcpListToolsCompletedEvent,
+    BetaResponseMcpListToolsFailedEvent,
+    BetaResponseMcpListToolsInProgressEvent,
+    BetaResponseOutputAudio,
+    BetaResponseOutputItem,
+    BetaResponseOutputItemAddedEvent,
+    BetaResponseOutputItemDoneEvent,
+    BetaResponseOutputMessage,
+    BetaResponseOutputRefusal,
+    BetaResponseOutputText,
+    BetaResponseOutputTextAnnotationAddedEvent,
+    BetaResponsePrompt,
+    BetaResponseQueuedEvent,
+    BetaResponseReasoningItem,
+    BetaResponseReasoningSummaryPartAddedEvent,
+    BetaResponseReasoningSummaryPartDoneEvent,
+    BetaResponseReasoningSummaryTextDeltaEvent,
+    BetaResponseReasoningSummaryTextDoneEvent,
+    BetaResponseReasoningTextDeltaEvent,
+    BetaResponseReasoningTextDoneEvent,
+    BetaResponseRefusalDeltaEvent,
+    BetaResponseRefusalDoneEvent,
+    BetaResponseStatus,
+    BetaResponseStreamEvent,
+    BetaResponseTextConfig,
+    BetaResponseTextDeltaEvent,
+    BetaResponseTextDoneEvent,
+    BetaResponseToolSearchCall,
+    BetaResponseToolSearchOutputItem,
+    BetaResponseToolSearchOutputItemParam,
+    BetaResponseUsage,
+    BetaResponseWebSearchCallCompletedEvent,
+    BetaResponseWebSearchCallInProgressEvent,
+    BetaResponseWebSearchCallSearchingEvent,
+    BetaResponsesClientEvent,
+    BetaResponsesServerEvent,
+    BetaSkillReference,
+    BetaTool,
+    BetaToolChoiceAllowed,
+    BetaToolChoiceApplyPatch,
+    BetaToolChoiceCustom,
+    BetaToolChoiceFunction,
+    BetaToolChoiceMcp,
+    BetaToolChoiceOptions,
+    BetaToolChoiceShell,
+    BetaToolChoiceTypes,
+    BetaToolSearchTool,
+    BetaWebSearchPreviewTool,
+    BetaWebSearchTool,
+)
+```
+
+Methods:
+
+- <code title="post /responses?beta=true">client.beta.responses.<a href="./src/openai/resources/beta/responses/responses.py">create</a>(\*\*<a href="src/openai/types/beta/response_create_params.py">params</a>) -> <a href="./src/openai/types/beta/beta_response.py">BetaResponse</a></code>
+- <code title="get /responses/{response_id}?beta=true">client.beta.responses.<a href="./src/openai/resources/beta/responses/responses.py">retrieve</a>(response_id, \*\*<a href="src/openai/types/beta/response_retrieve_params.py">params</a>) -> <a href="./src/openai/types/beta/beta_response.py">BetaResponse</a></code>
+- <code title="delete /responses/{response_id}?beta=true">client.beta.responses.<a href="./src/openai/resources/beta/responses/responses.py">delete</a>(response_id) -> None</code>
+- <code title="post /responses/{response_id}/cancel?beta=true">client.beta.responses.<a href="./src/openai/resources/beta/responses/responses.py">cancel</a>(response_id) -> <a href="./src/openai/types/beta/beta_response.py">BetaResponse</a></code>
+- <code title="post /responses/compact?beta=true">client.beta.responses.<a href="./src/openai/resources/beta/responses/responses.py">compact</a>(\*\*<a href="src/openai/types/beta/response_compact_params.py">params</a>) -> <a href="./src/openai/types/beta/beta_compacted_response.py">BetaCompactedResponse</a></code>
+
+### InputItems
+
+Types:
+
+```python
+from openai.types.beta.responses import BetaResponseItemList
+```
+
+Methods:
+
+- <code title="get /responses/{response_id}/input_items?beta=true">client.beta.responses.input_items.<a href="./src/openai/resources/beta/responses/input_items.py">list</a>(response_id, \*\*<a href="src/openai/types/beta/responses/input_item_list_params.py">params</a>) -> <a href="./src/openai/types/beta/beta_response_item.py">SyncCursorPage[BetaResponseItem]</a></code>
+
+### InputTokens
+
+Types:
+
+```python
+from openai.types.beta.responses import InputTokenCountResponse
+```
+
+Methods:
+
+- <code title="post /responses/input_tokens?beta=true">client.beta.responses.input_tokens.<a href="./src/openai/resources/beta/responses/input_tokens.py">count</a>(\*\*<a href="src/openai/types/beta/responses/input_token_count_params.py">params</a>) -> <a href="./src/openai/types/beta/responses/input_token_count_response.py">InputTokenCountResponse</a></code>
+
 ## Realtime
 
 Types:
