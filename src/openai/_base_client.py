@@ -455,7 +455,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
 
     def _build_headers(self, options: FinalRequestOptions, *, retries_taken: int = 0) -> httpx.Headers:
         custom_headers = options.headers or {}
-        headers_dict = _merge_mappings({**self._auth_headers(options.security), **self.default_headers}, custom_headers)
+        headers_dict = _merge_headers(self._auth_headers(options.security), self.default_headers, custom_headers)
         self._validate_headers(headers_dict, custom_headers)
 
         # headers are case-insensitive while dictionaries are not.
@@ -2212,3 +2212,17 @@ def _merge_mappings(
     """
     merged = {**obj1, **obj2}
     return {key: value for key, value in merged.items() if not isinstance(value, Omit)}
+
+
+def _merge_headers(*mappings: Headers) -> dict[str, str]:
+    """Merge headers case-insensitively, with later mappings taking precedence."""
+    merged: dict[str, tuple[str, str]] = {}
+    for mapping in mappings:
+        for name, value in mapping.items():
+            normalized_name = name.lower()
+            if isinstance(value, Omit):
+                merged.pop(normalized_name, None)
+            else:
+                merged[normalized_name] = (name, value)
+
+    return {name: value for name, value in merged.values()}

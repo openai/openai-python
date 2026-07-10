@@ -31,7 +31,7 @@ from ...._compat import cached_property
 from ...._models import construct_type_unchecked
 from ...._resource import SyncAPIResource, AsyncAPIResource
 from ...._exceptions import OpenAIError
-from ...._base_client import _merge_mappings
+from ...._base_client import _merge_headers
 from ....types.beta.realtime import (
     session_update_event_param,
     response_create_event_param,
@@ -378,7 +378,7 @@ class AsyncRealtimeConnectionManager:
             await connect(
                 str(url),
                 user_agent_header=self.__client.user_agent,
-                additional_headers=_merge_mappings(
+                additional_headers=_merge_headers(
                     {
                         **auth_headers,
                         "OpenAI-Beta": "realtime=v1",
@@ -561,7 +561,7 @@ class RealtimeConnectionManager:
             connect(
                 str(url),
                 user_agent_header=self.__client.user_agent,
-                additional_headers=_merge_mappings(
+                additional_headers=_merge_headers(
                     {
                         **auth_headers,
                         "OpenAI-Beta": "realtime=v1",
