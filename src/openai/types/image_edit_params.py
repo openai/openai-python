@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Union, Optional
+from typing import Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypedDict
 
 from .._types import FileTypes, SequenceNotStr
@@ -11,8 +11,16 @@ from .image_model import ImageModel
 __all__ = ["ImageEditParamsBase", "ImageEditParamsNonStreaming", "ImageEditParamsStreaming"]
 
 
+class Image(TypedDict, total=False):
+    file_id: str
+    """The ID of an uploaded image file to edit."""
+
+    image_url: str
+    """A fully qualified URL or base64-encoded data URL for the image to edit."""
+
+
 class ImageEditParamsBase(TypedDict, total=False):
-    image: Required[Union[FileTypes, SequenceNotStr[FileTypes]]]
+    image: Union[FileTypes, SequenceNotStr[FileTypes]]
     """The image(s) to edit. Must be a supported image file or an array of images.
 
     For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`,
@@ -22,6 +30,12 @@ class ImageEditParamsBase(TypedDict, total=False):
 
     For `dall-e-2`, you can only provide one image, and it should be a square `png`
     file less than 4MB.
+    """
+
+    images: Iterable[Image]
+    """The image references to edit.
+
+    Each item can reference an image by URL or file ID.
     """
 
     prompt: Required[str]
