@@ -10,8 +10,9 @@ RUN apk add --no-cache gcc musl-dev libffi-dev g++ cargo
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Copy package descriptors
+# Copy package descriptors and source code
 COPY pyproject.toml README.md ./
+COPY src/ ./src/
 
 # Upgrade pip and install package dependencies
 RUN pip install --no-cache-dir --upgrade pip && \
