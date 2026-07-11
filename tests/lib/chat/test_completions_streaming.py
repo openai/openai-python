@@ -20,7 +20,6 @@ import openai
 from openai import OpenAI, AsyncOpenAI
 from openai._utils import consume_sync_iterator, assert_signatures_in_sync
 from openai._compat import model_copy
-from openai.types.chat import ChatCompletionChunk
 from openai.lib.streaming.chat import (
     ContentDoneEvent,
     ChatCompletionStream,
@@ -30,6 +29,13 @@ from openai.lib.streaming.chat import (
     ParsedChatCompletionSnapshot,
 )
 from openai.lib._parsing._completions import ResponseFormatT
+from openai.types.chat.chat_completion_chunk import (
+    Choice,
+    ChoiceDelta,
+    ChatCompletionChunk,
+    ChoiceDeltaToolCall,
+    ChoiceDeltaToolCallFunction,
+)
 
 from ..utils import print_obj
 from ...conftest import base_url
@@ -1067,6 +1073,94 @@ recommend checking a reliable weather website or a weather app.",
 ]
 """
     )
+
+
+def test_chat_completion_stream_ignores_missing_tool_call_index_initial_chunk() -> None:
+    state = ChatCompletionStreamState()
+
+    chunk = ChatCompletionChunk.model_construct(
+        id="chatcmpl-test",
+        object="chat.completion.chunk",
+        created=0,
+        model="gpt-test",
+        choices=[
+            Choice.model_construct(
+                index=0,
+                finish_reason="tool_calls",
+                delta=ChoiceDelta.model_construct(
+                    role="assistant",
+                    tool_calls=[
+                        ChoiceDeltaToolCall.model_construct(
+                            index=None,
+                            id="call_1",
+                            type="function",
+                            function=ChoiceDeltaToolCallFunction.model_construct(
+                                name="get_weather",
+                                arguments='{"location":"Chicago"}',
+                            ),
+                        )
+                    ],
+                ),
+            )
+        ],
+    )
+
+    events = state.handle_chunk(chunk)
+
+    assert [event.type for event in events] == ["chunk"]
+    assert state.current_completion_snapshot.choices[0].finish_reason == "tool_calls"
+
+
+def test_chat_completion_stream_ignores_missing_tool_call_index_followup_chunk() -> None:
+    state = ChatCompletionStreamState()
+
+    state.handle_chunk(
+        ChatCompletionChunk.model_construct(
+            id="chatcmpl-test",
+            object="chat.completion.chunk",
+            created=0,
+            model="gpt-test",
+            choices=[
+                Choice.model_construct(
+                    index=0,
+                    finish_reason=None,
+                    delta=ChoiceDelta.model_construct(role="assistant", content="hello"),
+                )
+            ],
+        )
+    )
+
+    chunk = ChatCompletionChunk.model_construct(
+        id="chatcmpl-test",
+        object="chat.completion.chunk",
+        created=0,
+        model="gpt-test",
+        choices=[
+            Choice.model_construct(
+                index=0,
+                finish_reason="tool_calls",
+                delta=ChoiceDelta.model_construct(
+                    tool_calls=[
+                        ChoiceDeltaToolCall.model_construct(
+                            index=None,
+                            id="call_1",
+                            type="function",
+                            function=ChoiceDeltaToolCallFunction.model_construct(
+                                name="get_weather",
+                                arguments='{"location":"Chicago"}',
+                            ),
+                        )
+                    ],
+                ),
+            )
+        ],
+    )
+
+    events = state.handle_chunk(chunk)
+
+    assert events[0].type == "chunk"
+    assert state.current_completion_snapshot.choices[0].message.content == "hello"
+    assert state.current_completion_snapshot.choices[0].finish_reason == "tool_calls"
 
 
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])

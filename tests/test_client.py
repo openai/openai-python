@@ -1280,7 +1280,6 @@ class TestOpenAI:
         # Delete in case our environment has any proxy env vars set
         monkeypatch.delenv("HTTP_PROXY", raising=False)
         monkeypatch.delenv("ALL_PROXY", raising=False)
-        monkeypatch.delenv("NO_PROXY", raising=False)
         monkeypatch.delenv("http_proxy", raising=False)
         monkeypatch.delenv("https_proxy", raising=False)
         monkeypatch.delenv("all_proxy", raising=False)
@@ -1291,6 +1290,18 @@ class TestOpenAI:
         mounts = tuple(client._mounts.items())
         assert len(mounts) == 1
         assert mounts[0][0].pattern == "https://"
+
+    def test_proxy_environment_variables_with_newlines(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setenv("HTTPS_PROXY", "https://example.org")
+        monkeypatch.setenv("NO_PROXY", "localhost\n192.168.1.1")
+        monkeypatch.delenv("HTTP_PROXY", raising=False)
+        monkeypatch.delenv("ALL_PROXY", raising=False)
+        monkeypatch.delenv("http_proxy", raising=False)
+        monkeypatch.delenv("https_proxy", raising=False)
+        monkeypatch.delenv("all_proxy", raising=False)
+
+        DefaultHttpxClient()
+        assert os.environ["NO_PROXY"] == "localhost\n192.168.1.1"
 
     @pytest.mark.filterwarnings("ignore:.*deprecated.*:DeprecationWarning")
     def test_default_client_creation(self) -> None:
@@ -2540,7 +2551,6 @@ class TestAsyncOpenAI:
         # Delete in case our environment has any proxy env vars set
         monkeypatch.delenv("HTTP_PROXY", raising=False)
         monkeypatch.delenv("ALL_PROXY", raising=False)
-        monkeypatch.delenv("NO_PROXY", raising=False)
         monkeypatch.delenv("http_proxy", raising=False)
         monkeypatch.delenv("https_proxy", raising=False)
         monkeypatch.delenv("all_proxy", raising=False)
@@ -2551,6 +2561,18 @@ class TestAsyncOpenAI:
         mounts = tuple(client._mounts.items())
         assert len(mounts) == 1
         assert mounts[0][0].pattern == "https://"
+
+    async def test_proxy_environment_variables_with_newlines(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setenv("HTTPS_PROXY", "https://example.org")
+        monkeypatch.setenv("NO_PROXY", "localhost\n192.168.1.1")
+        monkeypatch.delenv("HTTP_PROXY", raising=False)
+        monkeypatch.delenv("ALL_PROXY", raising=False)
+        monkeypatch.delenv("http_proxy", raising=False)
+        monkeypatch.delenv("https_proxy", raising=False)
+        monkeypatch.delenv("all_proxy", raising=False)
+
+        DefaultAsyncHttpxClient()
+        assert os.environ["NO_PROXY"] == "localhost\n192.168.1.1"
 
     @pytest.mark.filterwarnings("ignore:.*deprecated.*:DeprecationWarning")
     async def test_default_client_creation(self) -> None:
