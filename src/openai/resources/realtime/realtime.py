@@ -686,7 +686,7 @@ class AsyncRealtimeConnectionManager:
             raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
 
         await self.__client._refresh_api_key()
-        auth_headers = await self.__client._websocket_auth_headers()
+        auth_headers = await self.__client._websocket_auth_headers(extra_headers)
         if self.__call_id is not omit:
             extra_query = {**extra_query, "call_id": self.__call_id}
         if is_async_azure_client(self.__client):
@@ -720,7 +720,7 @@ class AsyncRealtimeConnectionManager:
                 **self.__websocket_connection_options,
             )
         except Exception as exc:
-            retry_auth_headers = await self.__client._retry_websocket_auth_headers(exc)
+            retry_auth_headers = await self.__client._retry_websocket_auth_headers(exc, extra_headers)
             if retry_auth_headers is None:
                 raise
             return await connect(
@@ -1165,7 +1165,7 @@ class RealtimeConnectionManager:
             raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
 
         self.__client._refresh_api_key()
-        auth_headers = self.__client._websocket_auth_headers()
+        auth_headers = self.__client._websocket_auth_headers(extra_headers)
         if self.__call_id is not omit:
             extra_query = {**extra_query, "call_id": self.__call_id}
         if is_azure_client(self.__client):
@@ -1199,7 +1199,7 @@ class RealtimeConnectionManager:
                 **self.__websocket_connection_options,
             )
         except Exception as exc:
-            retry_auth_headers = self.__client._retry_websocket_auth_headers(exc)
+            retry_auth_headers = self.__client._retry_websocket_auth_headers(exc, extra_headers)
             if retry_auth_headers is None:
                 raise
             return connect(

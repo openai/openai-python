@@ -486,15 +486,21 @@ class OpenAI(SyncAPIClient):
             return authorization, False
         return f"Bearer {self._workload_identity_auth.get_token()}", True
 
-    def _websocket_auth_headers(self) -> dict[str, str]:
+    def _websocket_auth_headers(self, extra_headers: Headers) -> dict[str, str]:
+        if _has_header(extra_headers, "Authorization"):
+            return {}
         authorization, _ = self._resolve_auth_header(self.auth_headers.get("Authorization"))
         return {"Authorization": authorization} if authorization is not None else {}
 
-    def _retry_websocket_auth_headers(self, exc: Exception) -> dict[str, str] | None:
-        if self._workload_identity_auth is None or not _is_websocket_unauthorized(exc):
+    def _retry_websocket_auth_headers(self, exc: Exception, extra_headers: Headers) -> dict[str, str] | None:
+        if (
+            self._workload_identity_auth is None
+            or _has_header(extra_headers, "Authorization")
+            or not _is_websocket_unauthorized(exc)
+        ):
             return None
         self._workload_identity_auth.invalidate_token()
-        return self._websocket_auth_headers()
+        return self._websocket_auth_headers(extra_headers)
 
     @override
     def _send_request(
@@ -1103,15 +1109,21 @@ class AsyncOpenAI(AsyncAPIClient):
             return authorization, False
         return f"Bearer {await self._workload_identity_auth.get_token_async()}", True
 
-    async def _websocket_auth_headers(self) -> dict[str, str]:
+    async def _websocket_auth_headers(self, extra_headers: Headers) -> dict[str, str]:
+        if _has_header(extra_headers, "Authorization"):
+            return {}
         authorization, _ = await self._resolve_auth_header(self.auth_headers.get("Authorization"))
         return {"Authorization": authorization} if authorization is not None else {}
 
-    async def _retry_websocket_auth_headers(self, exc: Exception) -> dict[str, str] | None:
-        if self._workload_identity_auth is None or not _is_websocket_unauthorized(exc):
+    async def _retry_websocket_auth_headers(self, exc: Exception, extra_headers: Headers) -> dict[str, str] | None:
+        if (
+            self._workload_identity_auth is None
+            or _has_header(extra_headers, "Authorization")
+            or not _is_websocket_unauthorized(exc)
+        ):
             return None
         self._workload_identity_auth.invalidate_token()
-        return await self._websocket_auth_headers()
+        return await self._websocket_auth_headers(extra_headers)
 
     @override
     async def _send_request(

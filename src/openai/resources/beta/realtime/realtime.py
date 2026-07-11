@@ -359,7 +359,7 @@ class AsyncRealtimeConnectionManager:
 
         extra_query = self.__extra_query
         await self.__client._refresh_api_key()
-        auth_headers = await self.__client._websocket_auth_headers()
+        auth_headers = await self.__client._websocket_auth_headers(self.__extra_headers)
         if is_async_azure_client(self.__client):
             url, auth_headers = await self.__client._configure_realtime(self.__model, extra_query)
         else:
@@ -388,7 +388,7 @@ class AsyncRealtimeConnectionManager:
                 **self.__websocket_connection_options,
             )
         except Exception as exc:
-            retry_auth_headers = await self.__client._retry_websocket_auth_headers(exc)
+            retry_auth_headers = await self.__client._retry_websocket_auth_headers(exc, self.__extra_headers)
             if retry_auth_headers is None:
                 raise
             websocket = await connect(
@@ -554,7 +554,7 @@ class RealtimeConnectionManager:
 
         extra_query = self.__extra_query
         self.__client._refresh_api_key()
-        auth_headers = self.__client._websocket_auth_headers()
+        auth_headers = self.__client._websocket_auth_headers(self.__extra_headers)
         if is_azure_client(self.__client):
             url, auth_headers = self.__client._configure_realtime(self.__model, extra_query)
         else:
@@ -583,7 +583,7 @@ class RealtimeConnectionManager:
                 **self.__websocket_connection_options,
             )
         except Exception as exc:
-            retry_auth_headers = self.__client._retry_websocket_auth_headers(exc)
+            retry_auth_headers = self.__client._retry_websocket_auth_headers(exc, self.__extra_headers)
             if retry_auth_headers is None:
                 raise
             websocket = connect(

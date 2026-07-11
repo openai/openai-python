@@ -2966,18 +2966,30 @@ class TestWorkloadIdentityWebSocketAuth:
         auth.get_token.side_effect = ["openai-access-token-1", "openai-access-token-2"]
         client._workload_identity_auth = auth
 
-        assert client._websocket_auth_headers() == {"Authorization": "Bearer openai-access-token-1"}
-        assert client._retry_websocket_auth_headers(MockWebSocketUnauthorized()) == {
+        assert client._websocket_auth_headers({}) == {"Authorization": "Bearer openai-access-token-1"}
+        assert client._retry_websocket_auth_headers(MockWebSocketUnauthorized(), {}) == {
             "Authorization": "Bearer openai-access-token-2"
         }
         auth.invalidate_token.assert_called_once_with()
+
+    @pytest.mark.parametrize("authorization", ["Bearer custom", Omit()])
+    def test_respects_authorization_override_without_resolving_token(self, authorization: str | Omit) -> None:
+        client = OpenAI(workload_identity=workload_identity)
+        auth = mock.Mock()
+        client._workload_identity_auth = auth
+        extra_headers = {"authorization": authorization}
+
+        assert client._websocket_auth_headers(extra_headers) == {}
+        assert client._retry_websocket_auth_headers(MockWebSocketUnauthorized(), extra_headers) is None
+        auth.get_token.assert_not_called()
+        auth.invalidate_token.assert_not_called()
 
     def test_does_not_refresh_after_non_unauthorized_handshake_error(self) -> None:
         client = OpenAI(workload_identity=workload_identity)
         auth = mock.Mock()
         client._workload_identity_auth = auth
 
-        assert client._retry_websocket_auth_headers(Exception("connection failed")) is None
+        assert client._retry_websocket_auth_headers(Exception("connection failed"), {}) is None
         auth.invalidate_token.assert_not_called()
 
 
@@ -2988,16 +3000,31 @@ class TestAsyncWorkloadIdentityWebSocketAuth:
         auth.get_token_async = mock.AsyncMock(side_effect=["openai-access-token-1", "openai-access-token-2"])
         client._workload_identity_auth = auth
 
-        assert await client._websocket_auth_headers() == {"Authorization": "Bearer openai-access-token-1"}
-        assert await client._retry_websocket_auth_headers(MockWebSocketUnauthorizedWithResponse()) == {
+        assert await client._websocket_auth_headers({}) == {"Authorization": "Bearer openai-access-token-1"}
+        assert await client._retry_websocket_auth_headers(MockWebSocketUnauthorizedWithResponse(), {}) == {
             "Authorization": "Bearer openai-access-token-2"
         }
         auth.invalidate_token.assert_called_once_with()
+
+    @pytest.mark.parametrize("authorization", ["Bearer custom", Omit()])
+    async def test_respects_authorization_override_without_resolving_token(self, authorization: str | Omit) -> None:
+        client = AsyncOpenAI(workload_identity=workload_identity)
+        auth = mock.Mock()
+        auth.get_token_async = mock.AsyncMock()
+        client._workload_identity_auth = auth
+        extra_headers = {"authorization": authorization}
+
+        assert await client._websocket_auth_headers(extra_headers) == {}
+        assert (
+            await client._retry_websocket_auth_headers(MockWebSocketUnauthorizedWithResponse(), extra_headers) is None
+        )
+        auth.get_token_async.assert_not_awaited()
+        auth.invalidate_token.assert_not_called()
 
     async def test_does_not_refresh_after_non_unauthorized_handshake_error(self) -> None:
         client = AsyncOpenAI(workload_identity=workload_identity)
         auth = mock.Mock()
         client._workload_identity_auth = auth
 
-        assert await client._retry_websocket_auth_headers(Exception("connection failed")) is None
+        assert await client._retry_websocket_auth_headers(Exception("connection failed"), {}) is None
         auth.invalidate_token.assert_not_called()

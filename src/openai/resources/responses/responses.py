@@ -4332,7 +4332,7 @@ class AsyncResponsesConnectionManager:
         if self.__websocket_connection_options:
             log.debug("Connection options: %s", self.__websocket_connection_options)
 
-        auth_headers = await self.__client._websocket_auth_headers()
+        auth_headers = await self.__client._websocket_auth_headers(extra_headers)
         try:
             return await connect(
                 str(url),
@@ -4341,7 +4341,7 @@ class AsyncResponsesConnectionManager:
                 **self.__websocket_connection_options,
             )
         except Exception as exc:
-            retry_auth_headers = await self.__client._retry_websocket_auth_headers(exc)
+            retry_auth_headers = await self.__client._retry_websocket_auth_headers(exc, extra_headers)
             if retry_auth_headers is None:
                 raise
             return await connect(
@@ -4784,7 +4784,7 @@ class ResponsesConnectionManager:
         if self.__websocket_connection_options:
             log.debug("Connection options: %s", self.__websocket_connection_options)
 
-        auth_headers = self.__client._websocket_auth_headers()
+        auth_headers = self.__client._websocket_auth_headers(extra_headers)
         try:
             return connect(
                 str(url),
@@ -4793,7 +4793,7 @@ class ResponsesConnectionManager:
                 **self.__websocket_connection_options,
             )
         except Exception as exc:
-            retry_auth_headers = self.__client._retry_websocket_auth_headers(exc)
+            retry_auth_headers = self.__client._retry_websocket_auth_headers(exc, extra_headers)
             if retry_auth_headers is None:
                 raise
             return connect(
