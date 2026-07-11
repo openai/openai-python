@@ -655,6 +655,10 @@ def test_annotated_types() -> None:
     assert m.value == "foo"
 
 
+def test_construct_bare_dict_type() -> None:
+    assert construct_type(value={"key": "value"}, type_=dict) == {"key": "value"}
+
+
 def test_discriminated_unions_invalid_data() -> None:
     class A(BaseModel):
         type: Literal["a"]
