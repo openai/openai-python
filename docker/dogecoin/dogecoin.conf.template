@@ -1,0 +1,21 @@
+# dogecoin.conf template for staging & production node deployments
+server=1
+txindex=1
+rpcuser=dogeuser
+rpcpassword=dogepassword
+
+# Allow connections from Docker networks and localhost
+rpcallowip=127.0.0.1
+rpcallowip=10.0.0.0/8
+rpcallowip=172.16.0.0/12
+rpcallowip=192.168.0.0/16
+
+# Mainnet Settings
+[main]
+rpcport=9332
+port=9333
+
+# Testnet Settings
+[test]
+rpcport=19332
+port=19333
