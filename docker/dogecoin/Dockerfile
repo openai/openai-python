@@ -31,7 +31,7 @@ WORKDIR /home/dogecoin
 RUN mkdir -p /home/dogecoin/.dogecoin
 
 # Expose standard P2P and RPC ports
-EXPOSE 9332 9333 19332 19333
+EXPOSE 22555 22556 44555 44556
 
 # Copy configuration template
 COPY dogecoin.conf.template /home/dogecoin/.dogecoin/dogecoin.conf
