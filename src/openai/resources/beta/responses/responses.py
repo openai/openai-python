@@ -4371,6 +4371,7 @@ class AsyncResponsesConnectionManager:
         except ImportError as exc:
             raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
 
+        await self.__client._refresh_api_key()
         url = self._prepare_url().copy_with(
             params={
                 **self.__client.base_url.params,
@@ -4816,6 +4817,7 @@ class ResponsesConnectionManager:
         except ImportError as exc:
             raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
 
+        self.__client._refresh_api_key()
         url = self._prepare_url().copy_with(
             params={
                 **self.__client.base_url.params,
