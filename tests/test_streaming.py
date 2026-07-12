@@ -216,6 +216,44 @@ async def test_multi_byte_character_multiple_chunks(
     assert sse.json() == {"content": "известни"}
 
 
+@pytest.mark.asyncio
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+async def test_stream_skips_meta_only_retry_event(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
+    def body() -> Iterator[bytes]:
+        yield b"retry: 3000\n\n"
+        yield b'data: {"foo":true}\n\n'
+
+    results = await collect_stream(body(), sync=sync, client=client, async_client=async_client)
+    assert len(results) == 1
+    assert results[0] == {"foo": True}
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+async def test_stream_skips_event_without_data(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
+    def body() -> Iterator[bytes]:
+        yield b"event: ping\n\n"
+        yield b'data: {"bar":1}\n\n'
+        yield b"data: [DONE]\n\n"
+
+    results = await collect_stream(body(), sync=sync, client=client, async_client=async_client)
+    assert len(results) == 1
+    assert results[0] == {"bar": 1}
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+async def test_stream_skips_thread_event_without_data(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
+    def body() -> Iterator[bytes]:
+        yield b"event: thread.created\n\n"
+        yield b'event: thread.created\ndata: {"id":"t1"}\n\n'
+        yield b"data: [DONE]\n\n"
+
+    results = await collect_stream(body(), sync=sync, client=client, async_client=async_client)
+    assert len(results) == 1
+    assert results[0] == {"data": {"id": "t1"}, "event": "thread.created"}
+
+
 async def to_aiter(iter: Iterator[bytes]) -> AsyncIterator[bytes]:
     for chunk in iter:
         yield chunk
@@ -246,3 +284,22 @@ def make_event_iterator(
     return AsyncStream(
         cast_to=object, client=async_client, response=httpx.Response(200, content=to_aiter(content))
     )._iter_events()
+
+
+async def collect_stream(
+    content: Iterator[bytes],
+    *,
+    sync: bool,
+    client: OpenAI,
+    async_client: AsyncOpenAI,
+) -> list[object]:
+    results: list[object] = []
+    if sync:
+        stream = Stream(cast_to=object, client=client, response=httpx.Response(200, content=content))
+        for item in stream:
+            results.append(item)
+    else:
+        stream = AsyncStream(cast_to=object, client=async_client, response=httpx.Response(200, content=to_aiter(content)))
+        async for item in stream:
+            results.append(item)
+    return results
