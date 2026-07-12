@@ -409,13 +409,17 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
                     elif TYPE_CHECKING:  # type: ignore[unreachable]
                         assert_never(prev_tool)
             except IndexError:
+                message = choice.delta.to_dict()
+                tool_calls = message.get("tool_calls")
+                if isinstance(tool_calls, list):
+                    message["tool_calls"] = _normalize_indexed_list(tool_calls)
                 choice_snapshot = cast(
                     ParsedChoiceSnapshot,
                     construct_type(
                         type_=ParsedChoiceSnapshot,
                         value={
                             **choice.model_dump(exclude_unset=True, exclude={"delta"}),
-                            "message": choice.delta.to_dict(),
+                            "message": message,
                         },
                     ),
                 )
