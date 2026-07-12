@@ -216,6 +216,12 @@ class Responses(SyncAPIResource):
 
           input: Text, image, or file inputs to the model, used to generate a response.
 
+              When passing reasoning items in the input for multi-turn conversations, note
+              that reasoning items must always be immediately followed by their corresponding
+              message item in the input. This constraint applies when
+              [managing conversation state manually](https://platform.openai.com/docs/guides/conversation-state).
+              A reasoning item without its following message item will result in a 400 error.
+
               Learn more:
 
               - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
@@ -500,6 +506,12 @@ class Responses(SyncAPIResource):
 
           input: Text, image, or file inputs to the model, used to generate a response.
 
+              When passing reasoning items in the input for multi-turn conversations, note
+              that reasoning items must always be immediately followed by their corresponding
+              message item in the input. This constraint applies when
+              [managing conversation state manually](https://platform.openai.com/docs/guides/conversation-state).
+              A reasoning item without its following message item will result in a 400 error.
+
               Learn more:
 
               - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
@@ -776,6 +788,12 @@ class Responses(SyncAPIResource):
                 in the zero data retention program).
 
           input: Text, image, or file inputs to the model, used to generate a response.
+
+              When passing reasoning items in the input for multi-turn conversations, note
+              that reasoning items must always be immediately followed by their corresponding
+              message item in the input. This constraint applies when
+              [managing conversation state manually](https://platform.openai.com/docs/guides/conversation-state).
+              A reasoning item without its following message item will result in a 400 error.
 
               Learn more:
 
@@ -1836,6 +1854,12 @@ class Responses(SyncAPIResource):
 
           input: Text, image, or file inputs to the model, used to generate a response
 
+              When passing reasoning items in the input for multi-turn conversations, note
+              that reasoning items must always be immediately followed by their corresponding
+              message item in the input. This constraint applies when
+              [managing conversation state manually](https://platform.openai.com/docs/guides/conversation-state).
+              A reasoning item without its following message item will result in a 400 error.
+
           instructions: A system (or developer) message inserted into the model's context. When used
               along with `previous_response_id`, the instructions from a previous response
               will not be carried over to the next response. This makes it simple to swap out
@@ -2038,6 +2062,12 @@ class AsyncResponses(AsyncAPIResource):
                 in the zero data retention program).
 
           input: Text, image, or file inputs to the model, used to generate a response.
+
+              When passing reasoning items in the input for multi-turn conversations, note
+              that reasoning items must always be immediately followed by their corresponding
+              message item in the input. This constraint applies when
+              [managing conversation state manually](https://platform.openai.com/docs/guides/conversation-state).
+              A reasoning item without its following message item will result in a 400 error.
 
               Learn more:
 
@@ -2323,6 +2353,12 @@ class AsyncResponses(AsyncAPIResource):
 
           input: Text, image, or file inputs to the model, used to generate a response.
 
+              When passing reasoning items in the input for multi-turn conversations, note
+              that reasoning items must always be immediately followed by their corresponding
+              message item in the input. This constraint applies when
+              [managing conversation state manually](https://platform.openai.com/docs/guides/conversation-state).
+              A reasoning item without its following message item will result in a 400 error.
+
               Learn more:
 
               - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
@@ -2599,6 +2635,12 @@ class AsyncResponses(AsyncAPIResource):
                 in the zero data retention program).
 
           input: Text, image, or file inputs to the model, used to generate a response.
+
+              When passing reasoning items in the input for multi-turn conversations, note
+              that reasoning items must always be immediately followed by their corresponding
+              message item in the input. This constraint applies when
+              [managing conversation state manually](https://platform.openai.com/docs/guides/conversation-state).
+              A reasoning item without its following message item will result in a 400 error.
 
               Learn more:
 
@@ -3657,6 +3699,12 @@ class AsyncResponses(AsyncAPIResource):
               available models.
 
           input: Text, image, or file inputs to the model, used to generate a response
+
+              When passing reasoning items in the input for multi-turn conversations, note
+              that reasoning items must always be immediately followed by their corresponding
+              message item in the input. This constraint applies when
+              [managing conversation state manually](https://platform.openai.com/docs/guides/conversation-state).
+              A reasoning item without its following message item will result in a 400 error.
 
           instructions: A system (or developer) message inserted into the model's context. When used
               along with `previous_response_id`, the instructions from a previous response
