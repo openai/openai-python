@@ -977,15 +977,59 @@ def accumulate_event(
     return current_message_snapshot, new_content
 
 
+def _normalize_indexed_list(items: list[object]) -> list[object]:
+    """Merge list entries that share the same integer ``index`` key.
+
+    When the first delta chunk for a key carries multiple entries with the
+    same ``index`` (e.g. tool name **and** the start of arguments both at
+    index 0), those entries *must* be merged into a single logical entry.
+    Without this step the accumulator stores them as separate physical list
+    entries; the second entry is then orphaned because every subsequent delta
+    merges into ``acc_value[index]`` (the first one), leaving argument
+    fragments stranded and producing invalid final JSON.
+    """
+    if not items:
+        return items
+    if not all(is_dict(item) for item in items):
+        return items
+
+    # Count occurrences of each integer index.
+    index_counts: dict[int, int] = {}
+    for item in items:
+        idx = item.get("index")
+        if isinstance(idx, int):
+            index_counts[idx] = index_counts.get(idx, 0) + 1
+
+    # No duplicate indices -> nothing to normalise.
+    if not index_counts or max(index_counts.values()) <= 1:
+        return items
+
+    # Merge entries that share the same index.
+    merged: dict[int, dict[object, object]] = {}
+    for item in items:
+        idx = item.get("index")
+        if isinstance(idx, int):
+            if idx in merged:
+                merged[idx] = accumulate_delta(merged[idx], dict(item))
+            else:
+                merged[idx] = dict(item)
+
+    # Rebuild the list ordered by index.
+    return [
+        {**entry, "index": idx}
+        for idx, entry in sorted(merged.items())
+    ]
+
+
 def accumulate_delta(acc: dict[object, object], delta: dict[object, object]) -> dict[object, object]:
     for key, delta_value in delta.items():
         if key not in acc:
-            acc[key] = delta_value
+            acc[key] = _normalize_indexed_list(delta_value) if is_list(delta_value) else delta_value
             continue
 
         acc_value = acc[key]
         if acc_value is None:
-            acc[key] = delta_value
+            acc[key] = _normalize_indexed_list(delta_value) if is_list(delta_value) else delta_value
             continue
 
         # the `index` property is used in arrays of objects so it should
