@@ -92,3 +92,131 @@ def test_parse_method_definition_in_sync(sync: bool, client: OpenAI, async_clien
         checking_client.responses.parse,
         exclude_params={"tools"},
     )
+
+
+def test_parse_response_handles_null_output() -> None:
+    from openai._types import omit
+    from openai._models import construct_type_unchecked
+    from openai.types.responses import Response
+    from openai.lib._parsing._responses import parse_response
+
+    response = construct_type_unchecked(
+        type_=Response,
+        value={
+            "id": "resp_test",
+            "object": "response",
+            "created_at": 0,
+            "model": "gpt-4o-mini",
+            "output": None,
+            "parallel_tool_calls": True,
+            "temperature": 1,
+            "tool_choice": "auto",
+            "tools": [],
+            "top_p": 1,
+            "metadata": {},
+            "reasoning": {},
+            "status": "completed",
+            "text": {"format": {"type": "text"}},
+        },
+    )
+
+    parsed = parse_response(text_format=omit, input_tools=None, response=response)
+
+    assert parsed.output == []
+
+
+def test_stream_completed_event_with_null_output_preserves_accumulated_output() -> None:
+    from openai._types import omit
+    from openai._models import construct_type_unchecked
+    from openai.lib.streaming.responses._responses import ResponseStreamState
+    from openai.types.responses.response_created_event import ResponseCreatedEvent
+    from openai.types.responses.response_completed_event import ResponseCompletedEvent
+    from openai.types.responses.response_text_delta_event import ResponseTextDeltaEvent
+    from openai.types.responses.response_output_item_added_event import ResponseOutputItemAddedEvent
+    from openai.types.responses.response_content_part_added_event import ResponseContentPartAddedEvent
+
+    def event(type_: object, value: object):
+        return construct_type_unchecked(type_=type_, value=value)
+
+    response = {
+        "id": "resp_test",
+        "object": "response",
+        "created_at": 0,
+        "model": "gpt-4o-mini",
+        "output": [],
+        "parallel_tool_calls": True,
+        "temperature": 1,
+        "tool_choice": "auto",
+        "tools": [],
+        "top_p": 1,
+        "metadata": {},
+        "reasoning": {},
+        "status": "completed",
+        "text": {"format": {"type": "text"}},
+    }
+    state = ResponseStreamState(text_format=omit, input_tools=omit)
+
+    for type_, value in [
+        (ResponseCreatedEvent, {"type": "response.created", "sequence_number": 0, "response": response}),
+        (
+            ResponseOutputItemAddedEvent,
+            {
+                "type": "response.output_item.added",
+                "sequence_number": 1,
+                "output_index": 0,
+                "item": {
+                    "id": "msg_test",
+                    "type": "message",
+                    "status": "in_progress",
+                    "role": "assistant",
+                    "content": [],
+                },
+            },
+        ),
+        (
+            ResponseContentPartAddedEvent,
+            {
+                "type": "response.content_part.added",
+                "sequence_number": 2,
+                "item_id": "msg_test",
+                "output_index": 0,
+                "content_index": 0,
+                "part": {"type": "output_text", "text": "", "annotations": []},
+            },
+        ),
+        (
+            ResponseTextDeltaEvent,
+            {
+                "type": "response.output_text.delta",
+                "sequence_number": 3,
+                "item_id": "msg_test",
+                "output_index": 0,
+                "content_index": 0,
+                "delta": "Hello",
+                "logprobs": [],
+            },
+        ),
+    ]:
+        state.handle_event(event(type_, value))
+
+    events = state.handle_event(
+        event(
+            ResponseCompletedEvent,
+            {
+                "type": "response.completed",
+                "sequence_number": 4,
+                "response": {
+                    **response,
+                    "output": None,
+                    "usage": {"input_tokens": 1, "output_tokens": 1, "total_tokens": 2},
+                },
+            },
+        )
+    )
+
+    assert state._completed_response is not None
+    assert state._completed_response.output_text == "Hello"
+    assert state._completed_response.usage is not None
+    assert state._completed_response.usage.total_tokens == 2
+    assert events[0].type == "response.completed"
+    assert events[0].response.output_text == "Hello"
