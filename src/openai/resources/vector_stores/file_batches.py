@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import asyncio
-from typing import Dict, Iterable, Optional
+from typing import Any, Dict, Iterable, Optional
 from typing_extensions import Union, Literal
 from concurrent.futures import Future, ThreadPoolExecutor, as_completed
 
@@ -26,6 +26,23 @@ from ...types.vector_stores.vector_store_file import VectorStoreFile
 from ...types.vector_stores.vector_store_file_batch import VectorStoreFileBatch
 
 __all__ = ["FileBatches", "AsyncFileBatches"]
+
+
+def _coerce_vector_store_poll_response(
+    data: dict[str, Any],
+    *,
+    batch_id: str,
+    vector_store_id: str,
+) -> dict[str, Any] | None:
+    if data.get("object") != "vector_store" or data.get("id") != vector_store_id:
+        return None
+
+    return {
+        **data,
+        "id": batch_id,
+        "object": "vector_store.files_batch",
+        "vector_store_id": vector_store_id,
+    }
 
 
 class FileBatches(SyncAPIResource):
@@ -351,7 +368,19 @@ class FileBatches(SyncAPIResource):
                 extra_headers=headers,
             )
 
-            batch = response.parse()
+            data = response.parse(to=dict)
+            coerced_data = _coerce_vector_store_poll_response(
+                data, batch_id=batch_id, vector_store_id=vector_store_id
+            )
+            if coerced_data is None:
+                batch = response.parse()
+            else:
+                batch = response._client._process_response_data(
+                    data=coerced_data,
+                    cast_to=VectorStoreFileBatch,
+                    response=response.http_response,
+                )
+
             if batch.file_counts.in_progress > 0:
                 if not is_given(poll_interval_ms):
                     from_header = response.headers.get("openai-poll-after-ms")
@@ -739,7 +768,19 @@ class AsyncFileBatches(AsyncAPIResource):
                 extra_headers=headers,
             )
 
-            batch = response.parse()
+            data = response.parse(to=dict)
+            coerced_data = _coerce_vector_store_poll_response(
+                data, batch_id=batch_id, vector_store_id=vector_store_id
+            )
+            if coerced_data is None:
+                batch = response.parse()
+            else:
+                batch = response._client._process_response_data(
+                    data=coerced_data,
+                    cast_to=VectorStoreFileBatch,
+                    response=response.http_response,
+                )
+
             if batch.file_counts.in_progress > 0:
                 if not is_given(poll_interval_ms):
                     from_header = response.headers.get("openai-poll-after-ms")
