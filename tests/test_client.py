@@ -589,6 +589,12 @@ class TestOpenAI:
                 _strict_response_validation=True,
             )
 
+    def test_no_proxy_with_newlines_is_sanitized_for_default_http_client(self) -> None:
+        with update_env(NO_PROXY="localhost\n127.0.0.1"):
+            client = OpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+            assert os.environ["NO_PROXY"] == "localhost\n127.0.0.1"
+            client.close()
+
     def test_default_query_option(self) -> None:
         client = OpenAI(
             base_url=base_url,
@@ -1839,6 +1845,12 @@ class TestAsyncOpenAI:
         )
 
         assert response.request.headers.get("Authorization") == f"Bearer {admin_api_key}"
+
+    async def test_no_proxy_with_newlines_is_sanitized_for_default_http_client(self) -> None:
+        with update_env(NO_PROXY="localhost\n127.0.0.1"):
+            client = AsyncOpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+            assert os.environ["NO_PROXY"] == "localhost\n127.0.0.1"
+            await client.close()
 
     async def test_default_query_option(self) -> None:
         client = AsyncOpenAI(
