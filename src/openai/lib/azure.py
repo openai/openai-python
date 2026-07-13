@@ -304,7 +304,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         _extra_kwargs: Mapping[str, Any] = {},
     ) -> Self:
         """
-        Create a new client instance re-using the same options given to the current client with optional overriding.
+        Create a new client instance reusing the same options given to the current client with optional overriding.
         """
         if not isinstance(provider, NotGiven):
             raise OpenAIError("Configure `provider` on `OpenAI`, not on `AzureOpenAI.with_options()`.")
@@ -628,7 +628,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         _extra_kwargs: Mapping[str, Any] = {},
     ) -> Self:
         """
-        Create a new client instance re-using the same options given to the current client with optional overriding.
+        Create a new client instance reusing the same options given to the current client with optional overriding.
         """
         if not isinstance(provider, NotGiven):
             raise OpenAIError("Configure `provider` on `AsyncOpenAI`, not on `AsyncAzureOpenAI.with_options()`.")
