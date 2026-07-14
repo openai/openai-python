@@ -861,6 +861,8 @@ def _has_env_proxy() -> bool:
 def _should_inject_keepalive_transport(kwargs: dict[str, Any]) -> bool:
     if "transport" in kwargs:
         return False
+    if "proxy" in kwargs:
+        return False
     if kwargs.get("trust_env", True) and _has_env_proxy():
         return False
     return True
