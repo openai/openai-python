@@ -177,11 +177,17 @@ def parse_function_tool_arguments(
     if not input_tool:
         return None
 
+    # The API sends empty-string arguments (rather than `{}`) for strict tools that take no
+    # arguments or whose parameters are all optional, so normalize those to an empty object.
+    args = function_call.arguments
+    if not args or not args.strip():
+        args = "{}"
+
     tool = cast(object, input_tool)
     if isinstance(tool, ResponsesPydanticFunctionTool):
-        return model_parse_json(tool.model, function_call.arguments)
+        return model_parse_json(tool.model, args)
 
     if not input_tool.get("strict"):
         return None
 
-    return json.loads(function_call.arguments)
+    return json.loads(args)
