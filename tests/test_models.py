@@ -121,6 +121,10 @@ def test_list_mismatched_type() -> None:
     assert cast(Any, m.nested) is False
 
 
+def test_bare_list_type() -> None:
+    assert construct_type(value=[{"hello": "world"}], type_=list) == [{"hello": "world"}]
+
+
 def test_raw_dictionary() -> None:
     class NestedModel(BaseModel):
         nested: Dict[str, str]
