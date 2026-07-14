@@ -1069,6 +1069,39 @@ recommend checking a reliable weather website or a weather app.",
     )
 
 
+@pytest.mark.respx(base_url=base_url)
+def test_stream_custom_tool_call_delta(client: OpenAI, respx_mock: MockRouter) -> None:
+    respx_mock.post("/chat/completions").mock(
+        return_value=httpx.Response(
+            200,
+            content=(
+                'data: {"id":"chatcmpl-custom-tool-delta","object":"chat.completion.chunk","created":1727346161,'
+                '"model":"gpt-5","choices":[{"index":0,"delta":{"role":"assistant","tool_calls":[{"index":0,'
+                '"id":"call_custom","type":"custom","custom":{"name":"display_time","input":"August 7th 2025 at '
+                '10AM"}}]},"finish_reason":null}],"usage":null}\n\n'
+                "data: [DONE]\n\n"
+            ),
+            headers={"content-type": "text/event-stream"},
+        )
+    )
+
+    stream = client.chat.completions.create(
+        model="gpt-5",
+        messages=[{"role": "user", "content": "what time is it?"}],
+        stream=True,
+    )
+
+    chunk = next(stream)
+    tool_calls = chunk.choices[0].delta.tool_calls
+    assert tool_calls is not None
+    tool_call = tool_calls[0]
+    assert tool_call.type == "custom"
+    assert tool_call.custom is not None
+    assert tool_call.custom.name == "display_time"
+    assert tool_call.custom.input == "August 7th 2025 at 10AM"
+    stream.close()
+
+
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
 def test_stream_method_in_sync(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
     checking_client: OpenAI | AsyncOpenAI = client if sync else async_client
