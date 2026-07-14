@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import sys
 import json
 import time
@@ -831,11 +832,27 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         return f"stainless-python-retry-{uuid.uuid4()}"
 
 
+def _sanitize_proxy_env() -> None:
+    """Sanitize proxy-related environment variables that may contain newline characters.
+
+    Some environments (Docker .env files, shell scripts) introduce newline characters
+    into NO_PROXY / no_proxy values. httpx only splits these by comma, so newlines
+    end up embedded in hostnames and trigger ``httpx.InvalidURL``.
+    """
+    for key in ("NO_PROXY", "no_proxy"):
+        value = os.environ.get(key)
+        if value and "\n" in value:
+            os.environ[key] = ",".join(
+                part.strip() for part in value.replace("\n", ",").split(",") if part.strip()
+            )
+
+
 class _DefaultHttpxClient(httpx.Client):
     def __init__(self, **kwargs: Any) -> None:
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
         kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
+        _sanitize_proxy_env()
         super().__init__(**kwargs)
 
 
@@ -1423,6 +1440,7 @@ class _DefaultAsyncHttpxClient(httpx.AsyncClient):
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
         kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
+        _sanitize_proxy_env()
         super().__init__(**kwargs)
 
 
@@ -1440,7 +1458,7 @@ else:
             kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
             kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
             kwargs.setdefault("follow_redirects", True)
-
+            _sanitize_proxy_env()
             super().__init__(**kwargs)
 
 
