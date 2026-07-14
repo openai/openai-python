@@ -1306,15 +1306,17 @@ class TestOpenAI:
         )
 
     def test_default_transport_has_tcp_keepalive(self) -> None:
-        client = OpenAI(base_url=base_url, api_key=api_key)
-        transport = client._client._transport
-        assert isinstance(transport, httpx.HTTPTransport)
-        pool = transport._pool
-        socket_options = pool._socket_options
-        assert any(
-            opt[0] == socket.SOL_SOCKET and opt[1] == socket.SO_KEEPALIVE and opt[2] == 1
-            for opt in socket_options
-        )
+        proxy_vars = ("HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "http_proxy", "https_proxy", "all_proxy")
+        with mock.patch.dict(os.environ, {v: "" for v in proxy_vars}, clear=False):
+            client = OpenAI(base_url=base_url, api_key=api_key)
+            transport = client._client._transport
+            assert isinstance(transport, httpx.HTTPTransport)
+            pool = transport._pool
+            socket_options = pool._socket_options
+            assert any(
+                opt[0] == socket.SOL_SOCKET and opt[1] == socket.SO_KEEPALIVE and opt[2] == 1
+                for opt in socket_options
+            )
 
     def test_custom_http_client_transport_not_overridden(self) -> None:
         with httpx.Client() as http_client:
@@ -2599,15 +2601,17 @@ class TestAsyncOpenAI:
         )
 
     async def test_default_transport_has_tcp_keepalive(self) -> None:
-        client = AsyncOpenAI(base_url=base_url, api_key=api_key)
-        transport = client._client._transport
-        assert isinstance(transport, httpx.AsyncHTTPTransport)
-        pool = transport._pool
-        socket_options = pool._socket_options
-        assert any(
-            opt[0] == socket.SOL_SOCKET and opt[1] == socket.SO_KEEPALIVE and opt[2] == 1
-            for opt in socket_options
-        )
+        proxy_vars = ("HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "http_proxy", "https_proxy", "all_proxy")
+        with mock.patch.dict(os.environ, {v: "" for v in proxy_vars}, clear=False):
+            client = AsyncOpenAI(base_url=base_url, api_key=api_key)
+            transport = client._client._transport
+            assert isinstance(transport, httpx.AsyncHTTPTransport)
+            pool = transport._pool
+            socket_options = pool._socket_options
+            assert any(
+                opt[0] == socket.SOL_SOCKET and opt[1] == socket.SO_KEEPALIVE and opt[2] == 1
+                for opt in socket_options
+            )
 
     async def test_custom_async_http_client_transport_not_overridden(self) -> None:
         async with httpx.AsyncClient() as http_client:
