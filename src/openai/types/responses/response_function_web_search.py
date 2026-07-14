@@ -78,7 +78,7 @@ class ResponseFunctionWebSearch(BaseModel):
     id: str
     """The unique ID of the web search tool call."""
 
-    action: Action
+    action: Optional[Action] = None
     """
     An object describing the specific action taken in this web search call. Includes
     details on how the model used the web (search, open_page, find_in_page).
