@@ -458,3 +458,25 @@ async def test_strips_notgiven(use_async: bool) -> None:
 async def test_strips_omit(use_async: bool) -> None:
     assert await transform({"foo_bar": "bar"}, Foo1, use_async) == {"fooBar": "bar"}
     assert await transform({"foo_bar": omit}, Foo1, use_async) == {}
+
+
+class BareDictParams(TypedDict, total=False):
+    metadata: dict
+
+
+@parametrize
+@pytest.mark.asyncio
+async def test_bare_dict_in_typeddict(use_async: bool) -> None:
+    result = await transform({"metadata": {"key": "value"}}, BareDictParams, use_async)
+    assert result == {"metadata": {"key": "value"}}
+
+
+class BareListParams(TypedDict, total=False):
+    items: list
+
+
+@parametrize
+@pytest.mark.asyncio
+async def test_bare_list_in_typeddict(use_async: bool) -> None:
+    result = await transform({"items": [1, 2, 3]}, BareListParams, use_async)
+    assert result == {"items": [1, 2, 3]}
