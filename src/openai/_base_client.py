@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import sys
 import json
 import time
@@ -852,6 +853,19 @@ _HTTPX_TRANSPORT_SUPPORTS_SOCKET_OPTIONS = "socket_options" in inspect.signature
 _TRANSPORT_PASSTHROUGH_KEYS = ("verify", "cert", "trust_env", "http1", "http2", "limits")
 
 
+def _has_env_proxy() -> bool:
+    proxy_vars = ("HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "http_proxy", "https_proxy", "all_proxy")
+    return any(os.environ.get(var) for var in proxy_vars)
+
+
+def _should_inject_keepalive_transport(kwargs: dict[str, Any]) -> bool:
+    if "transport" in kwargs:
+        return False
+    if kwargs.get("trust_env", True) and _has_env_proxy():
+        return False
+    return True
+
+
 def _build_keepalive_transport(
     transport_cls: type[httpx.HTTPTransport] | type[httpx.AsyncHTTPTransport],
     kwargs: dict[str, Any],
@@ -869,7 +883,7 @@ class _DefaultHttpxClient(httpx.Client):
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
         kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
-        if "transport" not in kwargs:
+        if _should_inject_keepalive_transport(kwargs):
             kwargs["transport"] = _build_keepalive_transport(httpx.HTTPTransport, kwargs)
         super().__init__(**kwargs)
 
@@ -1458,7 +1472,7 @@ class _DefaultAsyncHttpxClient(httpx.AsyncClient):
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
         kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
-        if "transport" not in kwargs:
+        if _should_inject_keepalive_transport(kwargs):
             kwargs["transport"] = _build_keepalive_transport(httpx.AsyncHTTPTransport, kwargs)
         super().__init__(**kwargs)
 
