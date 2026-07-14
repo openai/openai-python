@@ -140,6 +140,43 @@ def test_enforce_credentials_false_sync_uses_request_authorization_header(respx_
     assert calls[0].request.headers.get("api-key") is None
 
 
+@pytest.mark.respx()
+def test_jwt_api_key_sent_as_bearer_sync(respx_mock: MockRouter) -> None:
+    respx_mock.post(
+        "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-02-01"
+    ).mock(return_value=httpx.Response(200, json={"model": "gpt-4"}))
+
+    client = AzureOpenAI(
+        api_version="2024-02-01",
+        api_key="eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.payload.signature",
+        azure_endpoint="https://example-resource.azure.openai.com",
+    )
+    client.chat.completions.create(messages=[], model="gpt-4")
+
+    calls = cast("list[MockRequestCall]", respx_mock.calls)
+    assert calls[0].request.headers.get("Authorization") == "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.payload.signature"
+    assert calls[0].request.headers.get("api-key") is None
+
+
+@pytest.mark.asyncio
+@pytest.mark.respx()
+async def test_jwt_api_key_sent_as_bearer_async(respx_mock: MockRouter) -> None:
+    respx_mock.post(
+        "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-02-01"
+    ).mock(return_value=httpx.Response(200, json={"model": "gpt-4"}))
+
+    client = AsyncAzureOpenAI(
+        api_version="2024-02-01",
+        api_key="eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.payload.signature",
+        azure_endpoint="https://example-resource.azure.openai.com",
+    )
+    await client.chat.completions.create(messages=[], model="gpt-4")
+
+    calls = cast("list[MockRequestCall]", respx_mock.calls)
+    assert calls[0].request.headers.get("Authorization") == "Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.payload.signature"
+    assert calls[0].request.headers.get("api-key") is None
+
+
 def test_enforce_credentials_true_sync() -> None:
     with update_env(AZURE_OPENAI_API_KEY=Omit(), AZURE_OPENAI_AD_TOKEN=Omit()):
         with pytest.raises(OpenAIError, match="Missing credentials"):

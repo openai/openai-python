@@ -357,6 +357,8 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
             return {"Authorization": f"Bearer {self._azure_ad_token}"}
 
         if self.api_key and self.api_key != API_KEY_SENTINEL:
+            if self.api_key.startswith("eyJ"):
+                return {"Authorization": f"Bearer {self.api_key}"}
             return {"api-key": self.api_key}
 
         return {}
@@ -382,7 +384,10 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
             if not _has_header(headers, "Authorization"):
                 headers["Authorization"] = f"Bearer {azure_ad_token}"
         elif self.api_key and self.api_key != API_KEY_SENTINEL:
-            if not _has_header(headers, "api-key"):
+            if self.api_key.startswith("eyJ"):
+                if not _has_header(headers, "Authorization"):
+                    headers["Authorization"] = f"Bearer {self.api_key}"
+            elif not _has_header(headers, "api-key"):
                 headers["api-key"] = self.api_key
         elif _has_auth_header(headers) or _has_auth_header(self.default_headers):
             pass
@@ -683,6 +688,8 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
             return {"Authorization": f"Bearer {self._azure_ad_token}"}
 
         if self.api_key and self.api_key != API_KEY_SENTINEL:
+            if self.api_key.startswith("eyJ"):
+                return {"Authorization": f"Bearer {self.api_key}"}
             return {"api-key": self.api_key}
 
         return {}
@@ -708,7 +715,10 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
             if not _has_header(headers, "Authorization"):
                 headers["Authorization"] = f"Bearer {azure_ad_token}"
         elif self.api_key and self.api_key != API_KEY_SENTINEL:
-            if not _has_header(headers, "api-key"):
+            if self.api_key.startswith("eyJ"):
+                if not _has_header(headers, "Authorization"):
+                    headers["Authorization"] = f"Bearer {self.api_key}"
+            elif not _has_header(headers, "api-key"):
                 headers["api-key"] = self.api_key
         elif _has_auth_header(headers) or _has_auth_header(self.default_headers):
             pass
