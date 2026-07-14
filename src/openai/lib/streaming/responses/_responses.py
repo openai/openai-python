@@ -328,7 +328,9 @@ class ResponseStreamState(Generic[TextFormatT]):
             return self._create_initial_response(event)
 
         if event.type == "response.output_item.added":
-            if event.item.type == "function_call":
+            if event.item is None:
+                pass
+            elif event.item.type == "function_call":
                 snapshot.output.append(
                     construct_type_unchecked(
                         type_=cast(Any, ParsedResponseFunctionToolCall), value=event.item.to_dict()
