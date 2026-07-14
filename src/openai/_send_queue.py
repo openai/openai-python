@@ -11,31 +11,32 @@ from ._exceptions import WebSocketQueueFullError
 class SendQueue:
     """Bounded byte-size queue for outgoing WebSocket messages.
 
-    Messages are stored as pre-serialized strings. The queue enforces a
-    maximum byte budget so that unbounded buffering cannot occur during
-    reconnection windows.
+    Messages are stored as either ``str`` (text frames) or ``bytes`` (binary
+    frames), preserving the original frame type so that binary payloads are
+    not corrupted on replay. The queue enforces a maximum byte budget so that
+    unbounded buffering cannot occur during reconnection windows.
     """
 
     def __init__(self, max_bytes: int = 1_048_576) -> None:
-        self._queue: list[tuple[str, int]] = []  # (data, byte_length)
+        self._queue: list[tuple[bytes | str, int]] = []  # (data, byte_length)
         self._bytes: int = 0
         self._max_bytes = max_bytes
         self._lock = threading.Lock()
 
-    def enqueue(self, data: str) -> None:
+    def enqueue(self, data: bytes | str) -> None:
         """Append *data* to the queue.
 
         Raises :class:`WebSocketQueueFullError` if the message would
         exceed the byte-size limit.
         """
-        byte_length = len(data.encode("utf-8"))
+        byte_length = len(data) if isinstance(data, bytes) else len(data.encode("utf-8"))
         with self._lock:
             if self._bytes + byte_length > self._max_bytes:
                 raise WebSocketQueueFullError("send queue is full, message discarded")
             self._queue.append((data, byte_length))
             self._bytes += byte_length
 
-    def flush_sync(self, send: typing.Callable[[str], object]) -> None:
+    def flush_sync(self, send: typing.Callable[[bytes | str], object]) -> None:
         """Send every queued message via *send*.
 
         If *send* raises, the failing message and all subsequent messages
@@ -56,7 +57,7 @@ class SendQueue:
                     self._bytes = sum(bl for _, bl in self._queue)
                 raise
 
-    async def flush_async(self, send: typing.Callable[[str], typing.Awaitable[object]]) -> None:
+    async def flush_async(self, send: typing.Callable[[bytes | str], typing.Awaitable[object]]) -> None:
         """Async variant of :meth:`flush_sync`."""
         with self._lock:
             pending = list(self._queue)
@@ -73,7 +74,7 @@ class SendQueue:
                     self._bytes = sum(bl for _, bl in self._queue)
                 raise
 
-    def drain(self) -> list[str]:
+    def drain(self) -> list[bytes | str]:
         """Remove and return all queued messages."""
         with self._lock:
             items = [data for data, _ in self._queue]
