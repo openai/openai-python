@@ -6,6 +6,7 @@ import gc
 import os
 import sys
 import json
+import socket
 import asyncio
 import inspect
 import dataclasses
@@ -1304,6 +1305,22 @@ class TestOpenAI:
             limits=httpx.Limits(max_connections=100, max_keepalive_connections=20),
         )
 
+    def test_default_transport_has_tcp_keepalive(self) -> None:
+        client = OpenAI(base_url=base_url, api_key=api_key)
+        transport = client._client._transport
+        assert isinstance(transport, httpx.HTTPTransport)
+        pool = transport._pool
+        socket_options = pool._socket_options
+        assert any(
+            opt[0] == socket.SOL_SOCKET and opt[1] == socket.SO_KEEPALIVE and opt[2] == 1
+            for opt in socket_options
+        )
+
+    def test_custom_http_client_transport_not_overridden(self) -> None:
+        with httpx.Client() as http_client:
+            client = OpenAI(base_url=base_url, api_key=api_key, http_client=http_client)
+            assert client._client is http_client
+
     @pytest.mark.respx(base_url=base_url)
     def test_follow_redirects(self, respx_mock: MockRouter, client: OpenAI) -> None:
         # Test that the default follow_redirects=True allows following redirects
@@ -2563,6 +2580,22 @@ class TestAsyncOpenAI:
             http2=False,
             limits=httpx.Limits(max_connections=100, max_keepalive_connections=20),
         )
+
+    async def test_default_transport_has_tcp_keepalive(self) -> None:
+        client = AsyncOpenAI(base_url=base_url, api_key=api_key)
+        transport = client._client._transport
+        assert isinstance(transport, httpx.AsyncHTTPTransport)
+        pool = transport._pool
+        socket_options = pool._socket_options
+        assert any(
+            opt[0] == socket.SOL_SOCKET and opt[1] == socket.SO_KEEPALIVE and opt[2] == 1
+            for opt in socket_options
+        )
+
+    async def test_custom_async_http_client_transport_not_overridden(self) -> None:
+        async with httpx.AsyncClient() as http_client:
+            client = AsyncOpenAI(base_url=base_url, api_key=api_key, http_client=http_client)
+            assert client._client is http_client
 
     @pytest.mark.respx(base_url=base_url)
     async def test_follow_redirects(self, respx_mock: MockRouter, async_client: AsyncOpenAI) -> None:

@@ -9,6 +9,7 @@ import asyncio
 import inspect
 import logging
 import platform
+import socket
 import warnings
 import email.utils
 from types import TracebackType
@@ -831,11 +832,45 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         return f"stainless-python-retry-{uuid.uuid4()}"
 
 
+def _build_keepalive_socket_options() -> list[tuple[int, int, int]]:
+    options: list[tuple[int, int, int]] = [(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)]
+    if hasattr(socket, "TCP_KEEPIDLE"):
+        options.append((socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 60))
+    elif hasattr(socket, "TCP_KEEPALIVE"):
+        options.append((socket.IPPROTO_TCP, socket.TCP_KEEPALIVE, 60))
+    if hasattr(socket, "TCP_KEEPINTVL"):
+        options.append((socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 60))
+    if hasattr(socket, "TCP_KEEPCNT"):
+        options.append((socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 5))
+    return options
+
+
+_HTTPX_TRANSPORT_SUPPORTS_SOCKET_OPTIONS = "socket_options" in inspect.signature(
+    httpx.HTTPTransport.__init__
+).parameters
+
+_TRANSPORT_PASSTHROUGH_KEYS = ("verify", "cert", "trust_env", "http1", "http2", "limits")
+
+
+def _build_keepalive_transport(
+    transport_cls: type[httpx.HTTPTransport] | type[httpx.AsyncHTTPTransport],
+    kwargs: dict[str, Any],
+) -> httpx.HTTPTransport | httpx.AsyncHTTPTransport:
+    transport_kwargs: dict[str, Any] = {
+        key: kwargs[key] for key in _TRANSPORT_PASSTHROUGH_KEYS if key in kwargs
+    }
+    if _HTTPX_TRANSPORT_SUPPORTS_SOCKET_OPTIONS:
+        transport_kwargs["socket_options"] = _build_keepalive_socket_options()
+    return transport_cls(**transport_kwargs)
+
+
 class _DefaultHttpxClient(httpx.Client):
     def __init__(self, **kwargs: Any) -> None:
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
         kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
+        if "transport" not in kwargs:
+            kwargs["transport"] = _build_keepalive_transport(httpx.HTTPTransport, kwargs)
         super().__init__(**kwargs)
 
 
@@ -1423,6 +1458,8 @@ class _DefaultAsyncHttpxClient(httpx.AsyncClient):
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
         kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
+        if "transport" not in kwargs:
+            kwargs["transport"] = _build_keepalive_transport(httpx.AsyncHTTPTransport, kwargs)
         super().__init__(**kwargs)
 
 
