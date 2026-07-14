@@ -57,10 +57,12 @@ class Stream(Generic[_T]):
         response = self.response
         process_data = self._client._process_response_data
         iterator = self._iter_events()
+        done_seen = False
 
         try:
             for sse in iterator:
                 if sse.data.startswith("[DONE]"):
+                    done_seen = True
                     break
 
                 # we have to special case the Assistants `thread.` events since we won't have an "event" key in the data
@@ -106,7 +108,19 @@ class Stream(Generic[_T]):
                         response=response,
                     )
         finally:
-            # Ensure the response is closed even if the consumer doesn't read all data
+            # Drain remaining events from the iterator so that the underlying
+            # response.iter_bytes() is fully consumed, including the HTTP/1.1
+            # chunked transfer-encoding terminator (0\r\n\r\n). Without this,
+            # h11's their_state won't advance to DONE, causing httpcore to
+            # destroy the connection (TCP FIN) instead of returning it to the pool.
+            # See: https://github.com/openai/openai-python/issues/3440
+            #
+            # Only drain when [DONE] was seen. On error paths (APIError,
+            # parse failures) we close immediately to avoid hanging on a
+            # stalled stream.
+            if done_seen:
+                for _ in iterator:
+                    pass
             response.close()
 
     def __enter__(self) -> Self:
@@ -167,10 +181,12 @@ class AsyncStream(Generic[_T]):
         response = self.response
         process_data = self._client._process_response_data
         iterator = self._iter_events()
+        done_seen = False
 
         try:
             async for sse in iterator:
                 if sse.data.startswith("[DONE]"):
+                    done_seen = True
                     break
 
                 # we have to special case the Assistants `thread.` events since we won't have an "event" key in the data
@@ -216,7 +232,15 @@ class AsyncStream(Generic[_T]):
                         response=response,
                     )
         finally:
-            # Ensure the response is closed even if the consumer doesn't read all data
+            # Drain remaining events so the chunked terminator is consumed before close.
+            # See: https://github.com/openai/openai-python/issues/3440
+            #
+            # Only drain when [DONE] was seen. On error paths (APIError,
+            # parse failures) we close immediately to avoid hanging on a
+            # stalled stream.
+            if done_seen:
+                async for _ in iterator:
+                    pass
             await response.aclose()
 
     async def __aenter__(self) -> Self:
