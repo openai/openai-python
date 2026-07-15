@@ -9,7 +9,7 @@ from .chat_completion_content_part_text_param import ChatCompletionContentPartTe
 from .chat_completion_content_part_image_param import ChatCompletionContentPartImageParam
 from .chat_completion_content_part_input_audio_param import ChatCompletionContentPartInputAudioParam
 
-__all__ = ["ChatCompletionContentPartParam", "File", "FileFile"]
+__all__ = ["ChatCompletionContentPartParam", "File", "FileFile", "FilePromptCacheBreakpoint"]
 
 
 class FileFile(TypedDict, total=False):
@@ -26,6 +26,16 @@ class FileFile(TypedDict, total=False):
     """The name of the file, used when passing the file to the model as a string."""
 
 
+class FilePromptCacheBreakpoint(TypedDict, total=False):
+    """Marks the exact end of a reusable prompt prefix.
+
+    The breakpoint inherits its TTL from the request's `prompt_cache_options.ttl`; the boundary is not rounded to a token block.
+    """
+
+    mode: Required[Literal["explicit"]]
+    """The breakpoint mode. Always `explicit`."""
+
+
 class File(TypedDict, total=False):
     """
     Learn about [file inputs](https://platform.openai.com/docs/guides/text) for text generation.
@@ -35,6 +45,13 @@ class File(TypedDict, total=False):
 
     type: Required[Literal["file"]]
     """The type of the content part. Always `file`."""
+
+    prompt_cache_breakpoint: FilePromptCacheBreakpoint
+    """Marks the exact end of a reusable prompt prefix.
+
+    The breakpoint inherits its TTL from the request's `prompt_cache_options.ttl`;
+    the boundary is not rounded to a token block.
+    """
 
 
 ChatCompletionContentPartParam: TypeAlias = Union[

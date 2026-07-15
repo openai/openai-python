@@ -16,6 +16,14 @@ from .chat import (
     ChatWithStreamingResponse,
     AsyncChatWithStreamingResponse,
 )
+from .admin import (
+    Admin,
+    AsyncAdmin,
+    AdminWithRawResponse,
+    AsyncAdminWithRawResponse,
+    AdminWithStreamingResponse,
+    AsyncAdminWithStreamingResponse,
+)
 from .audio import (
     Audio,
     AsyncAudio,
@@ -216,6 +224,12 @@ __all__ = [
     "AsyncUploadsWithRawResponse",
     "UploadsWithStreamingResponse",
     "AsyncUploadsWithStreamingResponse",
+    "Admin",
+    "AsyncAdmin",
+    "AdminWithRawResponse",
+    "AsyncAdminWithRawResponse",
+    "AdminWithStreamingResponse",
+    "AsyncAdminWithStreamingResponse",
     "Evals",
     "AsyncEvals",
     "EvalsWithRawResponse",

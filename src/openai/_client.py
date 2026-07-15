@@ -4,29 +4,34 @@ from __future__ import annotations
 
 import os
 from typing import TYPE_CHECKING, Any, Mapping, Callable, Awaitable
-from typing_extensions import Self, override
+from typing_extensions import Self, Unpack, override
 
 import httpx
 
 from . import _exceptions
 from ._qs import Querystring
+from .auth import WorkloadIdentity, WorkloadIdentityAuth
 from ._types import (
     Omit,
+    Headers,
     Timeout,
     NotGiven,
     Transport,
     ProxiesTypes,
+    HttpxSendArgs,
     RequestOptions,
     not_given,
 )
 from ._utils import (
     is_given,
     is_mapping,
+    is_mapping_t,
     get_async_library,
 )
 from ._compat import cached_property
-from ._models import FinalRequestOptions
+from ._models import SecurityOptions, FinalRequestOptions
 from ._version import __version__
+from ._provider import _Provider, _provider_name, _ProviderRuntime, _configure_provider
 from ._streaming import Stream as Stream, AsyncStream as AsyncStream
 from ._exceptions import OpenAIError, APIStatusError
 from ._base_client import (
@@ -39,6 +44,7 @@ if TYPE_CHECKING:
     from .resources import (
         beta,
         chat,
+        admin,
         audio,
         evals,
         files,
@@ -66,6 +72,7 @@ if TYPE_CHECKING:
     from .resources.beta.beta import Beta, AsyncBeta
     from .resources.chat.chat import Chat, AsyncChat
     from .resources.embeddings import Embeddings, AsyncEmbeddings
+    from .resources.admin.admin import Admin, AsyncAdmin
     from .resources.audio.audio import Audio, AsyncAudio
     from .resources.completions import Completions, AsyncCompletions
     from .resources.evals.evals import Evals, AsyncEvals
@@ -82,13 +89,30 @@ if TYPE_CHECKING:
 
 __all__ = ["Timeout", "Transport", "ProxiesTypes", "RequestOptions", "OpenAI", "AsyncOpenAI", "Client", "AsyncClient"]
 
+WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER = "workload-identity-auth"
+
+
+def _has_header(headers: Headers, header: str) -> bool:
+    header = header.lower()
+    return any(key.lower() == header for key in headers)
+
+
+def _has_omitted_header(headers: Headers, header: str) -> bool:
+    header = header.lower()
+    return any(key.lower() == header and isinstance(value, Omit) for key, value in headers.items())
+
 
 class OpenAI(SyncAPIClient):
     # client options
     api_key: str
+    admin_api_key: str | None
+    workload_identity: WorkloadIdentity | None
     organization: str | None
     project: str | None
     webhook_secret: str | None
+    _workload_identity_auth: WorkloadIdentityAuth | None
+    _provider: _Provider | None
+    _provider_runtime: _ProviderRuntime | None
 
     websocket_base_url: str | httpx.URL | None
     """Base URL for WebSocket connections.
@@ -101,10 +125,13 @@ class OpenAI(SyncAPIClient):
     def __init__(
         self,
         *,
-        api_key: str | None | Callable[[], str] = None,
+        api_key: str | Callable[[], str] | None = None,
+        admin_api_key: str | None = None,
+        workload_identity: WorkloadIdentity | None = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
+        provider: _Provider | None = None,
         base_url: str | httpx.URL | None = None,
         websocket_base_url: str | httpx.URL | None = None,
         timeout: float | Timeout | None | NotGiven = not_given,
@@ -124,33 +151,91 @@ class OpenAI(SyncAPIClient):
         # outlining your use-case to help us decide if it should be
         # part of our public interface in the future.
         _strict_response_validation: bool = False,
+        _enforce_credentials: bool = True,
     ) -> None:
         """Construct a new synchronous OpenAI client instance.
 
         This automatically infers the following arguments from their corresponding environment variables if they are not provided:
         - `api_key` from `OPENAI_API_KEY`
+        - `admin_api_key` from `OPENAI_ADMIN_KEY`
         - `organization` from `OPENAI_ORG_ID`
         - `project` from `OPENAI_PROJECT_ID`
         - `webhook_secret` from `OPENAI_WEBHOOK_SECRET`
-        """
-        if api_key is None:
-            api_key = os.environ.get("OPENAI_API_KEY")
-        if api_key is None:
-            raise OpenAIError(
-                "The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable"
-            )
-        if callable(api_key):
-            self.api_key = ""
-            self._api_key_provider: Callable[[], str] | None = api_key
-        else:
-            self.api_key = api_key
-            self._api_key_provider = None
 
-        if organization is None:
+        When `provider` is supplied, authentication and the base URL are configured by that provider instead.
+        """
+        provider_runtime: _ProviderRuntime | None = None
+        if provider is not None:
+            provider_name = _provider_name(provider)
+            conflicts = [
+                name
+                for name, value in (
+                    ("api_key", api_key),
+                    ("admin_api_key", admin_api_key),
+                    ("workload_identity", workload_identity),
+                    ("base_url", base_url),
+                )
+                if value is not None
+            ]
+            if conflicts:
+                formatted = ", ".join(f"`{name}`" for name in conflicts)
+                raise OpenAIError(
+                    f"`provider` cannot be combined with top-level {formatted}. "
+                    f"Move provider authentication and routing options into `{provider_name}(...)`."
+                )
+
+            provider_runtime = _configure_provider(provider)
+
+        self._provider = provider
+        self._provider_runtime = provider_runtime
+
+        if api_key is not None and api_key != WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER and workload_identity is not None:
+            raise OpenAIError("The `api_key` and `workload_identity` arguments are mutually exclusive")
+
+        self.workload_identity = workload_identity if provider_runtime is None else None
+
+        if provider_runtime is not None:
+            self.api_key = ""
+            self._api_key_provider = None
+            self._workload_identity_auth = None
+        elif workload_identity is not None:
+            self.api_key = WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER
+            self._api_key_provider = None
+            self._workload_identity_auth = WorkloadIdentityAuth(
+                workload_identity=workload_identity,
+            )
+        else:
+            if api_key is None:
+                api_key = os.environ.get("OPENAI_API_KEY")
+            if callable(api_key):
+                self.api_key = ""
+                self._api_key_provider: Callable[[], str] | None = api_key  # type: ignore[no-redef]
+            else:
+                self.api_key = api_key or ""
+                self._api_key_provider = None
+            self._workload_identity_auth = None
+
+        if admin_api_key is None and provider_runtime is None:
+            admin_api_key = os.environ.get("OPENAI_ADMIN_KEY")
+        self.admin_api_key = admin_api_key if provider_runtime is None else None
+
+        if (
+            provider_runtime is None
+            and _enforce_credentials
+            and not self.api_key
+            and self._api_key_provider is None
+            and workload_identity is None
+            and self.admin_api_key is None
+        ):
+            raise OpenAIError(
+                "Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable."
+            )
+
+        if organization is None and provider_runtime is None:
             organization = os.environ.get("OPENAI_ORG_ID")
         self.organization = organization
 
-        if project is None:
+        if project is None and provider_runtime is None:
             project = os.environ.get("OPENAI_PROJECT_ID")
         self.project = project
 
@@ -160,10 +245,21 @@ class OpenAI(SyncAPIClient):
 
         self.websocket_base_url = websocket_base_url
 
-        if base_url is None:
+        if provider_runtime is not None:
+            base_url = provider_runtime.base_url
+        elif base_url is None:
             base_url = os.environ.get("OPENAI_BASE_URL")
         if base_url is None:
             base_url = f"https://api.openai.com/v1"
+
+        custom_headers_env = os.environ.get("OPENAI_CUSTOM_HEADERS") if provider_runtime is None else None
+        if custom_headers_env is not None:
+            parsed: dict[str, str] = {}
+            for line in custom_headers_env.split("\n"):
+                colon = line.find(":")
+                if colon >= 0:
+                    parsed[line[:colon].strip()] = line[colon + 1 :].strip()
+            default_headers = {**parsed, **(default_headers if is_mapping_t(default_headers) else {})}
 
         super().__init__(
             version=__version__,
@@ -180,6 +276,9 @@ class OpenAI(SyncAPIClient):
 
     @cached_property
     def completions(self) -> Completions:
+        """
+        Given a prompt, the model will return one or more predicted completions, and can also return the probabilities of alternative tokens at each position.
+        """
         from .resources.completions import Completions
 
         return Completions(self)
@@ -192,18 +291,25 @@ class OpenAI(SyncAPIClient):
 
     @cached_property
     def embeddings(self) -> Embeddings:
+        """
+        Get a vector representation of a given input that can be easily consumed by machine learning models and algorithms.
+        """
         from .resources.embeddings import Embeddings
 
         return Embeddings(self)
 
     @cached_property
     def files(self) -> Files:
+        """
+        Files are used to upload documents that can be used with features like Assistants and Fine-tuning.
+        """
         from .resources.files import Files
 
         return Files(self)
 
     @cached_property
     def images(self) -> Images:
+        """Given a prompt and/or an input image, the model will generate a new image."""
         from .resources.images import Images
 
         return Images(self)
@@ -216,12 +322,16 @@ class OpenAI(SyncAPIClient):
 
     @cached_property
     def moderations(self) -> Moderations:
+        """
+        Given text and/or image inputs, classifies if those inputs are potentially harmful.
+        """
         from .resources.moderations import Moderations
 
         return Moderations(self)
 
     @cached_property
     def models(self) -> Models:
+        """List and describe the various models available in the API."""
         from .resources.models import Models
 
         return Models(self)
@@ -252,15 +362,23 @@ class OpenAI(SyncAPIClient):
 
     @cached_property
     def batches(self) -> Batches:
+        """Create large batches of API requests to run asynchronously."""
         from .resources.batches import Batches
 
         return Batches(self)
 
     @cached_property
     def uploads(self) -> Uploads:
+        """Use Uploads to upload large files in multiple parts."""
         from .resources.uploads import Uploads
 
         return Uploads(self)
+
+    @cached_property
+    def admin(self) -> Admin:
+        from .resources.admin import Admin
+
+        return Admin(self)
 
     @cached_property
     def responses(self) -> Responses:
@@ -276,12 +394,14 @@ class OpenAI(SyncAPIClient):
 
     @cached_property
     def conversations(self) -> Conversations:
+        """Manage conversations and conversation items."""
         from .resources.conversations import Conversations
 
         return Conversations(self)
 
     @cached_property
     def evals(self) -> Evals:
+        """Manage and run evals in the OpenAI platform."""
         from .resources.evals import Evals
 
         return Evals(self)
@@ -317,23 +437,87 @@ class OpenAI(SyncAPIClient):
     def qs(self) -> Querystring:
         return Querystring(array_format="brackets")
 
-    def _refresh_api_key(self) -> None:
-        if self._api_key_provider:
-            self.api_key = self._api_key_provider()
+    def _send_with_auth_retry(
+        self,
+        request: httpx.Request,
+        *,
+        stream: bool,
+        retried: bool = False,
+        **kwargs: Unpack[HttpxSendArgs],
+    ) -> httpx.Response:
+        used_workload_identity_auth = False
+
+        if self._workload_identity_auth is not None:
+            authorization = request.headers.get("Authorization")
+            if authorization == f"Bearer {WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER}":
+                request.headers["Authorization"] = f"Bearer {self._workload_identity_auth.get_token()}"
+                used_workload_identity_auth = True
+
+        response = super()._send_request(request, stream=stream, **kwargs)
+        if (
+            response.status_code == 401
+            and self._workload_identity_auth is not None
+            and used_workload_identity_auth
+            and not retried
+        ):
+            response.close()
+            self._workload_identity_auth.invalidate_token()
+            request.headers["Authorization"] = f"Bearer {self._workload_identity_auth.get_token()}"
+            return self._send_with_auth_retry(request, stream=stream, retried=True, **kwargs)
+
+        return response
 
     @override
-    def _prepare_options(self, options: FinalRequestOptions) -> FinalRequestOptions:
-        self._refresh_api_key()
-        return super()._prepare_options(options)
+    def _send_request(
+        self,
+        request: httpx.Request,
+        *,
+        stream: bool,
+        **kwargs: Unpack[HttpxSendArgs],
+    ) -> httpx.Response:
+        response = self._send_with_auth_retry(request, stream=stream, **kwargs)
+        if self._provider_runtime is not None and self._provider_runtime.normalize_response is not None:
+            response = self._provider_runtime.normalize_response(response)
+        return response
+
+    @override
+    def _auth_headers(self, security: SecurityOptions) -> dict[str, str]:
+        if self._provider_runtime is not None:
+            return {}
+
+        headers: dict[str, str] = {}
+        if security.get("bearer_auth", False):
+            for key, value in self._bearer_auth.items():
+                headers.setdefault(key, value)
+        if security.get("admin_api_key_auth", False):
+            for key, value in self._admin_api_key_auth.items():
+                headers.setdefault(key, value)
+        return headers
+
+    @property
+    def _bearer_auth(self) -> dict[str, str]:
+        api_key = self.api_key
+        if not api_key:
+            return {}
+        return {"Authorization": f"Bearer {api_key}"}
 
     @property
     @override
     def auth_headers(self) -> dict[str, str]:
+        if self._provider_runtime is not None:
+            return {}
+
         api_key = self.api_key
-        if not api_key:
-            # if the api key is an empty string, encoding the header will fail
+        if not api_key or api_key == WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER:
             return {}
         return {"Authorization": f"Bearer {api_key}"}
+
+    @property
+    def _admin_api_key_auth(self) -> dict[str, str]:
+        admin_api_key = self.admin_api_key
+        if admin_api_key is None:
+            return {}
+        return {"Authorization": f"Bearer {admin_api_key}"}
 
     @property
     @override
@@ -346,10 +530,53 @@ class OpenAI(SyncAPIClient):
             **self._custom_headers,
         }
 
+    @override
+    def _validate_headers(self, headers: Headers, custom_headers: Headers) -> None:
+        if self._provider_runtime is not None:
+            return
+
+        if _has_header(headers, "Authorization") or _has_omitted_header(custom_headers, "Authorization"):
+            return
+
+        raise TypeError(
+            '"Could not resolve authentication method. Expected either api_key or admin_api_key to be set. Or for one of the `Authorization` or `Authorization` headers to be explicitly omitted"'
+        )
+
+    @override
+    def _prepare_options(self, options: FinalRequestOptions) -> FinalRequestOptions:
+        if self._provider_runtime is not None:
+            if self._provider_runtime.transform_request is not None:
+                options = self._provider_runtime.transform_request(options)
+        elif self._api_key_provider is not None and options.security.get("bearer_auth", False):
+            self._refresh_api_key()
+
+        return super()._prepare_options(options)
+
+    @override
+    def _prepare_request(self, request: httpx.Request) -> None:
+        if self._provider_runtime is not None and self._provider_runtime.prepare_request is not None:
+            self._provider_runtime.prepare_request(request)
+
+    @override
+    def _custom_auth(self, security: SecurityOptions) -> httpx.Auth | None:
+        if self._provider_runtime is not None:
+            return httpx.Auth()
+
+        return super()._custom_auth(security)
+
+    def _refresh_api_key(self) -> str:
+        if self._api_key_provider is not None:
+            self.api_key = self._api_key_provider()
+
+        return self.api_key
+
     def copy(
         self,
         *,
         api_key: str | Callable[[], str] | None = None,
+        admin_api_key: str | None = None,
+        workload_identity: WorkloadIdentity | None = None,
+        provider: _Provider | None | NotGiven = not_given,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -362,6 +589,7 @@ class OpenAI(SyncAPIClient):
         set_default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
         set_default_query: Mapping[str, object] | None = None,
+        _enforce_credentials: bool | None = None,
         _extra_kwargs: Mapping[str, Any] = {},
     ) -> Self:
         """
@@ -373,7 +601,11 @@ class OpenAI(SyncAPIClient):
         if default_query is not None and set_default_query is not None:
             raise ValueError("The `default_query` and `set_default_query` arguments are mutually exclusive")
 
-        headers = self._custom_headers
+        provider_changed = not isinstance(provider, NotGiven) and provider is not self._provider
+        inherited_organization = None if provider_changed else self.organization
+        inherited_project = None if provider_changed else self.project
+
+        headers: Mapping[str, str] = {} if provider_changed else self._custom_headers
         if default_headers is not None:
             headers = {**headers, **default_headers}
         elif set_default_headers is not None:
@@ -386,18 +618,44 @@ class OpenAI(SyncAPIClient):
             params = set_default_query
 
         http_client = http_client or self._client
+
+        next_provider = self._provider if isinstance(provider, NotGiven) else provider
+        auth_options: dict[str, Any]
+        if next_provider is not None:
+            auth_options = {
+                "provider": next_provider,
+                "api_key": api_key,
+                "admin_api_key": admin_api_key,
+                "workload_identity": workload_identity,
+                "base_url": base_url,
+            }
+        elif self._provider is not None:
+            auth_options = {
+                "api_key": api_key,
+                "admin_api_key": admin_api_key,
+                "workload_identity": workload_identity,
+                "base_url": base_url,
+            }
+        else:
+            auth_options = {
+                "api_key": api_key or self._api_key_provider or self.api_key,
+                "admin_api_key": admin_api_key or self.admin_api_key,
+                "workload_identity": workload_identity or self.workload_identity,
+                "base_url": base_url or self.base_url,
+            }
+
         return self.__class__(
-            api_key=api_key or self._api_key_provider or self.api_key,
-            organization=organization or self.organization,
-            project=project or self.project,
+            organization=organization or inherited_organization,
+            project=project or inherited_project,
             webhook_secret=webhook_secret or self.webhook_secret,
             websocket_base_url=websocket_base_url or self.websocket_base_url,
-            base_url=base_url or self.base_url,
             timeout=self.timeout if isinstance(timeout, NotGiven) else timeout,
             http_client=http_client,
             max_retries=max_retries if is_given(max_retries) else self.max_retries,
             default_headers=headers,
             default_query=params,
+            _enforce_credentials=True if _enforce_credentials is None else _enforce_credentials,
+            **auth_options,
             **_extra_kwargs,
         )
 
@@ -443,9 +701,14 @@ class OpenAI(SyncAPIClient):
 class AsyncOpenAI(AsyncAPIClient):
     # client options
     api_key: str
+    admin_api_key: str | None
+    workload_identity: WorkloadIdentity | None
     organization: str | None
     project: str | None
     webhook_secret: str | None
+    _workload_identity_auth: WorkloadIdentityAuth | None
+    _provider: _Provider | None
+    _provider_runtime: _ProviderRuntime | None
 
     websocket_base_url: str | httpx.URL | None
     """Base URL for WebSocket connections.
@@ -459,9 +722,12 @@ class AsyncOpenAI(AsyncAPIClient):
         self,
         *,
         api_key: str | Callable[[], Awaitable[str]] | None = None,
+        admin_api_key: str | None = None,
+        workload_identity: WorkloadIdentity | None = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
+        provider: _Provider | None = None,
         base_url: str | httpx.URL | None = None,
         websocket_base_url: str | httpx.URL | None = None,
         timeout: float | Timeout | None | NotGiven = not_given,
@@ -481,33 +747,91 @@ class AsyncOpenAI(AsyncAPIClient):
         # outlining your use-case to help us decide if it should be
         # part of our public interface in the future.
         _strict_response_validation: bool = False,
+        _enforce_credentials: bool = True,
     ) -> None:
         """Construct a new async AsyncOpenAI client instance.
 
         This automatically infers the following arguments from their corresponding environment variables if they are not provided:
         - `api_key` from `OPENAI_API_KEY`
+        - `admin_api_key` from `OPENAI_ADMIN_KEY`
         - `organization` from `OPENAI_ORG_ID`
         - `project` from `OPENAI_PROJECT_ID`
         - `webhook_secret` from `OPENAI_WEBHOOK_SECRET`
-        """
-        if api_key is None:
-            api_key = os.environ.get("OPENAI_API_KEY")
-        if api_key is None:
-            raise OpenAIError(
-                "The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable"
-            )
-        if callable(api_key):
-            self.api_key = ""
-            self._api_key_provider: Callable[[], Awaitable[str]] | None = api_key
-        else:
-            self.api_key = api_key
-            self._api_key_provider = None
 
-        if organization is None:
+        When `provider` is supplied, authentication and the base URL are configured by that provider instead.
+        """
+        provider_runtime: _ProviderRuntime | None = None
+        if provider is not None:
+            provider_name = _provider_name(provider)
+            conflicts = [
+                name
+                for name, value in (
+                    ("api_key", api_key),
+                    ("admin_api_key", admin_api_key),
+                    ("workload_identity", workload_identity),
+                    ("base_url", base_url),
+                )
+                if value is not None
+            ]
+            if conflicts:
+                formatted = ", ".join(f"`{name}`" for name in conflicts)
+                raise OpenAIError(
+                    f"`provider` cannot be combined with top-level {formatted}. "
+                    f"Move provider authentication and routing options into `{provider_name}(...)`."
+                )
+
+            provider_runtime = _configure_provider(provider)
+
+        self._provider = provider
+        self._provider_runtime = provider_runtime
+
+        if api_key is not None and api_key != WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER and workload_identity is not None:
+            raise OpenAIError("The `api_key` and `workload_identity` arguments are mutually exclusive")
+
+        self.workload_identity = workload_identity if provider_runtime is None else None
+
+        if provider_runtime is not None:
+            self.api_key = ""
+            self._api_key_provider = None
+            self._workload_identity_auth = None
+        elif workload_identity is not None:
+            self.api_key = WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER
+            self._api_key_provider = None
+            self._workload_identity_auth = WorkloadIdentityAuth(
+                workload_identity=workload_identity,
+            )
+        else:
+            if api_key is None:
+                api_key = os.environ.get("OPENAI_API_KEY")
+            if callable(api_key):
+                self.api_key = ""
+                self._api_key_provider: Callable[[], Awaitable[str]] | None = api_key  # type: ignore[no-redef]
+            else:
+                self.api_key = api_key or ""
+                self._api_key_provider = None
+            self._workload_identity_auth = None
+
+        if admin_api_key is None and provider_runtime is None:
+            admin_api_key = os.environ.get("OPENAI_ADMIN_KEY")
+        self.admin_api_key = admin_api_key if provider_runtime is None else None
+
+        if (
+            provider_runtime is None
+            and _enforce_credentials
+            and not self.api_key
+            and self._api_key_provider is None
+            and workload_identity is None
+            and self.admin_api_key is None
+        ):
+            raise OpenAIError(
+                "Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable."
+            )
+
+        if organization is None and provider_runtime is None:
             organization = os.environ.get("OPENAI_ORG_ID")
         self.organization = organization
 
-        if project is None:
+        if project is None and provider_runtime is None:
             project = os.environ.get("OPENAI_PROJECT_ID")
         self.project = project
 
@@ -517,10 +841,21 @@ class AsyncOpenAI(AsyncAPIClient):
 
         self.websocket_base_url = websocket_base_url
 
-        if base_url is None:
+        if provider_runtime is not None:
+            base_url = provider_runtime.base_url
+        elif base_url is None:
             base_url = os.environ.get("OPENAI_BASE_URL")
         if base_url is None:
             base_url = f"https://api.openai.com/v1"
+
+        custom_headers_env = os.environ.get("OPENAI_CUSTOM_HEADERS") if provider_runtime is None else None
+        if custom_headers_env is not None:
+            parsed: dict[str, str] = {}
+            for line in custom_headers_env.split("\n"):
+                colon = line.find(":")
+                if colon >= 0:
+                    parsed[line[:colon].strip()] = line[colon + 1 :].strip()
+            default_headers = {**parsed, **(default_headers if is_mapping_t(default_headers) else {})}
 
         super().__init__(
             version=__version__,
@@ -537,6 +872,9 @@ class AsyncOpenAI(AsyncAPIClient):
 
     @cached_property
     def completions(self) -> AsyncCompletions:
+        """
+        Given a prompt, the model will return one or more predicted completions, and can also return the probabilities of alternative tokens at each position.
+        """
         from .resources.completions import AsyncCompletions
 
         return AsyncCompletions(self)
@@ -549,18 +887,25 @@ class AsyncOpenAI(AsyncAPIClient):
 
     @cached_property
     def embeddings(self) -> AsyncEmbeddings:
+        """
+        Get a vector representation of a given input that can be easily consumed by machine learning models and algorithms.
+        """
         from .resources.embeddings import AsyncEmbeddings
 
         return AsyncEmbeddings(self)
 
     @cached_property
     def files(self) -> AsyncFiles:
+        """
+        Files are used to upload documents that can be used with features like Assistants and Fine-tuning.
+        """
         from .resources.files import AsyncFiles
 
         return AsyncFiles(self)
 
     @cached_property
     def images(self) -> AsyncImages:
+        """Given a prompt and/or an input image, the model will generate a new image."""
         from .resources.images import AsyncImages
 
         return AsyncImages(self)
@@ -573,12 +918,16 @@ class AsyncOpenAI(AsyncAPIClient):
 
     @cached_property
     def moderations(self) -> AsyncModerations:
+        """
+        Given text and/or image inputs, classifies if those inputs are potentially harmful.
+        """
         from .resources.moderations import AsyncModerations
 
         return AsyncModerations(self)
 
     @cached_property
     def models(self) -> AsyncModels:
+        """List and describe the various models available in the API."""
         from .resources.models import AsyncModels
 
         return AsyncModels(self)
@@ -609,15 +958,23 @@ class AsyncOpenAI(AsyncAPIClient):
 
     @cached_property
     def batches(self) -> AsyncBatches:
+        """Create large batches of API requests to run asynchronously."""
         from .resources.batches import AsyncBatches
 
         return AsyncBatches(self)
 
     @cached_property
     def uploads(self) -> AsyncUploads:
+        """Use Uploads to upload large files in multiple parts."""
         from .resources.uploads import AsyncUploads
 
         return AsyncUploads(self)
+
+    @cached_property
+    def admin(self) -> AsyncAdmin:
+        from .resources.admin import AsyncAdmin
+
+        return AsyncAdmin(self)
 
     @cached_property
     def responses(self) -> AsyncResponses:
@@ -633,12 +990,14 @@ class AsyncOpenAI(AsyncAPIClient):
 
     @cached_property
     def conversations(self) -> AsyncConversations:
+        """Manage conversations and conversation items."""
         from .resources.conversations import AsyncConversations
 
         return AsyncConversations(self)
 
     @cached_property
     def evals(self) -> AsyncEvals:
+        """Manage and run evals in the OpenAI platform."""
         from .resources.evals import AsyncEvals
 
         return AsyncEvals(self)
@@ -674,23 +1033,90 @@ class AsyncOpenAI(AsyncAPIClient):
     def qs(self) -> Querystring:
         return Querystring(array_format="brackets")
 
-    async def _refresh_api_key(self) -> None:
-        if self._api_key_provider:
-            self.api_key = await self._api_key_provider()
+    async def _send_with_auth_retry(
+        self,
+        request: httpx.Request,
+        *,
+        stream: bool,
+        retried: bool = False,
+        **kwargs: Unpack[HttpxSendArgs],
+    ) -> httpx.Response:
+        used_workload_identity_auth = False
+
+        if self._workload_identity_auth is not None:
+            authorization = request.headers.get("Authorization")
+            if authorization == f"Bearer {WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER}":
+                request.headers["Authorization"] = f"Bearer {await self._workload_identity_auth.get_token_async()}"
+                used_workload_identity_auth = True
+
+        response = await super()._send_request(request, stream=stream, **kwargs)
+        if (
+            response.status_code == 401
+            and self._workload_identity_auth is not None
+            and used_workload_identity_auth
+            and not retried
+        ):
+            await response.aclose()
+            self._workload_identity_auth.invalidate_token()
+            request.headers["Authorization"] = f"Bearer {await self._workload_identity_auth.get_token_async()}"
+            return await self._send_with_auth_retry(request, stream=stream, retried=True, **kwargs)
+
+        return response
 
     @override
-    async def _prepare_options(self, options: FinalRequestOptions) -> FinalRequestOptions:
-        await self._refresh_api_key()
-        return await super()._prepare_options(options)
+    async def _send_request(
+        self,
+        request: httpx.Request,
+        *,
+        stream: bool,
+        **kwargs: Unpack[HttpxSendArgs],
+    ) -> httpx.Response:
+        response = await self._send_with_auth_retry(request, stream=stream, **kwargs)
+        if self._provider_runtime is not None:
+            if self._provider_runtime.normalize_async_response is not None:
+                response = await self._provider_runtime.normalize_async_response(response)
+            elif self._provider_runtime.normalize_response is not None:
+                response = self._provider_runtime.normalize_response(response)
+        return response
+
+    @override
+    def _auth_headers(self, security: SecurityOptions) -> dict[str, str]:
+        if self._provider_runtime is not None:
+            return {}
+
+        headers: dict[str, str] = {}
+        if security.get("bearer_auth", False):
+            for key, value in self._bearer_auth.items():
+                headers.setdefault(key, value)
+        if security.get("admin_api_key_auth", False):
+            for key, value in self._admin_api_key_auth.items():
+                headers.setdefault(key, value)
+        return headers
+
+    @property
+    def _bearer_auth(self) -> dict[str, str]:
+        api_key = self.api_key
+        if not api_key:
+            return {}
+        return {"Authorization": f"Bearer {api_key}"}
 
     @property
     @override
     def auth_headers(self) -> dict[str, str]:
+        if self._provider_runtime is not None:
+            return {}
+
         api_key = self.api_key
-        if not api_key:
-            # if the api key is an empty string, encoding the header will fail
+        if not api_key or api_key == WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER:
             return {}
         return {"Authorization": f"Bearer {api_key}"}
+
+    @property
+    def _admin_api_key_auth(self) -> dict[str, str]:
+        admin_api_key = self.admin_api_key
+        if admin_api_key is None:
+            return {}
+        return {"Authorization": f"Bearer {admin_api_key}"}
 
     @property
     @override
@@ -703,10 +1129,61 @@ class AsyncOpenAI(AsyncAPIClient):
             **self._custom_headers,
         }
 
+    @override
+    def _validate_headers(self, headers: Headers, custom_headers: Headers) -> None:
+        if self._provider_runtime is not None:
+            return
+
+        if _has_header(headers, "Authorization") or _has_omitted_header(custom_headers, "Authorization"):
+            return
+
+        raise TypeError(
+            '"Could not resolve authentication method. Expected either api_key or admin_api_key to be set. Or for one of the `Authorization` or `Authorization` headers to be explicitly omitted"'
+        )
+
+    @override
+    async def _prepare_options(self, options: FinalRequestOptions) -> FinalRequestOptions:
+        if self._provider_runtime is not None:
+            if self._provider_runtime.transform_async_request is not None:
+                options = await self._provider_runtime.transform_async_request(options)
+            elif self._provider_runtime.transform_request is not None:
+                options = self._provider_runtime.transform_request(options)
+        elif self._api_key_provider is not None and options.security.get("bearer_auth", False):
+            await self._refresh_api_key()
+
+        return await super()._prepare_options(options)
+
+    @override
+    async def _prepare_request(self, request: httpx.Request) -> None:
+        if self._provider_runtime is None:
+            return
+
+        if self._provider_runtime.prepare_async_request is not None:
+            await self._provider_runtime.prepare_async_request(request)
+        elif self._provider_runtime.prepare_request is not None:
+            self._provider_runtime.prepare_request(request)
+
+    @property
+    @override
+    def custom_auth(self) -> httpx.Auth | None:
+        if self._provider_runtime is not None:
+            return httpx.Auth()
+
+        return super().custom_auth
+
+    async def _refresh_api_key(self) -> str:
+        if self._api_key_provider is not None:
+            self.api_key = await self._api_key_provider()
+
+        return self.api_key
+
     def copy(
         self,
         *,
         api_key: str | Callable[[], Awaitable[str]] | None = None,
+        admin_api_key: str | None = None,
+        workload_identity: WorkloadIdentity | None = None,
+        provider: _Provider | None | NotGiven = not_given,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -719,6 +1196,7 @@ class AsyncOpenAI(AsyncAPIClient):
         set_default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
         set_default_query: Mapping[str, object] | None = None,
+        _enforce_credentials: bool | None = None,
         _extra_kwargs: Mapping[str, Any] = {},
     ) -> Self:
         """
@@ -730,7 +1208,11 @@ class AsyncOpenAI(AsyncAPIClient):
         if default_query is not None and set_default_query is not None:
             raise ValueError("The `default_query` and `set_default_query` arguments are mutually exclusive")
 
-        headers = self._custom_headers
+        provider_changed = not isinstance(provider, NotGiven) and provider is not self._provider
+        inherited_organization = None if provider_changed else self.organization
+        inherited_project = None if provider_changed else self.project
+
+        headers: Mapping[str, str] = {} if provider_changed else self._custom_headers
         if default_headers is not None:
             headers = {**headers, **default_headers}
         elif set_default_headers is not None:
@@ -743,18 +1225,43 @@ class AsyncOpenAI(AsyncAPIClient):
             params = set_default_query
 
         http_client = http_client or self._client
+        next_provider = self._provider if isinstance(provider, NotGiven) else provider
+        auth_options: dict[str, Any]
+        if next_provider is not None:
+            auth_options = {
+                "provider": next_provider,
+                "api_key": api_key,
+                "admin_api_key": admin_api_key,
+                "workload_identity": workload_identity,
+                "base_url": base_url,
+            }
+        elif self._provider is not None:
+            auth_options = {
+                "api_key": api_key,
+                "admin_api_key": admin_api_key,
+                "workload_identity": workload_identity,
+                "base_url": base_url,
+            }
+        else:
+            auth_options = {
+                "api_key": api_key or self._api_key_provider or self.api_key,
+                "admin_api_key": admin_api_key or self.admin_api_key,
+                "workload_identity": workload_identity or self.workload_identity,
+                "base_url": base_url or self.base_url,
+            }
+
         return self.__class__(
-            api_key=api_key or self._api_key_provider or self.api_key,
-            organization=organization or self.organization,
-            project=project or self.project,
+            organization=organization or inherited_organization,
+            project=project or inherited_project,
             webhook_secret=webhook_secret or self.webhook_secret,
             websocket_base_url=websocket_base_url or self.websocket_base_url,
-            base_url=base_url or self.base_url,
             timeout=self.timeout if isinstance(timeout, NotGiven) else timeout,
             http_client=http_client,
             max_retries=max_retries if is_given(max_retries) else self.max_retries,
             default_headers=headers,
             default_query=params,
+            _enforce_credentials=True if _enforce_credentials is None else _enforce_credentials,
+            **auth_options,
             **_extra_kwargs,
         )
 
@@ -805,6 +1312,9 @@ class OpenAIWithRawResponse:
 
     @cached_property
     def completions(self) -> completions.CompletionsWithRawResponse:
+        """
+        Given a prompt, the model will return one or more predicted completions, and can also return the probabilities of alternative tokens at each position.
+        """
         from .resources.completions import CompletionsWithRawResponse
 
         return CompletionsWithRawResponse(self._client.completions)
@@ -817,18 +1327,25 @@ class OpenAIWithRawResponse:
 
     @cached_property
     def embeddings(self) -> embeddings.EmbeddingsWithRawResponse:
+        """
+        Get a vector representation of a given input that can be easily consumed by machine learning models and algorithms.
+        """
         from .resources.embeddings import EmbeddingsWithRawResponse
 
         return EmbeddingsWithRawResponse(self._client.embeddings)
 
     @cached_property
     def files(self) -> files.FilesWithRawResponse:
+        """
+        Files are used to upload documents that can be used with features like Assistants and Fine-tuning.
+        """
         from .resources.files import FilesWithRawResponse
 
         return FilesWithRawResponse(self._client.files)
 
     @cached_property
     def images(self) -> images.ImagesWithRawResponse:
+        """Given a prompt and/or an input image, the model will generate a new image."""
         from .resources.images import ImagesWithRawResponse
 
         return ImagesWithRawResponse(self._client.images)
@@ -841,12 +1358,16 @@ class OpenAIWithRawResponse:
 
     @cached_property
     def moderations(self) -> moderations.ModerationsWithRawResponse:
+        """
+        Given text and/or image inputs, classifies if those inputs are potentially harmful.
+        """
         from .resources.moderations import ModerationsWithRawResponse
 
         return ModerationsWithRawResponse(self._client.moderations)
 
     @cached_property
     def models(self) -> models.ModelsWithRawResponse:
+        """List and describe the various models available in the API."""
         from .resources.models import ModelsWithRawResponse
 
         return ModelsWithRawResponse(self._client.models)
@@ -871,15 +1392,23 @@ class OpenAIWithRawResponse:
 
     @cached_property
     def batches(self) -> batches.BatchesWithRawResponse:
+        """Create large batches of API requests to run asynchronously."""
         from .resources.batches import BatchesWithRawResponse
 
         return BatchesWithRawResponse(self._client.batches)
 
     @cached_property
     def uploads(self) -> uploads.UploadsWithRawResponse:
+        """Use Uploads to upload large files in multiple parts."""
         from .resources.uploads import UploadsWithRawResponse
 
         return UploadsWithRawResponse(self._client.uploads)
+
+    @cached_property
+    def admin(self) -> admin.AdminWithRawResponse:
+        from .resources.admin import AdminWithRawResponse
+
+        return AdminWithRawResponse(self._client.admin)
 
     @cached_property
     def responses(self) -> responses.ResponsesWithRawResponse:
@@ -895,12 +1424,14 @@ class OpenAIWithRawResponse:
 
     @cached_property
     def conversations(self) -> conversations.ConversationsWithRawResponse:
+        """Manage conversations and conversation items."""
         from .resources.conversations import ConversationsWithRawResponse
 
         return ConversationsWithRawResponse(self._client.conversations)
 
     @cached_property
     def evals(self) -> evals.EvalsWithRawResponse:
+        """Manage and run evals in the OpenAI platform."""
         from .resources.evals import EvalsWithRawResponse
 
         return EvalsWithRawResponse(self._client.evals)
@@ -932,6 +1463,9 @@ class AsyncOpenAIWithRawResponse:
 
     @cached_property
     def completions(self) -> completions.AsyncCompletionsWithRawResponse:
+        """
+        Given a prompt, the model will return one or more predicted completions, and can also return the probabilities of alternative tokens at each position.
+        """
         from .resources.completions import AsyncCompletionsWithRawResponse
 
         return AsyncCompletionsWithRawResponse(self._client.completions)
@@ -944,18 +1478,25 @@ class AsyncOpenAIWithRawResponse:
 
     @cached_property
     def embeddings(self) -> embeddings.AsyncEmbeddingsWithRawResponse:
+        """
+        Get a vector representation of a given input that can be easily consumed by machine learning models and algorithms.
+        """
         from .resources.embeddings import AsyncEmbeddingsWithRawResponse
 
         return AsyncEmbeddingsWithRawResponse(self._client.embeddings)
 
     @cached_property
     def files(self) -> files.AsyncFilesWithRawResponse:
+        """
+        Files are used to upload documents that can be used with features like Assistants and Fine-tuning.
+        """
         from .resources.files import AsyncFilesWithRawResponse
 
         return AsyncFilesWithRawResponse(self._client.files)
 
     @cached_property
     def images(self) -> images.AsyncImagesWithRawResponse:
+        """Given a prompt and/or an input image, the model will generate a new image."""
         from .resources.images import AsyncImagesWithRawResponse
 
         return AsyncImagesWithRawResponse(self._client.images)
@@ -968,12 +1509,16 @@ class AsyncOpenAIWithRawResponse:
 
     @cached_property
     def moderations(self) -> moderations.AsyncModerationsWithRawResponse:
+        """
+        Given text and/or image inputs, classifies if those inputs are potentially harmful.
+        """
         from .resources.moderations import AsyncModerationsWithRawResponse
 
         return AsyncModerationsWithRawResponse(self._client.moderations)
 
     @cached_property
     def models(self) -> models.AsyncModelsWithRawResponse:
+        """List and describe the various models available in the API."""
         from .resources.models import AsyncModelsWithRawResponse
 
         return AsyncModelsWithRawResponse(self._client.models)
@@ -998,15 +1543,23 @@ class AsyncOpenAIWithRawResponse:
 
     @cached_property
     def batches(self) -> batches.AsyncBatchesWithRawResponse:
+        """Create large batches of API requests to run asynchronously."""
         from .resources.batches import AsyncBatchesWithRawResponse
 
         return AsyncBatchesWithRawResponse(self._client.batches)
 
     @cached_property
     def uploads(self) -> uploads.AsyncUploadsWithRawResponse:
+        """Use Uploads to upload large files in multiple parts."""
         from .resources.uploads import AsyncUploadsWithRawResponse
 
         return AsyncUploadsWithRawResponse(self._client.uploads)
+
+    @cached_property
+    def admin(self) -> admin.AsyncAdminWithRawResponse:
+        from .resources.admin import AsyncAdminWithRawResponse
+
+        return AsyncAdminWithRawResponse(self._client.admin)
 
     @cached_property
     def responses(self) -> responses.AsyncResponsesWithRawResponse:
@@ -1022,12 +1575,14 @@ class AsyncOpenAIWithRawResponse:
 
     @cached_property
     def conversations(self) -> conversations.AsyncConversationsWithRawResponse:
+        """Manage conversations and conversation items."""
         from .resources.conversations import AsyncConversationsWithRawResponse
 
         return AsyncConversationsWithRawResponse(self._client.conversations)
 
     @cached_property
     def evals(self) -> evals.AsyncEvalsWithRawResponse:
+        """Manage and run evals in the OpenAI platform."""
         from .resources.evals import AsyncEvalsWithRawResponse
 
         return AsyncEvalsWithRawResponse(self._client.evals)
@@ -1059,6 +1614,9 @@ class OpenAIWithStreamedResponse:
 
     @cached_property
     def completions(self) -> completions.CompletionsWithStreamingResponse:
+        """
+        Given a prompt, the model will return one or more predicted completions, and can also return the probabilities of alternative tokens at each position.
+        """
         from .resources.completions import CompletionsWithStreamingResponse
 
         return CompletionsWithStreamingResponse(self._client.completions)
@@ -1071,18 +1629,25 @@ class OpenAIWithStreamedResponse:
 
     @cached_property
     def embeddings(self) -> embeddings.EmbeddingsWithStreamingResponse:
+        """
+        Get a vector representation of a given input that can be easily consumed by machine learning models and algorithms.
+        """
         from .resources.embeddings import EmbeddingsWithStreamingResponse
 
         return EmbeddingsWithStreamingResponse(self._client.embeddings)
 
     @cached_property
     def files(self) -> files.FilesWithStreamingResponse:
+        """
+        Files are used to upload documents that can be used with features like Assistants and Fine-tuning.
+        """
         from .resources.files import FilesWithStreamingResponse
 
         return FilesWithStreamingResponse(self._client.files)
 
     @cached_property
     def images(self) -> images.ImagesWithStreamingResponse:
+        """Given a prompt and/or an input image, the model will generate a new image."""
         from .resources.images import ImagesWithStreamingResponse
 
         return ImagesWithStreamingResponse(self._client.images)
@@ -1095,12 +1660,16 @@ class OpenAIWithStreamedResponse:
 
     @cached_property
     def moderations(self) -> moderations.ModerationsWithStreamingResponse:
+        """
+        Given text and/or image inputs, classifies if those inputs are potentially harmful.
+        """
         from .resources.moderations import ModerationsWithStreamingResponse
 
         return ModerationsWithStreamingResponse(self._client.moderations)
 
     @cached_property
     def models(self) -> models.ModelsWithStreamingResponse:
+        """List and describe the various models available in the API."""
         from .resources.models import ModelsWithStreamingResponse
 
         return ModelsWithStreamingResponse(self._client.models)
@@ -1125,15 +1694,23 @@ class OpenAIWithStreamedResponse:
 
     @cached_property
     def batches(self) -> batches.BatchesWithStreamingResponse:
+        """Create large batches of API requests to run asynchronously."""
         from .resources.batches import BatchesWithStreamingResponse
 
         return BatchesWithStreamingResponse(self._client.batches)
 
     @cached_property
     def uploads(self) -> uploads.UploadsWithStreamingResponse:
+        """Use Uploads to upload large files in multiple parts."""
         from .resources.uploads import UploadsWithStreamingResponse
 
         return UploadsWithStreamingResponse(self._client.uploads)
+
+    @cached_property
+    def admin(self) -> admin.AdminWithStreamingResponse:
+        from .resources.admin import AdminWithStreamingResponse
+
+        return AdminWithStreamingResponse(self._client.admin)
 
     @cached_property
     def responses(self) -> responses.ResponsesWithStreamingResponse:
@@ -1149,12 +1726,14 @@ class OpenAIWithStreamedResponse:
 
     @cached_property
     def conversations(self) -> conversations.ConversationsWithStreamingResponse:
+        """Manage conversations and conversation items."""
         from .resources.conversations import ConversationsWithStreamingResponse
 
         return ConversationsWithStreamingResponse(self._client.conversations)
 
     @cached_property
     def evals(self) -> evals.EvalsWithStreamingResponse:
+        """Manage and run evals in the OpenAI platform."""
         from .resources.evals import EvalsWithStreamingResponse
 
         return EvalsWithStreamingResponse(self._client.evals)
@@ -1186,6 +1765,9 @@ class AsyncOpenAIWithStreamedResponse:
 
     @cached_property
     def completions(self) -> completions.AsyncCompletionsWithStreamingResponse:
+        """
+        Given a prompt, the model will return one or more predicted completions, and can also return the probabilities of alternative tokens at each position.
+        """
         from .resources.completions import AsyncCompletionsWithStreamingResponse
 
         return AsyncCompletionsWithStreamingResponse(self._client.completions)
@@ -1198,18 +1780,25 @@ class AsyncOpenAIWithStreamedResponse:
 
     @cached_property
     def embeddings(self) -> embeddings.AsyncEmbeddingsWithStreamingResponse:
+        """
+        Get a vector representation of a given input that can be easily consumed by machine learning models and algorithms.
+        """
         from .resources.embeddings import AsyncEmbeddingsWithStreamingResponse
 
         return AsyncEmbeddingsWithStreamingResponse(self._client.embeddings)
 
     @cached_property
     def files(self) -> files.AsyncFilesWithStreamingResponse:
+        """
+        Files are used to upload documents that can be used with features like Assistants and Fine-tuning.
+        """
         from .resources.files import AsyncFilesWithStreamingResponse
 
         return AsyncFilesWithStreamingResponse(self._client.files)
 
     @cached_property
     def images(self) -> images.AsyncImagesWithStreamingResponse:
+        """Given a prompt and/or an input image, the model will generate a new image."""
         from .resources.images import AsyncImagesWithStreamingResponse
 
         return AsyncImagesWithStreamingResponse(self._client.images)
@@ -1222,12 +1811,16 @@ class AsyncOpenAIWithStreamedResponse:
 
     @cached_property
     def moderations(self) -> moderations.AsyncModerationsWithStreamingResponse:
+        """
+        Given text and/or image inputs, classifies if those inputs are potentially harmful.
+        """
         from .resources.moderations import AsyncModerationsWithStreamingResponse
 
         return AsyncModerationsWithStreamingResponse(self._client.moderations)
 
     @cached_property
     def models(self) -> models.AsyncModelsWithStreamingResponse:
+        """List and describe the various models available in the API."""
         from .resources.models import AsyncModelsWithStreamingResponse
 
         return AsyncModelsWithStreamingResponse(self._client.models)
@@ -1252,15 +1845,23 @@ class AsyncOpenAIWithStreamedResponse:
 
     @cached_property
     def batches(self) -> batches.AsyncBatchesWithStreamingResponse:
+        """Create large batches of API requests to run asynchronously."""
         from .resources.batches import AsyncBatchesWithStreamingResponse
 
         return AsyncBatchesWithStreamingResponse(self._client.batches)
 
     @cached_property
     def uploads(self) -> uploads.AsyncUploadsWithStreamingResponse:
+        """Use Uploads to upload large files in multiple parts."""
         from .resources.uploads import AsyncUploadsWithStreamingResponse
 
         return AsyncUploadsWithStreamingResponse(self._client.uploads)
+
+    @cached_property
+    def admin(self) -> admin.AsyncAdminWithStreamingResponse:
+        from .resources.admin import AsyncAdminWithStreamingResponse
+
+        return AsyncAdminWithStreamingResponse(self._client.admin)
 
     @cached_property
     def responses(self) -> responses.AsyncResponsesWithStreamingResponse:
@@ -1276,12 +1877,14 @@ class AsyncOpenAIWithStreamedResponse:
 
     @cached_property
     def conversations(self) -> conversations.AsyncConversationsWithStreamingResponse:
+        """Manage conversations and conversation items."""
         from .resources.conversations import AsyncConversationsWithStreamingResponse
 
         return AsyncConversationsWithStreamingResponse(self._client.conversations)
 
     @cached_property
     def evals(self) -> evals.AsyncEvalsWithStreamingResponse:
+        """Manage and run evals in the OpenAI platform."""
         from .resources.evals import AsyncEvalsWithStreamingResponse
 
         return AsyncEvalsWithStreamingResponse(self._client.evals)

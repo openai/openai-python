@@ -9,11 +9,14 @@ from ..._models import BaseModel
 from .custom_tool import CustomTool
 from .computer_tool import ComputerTool
 from .function_tool import FunctionTool
+from .namespace_tool import NamespaceTool
 from .web_search_tool import WebSearchTool
 from .apply_patch_tool import ApplyPatchTool
 from .file_search_tool import FileSearchTool
+from .tool_search_tool import ToolSearchTool
 from .function_shell_tool import FunctionShellTool
 from .web_search_preview_tool import WebSearchPreviewTool
+from .computer_use_preview_tool import ComputerUsePreviewTool
 from .container_network_policy_disabled import ContainerNetworkPolicyDisabled
 from .container_network_policy_allowlist import ContainerNetworkPolicyAllowlist
 
@@ -31,6 +34,7 @@ __all__ = [
     "CodeInterpreterContainer",
     "CodeInterpreterContainerCodeInterpreterToolAuto",
     "CodeInterpreterContainerCodeInterpreterToolAutoNetworkPolicy",
+    "ProgrammaticToolCalling",
     "ImageGeneration",
     "ImageGenerationInputImageMask",
     "LocalShell",
@@ -118,6 +122,9 @@ class Mcp(BaseModel):
     type: Literal["mcp"]
     """The type of the MCP tool. Always `mcp`."""
 
+    allowed_callers: Optional[List[Literal["direct", "programmatic"]]] = None
+    """The tool invocation context(s)."""
+
     allowed_tools: Optional[McpAllowedTools] = None
     """List of allowed tool names or a filter object."""
 
@@ -142,8 +149,8 @@ class Mcp(BaseModel):
     ] = None
     """Identifier for service connectors, like those available in ChatGPT.
 
-    One of `server_url` or `connector_id` must be provided. Learn more about service
-    connectors
+    One of `server_url`, `connector_id`, or `tunnel_id` must be provided. Learn more
+    about service connectors
     [here](https://platform.openai.com/docs/guides/tools-remote-mcp#connectors).
 
     Currently supported `connector_id` values are:
@@ -157,6 +164,9 @@ class Mcp(BaseModel):
     - Outlook Email: `connector_outlookemail`
     - SharePoint: `connector_sharepoint`
     """
+
+    defer_loading: Optional[bool] = None
+    """Whether this MCP tool is deferred and discovered via tool search."""
 
     headers: Optional[Dict[str, str]] = None
     """Optional HTTP headers to send to the MCP server.
@@ -173,7 +183,13 @@ class Mcp(BaseModel):
     server_url: Optional[str] = None
     """The URL for the MCP server.
 
-    One of `server_url` or `connector_id` must be provided.
+    One of `server_url`, `connector_id`, or `tunnel_id` must be provided.
+    """
+
+    tunnel_id: Optional[str] = None
+    """The Secure MCP Tunnel ID to use instead of a direct server URL.
+
+    One of `server_url`, `connector_id`, or `tunnel_id` must be provided.
     """
 
 
@@ -217,6 +233,14 @@ class CodeInterpreter(BaseModel):
     type: Literal["code_interpreter"]
     """The type of the code interpreter tool. Always `code_interpreter`."""
 
+    allowed_callers: Optional[List[Literal["direct", "programmatic"]]] = None
+    """The tool invocation context(s)."""
+
+
+class ProgrammaticToolCalling(BaseModel):
+    type: Literal["programmatic_tool_calling"]
+    """The type of the tool. Always `programmatic_tool_calling`."""
+
 
 class ImageGenerationInputImageMask(BaseModel):
     """Optional mask for inpainting.
@@ -242,9 +266,19 @@ class ImageGeneration(BaseModel):
     """Whether to generate a new image or edit an existing image. Default: `auto`."""
 
     background: Optional[Literal["transparent", "opaque", "auto"]] = None
-    """Background type for the generated image.
+    """
+    Allows to set transparency for the background of the generated image(s). This
+    parameter is only supported for GPT image models that support transparent
+    backgrounds. Must be one of `transparent`, `opaque`, or `auto` (default value).
+    When `auto` is used, the model will automatically determine the best background
+    for the image.
 
-    One of `transparent`, `opaque`, or `auto`. Default: `auto`.
+    `gpt-image-2` and `gpt-image-2-2026-04-21` do not support transparent
+    backgrounds. Requests with `background` set to `transparent` will return an
+    error for these models; use `opaque` or `auto` instead.
+
+    If `transparent`, the output format needs to support transparency, so it should
+    be set to either `png` (default value) or `webp`.
     """
 
     input_fidelity: Optional[Literal["high", "low"]] = None
@@ -261,7 +295,18 @@ class ImageGeneration(BaseModel):
     Contains `image_url` (string, optional) and `file_id` (string, optional).
     """
 
-    model: Union[str, Literal["gpt-image-1", "gpt-image-1-mini", "gpt-image-1.5"], None] = None
+    model: Union[
+        str,
+        Literal[
+            "gpt-image-1",
+            "gpt-image-1-mini",
+            "gpt-image-2",
+            "gpt-image-2-2026-04-21",
+            "gpt-image-1.5",
+            "chatgpt-image-latest",
+        ],
+        None,
+    ] = None
     """The image generation model to use. Default: `gpt-image-1`."""
 
     moderation: Optional[Literal["auto", "low"]] = None
@@ -288,10 +333,19 @@ class ImageGeneration(BaseModel):
     One of `low`, `medium`, `high`, or `auto`. Default: `auto`.
     """
 
-    size: Optional[Literal["1024x1024", "1024x1536", "1536x1024", "auto"]] = None
-    """The size of the generated image.
+    size: Union[str, Literal["1024x1024", "1024x1536", "1536x1024", "auto"], None] = None
+    """The size of the generated images.
 
-    One of `1024x1024`, `1024x1536`, `1536x1024`, or `auto`. Default: `auto`.
+    For `gpt-image-2` and `gpt-image-2-2026-04-21`, arbitrary resolutions are
+    supported as `WIDTHxHEIGHT` strings, for example `1536x864`. Width and height
+    must both be divisible by 16 and the requested aspect ratio must be between 1:3
+    and 3:1. Resolutions above `2560x1440` are experimental, and the maximum
+    supported resolution is `3840x2160`. The requested size must also satisfy the
+    model's current pixel and edge limits. The standard sizes `1024x1024`,
+    `1536x1024`, and `1024x1536` are supported by the GPT image models; `auto` is
+    supported for models that allow automatic sizing. For `dall-e-2`, use one of
+    `256x256`, `512x512`, or `1024x1024`. For `dall-e-3`, use one of `1024x1024`,
+    `1792x1024`, or `1024x1792`.
     """
 
 
@@ -307,13 +361,17 @@ Tool: TypeAlias = Annotated[
         FunctionTool,
         FileSearchTool,
         ComputerTool,
+        ComputerUsePreviewTool,
         WebSearchTool,
         Mcp,
         CodeInterpreter,
+        ProgrammaticToolCalling,
         ImageGeneration,
         LocalShell,
         FunctionShellTool,
         CustomTool,
+        NamespaceTool,
+        ToolSearchTool,
         WebSearchPreviewTool,
         ApplyPatchTool,
     ],

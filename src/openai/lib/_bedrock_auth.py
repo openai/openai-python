@@ -1,0 +1,186 @@
+# pyright: reportMissingTypeStubs=false
+
+from __future__ import annotations
+
+import os
+import hashlib
+from typing import Any, Literal, Mapping, Callable, Protocol, cast
+from dataclasses import field, dataclass
+
+from .._exceptions import OpenAIError
+
+AwsCredentialsProvider = Callable[[], object]
+
+
+class _BotocoreSession(Protocol):
+    def get_credentials(self) -> object | None: ...
+
+
+_AUTHORIZATION = "authorization"
+_AWS_SIGNING_HEADERS = (
+    _AUTHORIZATION,
+    "x-amz-content-sha256",
+    "x-amz-date",
+    "x-amz-security-token",
+)
+
+
+def _load_botocore() -> tuple[Any, Any, Any, Any]:
+    try:
+        from botocore.auth import SigV4Auth  # type: ignore[import-untyped]
+        from botocore.session import Session  # type: ignore[import-untyped]
+        from botocore.awsrequest import AWSRequest  # type: ignore[import-untyped]
+        from botocore.credentials import Credentials  # type: ignore[import-untyped]
+    except ImportError as exc:
+        raise OpenAIError(
+            "Bedrock AWS authentication requires optional AWS dependencies. "
+            "Install them with `pip install openai[bedrock]` and try again."
+        ) from exc
+
+    return SigV4Auth, AWSRequest, Credentials, Session
+
+
+@dataclass(frozen=True)
+class BedrockAwsAuthConfig:
+    region: str
+    source: Literal["static", "profile", "provider", "default"]
+    region_source: Literal["explicit", "environment", "profile"] = "explicit"
+    profile: str | None = None
+    access_key_id: str | None = field(default=None, repr=False)
+    secret_access_key: str | None = field(default=None, repr=False)
+    session_token: str | None = field(default=None, repr=False)
+    credentials_provider: AwsCredentialsProvider | None = field(default=None, repr=False, compare=False)
+
+
+class BedrockAwsAuth:
+    def __init__(self, config: BedrockAwsAuthConfig, *, session: _BotocoreSession | None = None) -> None:
+        sigv4_auth_cls, aws_request_cls, credentials_cls, session_cls = _load_botocore()
+
+        if session is None:
+            try:
+                session = session_cls(profile=config.profile)
+            except Exception as exc:
+                raise OpenAIError(
+                    "Failed to resolve AWS credentials for Bedrock. Verify your AWS profile, environment variables, "
+                    "or runtime identity configuration and try again."
+                ) from exc
+
+        assert session is not None
+        self.config = config
+        self._session = session
+        self._credentials_provider = config.credentials_provider
+        self._explicit_credentials = (
+            credentials_cls(config.access_key_id, config.secret_access_key, config.session_token)
+            if config.access_key_id is not None and config.secret_access_key is not None
+            else None
+        )
+        self._aws_request_cls = aws_request_cls
+        self._sigv4_auth_cls = sigv4_auth_cls
+
+    @classmethod
+    def resolve(
+        cls,
+        *,
+        region: str | None,
+        profile: str | None,
+        access_key_id: str | None,
+        secret_access_key: str | None,
+        session_token: str | None,
+        credentials_provider: AwsCredentialsProvider | None,
+    ) -> BedrockAwsAuth:
+        _, _, _, session_cls = _load_botocore()
+
+        try:
+            session = session_cls(profile=profile)
+            resolved_region, region_source = resolve_aws_region_with_source(region, session=session)
+        except OpenAIError:
+            raise
+        except Exception as exc:
+            raise OpenAIError(
+                "Failed to resolve AWS credentials for Bedrock. Verify your AWS profile, environment variables, "
+                "or runtime identity configuration and try again."
+            ) from exc
+
+        source: Literal["static", "profile", "provider", "default"]
+        if access_key_id is not None:
+            source = "static"
+        elif profile is not None:
+            source = "profile"
+        elif credentials_provider is not None:
+            source = "provider"
+        else:
+            source = "default"
+
+        config = BedrockAwsAuthConfig(
+            region=resolved_region,
+            source=source,
+            region_source=region_source,
+            profile=profile,
+            access_key_id=access_key_id,
+            secret_access_key=secret_access_key,
+            session_token=session_token,
+            credentials_provider=credentials_provider,
+        )
+        return cls(config, session=session)
+
+    def sign(self, *, method: str, url: str, headers: Mapping[str, str], body: bytes | None) -> dict[str, str]:
+        try:
+            credentials = (
+                self._credentials_provider()
+                if self._credentials_provider is not None
+                else self._explicit_credentials or self._session.get_credentials()
+            )
+            if credentials is None:
+                raise OpenAIError(
+                    "Could not find credentials for Bedrock. Pass a bearer credential or AWS credentials to "
+                    "`bedrock(...)`, "
+                    "set `AWS_BEARER_TOKEN_BEDROCK`, or configure the default AWS credential chain."
+                )
+
+            get_frozen_credentials = getattr(credentials, "get_frozen_credentials", None)
+            if callable(get_frozen_credentials):
+                credentials = get_frozen_credentials()
+
+            signed_headers = {
+                name: value for name, value in headers.items() if name.lower() not in _AWS_SIGNING_HEADERS
+            }
+            signed_headers["X-Amz-Content-SHA256"] = hashlib.sha256(body or b"").hexdigest()
+            aws_request = self._aws_request_cls(
+                method=method,
+                url=url,
+                data=body,
+                headers=signed_headers,
+            )
+            self._sigv4_auth_cls(credentials, "bedrock-mantle", self.config.region).add_auth(aws_request)
+        except OpenAIError:
+            raise
+        except Exception as exc:
+            raise OpenAIError(
+                "Failed to resolve AWS credentials for Bedrock. Verify your AWS profile, environment variables, "
+                "or runtime identity configuration and try again."
+            ) from exc
+
+        return dict(aws_request.headers.items())
+
+
+def resolve_aws_region_with_source(
+    aws_region: str | None, *, session: object | None = None
+) -> tuple[str, Literal["explicit", "environment", "profile"]]:
+    region = aws_region
+    source: Literal["explicit", "environment", "profile"] = "explicit"
+    if region is None or not region.strip():
+        region = os.environ.get("AWS_REGION") or os.environ.get("AWS_DEFAULT_REGION")
+        source = "environment"
+    if (region is None or not region.strip()) and session is not None:
+        get_config_variable = getattr(session, "get_config_variable", None)
+        if callable(get_config_variable):
+            region = cast("str | None", get_config_variable("region"))
+            source = "profile"
+
+    if region is None or not region.strip():
+        raise OpenAIError(
+            "Bedrock requires an AWS region. Pass `region` to `bedrock(...)`, or set `AWS_REGION` or "
+            "`AWS_DEFAULT_REGION`."
+        )
+
+    return region.strip(), source

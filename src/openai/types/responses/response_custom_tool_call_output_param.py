@@ -2,16 +2,32 @@
 
 from __future__ import annotations
 
-from typing import Union, Iterable
+from typing import Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from .response_input_file_param import ResponseInputFileParam
 from .response_input_text_param import ResponseInputTextParam
 from .response_input_image_param import ResponseInputImageParam
 
-__all__ = ["ResponseCustomToolCallOutputParam", "OutputOutputContentList"]
+__all__ = ["ResponseCustomToolCallOutputParam", "OutputOutputContentList", "Caller", "CallerDirect", "CallerProgram"]
 
 OutputOutputContentList: TypeAlias = Union[ResponseInputTextParam, ResponseInputImageParam, ResponseInputFileParam]
+
+
+class CallerDirect(TypedDict, total=False):
+    type: Required[Literal["direct"]]
+    """The caller type. Always `direct`."""
+
+
+class CallerProgram(TypedDict, total=False):
+    caller_id: Required[str]
+    """The call ID of the program item that produced this tool call."""
+
+    type: Required[Literal["program"]]
+    """The caller type. Always `program`."""
+
+
+Caller: TypeAlias = Union[CallerDirect, CallerProgram]
 
 
 class ResponseCustomToolCallOutputParam(TypedDict, total=False):
@@ -31,3 +47,6 @@ class ResponseCustomToolCallOutputParam(TypedDict, total=False):
 
     id: str
     """The unique ID of the custom tool call output in the OpenAI platform."""
+
+    caller: Optional[Caller]
+    """The execution context that produced this tool call."""

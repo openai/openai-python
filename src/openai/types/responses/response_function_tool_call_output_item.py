@@ -9,11 +9,27 @@ from .response_input_file import ResponseInputFile
 from .response_input_text import ResponseInputText
 from .response_input_image import ResponseInputImage
 
-__all__ = ["ResponseFunctionToolCallOutputItem", "OutputOutputContentList"]
+__all__ = ["ResponseFunctionToolCallOutputItem", "OutputOutputContentList", "Caller", "CallerDirect", "CallerProgram"]
 
 OutputOutputContentList: TypeAlias = Annotated[
     Union[ResponseInputText, ResponseInputImage, ResponseInputFile], PropertyInfo(discriminator="type")
 ]
+
+
+class CallerDirect(BaseModel):
+    type: Literal["direct"]
+    """The caller type. Always `direct`."""
+
+
+class CallerProgram(BaseModel):
+    caller_id: str
+    """The call ID of the program item that produced this tool call."""
+
+    type: Literal["program"]
+    """The caller type. Always `program`."""
+
+
+Caller: TypeAlias = Annotated[Union[CallerDirect, CallerProgram, None], PropertyInfo(discriminator="type")]
 
 
 class ResponseFunctionToolCallOutputItem(BaseModel):
@@ -29,12 +45,18 @@ class ResponseFunctionToolCallOutputItem(BaseModel):
     list of output content.
     """
 
-    type: Literal["function_call_output"]
-    """The type of the function tool call output. Always `function_call_output`."""
-
-    status: Optional[Literal["in_progress", "completed", "incomplete"]] = None
+    status: Literal["in_progress", "completed", "incomplete"]
     """The status of the item.
 
     One of `in_progress`, `completed`, or `incomplete`. Populated when items are
     returned via API.
     """
+
+    type: Literal["function_call_output"]
+    """The type of the function tool call output. Always `function_call_output`."""
+
+    caller: Optional[Caller] = None
+    """The execution context that produced this tool call."""
+
+    created_by: Optional[str] = None
+    """The identifier of the actor that created the item."""

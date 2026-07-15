@@ -26,7 +26,7 @@ class TestSkills:
     @parametrize
     def test_method_create_with_all_params(self, client: OpenAI) -> None:
         skill = client.skills.create(
-            files=[b"raw file contents"],
+            files=[b"Example data"],
         )
         assert_matches_type(Skill, skill, path=["response"])
 
@@ -216,7 +216,7 @@ class TestAsyncSkills:
     @parametrize
     async def test_method_create_with_all_params(self, async_client: AsyncOpenAI) -> None:
         skill = await async_client.skills.create(
-            files=[b"raw file contents"],
+            files=[b"Example data"],
         )
         assert_matches_type(Skill, skill, path=["response"])
 

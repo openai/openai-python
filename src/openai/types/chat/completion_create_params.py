@@ -25,6 +25,11 @@ __all__ = [
     "CompletionCreateParamsBase",
     "FunctionCall",
     "Function",
+    "Moderation",
+    "ModerationPolicy",
+    "ModerationPolicyInput",
+    "ModerationPolicyOutput",
+    "PromptCacheOptions",
     "ResponseFormat",
     "WebSearchOptions",
     "WebSearchOptionsUserLocation",
@@ -151,6 +156,9 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     `["text", "audio"]`
     """
 
+    moderation: Optional[Moderation]
+    """Configuration for running moderation on the request input and generated output."""
+
     n: Optional[int]
     """How many chat completion choices to generate for each input message.
 
@@ -185,29 +193,49 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
     """
 
-    prompt_cache_retention: Optional[Literal["in-memory", "24h"]]
-    """The retention policy for the prompt cache.
+    prompt_cache_options: PromptCacheOptions
+    """Options for prompt caching.
 
-    Set to `24h` to enable extended prompt caching, which keeps cached prefixes
-    active for longer, up to a maximum of 24 hours.
+    Supported for `gpt-5.6` and later models. By default, OpenAI automatically
+    chooses one implicit cache breakpoint. You can add explicit breakpoints to
+    content blocks with `prompt_cache_breakpoint`. Each request can write up to four
+    breakpoints. For cache matching, OpenAI considers up to the latest 80
+    breakpoints in the conversation, without a content-block lookback limit. Set
+    `mode` to `explicit` to disable the implicit breakpoint. The `ttl` defaults to
+    `30m`, which is currently the only supported value. See the
+    [prompt caching guide](https://platform.openai.com/docs/guides/prompt-caching)
+    for current details.
+    """
+
+    prompt_cache_retention: Optional[Literal["in_memory", "24h"]]
+    """Deprecated. Use `prompt_cache_options.ttl` instead.
+
+    The retention policy for the prompt cache. Set to `24h` to enable extended
+    prompt caching, which keeps cached prefixes active for longer, up to a maximum
+    of 24 hours.
     [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
+    This field expresses a maximum retention policy, while
+    `prompt_cache_options.ttl` expresses a minimum cache lifetime. The two fields
+    are independent and do not interact. For `gpt-5.5`, `gpt-5.5-pro`, and future
+    models, only `24h` is supported.
+
+    For older models that support both `in_memory` and `24h`, the default depends on
+    your organization's data retention policy:
+
+    - Organizations without ZDR enabled default to `24h`.
+    - Organizations with ZDR enabled default to `in_memory` when
+      `prompt_cache_retention` is not specified.
     """
 
     reasoning_effort: Optional[ReasoningEffort]
-    """
-    Constrains effort on reasoning for
-    [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
-    supported values are `none`, `minimal`, `low`, `medium`, `high`, and `xhigh`.
-    Reducing reasoning effort can result in faster responses and fewer tokens used
-    on reasoning in a response.
+    """Constrains effort on reasoning for reasoning models.
 
-    - `gpt-5.1` defaults to `none`, which does not perform reasoning. The supported
-      reasoning values for `gpt-5.1` are `none`, `low`, `medium`, and `high`. Tool
-      calls are supported for all reasoning values in gpt-5.1.
-    - All models before `gpt-5.1` default to `medium` reasoning effort, and do not
-      support `none`.
-    - The `gpt-5-pro` model defaults to (and only supports) `high` reasoning effort.
-    - `xhigh` is supported for all models after `gpt-5.1-codex-max`.
+    Currently supported values are `none`, `minimal`, `low`, `medium`, `high`,
+    `xhigh`, and `max`. Reducing reasoning effort can result in faster responses and
+    fewer tokens used on reasoning in a response. Not all reasoning models support
+    every value. See the
+    [reasoning guide](https://platform.openai.com/docs/guides/reasoning) for
+    model-specific support.
     """
 
     response_format: ResponseFormat
@@ -227,8 +255,9 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     """
     A stable identifier used to help detect users of your application that may be
     violating OpenAI's usage policies. The IDs should be a string that uniquely
-    identifies each user. We recommend hashing their username or email address, in
-    order to avoid sending us any identifying information.
+    identifies each user, with a maximum length of 64 characters. We recommend
+    hashing their username or email address, in order to avoid sending us any
+    identifying information.
     [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
     """
 
@@ -310,8 +339,9 @@ class CompletionCreateParamsBase(TypedDict, total=False):
 
     top_logprobs: Optional[int]
     """
-    An integer between 0 and 20 specifying the number of most likely tokens to
-    return at each token position, each with an associated log probability.
+    An integer between 0 and 20 specifying the maximum number of most likely tokens
+    to return at each token position, each with an associated log probability. In
+    some cases, the number of returned tokens may be fewer than requested.
     `logprobs` must be set to `true` if this parameter is used.
     """
 
@@ -375,6 +405,65 @@ class Function(TypedDict, total=False):
     documentation about the format.
 
     Omitting `parameters` defines a function with an empty parameter list.
+    """
+
+
+class ModerationPolicyInput(TypedDict, total=False):
+    """The moderation policy for the response input."""
+
+    mode: Required[Literal["score", "block"]]
+
+
+class ModerationPolicyOutput(TypedDict, total=False):
+    """The moderation policy for the response output."""
+
+    mode: Required[Literal["score", "block"]]
+
+
+class ModerationPolicy(TypedDict, total=False):
+    """The policy to apply to moderated response input and output."""
+
+    input: Optional[ModerationPolicyInput]
+    """The moderation policy for the response input."""
+
+    output: Optional[ModerationPolicyOutput]
+    """The moderation policy for the response output."""
+
+
+class Moderation(TypedDict, total=False):
+    """Configuration for running moderation on the request input and generated output."""
+
+    model: Required[str]
+    """The moderation model to use for moderated completions, e.g.
+
+    'omni-moderation-latest'.
+    """
+
+    policy: Optional[ModerationPolicy]
+    """The policy to apply to moderated response input and output."""
+
+
+class PromptCacheOptions(TypedDict, total=False):
+    """Options for prompt caching.
+
+    Supported for `gpt-5.6` and later models. By default, OpenAI automatically chooses one implicit cache breakpoint. You can add explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each request can write up to four breakpoints. For cache matching, OpenAI considers up to the latest 80 breakpoints in the conversation, without a content-block lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The `ttl` defaults to `30m`, which is currently the only supported value. See the [prompt caching guide](https://platform.openai.com/docs/guides/prompt-caching) for current details.
+    """
+
+    mode: Literal["implicit", "explicit"]
+    """Controls whether OpenAI automatically creates an implicit cache breakpoint.
+
+    Defaults to `implicit`. With `implicit`, OpenAI creates one implicit breakpoint
+    and writes up to the latest three explicit breakpoints in the request. With
+    `explicit`, OpenAI does not create an implicit breakpoint and writes up to the
+    latest four explicit breakpoints. If there are no explicit breakpoints, the
+    request does not use prompt caching.
+    """
+
+    ttl: Literal["30m"]
+    """
+    The minimum lifetime applied to every implicit and explicit cache breakpoint
+    written by the request. Defaults to `30m`, which is currently the only supported
+    value. The backend may retain cache entries for longer.
     """
 
 

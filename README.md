@@ -36,7 +36,7 @@ client = OpenAI(
 )
 
 response = client.responses.create(
-    model="gpt-5.2",
+    model="gpt-5.5",
     instructions="You are a coding assistant that talks like a pirate.",
     input="How do I check if a Python object is an instance of a class?",
 )
@@ -52,7 +52,7 @@ from openai import OpenAI
 client = OpenAI()
 
 completion = client.chat.completions.create(
-    model="gpt-5.2",
+    model="gpt-5.5",
     messages=[
         {"role": "developer", "content": "Talk like a pirate."},
         {
@@ -71,6 +71,102 @@ to add `OPENAI_API_KEY="My API Key"` to your `.env` file
 so that your API key is not stored in source control.
 [Get an API key here](https://platform.openai.com/settings/organization/api-keys).
 
+### Workload Identity Authentication
+
+For secure, automated environments like cloud-managed Kubernetes, Azure, and Google Cloud Platform, you can use workload identity authentication with short-lived tokens from cloud identity providers instead of long-lived API keys.
+
+#### Kubernetes (service account tokens)
+
+```python
+from openai import OpenAI
+from openai.auth import k8s_service_account_token_provider
+
+client = OpenAI(
+    workload_identity={
+        "identity_provider_id": "idp-123",
+        "service_account_id": "sa-456",
+        "provider": k8s_service_account_token_provider(
+            "/var/run/secrets/kubernetes.io/serviceaccount/token"
+        ),
+    },
+)
+
+response = client.chat.completions.create(
+    model="gpt-5.5",
+    messages=[{"role": "user", "content": "Hello!"}],
+)
+```
+
+#### Azure (managed identity)
+
+```python
+from openai import OpenAI
+from openai.auth import azure_managed_identity_token_provider
+
+client = OpenAI(
+    workload_identity={
+        "identity_provider_id": "idp-123",
+        "service_account_id": "sa-456",
+        "provider": azure_managed_identity_token_provider(
+            resource="https://management.azure.com/",
+        ),
+    },
+)
+```
+
+#### Google Cloud Platform (compute engine metadata)
+
+```python
+from openai import OpenAI
+from openai.auth import gcp_id_token_provider
+
+client = OpenAI(
+    workload_identity={
+        "identity_provider_id": "idp-123",
+        "service_account_id": "sa-456",
+        "provider": gcp_id_token_provider(audience="https://api.openai.com/v1"),
+    },
+)
+```
+
+#### Custom subject token provider
+
+```python
+from openai import OpenAI
+
+
+def get_custom_token() -> str:
+    return "your-jwt-token"
+
+
+client = OpenAI(
+    workload_identity={
+        "identity_provider_id": "idp-123",
+        "service_account_id": "sa-456",
+        "provider": {
+            "token_type": "jwt",
+            "get_token": get_custom_token,
+        },
+    }
+)
+```
+
+You can also customize the token refresh buffer (default is 1200 seconds (20 minutes) before expiration):
+
+```python
+from openai import OpenAI
+from openai.auth import k8s_service_account_token_provider
+
+client = OpenAI(
+    workload_identity={
+        "identity_provider_id": "idp-123",
+        "service_account_id": "sa-456",
+        "provider": k8s_service_account_token_provider("/var/token"),
+        "refresh_buffer_seconds": 120.0,
+    }
+)
+```
+
 ### Vision
 
 With an image URL:
@@ -80,7 +176,7 @@ prompt = "What is in this image?"
 img_url = "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/2023_06_08_Raccoon1.jpg/1599px-2023_06_08_Raccoon1.jpg"
 
 response = client.responses.create(
-    model="gpt-5.2",
+    model="gpt-5.5",
     input=[
         {
             "role": "user",
@@ -106,7 +202,7 @@ with open("path/to/image.png", "rb") as image_file:
     b64_image = base64.b64encode(image_file.read()).decode("utf-8")
 
 response = client.responses.create(
-    model="gpt-5.2",
+    model="gpt-5.5",
     input=[
         {
             "role": "user",
@@ -136,7 +232,7 @@ client = AsyncOpenAI(
 
 async def main() -> None:
     response = await client.responses.create(
-        model="gpt-5.2", input="Explain disestablishmentarianism to a smart five year old."
+        model="gpt-5.5", input="Explain disestablishmentarianism to a smart five year old."
     )
     print(response.output_text)
 
@@ -178,7 +274,7 @@ async def main() -> None:
                     "content": "Say this is a test",
                 }
             ],
-            model="gpt-5.2",
+            model="gpt-5.5",
         )
 
 
@@ -195,7 +291,7 @@ from openai import OpenAI
 client = OpenAI()
 
 stream = client.responses.create(
-    model="gpt-5.2",
+    model="gpt-5.5",
     input="Write a one-sentence bedtime story about a unicorn.",
     stream=True,
 )
@@ -215,7 +311,7 @@ client = AsyncOpenAI()
 
 async def main():
     stream = await client.responses.create(
-        model="gpt-5.2",
+        model="gpt-5.5",
         input="Write a one-sentence bedtime story about a unicorn.",
         stream=True,
     )
@@ -244,7 +340,7 @@ from openai import AsyncOpenAI
 async def main():
     client = AsyncOpenAI()
 
-    async with client.realtime.connect(model="gpt-realtime") as connection:
+    async with client.realtime.connect(model="gpt-realtime-2") as connection:
         await connection.session.update(
             session={"type": "realtime", "output_modalities": ["text"]}
         )
@@ -280,7 +376,7 @@ Whenever an error occurs, the Realtime API will send an [`error` event](https://
 ```py
 client = AsyncOpenAI()
 
-async with client.realtime.connect(model="gpt-realtime") as connection:
+async with client.realtime.connect(model="gpt-realtime-2") as connection:
     ...
     async for event in connection:
         if event.type == 'error':
@@ -379,15 +475,15 @@ from openai import OpenAI
 
 client = OpenAI()
 
-response = client.chat.responses.create(
+response = client.responses.create(
     input=[
         {
             "role": "user",
             "content": "How much ?",
         }
     ],
-    model="gpt-5.2",
-    response_format={"type": "json_object"},
+    model="gpt-5.5",
+    text={"format": {"type": "json_object"}},
 )
 ```
 
@@ -541,7 +637,7 @@ All object responses in the SDK provide a `_request_id` property which is added 
 
 ```python
 response = await client.responses.create(
-    model="gpt-5.2",
+    model="gpt-5.5",
     input="Say 'this is a test'.",
 )
 print(response._request_id)  # req_123
@@ -559,7 +655,7 @@ import openai
 
 try:
     completion = await client.chat.completions.create(
-        messages=[{"role": "user", "content": "Say this is a test"}], model="gpt-5.2"
+        messages=[{"role": "user", "content": "Say this is a test"}], model="gpt-5.5"
     )
 except openai.APIStatusError as exc:
     print(exc.request_id)  # req_123
@@ -591,7 +687,7 @@ client.with_options(max_retries=5).chat.completions.create(
             "content": "How can I get the name of the current day in JavaScript?",
         }
     ],
-    model="gpt-5.2",
+    model="gpt-5.5",
 )
 ```
 
@@ -622,7 +718,7 @@ client.with_options(timeout=5.0).chat.completions.create(
             "content": "How can I list all files in a directory using Python?",
         }
     ],
-    model="gpt-5.2",
+    model="gpt-5.5",
 )
 ```
 
@@ -669,7 +765,7 @@ response = client.chat.completions.with_raw_response.create(
         "role": "user",
         "content": "Say this is a test",
     }],
-    model="gpt-5.2",
+    model="gpt-5.5",
 )
 print(response.headers.get('X-My-Header'))
 
@@ -702,7 +798,7 @@ with client.chat.completions.with_streaming_response.create(
             "content": "Say this is a test",
         }
     ],
-    model="gpt-5.2",
+    model="gpt-5.5",
 ) as response:
     print(response.headers.get("X-My-Header"))
 
@@ -829,6 +925,82 @@ In addition to the options provided in the base `OpenAI` client, the following o
 - `azure_ad_token_provider`
 
 An example of using the client with Microsoft Entra ID (formerly known as Azure Active Directory) can be found [here](https://github.com/openai/openai-python/blob/main/examples/azure_ad.py).
+
+## Amazon Bedrock
+
+To use this library with [Amazon Bedrock's OpenAI-compatible API](https://docs.aws.amazon.com/bedrock/latest/userguide/models-api-compatibility.html), configure the standard `OpenAI` client with the Bedrock provider.
+
+Install the optional Bedrock dependencies to use the standard AWS credential chain and SigV4 authentication:
+
+```sh
+pip install 'openai[bedrock]'
+```
+
+```py
+from openai import OpenAI
+from openai.providers import bedrock
+
+# Uses your normal AWS credentials. You can omit region when it is
+# configured through AWS_REGION, AWS_DEFAULT_REGION, or your AWS profile.
+client = OpenAI(
+    provider=bedrock(
+        region="us-west-2",
+    )
+)
+
+response = client.responses.create(
+    model="openai.gpt-5.4",
+    input="Say hello!",
+)
+
+print(response.output_text)
+```
+
+The provider configures AWS authentication and the Bedrock Mantle endpoint while retaining the normal SDK resources, retries, streaming, and error handling. AWS controls which endpoints and features are supported; unsupported calls surface the provider's normal HTTP errors through the SDK.
+
+The default AWS credential chain supports environment credentials, shared credentials and config files, named profiles, SSO and assume-role profiles, and workload credentials such as ECS, EKS, and EC2 metadata. To select a named profile:
+
+```py
+client = OpenAI(
+    provider=bedrock(
+        profile="my-profile",
+    )
+)
+```
+
+You can also pass `access_key_id` and `secret_access_key`, with an optional `session_token`, or a refreshable `credential_provider` that returns botocore-compatible credentials. Explicit bearer and AWS credential options are mutually exclusive.
+
+Pass `base_url` to `bedrock(...)` or set `AWS_BEDROCK_BASE_URL` to override the derived `https://bedrock-mantle.<region>.api.aws/openai/v1` endpoint.
+
+SigV4 requests require replayable, fully serialized request bodies. Standard JSON requests already meet this requirement, and response streaming is unaffected. Low-level one-shot request streams must be buffered before sending, or sent with bearer authentication and retries disabled.
+
+Bearer tokens remain available as a compatibility or manual authentication mode. Set `AWS_BEARER_TOKEN_BEDROCK` to an [Amazon Bedrock API key](https://docs.aws.amazon.com/bedrock/latest/userguide/api-keys.html), pass `api_key`, or provide a refresh callback:
+
+```py
+client = OpenAI(
+    provider=bedrock(
+        region="us-west-2",
+        token_provider=lambda: refresh_bedrock_token(),
+    )
+)
+```
+
+Without explicit authentication, `AWS_BEARER_TOKEN_BEDROCK` takes precedence over the default AWS credential chain for backwards compatibility.
+
+### Legacy `BedrockOpenAI` client
+
+`BedrockOpenAI` and `AsyncBedrockOpenAI` remain available for existing applications and delegate to the same provider implementation. New applications should prefer `OpenAI(provider=bedrock(...))`.
+
+```py
+from openai import BedrockOpenAI
+
+client = BedrockOpenAI(
+    aws_region="us-west-2",
+    aws_profile="my-profile",
+)
+```
+
+The legacy module client also continues to support `openai.api_type = "amazon-bedrock"` or `OPENAI_API_TYPE=amazon-bedrock`.
 
 ## Versioning
 

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from typing import Union, Iterable, Optional
-from typing_extensions import Literal, TypeAlias, TypedDict
+from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from .tool_param import ToolParam
 from .tool_choice_options import ToolChoiceOptions
@@ -15,11 +15,17 @@ from .tool_choice_custom_param import ToolChoiceCustomParam
 from .response_input_item_param import ResponseInputItemParam
 from .tool_choice_allowed_param import ToolChoiceAllowedParam
 from .tool_choice_function_param import ToolChoiceFunctionParam
-from .response_conversation_param import ResponseConversationParam
 from .tool_choice_apply_patch_param import ToolChoiceApplyPatchParam
+from .response_conversation_param_param import ResponseConversationParamParam
 from .response_format_text_config_param import ResponseFormatTextConfigParam
 
-__all__ = ["InputTokenCountParams", "Conversation", "Text", "ToolChoice"]
+__all__ = [
+    "InputTokenCountParams",
+    "Conversation",
+    "Text",
+    "ToolChoice",
+    "ToolChoiceSpecificProgrammaticToolCallingParam",
+]
 
 
 class InputTokenCountParams(TypedDict, total=False):
@@ -53,6 +59,13 @@ class InputTokenCountParams(TypedDict, total=False):
 
     parallel_tool_calls: Optional[bool]
     """Whether to allow the model to run tool calls in parallel."""
+
+    personality: Union[str, Literal["friendly", "pragmatic"]]
+    """A model-owned style preset to apply to this request.
+
+    Omit this parameter to use the model's default style. Supported values may
+    expand over time. Values must be at most 64 characters.
+    """
 
     previous_response_id: Optional[str]
     """The unique ID of the previous response to the model.
@@ -97,7 +110,7 @@ class InputTokenCountParams(TypedDict, total=False):
     """
 
 
-Conversation: TypeAlias = Union[str, ResponseConversationParam]
+Conversation: TypeAlias = Union[str, ResponseConversationParamParam]
 
 
 class Text(TypedDict, total=False):
@@ -134,6 +147,11 @@ class Text(TypedDict, total=False):
     """
 
 
+class ToolChoiceSpecificProgrammaticToolCallingParam(TypedDict, total=False):
+    type: Required[Literal["programmatic_tool_calling"]]
+    """The tool to call. Always `programmatic_tool_calling`."""
+
+
 ToolChoice: TypeAlias = Union[
     ToolChoiceOptions,
     ToolChoiceAllowedParam,
@@ -141,6 +159,7 @@ ToolChoice: TypeAlias = Union[
     ToolChoiceFunctionParam,
     ToolChoiceMcpParam,
     ToolChoiceCustomParam,
+    ToolChoiceSpecificProgrammaticToolCallingParam,
     ToolChoiceApplyPatchParam,
     ToolChoiceShellParam,
 ]

@@ -18,7 +18,7 @@ class ComparisonFilter(TypedDict, total=False):
     key: Required[str]
     """The key to compare against the value."""
 
-    type: Required[Literal["eq", "ne", "gt", "gte", "lt", "lte"]]
+    type: Required[Literal["eq", "ne", "gt", "gte", "lt", "lte", "in", "nin"]]
     """
     Specifies the comparison operator: `eq`, `ne`, `gt`, `gte`, `lt`, `lte`, `in`,
     `nin`.

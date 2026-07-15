@@ -30,10 +30,13 @@ class TestInputTokens:
             instructions="instructions",
             model="model",
             parallel_tool_calls=True,
+            personality="friendly",
             previous_response_id="resp_123",
             reasoning={
+                "context": "auto",
                 "effort": "none",
                 "generate_summary": "auto",
+                "mode": "standard",
                 "summary": "auto",
             },
             text={
@@ -47,7 +50,10 @@ class TestInputTokens:
                     "parameters": {"foo": "bar"},
                     "strict": True,
                     "type": "function",
+                    "allowed_callers": ["direct"],
+                    "defer_loading": True,
                     "description": "description",
+                    "output_schema": {"foo": "bar"},
                 }
             ],
             truncation="auto",
@@ -93,10 +99,13 @@ class TestAsyncInputTokens:
             instructions="instructions",
             model="model",
             parallel_tool_calls=True,
+            personality="friendly",
             previous_response_id="resp_123",
             reasoning={
+                "context": "auto",
                 "effort": "none",
                 "generate_summary": "auto",
+                "mode": "standard",
                 "summary": "auto",
             },
             text={
@@ -110,7 +119,10 @@ class TestAsyncInputTokens:
                     "parameters": {"foo": "bar"},
                     "strict": True,
                     "type": "function",
+                    "allowed_callers": ["direct"],
+                    "defer_loading": True,
                     "description": "description",
+                    "output_schema": {"foo": "bar"},
                 }
             ],
             truncation="auto",

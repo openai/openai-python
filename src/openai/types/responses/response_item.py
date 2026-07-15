@@ -3,24 +3,34 @@
 from typing import Dict, List, Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
 
+from .tool import Tool
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
 from .response_output_message import ResponseOutputMessage
+from .response_reasoning_item import ResponseReasoningItem
+from .response_compaction_item import ResponseCompactionItem
+from .response_tool_search_call import ResponseToolSearchCall
 from .response_computer_tool_call import ResponseComputerToolCall
 from .response_input_message_item import ResponseInputMessageItem
 from .response_function_web_search import ResponseFunctionWebSearch
 from .response_apply_patch_tool_call import ResponseApplyPatchToolCall
+from .response_custom_tool_call_item import ResponseCustomToolCallItem
 from .response_file_search_tool_call import ResponseFileSearchToolCall
 from .response_function_tool_call_item import ResponseFunctionToolCallItem
+from .response_tool_search_output_item import ResponseToolSearchOutputItem
 from .response_function_shell_tool_call import ResponseFunctionShellToolCall
 from .response_code_interpreter_tool_call import ResponseCodeInterpreterToolCall
 from .response_apply_patch_tool_call_output import ResponseApplyPatchToolCallOutput
+from .response_custom_tool_call_output_item import ResponseCustomToolCallOutputItem
 from .response_computer_tool_call_output_item import ResponseComputerToolCallOutputItem
 from .response_function_tool_call_output_item import ResponseFunctionToolCallOutputItem
 from .response_function_shell_tool_call_output import ResponseFunctionShellToolCallOutput
 
 __all__ = [
     "ResponseItem",
+    "AdditionalTools",
+    "Program",
+    "ProgramOutput",
     "ImageGenerationCall",
     "LocalShellCall",
     "LocalShellCallAction",
@@ -31,6 +41,54 @@ __all__ = [
     "McpApprovalResponse",
     "McpCall",
 ]
+
+
+class AdditionalTools(BaseModel):
+    id: str
+    """The unique ID of the additional tools item."""
+
+    role: Literal["unknown", "user", "assistant", "system", "critic", "discriminator", "developer", "tool"]
+    """The role that provided the additional tools."""
+
+    tools: List[Tool]
+    """The additional tool definitions made available at this item."""
+
+    type: Literal["additional_tools"]
+    """The type of the item. Always `additional_tools`."""
+
+
+class Program(BaseModel):
+    id: str
+    """The unique ID of the program item."""
+
+    call_id: str
+    """The stable call ID of the program item."""
+
+    code: str
+    """The JavaScript source executed by programmatic tool calling."""
+
+    fingerprint: str
+    """Opaque program replay fingerprint that must be round-tripped."""
+
+    type: Literal["program"]
+    """The type of the item. Always `program`."""
+
+
+class ProgramOutput(BaseModel):
+    id: str
+    """The unique ID of the program output item."""
+
+    call_id: str
+    """The call ID of the program item."""
+
+    result: str
+    """The result produced by the program item."""
+
+    status: Literal["completed", "incomplete"]
+    """The terminal status of the program output item."""
+
+    type: Literal["program_output"]
+    """The type of the item. Always `program_output`."""
 
 
 class ImageGenerationCall(BaseModel):
@@ -227,6 +285,13 @@ ResponseItem: TypeAlias = Annotated[
         ResponseFunctionWebSearch,
         ResponseFunctionToolCallItem,
         ResponseFunctionToolCallOutputItem,
+        ResponseToolSearchCall,
+        ResponseToolSearchOutputItem,
+        AdditionalTools,
+        ResponseReasoningItem,
+        Program,
+        ProgramOutput,
+        ResponseCompactionItem,
         ImageGenerationCall,
         ResponseCodeInterpreterToolCall,
         LocalShellCall,
@@ -239,6 +304,8 @@ ResponseItem: TypeAlias = Annotated[
         McpApprovalRequest,
         McpApprovalResponse,
         McpCall,
+        ResponseCustomToolCallItem,
+        ResponseCustomToolCallOutputItem,
     ],
     PropertyInfo(discriminator="type"),
 ]

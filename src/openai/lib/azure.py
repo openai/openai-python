@@ -7,11 +7,13 @@ from typing_extensions import Self, override
 
 import httpx
 
-from .._types import NOT_GIVEN, Omit, Query, Timeout, NotGiven
+from ..auth import WorkloadIdentity
+from .._types import NOT_GIVEN, Omit, Query, Headers, Timeout, NotGiven
 from .._utils import is_given, is_mapping
 from .._client import OpenAI, AsyncOpenAI
 from .._compat import model_copy
-from .._models import FinalRequestOptions
+from .._models import SecurityOptions, FinalRequestOptions
+from .._provider import _Provider
 from .._streaming import Stream, AsyncStream
 from .._exceptions import OpenAIError
 from .._base_client import DEFAULT_MAX_RETRIES, BaseClient
@@ -40,6 +42,15 @@ _DefaultStreamT = TypeVar("_DefaultStreamT", bound=Union[Stream[Any], AsyncStrea
 # as we don't want to make the `api_key` in the main client Optional
 # and Azure AD tokens may be retrieved on a per-request basis
 API_KEY_SENTINEL = "".join(["<", "missing API key", ">"])
+
+
+def _has_header(headers: Headers, header: str) -> bool:
+    header = header.lower()
+    return any(key.lower() == header for key in headers)
+
+
+def _has_auth_header(headers: Headers) -> bool:
+    return _has_header(headers, "Authorization") or _has_header(headers, "api-key")
 
 
 class MutuallyExclusiveAuthError(OpenAIError):
@@ -95,6 +106,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         azure_deployment: str | None = None,
         api_version: str | None = None,
         api_key: str | Callable[[], str] | None = None,
+        admin_api_key: str | None = None,
         azure_ad_token: str | None = None,
         azure_ad_token_provider: AzureADTokenProvider | None = None,
         organization: str | None = None,
@@ -106,6 +118,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         default_query: Mapping[str, object] | None = None,
         http_client: httpx.Client | None = None,
         _strict_response_validation: bool = False,
+        _enforce_credentials: bool = True,
     ) -> None: ...
 
     @overload
@@ -115,6 +128,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         azure_deployment: str | None = None,
         api_version: str | None = None,
         api_key: str | Callable[[], str] | None = None,
+        admin_api_key: str | None = None,
         azure_ad_token: str | None = None,
         azure_ad_token_provider: AzureADTokenProvider | None = None,
         organization: str | None = None,
@@ -126,6 +140,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         default_query: Mapping[str, object] | None = None,
         http_client: httpx.Client | None = None,
         _strict_response_validation: bool = False,
+        _enforce_credentials: bool = True,
     ) -> None: ...
 
     @overload
@@ -135,6 +150,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         base_url: str,
         api_version: str | None = None,
         api_key: str | Callable[[], str] | None = None,
+        admin_api_key: str | None = None,
         azure_ad_token: str | None = None,
         azure_ad_token_provider: AzureADTokenProvider | None = None,
         organization: str | None = None,
@@ -146,6 +162,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         default_query: Mapping[str, object] | None = None,
         http_client: httpx.Client | None = None,
         _strict_response_validation: bool = False,
+        _enforce_credentials: bool = True,
     ) -> None: ...
 
     def __init__(
@@ -155,6 +172,9 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         azure_endpoint: str | None = None,
         azure_deployment: str | None = None,
         api_key: str | Callable[[], str] | None = None,
+        admin_api_key: str | None = None,
+        # workload_identity is not functional in the Azure client
+        workload_identity: WorkloadIdentity | None = None,  # noqa: ARG002
         azure_ad_token: str | None = None,
         azure_ad_token_provider: AzureADTokenProvider | None = None,
         organization: str | None = None,
@@ -168,6 +188,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         default_query: Mapping[str, object] | None = None,
         http_client: httpx.Client | None = None,
         _strict_response_validation: bool = False,
+        _enforce_credentials: bool = True,
     ) -> None:
         """Construct a new synchronous azure openai client instance.
 
@@ -195,7 +216,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         if azure_ad_token is None:
             azure_ad_token = os.environ.get("AZURE_OPENAI_AD_TOKEN")
 
-        if api_key is None and azure_ad_token is None and azure_ad_token_provider is None:
+        if _enforce_credentials and api_key is None and azure_ad_token is None and azure_ad_token_provider is None:
             raise OpenAIError(
                 "Missing credentials. Please pass one of `api_key`, `azure_ad_token`, `azure_ad_token_provider`, or the `AZURE_OPENAI_API_KEY` or `AZURE_OPENAI_AD_TOKEN` environment variables."
             )
@@ -236,6 +257,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
 
         super().__init__(
             api_key=api_key,
+            admin_api_key=admin_api_key,
             organization=organization,
             project=project,
             webhook_secret=webhook_secret,
@@ -247,6 +269,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
             http_client=http_client,
             websocket_base_url=websocket_base_url,
             _strict_response_validation=_strict_response_validation,
+            _enforce_credentials=_enforce_credentials,
         )
         self._api_version = api_version
         self._azure_ad_token = azure_ad_token
@@ -259,6 +282,9 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         self,
         *,
         api_key: str | Callable[[], str] | None = None,
+        admin_api_key: str | None = None,
+        workload_identity: WorkloadIdentity | None = None,
+        provider: _Provider | None | NotGiven = NOT_GIVEN,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -274,13 +300,19 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         set_default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
         set_default_query: Mapping[str, object] | None = None,
+        _enforce_credentials: bool | None = None,
         _extra_kwargs: Mapping[str, Any] = {},
     ) -> Self:
         """
         Create a new client instance re-using the same options given to the current client with optional overriding.
         """
+        if not isinstance(provider, NotGiven):
+            raise OpenAIError("Configure `provider` on `OpenAI`, not on `AzureOpenAI.with_options()`.")
+
         return super().copy(
             api_key=api_key,
+            admin_api_key=admin_api_key,
+            workload_identity=workload_identity,
             organization=organization,
             project=project,
             webhook_secret=webhook_secret,
@@ -293,6 +325,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
             set_default_headers=set_default_headers,
             default_query=default_query,
             set_default_query=set_default_query,
+            _enforce_credentials=_enforce_credentials,
             _extra_kwargs={
                 "api_version": api_version or self._api_version,
                 "azure_ad_token": azure_ad_token or self._azure_ad_token,
@@ -319,6 +352,25 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         return None
 
     @override
+    def _auth_headers(self, security: SecurityOptions) -> dict[str, str]:  # noqa: ARG002
+        if self._azure_ad_token is not None:
+            return {"Authorization": f"Bearer {self._azure_ad_token}"}
+
+        if self.api_key and self.api_key != API_KEY_SENTINEL:
+            return {"api-key": self.api_key}
+
+        return {}
+
+    @override
+    def _validate_headers(self, headers: Headers, custom_headers: Headers) -> None:
+        if _has_auth_header(headers) or _has_auth_header(custom_headers):
+            return
+
+        raise TypeError(
+            '"Could not resolve authentication method. Expected either api_key, azure_ad_token or azure_ad_token_provider to be set. Or for one of the `Authorization` or `api-key` headers to be explicitly supplied or omitted"'
+        )
+
+    @override
     def _prepare_options(self, options: FinalRequestOptions) -> FinalRequestOptions:
         headers: dict[str, str | Omit] = {**options.headers} if is_given(options.headers) else {}
 
@@ -327,11 +379,13 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
 
         azure_ad_token = self._get_azure_ad_token()
         if azure_ad_token is not None:
-            if headers.get("Authorization") is None:
+            if not _has_header(headers, "Authorization"):
                 headers["Authorization"] = f"Bearer {azure_ad_token}"
-        elif self.api_key is not API_KEY_SENTINEL:
-            if headers.get("api-key") is None:
+        elif self.api_key and self.api_key != API_KEY_SENTINEL:
+            if not _has_header(headers, "api-key"):
                 headers["api-key"] = self.api_key
+        elif _has_auth_header(headers) or _has_auth_header(self.default_headers):
+            pass
         else:
             # should never be hit
             raise ValueError("Unable to handle auth")
@@ -373,6 +427,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         azure_deployment: str | None = None,
         api_version: str | None = None,
         api_key: str | Callable[[], Awaitable[str]] | None = None,
+        admin_api_key: str | None = None,
         azure_ad_token: str | None = None,
         azure_ad_token_provider: AsyncAzureADTokenProvider | None = None,
         organization: str | None = None,
@@ -385,6 +440,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         default_query: Mapping[str, object] | None = None,
         http_client: httpx.AsyncClient | None = None,
         _strict_response_validation: bool = False,
+        _enforce_credentials: bool = True,
     ) -> None: ...
 
     @overload
@@ -394,6 +450,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         azure_deployment: str | None = None,
         api_version: str | None = None,
         api_key: str | Callable[[], Awaitable[str]] | None = None,
+        admin_api_key: str | None = None,
         azure_ad_token: str | None = None,
         azure_ad_token_provider: AsyncAzureADTokenProvider | None = None,
         organization: str | None = None,
@@ -406,6 +463,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         default_query: Mapping[str, object] | None = None,
         http_client: httpx.AsyncClient | None = None,
         _strict_response_validation: bool = False,
+        _enforce_credentials: bool = True,
     ) -> None: ...
 
     @overload
@@ -415,6 +473,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         base_url: str,
         api_version: str | None = None,
         api_key: str | Callable[[], Awaitable[str]] | None = None,
+        admin_api_key: str | None = None,
         azure_ad_token: str | None = None,
         azure_ad_token_provider: AsyncAzureADTokenProvider | None = None,
         organization: str | None = None,
@@ -427,6 +486,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         default_query: Mapping[str, object] | None = None,
         http_client: httpx.AsyncClient | None = None,
         _strict_response_validation: bool = False,
+        _enforce_credentials: bool = True,
     ) -> None: ...
 
     def __init__(
@@ -436,6 +496,9 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         azure_deployment: str | None = None,
         api_version: str | None = None,
         api_key: str | Callable[[], Awaitable[str]] | None = None,
+        admin_api_key: str | None = None,
+        # workload_identity is not functional in the Azure client
+        workload_identity: WorkloadIdentity | None = None,  # noqa: ARG002
         azure_ad_token: str | None = None,
         azure_ad_token_provider: AsyncAzureADTokenProvider | None = None,
         organization: str | None = None,
@@ -449,6 +512,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         default_query: Mapping[str, object] | None = None,
         http_client: httpx.AsyncClient | None = None,
         _strict_response_validation: bool = False,
+        _enforce_credentials: bool = True,
     ) -> None:
         """Construct a new asynchronous azure openai client instance.
 
@@ -476,7 +540,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         if azure_ad_token is None:
             azure_ad_token = os.environ.get("AZURE_OPENAI_AD_TOKEN")
 
-        if api_key is None and azure_ad_token is None and azure_ad_token_provider is None:
+        if _enforce_credentials and api_key is None and azure_ad_token is None and azure_ad_token_provider is None:
             raise OpenAIError(
                 "Missing credentials. Please pass one of `api_key`, `azure_ad_token`, `azure_ad_token_provider`, or the `AZURE_OPENAI_API_KEY` or `AZURE_OPENAI_AD_TOKEN` environment variables."
             )
@@ -517,6 +581,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
 
         super().__init__(
             api_key=api_key,
+            admin_api_key=admin_api_key,
             organization=organization,
             project=project,
             webhook_secret=webhook_secret,
@@ -528,6 +593,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
             http_client=http_client,
             websocket_base_url=websocket_base_url,
             _strict_response_validation=_strict_response_validation,
+            _enforce_credentials=_enforce_credentials,
         )
         self._api_version = api_version
         self._azure_ad_token = azure_ad_token
@@ -540,6 +606,9 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         self,
         *,
         api_key: str | Callable[[], Awaitable[str]] | None = None,
+        admin_api_key: str | None = None,
+        workload_identity: WorkloadIdentity | None = None,
+        provider: _Provider | None | NotGiven = NOT_GIVEN,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -555,13 +624,19 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         set_default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
         set_default_query: Mapping[str, object] | None = None,
+        _enforce_credentials: bool | None = None,
         _extra_kwargs: Mapping[str, Any] = {},
     ) -> Self:
         """
         Create a new client instance re-using the same options given to the current client with optional overriding.
         """
+        if not isinstance(provider, NotGiven):
+            raise OpenAIError("Configure `provider` on `AsyncOpenAI`, not on `AsyncAzureOpenAI.with_options()`.")
+
         return super().copy(
             api_key=api_key,
+            admin_api_key=admin_api_key,
+            workload_identity=workload_identity,
             organization=organization,
             project=project,
             webhook_secret=webhook_secret,
@@ -574,6 +649,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
             set_default_headers=set_default_headers,
             default_query=default_query,
             set_default_query=set_default_query,
+            _enforce_credentials=_enforce_credentials,
             _extra_kwargs={
                 "api_version": api_version or self._api_version,
                 "azure_ad_token": azure_ad_token or self._azure_ad_token,
@@ -602,6 +678,25 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         return None
 
     @override
+    def _auth_headers(self, security: SecurityOptions) -> dict[str, str]:  # noqa: ARG002
+        if self._azure_ad_token is not None:
+            return {"Authorization": f"Bearer {self._azure_ad_token}"}
+
+        if self.api_key and self.api_key != API_KEY_SENTINEL:
+            return {"api-key": self.api_key}
+
+        return {}
+
+    @override
+    def _validate_headers(self, headers: Headers, custom_headers: Headers) -> None:
+        if _has_auth_header(headers) or _has_auth_header(custom_headers):
+            return
+
+        raise TypeError(
+            '"Could not resolve authentication method. Expected either api_key, azure_ad_token or azure_ad_token_provider to be set. Or for one of the `Authorization` or `api-key` headers to be explicitly supplied or omitted"'
+        )
+
+    @override
     async def _prepare_options(self, options: FinalRequestOptions) -> FinalRequestOptions:
         headers: dict[str, str | Omit] = {**options.headers} if is_given(options.headers) else {}
 
@@ -610,11 +705,13 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
 
         azure_ad_token = await self._get_azure_ad_token()
         if azure_ad_token is not None:
-            if headers.get("Authorization") is None:
+            if not _has_header(headers, "Authorization"):
                 headers["Authorization"] = f"Bearer {azure_ad_token}"
-        elif self.api_key is not API_KEY_SENTINEL:
-            if headers.get("api-key") is None:
+        elif self.api_key and self.api_key != API_KEY_SENTINEL:
+            if not _has_header(headers, "api-key"):
                 headers["api-key"] = self.api_key
+        elif _has_auth_header(headers) or _has_auth_header(self.default_headers):
+            pass
         else:
             # should never be hit
             raise ValueError("Unable to handle auth")

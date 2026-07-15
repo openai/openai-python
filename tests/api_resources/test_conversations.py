@@ -32,6 +32,7 @@ class TestConversations:
                 {
                     "content": "string",
                     "role": "user",
+                    "phase": "commentary",
                     "type": "message",
                 }
             ],
@@ -195,6 +196,7 @@ class TestAsyncConversations:
                 {
                     "content": "string",
                     "role": "user",
+                    "phase": "commentary",
                     "type": "message",
                 }
             ],

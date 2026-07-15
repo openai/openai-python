@@ -11,8 +11,9 @@ import httpx
 
 from .. import _legacy_response
 from ..types import FilePurpose, file_list_params, file_create_params
+from .._files import deepcopy_with_paths
 from .._types import Body, Omit, Query, Headers, NotGiven, FileTypes, omit, not_given
-from .._utils import extract_files, maybe_transform, deepcopy_minimal, async_maybe_transform
+from .._utils import extract_files, path_template, maybe_transform, async_maybe_transform
 from .._compat import cached_property
 from .._resource import SyncAPIResource, AsyncAPIResource
 from .._response import (
@@ -33,6 +34,10 @@ __all__ = ["Files", "AsyncFiles"]
 
 
 class Files(SyncAPIResource):
+    """
+    Files are used to upload documents that can be used with features like Assistants and Fine-tuning.
+    """
+
     @cached_property
     def with_raw_response(self) -> FilesWithRawResponse:
         """
@@ -69,7 +74,8 @@ class Files(SyncAPIResource):
 
         Individual files can be
         up to 512 MB, and each project can store up to 2.5 TB of files in total. There
-        is no organization-wide storage limit.
+        is no organization-wide storage limit. Uploads to this endpoint are rate-limited
+        to 1,000 requests per minute per authenticated user.
 
         - The Assistants API supports files up to 2 million tokens and of specific file
           types. See the
@@ -84,6 +90,12 @@ class Files(SyncAPIResource):
         - The Batch API only supports `.jsonl` files up to 200 MB in size. The input
           also has a specific required
           [format](https://platform.openai.com/docs/api-reference/batch/request-input).
+        - For Retrieval or `file_search` ingestion, upload files here first. If you need
+          to attach multiple uploaded files to the same vector store, use
+          [`/vector_stores/{vector_store_id}/file_batches`](https://platform.openai.com/docs/api-reference/vector-stores-file-batches/createBatch)
+          instead of attaching them one by one. Vector store attachment has separate
+          limits from file upload, including 2,000 attached files per minute per
+          organization.
 
         Please [contact us](https://help.openai.com/) if you need to increase these
         storage limits.
@@ -112,12 +124,13 @@ class Files(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        body = deepcopy_minimal(
+        body = deepcopy_with_paths(
             {
                 "file": file,
                 "purpose": purpose,
                 "expires_after": expires_after,
-            }
+            },
+            [["file"]],
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["file"]])
         # It should be noted that the actual Content-Type header that will be
@@ -129,7 +142,11 @@ class Files(SyncAPIResource):
             body=maybe_transform(body, file_create_params.FileCreateParams),
             files=files,
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=FileObject,
         )
@@ -160,9 +177,13 @@ class Files(SyncAPIResource):
         if not file_id:
             raise ValueError(f"Expected a non-empty value for `file_id` but received {file_id!r}")
         return self._get(
-            f"/files/{file_id}",
+            path_template("/files/{file_id}", file_id=file_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=FileObject,
         )
@@ -224,6 +245,7 @@ class Files(SyncAPIResource):
                     },
                     file_list_params.FileListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=FileObject,
         )
@@ -254,9 +276,13 @@ class Files(SyncAPIResource):
         if not file_id:
             raise ValueError(f"Expected a non-empty value for `file_id` but received {file_id!r}")
         return self._delete(
-            f"/files/{file_id}",
+            path_template("/files/{file_id}", file_id=file_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=FileDeleted,
         )
@@ -288,9 +314,13 @@ class Files(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `file_id` but received {file_id!r}")
         extra_headers = {"Accept": "application/binary", **(extra_headers or {})}
         return self._get(
-            f"/files/{file_id}/content",
+            path_template("/files/{file_id}/content", file_id=file_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=_legacy_response.HttpxBinaryResponseContent,
         )
@@ -322,9 +352,13 @@ class Files(SyncAPIResource):
         if not file_id:
             raise ValueError(f"Expected a non-empty value for `file_id` but received {file_id!r}")
         return self._get(
-            f"/files/{file_id}/content",
+            path_template("/files/{file_id}/content", file_id=file_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=str,
         )
@@ -354,6 +388,10 @@ class Files(SyncAPIResource):
 
 
 class AsyncFiles(AsyncAPIResource):
+    """
+    Files are used to upload documents that can be used with features like Assistants and Fine-tuning.
+    """
+
     @cached_property
     def with_raw_response(self) -> AsyncFilesWithRawResponse:
         """
@@ -390,7 +428,8 @@ class AsyncFiles(AsyncAPIResource):
 
         Individual files can be
         up to 512 MB, and each project can store up to 2.5 TB of files in total. There
-        is no organization-wide storage limit.
+        is no organization-wide storage limit. Uploads to this endpoint are rate-limited
+        to 1,000 requests per minute per authenticated user.
 
         - The Assistants API supports files up to 2 million tokens and of specific file
           types. See the
@@ -405,6 +444,12 @@ class AsyncFiles(AsyncAPIResource):
         - The Batch API only supports `.jsonl` files up to 200 MB in size. The input
           also has a specific required
           [format](https://platform.openai.com/docs/api-reference/batch/request-input).
+        - For Retrieval or `file_search` ingestion, upload files here first. If you need
+          to attach multiple uploaded files to the same vector store, use
+          [`/vector_stores/{vector_store_id}/file_batches`](https://platform.openai.com/docs/api-reference/vector-stores-file-batches/createBatch)
+          instead of attaching them one by one. Vector store attachment has separate
+          limits from file upload, including 2,000 attached files per minute per
+          organization.
 
         Please [contact us](https://help.openai.com/) if you need to increase these
         storage limits.
@@ -433,12 +478,13 @@ class AsyncFiles(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        body = deepcopy_minimal(
+        body = deepcopy_with_paths(
             {
                 "file": file,
                 "purpose": purpose,
                 "expires_after": expires_after,
-            }
+            },
+            [["file"]],
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["file"]])
         # It should be noted that the actual Content-Type header that will be
@@ -450,7 +496,11 @@ class AsyncFiles(AsyncAPIResource):
             body=await async_maybe_transform(body, file_create_params.FileCreateParams),
             files=files,
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=FileObject,
         )
@@ -481,9 +531,13 @@ class AsyncFiles(AsyncAPIResource):
         if not file_id:
             raise ValueError(f"Expected a non-empty value for `file_id` but received {file_id!r}")
         return await self._get(
-            f"/files/{file_id}",
+            path_template("/files/{file_id}", file_id=file_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=FileObject,
         )
@@ -545,6 +599,7 @@ class AsyncFiles(AsyncAPIResource):
                     },
                     file_list_params.FileListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=FileObject,
         )
@@ -575,9 +630,13 @@ class AsyncFiles(AsyncAPIResource):
         if not file_id:
             raise ValueError(f"Expected a non-empty value for `file_id` but received {file_id!r}")
         return await self._delete(
-            f"/files/{file_id}",
+            path_template("/files/{file_id}", file_id=file_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=FileDeleted,
         )
@@ -609,9 +668,13 @@ class AsyncFiles(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `file_id` but received {file_id!r}")
         extra_headers = {"Accept": "application/binary", **(extra_headers or {})}
         return await self._get(
-            f"/files/{file_id}/content",
+            path_template("/files/{file_id}/content", file_id=file_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=_legacy_response.HttpxBinaryResponseContent,
         )
@@ -643,9 +706,13 @@ class AsyncFiles(AsyncAPIResource):
         if not file_id:
             raise ValueError(f"Expected a non-empty value for `file_id` but received {file_id!r}")
         return await self._get(
-            f"/files/{file_id}/content",
+            path_template("/files/{file_id}/content", file_id=file_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=str,
         )

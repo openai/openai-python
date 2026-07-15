@@ -1,6 +1,6 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import Optional
+from typing import Union, Optional
 from typing_extensions import Literal
 
 from ..._models import BaseModel
@@ -16,21 +16,22 @@ class Reasoning(BaseModel):
     [reasoning models](https://platform.openai.com/docs/guides/reasoning).
     """
 
-    effort: Optional[ReasoningEffort] = None
+    context: Optional[Literal["auto", "current_turn", "all_turns"]] = None
     """
-    Constrains effort on reasoning for
-    [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
-    supported values are `none`, `minimal`, `low`, `medium`, `high`, and `xhigh`.
-    Reducing reasoning effort can result in faster responses and fewer tokens used
-    on reasoning in a response.
+    Controls which reasoning items are rendered back to the model on later turns.
+    When returned on a response, this is the effective reasoning context mode used
+    for the response.
+    """
 
-    - `gpt-5.1` defaults to `none`, which does not perform reasoning. The supported
-      reasoning values for `gpt-5.1` are `none`, `low`, `medium`, and `high`. Tool
-      calls are supported for all reasoning values in gpt-5.1.
-    - All models before `gpt-5.1` default to `medium` reasoning effort, and do not
-      support `none`.
-    - The `gpt-5-pro` model defaults to (and only supports) `high` reasoning effort.
-    - `xhigh` is supported for all models after `gpt-5.1-codex-max`.
+    effort: Optional[ReasoningEffort] = None
+    """Constrains effort on reasoning for reasoning models.
+
+    Currently supported values are `none`, `minimal`, `low`, `medium`, `high`,
+    `xhigh`, and `max`. Reducing reasoning effort can result in faster responses and
+    fewer tokens used on reasoning in a response. Not all reasoning models support
+    every value. See the
+    [reasoning guide](https://platform.openai.com/docs/guides/reasoning) for
+    model-specific support.
     """
 
     generate_summary: Optional[Literal["auto", "concise", "detailed"]] = None
@@ -39,6 +40,12 @@ class Reasoning(BaseModel):
     A summary of the reasoning performed by the model. This can be useful for
     debugging and understanding the model's reasoning process. One of `auto`,
     `concise`, or `detailed`.
+    """
+
+    mode: Union[str, Literal["standard", "pro"], None] = None
+    """Controls the reasoning execution mode for the request.
+
+    When returned on a response, this is the effective execution mode.
     """
 
     summary: Optional[Literal["auto", "concise", "detailed"]] = None

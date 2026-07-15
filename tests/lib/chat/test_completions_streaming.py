@@ -161,6 +161,7 @@ ParsedChatCompletion(
     created=1727346169,
     id='chatcmpl-ABfw1e5abtU8OwGr15vOreYVb2MiF',
     model='gpt-4o-2024-08-06',
+    moderation=None,
     object='chat.completion',
     service_tier=None,
     system_fingerprint='fp_5050236cbd',

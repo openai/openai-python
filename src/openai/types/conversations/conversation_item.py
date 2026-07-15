@@ -6,14 +6,18 @@ from typing_extensions import Literal, Annotated, TypeAlias
 from .message import Message
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
+from ..responses.tool import Tool
 from ..responses.response_reasoning_item import ResponseReasoningItem
+from ..responses.response_compaction_item import ResponseCompactionItem
 from ..responses.response_custom_tool_call import ResponseCustomToolCall
+from ..responses.response_tool_search_call import ResponseToolSearchCall
 from ..responses.response_computer_tool_call import ResponseComputerToolCall
 from ..responses.response_function_web_search import ResponseFunctionWebSearch
 from ..responses.response_apply_patch_tool_call import ResponseApplyPatchToolCall
 from ..responses.response_file_search_tool_call import ResponseFileSearchToolCall
 from ..responses.response_custom_tool_call_output import ResponseCustomToolCallOutput
 from ..responses.response_function_tool_call_item import ResponseFunctionToolCallItem
+from ..responses.response_tool_search_output_item import ResponseToolSearchOutputItem
 from ..responses.response_function_shell_tool_call import ResponseFunctionShellToolCall
 from ..responses.response_code_interpreter_tool_call import ResponseCodeInterpreterToolCall
 from ..responses.response_apply_patch_tool_call_output import ResponseApplyPatchToolCallOutput
@@ -24,6 +28,9 @@ from ..responses.response_function_shell_tool_call_output import ResponseFunctio
 __all__ = [
     "ConversationItem",
     "ImageGenerationCall",
+    "AdditionalTools",
+    "Program",
+    "ProgramOutput",
     "LocalShellCall",
     "LocalShellCallAction",
     "LocalShellCallOutput",
@@ -49,6 +56,54 @@ class ImageGenerationCall(BaseModel):
 
     type: Literal["image_generation_call"]
     """The type of the image generation call. Always `image_generation_call`."""
+
+
+class AdditionalTools(BaseModel):
+    id: str
+    """The unique ID of the additional tools item."""
+
+    role: Literal["unknown", "user", "assistant", "system", "critic", "discriminator", "developer", "tool"]
+    """The role that provided the additional tools."""
+
+    tools: List[Tool]
+    """The additional tool definitions made available at this item."""
+
+    type: Literal["additional_tools"]
+    """The type of the item. Always `additional_tools`."""
+
+
+class Program(BaseModel):
+    id: str
+    """The unique ID of the program item."""
+
+    call_id: str
+    """The stable call ID of the program item."""
+
+    code: str
+    """The JavaScript source executed by programmatic tool calling."""
+
+    fingerprint: str
+    """Opaque program replay fingerprint that must be round-tripped."""
+
+    type: Literal["program"]
+    """The type of the item. Always `program`."""
+
+
+class ProgramOutput(BaseModel):
+    id: str
+    """The unique ID of the program output item."""
+
+    call_id: str
+    """The call ID of the program item."""
+
+    result: str
+    """The result produced by the program item."""
+
+    status: Literal["completed", "incomplete"]
+    """The terminal status of the program output item."""
+
+    type: Literal["program_output"]
+    """The type of the item. Always `program_output`."""
 
 
 class LocalShellCallAction(BaseModel):
@@ -229,7 +284,13 @@ ConversationItem: TypeAlias = Annotated[
         ImageGenerationCall,
         ResponseComputerToolCall,
         ResponseComputerToolCallOutputItem,
+        ResponseToolSearchCall,
+        ResponseToolSearchOutputItem,
+        AdditionalTools,
         ResponseReasoningItem,
+        Program,
+        ProgramOutput,
+        ResponseCompactionItem,
         ResponseCodeInterpreterToolCall,
         LocalShellCall,
         LocalShellCallOutput,

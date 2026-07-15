@@ -30,14 +30,18 @@ async-timeout==5.0.1
     # via aiohttp
 attrs==25.4.0
     # via aiohttp
+    # via jsonschema
     # via nox
     # via outcome
+    # via referencing
     # via trio
 azure-core==1.36.0
     # via azure-identity
 azure-identity==1.25.1
 backports-asyncio-runner==1.2.0
     # via pytest-asyncio
+botocore==1.42.97
+    # via openai
 certifi==2026.1.4
     # via httpcore
     # via httpx
@@ -100,6 +104,11 @@ iniconfig==2.1.0
 inline-snapshot==0.31.1
 jiter==0.12.0
     # via openai
+jmespath==1.1.0
+    # via botocore
+jsonschema==4.25.1
+jsonschema-specifications==2025.9.1
+    # via jsonschema
 markdown-it-py==3.0.0
     # via rich
 mdurl==0.1.2
@@ -161,16 +170,23 @@ pytest==8.4.2
 pytest-asyncio==1.2.0
 pytest-xdist==3.8.0
 python-dateutil==2.9.0.post0
+    # via botocore
     # via pandas
     # via time-machine
 pytz==2025.2
     # via pandas
+referencing==0.36.2
+    # via jsonschema
+    # via jsonschema-specifications
 requests==2.32.5
     # via azure-core
     # via msal
 respx==0.22.0
 rich==14.2.0
     # via inline-snapshot
+rpds-py==0.27.1
+    # via jsonschema
+    # via referencing
 ruff==0.14.7
 six==1.17.0
     # via python-dateutil
@@ -194,9 +210,11 @@ trio==0.31.0
 types-pyaudio==0.2.16.20250801
 types-pytz==2025.2.0.20251108
     # via pandas-stubs
-types-requests==2.32.4.20250913
+types-requests==2.31.0.6
     # via types-tqdm
 types-tqdm==4.67.0.20250809
+types-urllib3==1.26.25.14
+    # via types-requests
 typing-extensions==4.15.0
     # via aiosignal
     # via anyio
@@ -211,15 +229,16 @@ typing-extensions==4.15.0
     # via pydantic-core
     # via pyright
     # via pytest-asyncio
+    # via referencing
     # via typing-inspection
     # via virtualenv
 typing-inspection==0.4.2
     # via pydantic
 tzdata==2025.2
     # via pandas
-urllib3==2.5.0
+urllib3==1.26.20
+    # via botocore
     # via requests
-    # via types-requests
 virtualenv==20.35.4
     # via nox
 websockets==15.0.1

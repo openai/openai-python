@@ -1,14 +1,12 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from __future__ import annotations
-
-from typing_extensions import Required, TypedDict
+from ..._models import BaseModel
 
 __all__ = ["ResponseConversationParam"]
 
 
-class ResponseConversationParam(TypedDict, total=False):
+class ResponseConversationParam(BaseModel):
     """The conversation that this response belongs to."""
 
-    id: Required[str]
+    id: str
     """The unique ID of the conversation."""

@@ -1,6 +1,6 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import Optional
+from typing import List, Optional
 from typing_extensions import Literal
 
 from ..._models import BaseModel
@@ -20,6 +20,12 @@ class CustomTool(BaseModel):
 
     type: Literal["custom"]
     """The type of the custom tool. Always `custom`."""
+
+    allowed_callers: Optional[List[Literal["direct", "programmatic"]]] = None
+    """The tool invocation context(s)."""
+
+    defer_loading: Optional[bool] = None
+    """Whether this tool should be deferred and discovered via tool search."""
 
     description: Optional[str] = None
     """Optional description of the custom tool, used to provide more context."""

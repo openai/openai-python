@@ -1,9 +1,10 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import List, Union, Optional
-from typing_extensions import Literal, TypeAlias
+from typing import Dict, List, Union, Optional
+from typing_extensions import Literal, Annotated, TypeAlias
 
 from .tool import Tool
+from ..._utils import PropertyInfo
 from ..._models import BaseModel
 from .response_error import ResponseError
 from .response_usage import ResponseUsage
@@ -24,7 +25,21 @@ from .tool_choice_function import ToolChoiceFunction
 from ..shared.responses_model import ResponsesModel
 from .tool_choice_apply_patch import ToolChoiceApplyPatch
 
-__all__ = ["Response", "IncompleteDetails", "ToolChoice", "Conversation"]
+__all__ = [
+    "Response",
+    "IncompleteDetails",
+    "ToolChoice",
+    "ToolChoiceSpecificProgrammaticToolCallingParam",
+    "Conversation",
+    "Moderation",
+    "ModerationInput",
+    "ModerationInputModerationResult",
+    "ModerationInputError",
+    "ModerationOutput",
+    "ModerationOutputModerationResult",
+    "ModerationOutputError",
+    "PromptCacheOptions",
+]
 
 
 class IncompleteDetails(BaseModel):
@@ -34,6 +49,11 @@ class IncompleteDetails(BaseModel):
     """The reason why the response is incomplete."""
 
 
+class ToolChoiceSpecificProgrammaticToolCallingParam(BaseModel):
+    type: Literal["programmatic_tool_calling"]
+    """The tool to call. Always `programmatic_tool_calling`."""
+
+
 ToolChoice: TypeAlias = Union[
     ToolChoiceOptions,
     ToolChoiceAllowed,
@@ -41,6 +61,7 @@ ToolChoice: TypeAlias = Union[
     ToolChoiceFunction,
     ToolChoiceMcp,
     ToolChoiceCustom,
+    ToolChoiceSpecificProgrammaticToolCallingParam,
     ToolChoiceApplyPatch,
     ToolChoiceShell,
 ]
@@ -54,6 +75,123 @@ class Conversation(BaseModel):
 
     id: str
     """The unique ID of the conversation that this response was associated with."""
+
+
+class ModerationInputModerationResult(BaseModel):
+    """A moderation result produced for the response input or output."""
+
+    categories: Dict[str, bool]
+    """
+    A dictionary of moderation categories to booleans, True if the input is flagged
+    under this category.
+    """
+
+    category_applied_input_types: Dict[str, List[Literal["text", "image"]]]
+    """Which modalities of input are reflected by the score for each category."""
+
+    category_scores: Dict[str, float]
+    """A dictionary of moderation categories to scores."""
+
+    flagged: bool
+    """A boolean indicating whether the content was flagged by any category."""
+
+    model: str
+    """The moderation model that produced this result."""
+
+    type: Literal["moderation_result"]
+    """
+    The object type, which was always `moderation_result` for successful moderation
+    results.
+    """
+
+
+class ModerationInputError(BaseModel):
+    """An error produced while attempting moderation for the response input or output."""
+
+    code: str
+    """The error code."""
+
+    message: str
+    """The error message."""
+
+    type: Literal["error"]
+    """The object type, which was always `error` for moderation failures."""
+
+
+ModerationInput: TypeAlias = Annotated[
+    Union[ModerationInputModerationResult, ModerationInputError], PropertyInfo(discriminator="type")
+]
+
+
+class ModerationOutputModerationResult(BaseModel):
+    """A moderation result produced for the response input or output."""
+
+    categories: Dict[str, bool]
+    """
+    A dictionary of moderation categories to booleans, True if the input is flagged
+    under this category.
+    """
+
+    category_applied_input_types: Dict[str, List[Literal["text", "image"]]]
+    """Which modalities of input are reflected by the score for each category."""
+
+    category_scores: Dict[str, float]
+    """A dictionary of moderation categories to scores."""
+
+    flagged: bool
+    """A boolean indicating whether the content was flagged by any category."""
+
+    model: str
+    """The moderation model that produced this result."""
+
+    type: Literal["moderation_result"]
+    """
+    The object type, which was always `moderation_result` for successful moderation
+    results.
+    """
+
+
+class ModerationOutputError(BaseModel):
+    """An error produced while attempting moderation for the response input or output."""
+
+    code: str
+    """The error code."""
+
+    message: str
+    """The error message."""
+
+    type: Literal["error"]
+    """The object type, which was always `error` for moderation failures."""
+
+
+ModerationOutput: TypeAlias = Annotated[
+    Union[ModerationOutputModerationResult, ModerationOutputError], PropertyInfo(discriminator="type")
+]
+
+
+class Moderation(BaseModel):
+    """
+    Moderation results for the response input and output, if moderated completions were requested.
+    """
+
+    input: ModerationInput
+    """Moderation for the response input."""
+
+    output: ModerationOutput
+    """Moderation for the response output."""
+
+
+class PromptCacheOptions(BaseModel):
+    """The prompt-caching options that were applied to the response.
+
+    Supported for `gpt-5.6` and later models.
+    """
+
+    mode: Literal["implicit", "explicit"]
+    """Whether implicit prompt-cache breakpoints were enabled."""
+
+    ttl: Literal["30m"]
+    """The minimum lifetime applied to each cache breakpoint."""
 
 
 class Response(BaseModel):
@@ -193,6 +331,12 @@ class Response(BaseModel):
     ignored.
     """
 
+    moderation: Optional[Moderation] = None
+    """
+    Moderation results for the response input and output, if moderated completions
+    were requested.
+    """
+
     previous_response_id: Optional[str] = None
     """The unique ID of the previous response to the model.
 
@@ -214,12 +358,30 @@ class Response(BaseModel):
     [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
     """
 
-    prompt_cache_retention: Optional[Literal["in-memory", "24h"]] = None
-    """The retention policy for the prompt cache.
+    prompt_cache_options: Optional[PromptCacheOptions] = None
+    """The prompt-caching options that were applied to the response.
 
-    Set to `24h` to enable extended prompt caching, which keeps cached prefixes
-    active for longer, up to a maximum of 24 hours.
+    Supported for `gpt-5.6` and later models.
+    """
+
+    prompt_cache_retention: Optional[Literal["in_memory", "24h"]] = None
+    """Deprecated. Use `prompt_cache_options.ttl` instead.
+
+    The retention policy for the prompt cache. Set to `24h` to enable extended
+    prompt caching, which keeps cached prefixes active for longer, up to a maximum
+    of 24 hours.
     [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
+    This field expresses a maximum retention policy, while
+    `prompt_cache_options.ttl` expresses a minimum cache lifetime. The two fields
+    are independent and do not interact. For `gpt-5.5`, `gpt-5.5-pro`, and future
+    models, only `24h` is supported.
+
+    For older models that support both `in_memory` and `24h`, the default depends on
+    your organization's data retention policy:
+
+    - Organizations without ZDR enabled default to `24h`.
+    - Organizations with ZDR enabled default to `in_memory` when
+      `prompt_cache_retention` is not specified.
     """
 
     reasoning: Optional[Reasoning] = None
@@ -233,8 +395,9 @@ class Response(BaseModel):
     """
     A stable identifier used to help detect users of your application that may be
     violating OpenAI's usage policies. The IDs should be a string that uniquely
-    identifies each user. We recommend hashing their username or email address, in
-    order to avoid sending us any identifying information.
+    identifies each user, with a maximum length of 64 characters. We recommend
+    hashing their username or email address, in order to avoid sending us any
+    identifying information.
     [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
     """
 
@@ -275,8 +438,9 @@ class Response(BaseModel):
 
     top_logprobs: Optional[int] = None
     """
-    An integer between 0 and 20 specifying the number of most likely tokens to
-    return at each token position, each with an associated log probability.
+    An integer between 0 and 20 specifying the maximum number of most likely tokens
+    to return at each token position, each with an associated log probability. In
+    some cases, the number of returned tokens may be fewer than requested.
     """
 
     truncation: Optional[Literal["auto", "disabled"]] = None

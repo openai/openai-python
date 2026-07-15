@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from typing import List, Optional
 from typing_extensions import Literal, Required, TypedDict
 
 from ..shared_params.custom_tool_input_format import CustomToolInputFormat
@@ -20,6 +21,12 @@ class CustomToolParam(TypedDict, total=False):
 
     type: Required[Literal["custom"]]
     """The type of the custom tool. Always `custom`."""
+
+    allowed_callers: Optional[List[Literal["direct", "programmatic"]]]
+    """The tool invocation context(s)."""
+
+    defer_loading: bool
+    """Whether this tool should be deferred and discovered via tool search."""
 
     description: str
     """Optional description of the custom tool, used to provide more context."""

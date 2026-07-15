@@ -5,7 +5,7 @@ from typing_extensions import Literal
 
 from ..._models import BaseModel
 
-__all__ = ["ChatCompletionContentPartImage", "ImageURL"]
+__all__ = ["ChatCompletionContentPartImage", "ImageURL", "PromptCacheBreakpoint"]
 
 
 class ImageURL(BaseModel):
@@ -20,6 +20,16 @@ class ImageURL(BaseModel):
     """
 
 
+class PromptCacheBreakpoint(BaseModel):
+    """Marks the exact end of a reusable prompt prefix.
+
+    The breakpoint inherits its TTL from the request's `prompt_cache_options.ttl`; the boundary is not rounded to a token block.
+    """
+
+    mode: Literal["explicit"]
+    """The breakpoint mode. Always `explicit`."""
+
+
 class ChatCompletionContentPartImage(BaseModel):
     """Learn about [image inputs](https://platform.openai.com/docs/guides/vision)."""
 
@@ -27,3 +37,10 @@ class ChatCompletionContentPartImage(BaseModel):
 
     type: Literal["image_url"]
     """The type of the content part."""
+
+    prompt_cache_breakpoint: Optional[PromptCacheBreakpoint] = None
+    """Marks the exact end of a reusable prompt prefix.
+
+    The breakpoint inherits its TTL from the request's `prompt_cache_options.ttl`;
+    the boundary is not rounded to a token block.
+    """
