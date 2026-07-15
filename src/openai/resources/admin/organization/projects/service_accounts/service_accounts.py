@@ -2,31 +2,44 @@
 
 from __future__ import annotations
 
+from typing import Optional
 from typing_extensions import Literal
 
 import httpx
 
-from ..... import _legacy_response
-from ....._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
-from ....._utils import path_template, maybe_transform, async_maybe_transform
-from ....._compat import cached_property
-from ....._resource import SyncAPIResource, AsyncAPIResource
-from ....._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
-from .....pagination import SyncConversationCursorPage, AsyncConversationCursorPage
-from ....._base_client import AsyncPaginator, make_request_options
-from .....types.admin.organization.projects import (
+from ...... import _legacy_response
+from .api_keys import (
+    APIKeys,
+    AsyncAPIKeys,
+    APIKeysWithRawResponse,
+    AsyncAPIKeysWithRawResponse,
+    APIKeysWithStreamingResponse,
+    AsyncAPIKeysWithStreamingResponse,
+)
+from ......_types import Body, Omit, Query, Headers, NotGiven, omit, not_given
+from ......_utils import path_template, maybe_transform, async_maybe_transform
+from ......_compat import cached_property
+from ......_resource import SyncAPIResource, AsyncAPIResource
+from ......_response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
+from ......pagination import SyncConversationCursorPage, AsyncConversationCursorPage
+from ......_base_client import AsyncPaginator, make_request_options
+from ......types.admin.organization.projects import (
     service_account_list_params,
     service_account_create_params,
     service_account_update_params,
 )
-from .....types.admin.organization.projects.project_service_account import ProjectServiceAccount
-from .....types.admin.organization.projects.service_account_create_response import ServiceAccountCreateResponse
-from .....types.admin.organization.projects.service_account_delete_response import ServiceAccountDeleteResponse
+from ......types.admin.organization.projects.project_service_account import ProjectServiceAccount
+from ......types.admin.organization.projects.service_account_create_response import ServiceAccountCreateResponse
+from ......types.admin.organization.projects.service_account_delete_response import ServiceAccountDeleteResponse
 
 __all__ = ["ServiceAccounts", "AsyncServiceAccounts"]
 
 
 class ServiceAccounts(SyncAPIResource):
+    @cached_property
+    def api_keys(self) -> APIKeys:
+        return APIKeys(self._client)
+
     @cached_property
     def with_raw_response(self) -> ServiceAccountsWithRawResponse:
         """
@@ -51,6 +64,7 @@ class ServiceAccounts(SyncAPIResource):
         project_id: str,
         *,
         name: str,
+        create_service_account_only: Optional[bool] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -60,11 +74,13 @@ class ServiceAccounts(SyncAPIResource):
     ) -> ServiceAccountCreateResponse:
         """Creates a new service account in the project.
 
-        This also returns an unredacted
-        API key for the service account.
+        By default, this also returns an
+        unredacted API key for the service account.
 
         Args:
           name: The name of the service account being created.
+
+          create_service_account_only: Create the service account without default roles or an API key.
 
           extra_headers: Send extra headers
 
@@ -78,7 +94,13 @@ class ServiceAccounts(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `project_id` but received {project_id!r}")
         return self._post(
             path_template("/organization/projects/{project_id}/service_accounts", project_id=project_id),
-            body=maybe_transform({"name": name}, service_account_create_params.ServiceAccountCreateParams),
+            body=maybe_transform(
+                {
+                    "name": name,
+                    "create_service_account_only": create_service_account_only,
+                },
+                service_account_create_params.ServiceAccountCreateParams,
+            ),
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -295,6 +317,10 @@ class ServiceAccounts(SyncAPIResource):
 
 class AsyncServiceAccounts(AsyncAPIResource):
     @cached_property
+    def api_keys(self) -> AsyncAPIKeys:
+        return AsyncAPIKeys(self._client)
+
+    @cached_property
     def with_raw_response(self) -> AsyncServiceAccountsWithRawResponse:
         """
         This property can be used as a prefix for any HTTP method call to return
@@ -318,6 +344,7 @@ class AsyncServiceAccounts(AsyncAPIResource):
         project_id: str,
         *,
         name: str,
+        create_service_account_only: Optional[bool] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -327,11 +354,13 @@ class AsyncServiceAccounts(AsyncAPIResource):
     ) -> ServiceAccountCreateResponse:
         """Creates a new service account in the project.
 
-        This also returns an unredacted
-        API key for the service account.
+        By default, this also returns an
+        unredacted API key for the service account.
 
         Args:
           name: The name of the service account being created.
+
+          create_service_account_only: Create the service account without default roles or an API key.
 
           extra_headers: Send extra headers
 
@@ -345,7 +374,13 @@ class AsyncServiceAccounts(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `project_id` but received {project_id!r}")
         return await self._post(
             path_template("/organization/projects/{project_id}/service_accounts", project_id=project_id),
-            body=await async_maybe_transform({"name": name}, service_account_create_params.ServiceAccountCreateParams),
+            body=await async_maybe_transform(
+                {
+                    "name": name,
+                    "create_service_account_only": create_service_account_only,
+                },
+                service_account_create_params.ServiceAccountCreateParams,
+            ),
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -580,6 +615,10 @@ class ServiceAccountsWithRawResponse:
             service_accounts.delete,
         )
 
+    @cached_property
+    def api_keys(self) -> APIKeysWithRawResponse:
+        return APIKeysWithRawResponse(self._service_accounts.api_keys)
+
 
 class AsyncServiceAccountsWithRawResponse:
     def __init__(self, service_accounts: AsyncServiceAccounts) -> None:
@@ -600,6 +639,10 @@ class AsyncServiceAccountsWithRawResponse:
         self.delete = _legacy_response.async_to_raw_response_wrapper(
             service_accounts.delete,
         )
+
+    @cached_property
+    def api_keys(self) -> AsyncAPIKeysWithRawResponse:
+        return AsyncAPIKeysWithRawResponse(self._service_accounts.api_keys)
 
 
 class ServiceAccountsWithStreamingResponse:
@@ -622,6 +665,10 @@ class ServiceAccountsWithStreamingResponse:
             service_accounts.delete,
         )
 
+    @cached_property
+    def api_keys(self) -> APIKeysWithStreamingResponse:
+        return APIKeysWithStreamingResponse(self._service_accounts.api_keys)
+
 
 class AsyncServiceAccountsWithStreamingResponse:
     def __init__(self, service_accounts: AsyncServiceAccounts) -> None:
@@ -642,3 +689,7 @@ class AsyncServiceAccountsWithStreamingResponse:
         self.delete = async_to_streamed_response_wrapper(
             service_accounts.delete,
         )
+
+    @cached_property
+    def api_keys(self) -> AsyncAPIKeysWithStreamingResponse:
+        return AsyncAPIKeysWithStreamingResponse(self._service_accounts.api_keys)
