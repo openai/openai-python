@@ -15,14 +15,24 @@ import os
 
 from openai import OpenAI
 
+# Prefer DaoXE-specific env vars; fall back to the standard OpenAI client env vars.
+api_key = os.environ.get("DAOXE_API_KEY") or os.environ.get("OPENAI_API_KEY")
+if not api_key:
+    raise SystemExit(
+        "Set DAOXE_API_KEY (or OPENAI_API_KEY) before running this example."
+    )
+
 client = OpenAI(
-    # Or set OPENAI_BASE_URL / OPENAI_API_KEY
-    base_url=os.environ.get("DAOXE_BASE_URL", "https://daoxe.com/v1"),
-    api_key=os.environ["DAOXE_API_KEY"],
+    base_url=os.environ.get("DAOXE_BASE_URL")
+    or os.environ.get("OPENAI_BASE_URL")
+    or "https://daoxe.com/v1",
+    api_key=api_key,
 )
 
 completion = client.chat.completions.create(
-    model=os.environ.get("DAOXE_MODEL", "YOUR_DAOXE_MODEL_ID"),
+    model=os.environ.get("DAOXE_MODEL")
+    or os.environ.get("OPENAI_MODEL")
+    or "YOUR_DAOXE_MODEL_ID",
     messages=[
         {
             "role": "user",
