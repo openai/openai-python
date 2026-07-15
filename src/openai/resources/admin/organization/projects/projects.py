@@ -78,14 +78,6 @@ from .data_retention import (
     AsyncDataRetentionWithStreamingResponse,
 )
 from ....._base_client import AsyncPaginator, make_request_options
-from .service_accounts import (
-    ServiceAccounts,
-    AsyncServiceAccounts,
-    ServiceAccountsWithRawResponse,
-    AsyncServiceAccountsWithRawResponse,
-    ServiceAccountsWithStreamingResponse,
-    AsyncServiceAccountsWithStreamingResponse,
-)
 from .model_permissions import (
     ModelPermissions,
     AsyncModelPermissions,
@@ -103,6 +95,14 @@ from .hosted_tool_permissions import (
     AsyncHostedToolPermissionsWithStreamingResponse,
 )
 from .....types.admin.organization import project_list_params, project_create_params, project_update_params
+from .service_accounts.service_accounts import (
+    ServiceAccounts,
+    AsyncServiceAccounts,
+    ServiceAccountsWithRawResponse,
+    AsyncServiceAccountsWithRawResponse,
+    ServiceAccountsWithStreamingResponse,
+    AsyncServiceAccountsWithStreamingResponse,
+)
 from .....types.admin.organization.project import Project
 
 __all__ = ["Projects", "AsyncProjects"]

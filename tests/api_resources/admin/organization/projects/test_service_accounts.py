@@ -31,6 +31,15 @@ class TestServiceAccounts:
         assert_matches_type(ServiceAccountCreateResponse, service_account, path=["response"])
 
     @parametrize
+    def test_method_create_with_all_params(self, client: OpenAI) -> None:
+        service_account = client.admin.organization.projects.service_accounts.create(
+            project_id="project_id",
+            name="name",
+            create_service_account_only=True,
+        )
+        assert_matches_type(ServiceAccountCreateResponse, service_account, path=["response"])
+
+    @parametrize
     def test_raw_response_create(self, client: OpenAI) -> None:
         response = client.admin.organization.projects.service_accounts.with_raw_response.create(
             project_id="project_id",
@@ -276,6 +285,15 @@ class TestAsyncServiceAccounts:
         service_account = await async_client.admin.organization.projects.service_accounts.create(
             project_id="project_id",
             name="name",
+        )
+        assert_matches_type(ServiceAccountCreateResponse, service_account, path=["response"])
+
+    @parametrize
+    async def test_method_create_with_all_params(self, async_client: AsyncOpenAI) -> None:
+        service_account = await async_client.admin.organization.projects.service_accounts.create(
+            project_id="project_id",
+            name="name",
+            create_service_account_only=True,
         )
         assert_matches_type(ServiceAccountCreateResponse, service_account, path=["response"])
 

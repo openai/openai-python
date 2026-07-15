@@ -48,9 +48,10 @@ __all__ = [
     "MultiAgentCallAgent",
     "MultiAgentCallOutput",
     "MultiAgentCallOutputOutput",
-    "MultiAgentCallOutputOutputAnnotationsUnionMember0",
-    "MultiAgentCallOutputOutputAnnotationsUnionMember1",
-    "MultiAgentCallOutputOutputAnnotationsUnionMember2",
+    "MultiAgentCallOutputOutputAnnotation",
+    "MultiAgentCallOutputOutputAnnotationFileCitation",
+    "MultiAgentCallOutputOutputAnnotationURLCitation",
+    "MultiAgentCallOutputOutputAnnotationContainerFileCitation",
     "MultiAgentCallOutputAgent",
     "ToolSearchCall",
     "ToolSearchCallAgent",
@@ -328,7 +329,7 @@ class MultiAgentCall(TypedDict, total=False):
     """The agent that produced this item."""
 
 
-class MultiAgentCallOutputOutputAnnotationsUnionMember0(TypedDict, total=False):
+class MultiAgentCallOutputOutputAnnotationFileCitation(TypedDict, total=False):
     file_id: Required[str]
     """The ID of the file."""
 
@@ -342,7 +343,7 @@ class MultiAgentCallOutputOutputAnnotationsUnionMember0(TypedDict, total=False):
     """The citation type. Always `file_citation`."""
 
 
-class MultiAgentCallOutputOutputAnnotationsUnionMember1(TypedDict, total=False):
+class MultiAgentCallOutputOutputAnnotationURLCitation(TypedDict, total=False):
     end_index: Required[int]
     """The index of the last character of the citation in the message."""
 
@@ -359,7 +360,7 @@ class MultiAgentCallOutputOutputAnnotationsUnionMember1(TypedDict, total=False):
     """The URL of the cited resource."""
 
 
-class MultiAgentCallOutputOutputAnnotationsUnionMember2(TypedDict, total=False):
+class MultiAgentCallOutputOutputAnnotationContainerFileCitation(TypedDict, total=False):
     container_id: Required[str]
     """The ID of the container."""
 
@@ -379,6 +380,13 @@ class MultiAgentCallOutputOutputAnnotationsUnionMember2(TypedDict, total=False):
     """The citation type. Always `container_file_citation`."""
 
 
+MultiAgentCallOutputOutputAnnotation: TypeAlias = Union[
+    MultiAgentCallOutputOutputAnnotationFileCitation,
+    MultiAgentCallOutputOutputAnnotationURLCitation,
+    MultiAgentCallOutputOutputAnnotationContainerFileCitation,
+]
+
+
 class MultiAgentCallOutputOutput(TypedDict, total=False):
     text: Required[str]
     """The text content."""
@@ -386,11 +394,7 @@ class MultiAgentCallOutputOutput(TypedDict, total=False):
     type: Required[Literal["output_text"]]
     """The content type. Always `output_text`."""
 
-    annotations: Union[
-        Iterable[MultiAgentCallOutputOutputAnnotationsUnionMember0],
-        Iterable[MultiAgentCallOutputOutputAnnotationsUnionMember1],
-        Iterable[MultiAgentCallOutputOutputAnnotationsUnionMember2],
-    ]
+    annotations: Iterable[MultiAgentCallOutputOutputAnnotation]
     """Citations associated with the text content."""
 
 

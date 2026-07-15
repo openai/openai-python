@@ -32,5 +32,8 @@ class ServiceAccountCreateResponse(BaseModel):
 
     object: Literal["organization.project.service_account"]
 
-    role: Literal["member"]
-    """Service accounts can only have one role of type `member`"""
+    role: Literal["member", "none"]
+    """Service accounts created with default project membership have role `member`.
+
+    Accounts created with `create_service_account_only` have role `none`.
+    """
