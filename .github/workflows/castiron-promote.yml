@@ -1,0 +1,117 @@
+# Exact-tree public promotion for a previously reviewed Castiron candidate.
+# Keep this wrapper thin: policy and copy mechanics live in the pinned monorepo writer.
+# CASTIRON_PROMOTION_ENABLED is a repository/org variable because the job guard
+# runs before GitHub attaches the protected environment.
+# The protected castiron-promotion environment supplies the container/Azure
+# variables plus the openai-sdks App private key.
+name: Castiron promotion
+
+on:
+  workflow_dispatch:
+    inputs:
+      candidate_id:
+        description: SHA-256 ID of the approved Castiron candidate
+        required: true
+        type: string
+      preflight_contract_sha256:
+        description: SHA-256 digest of the published promotion preflight contract
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: castiron-promotion-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    name: open exact-tree draft PR
+    # Keep the draft-stack pin inert until it is replaced with the merged SHA
+    # and admins explicitly enable the protected promotion environment.
+    if: >-
+      vars.CASTIRON_PROMOTION_ENABLED == 'true' &&
+      github.repository == 'openai/openai-python' &&
+      github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: castiron-promotion
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      # Temporarily reuse openai-sdks for checkout, but mint a separate token
+      # scoped only to read openai/openai. Do not reuse the pair-scoped SDK
+      # write token for checkout.
+      - name: Mint monorepo checkout token
+        id: monorepo-token
+        uses: actions/create-github-app-token@d72941d797fd3113feb6b93fd0dec494b13a2547 # v1.12.0
+        with:
+          app-id: 3705508 # openai-sdks
+          private-key: ${{ secrets.OPENAI_SDKS_APP_PRIVATE_KEY }}
+          owner: openai
+          repositories: openai
+          permission-contents: read
+
+      - name: Check out pinned Castiron writer
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          repository: openai/openai
+          # Replace this draft-stack SHA with the merged monorepo SHA before enabling.
+          ref: 586f788be0094332e6d7f6be3a8195e0356d7dc1
+          path: openai
+          token: ${{ steps.monorepo-token.outputs.token }}
+          persist-credentials: false
+
+      - name: Set up Python for the pinned writer
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.12'
+
+      - name: Add pinned monorepo tools to PATH
+        run: echo "$GITHUB_WORKSPACE/openai/project/dotslash-gen/bin" >> "$GITHUB_PATH"
+
+      - name: Azure login
+        uses: azure/login@532459ea530d8321f2fb9bb10d1e0bcf23869a43 # v3.0.0
+        with:
+          client-id: ${{ vars.CASTIRON_AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.CASTIRON_AZURE_TENANT_ID }}
+          allow-no-subscriptions: true
+
+      # Mint this immediately before the writer runs. The writer independently
+      # verifies the installation scope and expected openai-sdks[bot] identity.
+      - name: Mint SDK promotion token
+        id: sdk-token
+        uses: actions/create-github-app-token@d72941d797fd3113feb6b93fd0dec494b13a2547 # v1.12.0
+        with:
+          app-id: 3705508 # openai-sdks
+          private-key: ${{ secrets.OPENAI_SDKS_APP_PRIVATE_KEY }}
+          owner: openai
+          repositories: |
+            openai-python
+            openai-python-internal
+          permission-actions: read
+          permission-contents: write
+          permission-members: read
+          permission-metadata: read
+          permission-pull-requests: write
+
+      - name: Open exact-tree public draft PR
+        working-directory: openai
+        env:
+          GH_TOKEN: ${{ steps.sdk-token.outputs.token }}
+          CANDIDATE_ID: ${{ inputs.candidate_id }}
+          PREFLIGHT_CONTRACT_SHA256: ${{ inputs.preflight_contract_sha256 }}
+          CASTIRON_CONTAINER_URI: ${{ vars.CASTIRON_CONTAINER_URI }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          bazel run //api/sdk-worker:castiron_candidate_public_pr_writer -- \
+            --target openai-python \
+            --container-uri "$CASTIRON_CONTAINER_URI" \
+            --candidate-id "$CANDIDATE_ID" \
+            --preflight-contract-sha256 "$PREFLIGHT_CONTRACT_SHA256" \
+            --actor "$ACTOR" \
+            --execute
