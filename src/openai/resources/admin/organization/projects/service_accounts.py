@@ -7,39 +7,31 @@ from typing_extensions import Literal
 
 import httpx
 
-from ...... import _legacy_response
-from .api_keys import (
-    APIKeys,
-    AsyncAPIKeys,
-    APIKeysWithRawResponse,
-    AsyncAPIKeysWithRawResponse,
-    APIKeysWithStreamingResponse,
-    AsyncAPIKeysWithStreamingResponse,
-)
-from ......_types import Body, Omit, Query, Headers, NotGiven, omit, not_given
-from ......_utils import path_template, maybe_transform, async_maybe_transform
-from ......_compat import cached_property
-from ......_resource import SyncAPIResource, AsyncAPIResource
-from ......_response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
-from ......pagination import SyncConversationCursorPage, AsyncConversationCursorPage
-from ......_base_client import AsyncPaginator, make_request_options
-from ......types.admin.organization.projects import (
+from ..... import _legacy_response
+from ....._types import Body, Omit, Query, Headers, NotGiven, SequenceNotStr, omit, not_given
+from ....._utils import path_template, maybe_transform, async_maybe_transform
+from ....._compat import cached_property
+from ....._resource import SyncAPIResource, AsyncAPIResource
+from ....._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
+from .....pagination import SyncConversationCursorPage, AsyncConversationCursorPage
+from ....._base_client import AsyncPaginator, make_request_options
+from .....types.admin.organization.projects import (
     service_account_list_params,
     service_account_create_params,
     service_account_update_params,
+    service_account_create_api_key_params,
 )
-from ......types.admin.organization.projects.project_service_account import ProjectServiceAccount
-from ......types.admin.organization.projects.service_account_create_response import ServiceAccountCreateResponse
-from ......types.admin.organization.projects.service_account_delete_response import ServiceAccountDeleteResponse
+from .....types.admin.organization.projects.project_service_account import ProjectServiceAccount
+from .....types.admin.organization.projects.service_account_create_response import ServiceAccountCreateResponse
+from .....types.admin.organization.projects.service_account_delete_response import ServiceAccountDeleteResponse
+from .....types.admin.organization.projects.service_account_create_api_key_response import (
+    ServiceAccountCreateAPIKeyResponse,
+)
 
 __all__ = ["ServiceAccounts", "AsyncServiceAccounts"]
 
 
 class ServiceAccounts(SyncAPIResource):
-    @cached_property
-    def api_keys(self) -> APIKeys:
-        return APIKeys(self._client)
-
     @cached_property
     def with_raw_response(self) -> ServiceAccountsWithRawResponse:
         """
@@ -314,12 +306,69 @@ class ServiceAccounts(SyncAPIResource):
             cast_to=ServiceAccountDeleteResponse,
         )
 
+    def create_api_key(
+        self,
+        service_account_id: str,
+        *,
+        project_id: str,
+        name: str | Omit = omit,
+        scopes: SequenceNotStr[str] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> ServiceAccountCreateAPIKeyResponse:
+        """
+        Creates an API key for a service account in the project.
+
+        Args:
+          project_id: The ID of the project.
+
+          service_account_id: The ID of the service account.
+
+          name: API key name.
+
+          scopes: API key scopes.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not project_id:
+            raise ValueError(f"Expected a non-empty value for `project_id` but received {project_id!r}")
+        if not service_account_id:
+            raise ValueError(f"Expected a non-empty value for `service_account_id` but received {service_account_id!r}")
+        return self._post(
+            path_template(
+                "/organization/projects/{project_id}/service_accounts/{service_account_id}/api_keys",
+                project_id=project_id,
+                service_account_id=service_account_id,
+            ),
+            body=maybe_transform(
+                {
+                    "name": name,
+                    "scopes": scopes,
+                },
+                service_account_create_api_key_params.ServiceAccountCreateAPIKeyParams,
+            ),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"admin_api_key_auth": True},
+            ),
+            cast_to=ServiceAccountCreateAPIKeyResponse,
+        )
+
 
 class AsyncServiceAccounts(AsyncAPIResource):
-    @cached_property
-    def api_keys(self) -> AsyncAPIKeys:
-        return AsyncAPIKeys(self._client)
-
     @cached_property
     def with_raw_response(self) -> AsyncServiceAccountsWithRawResponse:
         """
@@ -594,6 +643,67 @@ class AsyncServiceAccounts(AsyncAPIResource):
             cast_to=ServiceAccountDeleteResponse,
         )
 
+    async def create_api_key(
+        self,
+        service_account_id: str,
+        *,
+        project_id: str,
+        name: str | Omit = omit,
+        scopes: SequenceNotStr[str] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> ServiceAccountCreateAPIKeyResponse:
+        """
+        Creates an API key for a service account in the project.
+
+        Args:
+          project_id: The ID of the project.
+
+          service_account_id: The ID of the service account.
+
+          name: API key name.
+
+          scopes: API key scopes.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not project_id:
+            raise ValueError(f"Expected a non-empty value for `project_id` but received {project_id!r}")
+        if not service_account_id:
+            raise ValueError(f"Expected a non-empty value for `service_account_id` but received {service_account_id!r}")
+        return await self._post(
+            path_template(
+                "/organization/projects/{project_id}/service_accounts/{service_account_id}/api_keys",
+                project_id=project_id,
+                service_account_id=service_account_id,
+            ),
+            body=await async_maybe_transform(
+                {
+                    "name": name,
+                    "scopes": scopes,
+                },
+                service_account_create_api_key_params.ServiceAccountCreateAPIKeyParams,
+            ),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"admin_api_key_auth": True},
+            ),
+            cast_to=ServiceAccountCreateAPIKeyResponse,
+        )
+
 
 class ServiceAccountsWithRawResponse:
     def __init__(self, service_accounts: ServiceAccounts) -> None:
@@ -614,10 +724,9 @@ class ServiceAccountsWithRawResponse:
         self.delete = _legacy_response.to_raw_response_wrapper(
             service_accounts.delete,
         )
-
-    @cached_property
-    def api_keys(self) -> APIKeysWithRawResponse:
-        return APIKeysWithRawResponse(self._service_accounts.api_keys)
+        self.create_api_key = _legacy_response.to_raw_response_wrapper(
+            service_accounts.create_api_key,
+        )
 
 
 class AsyncServiceAccountsWithRawResponse:
@@ -639,10 +748,9 @@ class AsyncServiceAccountsWithRawResponse:
         self.delete = _legacy_response.async_to_raw_response_wrapper(
             service_accounts.delete,
         )
-
-    @cached_property
-    def api_keys(self) -> AsyncAPIKeysWithRawResponse:
-        return AsyncAPIKeysWithRawResponse(self._service_accounts.api_keys)
+        self.create_api_key = _legacy_response.async_to_raw_response_wrapper(
+            service_accounts.create_api_key,
+        )
 
 
 class ServiceAccountsWithStreamingResponse:
@@ -664,10 +772,9 @@ class ServiceAccountsWithStreamingResponse:
         self.delete = to_streamed_response_wrapper(
             service_accounts.delete,
         )
-
-    @cached_property
-    def api_keys(self) -> APIKeysWithStreamingResponse:
-        return APIKeysWithStreamingResponse(self._service_accounts.api_keys)
+        self.create_api_key = to_streamed_response_wrapper(
+            service_accounts.create_api_key,
+        )
 
 
 class AsyncServiceAccountsWithStreamingResponse:
@@ -689,7 +796,6 @@ class AsyncServiceAccountsWithStreamingResponse:
         self.delete = async_to_streamed_response_wrapper(
             service_accounts.delete,
         )
-
-    @cached_property
-    def api_keys(self) -> AsyncAPIKeysWithStreamingResponse:
-        return AsyncAPIKeysWithStreamingResponse(self._service_accounts.api_keys)
+        self.create_api_key = async_to_streamed_response_wrapper(
+            service_accounts.create_api_key,
+        )

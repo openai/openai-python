@@ -4,13 +4,14 @@ from __future__ import annotations
 
 from typing_extensions import Required, TypedDict
 
-from ......_types import SequenceNotStr
+from ....._types import SequenceNotStr
 
-__all__ = ["APIKeyCreateParams"]
+__all__ = ["ServiceAccountCreateAPIKeyParams"]
 
 
-class APIKeyCreateParams(TypedDict, total=False):
+class ServiceAccountCreateAPIKeyParams(TypedDict, total=False):
     project_id: Required[str]
+    """The ID of the project."""
 
     name: str
     """API key name."""
