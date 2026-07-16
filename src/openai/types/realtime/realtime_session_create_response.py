@@ -316,6 +316,9 @@ class ToolMcpTool(BaseModel):
     type: Literal["mcp"]
     """The type of the MCP tool. Always `mcp`."""
 
+    allowed_callers: Optional[List[Literal["direct", "programmatic"]]] = None
+    """The tool invocation context(s)."""
+
     allowed_tools: Optional[ToolMcpToolAllowedTools] = None
     """List of allowed tool names or a filter object."""
 
@@ -340,8 +343,8 @@ class ToolMcpTool(BaseModel):
     ] = None
     """Identifier for service connectors, like those available in ChatGPT.
 
-    One of `server_url` or `connector_id` must be provided. Learn more about service
-    connectors
+    One of `server_url`, `connector_id`, or `tunnel_id` must be provided. Learn more
+    about service connectors
     [here](https://platform.openai.com/docs/guides/tools-remote-mcp#connectors).
 
     Currently supported `connector_id` values are:
@@ -374,7 +377,13 @@ class ToolMcpTool(BaseModel):
     server_url: Optional[str] = None
     """The URL for the MCP server.
 
-    One of `server_url` or `connector_id` must be provided.
+    One of `server_url`, `connector_id`, or `tunnel_id` must be provided.
+    """
+
+    tunnel_id: Optional[str] = None
+    """The Secure MCP Tunnel ID to use instead of a direct server URL.
+
+    One of `server_url`, `connector_id`, or `tunnel_id` must be provided.
     """
 
 
@@ -460,6 +469,8 @@ class RealtimeSessionCreateResponse(BaseModel):
             "gpt-realtime",
             "gpt-realtime-1.5",
             "gpt-realtime-2",
+            "gpt-realtime-2.1",
+            "gpt-realtime-2.1-mini",
             "gpt-realtime-2025-08-28",
             "gpt-4o-realtime-preview",
             "gpt-4o-realtime-preview-2024-10-01",

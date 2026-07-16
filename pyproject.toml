@@ -1,6 +1,6 @@
 [project]
 name = "openai"
-version = "2.41.1"
+version = "2.45.0"
 description = "The official Python library for the openai API"
 dynamic = ["readme"]
 license = "Apache-2.0"
@@ -11,7 +11,7 @@ authors = [
 dependencies = [
   "httpx>=0.23.0, <1",
   "pydantic>=1.9.0, <3",
-    "typing-extensions>=4.11, <5", "typing-extensions>=4.14, <5",
+  "typing-extensions>=4.14, <5",
   "anyio>=3.5.0, <5",
   "distro>=1.7.0, <2",
   "sniffio",
@@ -47,6 +47,10 @@ aiohttp = ["aiohttp", "httpx_aiohttp>=0.1.9"]
 realtime = ["websockets >= 13, < 16"]
 datalib = ["numpy >= 1", "pandas >= 1.2.3", "pandas-stubs >= 1.1.0.11"]
 voice_helpers = ["sounddevice>=0.5.1", "numpy>=2.0.2"]
+bedrock = [
+  "botocore>=1.40.0,<1.43; python_version < '3.10'",
+  "botocore>=1.40.0,<2; python_version >= '3.10'",
+]
 
 [tool.rye]
 managed = true
@@ -57,6 +61,7 @@ dev-dependencies = [
     "respx",
     "pytest",
     "pytest-asyncio",
+    "jsonschema>=4.23.0",
     "ruff",
     "time-machine",
     "nox",
@@ -65,6 +70,7 @@ dev-dependencies = [
     "rich>=13.7.1",
     "inline-snapshot>=0.28.0",
     "azure-identity >=1.14.1",
+    "botocore==1.42.97",
     "types-tqdm > 4",
     "types-pyaudio > 0",
     "trio >=0.22.2",

@@ -105,6 +105,8 @@ def parse_response(
             or output.type == "tool_search_output"
             or output.type == "additional_tools"
             or output.type == "reasoning"
+            or output.type == "program"
+            or output.type == "program_output"
             or output.type == "compaction"
             or output.type == "mcp_call"
             or output.type == "mcp_approval_request"

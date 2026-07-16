@@ -5,7 +5,17 @@ from typing_extensions import Literal
 
 from ..._models import BaseModel
 
-__all__ = ["ComputerScreenshotContent"]
+__all__ = ["ComputerScreenshotContent", "PromptCacheBreakpoint"]
+
+
+class PromptCacheBreakpoint(BaseModel):
+    """Marks the exact end of a reusable prompt prefix.
+
+    The breakpoint inherits its TTL from the request's `prompt_cache_options.ttl`; the boundary is not rounded to a token block.
+    """
+
+    mode: Literal["explicit"]
+    """The breakpoint mode. Always `explicit`."""
 
 
 class ComputerScreenshotContent(BaseModel):
@@ -27,4 +37,11 @@ class ComputerScreenshotContent(BaseModel):
     """Specifies the event type.
 
     For a computer screenshot, this property is always set to `computer_screenshot`.
+    """
+
+    prompt_cache_breakpoint: Optional[PromptCacheBreakpoint] = None
+    """Marks the exact end of a reusable prompt prefix.
+
+    The breakpoint inherits its TTL from the request's `prompt_cache_options.ttl`;
+    the boundary is not rounded to a token block.
     """

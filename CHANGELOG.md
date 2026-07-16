@@ -1,5 +1,55 @@
 # Changelog
 
+## 2.45.0 (2026-07-09)
+
+Full Changelog: [v2.44.0...v2.45.0](https://github.com/openai/openai-python/compare/v2.44.0...v2.45.0)
+
+### Features
+
+* **api:** gpt-5.6-sol updates ([039d1fe](https://github.com/openai/openai-python/commit/039d1feb264a2dca7195ba5028e9fb47a5e04987))
+
+
+### Bug Fixes
+
+* **api:** restore beta resource accessors ([2dfc130](https://github.com/openai/openai-python/commit/2dfc130b8f0fdb0049e075aac21aaef29482b4e3))
+
+
+### Chores
+
+* retrigger release automation ([7b61351](https://github.com/openai/openai-python/commit/7b61351b014bb6ca4623ff6cce7f32f45038a92e))
+
+## 2.44.0 (2026-06-24)
+
+Full Changelog: [v2.43.0...v2.44.0](https://github.com/openai/openai-python/compare/v2.43.0...v2.44.0)
+
+### Bug Fixes
+
+* **auth:** prioritize first auth header ([797e336](https://github.com/openai/openai-python/commit/797e3362e222ae14e587a4543b76a54d8992d66c))
+
+## 2.43.0 (2026-06-17)
+
+Full Changelog: [v2.42.0...v2.43.0](https://github.com/openai/openai-python/compare/v2.42.0...v2.43.0)
+
+### Features
+
+* **api:** update OpenAPI spec or Stainless config ([2254235](https://github.com/openai/openai-python/commit/22542358490ef8f31f0d373e17f7b791b3d983ca))
+
+## 2.42.0 (2026-06-16)
+
+Full Changelog: [v2.41.1...v2.42.0](https://github.com/openai/openai-python/compare/v2.41.1...v2.42.0)
+
+### Features
+
+* **api:** admin spend_alerts ([6134198](https://github.com/openai/openai-python/commit/6134198a488996c4ff6fca4551afd55fb3294fdc))
+* **api:** manual updates ([f337bf4](https://github.com/openai/openai-python/commit/f337bf43276c880d2daf09a5d7f9fc9a886c4bf2))
+* **api:** update OpenAPI spec or Stainless config ([7015158](https://github.com/openai/openai-python/commit/7015158c3119acf57af6c20903587cef928530a9))
+
+
+### Build System
+
+* fix release workflow permissions ([#3389](https://github.com/openai/openai-python/issues/3389)) ([a526ee8](https://github.com/openai/openai-python/commit/a526ee813f085318fe3c6923ac3fa10c1cf56420))
+* Use CI environment for examples API key ([#3394](https://github.com/openai/openai-python/issues/3394)) ([d64d811](https://github.com/openai/openai-python/commit/d64d811e82aff724397e32d593e50657fee3f905))
+
 ## 2.41.1 (2026-06-05)
 
 Full Changelog: [v2.41.0...v2.41.1](https://github.com/openai/openai-python/compare/v2.41.0...v2.41.1)

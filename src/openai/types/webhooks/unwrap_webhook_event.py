@@ -19,6 +19,7 @@ from .fine_tuning_job_failed_webhook_event import FineTuningJobFailedWebhookEven
 from .realtime_call_incoming_webhook_event import RealtimeCallIncomingWebhookEvent
 from .fine_tuning_job_cancelled_webhook_event import FineTuningJobCancelledWebhookEvent
 from .fine_tuning_job_succeeded_webhook_event import FineTuningJobSucceededWebhookEvent
+from .safety_identifier_blocked_webhook_event import SafetyIdentifierBlockedWebhookEvent
 
 __all__ = ["UnwrapWebhookEvent"]
 
@@ -39,6 +40,7 @@ UnwrapWebhookEvent: TypeAlias = Annotated[
         ResponseCompletedWebhookEvent,
         ResponseFailedWebhookEvent,
         ResponseIncompleteWebhookEvent,
+        SafetyIdentifierBlockedWebhookEvent,
     ],
     PropertyInfo(discriminator="type"),
 ]
