@@ -106,7 +106,11 @@ class Stream(Generic[_T]):
                         response=response,
                     )
         finally:
-            # Ensure the response is closed even if the consumer doesn't read all data
+            # Ensure the underlying connection can be cleanly returned to the pool
+            # by consuming any remaining bytes (e.g. the HTTP/1.1 chunked terminator)
+            # before closing the response.
+            for _ in iterator:
+                pass
             response.close()
 
     def __enter__(self) -> Self:
@@ -216,7 +220,11 @@ class AsyncStream(Generic[_T]):
                         response=response,
                     )
         finally:
-            # Ensure the response is closed even if the consumer doesn't read all data
+            # Ensure the underlying connection can be cleanly returned to the pool
+            # by consuming any remaining bytes (e.g. the HTTP/1.1 chunked terminator)
+            # before closing the response.
+            async for _ in iterator:
+                pass
             await response.aclose()
 
     async def __aenter__(self) -> Self:
