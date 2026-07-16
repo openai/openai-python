@@ -249,7 +249,9 @@ class OpenAI(SyncAPIClient):
             base_url = provider_runtime.base_url
         elif base_url is None:
             base_url = os.environ.get("OPENAI_BASE_URL")
-        if base_url is None:
+        # Treat empty string same as None to allow fallback to default
+        # Fixes #2927: export OPENAI_BASE_URL="" should not prevent default URL
+        if not base_url:
             base_url = f"https://api.openai.com/v1"
 
         custom_headers_env = os.environ.get("OPENAI_CUSTOM_HEADERS") if provider_runtime is None else None
@@ -845,7 +847,9 @@ class AsyncOpenAI(AsyncAPIClient):
             base_url = provider_runtime.base_url
         elif base_url is None:
             base_url = os.environ.get("OPENAI_BASE_URL")
-        if base_url is None:
+        # Treat empty string same as None to allow fallback to default
+        # Fixes #2927: export OPENAI_BASE_URL="" should not prevent default URL
+        if not base_url:
             base_url = f"https://api.openai.com/v1"
 
         custom_headers_env = os.environ.get("OPENAI_CUSTOM_HEADERS") if provider_runtime is None else None
