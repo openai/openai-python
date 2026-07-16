@@ -6,13 +6,20 @@ from ..._utils import is_dict, is_list
 def accumulate_delta(acc: dict[object, object], delta: dict[object, object]) -> dict[object, object]:
     for key, delta_value in delta.items():
         if key not in acc:
-            acc[key] = delta_value
-            continue
+            if is_list(delta_value):
+                acc_value = []
+            else:
+                acc[key] = delta_value
+                continue
 
-        acc_value = acc[key]
-        if acc_value is None:
-            acc[key] = delta_value
-            continue
+        else:
+            acc_value = acc[key]
+            if acc_value is None:
+                if is_list(delta_value):
+                    acc_value = []
+                else:
+                    acc[key] = delta_value
+                    continue
 
         # the `index` property is used in arrays of objects so it should
         # not be accumulated like other values e.g.
@@ -33,8 +40,11 @@ def accumulate_delta(acc: dict[object, object], delta: dict[object, object]) -> 
         elif is_list(acc_value) and is_list(delta_value):
             # for lists of non-dictionary items we'll only ever get new entries
             # in the array, existing entries will never be changed
-            if all(isinstance(x, (str, int, float)) for x in acc_value):
+            if all(isinstance(x, (str, int, float)) for x in acc_value) and all(
+                isinstance(x, (str, int, float)) for x in delta_value
+            ):
                 acc_value.extend(delta_value)
+                acc[key] = acc_value
                 continue
 
             for delta_entry in delta_value:
