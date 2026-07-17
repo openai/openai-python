@@ -1426,28 +1426,29 @@ class _DefaultAsyncHttpxClient(httpx.AsyncClient):
         super().__init__(**kwargs)
 
 
-try:
-    if sys.version_info < (3, 10):
-        raise ImportError
-
-    import httpx_aiohttp
-except ImportError:
-
+if sys.version_info < (3, 10):
     class _DefaultAioHttpClient(httpx.AsyncClient):
         def __init__(self, **_kwargs: Any) -> None:
-            if sys.version_info < (3, 10):
-                raise RuntimeError("The aiohttp client requires Python 3.10 or later")
-
-            raise RuntimeError("To use the aiohttp client you must have installed the package with the `aiohttp` extra")
+            raise RuntimeError("The aiohttp client requires Python 3.10 or later")
 else:
+    try:
+        import httpx_aiohttp
+    except ImportError:
 
-    class _DefaultAioHttpClient(httpx_aiohttp.HttpxAiohttpClient):  # type: ignore
-        def __init__(self, **kwargs: Any) -> None:
-            kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
-            kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
-            kwargs.setdefault("follow_redirects", True)
+        class _DefaultAioHttpClient(httpx.AsyncClient):
+            def __init__(self, **_kwargs: Any) -> None:
+                raise RuntimeError(
+                    "To use the aiohttp client you must have installed the package with the `aiohttp` extra"
+                )
+    else:
 
-            super().__init__(**kwargs)
+        class _DefaultAioHttpClient(httpx_aiohttp.HttpxAiohttpClient):  # type: ignore
+            def __init__(self, **kwargs: Any) -> None:
+                kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
+                kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
+                kwargs.setdefault("follow_redirects", True)
+
+                super().__init__(**kwargs)
 
 
 if TYPE_CHECKING:
