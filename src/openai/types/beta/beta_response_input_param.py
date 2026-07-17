@@ -53,9 +53,6 @@ __all__ = [
     "MultiAgentCallOutputOutputAnnotationFileCitation",
     "MultiAgentCallOutputOutputAnnotationURLCitation",
     "MultiAgentCallOutputOutputAnnotationContainerFileCitation",
-    "MultiAgentCallOutputOutputAnnotationsUnionMember0",
-    "MultiAgentCallOutputOutputAnnotationsUnionMember1",
-    "MultiAgentCallOutputOutputAnnotationsUnionMember2",
     "MultiAgentCallOutputAgent",
     "ToolSearchCall",
     "ToolSearchCallAgent",
@@ -389,20 +386,6 @@ MultiAgentCallOutputOutputAnnotation: TypeAlias = Union[
     MultiAgentCallOutputOutputAnnotationURLCitation,
     MultiAgentCallOutputOutputAnnotationContainerFileCitation,
 ]
-
-
-# Backwards-compatible aliases for names generated before the annotation schemas
-# received explicit names.
-class MultiAgentCallOutputOutputAnnotationsUnionMember0(MultiAgentCallOutputOutputAnnotationFileCitation):
-    pass
-
-
-class MultiAgentCallOutputOutputAnnotationsUnionMember1(MultiAgentCallOutputOutputAnnotationURLCitation):
-    pass
-
-
-class MultiAgentCallOutputOutputAnnotationsUnionMember2(MultiAgentCallOutputOutputAnnotationContainerFileCitation):
-    pass
 
 
 class MultiAgentCallOutputOutput(TypedDict, total=False):
