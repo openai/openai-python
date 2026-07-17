@@ -88,6 +88,18 @@ from ._exceptions import (
     APIResponseValidationError,
 )
 from ._utils._json import openapi_dumps
+from ._httpx2_compat import (
+    HTTP_STATUS_ERRORS,
+    TIMEOUT_EXCEPTIONS,
+    HTTPX2_DEFAULT_TIMEOUT,
+    SYNC_HTTP_CLIENT_NAMES,
+    SYNC_HTTP_CLIENT_TYPES,
+    ASYNC_HTTP_CLIENT_NAMES,
+    ASYNC_HTTP_CLIENT_TYPES,
+    DefaultHttpx2Client as DefaultHttpx2Client,
+    DefaultAsyncHttpx2Client as DefaultAsyncHttpx2Client,
+    coerce_httpx2_request_url,
+)
 from ._legacy_response import LegacyAPIResponse
 
 log: logging.Logger = logging.getLogger(__name__)
@@ -594,7 +606,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
             headers=headers,
             timeout=self.timeout if isinstance(options.timeout, NotGiven) else options.timeout,
             method=options.method,
-            url=prepared_url,
+            url=coerce_httpx2_request_url(self._client, prepared_url),
             # the `Query` type that we use is incompatible with qs'
             # `Params` type as it needs to be typed as `Mapping[str, object]`
             # so that passing a `TypedDict` doesn't cause an error.
@@ -886,14 +898,20 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
             # where they've explicitly set the timeout to match the default timeout
             # as this check is structural, meaning that we'll think they didn't
             # pass in a timeout and will ignore it
-            if http_client and http_client.timeout != HTTPX_DEFAULT_TIMEOUT:
+            if (
+                http_client
+                and http_client.timeout != HTTPX_DEFAULT_TIMEOUT
+                # a bare httpx2 client reports httpx2's own default (5s), which is `!=` the
+                # classic default across the class boundary; treat it as "not customised" too
+                and http_client.timeout != HTTPX2_DEFAULT_TIMEOUT
+            ):
                 timeout = http_client.timeout
             else:
                 timeout = DEFAULT_TIMEOUT
 
-        if http_client is not None and not isinstance(http_client, httpx.Client):  # pyright: ignore[reportUnnecessaryIsInstance]
+        if http_client is not None and not isinstance(http_client, SYNC_HTTP_CLIENT_TYPES):  # pyright: ignore[reportUnnecessaryIsInstance]
             raise TypeError(
-                f"Invalid `http_client` argument; Expected an instance of `httpx.Client` but got {type(http_client)}"
+                f"Invalid `http_client` argument; Expected an instance of {SYNC_HTTP_CLIENT_NAMES} but got {type(http_client)}"
             )
 
         super().__init__(
@@ -1039,7 +1057,7 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
                     stream=stream or self._should_stream_response_body(request=request),
                     **kwargs,
                 )
-            except httpx.TimeoutException as err:
+            except TIMEOUT_EXCEPTIONS as err:
                 log.debug("Encountered httpx.TimeoutException", exc_info=True)
 
                 if remaining_retries > 0:
@@ -1083,7 +1101,7 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
 
             try:
                 response.raise_for_status()
-            except httpx.HTTPStatusError as err:  # thrown on 4xx and 5xx status code
+            except HTTP_STATUS_ERRORS as err:  # thrown on 4xx and 5xx status code
                 log.debug("Encountered httpx.HTTPStatusError", exc_info=True)
 
                 if remaining_retries > 0 and self._should_retry(err.response):
@@ -1496,14 +1514,20 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
             # where they've explicitly set the timeout to match the default timeout
             # as this check is structural, meaning that we'll think they didn't
             # pass in a timeout and will ignore it
-            if http_client and http_client.timeout != HTTPX_DEFAULT_TIMEOUT:
+            if (
+                http_client
+                and http_client.timeout != HTTPX_DEFAULT_TIMEOUT
+                # a bare httpx2 client reports httpx2's own default (5s), which is `!=` the
+                # classic default across the class boundary; treat it as "not customised" too
+                and http_client.timeout != HTTPX2_DEFAULT_TIMEOUT
+            ):
                 timeout = http_client.timeout
             else:
                 timeout = DEFAULT_TIMEOUT
 
-        if http_client is not None and not isinstance(http_client, httpx.AsyncClient):  # pyright: ignore[reportUnnecessaryIsInstance]
+        if http_client is not None and not isinstance(http_client, ASYNC_HTTP_CLIENT_TYPES):  # pyright: ignore[reportUnnecessaryIsInstance]
             raise TypeError(
-                f"Invalid `http_client` argument; Expected an instance of `httpx.AsyncClient` but got {type(http_client)}"
+                f"Invalid `http_client` argument; Expected an instance of {ASYNC_HTTP_CLIENT_NAMES} but got {type(http_client)}"
             )
 
         super().__init__(
@@ -1650,7 +1674,7 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
                     stream=stream or self._should_stream_response_body(request=request),
                     **kwargs,
                 )
-            except httpx.TimeoutException as err:
+            except TIMEOUT_EXCEPTIONS as err:
                 log.debug("Encountered httpx.TimeoutException", exc_info=True)
 
                 if remaining_retries > 0:
@@ -1694,7 +1718,7 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
 
             try:
                 response.raise_for_status()
-            except httpx.HTTPStatusError as err:  # thrown on 4xx and 5xx status code
+            except HTTP_STATUS_ERRORS as err:  # thrown on 4xx and 5xx status code
                 log.debug("Encountered httpx.HTTPStatusError", exc_info=True)
 
                 if remaining_retries > 0 and self._should_retry(err.response):

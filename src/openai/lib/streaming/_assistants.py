@@ -5,13 +5,12 @@ from types import TracebackType
 from typing import TYPE_CHECKING, Any, Generic, TypeVar, Callable, Iterable, Iterator, cast
 from typing_extensions import Awaitable, AsyncIterable, AsyncIterator, assert_never
 
-import httpx
-
 from ..._utils import is_dict, is_list, consume_sync_iterator, consume_async_iterator
 from ..._compat import model_dump
 from ..._models import construct_type
 from ..._streaming import Stream, AsyncStream
 from ...types.beta import AssistantStreamEvent
+from ..._httpx2_compat import TIMEOUT_EXCEPTIONS
 from ...types.beta.threads import (
     Run,
     Text,
@@ -23,6 +22,10 @@ from ...types.beta.threads import (
     MessageContentDelta,
 )
 from ...types.beta.threads.runs import RunStep, ToolCall, RunStepDelta, ToolCallDelta
+
+# httpx2's timeout exception is a distinct class from httpx's, so widen the catch to
+# cover both backends alongside asyncio's own timeout.
+_TIMEOUT_ERRORS: tuple[type[Exception], ...] = (*TIMEOUT_EXCEPTIONS, asyncio.TimeoutError)
 
 
 class AssistantEventHandler:
@@ -407,7 +410,7 @@ class AssistantEventHandler:
                 self._emit_sse_event(event)
 
                 yield event
-        except (httpx.TimeoutException, asyncio.TimeoutError) as exc:
+        except _TIMEOUT_ERRORS as exc:
             self.on_timeout()
             self.on_exception(exc)
             raise
@@ -839,7 +842,7 @@ class AsyncAssistantEventHandler:
                 await self._emit_sse_event(event)
 
                 yield event
-        except (httpx.TimeoutException, asyncio.TimeoutError) as exc:
+        except _TIMEOUT_ERRORS as exc:
             await self.on_timeout()
             await self.on_exception(exc)
             raise

@@ -6,6 +6,7 @@ from ._utils import is_dict
 
 logger: logging.Logger = logging.getLogger("openai")
 httpx_logger: logging.Logger = logging.getLogger("httpx")
+httpx2_logger: logging.Logger = logging.getLogger("httpx2")
 
 
 SENSITIVE_HEADERS = {"api-key", "authorization", "x-amz-security-token"}
@@ -25,10 +26,12 @@ def setup_logging() -> None:
         _basic_config()
         logger.setLevel(logging.DEBUG)
         httpx_logger.setLevel(logging.DEBUG)
+        httpx2_logger.setLevel(logging.DEBUG)
     elif env == "info":
         _basic_config()
         logger.setLevel(logging.INFO)
         httpx_logger.setLevel(logging.INFO)
+        httpx2_logger.setLevel(logging.INFO)
 
 
 class SensitiveHeadersFilter(logging.Filter):
