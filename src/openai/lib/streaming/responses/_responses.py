@@ -12,13 +12,14 @@ from ._events import (
     ResponseCompletedEvent,
     ResponseTextDeltaEvent,
     ResponseFunctionCallArgumentsDeltaEvent,
+    ResponseFunctionCallArgumentsDoneEvent,
 )
 from ...._types import Omit, omit
 from ...._utils import is_given, consume_sync_iterator, consume_async_iterator
 from ...._models import build, construct_type_unchecked
 from ...._streaming import Stream, AsyncStream
 from ....types.responses import ParsedResponse, ResponseStreamEvent as RawResponseStreamEvent
-from ..._parsing._responses import TextFormatT, parse_text, parse_response
+from ..._parsing._responses import TextFormatT, parse_text, parse_response, parse_function_tool_arguments
 from ....types.responses.tool_param import ToolParam
 from ....types.responses.parsed_response import (
     ParsedContent,
@@ -302,6 +303,30 @@ class ResponseStreamState(Generic[TextFormatT]):
                     sequence_number=event.sequence_number,
                     type="response.function_call_arguments.delta",
                     snapshot=output.arguments,
+                )
+            )
+
+        elif event.type == "response.function_call_arguments.done":
+            output = snapshot.output[event.output_index]
+            assert output.type == "function_call"
+            
+            # Parse arguments using input_tools
+            parsed_arguments = parse_function_tool_arguments(
+                input_tools=self._input_tools,
+                function_call=output
+            )
+            output.parsed_arguments = parsed_arguments
+            
+            # Emit event with name from accumulated snapshot
+            events.append(
+                build(
+                    ResponseFunctionCallArgumentsDoneEvent,
+                    arguments=event.arguments,  # Use event as source of truth
+                    item_id=event.item_id,
+                    name=output.name,  # FROM SNAPSHOT, not raw event
+                    output_index=event.output_index,
+                    sequence_number=event.sequence_number,
+                    type="response.function_call_arguments.done",
                 )
             )
 
