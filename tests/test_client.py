@@ -1292,6 +1292,18 @@ class TestOpenAI:
         assert len(mounts) == 1
         assert mounts[0][0].pattern == "https://"
 
+    def test_no_proxy_with_newlines(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setenv("NO_PROXY", "localhost\n127.0.0.1\n")
+        monkeypatch.delenv("no_proxy", raising=False)
+        client = DefaultHttpxClient()
+        assert client is not None
+
+    def test_no_proxy_lowercase_with_newlines(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setenv("no_proxy", "localhost\n127.0.0.1\n")
+        monkeypatch.delenv("NO_PROXY", raising=False)
+        client = DefaultHttpxClient()
+        assert client is not None
+
     @pytest.mark.filterwarnings("ignore:.*deprecated.*:DeprecationWarning")
     def test_default_client_creation(self) -> None:
         # Ensure that the client can be initialized without any exceptions
@@ -2551,6 +2563,18 @@ class TestAsyncOpenAI:
         mounts = tuple(client._mounts.items())
         assert len(mounts) == 1
         assert mounts[0][0].pattern == "https://"
+
+    async def test_no_proxy_with_newlines(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setenv("NO_PROXY", "localhost\n127.0.0.1\n")
+        monkeypatch.delenv("no_proxy", raising=False)
+        client = DefaultAsyncHttpxClient()
+        assert client is not None
+
+    async def test_no_proxy_lowercase_with_newlines(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setenv("no_proxy", "localhost\n127.0.0.1\n")
+        monkeypatch.delenv("NO_PROXY", raising=False)
+        client = DefaultAsyncHttpxClient()
+        assert client is not None
 
     @pytest.mark.filterwarnings("ignore:.*deprecated.*:DeprecationWarning")
     async def test_default_client_creation(self) -> None:
