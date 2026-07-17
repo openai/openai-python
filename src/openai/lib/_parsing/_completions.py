@@ -124,13 +124,13 @@ def parse_chat_completion(
                         )
                     )
                 elif tool_call.type == "custom":
-                    # warn user that custom tool calls are not callable here
-                    log.warning(
-                        "Custom tool calls are not callable. Ignoring tool call: %s - %s",
-                        tool_call.id,
-                        tool_call.custom.name,
-                        stacklevel=2,
-                    )
+                    # `.parse()` doesn't attach `parsed_arguments` to custom tool calls
+                    # (there's no schema to parse their free-form input against), but the
+                    # call must still be surfaced rather than dropped — the raw completion
+                    # includes it and callers rely on `tool_calls` reflecting every call
+                    # the model made. This mirrors the `else` branch below, which already
+                    # preserves any non-function tool call unchanged.
+                    tool_calls.append(tool_call)
                 elif TYPE_CHECKING:  # type: ignore[unreachable]
                     assert_never(tool_call)
                 else:
