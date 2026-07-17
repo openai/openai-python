@@ -14,7 +14,6 @@ from openai.types.admin.organization.projects import (
     ProjectServiceAccount,
     ServiceAccountCreateResponse,
     ServiceAccountDeleteResponse,
-    ServiceAccountCreateAPIKeyResponse,
 )
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
@@ -275,64 +274,6 @@ class TestServiceAccounts:
                 project_id="project_id",
             )
 
-    @parametrize
-    def test_method_create_api_key(self, client: OpenAI) -> None:
-        service_account = client.admin.organization.projects.service_accounts.create_api_key(
-            service_account_id="service_account_id",
-            project_id="project_id",
-        )
-        assert_matches_type(ServiceAccountCreateAPIKeyResponse, service_account, path=["response"])
-
-    @parametrize
-    def test_method_create_api_key_with_all_params(self, client: OpenAI) -> None:
-        service_account = client.admin.organization.projects.service_accounts.create_api_key(
-            service_account_id="service_account_id",
-            project_id="project_id",
-            name="name",
-            scopes=["string"],
-        )
-        assert_matches_type(ServiceAccountCreateAPIKeyResponse, service_account, path=["response"])
-
-    @parametrize
-    def test_raw_response_create_api_key(self, client: OpenAI) -> None:
-        response = client.admin.organization.projects.service_accounts.with_raw_response.create_api_key(
-            service_account_id="service_account_id",
-            project_id="project_id",
-        )
-
-        assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
-        service_account = response.parse()
-        assert_matches_type(ServiceAccountCreateAPIKeyResponse, service_account, path=["response"])
-
-    @parametrize
-    def test_streaming_response_create_api_key(self, client: OpenAI) -> None:
-        with client.admin.organization.projects.service_accounts.with_streaming_response.create_api_key(
-            service_account_id="service_account_id",
-            project_id="project_id",
-        ) as response:
-            assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
-
-            service_account = response.parse()
-            assert_matches_type(ServiceAccountCreateAPIKeyResponse, service_account, path=["response"])
-
-        assert cast(Any, response.is_closed) is True
-
-    @parametrize
-    def test_path_params_create_api_key(self, client: OpenAI) -> None:
-        with pytest.raises(ValueError, match=r"Expected a non-empty value for `project_id` but received ''"):
-            client.admin.organization.projects.service_accounts.with_raw_response.create_api_key(
-                service_account_id="service_account_id",
-                project_id="",
-            )
-
-        with pytest.raises(ValueError, match=r"Expected a non-empty value for `service_account_id` but received ''"):
-            client.admin.organization.projects.service_accounts.with_raw_response.create_api_key(
-                service_account_id="",
-                project_id="project_id",
-            )
-
 
 class TestAsyncServiceAccounts:
     parametrize = pytest.mark.parametrize(
@@ -587,64 +528,6 @@ class TestAsyncServiceAccounts:
 
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `service_account_id` but received ''"):
             await async_client.admin.organization.projects.service_accounts.with_raw_response.delete(
-                service_account_id="",
-                project_id="project_id",
-            )
-
-    @parametrize
-    async def test_method_create_api_key(self, async_client: AsyncOpenAI) -> None:
-        service_account = await async_client.admin.organization.projects.service_accounts.create_api_key(
-            service_account_id="service_account_id",
-            project_id="project_id",
-        )
-        assert_matches_type(ServiceAccountCreateAPIKeyResponse, service_account, path=["response"])
-
-    @parametrize
-    async def test_method_create_api_key_with_all_params(self, async_client: AsyncOpenAI) -> None:
-        service_account = await async_client.admin.organization.projects.service_accounts.create_api_key(
-            service_account_id="service_account_id",
-            project_id="project_id",
-            name="name",
-            scopes=["string"],
-        )
-        assert_matches_type(ServiceAccountCreateAPIKeyResponse, service_account, path=["response"])
-
-    @parametrize
-    async def test_raw_response_create_api_key(self, async_client: AsyncOpenAI) -> None:
-        response = await async_client.admin.organization.projects.service_accounts.with_raw_response.create_api_key(
-            service_account_id="service_account_id",
-            project_id="project_id",
-        )
-
-        assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
-        service_account = response.parse()
-        assert_matches_type(ServiceAccountCreateAPIKeyResponse, service_account, path=["response"])
-
-    @parametrize
-    async def test_streaming_response_create_api_key(self, async_client: AsyncOpenAI) -> None:
-        async with async_client.admin.organization.projects.service_accounts.with_streaming_response.create_api_key(
-            service_account_id="service_account_id",
-            project_id="project_id",
-        ) as response:
-            assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
-
-            service_account = await response.parse()
-            assert_matches_type(ServiceAccountCreateAPIKeyResponse, service_account, path=["response"])
-
-        assert cast(Any, response.is_closed) is True
-
-    @parametrize
-    async def test_path_params_create_api_key(self, async_client: AsyncOpenAI) -> None:
-        with pytest.raises(ValueError, match=r"Expected a non-empty value for `project_id` but received ''"):
-            await async_client.admin.organization.projects.service_accounts.with_raw_response.create_api_key(
-                service_account_id="service_account_id",
-                project_id="",
-            )
-
-        with pytest.raises(ValueError, match=r"Expected a non-empty value for `service_account_id` but received ''"):
-            await async_client.admin.organization.projects.service_accounts.with_raw_response.create_api_key(
                 service_account_id="",
                 project_id="project_id",
             )

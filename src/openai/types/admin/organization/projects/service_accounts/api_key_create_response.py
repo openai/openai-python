@@ -2,12 +2,12 @@
 
 from typing_extensions import Literal
 
-from ....._models import BaseModel
+from ......_models import BaseModel
 
-__all__ = ["ServiceAccountCreateAPIKeyResponse"]
+__all__ = ["APIKeyCreateResponse"]
 
 
-class ServiceAccountCreateAPIKeyResponse(BaseModel):
+class APIKeyCreateResponse(BaseModel):
     id: str
     """The identifier of the API key."""
 
