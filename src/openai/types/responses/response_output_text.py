@@ -28,7 +28,12 @@ class AnnotationFileCitation(BaseModel):
     """The filename of the file cited."""
 
     index: int
-    """The index of the file in the list of files."""
+    """The position index in the message text where the file citation appears.
+
+    This indicates the location (by character index) in the model’s output text
+    where the cited file is referenced. For example, if `index=25`, the citation
+    starts near the 25th character in the output message.
+    """
 
     type: Literal["file_citation"]
     """The type of the file citation. Always `file_citation`."""
@@ -82,14 +87,24 @@ class AnnotationFilePath(BaseModel):
     """The ID of the file."""
 
     index: int
-    """The index of the file in the list of files."""
+    """The position index in the message text where the file path reference appears.
+
+    This indicates where in the text the path citation begins.
+    For example, if `index=42`, the file path is referenced around the 42nd
+    character of the model output.
+    """
 
     type: Literal["file_path"]
     """The type of the file path. Always `file_path`."""
 
 
 Annotation: TypeAlias = Annotated[
-    Union[AnnotationFileCitation, AnnotationURLCitation, AnnotationContainerFileCitation, AnnotationFilePath],
+    Union[
+        AnnotationFileCitation,
+        AnnotationURLCitation,
+        AnnotationContainerFileCitation,
+        AnnotationFilePath,
+    ],
     PropertyInfo(discriminator="type"),
 ]
 
@@ -129,3 +144,4 @@ class ResponseOutputText(BaseModel):
     """The type of the output text. Always `output_text`."""
 
     logprobs: Optional[List[Logprob]] = None
+
