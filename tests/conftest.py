@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import sys
 import logging
 from typing import TYPE_CHECKING, Iterator, AsyncIterator
 
@@ -77,6 +78,9 @@ async def async_client(request: FixtureRequest) -> AsyncIterator[AsyncOpenAI]:
 
         http_client_type = param.get("http_client", "httpx")
         if http_client_type == "aiohttp":
+            if sys.version_info < (3, 10):
+                pytest.skip("the aiohttp client requires Python 3.10 or later")
+
             http_client = DefaultAioHttpClient()
     else:
         raise TypeError(f"Unexpected fixture parameter type {type(param)}, expected bool or dict")

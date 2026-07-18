@@ -10,13 +10,6 @@
 #   universal: false
 
 -e file:.
-aiohappyeyeballs==2.6.1
-    # via aiohttp
-aiohttp==3.13.3
-    # via httpx-aiohttp
-    # via openai
-aiosignal==1.4.0
-    # via aiohttp
 annotated-types==0.7.0
     # via pydantic
 anyio==4.12.1
@@ -26,10 +19,7 @@ argcomplete==3.6.3
     # via nox
 asttokens==3.0.1
     # via inline-snapshot
-async-timeout==5.0.1
-    # via aiohttp
 attrs==25.4.0
-    # via aiohttp
     # via jsonschema
     # via nox
     # via outcome
@@ -76,20 +66,14 @@ executing==2.2.1
     # via inline-snapshot
 filelock==3.19.1
     # via virtualenv
-frozenlist==1.8.0
-    # via aiohttp
-    # via aiosignal
 griffe==1.14.0
 h11==0.16.0
     # via httpcore
 httpcore==1.0.9
     # via httpx
 httpx==0.28.1
-    # via httpx-aiohttp
     # via openai
     # via respx
-httpx-aiohttp==0.1.12
-    # via openai
 humanize==4.13.0
     # via nox
 idna==3.11
@@ -97,7 +81,6 @@ idna==3.11
     # via httpx
     # via requests
     # via trio
-    # via yarl
 importlib-metadata==8.7.1
 iniconfig==2.1.0
     # via pytest
@@ -118,9 +101,6 @@ msal==1.34.0
     # via msal-extensions
 msal-extensions==1.3.1
     # via azure-identity
-multidict==6.7.0
-    # via aiohttp
-    # via yarl
 mypy==1.17.0
 mypy-extensions==1.1.0
     # via mypy
@@ -148,9 +128,6 @@ platformdirs==4.4.0
     # via virtualenv
 pluggy==1.6.0
     # via pytest
-propcache==0.4.1
-    # via aiohttp
-    # via yarl
 pycparser==2.23
     # via cffi
 pydantic==2.12.5
@@ -216,13 +193,11 @@ types-tqdm==4.67.0.20250809
 types-urllib3==1.26.25.14
     # via types-requests
 typing-extensions==4.15.0
-    # via aiosignal
     # via anyio
     # via azure-core
     # via azure-identity
     # via cryptography
     # via exceptiongroup
-    # via multidict
     # via mypy
     # via openai
     # via pydantic
@@ -243,7 +218,5 @@ virtualenv==20.35.4
     # via nox
 websockets==15.0.1
     # via openai
-yarl==1.22.0
-    # via aiohttp
 zipp==3.23.0
     # via importlib-metadata
