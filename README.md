@@ -246,6 +246,8 @@ Functionality between the synchronous and asynchronous clients is otherwise iden
 
 By default, the async client uses `httpx` for HTTP requests. However, for improved concurrency performance you may also use `aiohttp` as the HTTP backend.
 
+The `aiohttp` backend requires Python 3.10 or later.
+
 You can enable this by installing `aiohttp`:
 
 ```sh
