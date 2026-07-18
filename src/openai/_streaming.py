@@ -106,8 +106,17 @@ class Stream(Generic[_T]):
                         response=response,
                     )
         finally:
-            # Ensure the response is closed even if the consumer doesn't read all data
-            response.close()
+            # Drain remaining events from the iterator so that the underlying
+            # response.iter_bytes() is fully consumed, including the HTTP/1.1
+            # chunked transfer-encoding terminator (0\r\n\r\n). Without this,
+            # h11's their_state won't advance to DONE, causing httpcore to
+            # destroy the connection (TCP FIN) instead of returning it to the pool.
+            # See: https://github.com/openai/openai-python/issues/3440
+            try:
+                for _ in iterator:
+                    pass
+            finally:
+                response.close()
 
     def __enter__(self) -> Self:
         return self
@@ -216,8 +225,13 @@ class AsyncStream(Generic[_T]):
                         response=response,
                     )
         finally:
-            # Ensure the response is closed even if the consumer doesn't read all data
-            await response.aclose()
+            # Drain remaining events so the chunked terminator is consumed before close.
+            # See: https://github.com/openai/openai-python/issues/3440
+            try:
+                async for _ in iterator:
+                    pass
+            finally:
+                await response.aclose()
 
     async def __aenter__(self) -> Self:
         return self
