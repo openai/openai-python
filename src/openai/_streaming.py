@@ -57,10 +57,12 @@ class Stream(Generic[_T]):
         response = self.response
         process_data = self._client._process_response_data
         iterator = self._iter_events()
+        terminated = False
 
         try:
             for sse in iterator:
                 if sse.data.startswith("[DONE]"):
+                    terminated = True
                     break
 
                 # we have to special case the Assistants `thread.` events since we won't have an "event" key in the data
@@ -106,11 +108,16 @@ class Stream(Generic[_T]):
                         response=response,
                     )
         finally:
-            # Ensure the underlying connection can be cleanly returned to the pool
-            # by consuming any remaining bytes (e.g. the HTTP/1.1 chunked terminator)
-            # before closing the response.
-            for _ in iterator:
-                pass
+            # Only drain when the stream terminated normally, i.e. we observed the
+            # `[DONE]` event and just need to consume the few remaining bytes (e.g. the
+            # HTTP/1.1 chunked terminator) so the connection can be returned to the pool.
+            #
+            # On premature termination -- the caller breaking out of iteration, an error,
+            # or cancellation -- draining would block until the server finishes sending,
+            # so close the response instead.
+            if terminated:
+                for _ in iterator:
+                    pass
             response.close()
 
     def __enter__(self) -> Self:
@@ -171,10 +178,12 @@ class AsyncStream(Generic[_T]):
         response = self.response
         process_data = self._client._process_response_data
         iterator = self._iter_events()
+        terminated = False
 
         try:
             async for sse in iterator:
                 if sse.data.startswith("[DONE]"):
+                    terminated = True
                     break
 
                 # we have to special case the Assistants `thread.` events since we won't have an "event" key in the data
@@ -220,11 +229,16 @@ class AsyncStream(Generic[_T]):
                         response=response,
                     )
         finally:
-            # Ensure the underlying connection can be cleanly returned to the pool
-            # by consuming any remaining bytes (e.g. the HTTP/1.1 chunked terminator)
-            # before closing the response.
-            async for _ in iterator:
-                pass
+            # Only drain when the stream terminated normally, i.e. we observed the
+            # `[DONE]` event and just need to consume the few remaining bytes (e.g. the
+            # HTTP/1.1 chunked terminator) so the connection can be returned to the pool.
+            #
+            # On premature termination -- the caller breaking out of iteration, an error,
+            # or cancellation -- draining would block until the server finishes sending,
+            # so close the response instead.
+            if terminated:
+                async for _ in iterator:
+                    pass
             await response.aclose()
 
     async def __aenter__(self) -> Self:

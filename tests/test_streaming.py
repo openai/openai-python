@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Iterator, AsyncIterator
+from typing import Iterator, Generator, AsyncIterator, AsyncGenerator, cast
 
 import httpx
 import pytest
@@ -214,6 +214,97 @@ async def test_multi_byte_character_multiple_chunks(
     sse = await iter_next(iterator)
     assert sse.event is None
     assert sse.json() == {"content": "известни"}
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+async def test_drains_remaining_bytes_after_done(
+    sync: bool,
+    client: OpenAI,
+    async_client: AsyncOpenAI,
+) -> None:
+    """After a normal `[DONE]` termination the trailing bytes are consumed so that
+    the underlying connection can be returned to the pool."""
+    consumed: list[bytes] = []
+
+    def body() -> Iterator[bytes]:
+        for chunk in [b'data: {"foo":true}\n\n', b"data: [DONE]\n\n", b"\n"]:
+            consumed.append(chunk)
+            yield chunk
+
+    stream = make_stream(content=body(), sync=sync, client=client, async_client=async_client)
+
+    items = await iter_all(stream)
+    assert len(items) == 1
+
+    # the whole body, including the bytes trailing `[DONE]`, was drained
+    assert consumed == [b'data: {"foo":true}\n\n', b"data: [DONE]\n\n", b"\n"]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+async def test_does_not_drain_on_premature_termination(
+    sync: bool,
+    client: OpenAI,
+    async_client: AsyncOpenAI,
+) -> None:
+    """A caller that stops before `[DONE]` must not drain the rest of the stream.
+
+    Draining here would block until the server finished sending, which for a
+    long-running or stalled completion defeats the point of breaking out early.
+    """
+    trailing = 100
+    consumed: list[bytes] = []
+
+    def body() -> Iterator[bytes]:
+        for chunk in [b'data: {"foo":true}\n\n', *([b'data: {"bar":true}\n\n'] * trailing), b"data: [DONE]\n\n"]:
+            consumed.append(chunk)
+            yield chunk
+
+    stream = make_stream(content=body(), sync=sync, client=client, async_client=async_client)
+
+    # consume a single event, then abandon iteration and let the stream be collected
+    await iter_next_item(stream)
+    await close_stream(stream)
+
+    # the remaining events were left on the wire rather than being drained
+    assert len(consumed) < trailing, f"stream was drained: consumed {len(consumed)} chunks"
+
+
+async def iter_all(stream: Stream[object] | AsyncStream[object]) -> list[object]:
+    if isinstance(stream, AsyncStream):
+        return [item async for item in stream]
+
+    return list(stream)
+
+
+async def iter_next_item(stream: Stream[object] | AsyncStream[object]) -> object:
+    if isinstance(stream, AsyncStream):
+        return await stream.__anext__()
+
+    return next(iter(stream))
+
+
+async def close_stream(stream: Stream[object] | AsyncStream[object]) -> None:
+    """Close the underlying generator, mirroring what happens when an abandoned
+    stream object is garbage collected."""
+    if isinstance(stream, AsyncStream):
+        await cast("AsyncGenerator[object, None]", stream._iterator).aclose()
+    else:
+        cast("Generator[object, None, None]", stream._iterator).close()
+
+
+def make_stream(
+    content: Iterator[bytes],
+    *,
+    sync: bool,
+    client: OpenAI,
+    async_client: AsyncOpenAI,
+) -> Stream[object] | AsyncStream[object]:
+    if sync:
+        return Stream(cast_to=object, client=client, response=httpx.Response(200, content=content))
+
+    return AsyncStream(cast_to=object, client=async_client, response=httpx.Response(200, content=to_aiter(content)))
 
 
 async def to_aiter(iter: Iterator[bytes]) -> AsyncIterator[bytes]:
