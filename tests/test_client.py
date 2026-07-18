@@ -1292,6 +1292,29 @@ class TestOpenAI:
         assert len(mounts) == 1
         assert mounts[0][0].pattern == "https://"
 
+    def test_proxy_env_sanitized_for_default_client(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setenv("NO_PROXY", "127.0.0.1\nlocalhost\r\nexample.com\n")
+
+        OpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+
+        assert os.environ["NO_PROXY"] == "127.0.0.1,localhost,example.com"
+
+    def test_proxy_env_untouched_when_http_client_supplied(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        # A caller-supplied client may deliberately ignore the proxy environment
+        # (trust_env=False), so we must not mutate it process-wide on their behalf.
+        raw = "127.0.0.1\nlocalhost\r\nexample.com\n"
+        monkeypatch.setenv("NO_PROXY", raw)
+
+        with httpx.Client(trust_env=False) as http_client:
+            OpenAI(
+                base_url=base_url,
+                api_key=api_key,
+                _strict_response_validation=True,
+                http_client=http_client,
+            )
+
+        assert os.environ["NO_PROXY"] == raw
+
     @pytest.mark.filterwarnings("ignore:.*deprecated.*:DeprecationWarning")
     def test_default_client_creation(self) -> None:
         # Ensure that the client can be initialized without any exceptions
@@ -2551,6 +2574,29 @@ class TestAsyncOpenAI:
         mounts = tuple(client._mounts.items())
         assert len(mounts) == 1
         assert mounts[0][0].pattern == "https://"
+
+    async def test_proxy_env_sanitized_for_default_client(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setenv("NO_PROXY", "127.0.0.1\nlocalhost\r\nexample.com\n")
+
+        AsyncOpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+
+        assert os.environ["NO_PROXY"] == "127.0.0.1,localhost,example.com"
+
+    async def test_proxy_env_untouched_when_http_client_supplied(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        # A caller-supplied client may deliberately ignore the proxy environment
+        # (trust_env=False), so we must not mutate it process-wide on their behalf.
+        raw = "127.0.0.1\nlocalhost\r\nexample.com\n"
+        monkeypatch.setenv("NO_PROXY", raw)
+
+        async with httpx.AsyncClient(trust_env=False) as http_client:
+            AsyncOpenAI(
+                base_url=base_url,
+                api_key=api_key,
+                _strict_response_validation=True,
+                http_client=http_client,
+            )
+
+        assert os.environ["NO_PROXY"] == raw
 
     @pytest.mark.filterwarnings("ignore:.*deprecated.*:DeprecationWarning")
     async def test_default_client_creation(self) -> None:

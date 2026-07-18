@@ -93,13 +93,28 @@ WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER = "workload-identity-auth"
 
 
 def _sanitize_proxy_env() -> None:
-    for env_var in ("NO_PROXY", "no_proxy", "HTTP_PROXY", "http_proxy", "HTTPS_PROXY", "https_proxy", "ALL_PROXY", "all_proxy"):
+    """Normalize newline-separated values in the proxy environment variables.
+
+    Only called when we are about to construct the default httpx client, which reads
+    these variables via ``trust_env``. When the caller supplies their own ``http_client``
+    we must not touch the process-wide environment, as that client may deliberately
+    ignore it (e.g. ``trust_env=False``) and other code in the process can observe
+    the mutation.
+    """
+    for env_var in (
+        "NO_PROXY",
+        "no_proxy",
+        "HTTP_PROXY",
+        "http_proxy",
+        "HTTPS_PROXY",
+        "https_proxy",
+        "ALL_PROXY",
+        "all_proxy",
+    ):
         value = os.environ.get(env_var)
         if value is not None and ("\n" in value or "\r" in value):
             os.environ[env_var] = ",".join(
-                part.strip()
-                for part in value.replace("\r\n", "\n").replace("\r", "\n").split("\n")
-                if part.strip()
+                part.strip() for part in value.replace("\r\n", "\n").replace("\r", "\n").split("\n") if part.strip()
             )
 
 
@@ -175,7 +190,8 @@ class OpenAI(SyncAPIClient):
 
         When `provider` is supplied, authentication and the base URL are configured by that provider instead.
         """
-        _sanitize_proxy_env()
+        if http_client is None:
+            _sanitize_proxy_env()
         provider_runtime: _ProviderRuntime | None = None
         if provider is not None:
             provider_name = _provider_name(provider)
@@ -772,7 +788,8 @@ class AsyncOpenAI(AsyncAPIClient):
 
         When `provider` is supplied, authentication and the base URL are configured by that provider instead.
         """
-        _sanitize_proxy_env()
+        if http_client is None:
+            _sanitize_proxy_env()
         provider_runtime: _ProviderRuntime | None = None
         if provider is not None:
             provider_name = _provider_name(provider)
