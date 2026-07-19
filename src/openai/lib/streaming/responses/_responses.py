@@ -360,16 +360,24 @@ class ResponseStreamState(Generic[TextFormatT]):
             # The chatgpt.com Codex backend sometimes sends `response.output: null`
             # in the consolidated `response.completed` event even when valid
             # `output_item.done` events were streamed earlier (see issue #3325).
-            # Calling `parse_response` with a null `output` would discard the
-            # already-accumulated `snapshot.output` and emit an empty final
-            # response, so we fall back to the streamed snapshot in that case.
+            # `parse_response()` guards against `None` with `response.output or []`,
+            # but that would discard the already-accumulated `snapshot.output` and
+            # emit an empty final response.  When the completed event has no
+            # output but the snapshot has accumulated items, inject the streamed
+            # items into a shallow copy of the response so `parse_response()` can
+            # still run its text_format / parsed_arguments logic on them.
             if event.response.output is None and snapshot.output:
-                self._completed_response = construct_type_unchecked(
-                    type_=ParsedResponse[TextFormatT],
+                response_with_output = construct_type_unchecked(
+                    type_=type(event.response),
                     value={
                         **event.response.to_dict(),
                         "output": [item.to_dict() for item in snapshot.output],
                     },
+                )
+                self._completed_response = parse_response(
+                    text_format=self._text_format,
+                    response=response_with_output,
+                    input_tools=self._input_tools,
                 )
             else:
                 self._completed_response = parse_response(
