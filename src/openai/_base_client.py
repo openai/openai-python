@@ -809,12 +809,28 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         return f"stainless-python-retry-{uuid.uuid4()}"
 
 
+def _strip_api_key_on_cross_origin_redirect(original: httpx.Request, redirect: httpx.Request) -> httpx.Request:
+    def origin(url: URL) -> tuple[str, str, int | None]:
+        default_port = 443 if url.scheme == "https" else 80 if url.scheme == "http" else None
+        port = url.port if url.port is not None else default_port
+        return url.scheme, url.host, port
+
+    if origin(original.url) != origin(redirect.url):
+        redirect.headers.pop("api-key", None)
+    return redirect
+
+
 class _DefaultHttpxClient(httpx.Client):
     def __init__(self, **kwargs: Any) -> None:
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
         kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
         super().__init__(**kwargs)
+
+    @override
+    def _build_redirect_request(self, request: httpx.Request, response: httpx.Response) -> httpx.Request:
+        redirect = super()._build_redirect_request(request, response)
+        return _strip_api_key_on_cross_origin_redirect(request, redirect)
 
 
 if TYPE_CHECKING:
@@ -1390,6 +1406,11 @@ class _DefaultAsyncHttpxClient(httpx.AsyncClient):
         kwargs.setdefault("follow_redirects", True)
         super().__init__(**kwargs)
 
+    @override
+    def _build_redirect_request(self, request: httpx.Request, response: httpx.Response) -> httpx.Request:
+        redirect = super()._build_redirect_request(request, response)
+        return _strip_api_key_on_cross_origin_redirect(request, redirect)
+
 
 try:
     import httpx_aiohttp
@@ -1407,6 +1428,11 @@ else:
             kwargs.setdefault("follow_redirects", True)
 
             super().__init__(**kwargs)
+
+        @override
+        def _build_redirect_request(self, request: httpx.Request, response: httpx.Response) -> httpx.Request:
+            redirect = super()._build_redirect_request(request, response)
+            return _strip_api_key_on_cross_origin_redirect(request, redirect)
 
 
 if TYPE_CHECKING:
