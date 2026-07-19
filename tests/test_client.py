@@ -1304,6 +1304,22 @@ class TestOpenAI:
             limits=httpx.Limits(max_connections=100, max_keepalive_connections=20),
         )
 
+    def test_default_transport_has_tcp_keepalive(self) -> None:
+        import socket as socket_module
+
+        client = OpenAI(base_url=base_url, api_key=api_key)
+        transport = client._client._transport
+        assert isinstance(transport, httpx.HTTPTransport)
+        socket_options = transport._pool._socket_options
+        assert any(
+            opt == (socket_module.SOL_SOCKET, socket_module.SO_KEEPALIVE, 1) for opt in socket_options
+        ), "Default sync transport should have SO_KEEPALIVE enabled to survive NAT idle timeouts"
+
+    def test_custom_http_client_transport_is_not_overridden(self) -> None:
+        with httpx.Client() as http_client:
+            client = OpenAI(base_url=base_url, api_key=api_key, http_client=http_client)
+            assert client._client is http_client, "A caller-supplied http_client must not be replaced"
+
     @pytest.mark.respx(base_url=base_url)
     def test_follow_redirects(self, respx_mock: MockRouter, client: OpenAI) -> None:
         # Test that the default follow_redirects=True allows following redirects
@@ -2563,6 +2579,22 @@ class TestAsyncOpenAI:
             http2=False,
             limits=httpx.Limits(max_connections=100, max_keepalive_connections=20),
         )
+
+    async def test_default_transport_has_tcp_keepalive(self) -> None:
+        import socket as socket_module
+
+        client = AsyncOpenAI(base_url=base_url, api_key=api_key)
+        transport = client._client._transport
+        assert isinstance(transport, httpx.AsyncHTTPTransport)
+        socket_options = transport._pool._socket_options
+        assert any(
+            opt == (socket_module.SOL_SOCKET, socket_module.SO_KEEPALIVE, 1) for opt in socket_options
+        ), "Default async transport should have SO_KEEPALIVE enabled to survive NAT idle timeouts"
+
+    async def test_custom_async_http_client_transport_is_not_overridden(self) -> None:
+        async with httpx.AsyncClient() as http_client:
+            client = AsyncOpenAI(base_url=base_url, api_key=api_key, http_client=http_client)
+            assert client._client is http_client, "A caller-supplied http_client must not be replaced"
 
     @pytest.mark.respx(base_url=base_url)
     async def test_follow_redirects(self, respx_mock: MockRouter, async_client: AsyncOpenAI) -> None:

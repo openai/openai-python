@@ -5,6 +5,7 @@ import json
 import time
 import uuid
 import email
+import socket
 import asyncio
 import inspect
 import logging
@@ -831,11 +832,36 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         return f"stainless-python-retry-{uuid.uuid4()}"
 
 
+def _build_keepalive_socket_options() -> list[tuple[int, int, int]]:
+    # Enable TCP keepalive to prevent silent connection drops by NAT gateways and
+    # load balancers during long-running inference calls (generation can hold a
+    # TCP connection idle for 300–600 s, exceeding the ~350 s AWS NAT Gateway
+    # idle timeout). Mirrors the pattern used by the Anthropic Python SDK.
+    options: list[tuple[int, int, int]] = [(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)]
+    # TCP_KEEPIDLE (Linux) / TCP_KEEPALIVE (macOS): seconds idle before first probe
+    if hasattr(socket, "TCP_KEEPIDLE"):
+        options.append((socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 60))
+    elif hasattr(socket, "TCP_KEEPALIVE"):
+        options.append((socket.IPPROTO_TCP, socket.TCP_KEEPALIVE, 60))
+    # TCP_KEEPINTVL: seconds between subsequent probes
+    if hasattr(socket, "TCP_KEEPINTVL"):
+        options.append((socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 60))
+    # TCP_KEEPCNT: drop the connection after this many unanswered probes
+    if hasattr(socket, "TCP_KEEPCNT"):
+        options.append((socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 5))
+    return options
+
+
 class _DefaultHttpxClient(httpx.Client):
     def __init__(self, **kwargs: Any) -> None:
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
         kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
+        if "transport" not in kwargs:
+            kwargs["transport"] = httpx.HTTPTransport(
+                limits=kwargs.get("limits", DEFAULT_CONNECTION_LIMITS),
+                socket_options=_build_keepalive_socket_options(),
+            )
         super().__init__(**kwargs)
 
 
@@ -1423,6 +1449,11 @@ class _DefaultAsyncHttpxClient(httpx.AsyncClient):
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
         kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
+        if "transport" not in kwargs:
+            kwargs["transport"] = httpx.AsyncHTTPTransport(
+                limits=kwargs.get("limits", DEFAULT_CONNECTION_LIMITS),
+                socket_options=_build_keepalive_socket_options(),
+            )
         super().__init__(**kwargs)
 
 
