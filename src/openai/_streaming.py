@@ -116,7 +116,13 @@ class Stream(Generic[_T]):
             # or cancellation -- draining would block until the server finishes sending,
             # so close the response instead.
             if terminated:
-                for _ in iterator:
+                # Draining is best-effort cleanup for a stream that already completed.
+                # If the connection drops before the trailing bytes arrive, the result
+                # is still valid, so don't turn that into a failure for the caller.
+                try:
+                    for _ in iterator:
+                        pass
+                except httpx.HTTPError:
                     pass
             response.close()
 
@@ -237,7 +243,13 @@ class AsyncStream(Generic[_T]):
             # or cancellation -- draining would block until the server finishes sending,
             # so close the response instead.
             if terminated:
-                async for _ in iterator:
+                # Draining is best-effort cleanup for a stream that already completed.
+                # If the connection drops before the trailing bytes arrive, the result
+                # is still valid, so don't turn that into a failure for the caller.
+                try:
+                    async for _ in iterator:
+                        pass
+                except httpx.HTTPError:
                     pass
             await response.aclose()
 

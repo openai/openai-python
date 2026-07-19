@@ -243,6 +243,33 @@ async def test_drains_remaining_bytes_after_done(
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+async def test_drain_failure_after_done_preserves_result(
+    sync: bool,
+    client: OpenAI,
+    async_client: AsyncOpenAI,
+) -> None:
+    """A transport error while draining must not fail an already-completed stream.
+
+    The server sent a valid `[DONE]`, so the result is complete; a connection drop
+    while consuming the trailing bytes is cleanup noise and must still close the
+    response rather than propagating to the caller.
+    """
+
+    def body() -> Iterator[bytes]:
+        yield b'data: {"foo":true}\n\n'
+        yield b"data: [DONE]\n\n"
+        raise httpx.RemoteProtocolError("peer closed connection")
+
+    stream = make_stream(content=body(), sync=sync, client=client, async_client=async_client)
+
+    items = await iter_all(stream)
+    assert len(items) == 1
+
+    assert stream.response.is_closed
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
 async def test_does_not_drain_on_premature_termination(
     sync: bool,
     client: OpenAI,
