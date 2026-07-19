@@ -33,6 +33,7 @@ from typing import (
 from typing_extensions import Unpack, Literal, override, get_origin
 
 import anyio
+import socket
 import httpx
 import distro
 import pydantic
@@ -831,11 +832,72 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         return f"stainless-python-retry-{uuid.uuid4()}"
 
 
+def _build_keepalive_socket_options() -> list[tuple[int, int, int | bool]]:
+    """Build socket options for TCP keepalive.
+
+    Enables SO_KEEPALIVE and sets platform-appropriate TCP keepalive
+    parameters to prevent NAT gateways from silently dropping idle
+    connections during long-running non-streaming requests.
+    """
+    opts: list[tuple[int, int, int | bool]] = [(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)]
+
+    if hasattr(socket, "TCP_KEEPIDLE"):
+        # Linux: seconds before sending the first keepalive probe
+        opts.append((socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 60))
+    elif hasattr(socket, "TCP_KEEPALIVE"):
+        # macOS: seconds before sending the first keepalive probe
+        opts.append((socket.IPPROTO_TCP, socket.TCP_KEEPALIVE, 60))
+
+    if hasattr(socket, "TCP_KEEPINTVL"):
+        # Seconds between subsequent keepalive probes
+        opts.append((socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 60))
+
+    if hasattr(socket, "TCP_KEEPCNT"):
+        # Number of unacknowledged probes before declaring the connection dead
+        opts.append((socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 5))
+
+    return opts
+
+
+# ``socket_options`` was added to httpx's transports in httpx 0.25.0. This SDK
+# still supports ``httpx>=0.23.0``, so detect support at runtime rather than
+# raising the dependency floor (which would be a breaking change for users).
+_HTTPX_TRANSPORT_SUPPORTS_SOCKET_OPTIONS = (
+    "socket_options" in inspect.signature(httpx.HTTPTransport.__init__).parameters
+)
+
+# ``httpx.Client``/``httpx.AsyncClient`` normally apply these options when they
+# build their own default transport. Supplying a pre-built transport bypasses
+# that step, so the effective values must be forwarded to avoid silently
+# dropping ``DEFAULT_CONNECTION_LIMITS`` and customizations like ``http2=True``.
+_TRANSPORT_PASSTHROUGH_KEYS = ("verify", "cert", "trust_env", "http1", "http2", "limits")
+
+
+def _build_keepalive_transport(
+    transport_cls: type[httpx.HTTPTransport] | type[httpx.AsyncHTTPTransport],
+    kwargs: dict[str, Any],
+) -> httpx.HTTPTransport | httpx.AsyncHTTPTransport:
+    """Build a default transport with TCP keepalive enabled.
+
+    The relevant httpx client options are forwarded so that constructing the
+    transport explicitly does not discard them, and ``socket_options`` is only
+    passed when the installed httpx version supports it.
+    """
+    transport_kwargs: dict[str, Any] = {
+        key: kwargs[key] for key in _TRANSPORT_PASSTHROUGH_KEYS if key in kwargs
+    }
+    if _HTTPX_TRANSPORT_SUPPORTS_SOCKET_OPTIONS:
+        transport_kwargs["socket_options"] = _build_keepalive_socket_options()
+    return transport_cls(**transport_kwargs)
+
+
 class _DefaultHttpxClient(httpx.Client):
     def __init__(self, **kwargs: Any) -> None:
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
         kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
+        if "transport" not in kwargs:
+            kwargs["transport"] = _build_keepalive_transport(httpx.HTTPTransport, kwargs)
         super().__init__(**kwargs)
 
 
@@ -1423,6 +1485,8 @@ class _DefaultAsyncHttpxClient(httpx.AsyncClient):
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
         kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
+        if "transport" not in kwargs:
+            kwargs["transport"] = _build_keepalive_transport(httpx.AsyncHTTPTransport, kwargs)
         super().__init__(**kwargs)
 
 
