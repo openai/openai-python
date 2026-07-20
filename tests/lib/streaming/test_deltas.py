@@ -86,3 +86,31 @@ class TestAccumulateDelta:
         delta = {"content": " world"}
         result = accumulate_delta(acc, delta)
         assert result["content"] == "hello world"
+
+    def test_duplicate_index_first_chunk_then_subsequent_merge(self) -> None:
+        """Full round-trip: first chunk with duplicate indexes, then subsequent chunk merges correctly."""
+        acc: dict[object, object] = {}
+        # First chunk: two entries at index 0
+        delta1 = {
+            "tool_calls": [
+                {"index": 0, "id": "call_abc", "function": {"name": "list_files"}, "type": "function"},
+                {"index": 0, "function": {"arguments": ' {"'}},
+            ]
+        }
+        result = accumulate_delta(acc, delta1)
+        calls = result["tool_calls"]
+        assert len(calls) == 1, f"Expected 1 entry after coalescing, got {len(calls)}"
+        assert calls[0]["function"]["arguments"] == ' {"'
+
+        # Second chunk: more arguments for index 0
+        delta2 = {
+            "tool_calls": [
+                {"index": 0, "function": {"arguments": 'path": "."}'}},
+            ]
+        }
+        result = accumulate_delta(result, delta2)
+        calls = result["tool_calls"]
+        assert len(calls) == 1
+        assert calls[0]["function"]["arguments"] == ' {"path": "."}'
+        assert calls[0]["id"] == "call_abc"
+        assert calls[0]["function"]["name"] == "list_files"
