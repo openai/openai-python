@@ -61,7 +61,7 @@ jobs:
         with:
           repository: openai/openai
           # Replace this draft-stack SHA with the merged monorepo SHA before enabling.
-          ref: 586f788be0094332e6d7f6be3a8195e0356d7dc1
+          ref: d8cbd94252f90e876d31de7787e543909f9344f6
           path: openai
           token: ${{ steps.monorepo-token.outputs.token }}
           persist-credentials: false
