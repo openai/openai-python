@@ -115,16 +115,21 @@ class Stream(Generic[_T]):
             # On premature termination -- the caller breaking out of iteration, an error,
             # or cancellation -- draining would block until the server finishes sending,
             # so close the response instead.
-            if terminated:
-                # Draining is best-effort cleanup for a stream that already completed.
-                # If the connection drops before the trailing bytes arrive, the result
-                # is still valid, so don't turn that into a failure for the caller.
-                try:
-                    for _ in iterator:
+            try:
+                if terminated:
+                    # Draining is best-effort cleanup for a stream that already completed.
+                    # If the connection drops before the trailing bytes arrive, the result
+                    # is still valid, so don't turn that into a failure for the caller.
+                    try:
+                        for _ in iterator:
+                            pass
+                    except httpx.HTTPError:
                         pass
-                except httpx.HTTPError:
-                    pass
-            response.close()
+            finally:
+                # The drain can still be interrupted by something that isn't an
+                # `httpx.HTTPError` -- e.g. the caller cancelling iteration while we
+                # wait on the trailing bytes. The connection must be released either way.
+                response.close()
 
     def __enter__(self) -> Self:
         return self
@@ -242,16 +247,23 @@ class AsyncStream(Generic[_T]):
             # On premature termination -- the caller breaking out of iteration, an error,
             # or cancellation -- draining would block until the server finishes sending,
             # so close the response instead.
-            if terminated:
-                # Draining is best-effort cleanup for a stream that already completed.
-                # If the connection drops before the trailing bytes arrive, the result
-                # is still valid, so don't turn that into a failure for the caller.
-                try:
-                    async for _ in iterator:
+            try:
+                if terminated:
+                    # Draining is best-effort cleanup for a stream that already completed.
+                    # If the connection drops before the trailing bytes arrive, the result
+                    # is still valid, so don't turn that into a failure for the caller.
+                    try:
+                        async for _ in iterator:
+                            pass
+                    except httpx.HTTPError:
                         pass
-                except httpx.HTTPError:
-                    pass
-            await response.aclose()
+            finally:
+                # The drain can still be interrupted by something that isn't an
+                # `httpx.HTTPError` -- e.g. `asyncio.CancelledError` when the caller
+                # wraps consumption in a timeout shorter than the HTTPX read timeout.
+                # `CancelledError` is a `BaseException`, so it bypasses the handler
+                # above; the connection must be released either way.
+                await response.aclose()
 
     async def __aenter__(self) -> Self:
         return self

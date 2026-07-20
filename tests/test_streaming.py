@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from typing import Iterator, Generator, AsyncIterator, AsyncGenerator, cast
 
 import httpx
@@ -264,6 +265,35 @@ async def test_drain_failure_after_done_preserves_result(
 
     items = await iter_all(stream)
     assert len(items) == 1
+
+    assert stream.response.is_closed
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+async def test_drain_cancellation_after_done_still_closes_response(
+    sync: bool,
+    client: OpenAI,
+    async_client: AsyncOpenAI,
+) -> None:
+    """Cancellation while draining must still release the connection.
+
+    `[DONE]` has already been observed, so the drain is best-effort cleanup. If the
+    caller cancels while we wait on the trailing bytes -- e.g. an `asyncio` timeout
+    shorter than the HTTPX read timeout -- `CancelledError` is a `BaseException` and
+    so bypasses the `httpx.HTTPError` handler around the drain. The close has to sit
+    in a `finally` or the connection is leaked.
+    """
+
+    def body() -> Iterator[bytes]:
+        yield b'data: {"foo":true}\n\n'
+        yield b"data: [DONE]\n\n"
+        raise asyncio.CancelledError
+
+    stream = make_stream(content=body(), sync=sync, client=client, async_client=async_client)
+
+    with pytest.raises(asyncio.CancelledError):
+        await iter_all(stream)
 
     assert stream.response.is_closed
 
