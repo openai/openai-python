@@ -49,15 +49,23 @@ def accumulate_delta(acc: dict[object, object], delta: dict[object, object]) -> 
                 if not isinstance(index, int):
                     raise TypeError(f"Unexpected, list delta entry `index` value is not an integer; {index}")
 
-                try:
-                    acc_entry = acc_value[index]
-                except IndexError:
-                    acc_value.insert(index, delta_entry)
-                else:
-                    if not is_dict(acc_entry):
-                        raise TypeError("not handled yet")
+                # Merge by logical index, not physical position. (#3201)
+                # When the first chunk contains multiple entries with the same
+                # index (e.g. from speculative decoding), the physical position
+                # does not match the logical index. Find the existing entry by
+                # its index field and merge into it.
+                found = False
+                for i, existing in enumerate(acc_value):
+                    if is_dict(existing) and existing.get("index") == index:
+                        acc_value[i] = accumulate_delta(existing, delta_entry)
+                        found = True
+                        break
 
-                    acc_value[index] = accumulate_delta(acc_entry, delta_entry)
+                if not found:
+                    # Ensure the list is large enough
+                    while len(acc_value) <= index:
+                        acc_value.append({})
+                    acc_value[index] = delta_entry
 
         acc[key] = acc_value
 
