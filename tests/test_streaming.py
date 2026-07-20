@@ -216,6 +216,44 @@ async def test_multi_byte_character_multiple_chunks(
     assert sse.json() == {"content": "известни"}
 
 
+@pytest.mark.asyncio
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+async def test_stream_drains_after_done(
+    sync: bool,
+    client: OpenAI,
+    async_client: AsyncOpenAI,
+) -> None:
+    """Regression test for #3440: after [DONE], remaining events should be drained.
+
+    The fix drains the existing iterator (not a new response.iter_bytes() call)
+    so that httpx doesn't raise StreamConsumed and the response reaches EOF
+    before close, preventing premature TCP FIN.
+    """
+
+    def body() -> Iterator[bytes]:
+        yield b'data: {"foo":true}\n'
+        yield b"\n"
+        yield b"data: [DONE]\n"
+        yield b"\n"
+        # Extra data after [DONE] that should be consumed by the drain
+        yield b'data: {"trailing":true}\n'
+        yield b"\n"
+
+    if sync:
+        response = httpx.Response(200, content=body())
+        stream = Stream(cast_to=object, client=client, response=response)
+        # Consume the full stream — the drain should consume the trailing event
+        for _ in stream:
+            pass
+        assert response.is_closed
+    else:
+        response = httpx.Response(200, content=to_aiter(body()))
+        stream = AsyncStream(cast_to=object, client=async_client, response=response)
+        async for _ in stream:
+            pass
+        assert response.is_closed
+
+
 async def to_aiter(iter: Iterator[bytes]) -> AsyncIterator[bytes]:
     for chunk in iter:
         yield chunk
