@@ -1,4 +1,4 @@
-# Exact-tree public promotion for a previously reviewed Castiron candidate.
+# Public-main promotion for a previously reviewed Castiron candidate.
 # Keep this wrapper thin: policy and copy mechanics live in the pinned monorepo writer.
 # CASTIRON_PROMOTION_ENABLED is a repository/org variable because the job guard
 # runs before GitHub attaches the protected environment.
@@ -28,7 +28,7 @@ concurrency:
 
 jobs:
   promote:
-    name: open exact-tree draft PR
+    name: open public-main draft PR
     # Keep the draft-stack pin inert until it is replaced with the merged SHA
     # and admins explicitly enable the protected promotion environment.
     if: >-
@@ -61,7 +61,7 @@ jobs:
         with:
           repository: openai/openai
           # Replace this draft-stack SHA with the merged monorepo SHA before enabling.
-          ref: d8cbd94252f90e876d31de7787e543909f9344f6
+          ref: 7b8693d173a6d00a826817adccc2ceee93c0e1e8
           path: openai
           token: ${{ steps.monorepo-token.outputs.token }}
           persist-credentials: false
@@ -99,7 +99,7 @@ jobs:
           permission-metadata: read
           permission-pull-requests: write
 
-      - name: Open exact-tree public draft PR
+      - name: Open public-main draft PR
         working-directory: openai
         env:
           GH_TOKEN: ${{ steps.sdk-token.outputs.token }}
