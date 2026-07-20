@@ -7,7 +7,7 @@ import httpx
 import pytest
 
 from openai import OpenAI, AsyncOpenAI
-from openai._streaming import Stream, AsyncStream, ServerSentEvent
+from openai._streaming import _MAX_POST_DONE_DRAIN_BYTES, Stream, AsyncStream, ServerSentEvent
 
 
 @pytest.mark.asyncio
@@ -295,6 +295,49 @@ async def test_drain_cancellation_after_done_still_closes_response(
     with pytest.raises(asyncio.CancelledError):
         await iter_all(stream)
 
+    assert stream.response.is_closed
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+async def test_post_done_drain_is_bounded(
+    sync: bool,
+    client: OpenAI,
+    async_client: AsyncOpenAI,
+) -> None:
+    """The post-`[DONE]` drain must not turn into an unbounded read.
+
+    A server or a proxy in between can send `[DONE]` but leave the HTTP response
+    open (or keep trickling bytes on it) instead of closing the connection. The
+    stream has already logically completed at that point, so draining should stop
+    after a bounded amount of data rather than consuming everything the other end
+    is willing to send.
+    """
+    # Comment lines never decode into an `SSE` event, so none of these chunks make
+    # it back to the `for _ in iterator: pass` drain loop as a yielded event --
+    # the only thing that can bound consumption here is the underlying byte read
+    # itself, not anything at the parsed-event level.
+    trailing_chunk = b": padding to simulate a proxy holding the connection open\n\n"
+    # comfortably more than the drain is allowed to consume
+    num_trailing_chunks = (_MAX_POST_DONE_DRAIN_BYTES // len(trailing_chunk)) * 4
+
+    consumed = 0
+
+    def body() -> Iterator[bytes]:
+        nonlocal consumed
+        yield b'data: {"foo":true}\n\n'
+        yield b"data: [DONE]\n\n"
+        for _ in range(num_trailing_chunks):
+            consumed += len(trailing_chunk)
+            yield trailing_chunk
+
+    stream = make_stream(content=body(), sync=sync, client=client, async_client=async_client)
+
+    items = await iter_all(stream)
+    assert len(items) == 1
+
+    # the drain stopped well short of consuming every trailing chunk the "server" sent
+    assert consumed < num_trailing_chunks * len(trailing_chunk)
     assert stream.response.is_closed
 
 
