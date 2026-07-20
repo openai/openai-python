@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 import re
-import hashlib
+import hmac
 import inspect
 from typing import Any, Literal, Mapping, Callable, Optional, Awaitable, cast
 from dataclasses import field, replace, dataclass
@@ -24,7 +24,7 @@ BedrockTokenProvider = Callable[[], str]
 AsyncBedrockTokenProvider = Callable[[], "str | Awaitable[str]"]
 _LegacyAuthMode = Literal["bearer", "token_provider", "aws"]
 _LegacyAuthConfiguration = tuple[_LegacyAuthMode, Optional[object]]
-_LEGACY_SIGNATURE_KEY = os.urandom(32)
+_LEGACY_SIGNATURE_NONCE = os.urandom(32)
 
 
 @dataclass(frozen=True)
@@ -299,8 +299,9 @@ def _legacy_runtime_signature(
     configuration: _LegacyAuthConfiguration,
 ) -> _LegacyRuntimeSignature:
     mode, credential = configuration
+    # This is an opaque, process-local change detector, not a password hash.
     credential_identity: object = (
-        hashlib.blake2s(credential.encode(), key=_LEGACY_SIGNATURE_KEY).digest()
+        hmac.digest(credential.encode(), _LEGACY_SIGNATURE_NONCE, "sha256")
         if isinstance(credential, str)
         else id(credential)
     )
