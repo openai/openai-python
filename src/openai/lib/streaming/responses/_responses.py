@@ -356,6 +356,30 @@ class ResponseStreamState(Generic[TextFormatT]):
             output = snapshot.output[event.output_index]
             if output.type == "function_call":
                 output.arguments += event.delta
+        elif event.type == "response.output_text.done":
+            output = snapshot.output[event.output_index]
+            if output.type == "message":
+                content = output.content[event.content_index]
+                assert content.type == "output_text"
+                content.text = event.text
+        elif event.type == "response.output_item.done":
+            # Mark the item as done in the snapshot so the null-output fallback
+            # captures the finalized status rather than the in-progress state.
+            if event.output_index < len(snapshot.output):
+                item = snapshot.output[event.output_index]
+                if hasattr(item, "status"):
+                    item.status = "completed"
+        elif event.type == "response.content_part.done":
+            output = snapshot.output[event.output_index]
+            if output.type == "message" and event.content_index < len(output.content):
+                part = output.content[event.content_index]
+                if hasattr(part, "status"):
+                    part.status = "completed"
+        elif event.type == "response.function_call_arguments.done":
+            output = snapshot.output[event.output_index]
+            if output.type == "function_call":
+                if hasattr(output, "status"):
+                    output.status = "completed"
         elif event.type == "response.completed":
             # The chatgpt.com Codex backend sometimes sends `response.output: null`
             # in the consolidated `response.completed` event even when valid
