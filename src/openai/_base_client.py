@@ -831,31 +831,11 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         return f"stainless-python-retry-{uuid.uuid4()}"
 
 
-def _sanitize_no_proxy() -> None:
-    """Sanitize NO_PROXY/no_proxy env vars that contain newline characters.
-
-    httpx's ``get_environment_proxies()`` only splits by comma, not by newline.
-    When NO_PROXY contains newlines (common in Docker/.env files), the newline
-    becomes part of the hostname and httpx raises ``InvalidURL`` (issue #3303).
-    """
-    for key in ("NO_PROXY", "no_proxy"):
-        val = os.environ.get(key)
-        if val and "\n" in val:
-            os.environ[key] = ",".join(
-                part.strip() for part in val.replace("\n", ",").split(",") if part.strip()
-            )
-
-
 class _DefaultHttpxClient(httpx.Client):
     def __init__(self, **kwargs: Any) -> None:
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
         kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
-        # Sanitize NO_PROXY environment variable: httpx's get_environment_proxies()
-        # only splits by comma, not by newline.  When NO_PROXY contains newlines
-        # (common in Docker/.env files), the newline becomes part of the hostname
-        # and httpx raises InvalidURL.  See issue #3303.
-        _sanitize_no_proxy()
         super().__init__(**kwargs)
 
 
