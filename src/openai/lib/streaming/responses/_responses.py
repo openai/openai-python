@@ -363,21 +363,38 @@ class ResponseStreamState(Generic[TextFormatT]):
                 assert content.type == "output_text"
                 content.text = event.text
         elif event.type == "response.output_item.done":
-            # Mark the item as done in the snapshot so the null-output fallback
-            # captures the finalized status rather than the in-progress state.
+            # Replace the item in the snapshot with the finalized item from the
+            # done event. The server sends the authoritative item payload here,
+            # which may include final fields like `results`/`outputs` on tool
+            # items, or a final `status` of `failed`/`incomplete`. Simply
+            # setting `status = "completed"` would discard those fields and
+            # produce a stale final response in the null-output fallback path.
             if event.output_index < len(snapshot.output):
-                item = snapshot.output[event.output_index]
-                if hasattr(item, "status"):
-                    item.status = "completed"
+                snapshot.output[event.output_index] = construct_type_unchecked(
+                    type_=type(snapshot.output[event.output_index]),
+                    value=event.item.to_dict(),
+                )
         elif event.type == "response.content_part.done":
+            # Replace the content part in the snapshot with the finalized part
+            # from the done event. The server sends the authoritative part
+            # payload here, which may include metadata like annotations,
+            # logprobs, or finalized text/refusal content that the delta
+            # accumulation may not fully capture.
             output = snapshot.output[event.output_index]
             if output.type == "message" and event.content_index < len(output.content):
-                part = output.content[event.content_index]
-                if hasattr(part, "status"):
-                    part.status = "completed"
+                output.content[event.content_index] = construct_type_unchecked(
+                    type_=type(output.content[event.content_index]),
+                    value=event.part.to_dict(),
+                )
         elif event.type == "response.function_call_arguments.done":
+            # Apply the finalized arguments string from the done event.
+            # The server sends the authoritative arguments payload here, which
+            # may differ from the accumulated deltas. Using the finalized
+            # arguments ensures `parse_response()` can correctly parse
+            # `parsed_arguments` in the null-output fallback path.
             output = snapshot.output[event.output_index]
             if output.type == "function_call":
+                output.arguments = event.arguments
                 if hasattr(output, "status"):
                     output.status = "completed"
         elif event.type == "response.completed":
