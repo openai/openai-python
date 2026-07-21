@@ -24,9 +24,6 @@ class BetaResponseFunctionCallArgumentsDoneEvent(BaseModel):
     item_id: str
     """The ID of the item."""
 
-    name: str
-    """The name of the function that was called."""
-
     output_index: int
     """The index of the output item."""
 
@@ -34,6 +31,14 @@ class BetaResponseFunctionCallArgumentsDoneEvent(BaseModel):
     """The sequence number of this event."""
 
     type: Literal["response.function_call_arguments.done"]
+
+    name: Optional[str] = None
+    """The name of the function that was called.
+
+    The live Responses API may omit this field on
+    `response.function_call_arguments.done` events; correlate via `item_id` when
+    absent.
+    """
 
     agent: Optional[Agent] = None
     """The agent that owns this multi-agent streaming event."""
