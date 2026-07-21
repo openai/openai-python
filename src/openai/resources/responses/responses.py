@@ -32,6 +32,7 @@ from ... import _legacy_response
 from ..._types import NOT_GIVEN, Body, Omit, Query, Headers, NoneType, NotGiven, omit, not_given
 from ..._utils import is_given, path_template, maybe_transform, strip_not_given, async_maybe_transform
 from ..._compat import cached_property
+from ..._httpx2 import normalize_httpx_url
 from ..._models import construct_type_unchecked
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -4346,7 +4347,7 @@ class AsyncResponsesConnectionManager:
 
     def _prepare_url(self) -> httpx.URL:
         if self.__client.websocket_base_url is not None:
-            base_url = httpx.URL(self.__client.websocket_base_url)
+            base_url = normalize_httpx_url(self.__client.websocket_base_url)
         else:
             scheme = self.__client._base_url.scheme
             ws_scheme = "ws" if scheme == "http" else "wss"
@@ -4791,7 +4792,7 @@ class ResponsesConnectionManager:
 
     def _prepare_url(self) -> httpx.URL:
         if self.__client.websocket_base_url is not None:
-            base_url = httpx.URL(self.__client.websocket_base_url)
+            base_url = normalize_httpx_url(self.__client.websocket_base_url)
         else:
             scheme = self.__client._base_url.scheme
             ws_scheme = "ws" if scheme == "http" else "wss"

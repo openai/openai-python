@@ -280,6 +280,69 @@ async def test_httpx2_urls_work_for_bedrock_and_azure_realtime() -> None:
     assert str(async_realtime_url).startswith("https://azure.test/openai/v1/realtime?")
 
 
+async def test_httpx2_urls_work_for_all_websocket_builders() -> None:
+    with OpenAI(
+        api_key="test",
+        websocket_base_url=httpx2.URL("wss://example.test/openai/v1"),
+        http_client=httpx2.Client(transport=httpx2.MockTransport(model_list), trust_env=False),
+    ) as client:
+        assert str(client.realtime.connect()._prepare_url()) == "wss://example.test/openai/v1/realtime"
+        assert str(client.responses.connect()._prepare_url()) == "wss://example.test/openai/v1/responses"
+        assert (
+            str(client.beta.realtime.connect(model="gpt-4o")._prepare_url()) == "wss://example.test/openai/v1/realtime"
+        )
+        assert str(client.beta.responses.connect()._prepare_url()) == "wss://example.test/openai/v1/responses"
+
+    async with AsyncOpenAI(
+        api_key="test",
+        websocket_base_url=httpx2.URL("wss://example.test/openai/v1"),
+        http_client=httpx2.AsyncClient(transport=httpx2.MockTransport(model_list), trust_env=False),
+    ) as async_client:
+        assert str(async_client.realtime.connect()._prepare_url()) == "wss://example.test/openai/v1/realtime"
+        assert str(async_client.responses.connect()._prepare_url()) == "wss://example.test/openai/v1/responses"
+        assert (
+            str(async_client.beta.realtime.connect(model="gpt-4o")._prepare_url())
+            == "wss://example.test/openai/v1/realtime"
+        )
+        assert str(async_client.beta.responses.connect()._prepare_url()) == "wss://example.test/openai/v1/responses"
+
+
+async def test_httpx2_native_timeouts_set_numeric_read_timeout_header() -> None:
+    sync_requests: list[httpx.Request] = []
+    async_requests: list[httpx.Request] = []
+
+    def sync_handler(request: httpx.Request) -> httpx.Response:
+        sync_requests.append(request)
+        return model_list(request)
+
+    async def async_handler(request: httpx.Request) -> httpx.Response:
+        async_requests.append(request)
+        return model_list(request)
+
+    with OpenAI(
+        api_key="test",
+        base_url="https://example.test/v1",
+        timeout=httpx2.Timeout(30.0, read=12.0),
+        http_client=httpx2.Client(transport=httpx2.MockTransport(sync_handler), trust_env=False),
+        max_retries=0,
+    ) as client:
+        client.models.list()
+        client.models.list(timeout=httpx2.Timeout(30.0, read=7.0))
+
+    async with AsyncOpenAI(
+        api_key="test",
+        base_url="https://example.test/v1",
+        timeout=httpx2.Timeout(30.0, read=13.0),
+        http_client=httpx2.AsyncClient(transport=httpx2.MockTransport(async_handler), trust_env=False),
+        max_retries=0,
+    ) as async_client:
+        await async_client.models.list()
+        await async_client.models.list(timeout=httpx2.Timeout(30.0, read=8.0))
+
+    assert [request.headers["x-stainless-read-timeout"] for request in sync_requests] == ["12.0", "7.0"]
+    assert [request.headers["x-stainless-read-timeout"] for request in async_requests] == ["13.0", "8.0"]
+
+
 async def test_direct_async_injection() -> None:
     async def handler(request: httpx.Request) -> httpx.Response:
         return model_list(request)

@@ -481,7 +481,9 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         if "x-stainless-retry-count" not in lower_custom_headers:
             headers["x-stainless-retry-count"] = str(retries_taken)
         if "x-stainless-read-timeout" not in lower_custom_headers:
-            timeout = self.timeout if isinstance(options.timeout, NotGiven) else options.timeout
+            timeout = normalize_httpx_timeout(
+                self.timeout if isinstance(options.timeout, NotGiven) else options.timeout
+            )
             if isinstance(timeout, Timeout):
                 timeout = timeout.read
             if timeout is not None:
