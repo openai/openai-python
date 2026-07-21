@@ -61,6 +61,17 @@ jobs:
       - name: Validate Bedrock wheel
         run: rye run python scripts/utils/validate-bedrock-wheel.py
 
+      - name: Validate HTTPX2 wheel on Python 3.9
+        run: rye run python scripts/utils/validate-httpx2-wheel.py
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.12'
+
+      - name: Validate HTTPX2 wheel
+        run: python scripts/utils/validate-httpx2-wheel.py
+
       - name: Get GitHub OIDC Token
         if: |-
           github.repository == 'stainless-sdks/openai-python' &&
@@ -98,6 +109,35 @@ jobs:
         run: ./scripts/bootstrap
 
       - name: Run tests
+        run: ./scripts/test
+
+  test-httpx2:
+    timeout-minutes: 10
+    name: test (HTTPX2)
+    runs-on: ${{ startsWith(github.repository, 'stainless-sdks/') && 'depot-ubuntu-24.04' || 'ubuntu-latest' }}
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.fork
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Set up Rye
+        uses: eifinger/setup-rye@c694239a43768373e87d0103d7f547027a23f3c8
+        with:
+          version: '0.44.0'
+          enable-cache: true
+
+      - name: Install HTTPX2 test dependencies
+        run: |
+          rye pin 3.12
+          rye sync --all-features
+
+      - name: Run tests with HTTPX and HTTPX2 installed
+        env:
+          OPENAI_TEST_HTTP_CLIENT: httpx
+        run: ./scripts/test
+
+      - name: Run tests with HTTPX2
+        env:
+          OPENAI_TEST_HTTP_CLIENT: httpx2
         run: ./scripts/test
 
   examples:

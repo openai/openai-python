@@ -25,6 +25,7 @@ import pydantic
 
 from ._types import NoneType
 from ._utils import is_given, extract_type_arg, is_annotated_type, is_type_alias_type
+from ._httpx2 import http_response_types
 from ._models import BaseModel, is_basemodel, add_request_id
 from ._constants import RAW_RESPONSE_HEADER
 from ._streaming import Stream, AsyncStream, is_stream_class_type, extract_stream_chunk_type
@@ -272,16 +273,17 @@ class LegacyAPIResponse(Generic[R]):
         if origin == LegacyAPIResponse:
             raise RuntimeError("Unexpected state - cast_to is `APIResponse`")
 
+        response_types = http_response_types()
         if inspect.isclass(
             origin  # pyright: ignore[reportUnknownArgumentType]
-        ) and issubclass(origin, httpx.Response):
+        ) and issubclass(origin, response_types):
             # Because of the invariance of our ResponseT TypeVar, users can subclass httpx.Response
             # and pass that class to our request functions. We cannot change the variance to be either
             # covariant or contravariant as that makes our usage of ResponseT illegal. We could construct
             # the response class ourselves but that is something that should be supported directly in httpx
             # as it would be easy to incorrectly construct the Response object due to the multitude of arguments.
-            if cast_to != httpx.Response:
-                raise ValueError(f"Subclasses of httpx.Response cannot be passed to `cast_to`")
+            if cast_to not in response_types:
+                raise ValueError("Subclasses of HTTP response classes cannot be passed to `cast_to`")
             return cast(R, response)
 
         if (

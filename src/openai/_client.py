@@ -29,6 +29,7 @@ from ._utils import (
     get_async_library,
 )
 from ._compat import cached_property
+from ._httpx2 import is_httpx2_sync_client, is_httpx2_async_client
 from ._models import SecurityOptions, FinalRequestOptions
 from ._version import __version__
 from ._provider import _Provider, _provider_name, _ProviderRuntime, _configure_provider
@@ -201,9 +202,7 @@ class OpenAI(SyncAPIClient):
         elif workload_identity is not None:
             self.api_key = WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER
             self._api_key_provider = None
-            self._workload_identity_auth = WorkloadIdentityAuth(
-                workload_identity=workload_identity,
-            )
+            self._workload_identity_auth = None
         else:
             if api_key is None:
                 api_key = os.environ.get("OPENAI_API_KEY")
@@ -271,6 +270,12 @@ class OpenAI(SyncAPIClient):
             custom_query=default_query,
             _strict_response_validation=_strict_response_validation,
         )
+
+        if workload_identity is not None:
+            self._workload_identity_auth = WorkloadIdentityAuth(
+                workload_identity=workload_identity,
+                _use_httpx2=is_httpx2_sync_client(self._client),
+            )
 
         self._default_stream_cls = Stream
 
@@ -797,9 +802,7 @@ class AsyncOpenAI(AsyncAPIClient):
         elif workload_identity is not None:
             self.api_key = WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER
             self._api_key_provider = None
-            self._workload_identity_auth = WorkloadIdentityAuth(
-                workload_identity=workload_identity,
-            )
+            self._workload_identity_auth = None
         else:
             if api_key is None:
                 api_key = os.environ.get("OPENAI_API_KEY")
@@ -867,6 +870,12 @@ class AsyncOpenAI(AsyncAPIClient):
             custom_query=default_query,
             _strict_response_validation=_strict_response_validation,
         )
+
+        if workload_identity is not None:
+            self._workload_identity_auth = WorkloadIdentityAuth(
+                workload_identity=workload_identity,
+                _use_httpx2=is_httpx2_async_client(self._client),
+            )
 
         self._default_stream_cls = AsyncStream
 

@@ -30,6 +30,7 @@ from ..._utils import (
     is_async_azure_client,
 )
 from ..._compat import cached_property
+from ..._httpx2 import normalize_httpx_url
 from ..._models import construct_type_unchecked
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._exceptions import OpenAIError, WebSocketConnectionClosedError
@@ -721,7 +722,7 @@ class AsyncRealtimeConnectionManager:
 
     def _prepare_url(self) -> httpx.URL:
         if self.__client.websocket_base_url is not None:
-            base_url = httpx.URL(self.__client.websocket_base_url)
+            base_url = normalize_httpx_url(self.__client.websocket_base_url)
         else:
             scheme = self.__client._base_url.scheme
             ws_scheme = "ws" if scheme == "http" else "wss"
@@ -1189,7 +1190,7 @@ class RealtimeConnectionManager:
 
     def _prepare_url(self) -> httpx.URL:
         if self.__client.websocket_base_url is not None:
-            base_url = httpx.URL(self.__client.websocket_base_url)
+            base_url = normalize_httpx_url(self.__client.websocket_base_url)
         else:
             scheme = self.__client._base_url.scheme
             ws_scheme = "ws" if scheme == "http" else "wss"
