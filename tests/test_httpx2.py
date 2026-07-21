@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Any
+from typing_extensions import override
 
 import httpx
 import pytest
@@ -412,6 +413,89 @@ async def test_provider_auth_and_stream_consumed_families() -> None:
         async with async_client.models.with_streaming_response.list() as response:
             with pytest.raises(httpx2.ReadTimeout, match="stream timeout"):
                 [chunk async for chunk in response.iter_bytes()]
+
+
+@pytest.mark.filterwarnings("ignore:The Assistants API is deprecated in favor of the Responses API:DeprecationWarning")
+async def test_assistant_stream_timeout_callbacks_preserve_httpx2_family() -> None:
+    class SyncHandler(openai.AssistantEventHandler):
+        def __init__(self) -> None:
+            super().__init__()
+            self.timed_out = False
+            self.exception: Exception | None = None
+
+        @override
+        def on_timeout(self) -> None:
+            self.timed_out = True
+
+        @override
+        def on_exception(self, exception: Exception) -> None:
+            self.exception = exception
+
+    class AsyncHandler(openai.AsyncAssistantEventHandler):
+        def __init__(self) -> None:
+            super().__init__()
+            self.timed_out = False
+            self.exception: Exception | None = None
+
+        @override
+        async def on_timeout(self) -> None:
+            self.timed_out = True
+
+        @override
+        async def on_exception(self, exception: Exception) -> None:
+            self.exception = exception
+
+    class FailingSyncStream(httpx2.SyncByteStream):
+        def __iter__(self):
+            yield b"partial"
+            raise httpx2.ReadTimeout("assistant stream timeout")
+
+    class FailingAsyncStream(httpx2.AsyncByteStream):
+        async def __aiter__(self):
+            yield b"partial"
+            raise httpx2.ReadTimeout("assistant stream timeout")
+
+    def sync_response(request: httpx.Request) -> httpx.Response:
+        return httpx2.Response(
+            200, headers={"content-type": "text/event-stream"}, stream=FailingSyncStream(), request=request
+        )
+
+    async def async_response(request: httpx.Request) -> httpx.Response:
+        return httpx2.Response(
+            200, headers={"content-type": "text/event-stream"}, stream=FailingAsyncStream(), request=request
+        )
+
+    sync_handler = SyncHandler()
+    with OpenAI(
+        api_key="test",
+        base_url="https://example.test/v1",
+        http_client=openai.DefaultHttpx2Client(transport=httpx2.MockTransport(sync_response), trust_env=False),
+        max_retries=0,
+    ) as sync_client:
+        with sync_client.beta.threads.runs.stream(  # pyright: ignore[reportDeprecated]
+            assistant_id="asst_test", thread_id="thread_test", event_handler=sync_handler
+        ) as stream:
+            with pytest.raises(httpx2.ReadTimeout, match="assistant stream timeout"):
+                stream.until_done()
+
+    assert sync_handler.timed_out
+    assert isinstance(sync_handler.exception, httpx2.ReadTimeout)
+
+    async_handler = AsyncHandler()
+    async with AsyncOpenAI(
+        api_key="test",
+        base_url="https://example.test/v1",
+        http_client=openai.DefaultAsyncHttpx2Client(transport=httpx2.MockTransport(async_response), trust_env=False),
+        max_retries=0,
+    ) as async_client:
+        async with async_client.beta.threads.runs.stream(  # pyright: ignore[reportDeprecated]
+            assistant_id="asst_test", thread_id="thread_test", event_handler=async_handler
+        ) as async_stream:
+            with pytest.raises(httpx2.ReadTimeout, match="assistant stream timeout"):
+                await async_stream.until_done()
+
+    assert async_handler.timed_out
+    assert isinstance(async_handler.exception, httpx2.ReadTimeout)
 
 
 async def test_sigv4_provider_preserves_httpx2_family_and_rejects_one_shot_bodies() -> None:
