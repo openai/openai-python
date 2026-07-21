@@ -29,6 +29,7 @@ from ._utils import (
     get_async_library,
 )
 from ._compat import cached_property
+from ._httpx2 import is_httpx2_sync_client, is_httpx2_async_client
 from ._models import SecurityOptions, FinalRequestOptions
 from ._version import __version__
 from ._provider import _Provider, _provider_name, _ProviderRuntime, _configure_provider
@@ -203,6 +204,7 @@ class OpenAI(SyncAPIClient):
             self._api_key_provider = None
             self._workload_identity_auth = WorkloadIdentityAuth(
                 workload_identity=workload_identity,
+                _use_httpx2=is_httpx2_sync_client(http_client),
             )
         else:
             if api_key is None:
@@ -799,6 +801,7 @@ class AsyncOpenAI(AsyncAPIClient):
             self._api_key_provider = None
             self._workload_identity_auth = WorkloadIdentityAuth(
                 workload_identity=workload_identity,
+                _use_httpx2=is_httpx2_async_client(http_client),
             )
         else:
             if api_key is None:

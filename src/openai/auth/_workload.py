@@ -8,6 +8,7 @@ from typing_extensions import Literal, NotRequired
 
 import httpx
 
+from .._httpx2 import DefaultHttpx2Client
 from .._exceptions import OAuthError, OpenAIError, SubjectTokenProviderError
 from .._utils._sync import to_thread
 
@@ -176,9 +177,11 @@ class WorkloadIdentityAuth:
         *,
         workload_identity: WorkloadIdentity,
         token_exchange_url: str = DEFAULT_TOKEN_EXCHANGE_URL,
+        _use_httpx2: bool = False,
     ):
         self.workload_identity = workload_identity
         self.token_exchange_url = token_exchange_url
+        self._use_httpx2 = _use_httpx2
 
         self._cached_token: str | None = None
         self._cached_token_expires_at_monotonic: float | None = None
@@ -245,8 +248,8 @@ class WorkloadIdentityAuth:
                 f"Unsupported token type: {token_type!r}. Supported types: {', '.join(SUBJECT_TOKEN_TYPES.keys())}"
             )
 
-        # TODO(httpx2): Migrate internal usage once the dependency floor is raised.
-        with httpx.Client() as client:
+        exchange_client = DefaultHttpx2Client(follow_redirects=False) if self._use_httpx2 else httpx.Client()
+        with exchange_client as client:
             response = client.post(
                 self.token_exchange_url,
                 json={
