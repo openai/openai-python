@@ -903,8 +903,9 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
             # where they've explicitly set the timeout to match the default timeout
             # as this check is structural, meaning that we'll think they didn't
             # pass in a timeout and will ignore it
-            if http_client and http_client.timeout != HTTPX_DEFAULT_TIMEOUT:
-                timeout = normalize_httpx_timeout(http_client.timeout)
+            client_timeout = normalize_httpx_timeout(http_client.timeout) if http_client else None
+            if http_client and client_timeout != HTTPX_DEFAULT_TIMEOUT:
+                timeout = client_timeout
             else:
                 timeout = DEFAULT_TIMEOUT
 
@@ -1527,8 +1528,9 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
             # where they've explicitly set the timeout to match the default timeout
             # as this check is structural, meaning that we'll think they didn't
             # pass in a timeout and will ignore it
-            if http_client and http_client.timeout != HTTPX_DEFAULT_TIMEOUT:
-                timeout = normalize_httpx_timeout(http_client.timeout)
+            client_timeout = normalize_httpx_timeout(http_client.timeout) if http_client else None
+            if http_client and client_timeout != HTTPX_DEFAULT_TIMEOUT:
+                timeout = client_timeout
             else:
                 timeout = DEFAULT_TIMEOUT
 

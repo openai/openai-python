@@ -10,6 +10,7 @@ import openai
 from openai import OpenAI, AsyncOpenAI, OpenAIError, APIStatusError, APITimeoutError, APIConnectionError
 from openai._response import StreamAlreadyConsumed
 from openai.providers import bedrock
+from openai._constants import DEFAULT_TIMEOUT
 
 httpx2 = pytest.importorskip("httpx2")
 
@@ -160,6 +161,7 @@ async def test_async_helper_preserves_httpx2_family_for_parsed_raw_and_sse() -> 
 def test_direct_sync_injection_and_module_configuration() -> None:
     direct = httpx2.Client(transport=httpx2.MockTransport(model_list), trust_env=False)
     with OpenAI(api_key="test", base_url="https://example.test/v1", http_client=direct, max_retries=0) as client:
+        assert client.timeout == DEFAULT_TIMEOUT
         assert client.models.list().object == "list"
 
     openai.api_key = "test"
@@ -182,6 +184,7 @@ async def test_direct_async_injection() -> None:
     async with AsyncOpenAI(
         api_key="test", base_url="https://example.test/v1", http_client=direct, max_retries=0
     ) as client:
+        assert client.timeout == DEFAULT_TIMEOUT
         assert (await client.models.list()).object == "list"
 
 
