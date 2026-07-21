@@ -285,7 +285,7 @@ asyncio.run(main())
 
 ### Experimental HTTPX2 support
 
-HTTPX remains the default HTTP client. To opt in to experimental HTTPX2 support, install the optional extra on Python 3.10 or later:
+To opt in to experimental HTTPX2 support, install the optional extra on Python 3.10 or later:
 
 ```sh
 pip install 'openai[httpx2]'
