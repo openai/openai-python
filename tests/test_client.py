@@ -117,10 +117,11 @@ async def _make_async_iterator(iterable: Iterable[T], counter: Optional[Counter]
 
 def _get_open_connections(client: OpenAI | AsyncOpenAI) -> int:
     transport = client._client._transport
-    assert isinstance(transport, httpx.HTTPTransport) or isinstance(transport, httpx.AsyncHTTPTransport)
+    if isinstance(transport, httpx.HTTPTransport) or isinstance(transport, httpx.AsyncHTTPTransport):
+        return len(transport._pool._requests)
 
-    pool = transport._pool
-    return len(pool._requests)
+    assert type(transport).__module__ == "httpx2"
+    return len(cast(Any, transport)._pool._requests)
 
 
 class TestOpenAI:
@@ -130,7 +131,7 @@ class TestOpenAI:
 
         response = client.post("/foo", cast_to=httpx.Response)
         assert response.status_code == 200
-        assert isinstance(response, httpx.Response)
+        assert type(response).__module__ == os.environ.get("OPENAI_TEST_HTTP_CLIENT", "httpx")
         assert response.json() == {"foo": "bar"}
 
     @pytest.mark.respx(base_url=base_url)
@@ -141,7 +142,7 @@ class TestOpenAI:
 
         response = client.post("/foo", cast_to=httpx.Response)
         assert response.status_code == 200
-        assert isinstance(response, httpx.Response)
+        assert type(response).__module__ == os.environ.get("OPENAI_TEST_HTTP_CLIENT", "httpx")
         assert response.json() == {"foo": "bar"}
 
     def test_copy(self, client: OpenAI) -> None:
@@ -1393,7 +1394,7 @@ class TestAsyncOpenAI:
 
         response = await async_client.post("/foo", cast_to=httpx.Response)
         assert response.status_code == 200
-        assert isinstance(response, httpx.Response)
+        assert type(response).__module__ == os.environ.get("OPENAI_TEST_HTTP_CLIENT", "httpx")
         assert response.json() == {"foo": "bar"}
 
     @pytest.mark.respx(base_url=base_url)
@@ -1404,7 +1405,7 @@ class TestAsyncOpenAI:
 
         response = await async_client.post("/foo", cast_to=httpx.Response)
         assert response.status_code == 200
-        assert isinstance(response, httpx.Response)
+        assert type(response).__module__ == os.environ.get("OPENAI_TEST_HTTP_CLIENT", "httpx")
         assert response.json() == {"foo": "bar"}
 
     def test_copy(self, async_client: AsyncOpenAI) -> None:

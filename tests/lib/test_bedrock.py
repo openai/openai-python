@@ -14,6 +14,7 @@ from openai import OpenAIError, NotFoundError
 from tests.utils import update_env
 from openai._types import Omit
 from openai.lib.bedrock import BedrockOpenAI, AsyncBedrockOpenAI
+from tests._httpx2_respx import sync_http_client, async_http_client
 
 Client = Union[BedrockOpenAI, AsyncBedrockOpenAI]
 
@@ -86,11 +87,11 @@ class MockAwsCredentials:
 
 
 def make_sync_client(**kwargs: Any) -> BedrockOpenAI:
-    return BedrockOpenAI(http_client=httpx.Client(trust_env=False), **kwargs)
+    return BedrockOpenAI(http_client=sync_http_client(trust_env=False), **kwargs)
 
 
 def make_async_client(**kwargs: Any) -> AsyncBedrockOpenAI:
-    return AsyncBedrockOpenAI(http_client=httpx.AsyncClient(trust_env=False), **kwargs)
+    return AsyncBedrockOpenAI(http_client=async_http_client(trust_env=False), **kwargs)
 
 
 def response_created_sse() -> str:
@@ -333,7 +334,7 @@ def test_token_provider_refresh_sync(respx_mock: MockRouter) -> None:
     client = BedrockOpenAI(
         base_url="https://example.com/openai/v1",
         bedrock_token_provider=lambda: next(tokens),
-        http_client=httpx.Client(trust_env=False),
+        http_client=sync_http_client(trust_env=False),
         max_retries=1,
     )
 
@@ -357,7 +358,7 @@ async def test_token_provider_refresh_async(respx_mock: MockRouter) -> None:
     client = AsyncBedrockOpenAI(
         base_url="https://example.com/openai/v1",
         bedrock_token_provider=lambda: next(tokens),
-        http_client=httpx.AsyncClient(trust_env=False),
+        http_client=async_http_client(trust_env=False),
         max_retries=1,
     )
 
@@ -380,7 +381,7 @@ def test_explicit_aws_credentials_override_ambient_bearer(respx_mock: MockRouter
             aws_access_key_id="access key",
             aws_secret_access_key="secret key",
             aws_session_token="session token",
-            http_client=httpx.Client(trust_env=False),
+            http_client=sync_http_client(trust_env=False),
         )
 
     client.responses.create(model="gpt-4o", input="hello")
@@ -408,7 +409,7 @@ def test_aws_credentials_provider_refreshes_before_retries(respx_mock: MockRoute
         base_url="https://example.com/openai/v1",
         aws_region="us-east-1",
         aws_credentials_provider=lambda: next(credentials),
-        http_client=httpx.Client(trust_env=False),
+        http_client=sync_http_client(trust_env=False),
         max_retries=1,
     )
 
@@ -425,7 +426,7 @@ def test_preserves_token_provider_across_with_options() -> None:
     client = BedrockOpenAI(
         base_url="https://example.com/openai/v1",
         bedrock_token_provider=lambda: "provider token",
-        http_client=httpx.Client(trust_env=False),
+        http_client=sync_http_client(trust_env=False),
     )
 
     copied_client = client.with_options(timeout=1)
@@ -527,7 +528,7 @@ def test_explicit_aws_copy_override_wins_over_mutated_api_key() -> None:
     client = BedrockOpenAI(
         base_url="https://example.com/openai/v1",
         api_key="first token",
-        http_client=httpx.Client(trust_env=False),
+        http_client=sync_http_client(trust_env=False),
     )
     client.api_key = "second token"
 
@@ -569,7 +570,7 @@ def test_legacy_state_repr_does_not_expose_credentials() -> None:
         aws_access_key_id="secret access key id",
         aws_secret_access_key="secret access key",
         aws_session_token="secret session token",
-        http_client=httpx.Client(trust_env=False),
+        http_client=sync_http_client(trust_env=False),
     )
 
     assert "secret" not in repr(client._bedrock_state)
@@ -577,7 +578,7 @@ def test_legacy_state_repr_does_not_expose_credentials() -> None:
     bearer_client = BedrockOpenAI(
         base_url="https://example.com/openai/v1",
         api_key="secret bearer token",
-        http_client=httpx.Client(trust_env=False),
+        http_client=sync_http_client(trust_env=False),
     )
     assert "secret bearer token" not in repr(bearer_client._bedrock_runtime_signature)
 
@@ -647,7 +648,7 @@ def test_preserves_aws_credentials_across_with_options() -> None:
         aws_region="us-east-1",
         aws_access_key_id="access key",
         aws_secret_access_key="secret key",
-        http_client=httpx.Client(trust_env=False),
+        http_client=sync_http_client(trust_env=False),
     )
 
     copied_client = client.with_options(timeout=1)
@@ -941,7 +942,7 @@ def test_with_options_supports_subclasses_with_the_previous_constructor_signatur
         client = LegacyBedrockOpenAI(
             api_key="token",
             aws_region="us-east-1",
-            http_client=httpx.Client(trust_env=False),
+            http_client=sync_http_client(trust_env=False),
         )
 
         copied_client = client.with_options(timeout=1).with_options(aws_region="us-west-2")
@@ -1121,7 +1122,7 @@ def test_refreshes_token_provider_for_admin_security_routes(respx_mock: MockRout
     client = BedrockOpenAI(
         base_url="https://example.com/openai/v1",
         bedrock_token_provider=lambda: next(tokens),
-        http_client=httpx.Client(trust_env=False),
+        http_client=sync_http_client(trust_env=False),
         max_retries=1,
     )
 

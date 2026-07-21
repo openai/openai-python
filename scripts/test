@@ -55,7 +55,7 @@ fi
 export DEFER_PYDANTIC_BUILD=false
 
 if [ "${OPENAI_TEST_HTTP_CLIENT:-httpx}" = "httpx2" ]; then
-  echo "==> Using HTTPX2 for sync and async API-resource clients (RESPX-backed cases remain HTTPX-only)"
+  echo "==> Using HTTPX2 for sync and async API-resource clients (including RESPX-backed cases)"
 fi
 
 echo "==> Running tests"

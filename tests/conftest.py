@@ -14,6 +14,8 @@ from pytest_asyncio import is_async_test
 from openai import OpenAI, AsyncOpenAI, DefaultHttpx2Client, DefaultAioHttpClient, DefaultAsyncHttpx2Client
 from openai._utils import is_dict
 
+from ._httpx2_respx import enable_httpx2_respx
+
 if TYPE_CHECKING:
     from _pytest.fixtures import FixtureRequest  # pyright: ignore[reportPrivateImportUsage]
 
@@ -30,13 +32,9 @@ def pytest_collection_modifyitems(items: list[pytest.Function]) -> None:
     for async_test in pytest_asyncio_tests:
         async_test.add_marker(session_scope_marker, append=False)
 
-    # RESPX only intercepts HTTPX, so it cannot mock requests made by aiohttp or HTTPX2.
+    # RESPX cannot mock requests made by the aiohttp adapter.
     for item in items:
         if "respx_mock" not in item.fixturenames:
-            continue
-
-        if test_http_client == "httpx2" and {"client", "async_client"}.intersection(item.fixturenames):
-            item.add_marker(pytest.mark.skip(reason="HTTPX2 client is not compatible with respx_mock"))
             continue
 
         if "async_client" not in item.fixturenames:
@@ -55,6 +53,15 @@ test_http_client = os.environ.get("OPENAI_TEST_HTTP_CLIENT", "httpx")
 
 api_key = "My API Key"
 admin_api_key = "My Admin API Key"
+
+
+@pytest.fixture(autouse=True)
+def patch_httpx2_respx(request: FixtureRequest, monkeypatch: pytest.MonkeyPatch) -> None:
+    if test_http_client != "httpx2" or "respx_mock" not in request.fixturenames:
+        return
+
+    router = request.getfixturevalue("respx_mock")
+    enable_httpx2_respx(router, monkeypatch, replace_sdk_defaults=request.path.name != "test_httpx2_base.py")
 
 
 @pytest.fixture(scope="session")
