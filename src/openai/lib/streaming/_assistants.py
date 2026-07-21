@@ -24,6 +24,10 @@ from ...types.beta.threads import (
 from ...types.beta.threads.runs import RunStep, ToolCall, RunStepDelta, ToolCallDelta
 
 
+def _timeout_exceptions() -> tuple[type[Exception], ...]:
+    return (*timeout_exceptions(), asyncio.TimeoutError)
+
+
 class AssistantEventHandler:
     text_deltas: Iterable[str]
     """Iterator over just the text deltas in the stream.
@@ -406,7 +410,7 @@ class AssistantEventHandler:
                 self._emit_sse_event(event)
 
                 yield event
-        except timeout_exceptions() + (asyncio.TimeoutError,) as exc:
+        except _timeout_exceptions() as exc:
             self.on_timeout()
             self.on_exception(exc)
             raise
@@ -838,7 +842,7 @@ class AsyncAssistantEventHandler:
                 await self._emit_sse_event(event)
 
                 yield event
-        except timeout_exceptions() + (asyncio.TimeoutError,) as exc:
+        except _timeout_exceptions() as exc:
             await self.on_timeout()
             await self.on_exception(exc)
             raise
