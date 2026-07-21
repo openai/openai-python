@@ -111,6 +111,30 @@ jobs:
       - name: Run tests
         run: ./scripts/test
 
+  test-httpx2:
+    timeout-minutes: 10
+    name: test (HTTPX2)
+    runs-on: ${{ startsWith(github.repository, 'stainless-sdks/') && 'depot-ubuntu-24.04' || 'ubuntu-latest' }}
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.fork
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Set up Rye
+        uses: eifinger/setup-rye@c694239a43768373e87d0103d7f547027a23f3c8
+        with:
+          version: '0.44.0'
+          enable-cache: true
+
+      - name: Install HTTPX2 test dependencies
+        run: |
+          rye pin 3.12
+          rye sync --all-features
+
+      - name: Run tests with HTTPX2
+        env:
+          OPENAI_TEST_HTTP_CLIENT: httpx2
+        run: ./scripts/test
+
   examples:
     timeout-minutes: 10
     name: examples
