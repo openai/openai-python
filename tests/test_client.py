@@ -615,7 +615,7 @@ class TestOpenAI:
 
     def test_hardcoded_query_params_in_url(self, client: OpenAI) -> None:
         request = client._build_request(FinalRequestOptions(method="get", url="/foo?beta=true"))
-        url = httpx.URL(request.url)
+        url = httpx.URL(str(request.url))
         assert dict(url.params) == {"beta": "true"}
 
         request = client._build_request(
@@ -625,7 +625,7 @@ class TestOpenAI:
                 params={"limit": "10", "page": "abc"},
             )
         )
-        url = httpx.URL(request.url)
+        url = httpx.URL(str(request.url))
         assert dict(url.params) == {"beta": "true", "limit": "10", "page": "abc"}
 
         request = client._build_request(
@@ -1866,7 +1866,7 @@ class TestAsyncOpenAI:
 
     async def test_hardcoded_query_params_in_url(self, async_client: AsyncOpenAI) -> None:
         request = async_client._build_request(FinalRequestOptions(method="get", url="/foo?beta=true"))
-        url = httpx.URL(request.url)
+        url = httpx.URL(str(request.url))
         assert dict(url.params) == {"beta": "true"}
 
         request = async_client._build_request(
@@ -1876,7 +1876,7 @@ class TestAsyncOpenAI:
                 params={"limit": "10", "page": "abc"},
             )
         )
-        url = httpx.URL(request.url)
+        url = httpx.URL(str(request.url))
         assert dict(url.params) == {"beta": "true", "limit": "10", "page": "abc"}
 
         request = async_client._build_request(

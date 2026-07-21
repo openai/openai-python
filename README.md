@@ -303,6 +303,8 @@ async_client = AsyncOpenAI(
 )
 ```
 
+See [`examples/httpx2.py`](examples/httpx2.py) for a minimal runnable example.
+
 The module-level client can be configured in the same way:
 
 ```python
