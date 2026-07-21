@@ -10,6 +10,7 @@ import httpx
 
 from .._types import NOT_GIVEN, NotGiven
 from .._utils import asyncify
+from .._httpx2 import request_not_read_exceptions
 from .._models import FinalRequestOptions
 from .._provider import _Provider, _create_provider, _ProviderRuntime
 from .._exceptions import OpenAIError
@@ -50,7 +51,7 @@ def _same_origin(left: httpx.URL, right: httpx.URL) -> bool:
 def _body_for_signing(request: httpx.Request) -> bytes:
     try:
         return request.content
-    except httpx.RequestNotRead as exc:
+    except request_not_read_exceptions() as exc:
         raise OpenAIError(
             "Bedrock SigV4 authentication requires a replayable request body. "
             "Buffer the body before sending or use bearer authentication."

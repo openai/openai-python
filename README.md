@@ -283,6 +283,40 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
+### Experimental HTTPX2 support
+
+Upgrading the 2.x SDK does not change the default HTTP transport: HTTPX remains installed, imported, and authoritative. You can experiment with HTTPX2 for selected clients by installing the optional extra:
+
+```sh
+pip install 'openai[httpx2]'
+```
+
+Then explicitly select the native HTTPX2 client. The sync and async helpers use the SDK's recommended connection and timeout defaults:
+
+```python
+import httpx2
+from openai import OpenAI, AsyncOpenAI, DefaultHttpx2Client, DefaultAsyncHttpx2Client
+
+client = OpenAI(http_client=DefaultHttpx2Client(transport=httpx2.HTTPTransport()))
+async_client = AsyncOpenAI(
+    http_client=DefaultAsyncHttpx2Client(transport=httpx2.AsyncHTTPTransport())
+)
+```
+
+The module-level client can be configured in the same way:
+
+```python
+import openai
+
+openai.http_client = openai.DefaultHttpx2Client()
+```
+
+HTTPX2 2.7 requires Python 3.10 or later and AnyIO 4.10 or later, and cannot be resolved alongside HTTPX 0.25.0 or older because their `h11` requirements conflict. The extra therefore raises the HTTPX and AnyIO floors only for this opt-in configuration. On Python 3.9 the extra's environment markers install the normal HTTPX-backed SDK without HTTPX2; calling an HTTPX2 helper immediately explains the supported-interpreter requirement.
+
+Parsed API models remain accurately typed. HTTPX continues to define the public transport-facing types in 2.x, so experimental raw responses, streams, requests, and transport callbacks can be HTTPX2 objects at runtime even when their annotations describe HTTPX. Directly injecting `httpx2.Client` or `httpx2.AsyncClient` is runtime-supported; use the helpers when a type-friendly constructor boundary is important.
+
+Validate raw responses, mocks and instrumentation, proxies, authentication, and streaming in each service before rolling out this experiment. Mixed HTTPX/HTTPX2 transport or auth configurations are not supported. Removing HTTPX or making HTTPX2 authoritative is a future 3.x decision.
+
 ## Streaming responses
 
 We provide support for streaming responses using Server Side Events (SSE).

@@ -61,6 +61,17 @@ jobs:
       - name: Validate Bedrock wheel
         run: rye run python scripts/utils/validate-bedrock-wheel.py
 
+      - name: Validate HTTPX2 wheel on Python 3.9
+        run: rye run python scripts/utils/validate-httpx2-wheel.py
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.12'
+
+      - name: Validate HTTPX2 wheel
+        run: python scripts/utils/validate-httpx2-wheel.py
+
       - name: Get GitHub OIDC Token
         if: |-
           github.repository == 'stainless-sdks/openai-python' &&

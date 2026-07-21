@@ -10,6 +10,7 @@ from . import types
 from ._types import NOT_GIVEN, Omit, NoneType, NotGiven, Transport, ProxiesTypes, omit, not_given
 from ._utils import file_from_path
 from ._client import Client, OpenAI, Stream, Timeout, Transport, AsyncClient, AsyncOpenAI, AsyncStream, RequestOptions
+from ._httpx2 import DefaultHttpx2Client, DefaultAsyncHttpx2Client
 from ._models import BaseModel
 from ._version import __title__, __version__
 from ._response import APIResponse as APIResponse, AsyncAPIResponse as AsyncAPIResponse
@@ -89,6 +90,8 @@ __all__ = [
     "DefaultHttpxClient",
     "DefaultAsyncHttpxClient",
     "DefaultAioHttpClient",
+    "DefaultHttpx2Client",
+    "DefaultAsyncHttpx2Client",
     "ReconnectingEvent",
     "ReconnectingOverrides",
     "WebSocketQueueFullError",
