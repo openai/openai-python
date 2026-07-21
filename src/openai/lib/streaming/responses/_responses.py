@@ -11,6 +11,7 @@ from ._events import (
     ResponseTextDoneEvent,
     ResponseCompletedEvent,
     ResponseTextDeltaEvent,
+    ResponseFunctionCallArgumentsDoneEvent,
     ResponseFunctionCallArgumentsDeltaEvent,
 )
 from ...._types import Omit, omit
@@ -302,6 +303,22 @@ class ResponseStreamState(Generic[TextFormatT]):
                     sequence_number=event.sequence_number,
                     type="response.function_call_arguments.delta",
                     snapshot=output.arguments,
+                )
+            )
+
+        elif event.type == "response.function_call_arguments.done":
+            output = snapshot.output[event.output_index]
+            assert output.type == "function_call"
+
+            events.append(
+                build(
+                    ResponseFunctionCallArgumentsDoneEvent,
+                    arguments=event.arguments,
+                    item_id=event.item_id,
+                    name=event.name or output.name,
+                    output_index=event.output_index,
+                    sequence_number=event.sequence_number,
+                    type="response.function_call_arguments.done",
                 )
             )
 
