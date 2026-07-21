@@ -228,7 +228,13 @@ async def test_stream_drains_after_done(
     The fix drains the existing iterator (not a new response.iter_bytes() call)
     so that httpx doesn't raise StreamConsumed and the response reaches EOF
     before close, preventing premature TCP FIN.
+
+    We track whether the body generator reached its final sentinel to verify
+    that the drain actually consumed the trailing event — not just that the
+    response was closed (which happens in the finally block regardless).
     """
+
+    consumed_after_done: list[bool] = []
 
     def body() -> Iterator[bytes]:
         yield b'data: {"foo":true}\n'
@@ -238,6 +244,8 @@ async def test_stream_drains_after_done(
         # Extra data after [DONE] that should be consumed by the drain
         yield b'data: {"trailing":true}\n'
         yield b"\n"
+        # Sentinel: only reached if the drain consumed all trailing events
+        consumed_after_done.append(True)
 
     if sync:
         response = httpx.Response(200, content=body())
@@ -252,6 +260,11 @@ async def test_stream_drains_after_done(
         async for _ in stream:
             pass
         assert response.is_closed
+
+    # The sentinel is only appended if the body generator was fully consumed.
+    # Without the drain loop, the generator is garbage-collected when the
+    # response closes, so this assertion fails — proving the drain works.
+    assert consumed_after_done == [True]
 
 
 async def to_aiter(iter: Iterator[bytes]) -> AsyncIterator[bytes]:
