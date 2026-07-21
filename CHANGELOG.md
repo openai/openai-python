@@ -1,11 +1,5 @@
 # Changelog
 
-## Unreleased
-
-### Features
-
-* **client:** add experimental, explicitly selected HTTPX2 sync and async clients through the `httpx2` extra. HTTPX remains the required and authoritative default transport in 2.x; see the README for resolver, Python 3.9, and transport-typing limitations.
-
 ## 2.46.0 (2026-07-17)
 
 Full Changelog: [v2.45.0...v2.46.0](https://github.com/openai/openai-python/compare/v2.45.0...v2.46.0)
