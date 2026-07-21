@@ -8,8 +8,17 @@ import respx
 import pytest
 from respx.models import Call
 
+import openai._base_client as base_client
 import openai.auth._workload as workload
-from openai import OpenAI, OAuthError, AsyncOpenAI, APITimeoutError, APIConnectionError
+from openai import (
+    OpenAI,
+    OAuthError,
+    AsyncOpenAI,
+    APITimeoutError,
+    APIConnectionError,
+    DefaultHttpx2Client,
+    DefaultAsyncHttpx2Client,
+)
 from openai.auth import WorkloadIdentity
 
 httpx2 = pytest.importorskip("httpx2")
@@ -118,6 +127,83 @@ async def test_async_httpx2_workload_401_reexchanges_with_sync_native_client(mon
     assert len(api_requests) == 2
     assert all(isinstance(request, httpx2.Request) for request in api_requests)
     assert api_authorizations == ["Bearer access-token-1", "Bearer access-token-2"]
+
+
+def test_sync_httpx2_default_workload_exchange_is_native(monkeypatch: pytest.MonkeyPatch) -> None:
+    exchange_requests: list[Any] = []
+    api_requests: list[Any] = []
+
+    def exchange_handler(request: Any) -> Any:
+        exchange_requests.append(request)
+        return httpx2.Response(200, request=request, json=exchange_payload("access-token"))
+
+    def exchange_client(**kwargs: Any) -> Any:
+        assert kwargs == {"follow_redirects": False}
+        return httpx2.Client(transport=httpx2.MockTransport(exchange_handler), trust_env=False)
+
+    def api_handler(request: Any) -> Any:
+        api_requests.append(request)
+        return httpx2.Response(200, request=request, json={"object": "list", "data": []})
+
+    def default_client(**kwargs: Any) -> Any:
+        return DefaultHttpx2Client(transport=httpx2.MockTransport(api_handler), trust_env=False, **kwargs)
+
+    monkeypatch.setattr(base_client, "SyncHttpxClientWrapper", default_client)
+    monkeypatch.setattr(workload, "DefaultHttpx2Client", exchange_client)
+    monkeypatch.setattr(httpx.Client, "send", forbidden_httpx_send)
+
+    with OpenAI(
+        workload_identity=workload_identity(),
+        base_url="https://api.example.test/v1",
+        max_retries=0,
+    ) as client:
+        assert isinstance(client._client, httpx2.Client)
+        assert client.models.list().object == "list"
+
+    assert len(exchange_requests) == 1
+    assert len(api_requests) == 1
+    assert isinstance(exchange_requests[0], httpx2.Request)
+    assert isinstance(api_requests[0], httpx2.Request)
+    assert api_requests[0].headers["authorization"] == "Bearer access-token"
+
+
+async def test_async_httpx2_default_workload_exchange_is_native(monkeypatch: pytest.MonkeyPatch) -> None:
+    exchange_requests: list[Any] = []
+    api_requests: list[Any] = []
+
+    def exchange_handler(request: Any) -> Any:
+        exchange_requests.append(request)
+        return httpx2.Response(200, request=request, json=exchange_payload("access-token"))
+
+    def exchange_client(**kwargs: Any) -> Any:
+        assert kwargs == {"follow_redirects": False}
+        return httpx2.Client(transport=httpx2.MockTransport(exchange_handler), trust_env=False)
+
+    async def api_handler(request: Any) -> Any:
+        api_requests.append(request)
+        return httpx2.Response(200, request=request, json={"object": "list", "data": []})
+
+    def default_client(**kwargs: Any) -> Any:
+        return DefaultAsyncHttpx2Client(transport=httpx2.MockTransport(api_handler), trust_env=False, **kwargs)
+
+    monkeypatch.setattr(base_client, "AsyncHttpxClientWrapper", default_client)
+    monkeypatch.setattr(workload, "DefaultHttpx2Client", exchange_client)
+    monkeypatch.setattr(httpx.Client, "send", forbidden_httpx_send)
+    monkeypatch.setattr(httpx.AsyncClient, "send", forbidden_httpx_send)
+
+    async with AsyncOpenAI(
+        workload_identity=workload_identity(),
+        base_url="https://api.example.test/v1",
+        max_retries=0,
+    ) as client:
+        assert isinstance(client._client, httpx2.AsyncClient)
+        assert (await client.models.list()).object == "list"
+
+    assert len(exchange_requests) == 1
+    assert len(api_requests) == 1
+    assert isinstance(exchange_requests[0], httpx2.Request)
+    assert isinstance(api_requests[0], httpx2.Request)
+    assert api_requests[0].headers["authorization"] == "Bearer access-token"
 
 
 def test_httpx2_workload_oauth_error_preserves_native_response(monkeypatch: pytest.MonkeyPatch) -> None:

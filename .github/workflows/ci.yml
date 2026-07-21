@@ -130,6 +130,11 @@ jobs:
           rye pin 3.12
           rye sync --all-features
 
+      - name: Run tests with HTTPX and HTTPX2 installed
+        env:
+          OPENAI_TEST_HTTP_CLIENT: httpx
+        run: ./scripts/test
+
       - name: Run tests with HTTPX2
         env:
           OPENAI_TEST_HTTP_CLIENT: httpx2
