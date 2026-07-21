@@ -245,8 +245,7 @@ class WorkloadIdentityAuth:
                 f"Unsupported token type: {token_type!r}. Supported types: {', '.join(SUBJECT_TOKEN_TYPES.keys())}"
             )
 
-        # TODO(httpx2): Prefer HTTPX2 for internal token exchange once the SDK
-        # drops Python 3.9 support and HTTPX2 becomes the authoritative transport.
+        # TODO(httpx2): Migrate internal usage once the dependency floor is raised.
         with httpx.Client() as client:
             response = client.post(
                 self.token_exchange_url,
