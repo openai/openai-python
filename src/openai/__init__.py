@@ -10,7 +10,7 @@ from . import types
 from ._types import NOT_GIVEN, Omit, NoneType, NotGiven, Transport, ProxiesTypes, omit, not_given
 from ._utils import file_from_path
 from ._client import Client, OpenAI, Stream, Timeout, Transport, AsyncClient, AsyncOpenAI, AsyncStream, RequestOptions
-from ._httpx2 import DefaultHttpx2Client, DefaultAsyncHttpx2Client
+from ._httpx2 import DefaultHttpx2Client, DefaultAsyncHttpx2Client, normalize_httpx_url as _normalize_httpx_url
 from ._models import BaseModel
 from ._version import __title__, __version__
 from ._response import APIResponse as APIResponse, AsyncAPIResponse as AsyncAPIResponse
@@ -236,7 +236,7 @@ class _ModuleClient(OpenAI):
     @override
     def base_url(self) -> _httpx.URL:
         if base_url is not None:
-            return _httpx.URL(base_url)
+            return _normalize_httpx_url(base_url)
 
         return super().base_url
 

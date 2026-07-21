@@ -7,7 +7,16 @@ import httpx
 import pytest
 
 import openai
-from openai import OpenAI, AsyncOpenAI, OpenAIError, APIStatusError, APITimeoutError, APIConnectionError
+from openai import (
+    OpenAI,
+    AsyncOpenAI,
+    AzureOpenAI,
+    OpenAIError,
+    APIStatusError,
+    APITimeoutError,
+    AsyncAzureOpenAI,
+    APIConnectionError,
+)
 from openai._response import StreamAlreadyConsumed
 from openai.providers import bedrock
 from openai._constants import DEFAULT_TIMEOUT
@@ -71,7 +80,7 @@ def test_sync_helper_preserves_httpx2_family_for_parsed_raw_and_sse() -> None:
 
     with OpenAI(
         api_key="test",
-        base_url="https://example.test/v1",
+        base_url=httpx2.URL("https://example.test/v1"),
         http_client=openai.DefaultHttpx2Client(
             timeout=httpx.Timeout(30.0, read=10.0),
             auth=httpx2.BasicAuth("user", "pass"),
@@ -121,7 +130,7 @@ async def test_async_helper_preserves_httpx2_family_for_parsed_raw_and_sse() -> 
 
     async with AsyncOpenAI(
         api_key="test",
-        base_url="https://example.test/v1",
+        base_url=httpx2.URL("https://example.test/v1"),
         http_client=openai.DefaultAsyncHttpx2Client(
             timeout=httpx.Timeout(30.0, read=10.0),
             auth=httpx2.BasicAuth("user", "pass"),
@@ -165,7 +174,7 @@ def test_direct_sync_injection_and_module_configuration() -> None:
         assert client.models.list().object == "list"
 
     openai.api_key = "test"
-    openai.base_url = "https://example.test/v1"
+    openai.base_url = httpx2.URL("https://example.test/v1")
     openai.http_client = openai.DefaultHttpx2Client(transport=httpx2.MockTransport(model_list), trust_env=False)
     try:
         response = openai.models.with_raw_response.list()
@@ -174,6 +183,94 @@ def test_direct_sync_injection_and_module_configuration() -> None:
         openai.http_client = None
 
     assert type(response.http_response).__module__ == "httpx2"
+
+
+async def test_httpx2_urls_and_response_casts() -> None:
+    class ResponseSubclass(httpx2.Response):
+        pass
+
+    def model(request: httpx.Request) -> httpx.Response:
+        return httpx2.Response(
+            200,
+            request=request,
+            json={"id": "gpt-4o", "object": "model", "created": 1, "owned_by": "openai"},
+        )
+
+    with OpenAI(
+        api_key="test",
+        base_url=httpx2.URL("https://example.test/v1"),
+        http_client=httpx2.Client(transport=httpx2.MockTransport(model), trust_env=False),
+        max_retries=0,
+    ) as client:
+        client.base_url = httpx2.URL("https://example.test/v1")
+        response = client.get("/models", cast_to=httpx2.Response)
+        legacy_raw = client.models.with_raw_response.retrieve("gpt-4o")
+        with client.models.with_streaming_response.retrieve("gpt-4o") as streaming_raw:
+            streaming_response = streaming_raw.parse(to=httpx2.Response)
+
+        with pytest.raises(ValueError, match="Subclasses of HTTP response classes"):
+            client.get("/models", cast_to=ResponseSubclass)
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        return model(request)
+
+    async with AsyncOpenAI(
+        api_key="test",
+        base_url=httpx2.URL("https://example.test/v1"),
+        http_client=httpx2.AsyncClient(transport=httpx2.MockTransport(handler), trust_env=False),
+        max_retries=0,
+    ) as async_client:
+        async_client.base_url = httpx2.URL("https://example.test/v1")
+        async_response = await async_client.get("/models", cast_to=httpx2.Response)
+        async_legacy_raw = await async_client.models.with_raw_response.retrieve("gpt-4o")
+        async with async_client.models.with_streaming_response.retrieve("gpt-4o") as async_streaming_raw:
+            async_streaming_response = await async_streaming_raw.parse(to=httpx2.Response)
+
+        with pytest.raises(ValueError, match="Subclasses of HTTP response classes"):
+            await async_client.get("/models", cast_to=ResponseSubclass)
+
+    assert isinstance(response, httpx2.Response)
+    assert isinstance(legacy_raw.parse(to=httpx2.Response), httpx2.Response)
+    assert isinstance(streaming_response, httpx2.Response)
+    assert isinstance(async_response, httpx2.Response)
+    assert isinstance(async_legacy_raw.parse(to=httpx2.Response), httpx2.Response)
+    assert isinstance(async_streaming_response, httpx2.Response)
+
+
+async def test_httpx2_urls_work_for_bedrock_and_azure_realtime() -> None:
+    with OpenAI(
+        provider=bedrock(
+            region="us-east-1",
+            api_key="bedrock-token",
+            base_url=httpx2.URL("https://bedrock.test/openai/v1/responses"),
+        ),
+        http_client=httpx2.Client(transport=httpx2.MockTransport(model_list), trust_env=False),
+        max_retries=0,
+    ) as client:
+        assert client.models.list().object == "list"
+
+    azure = AzureOpenAI(
+        api_key="test",
+        api_version="2024-02-01",
+        azure_endpoint="https://azure.test",
+        websocket_base_url=httpx2.URL("https://azure.test/openai/v1"),
+        http_client=httpx2.Client(transport=httpx2.MockTransport(model_list), trust_env=False),
+    )
+    realtime_url, _ = azure._configure_realtime("gpt-4o", {})
+    azure.close()
+
+    async_azure = AsyncAzureOpenAI(
+        api_key="test",
+        api_version="2024-02-01",
+        azure_endpoint="https://azure.test",
+        websocket_base_url=httpx2.URL("https://azure.test/openai/v1"),
+        http_client=httpx2.AsyncClient(transport=httpx2.MockTransport(model_list), trust_env=False),
+    )
+    async_realtime_url, _ = await async_azure._configure_realtime("gpt-4o", {})
+    await async_azure.close()
+
+    assert str(realtime_url).startswith("https://azure.test/openai/v1/realtime?")
+    assert str(async_realtime_url).startswith("https://azure.test/openai/v1/realtime?")
 
 
 async def test_direct_async_injection() -> None:

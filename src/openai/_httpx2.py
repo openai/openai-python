@@ -13,6 +13,8 @@ class _Httpx2Module(Protocol):
     Auth: type[httpx.Auth]
     Client: type[httpx.Client]
     AsyncClient: type[httpx.AsyncClient]
+    URL: type[httpx.URL]
+    Response: type[httpx.Response]
     Timeout: type[httpx.Timeout]
     Limits: type[httpx.Limits]
     TimeoutException: type[httpx.TimeoutException]
@@ -55,6 +57,22 @@ def is_httpx2_sync_client(value: object) -> bool:
 def is_httpx2_async_client(value: object) -> bool:
     module = _loaded_httpx2()
     return module is not None and isinstance(value, module.AsyncClient)
+
+
+def normalize_httpx_url(value: str | httpx.URL) -> httpx.URL:
+    module = _loaded_httpx2()
+    if module is not None and isinstance(value, module.URL):
+        return httpx.URL(str(value))
+    if isinstance(value, httpx.URL):
+        return value
+    return httpx.URL(value)
+
+
+def http_response_types() -> tuple[type[httpx.Response], ...]:
+    module = _loaded_httpx2()
+    if module is None:
+        return (httpx.Response,)
+    return (httpx.Response, module.Response)
 
 
 def normalize_httpx_timeout(value: float | httpx.Timeout | None) -> float | httpx.Timeout | None:

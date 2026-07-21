@@ -66,6 +66,7 @@ from ._compat import PYDANTIC_V1, model_copy, model_dump
 from ._httpx2 import (
     status_exceptions,
     timeout_exceptions,
+    normalize_httpx_url,
     is_httpx2_sync_client,
     normalize_httpx2_auth,
     is_httpx2_async_client,
@@ -394,7 +395,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         custom_query: Mapping[str, object] | None = None,
     ) -> None:
         self._version = version
-        self._base_url = self._enforce_trailing_slash(URL(base_url))
+        self._base_url = self._enforce_trailing_slash(normalize_httpx_url(base_url))
         self.max_retries = max_retries
         self.timeout = timeout
         self._custom_headers = custom_headers or {}
@@ -743,7 +744,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
 
     @base_url.setter
     def base_url(self, url: URL | str) -> None:
-        self._base_url = self._enforce_trailing_slash(url if isinstance(url, URL) else URL(url))
+        self._base_url = self._enforce_trailing_slash(normalize_httpx_url(url))
 
     def platform_headers(self) -> Dict[str, str]:
         # the actual implementation is in a separate `lru_cache` decorated
@@ -1452,6 +1453,7 @@ class _DefaultAsyncHttpxClient(httpx.AsyncClient):
 
 
 if sys.version_info < (3, 10):
+
     class _DefaultAioHttpClient(httpx.AsyncClient):
         def __init__(self, **_kwargs: Any) -> None:
             raise RuntimeError("The aiohttp client requires Python 3.10 or later")

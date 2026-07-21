@@ -10,7 +10,7 @@ import httpx
 
 from .._types import NOT_GIVEN, NotGiven
 from .._utils import asyncify
-from .._httpx2 import request_not_read_exceptions
+from .._httpx2 import normalize_httpx_url, request_not_read_exceptions
 from .._models import FinalRequestOptions
 from .._provider import _Provider, _create_provider, _ProviderRuntime
 from .._exceptions import OpenAIError
@@ -35,7 +35,7 @@ def _normalize_optional_string(value: str | None) -> str | None:
 
 
 def _normalize_base_url(base_url: str | httpx.URL) -> httpx.URL:
-    url = httpx.URL(base_url)
+    url = normalize_httpx_url(base_url)
     path = url.path.rstrip("/")
     responses_match = re.search(r"/responses(?:/.*)?$", path)
     if responses_match is not None:
