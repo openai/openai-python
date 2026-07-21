@@ -117,10 +117,11 @@ async def _make_async_iterator(iterable: Iterable[T], counter: Optional[Counter]
 
 def _get_open_connections(client: OpenAI | AsyncOpenAI) -> int:
     transport = client._client._transport
-    assert isinstance(transport, httpx.HTTPTransport) or isinstance(transport, httpx.AsyncHTTPTransport)
+    if isinstance(transport, httpx.HTTPTransport) or isinstance(transport, httpx.AsyncHTTPTransport):
+        return len(transport._pool._requests)
 
-    pool = transport._pool
-    return len(pool._requests)
+    assert type(transport).__module__ == "httpx2"
+    return len(cast(Any, transport)._pool._requests)
 
 
 class TestOpenAI:
@@ -130,7 +131,7 @@ class TestOpenAI:
 
         response = client.post("/foo", cast_to=httpx.Response)
         assert response.status_code == 200
-        assert isinstance(response, httpx.Response)
+        assert type(response).__module__ == os.environ.get("OPENAI_TEST_HTTP_CLIENT", "httpx")
         assert response.json() == {"foo": "bar"}
 
     @pytest.mark.respx(base_url=base_url)
@@ -141,7 +142,7 @@ class TestOpenAI:
 
         response = client.post("/foo", cast_to=httpx.Response)
         assert response.status_code == 200
-        assert isinstance(response, httpx.Response)
+        assert type(response).__module__ == os.environ.get("OPENAI_TEST_HTTP_CLIENT", "httpx")
         assert response.json() == {"foo": "bar"}
 
     def test_copy(self, client: OpenAI) -> None:
@@ -615,7 +616,7 @@ class TestOpenAI:
 
     def test_hardcoded_query_params_in_url(self, client: OpenAI) -> None:
         request = client._build_request(FinalRequestOptions(method="get", url="/foo?beta=true"))
-        url = httpx.URL(request.url)
+        url = httpx.URL(str(request.url))
         assert dict(url.params) == {"beta": "true"}
 
         request = client._build_request(
@@ -625,7 +626,7 @@ class TestOpenAI:
                 params={"limit": "10", "page": "abc"},
             )
         )
-        url = httpx.URL(request.url)
+        url = httpx.URL(str(request.url))
         assert dict(url.params) == {"beta": "true", "limit": "10", "page": "abc"}
 
         request = client._build_request(
@@ -1393,7 +1394,7 @@ class TestAsyncOpenAI:
 
         response = await async_client.post("/foo", cast_to=httpx.Response)
         assert response.status_code == 200
-        assert isinstance(response, httpx.Response)
+        assert type(response).__module__ == os.environ.get("OPENAI_TEST_HTTP_CLIENT", "httpx")
         assert response.json() == {"foo": "bar"}
 
     @pytest.mark.respx(base_url=base_url)
@@ -1404,7 +1405,7 @@ class TestAsyncOpenAI:
 
         response = await async_client.post("/foo", cast_to=httpx.Response)
         assert response.status_code == 200
-        assert isinstance(response, httpx.Response)
+        assert type(response).__module__ == os.environ.get("OPENAI_TEST_HTTP_CLIENT", "httpx")
         assert response.json() == {"foo": "bar"}
 
     def test_copy(self, async_client: AsyncOpenAI) -> None:
@@ -1866,7 +1867,7 @@ class TestAsyncOpenAI:
 
     async def test_hardcoded_query_params_in_url(self, async_client: AsyncOpenAI) -> None:
         request = async_client._build_request(FinalRequestOptions(method="get", url="/foo?beta=true"))
-        url = httpx.URL(request.url)
+        url = httpx.URL(str(request.url))
         assert dict(url.params) == {"beta": "true"}
 
         request = async_client._build_request(
@@ -1876,7 +1877,7 @@ class TestAsyncOpenAI:
                 params={"limit": "10", "page": "abc"},
             )
         )
-        url = httpx.URL(request.url)
+        url = httpx.URL(str(request.url))
         assert dict(url.params) == {"beta": "true", "limit": "10", "page": "abc"}
 
         request = async_client._build_request(

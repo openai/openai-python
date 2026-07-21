@@ -63,6 +63,16 @@ from ._types import (
 )
 from ._utils import SensitiveHeadersFilter, is_dict, is_list, asyncify, is_given, lru_cache, is_mapping
 from ._compat import PYDANTIC_V1, model_copy, model_dump
+from ._httpx2 import (
+    status_exceptions,
+    timeout_exceptions,
+    normalize_httpx_url,
+    is_httpx2_sync_client,
+    normalize_httpx2_auth,
+    is_httpx2_async_client,
+    normalize_httpx_timeout,
+    normalize_httpx2_timeout,
+)
 from ._models import GenericModel, SecurityOptions, FinalRequestOptions, validate_type, construct_type
 from ._response import (
     APIResponse,
@@ -385,7 +395,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         custom_query: Mapping[str, object] | None = None,
     ) -> None:
         self._version = version
-        self._base_url = self._enforce_trailing_slash(URL(base_url))
+        self._base_url = self._enforce_trailing_slash(normalize_httpx_url(base_url))
         self.max_retries = max_retries
         self.timeout = timeout
         self._custom_headers = custom_headers or {}
@@ -471,7 +481,9 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         if "x-stainless-retry-count" not in lower_custom_headers:
             headers["x-stainless-retry-count"] = str(retries_taken)
         if "x-stainless-read-timeout" not in lower_custom_headers:
-            timeout = self.timeout if isinstance(options.timeout, NotGiven) else options.timeout
+            timeout = normalize_httpx_timeout(
+                self.timeout if isinstance(options.timeout, NotGiven) else options.timeout
+            )
             if isinstance(timeout, Timeout):
                 timeout = timeout.read
             if timeout is not None:
@@ -589,12 +601,20 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
             headers.pop("Content-Type", None)
             kwargs.pop("data", None)
 
+        timeout = self.timeout if isinstance(options.timeout, NotGiven) else options.timeout
+        request_url: str | URL = prepared_url
+        request_headers: httpx.Headers | list[tuple[str, str]] = headers
+        if is_httpx2_sync_client(self._client) or is_httpx2_async_client(self._client):
+            request_url = str(prepared_url)
+            request_headers = list(headers.multi_items())
+            timeout = normalize_httpx2_timeout(timeout)
+
         # TODO: report this error to httpx
         return self._client.build_request(  # pyright: ignore[reportUnknownMemberType]
-            headers=headers,
-            timeout=self.timeout if isinstance(options.timeout, NotGiven) else options.timeout,
+            headers=request_headers,
+            timeout=timeout,
             method=options.method,
-            url=prepared_url,
+            url=request_url,
             # the `Query` type that we use is incompatible with qs'
             # `Params` type as it needs to be typed as `Mapping[str, object]`
             # so that passing a `TypedDict` doesn't cause an error.
@@ -726,7 +746,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
 
     @base_url.setter
     def base_url(self, url: URL | str) -> None:
-        self._base_url = self._enforce_trailing_slash(url if isinstance(url, URL) else URL(url))
+        self._base_url = self._enforce_trailing_slash(normalize_httpx_url(url))
 
     def platform_headers(self) -> Dict[str, str]:
         # the actual implementation is in a separate `lru_cache` decorated
@@ -886,14 +906,20 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
             # where they've explicitly set the timeout to match the default timeout
             # as this check is structural, meaning that we'll think they didn't
             # pass in a timeout and will ignore it
-            if http_client and http_client.timeout != HTTPX_DEFAULT_TIMEOUT:
-                timeout = http_client.timeout
+            client_timeout = normalize_httpx_timeout(http_client.timeout) if http_client else None
+            if http_client and client_timeout != HTTPX_DEFAULT_TIMEOUT:
+                timeout = client_timeout
             else:
                 timeout = DEFAULT_TIMEOUT
 
-        if http_client is not None and not isinstance(http_client, httpx.Client):  # pyright: ignore[reportUnnecessaryIsInstance]
+        if (
+            http_client is not None
+            and not is_httpx2_sync_client(http_client)
+            and not isinstance(http_client, httpx.Client)  # pyright: ignore[reportUnnecessaryIsInstance]
+        ):
             raise TypeError(
-                f"Invalid `http_client` argument; Expected an instance of `httpx.Client` but got {type(http_client)}"
+                "Invalid `http_client` argument; Expected an instance of `httpx.Client` or `httpx2.Client` "
+                f"but got {type(http_client)}"
             )
 
         super().__init__(
@@ -1025,7 +1051,9 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
             kwargs: HttpxSendArgs = {}
             custom_auth = self._custom_auth(options.security)
             if custom_auth is not None:
-                kwargs["auth"] = custom_auth
+                kwargs["auth"] = (
+                    normalize_httpx2_auth(custom_auth) if is_httpx2_sync_client(self._client) else custom_auth
+                )
 
             if options.follow_redirects is not None:
                 kwargs["follow_redirects"] = options.follow_redirects
@@ -1039,8 +1067,8 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
                     stream=stream or self._should_stream_response_body(request=request),
                     **kwargs,
                 )
-            except httpx.TimeoutException as err:
-                log.debug("Encountered httpx.TimeoutException", exc_info=True)
+            except timeout_exceptions() as err:
+                log.debug("Encountered a timeout exception", exc_info=True)
 
                 if remaining_retries > 0:
                     self._sleep_for_retry(
@@ -1083,8 +1111,8 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
 
             try:
                 response.raise_for_status()
-            except httpx.HTTPStatusError as err:  # thrown on 4xx and 5xx status code
-                log.debug("Encountered httpx.HTTPStatusError", exc_info=True)
+            except status_exceptions() as err:  # thrown on 4xx and 5xx status code
+                log.debug("Encountered an HTTP status error", exc_info=True)
 
                 if remaining_retries > 0 and self._should_retry(err.response):
                     err.response.close()
@@ -1427,6 +1455,7 @@ class _DefaultAsyncHttpxClient(httpx.AsyncClient):
 
 
 if sys.version_info < (3, 10):
+
     class _DefaultAioHttpClient(httpx.AsyncClient):
         def __init__(self, **_kwargs: Any) -> None:
             raise RuntimeError("The aiohttp client requires Python 3.10 or later")
@@ -1503,14 +1532,20 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
             # where they've explicitly set the timeout to match the default timeout
             # as this check is structural, meaning that we'll think they didn't
             # pass in a timeout and will ignore it
-            if http_client and http_client.timeout != HTTPX_DEFAULT_TIMEOUT:
-                timeout = http_client.timeout
+            client_timeout = normalize_httpx_timeout(http_client.timeout) if http_client else None
+            if http_client and client_timeout != HTTPX_DEFAULT_TIMEOUT:
+                timeout = client_timeout
             else:
                 timeout = DEFAULT_TIMEOUT
 
-        if http_client is not None and not isinstance(http_client, httpx.AsyncClient):  # pyright: ignore[reportUnnecessaryIsInstance]
+        if (
+            http_client is not None
+            and not is_httpx2_async_client(http_client)
+            and not isinstance(http_client, httpx.AsyncClient)  # pyright: ignore[reportUnnecessaryIsInstance]
+        ):
             raise TypeError(
-                f"Invalid `http_client` argument; Expected an instance of `httpx.AsyncClient` but got {type(http_client)}"
+                "Invalid `http_client` argument; Expected an instance of `httpx.AsyncClient` or "
+                f"`httpx2.AsyncClient` but got {type(http_client)}"
             )
 
         super().__init__(
@@ -1643,7 +1678,11 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
 
             kwargs: HttpxSendArgs = {}
             if self.custom_auth is not None:
-                kwargs["auth"] = self.custom_auth
+                kwargs["auth"] = (
+                    normalize_httpx2_auth(self.custom_auth)
+                    if is_httpx2_async_client(self._client)
+                    else self.custom_auth
+                )
 
             if options.follow_redirects is not None:
                 kwargs["follow_redirects"] = options.follow_redirects
@@ -1657,8 +1696,8 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
                     stream=stream or self._should_stream_response_body(request=request),
                     **kwargs,
                 )
-            except httpx.TimeoutException as err:
-                log.debug("Encountered httpx.TimeoutException", exc_info=True)
+            except timeout_exceptions() as err:
+                log.debug("Encountered a timeout exception", exc_info=True)
 
                 if remaining_retries > 0:
                     await self._sleep_for_retry(
@@ -1701,8 +1740,8 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
 
             try:
                 response.raise_for_status()
-            except httpx.HTTPStatusError as err:  # thrown on 4xx and 5xx status code
-                log.debug("Encountered httpx.HTTPStatusError", exc_info=True)
+            except status_exceptions() as err:  # thrown on 4xx and 5xx status code
+                log.debug("Encountered an HTTP status error", exc_info=True)
 
                 if remaining_retries > 0 and self._should_retry(err.response):
                     await err.response.aclose()
