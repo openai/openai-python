@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 from typing import Any
 from typing_extensions import override
 
@@ -83,7 +84,7 @@ def test_sync_helper_preserves_httpx2_family_for_parsed_raw_and_sse() -> None:
         base_url=httpx2.URL("https://example.test/v1"),
         http_client=openai.DefaultHttpx2Client(
             timeout=httpx.Timeout(30.0, read=10.0),
-            auth=httpx2.BasicAuth("user", "pass"),
+            auth=httpx2.BasicAuth("fake-test-user", "fake-test-password"),
             headers=[("x-repeated", "one"), ("x-repeated", "two")],
             mounts={"https://example.test": httpx2.MockTransport(handler)},
             event_hooks={"request": [on_request]},
@@ -110,7 +111,10 @@ def test_sync_helper_preserves_httpx2_family_for_parsed_raw_and_sse() -> None:
     assert type(multipart).__module__ == "httpx2"
     assert hooks == ["httpx2", "httpx2", "httpx2", "httpx2"]
     assert all(type(request).__module__ == "httpx2" for request in requests)
-    assert requests[0].headers["authorization"] == "Basic dXNlcjpwYXNz"
+    assert (
+        requests[0].headers["authorization"]
+        == f"Basic {base64.b64encode(b'fake-test-user:fake-test-password').decode()}"
+    )
     assert requests[0].headers.get_list("x-repeated") == ["one", "two"]
     assert requests[0].url.params.get_list("tag[]") == ["one", "two"]
     assert requests[0].extensions["timeout"] == {"connect": 30.0, "read": 10.0, "write": 30.0, "pool": 30.0}
@@ -133,7 +137,7 @@ async def test_async_helper_preserves_httpx2_family_for_parsed_raw_and_sse() -> 
         base_url=httpx2.URL("https://example.test/v1"),
         http_client=openai.DefaultAsyncHttpx2Client(
             timeout=httpx.Timeout(30.0, read=10.0),
-            auth=httpx2.BasicAuth("user", "pass"),
+            auth=httpx2.BasicAuth("fake-test-user", "fake-test-password"),
             headers=[("x-repeated", "one"), ("x-repeated", "two")],
             transport=httpx2.MockTransport(handler),
             event_hooks={"request": [on_request]},
@@ -160,7 +164,10 @@ async def test_async_helper_preserves_httpx2_family_for_parsed_raw_and_sse() -> 
     assert type(multipart).__module__ == "httpx2"
     assert hooks == ["httpx2", "httpx2", "httpx2", "httpx2"]
     assert all(type(request).__module__ == "httpx2" for request in requests)
-    assert requests[0].headers["authorization"] == "Basic dXNlcjpwYXNz"
+    assert (
+        requests[0].headers["authorization"]
+        == f"Basic {base64.b64encode(b'fake-test-user:fake-test-password').decode()}"
+    )
     assert requests[0].headers.get_list("x-repeated") == ["one", "two"]
     assert requests[0].url.params.get_list("tag[]") == ["one", "two"]
     assert requests[0].extensions["timeout"] == {"connect": 30.0, "read": 10.0, "write": 30.0, "pool": 30.0}
