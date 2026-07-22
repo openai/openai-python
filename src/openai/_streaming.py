@@ -61,6 +61,19 @@ class Stream(Generic[_T]):
         try:
             for sse in iterator:
                 if sse.data.startswith("[DONE]"):
+                    # Drain remaining events from the existing iterator so the
+                    # underlying response.iter_bytes() reaches EOF, allowing
+                    # h11 to advance to DONE state before close. Without this,
+                    # response.close() sends TCP FIN while the chunked terminator
+                    # (0\r\n\r\n) is still in flight, causing connection pool
+                    # degradation and proxy errors. (#3440)
+                    #
+                    # We must drain through `iterator` (not start a new
+                    # `self.response.iter_bytes()`) because httpx only allows
+                    # one active iterator at a time — a second call raises
+                    # `httpx.StreamConsumed`.
+                    for _ in iterator:
+                        pass
                     break
 
                 # we have to special case the Assistants `thread.` events since we won't have an "event" key in the data
@@ -171,6 +184,19 @@ class AsyncStream(Generic[_T]):
         try:
             async for sse in iterator:
                 if sse.data.startswith("[DONE]"):
+                    # Drain remaining events from the existing iterator so the
+                    # underlying response.aiter_bytes() reaches EOF, allowing
+                    # h11 to advance to DONE state before close. Without this,
+                    # response.aclose() sends TCP FIN while the chunked terminator
+                    # (0\r\n\r\n) is still in flight, causing connection pool
+                    # degradation and proxy errors. (#3440)
+                    #
+                    # We must drain through `iterator` (not start a new
+                    # `self.response.aiter_bytes()`) because httpx only allows
+                    # one active iterator at a time — a second call raises
+                    # `httpx.StreamConsumed`.
+                    async for _ in iterator:
+                        pass
                     break
 
                 # we have to special case the Assistants `thread.` events since we won't have an "event" key in the data
