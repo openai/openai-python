@@ -61,6 +61,13 @@ class Stream(Generic[_T]):
         try:
             for sse in iterator:
                 if sse.data.startswith("[DONE]"):
+                    # Drain any remaining bytes from the response body so that
+                    # h11 can parse the HTTP/1.1 chunked transfer-encoding
+                    # terminator (0\r\n\r\n) and advance its state to DONE.
+                    # Without this, response.close() destroys the connection
+                    # (TCP FIN) instead of returning it to the pool.  See #3440.
+                    for _remaining in self.response.iter_bytes():
+                        pass
                     break
 
                 # we have to special case the Assistants `thread.` events since we won't have an "event" key in the data
@@ -171,6 +178,10 @@ class AsyncStream(Generic[_T]):
         try:
             async for sse in iterator:
                 if sse.data.startswith("[DONE]"):
+                    # Drain any remaining bytes so h11 parses the chunked
+                    # terminator before we close.  See #3440.
+                    async for _remaining in self.response.aiter_bytes():
+                        pass
                     break
 
                 # we have to special case the Assistants `thread.` events since we won't have an "event" key in the data
