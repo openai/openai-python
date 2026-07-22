@@ -123,7 +123,10 @@ class Reasoning(TypedDict, total=False):
 
     context: Optional[Literal["auto", "current_turn", "all_turns"]]
     """
-    Controls which reasoning items are rendered back to the model on later turns.
+    Controls which reasoning items are rendered back to the model on later turns. If
+    omitted or set to `auto`, the model determines the context mode. The `gpt-5.6`
+    model family defaults to `all_turns`; earlier models default to `current_turn`.
+
     When returned on a response, this is the effective reasoning context mode used
     for the response.
     """
@@ -194,7 +197,7 @@ class Text(TypedDict, total=False):
 
     Lower values will result in more concise responses, while higher values will
     result in more verbose responses. Currently supported values are `low`,
-    `medium`, and `high`.
+    `medium`, and `high`. The default is `medium`.
     """
 
 
