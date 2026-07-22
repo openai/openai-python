@@ -4333,17 +4333,24 @@ class AsyncResponsesConnectionManager:
         if self.__websocket_connection_options:
             log.debug("Connection options: %s", self.__websocket_connection_options)
 
-        return await connect(
-            str(url),
-            user_agent_header=self.__client.user_agent,
-            additional_headers=_merge_mappings(
-                {
-                    **self.__client.auth_headers,
-                },
-                extra_headers,
-            ),
-            **self.__websocket_connection_options,
-        )
+        auth_headers = await self.__client._websocket_auth_headers(extra_headers)
+        try:
+            return await connect(
+                str(url),
+                user_agent_header=self.__client.user_agent,
+                additional_headers=_merge_mappings(auth_headers, extra_headers),
+                **self.__websocket_connection_options,
+            )
+        except Exception as exc:
+            retry_auth_headers = await self.__client._retry_websocket_auth_headers(exc, extra_headers)
+            if retry_auth_headers is None:
+                raise
+            return await connect(
+                str(url),
+                user_agent_header=self.__client.user_agent,
+                additional_headers=_merge_mappings(retry_auth_headers, extra_headers),
+                **self.__websocket_connection_options,
+            )
 
     def _prepare_url(self) -> httpx.URL:
         if self.__client.websocket_base_url is not None:
@@ -4778,17 +4785,24 @@ class ResponsesConnectionManager:
         if self.__websocket_connection_options:
             log.debug("Connection options: %s", self.__websocket_connection_options)
 
-        return connect(
-            str(url),
-            user_agent_header=self.__client.user_agent,
-            additional_headers=_merge_mappings(
-                {
-                    **self.__client.auth_headers,
-                },
-                extra_headers,
-            ),
-            **self.__websocket_connection_options,
-        )
+        auth_headers = self.__client._websocket_auth_headers(extra_headers)
+        try:
+            return connect(
+                str(url),
+                user_agent_header=self.__client.user_agent,
+                additional_headers=_merge_mappings(auth_headers, extra_headers),
+                **self.__websocket_connection_options,
+            )
+        except Exception as exc:
+            retry_auth_headers = self.__client._retry_websocket_auth_headers(exc, extra_headers)
+            if retry_auth_headers is None:
+                raise
+            return connect(
+                str(url),
+                user_agent_header=self.__client.user_agent,
+                additional_headers=_merge_mappings(retry_auth_headers, extra_headers),
+                **self.__websocket_connection_options,
+            )
 
     def _prepare_url(self) -> httpx.URL:
         if self.__client.websocket_base_url is not None:
