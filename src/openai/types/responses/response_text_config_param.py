@@ -40,5 +40,5 @@ class ResponseTextConfigParam(TypedDict, total=False):
 
     Lower values will result in more concise responses, while higher values will
     result in more verbose responses. Currently supported values are `low`,
-    `medium`, and `high`.
+    `medium`, and `high`. The default is `medium`.
     """
