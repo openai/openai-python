@@ -98,12 +98,12 @@ class Completions(SyncAPIResource):
         parallel_tool_calls: bool | Omit = omit,
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
         presence_penalty: Optional[float] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
         prompt_cache_options: completion_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
         response_format: completion_create_params.ResponseFormat | Omit = omit,
-        safety_identifier: str | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
         stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
@@ -388,7 +388,8 @@ class Completions(SyncAPIResource):
 
           verbosity: Constrains the verbosity of the model's response. Lower values will result in
               more concise responses, while higher values will result in more verbose
-              responses. Currently supported values are `low`, `medium`, and `high`.
+              responses. Currently supported values are `low`, `medium`, and `high`. The
+              default is `medium`.
 
           web_search_options: This tool searches the web for relevant results to use in a response. Learn more
               about the
@@ -426,12 +427,12 @@ class Completions(SyncAPIResource):
         parallel_tool_calls: bool | Omit = omit,
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
         presence_penalty: Optional[float] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
         prompt_cache_options: completion_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
         response_format: completion_create_params.ResponseFormat | Omit = omit,
-        safety_identifier: str | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
         stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
@@ -715,7 +716,8 @@ class Completions(SyncAPIResource):
 
           verbosity: Constrains the verbosity of the model's response. Lower values will result in
               more concise responses, while higher values will result in more verbose
-              responses. Currently supported values are `low`, `medium`, and `high`.
+              responses. Currently supported values are `low`, `medium`, and `high`. The
+              default is `medium`.
 
           web_search_options: This tool searches the web for relevant results to use in a response. Learn more
               about the
@@ -753,12 +755,12 @@ class Completions(SyncAPIResource):
         parallel_tool_calls: bool | Omit = omit,
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
         presence_penalty: Optional[float] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
         prompt_cache_options: completion_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
         response_format: completion_create_params.ResponseFormat | Omit = omit,
-        safety_identifier: str | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
         stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
@@ -1042,7 +1044,8 @@ class Completions(SyncAPIResource):
 
           verbosity: Constrains the verbosity of the model's response. Lower values will result in
               more concise responses, while higher values will result in more verbose
-              responses. Currently supported values are `low`, `medium`, and `high`.
+              responses. Currently supported values are `low`, `medium`, and `high`. The
+              default is `medium`.
 
           web_search_options: This tool searches the web for relevant results to use in a response. Learn more
               about the
@@ -1079,12 +1082,12 @@ class Completions(SyncAPIResource):
         parallel_tool_calls: bool | Omit = omit,
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
         presence_penalty: Optional[float] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
         prompt_cache_options: completion_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
         response_format: completion_create_params.ResponseFormat | Omit = omit,
-        safety_identifier: str | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
         stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
@@ -1410,12 +1413,12 @@ class AsyncCompletions(AsyncAPIResource):
         parallel_tool_calls: bool | Omit = omit,
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
         presence_penalty: Optional[float] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
         prompt_cache_options: completion_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
         response_format: completion_create_params.ResponseFormat | Omit = omit,
-        safety_identifier: str | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
         stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
@@ -1700,7 +1703,8 @@ class AsyncCompletions(AsyncAPIResource):
 
           verbosity: Constrains the verbosity of the model's response. Lower values will result in
               more concise responses, while higher values will result in more verbose
-              responses. Currently supported values are `low`, `medium`, and `high`.
+              responses. Currently supported values are `low`, `medium`, and `high`. The
+              default is `medium`.
 
           web_search_options: This tool searches the web for relevant results to use in a response. Learn more
               about the
@@ -1738,12 +1742,12 @@ class AsyncCompletions(AsyncAPIResource):
         parallel_tool_calls: bool | Omit = omit,
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
         presence_penalty: Optional[float] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
         prompt_cache_options: completion_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
         response_format: completion_create_params.ResponseFormat | Omit = omit,
-        safety_identifier: str | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
         stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
@@ -2027,7 +2031,8 @@ class AsyncCompletions(AsyncAPIResource):
 
           verbosity: Constrains the verbosity of the model's response. Lower values will result in
               more concise responses, while higher values will result in more verbose
-              responses. Currently supported values are `low`, `medium`, and `high`.
+              responses. Currently supported values are `low`, `medium`, and `high`. The
+              default is `medium`.
 
           web_search_options: This tool searches the web for relevant results to use in a response. Learn more
               about the
@@ -2065,12 +2070,12 @@ class AsyncCompletions(AsyncAPIResource):
         parallel_tool_calls: bool | Omit = omit,
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
         presence_penalty: Optional[float] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
         prompt_cache_options: completion_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
         response_format: completion_create_params.ResponseFormat | Omit = omit,
-        safety_identifier: str | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
         stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
@@ -2354,7 +2359,8 @@ class AsyncCompletions(AsyncAPIResource):
 
           verbosity: Constrains the verbosity of the model's response. Lower values will result in
               more concise responses, while higher values will result in more verbose
-              responses. Currently supported values are `low`, `medium`, and `high`.
+              responses. Currently supported values are `low`, `medium`, and `high`. The
+              default is `medium`.
 
           web_search_options: This tool searches the web for relevant results to use in a response. Learn more
               about the
@@ -2391,12 +2397,12 @@ class AsyncCompletions(AsyncAPIResource):
         parallel_tool_calls: bool | Omit = omit,
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
         presence_penalty: Optional[float] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
         prompt_cache_options: completion_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
         response_format: completion_create_params.ResponseFormat | Omit = omit,
-        safety_identifier: str | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
         stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,

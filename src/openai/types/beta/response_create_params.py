@@ -256,7 +256,7 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
     """
 
-    prompt_cache_key: str
+    prompt_cache_key: Optional[str]
     """
     Used by OpenAI to cache responses for similar requests to optimize your cache
     hit rates. Replaces the `user` field.
@@ -304,7 +304,7 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     [reasoning models](https://platform.openai.com/docs/guides/reasoning).
     """
 
-    safety_identifier: str
+    safety_identifier: Optional[str]
     """
     A stable identifier used to help detect users of your application that may be
     violating OpenAI's usage policies. The IDs should be a string that uniquely
@@ -520,7 +520,10 @@ class Reasoning(TypedDict, total=False):
 
     context: Optional[Literal["auto", "current_turn", "all_turns"]]
     """
-    Controls which reasoning items are rendered back to the model on later turns.
+    Controls which reasoning items are rendered back to the model on later turns. If
+    omitted or set to `auto`, the model determines the context mode. The `gpt-5.6`
+    model family defaults to `all_turns`; earlier models default to `current_turn`.
+
     When returned on a response, this is the effective reasoning context mode used
     for the response.
     """
