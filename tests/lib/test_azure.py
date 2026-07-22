@@ -36,17 +36,25 @@ class MockRequestCall(Protocol):
 
 
 @pytest.mark.parametrize("client", [sync_client, async_client])
-def test_implicit_deployment_path(client: Client) -> None:
+@pytest.mark.parametrize(
+    "path",
+    [
+        "/chat/completions",
+        "/images/edits",
+        "/images/generations",
+    ],
+)
+def test_implicit_deployment_path(client: Client, path: str) -> None:
     req = client._build_request(
         FinalRequestOptions.construct(
             method="post",
-            url="/chat/completions",
+            url=path,
             json_data={"model": "my-deployment-model"},
         )
     )
     assert (
         req.url
-        == "https://example-resource.azure.openai.com/openai/deployments/my-deployment-model/chat/completions?api-version=2023-07-01"
+        == f"https://example-resource.azure.openai.com/openai/deployments/my-deployment-model{path}?api-version=2023-07-01"
     )
 
 
