@@ -1317,6 +1317,18 @@ class TestOpenAI:
         assert response.status_code == 200
         assert response.json() == {"status": "ok"}
 
+    @pytest.mark.parametrize("client_cls", [DefaultHttpxClient, DefaultAsyncHttpxClient])
+    def test_cross_origin_redirect_strips_api_key(
+        self, client_cls: type[httpx.Client] | type[httpx.AsyncClient]
+    ) -> None:
+        client = client_cls()
+        request = httpx.Request("GET", "https://azure.example/v1/models", headers={"api-key": "secret"})
+        response = httpx.Response(302, headers={"Location": "https://other.example/target"}, request=request)
+
+        redirect = client._build_redirect_request(request, response)
+
+        assert "api-key" not in redirect.headers
+
     @pytest.mark.respx(base_url=base_url)
     def test_follow_redirects_disabled(self, respx_mock: MockRouter, client: OpenAI) -> None:
         # Test that follow_redirects=False prevents following redirects
