@@ -35,7 +35,7 @@ from ..._models import construct_type_unchecked
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._exceptions import OpenAIError, WebSocketConnectionClosedError
 from ..._send_queue import SendQueue
-from ..._base_client import _merge_mappings
+from ..._base_client import _merge_headers
 from .client_secrets import (
     ClientSecrets,
     AsyncClientSecrets,
@@ -711,7 +711,7 @@ class AsyncRealtimeConnectionManager:
         return await connect(
             str(url),
             user_agent_header=self.__client.user_agent,
-            additional_headers=_merge_mappings(
+            additional_headers=_merge_headers(
                 {
                     **auth_headers,
                 },
@@ -1179,7 +1179,7 @@ class RealtimeConnectionManager:
         return connect(
             str(url),
             user_agent_header=self.__client.user_agent,
-            additional_headers=_merge_mappings(
+            additional_headers=_merge_headers(
                 {
                     **auth_headers,
                 },

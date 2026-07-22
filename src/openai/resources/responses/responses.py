@@ -56,7 +56,7 @@ from .input_tokens import (
 )
 from ..._exceptions import OpenAIError, WebSocketConnectionClosedError
 from ..._send_queue import SendQueue
-from ..._base_client import _merge_mappings, make_request_options
+from ..._base_client import _merge_headers, make_request_options
 from ..._event_handler import EventHandlerRegistry
 from ...types.responses import (
     response_create_params,
@@ -4336,7 +4336,7 @@ class AsyncResponsesConnectionManager:
         return await connect(
             str(url),
             user_agent_header=self.__client.user_agent,
-            additional_headers=_merge_mappings(
+            additional_headers=_merge_headers(
                 {
                     **self.__client.auth_headers,
                 },
@@ -4781,7 +4781,7 @@ class ResponsesConnectionManager:
         return connect(
             str(url),
             user_agent_header=self.__client.user_agent,
-            additional_headers=_merge_mappings(
+            additional_headers=_merge_headers(
                 {
                     **self.__client.auth_headers,
                 },

@@ -35,6 +35,7 @@ from openai._base_client import (
     DefaultHttpxClient,
     DefaultAsyncHttpxClient,
     get_platform,
+    _merge_headers,
     make_request_options,
 )
 
@@ -125,6 +126,14 @@ def _get_open_connections(client: OpenAI | AsyncOpenAI) -> int:
 
 
 class TestOpenAI:
+    def test_merge_headers_case_insensitively(self) -> None:
+        headers = _merge_headers(
+            {"Authorization": "Bearer real", "X-Remove": "value"},
+            {"authorization": "Bearer custom", "x-remove": Omit()},
+        )
+
+        assert headers == {"authorization": "Bearer custom"}
+
     @pytest.mark.respx(base_url=base_url)
     def test_raw_response(self, respx_mock: MockRouter, client: OpenAI) -> None:
         respx_mock.post("/foo").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
@@ -454,6 +463,16 @@ class TestOpenAI:
         request = client._build_request(options)
 
         assert request.headers.get("Authorization") == f"Bearer {api_key}"
+
+        lowercase_auth_request = client._build_request(
+            FinalRequestOptions(method="get", url="/foo", headers={"authorization": "Bearer custom"})
+        )
+        assert lowercase_auth_request.headers.get_list("Authorization") == ["Bearer custom"]
+
+        omitted_auth_request = client._build_request(
+            FinalRequestOptions(method="get", url="/foo", headers={"authorization": Omit()})
+        )
+        assert "Authorization" not in omitted_auth_request.headers
 
         admin_request = client._build_request(
             FinalRequestOptions(
@@ -1718,6 +1737,16 @@ class TestAsyncOpenAI:
         options = await client._prepare_options(FinalRequestOptions(method="get", url="/foo"))
         request = client._build_request(options)
         assert request.headers.get("Authorization") == f"Bearer {api_key}"
+
+        lowercase_auth_request = client._build_request(
+            FinalRequestOptions(method="get", url="/foo", headers={"authorization": "Bearer custom"})
+        )
+        assert lowercase_auth_request.headers.get_list("Authorization") == ["Bearer custom"]
+
+        omitted_auth_request = client._build_request(
+            FinalRequestOptions(method="get", url="/foo", headers={"authorization": Omit()})
+        )
+        assert "Authorization" not in omitted_auth_request.headers
 
         admin_request = client._build_request(
             FinalRequestOptions(
