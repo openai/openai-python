@@ -26,7 +26,7 @@ from openai._types import Omit
 from openai._utils import asyncify
 from openai._models import BaseModel, FinalRequestOptions
 from openai._streaming import Stream, AsyncStream
-from openai._exceptions import APIStatusError, APITimeoutError, APIResponseValidationError
+from openai._exceptions import APIStatusError, APITimeoutError, APIResponseValidationError, InsufficientQuotaError, RateLimitError
 from openai._base_client import (
     DEFAULT_TIMEOUT,
     HTTPX_DEFAULT_TIMEOUT,
@@ -1386,6 +1386,98 @@ class TestOpenAI:
         client._refresh_api_key()
         assert client.auth_headers == {"Authorization": "Bearer test_bearer_token_2"}
 
+    @pytest.mark.respx()
+    def test_429_insufficient_quota(self, respx_mock: MockRouter) -> None:
+        respx_mock.post(base_url + "/chat/completions").mock(
+            return_value=httpx.Response(
+                429,
+                json={
+                    "error": {
+                        "message": "You exceeded your current quota.",
+                        "type": "insufficient_quota",
+                        "code": "insufficient_quota",
+                    }
+                },
+            )
+        )
+
+        with OpenAI(
+            base_url=base_url,
+            api_key="test-api-key",
+            max_retries=0,
+            _strict_response_validation=True,
+        ) as client:
+            with pytest.raises(InsufficientQuotaError) as exc_info:
+                client.chat.completions.create(messages=[], model="gpt-4")
+
+            assert exc_info.value.status_code == 429
+            assert exc_info.value.code == "insufficient_quota"
+            assert isinstance(exc_info.value, RateLimitError)
+
+            calls = cast("list[MockRequestCall]", respx_mock.calls)
+            assert len(calls) == 1
+
+    @pytest.mark.respx()
+    def test_429_rate_limit_without_insufficient_quota(self, respx_mock: MockRouter) -> None:
+        respx_mock.post(base_url + "/chat/completions").mock(
+            return_value=httpx.Response(
+                429,
+                json={
+                    "error": {
+                        "message": "Rate limit reached.",
+                        "type": "rate_limit_error",
+                        "code": "rate_limit_exceeded",
+                    }
+                },
+            )
+        )
+
+        with OpenAI(
+            base_url=base_url,
+            api_key="test-api-key",
+            max_retries=0,
+            _strict_response_validation=True,
+        ) as client:
+            with pytest.raises(RateLimitError) as exc_info:
+                client.chat.completions.create(messages=[], model="gpt-4")
+
+            assert exc_info.value.status_code == 429
+            assert exc_info.value.code == "rate_limit_exceeded"
+            assert not isinstance(exc_info.value, InsufficientQuotaError)
+
+            calls = cast("list[MockRequestCall]", respx_mock.calls)
+            assert len(calls) == 1
+
+    @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @pytest.mark.respx()
+    def test_429_insufficient_quota_is_not_retried(self, respx_mock: MockRouter) -> None:
+        respx_mock.post(base_url + "/chat/completions").mock(
+            return_value=httpx.Response(
+                429,
+                json={
+                    "error": {
+                        "message": "You exceeded your current quota.",
+                        "type": "insufficient_quota",
+                        "code": "insufficient_quota",
+                    }
+                },
+            )
+        )
+
+        with OpenAI(
+            base_url=base_url,
+            api_key="test-api-key",
+            max_retries=3,
+            _strict_response_validation=True,
+        ) as client:
+            with pytest.raises(InsufficientQuotaError):
+                client.chat.completions.create(messages=[], model="gpt-4")
+
+            # insufficient_quota is a deterministic failure, so retrying is pointless;
+            # the request should not be retried even though max_retries > 0.
+            calls = cast("list[MockRequestCall]", respx_mock.calls)
+            assert len(calls) == 1
+
 
 class TestAsyncOpenAI:
     @pytest.mark.respx(base_url=base_url)
@@ -2654,6 +2746,98 @@ class TestAsyncOpenAI:
         client = AsyncOpenAI(base_url=base_url, api_key=token_provider_1).copy(api_key=token_provider_2)
         await client._refresh_api_key()
         assert client.auth_headers == {"Authorization": "Bearer test_bearer_token_2"}
+
+    @pytest.mark.respx()
+    async def test_429_insufficient_quota(self, respx_mock: MockRouter) -> None:
+        respx_mock.post(base_url + "/chat/completions").mock(
+            return_value=httpx.Response(
+                429,
+                json={
+                    "error": {
+                        "message": "You exceeded your current quota.",
+                        "type": "insufficient_quota",
+                        "code": "insufficient_quota",
+                    }
+                },
+            )
+        )
+
+        async with AsyncOpenAI(
+            base_url=base_url,
+            api_key="test-api-key",
+            max_retries=0,
+            _strict_response_validation=True,
+        ) as client:
+            with pytest.raises(InsufficientQuotaError) as exc_info:
+                await client.chat.completions.create(messages=[], model="gpt-4")
+
+            assert exc_info.value.status_code == 429
+            assert exc_info.value.code == "insufficient_quota"
+            assert isinstance(exc_info.value, RateLimitError)
+
+            calls = cast("list[MockRequestCall]", respx_mock.calls)
+            assert len(calls) == 1
+
+    @pytest.mark.respx()
+    async def test_429_rate_limit_without_insufficient_quota(self, respx_mock: MockRouter) -> None:
+        respx_mock.post(base_url + "/chat/completions").mock(
+            return_value=httpx.Response(
+                429,
+                json={
+                    "error": {
+                        "message": "Rate limit reached.",
+                        "type": "rate_limit_error",
+                        "code": "rate_limit_exceeded",
+                    }
+                },
+            )
+        )
+
+        async with AsyncOpenAI(
+            base_url=base_url,
+            api_key="test-api-key",
+            max_retries=0,
+            _strict_response_validation=True,
+        ) as client:
+            with pytest.raises(RateLimitError) as exc_info:
+                await client.chat.completions.create(messages=[], model="gpt-4")
+
+            assert exc_info.value.status_code == 429
+            assert exc_info.value.code == "rate_limit_exceeded"
+            assert not isinstance(exc_info.value, InsufficientQuotaError)
+
+            calls = cast("list[MockRequestCall]", respx_mock.calls)
+            assert len(calls) == 1
+
+    @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @pytest.mark.respx()
+    async def test_429_insufficient_quota_is_not_retried(self, respx_mock: MockRouter) -> None:
+        respx_mock.post(base_url + "/chat/completions").mock(
+            return_value=httpx.Response(
+                429,
+                json={
+                    "error": {
+                        "message": "You exceeded your current quota.",
+                        "type": "insufficient_quota",
+                        "code": "insufficient_quota",
+                    }
+                },
+            )
+        )
+
+        async with AsyncOpenAI(
+            base_url=base_url,
+            api_key="test-api-key",
+            max_retries=3,
+            _strict_response_validation=True,
+        ) as client:
+            with pytest.raises(InsufficientQuotaError):
+                await client.chat.completions.create(messages=[], model="gpt-4")
+
+            # insufficient_quota is a deterministic failure, so retrying is pointless;
+            # the request should not be retried even though max_retries > 0.
+            calls = cast("list[MockRequestCall]", respx_mock.calls)
+            assert len(calls) == 1
 
 
 class TestWorkloadIdentity401Retry:

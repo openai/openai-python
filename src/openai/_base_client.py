@@ -836,6 +836,18 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
 
         # Retry on rate limits.
         if response.status_code == 429:
+            # An `insufficient_quota` error means the account has run out of
+            # quota; retrying will not help, so don't burn the retry budget
+            # on a request that is guaranteed to fail again.
+            try:
+                body = response.json()
+            except Exception:
+                body = None
+            data = body.get("error", body) if is_mapping(body) else body
+            if is_mapping(data) and data.get("code") == "insufficient_quota":
+                log.debug("Not retrying as the error code is `insufficient_quota`")
+                return False
+
             log.debug("Retrying due to status code %i", response.status_code)
             return True
 
