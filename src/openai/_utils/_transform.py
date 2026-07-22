@@ -347,7 +347,7 @@ async def _async_transform_recursive(
 
     if origin == dict and is_mapping(data):
         items_type = get_args(stripped_type)[1]
-        return {key: _transform_recursive(value, annotation=items_type) for key, value in data.items()}
+        return {key: await _async_transform_recursive(value, annotation=items_type) for key, value in data.items()}
 
     if (
         # List[T]
