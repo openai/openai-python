@@ -9,7 +9,7 @@ openai.default_headers = {"x-foo": "true"}
 
 # all API calls work in the exact same fashion as well
 stream = openai.chat.completions.create(
-    model="gpt-4",
+    model="gpt-5.5",
     messages=[
         {
             "role": "user",
