@@ -468,9 +468,18 @@ class OpenAI(SyncAPIClient):
             response.close()
             self._workload_identity_auth.invalidate_token()
             request.headers["Authorization"] = f"Bearer {self._workload_identity_auth.get_token()}"
+            self._prepare_request_for_retry(request)
             return self._send_with_auth_retry(request, stream=stream, retried=True, **kwargs)
 
         return response
+
+    @override
+    def _should_prepare_replayable_files(self, options: FinalRequestOptions) -> bool:
+        return super()._should_prepare_replayable_files(options) or (
+            options.files is not None
+            and self._workload_identity_auth is not None
+            and options.security.get("bearer_auth", False)
+        )
 
     @override
     def _send_request(
@@ -1068,9 +1077,18 @@ class AsyncOpenAI(AsyncAPIClient):
             await response.aclose()
             self._workload_identity_auth.invalidate_token()
             request.headers["Authorization"] = f"Bearer {await self._workload_identity_auth.get_token_async()}"
+            self._prepare_request_for_retry(request)
             return await self._send_with_auth_retry(request, stream=stream, retried=True, **kwargs)
 
         return response
+
+    @override
+    def _should_prepare_replayable_files(self, options: FinalRequestOptions) -> bool:
+        return super()._should_prepare_replayable_files(options) or (
+            options.files is not None
+            and self._workload_identity_auth is not None
+            and options.security.get("bearer_auth", False)
+        )
 
     @override
     async def _send_request(

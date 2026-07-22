@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import gc
+import io
 import os
 import sys
 import json
@@ -66,6 +67,43 @@ def _low_retry_timeout(*_args: Any, **_kwargs: Any) -> float:
 
 def mirror_request_content(request: httpx.Request) -> httpx.Response:
     return httpx.Response(200, content=request.content)
+
+
+class NonSeekableBytesIO(io.BytesIO):
+    def __init__(self, initial_bytes: bytes) -> None:
+        super().__init__(initial_bytes)
+        self.read_count = 0
+
+    @override
+    def read(self, size: int | None = -1) -> bytes:
+        self.read_count += 1
+        return super().read(size)
+
+    @override
+    def seekable(self) -> bool:
+        return False
+
+    @override
+    def seek(self, offset: int, whence: int = 0) -> int:
+        raise io.UnsupportedOperation("seek")
+
+    @override
+    def tell(self) -> int:
+        raise io.UnsupportedOperation("tell")
+
+
+class MockWorkloadIdentityAuth:
+    def __init__(self) -> None:
+        self.token_number = 1
+
+    def get_token(self) -> str:
+        return f"openai-access-token-{self.token_number}"
+
+    async def get_token_async(self) -> str:
+        return self.get_token()
+
+    def invalidate_token(self) -> None:
+        self.token_number += 1
 
 
 # note: we can't use the httpx.MockTransport class as it consumes the request
@@ -1140,6 +1178,88 @@ class TestOpenAI:
                 model="gpt-5.4",
             ).__enter__()
         assert _get_open_connections(client) == 0
+
+    @pytest.mark.parametrize("failure_mode", ["status", "connection", "timeout"])
+    @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    def test_multipart_retry_replays_non_seekable_file(self, failure_mode: str) -> None:
+        file_content = b"non-seekable multipart content"
+        request_bodies: list[bytes] = []
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            request_bodies.append(b"".join(cast(httpx.SyncByteStream, request.stream)))
+            if len(request_bodies) == 1:
+                if failure_mode == "status":
+                    return httpx.Response(500)
+                if failure_mode == "timeout":
+                    raise httpx.ReadTimeout("timed out", request=request)
+                raise httpx.ConnectError("connection failed", request=request)
+            return httpx.Response(200)
+
+        with OpenAI(
+            base_url=base_url,
+            api_key=api_key,
+            max_retries=1,
+            http_client=httpx.Client(transport=MockTransport(handler=handler)),
+        ) as client:
+            response = client.post(
+                "/upload",
+                cast_to=httpx.Response,
+                files={"file": ("input.txt", NonSeekableBytesIO(file_content))},
+                options={"headers": {"Content-Type": "multipart/form-data"}},
+            )
+
+        assert response.status_code == 200
+        assert [body.count(file_content) for body in request_bodies] == [1, 1]
+
+    def test_multipart_without_retries_streams_non_seekable_file(self) -> None:
+        file_content = b"streamed non-seekable multipart content"
+        file = NonSeekableBytesIO(file_content)
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            assert file.read_count == 0
+            body = b"".join(cast(httpx.SyncByteStream, request.stream))
+            return httpx.Response(200, content=body)
+
+        with OpenAI(
+            base_url=base_url,
+            api_key=api_key,
+            max_retries=0,
+            http_client=httpx.Client(transport=MockTransport(handler=handler)),
+        ) as client:
+            response = client.post(
+                "/upload",
+                cast_to=httpx.Response,
+                files={"file": ("input.txt", file)},
+                options={"headers": {"Content-Type": "multipart/form-data"}},
+            )
+
+        assert response.content.count(file_content) == 1
+        assert file.read_count > 0
+
+    @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    def test_multipart_retry_rewinds_seekable_file(self) -> None:
+        file_content = b"seekable multipart content"
+        file = io.BytesIO(file_content)
+        request_bodies: list[bytes] = []
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            request_bodies.append(b"".join(cast(httpx.SyncByteStream, request.stream)))
+            return httpx.Response(500 if len(request_bodies) == 1 else 200)
+
+        with OpenAI(
+            base_url=base_url,
+            api_key=api_key,
+            max_retries=1,
+            http_client=httpx.Client(transport=MockTransport(handler=handler)),
+        ) as client:
+            client.post(
+                "/upload",
+                cast_to=httpx.Response,
+                files={"file": ("input.txt", file)},
+                options={"headers": {"Content-Type": "multipart/form-data"}},
+            )
+
+        assert [body.count(file_content) for body in request_bodies] == [1, 1]
 
     @pytest.mark.parametrize("failures_before_success", [0, 2, 4])
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
@@ -2397,6 +2517,65 @@ class TestAsyncOpenAI:
             ).__aenter__()
         assert _get_open_connections(async_client) == 0
 
+    @pytest.mark.parametrize("failure_mode", ["status", "connection", "timeout"])
+    @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    async def test_multipart_retry_replays_non_seekable_file(self, failure_mode: str) -> None:
+        file_content = b"non-seekable multipart content"
+        request_bodies: list[bytes] = []
+
+        async def handler(request: httpx.Request) -> httpx.Response:
+            stream = cast(httpx.AsyncByteStream, request.stream)
+            request_bodies.append(b"".join([chunk async for chunk in stream]))
+            if len(request_bodies) == 1:
+                if failure_mode == "status":
+                    return httpx.Response(500)
+                if failure_mode == "timeout":
+                    raise httpx.ReadTimeout("timed out", request=request)
+                raise httpx.ConnectError("connection failed", request=request)
+            return httpx.Response(200)
+
+        async with AsyncOpenAI(
+            base_url=base_url,
+            api_key=api_key,
+            max_retries=1,
+            http_client=httpx.AsyncClient(transport=MockTransport(handler=handler)),
+        ) as client:
+            response = await client.post(
+                "/upload",
+                cast_to=httpx.Response,
+                files={"file": ("input.txt", NonSeekableBytesIO(file_content))},
+                options={"headers": {"Content-Type": "multipart/form-data"}},
+            )
+
+        assert response.status_code == 200
+        assert [body.count(file_content) for body in request_bodies] == [1, 1]
+
+    async def test_multipart_without_retries_streams_non_seekable_file(self) -> None:
+        file_content = b"streamed non-seekable multipart content"
+        file = NonSeekableBytesIO(file_content)
+
+        async def handler(request: httpx.Request) -> httpx.Response:
+            assert file.read_count == 0
+            stream = cast(httpx.AsyncByteStream, request.stream)
+            body = b"".join([chunk async for chunk in stream])
+            return httpx.Response(200, content=body)
+
+        async with AsyncOpenAI(
+            base_url=base_url,
+            api_key=api_key,
+            max_retries=0,
+            http_client=httpx.AsyncClient(transport=MockTransport(handler=handler)),
+        ) as client:
+            response = await client.post(
+                "/upload",
+                cast_to=httpx.Response,
+                files={"file": ("input.txt", file)},
+                options={"headers": {"Content-Type": "multipart/form-data"}},
+            )
+
+        assert response.content.count(file_content) == 1
+        assert file.read_count > 0
+
     @pytest.mark.parametrize("failures_before_success", [0, 2, 4])
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
@@ -2657,6 +2836,31 @@ class TestAsyncOpenAI:
 
 
 class TestWorkloadIdentity401Retry:
+    def test_workload_identity_401_retry_replays_non_seekable_file(self) -> None:
+        file_content = b"non-seekable workload identity content"
+        request_bodies: list[bytes] = []
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            request_bodies.append(b"".join(cast(httpx.SyncByteStream, request.stream)))
+            return httpx.Response(401 if len(request_bodies) == 1 else 200)
+
+        with OpenAI(
+            base_url=base_url,
+            workload_identity=workload_identity,
+            max_retries=0,
+            http_client=httpx.Client(transport=MockTransport(handler=handler)),
+        ) as client:
+            client._workload_identity_auth = cast(Any, MockWorkloadIdentityAuth())
+            response = client.post(
+                "/upload",
+                cast_to=httpx.Response,
+                files={"file": ("input.txt", NonSeekableBytesIO(file_content))},
+                options={"headers": {"Content-Type": "multipart/form-data"}},
+            )
+
+        assert response.status_code == 200
+        assert [body.count(file_content) for body in request_bodies] == [1, 1]
+
     @pytest.mark.respx()
     def test_workload_identity_401_retry(self, respx_mock: MockRouter) -> None:
         provider_call_count = 0
@@ -2805,6 +3009,32 @@ class TestWorkloadIdentity401Retry:
 
 
 class TestAsyncWorkloadIdentity401Retry:
+    async def test_workload_identity_401_retry_replays_non_seekable_file(self) -> None:
+        file_content = b"non-seekable workload identity content"
+        request_bodies: list[bytes] = []
+
+        async def handler(request: httpx.Request) -> httpx.Response:
+            stream = cast(httpx.AsyncByteStream, request.stream)
+            request_bodies.append(b"".join([chunk async for chunk in stream]))
+            return httpx.Response(401 if len(request_bodies) == 1 else 200)
+
+        async with AsyncOpenAI(
+            base_url=base_url,
+            workload_identity=workload_identity,
+            max_retries=0,
+            http_client=httpx.AsyncClient(transport=MockTransport(handler=handler)),
+        ) as client:
+            client._workload_identity_auth = cast(Any, MockWorkloadIdentityAuth())
+            response = await client.post(
+                "/upload",
+                cast_to=httpx.Response,
+                files={"file": ("input.txt", NonSeekableBytesIO(file_content))},
+                options={"headers": {"Content-Type": "multipart/form-data"}},
+            )
+
+        assert response.status_code == 200
+        assert [body.count(file_content) for body in request_bodies] == [1, 1]
+
     @pytest.mark.respx()
     async def test_workload_identity_401_retry(self, respx_mock: MockRouter) -> None:
         provider_call_count = 0
