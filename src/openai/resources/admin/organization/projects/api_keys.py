@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing_extensions import Literal
+
 import httpx
 
 from ..... import _legacy_response
@@ -89,6 +91,7 @@ class APIKeys(SyncAPIResource):
         *,
         after: str | Omit = omit,
         limit: int | Omit = omit,
+        owner_project_access: Literal["active", "inactive", "any"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -107,6 +110,12 @@ class APIKeys(SyncAPIResource):
 
           limit: A limit on the number of objects to be returned. Limit can range between 1 and
               100, and the default is 20.
+
+          owner_project_access: Filter API keys by whether the owner currently has effective access to the
+              project. Use `active` for owners with access, `inactive` for owners without
+              access, or `any` for all enabled project API keys. If omitted, the endpoint
+              applies its existing membership-based visibility rules, which may exclude some
+              enabled keys.
 
           extra_headers: Send extra headers
 
@@ -130,6 +139,7 @@ class APIKeys(SyncAPIResource):
                     {
                         "after": after,
                         "limit": limit,
+                        "owner_project_access": owner_project_access,
                     },
                     api_key_list_params.APIKeyListParams,
                 ),
@@ -256,6 +266,7 @@ class AsyncAPIKeys(AsyncAPIResource):
         *,
         after: str | Omit = omit,
         limit: int | Omit = omit,
+        owner_project_access: Literal["active", "inactive", "any"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -274,6 +285,12 @@ class AsyncAPIKeys(AsyncAPIResource):
 
           limit: A limit on the number of objects to be returned. Limit can range between 1 and
               100, and the default is 20.
+
+          owner_project_access: Filter API keys by whether the owner currently has effective access to the
+              project. Use `active` for owners with access, `inactive` for owners without
+              access, or `any` for all enabled project API keys. If omitted, the endpoint
+              applies its existing membership-based visibility rules, which may exclude some
+              enabled keys.
 
           extra_headers: Send extra headers
 
@@ -297,6 +314,7 @@ class AsyncAPIKeys(AsyncAPIResource):
                     {
                         "after": after,
                         "limit": limit,
+                        "owner_project_access": owner_project_access,
                     },
                     api_key_list_params.APIKeyListParams,
                 ),

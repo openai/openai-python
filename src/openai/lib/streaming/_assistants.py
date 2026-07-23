@@ -5,10 +5,9 @@ from types import TracebackType
 from typing import TYPE_CHECKING, Any, Generic, TypeVar, Callable, Iterable, Iterator, cast
 from typing_extensions import Awaitable, AsyncIterable, AsyncIterator, assert_never
 
-import httpx
-
 from ..._utils import is_dict, is_list, consume_sync_iterator, consume_async_iterator
 from ..._compat import model_dump
+from ..._httpx2 import timeout_exceptions
 from ..._models import construct_type
 from ..._streaming import Stream, AsyncStream
 from ...types.beta import AssistantStreamEvent
@@ -23,6 +22,10 @@ from ...types.beta.threads import (
     MessageContentDelta,
 )
 from ...types.beta.threads.runs import RunStep, ToolCall, RunStepDelta, ToolCallDelta
+
+
+def _timeout_exceptions() -> tuple[type[Exception], ...]:
+    return (*timeout_exceptions(), asyncio.TimeoutError)
 
 
 class AssistantEventHandler:
@@ -407,7 +410,7 @@ class AssistantEventHandler:
                 self._emit_sse_event(event)
 
                 yield event
-        except (httpx.TimeoutException, asyncio.TimeoutError) as exc:
+        except _timeout_exceptions() as exc:
             self.on_timeout()
             self.on_exception(exc)
             raise
@@ -839,7 +842,7 @@ class AsyncAssistantEventHandler:
                 await self._emit_sse_event(event)
 
                 yield event
-        except (httpx.TimeoutException, asyncio.TimeoutError) as exc:
+        except _timeout_exceptions() as exc:
             await self.on_timeout()
             await self.on_exception(exc)
             raise

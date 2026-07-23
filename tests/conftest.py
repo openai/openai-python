@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import sys
 import logging
 from typing import TYPE_CHECKING, Iterator, AsyncIterator
 
@@ -10,8 +11,10 @@ import httpx
 import pytest
 from pytest_asyncio import is_async_test
 
-from openai import OpenAI, AsyncOpenAI, DefaultAioHttpClient
+from openai import OpenAI, AsyncOpenAI, DefaultHttpx2Client, DefaultAioHttpClient, DefaultAsyncHttpx2Client
 from openai._utils import is_dict
+
+from ._httpx2_respx import enable_httpx2_respx
 
 if TYPE_CHECKING:
     from _pytest.fixtures import FixtureRequest  # pyright: ignore[reportPrivateImportUsage]
@@ -29,10 +32,12 @@ def pytest_collection_modifyitems(items: list[pytest.Function]) -> None:
     for async_test in pytest_asyncio_tests:
         async_test.add_marker(session_scope_marker, append=False)
 
-    # We skip tests that use both the aiohttp client and respx_mock as respx_mock
-    # doesn't support custom transports.
+    # RESPX cannot mock requests made by the aiohttp adapter.
     for item in items:
-        if "async_client" not in item.fixturenames or "respx_mock" not in item.fixturenames:
+        if "respx_mock" not in item.fixturenames:
+            continue
+
+        if "async_client" not in item.fixturenames:
             continue
 
         if not hasattr(item, "callspec"):
@@ -44,9 +49,19 @@ def pytest_collection_modifyitems(items: list[pytest.Function]) -> None:
 
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
+test_http_client = os.environ.get("OPENAI_TEST_HTTP_CLIENT", "httpx")
 
 api_key = "My API Key"
 admin_api_key = "My Admin API Key"
+
+
+@pytest.fixture(autouse=True)
+def patch_httpx2_respx(request: FixtureRequest, monkeypatch: pytest.MonkeyPatch) -> None:
+    if test_http_client != "httpx2" or "respx_mock" not in request.fixturenames:
+        return
+
+    router = request.getfixturevalue("respx_mock")
+    enable_httpx2_respx(router, monkeypatch, replace_sdk_defaults=request.path.name != "test_httpx2_base.py")
 
 
 @pytest.fixture(scope="session")
@@ -55,8 +70,14 @@ def client(request: FixtureRequest) -> Iterator[OpenAI]:
     if not isinstance(strict, bool):
         raise TypeError(f"Unexpected fixture parameter type {type(strict)}, expected {bool}")
 
+    http_client = DefaultHttpx2Client() if test_http_client == "httpx2" else None
+
     with OpenAI(
-        base_url=base_url, api_key=api_key, admin_api_key=admin_api_key, _strict_response_validation=strict
+        base_url=base_url,
+        api_key=api_key,
+        admin_api_key=admin_api_key,
+        _strict_response_validation=strict,
+        http_client=http_client,
     ) as client:
         yield client
 
@@ -77,9 +98,15 @@ async def async_client(request: FixtureRequest) -> AsyncIterator[AsyncOpenAI]:
 
         http_client_type = param.get("http_client", "httpx")
         if http_client_type == "aiohttp":
+            if sys.version_info < (3, 10):
+                pytest.skip("the aiohttp client requires Python 3.10 or later")
+
             http_client = DefaultAioHttpClient()
     else:
         raise TypeError(f"Unexpected fixture parameter type {type(param)}, expected bool or dict")
+
+    if http_client is None and test_http_client == "httpx2":
+        http_client = DefaultAsyncHttpx2Client()
 
     async with AsyncOpenAI(
         base_url=base_url,

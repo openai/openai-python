@@ -246,6 +246,8 @@ Functionality between the synchronous and asynchronous clients is otherwise iden
 
 By default, the async client uses `httpx` for HTTP requests. However, for improved concurrency performance you may also use `aiohttp` as the HTTP backend.
 
+The `aiohttp` backend requires Python 3.10 or later.
+
 You can enable this by installing `aiohttp`:
 
 ```sh
@@ -280,6 +282,33 @@ async def main() -> None:
 
 asyncio.run(main())
 ```
+
+### Experimental HTTPX2 support
+
+To opt in to experimental HTTPX2 support, install the optional extra on Python 3.10 or later:
+
+```sh
+pip install 'openai[httpx2]'
+```
+
+```python
+from openai import OpenAI, AsyncOpenAI, DefaultHttpx2Client, DefaultAsyncHttpx2Client
+
+client = OpenAI(http_client=DefaultHttpx2Client())
+async_client = AsyncOpenAI(http_client=DefaultAsyncHttpx2Client())
+```
+
+See [`examples/httpx2_client.py`](examples/httpx2_client.py) for a minimal runnable example.
+
+The module-level client can be configured in the same way:
+
+```python
+import openai
+
+openai.http_client = openai.DefaultHttpx2Client()
+```
+
+Parsed API models are unchanged, but requests, raw and streaming responses, and transport-level exceptions may be HTTPX2 objects at runtime. Code that catches HTTPX exceptions or relies on HTTPX-specific mocks, transports, authentication, hooks, or instrumentation may need to be updated. Transport-facing type annotations may still describe HTTPX.
 
 ## Streaming responses
 
