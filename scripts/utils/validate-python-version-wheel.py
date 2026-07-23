@@ -41,14 +41,14 @@ def assert_python_39_rejected(wheel: Path) -> None:
     with tempfile.TemporaryDirectory(prefix="openai-python-version-wheel-") as directory:
         environment_path = Path(directory) / "venv"
         subprocess.run([sys.executable, "-m", "venv", str(environment_path)], check=True)
-        python = environment_path / "bin/python"
+        python = environment_path / ("Scripts/python.exe" if sys.platform == "win32" else "bin/python")
         result = subprocess.run(
             [
                 str(python),
                 "-m",
                 "pip",
                 "install",
-                "--dry-run",
+                "--no-input",
                 "--ignore-installed",
                 "--no-deps",
                 str(wheel.resolve()),

@@ -60,7 +60,7 @@ The normal SDK review and release process remains authoritative.
 
 | SDK version | Python requirement |
 | --- | --- |
-| Next minor release (currently expected v2.49.0) | Python 3.10 or later |
+| Next minor release (unreleased) | Python 3.10 or later |
 | v2.48.0 | Final release installable on Python 3.9 |
 
 The fully released upstream-supported matrix is currently Python 3.10 through
