@@ -6,6 +6,12 @@ from ..._utils import is_dict, is_list
 def accumulate_delta(acc: dict[object, object], delta: dict[object, object]) -> dict[object, object]:
     for key, delta_value in delta.items():
         if key not in acc:
+            # When the first chunk contains a list with multiple entries at the
+            # same index (e.g. from speculative decoding), storing it directly
+            # would leave duplicate entries that later merges can't fix. (#3201)
+            # Coalesce duplicate-index entries before storing.
+            if is_list(delta_value) and len(delta_value) > 1:
+                delta_value = _coalesce_list_by_index(delta_value)
             acc[key] = delta_value
             continue
 
@@ -49,16 +55,57 @@ def accumulate_delta(acc: dict[object, object], delta: dict[object, object]) -> 
                 if not isinstance(index, int):
                     raise TypeError(f"Unexpected, list delta entry `index` value is not an integer; {index}")
 
-                try:
-                    acc_entry = acc_value[index]
-                except IndexError:
-                    acc_value.insert(index, delta_entry)
-                else:
-                    if not is_dict(acc_entry):
-                        raise TypeError("not handled yet")
+                # Merge by logical index, not physical position. (#3201)
+                # When the first chunk contains multiple entries with the same
+                # index (e.g. from speculative decoding), the physical position
+                # does not match the logical index. Find the existing entry by
+                # its index field and merge into it.
+                #
+                # If acc_value already contains duplicate-index entries
+                # (e.g. from a prior chunk that wasn't coalesced), merge into
+                # all of them so none are stranded.
+                found = False
+                for i, existing in enumerate(acc_value):
+                    if is_dict(existing) and existing.get("index") == index:
+                        acc_value[i] = accumulate_delta(existing, delta_entry)
+                        found = True
 
-                    acc_value[index] = accumulate_delta(acc_entry, delta_entry)
+                if not found:
+                    # Ensure the list is large enough
+                    while len(acc_value) <= index:
+                        acc_value.append({})
+                    acc_value[index] = delta_entry
 
         acc[key] = acc_value
 
     return acc
+
+
+def _coalesce_list_by_index(lst: list[object]) -> list[object]:
+    """Merge list entries that share the same ``index`` field into a single entry.
+
+    When the first streamed chunk contains multiple entries with the same
+    ``index`` (e.g. from speculative decoding), storing the list directly would
+    leave duplicate entries. This function coalesces them by merging entries
+    with the same index using :func:`accumulate_delta`, so the snapshot starts
+    in a clean state. (#3201)
+    """
+    result: list[object] = []
+    for entry in lst:
+        if not is_dict(entry):
+            result.append(entry)
+            continue
+        index = entry.get("index")
+        if not isinstance(index, int):
+            result.append(entry)
+            continue
+        # Find an existing entry with the same index
+        found = False
+        for i, existing in enumerate(result):
+            if is_dict(existing) and existing.get("index") == index:
+                result[i] = accumulate_delta(existing, entry)
+                found = True
+                break
+        if not found:
+            result.append(entry)
+    return result
