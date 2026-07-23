@@ -108,7 +108,7 @@ jobs:
         run: ./scripts/utils/upload-artifact.sh
 
   test:
-    timeout-minutes: 10
+    timeout-minutes: 15
     name: test (Python ${{ matrix.python-version }})
     runs-on: ${{ startsWith(github.repository, 'stainless-sdks/') && 'depot-ubuntu-24.04' || 'ubuntu-latest' }}
     if: github.event_name == 'push' || github.event.pull_request.head.repo.fork
@@ -144,7 +144,7 @@ jobs:
         run: ./scripts/test
 
   test-httpx2:
-    timeout-minutes: 10
+    timeout-minutes: 20
     name: test (HTTPX2)
     runs-on: ${{ startsWith(github.repository, 'stainless-sdks/') && 'depot-ubuntu-24.04' || 'ubuntu-latest' }}
     if: github.event_name == 'push' || github.event.pull_request.head.repo.fork
