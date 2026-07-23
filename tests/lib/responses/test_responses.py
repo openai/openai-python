@@ -72,6 +72,14 @@ def test_parse_response_preserves_program_items(item: dict[str, object]) -> None
     assert parsed.output[0].to_dict() == item
 
 
+def test_parse_response_handles_null_output() -> None:
+    response = construct_type_unchecked(type_=Response, value={"output": None})
+
+    parsed = parse_response(text_format=omit, input_tools=omit, response=response)
+
+    assert parsed.output == []
+
+
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
 def test_stream_method_definition_in_sync(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
     checking_client: OpenAI | AsyncOpenAI = client if sync else async_client
