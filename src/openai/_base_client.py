@@ -879,7 +879,7 @@ class SyncHttpxClientWrapper(DefaultHttpxClient):
         try:
             self.close()
         except Exception:
-            pass
+            log.debug("Failed to auto-close client during finalization", exc_info=True)
 
 
 class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
@@ -1505,7 +1505,7 @@ class AsyncHttpxClientWrapper(DefaultAsyncHttpxClient):
             # TODO(someday): support non asyncio runtimes here
             asyncio.get_running_loop().create_task(self.aclose())
         except Exception:
-            pass
+            log.debug("Failed to schedule auto-close for async client during finalization", exc_info=True)
 
 
 class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
