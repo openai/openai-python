@@ -19,6 +19,14 @@ if TYPE_CHECKING:
 
 _T = TypeVar("_T")
 
+# After a normal `[DONE]` termination, only this many bytes of the response are
+# consumed while draining. In the healthy case the trailing bytes are just
+# transport framing (e.g. the HTTP/1.1 chunked terminator) -- a handful of bytes
+# at most -- so this is generous headroom. It exists so that a server or proxy
+# that leaves the connection open (or keeps sending data) after `[DONE]` can't
+# turn "drain the last few bytes" into an unbounded read.
+_MAX_POST_DONE_DRAIN_BYTES = 64 * 1024
+
 
 class Stream(Generic[_T]):
     """Provides the core interface to iterate over a synchronous stream response."""
@@ -26,6 +34,7 @@ class Stream(Generic[_T]):
     response: httpx.Response
     _options: Optional[FinalRequestOptions] = None
     _decoder: SSEBytesDecoder
+    _terminated: bool = False
 
     def __init__(
         self,
@@ -50,17 +59,35 @@ class Stream(Generic[_T]):
             yield item
 
     def _iter_events(self) -> Iterator[ServerSentEvent]:
-        yield from self._decoder.iter_bytes(self.response.iter_bytes())
+        yield from self._decoder.iter_bytes(self._iter_raw_bytes())
+
+    def _iter_raw_bytes(self) -> Iterator[bytes]:
+        """Wraps `response.iter_bytes()` so the post-`[DONE]` drain is bounded.
+
+        Once `__stream__` sets `self._terminated` (having observed `[DONE]`), this
+        stops yielding new bytes after `_MAX_POST_DONE_DRAIN_BYTES` have been
+        consumed, so a connection that stays open -- or keeps sending data -- after
+        the stream has logically completed can't stall the drain indefinitely.
+        """
+        drained = 0
+        for chunk in self.response.iter_bytes():
+            yield chunk
+            if self._terminated:
+                drained += len(chunk)
+                if drained >= _MAX_POST_DONE_DRAIN_BYTES:
+                    return
 
     def __stream__(self) -> Iterator[_T]:
         cast_to = cast(Any, self._cast_to)
         response = self.response
         process_data = self._client._process_response_data
+        self._terminated = False
         iterator = self._iter_events()
 
         try:
             for sse in iterator:
                 if sse.data.startswith("[DONE]"):
+                    self._terminated = True
                     break
 
                 # we have to special case the Assistants `thread.` events since we won't have an "event" key in the data
@@ -106,8 +133,31 @@ class Stream(Generic[_T]):
                         response=response,
                     )
         finally:
-            # Ensure the response is closed even if the consumer doesn't read all data
-            response.close()
+            # Only drain when the stream terminated normally, i.e. we observed the
+            # `[DONE]` event and just need to consume the few remaining bytes (e.g. the
+            # HTTP/1.1 chunked terminator) so the connection can be returned to the pool.
+            # `_iter_raw_bytes()` bounds how much of that drain we're willing to do, so a
+            # connection that stays open (or keeps sending data) after `[DONE]` can't turn
+            # this into an unbounded read.
+            #
+            # On premature termination -- the caller breaking out of iteration, an error,
+            # or cancellation -- draining would block until the server finishes sending,
+            # so close the response instead.
+            try:
+                if self._terminated:
+                    # Draining is best-effort cleanup for a stream that already completed.
+                    # If the connection drops before the trailing bytes arrive, the result
+                    # is still valid, so don't turn that into a failure for the caller.
+                    try:
+                        for _ in iterator:
+                            pass
+                    except httpx.HTTPError:
+                        pass
+            finally:
+                # The drain can still be interrupted by something that isn't an
+                # `httpx.HTTPError` -- e.g. the caller cancelling iteration while we
+                # wait on the trailing bytes. The connection must be released either way.
+                response.close()
 
     def __enter__(self) -> Self:
         return self
@@ -135,6 +185,7 @@ class AsyncStream(Generic[_T]):
     response: httpx.Response
     _options: Optional[FinalRequestOptions] = None
     _decoder: SSEDecoder | SSEBytesDecoder
+    _terminated: bool = False
 
     def __init__(
         self,
@@ -159,18 +210,36 @@ class AsyncStream(Generic[_T]):
             yield item
 
     async def _iter_events(self) -> AsyncIterator[ServerSentEvent]:
-        async for sse in self._decoder.aiter_bytes(self.response.aiter_bytes()):
+        async for sse in self._decoder.aiter_bytes(self._aiter_raw_bytes()):
             yield sse
+
+    async def _aiter_raw_bytes(self) -> AsyncIterator[bytes]:
+        """Wraps `response.aiter_bytes()` so the post-`[DONE]` drain is bounded.
+
+        Once `__stream__` sets `self._terminated` (having observed `[DONE]`), this
+        stops yielding new bytes after `_MAX_POST_DONE_DRAIN_BYTES` have been
+        consumed, so a connection that stays open -- or keeps sending data -- after
+        the stream has logically completed can't stall the drain indefinitely.
+        """
+        drained = 0
+        async for chunk in self.response.aiter_bytes():
+            yield chunk
+            if self._terminated:
+                drained += len(chunk)
+                if drained >= _MAX_POST_DONE_DRAIN_BYTES:
+                    return
 
     async def __stream__(self) -> AsyncIterator[_T]:
         cast_to = cast(Any, self._cast_to)
         response = self.response
         process_data = self._client._process_response_data
+        self._terminated = False
         iterator = self._iter_events()
 
         try:
             async for sse in iterator:
                 if sse.data.startswith("[DONE]"):
+                    self._terminated = True
                     break
 
                 # we have to special case the Assistants `thread.` events since we won't have an "event" key in the data
@@ -216,8 +285,33 @@ class AsyncStream(Generic[_T]):
                         response=response,
                     )
         finally:
-            # Ensure the response is closed even if the consumer doesn't read all data
-            await response.aclose()
+            # Only drain when the stream terminated normally, i.e. we observed the
+            # `[DONE]` event and just need to consume the few remaining bytes (e.g. the
+            # HTTP/1.1 chunked terminator) so the connection can be returned to the pool.
+            # `_aiter_raw_bytes()` bounds how much of that drain we're willing to do, so
+            # a connection that stays open (or keeps sending data) after `[DONE]` can't
+            # turn this into an unbounded read.
+            #
+            # On premature termination -- the caller breaking out of iteration, an error,
+            # or cancellation -- draining would block until the server finishes sending,
+            # so close the response instead.
+            try:
+                if self._terminated:
+                    # Draining is best-effort cleanup for a stream that already completed.
+                    # If the connection drops before the trailing bytes arrive, the result
+                    # is still valid, so don't turn that into a failure for the caller.
+                    try:
+                        async for _ in iterator:
+                            pass
+                    except httpx.HTTPError:
+                        pass
+            finally:
+                # The drain can still be interrupted by something that isn't an
+                # `httpx.HTTPError` -- e.g. `asyncio.CancelledError` when the caller
+                # wraps consumption in a timeout shorter than the HTTPX read timeout.
+                # `CancelledError` is a `BaseException`, so it bypasses the handler
+                # above; the connection must be released either way.
+                await response.aclose()
 
     async def __aenter__(self) -> Self:
         return self
