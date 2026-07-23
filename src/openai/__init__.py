@@ -6,7 +6,6 @@ import os as _os
 import typing as _t
 from typing_extensions import override
 
-from . import types
 from ._types import NOT_GIVEN, Omit, NoneType, NotGiven, Transport, ProxiesTypes, omit, not_given
 from ._utils import file_from_path
 from ._client import Client, OpenAI, Stream, Timeout, Transport, AsyncClient, AsyncOpenAI, AsyncStream, RequestOptions
@@ -40,7 +39,6 @@ from ._exceptions import (
 from ._base_client import DefaultHttpxClient, DefaultAioHttpClient, DefaultAsyncHttpxClient
 from ._utils._logs import setup_logging as _setup_logging
 from ._legacy_response import HttpxBinaryResponseContent as HttpxBinaryResponseContent
-from .types.websocket_reconnection import ReconnectingEvent, ReconnectingOverrides
 
 __all__ = [
     "types",
@@ -101,15 +99,15 @@ __all__ = [
 if not _t.TYPE_CHECKING:
     from ._utils._resources_proxy import resources as resources
 
-from .lib import azure as _azure, bedrock as _bedrock, pydantic_function_tool as pydantic_function_tool
+from . import types as types
+
+if _t.TYPE_CHECKING:
+    from .lib.azure import AzureOpenAI as AzureOpenAI, AsyncAzureOpenAI as AsyncAzureOpenAI, AzureADTokenProvider
+    from .lib.bedrock import BedrockOpenAI, AsyncBedrockOpenAI, BedrockTokenProvider
+    from .types.websocket_reconnection import ReconnectingEvent, ReconnectingOverrides
+
 from .version import VERSION as VERSION
-from .lib.azure import AzureOpenAI as AzureOpenAI, AsyncAzureOpenAI as AsyncAzureOpenAI
-from .lib.bedrock import BedrockOpenAI as BedrockOpenAI, AsyncBedrockOpenAI as AsyncBedrockOpenAI
 from .lib._old_api import *
-from .lib.streaming import (
-    AssistantEventHandler as AssistantEventHandler,
-    AsyncAssistantEventHandler as AsyncAssistantEventHandler,
-)
 
 _setup_logging()
 
@@ -120,11 +118,107 @@ _setup_logging()
 __locals = locals()
 for __name in __all__:
     if not __name.startswith("__"):
+        __obj = __locals.get(__name)
+        if __obj is None:
+            continue
         try:
-            __locals[__name].__module__ = "openai"
+            __obj.__module__ = "openai"
         except (TypeError, AttributeError):
             # Some of our exported symbols are builtins which we can't set attributes for.
             pass
+
+
+def _is_truthy_env_var(name: str) -> bool:
+    value = _os.environ.get(name, "")
+    return value not in ("", "0", "false", "False")
+
+
+def _lazy_azure_openai() -> object:
+    from .lib.azure import AzureOpenAI
+
+    return AzureOpenAI
+
+
+def _lazy_async_azure_openai() -> object:
+    from .lib.azure import AsyncAzureOpenAI
+
+    return AsyncAzureOpenAI
+
+
+def _lazy_bedrock_openai() -> object:
+    from .lib.bedrock import BedrockOpenAI
+
+    return BedrockOpenAI
+
+
+def _lazy_async_bedrock_openai() -> object:
+    from .lib.bedrock import AsyncBedrockOpenAI
+
+    return AsyncBedrockOpenAI
+
+
+def _lazy_reconnecting_event() -> object:
+    from .types.websocket_reconnection import ReconnectingEvent
+
+    return ReconnectingEvent
+
+
+def _lazy_reconnecting_overrides() -> object:
+    from .types.websocket_reconnection import ReconnectingOverrides
+
+    return ReconnectingOverrides
+
+
+def _lazy_pydantic_function_tool() -> object:
+    from .lib._tools import pydantic_function_tool
+
+    return pydantic_function_tool
+
+
+def _lazy_assistant_event_handler() -> object:
+    from .lib.streaming import AssistantEventHandler
+
+    return AssistantEventHandler
+
+
+def _lazy_async_assistant_event_handler() -> object:
+    from .lib.streaming import AsyncAssistantEventHandler
+
+    return AsyncAssistantEventHandler
+
+
+_LAZY_EXPORTS: dict[str, _t.Callable[[], object]] = {
+    "AzureOpenAI": _lazy_azure_openai,
+    "AsyncAzureOpenAI": _lazy_async_azure_openai,
+    "BedrockOpenAI": _lazy_bedrock_openai,
+    "AsyncBedrockOpenAI": _lazy_async_bedrock_openai,
+    "ReconnectingEvent": _lazy_reconnecting_event,
+    "ReconnectingOverrides": _lazy_reconnecting_overrides,
+    "pydantic_function_tool": _lazy_pydantic_function_tool,
+    "AssistantEventHandler": _lazy_assistant_event_handler,
+    "AsyncAssistantEventHandler": _lazy_async_assistant_event_handler,
+}
+
+
+def __getattr__(name: str) -> object:
+    if name in _LAZY_EXPORTS:
+        value = _LAZY_EXPORTS[name]()
+        globals()[name] = value
+        return value
+
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+def _resolve_eager_imports() -> None:
+    if not _is_truthy_env_var("OPENAI_EAGER_IMPORT"):
+        return
+
+    # Resolve all lazy exports up-front in eager mode to catch import failures in CI/dev.
+    for name in _LAZY_EXPORTS:
+        __getattr__(name)
+
+
+_resolve_eager_imports()
 
 # ------ Module level client ------
 import typing as _t
@@ -166,11 +260,11 @@ azure_endpoint: str | None = _os.environ.get("AZURE_OPENAI_ENDPOINT")
 
 azure_ad_token: str | None = _os.environ.get("AZURE_OPENAI_AD_TOKEN")
 
-azure_ad_token_provider: _azure.AzureADTokenProvider | None = None
+azure_ad_token_provider: AzureADTokenProvider | None = None
 
 _bedrock_api_key: str | None = None
 
-bedrock_token_provider: _bedrock.BedrockTokenProvider | None = None
+bedrock_token_provider: BedrockTokenProvider | None = None
 
 
 class _ModuleClient(OpenAI):
@@ -300,21 +394,55 @@ class _ModuleClient(OpenAI):
         http_client = value
 
 
-class _AzureModuleClient(_ModuleClient, AzureOpenAI):  # type: ignore
-    ...
+def _create_azure_module_client_class() -> type[OpenAI]:
+    from .lib.azure import AzureOpenAI
+
+    class _AzureModuleClient(_ModuleClient, AzureOpenAI):  # type: ignore
+        ...
+
+    return _AzureModuleClient
 
 
-class _BedrockModuleClient(_ModuleClient, BedrockOpenAI):  # type: ignore
-    @property  # type: ignore
-    @override
-    def api_key(self) -> str | None:
-        return api_key if api_key is not None else _bedrock_api_key
+_AZURE_MODULE_CLIENT_CLASS: type[OpenAI] | None = None
 
-    @api_key.setter  # type: ignore
-    def api_key(self, value: str | None) -> None:  # type: ignore
-        global _bedrock_api_key
 
-        _bedrock_api_key = value
+def _azure_module_client_class() -> type[OpenAI]:
+    global _AZURE_MODULE_CLIENT_CLASS
+
+    if _AZURE_MODULE_CLIENT_CLASS is None:
+        _AZURE_MODULE_CLIENT_CLASS = _create_azure_module_client_class()
+
+    return _AZURE_MODULE_CLIENT_CLASS
+
+
+def _create_bedrock_module_client_class() -> type[OpenAI]:
+    from .lib.bedrock import BedrockOpenAI
+
+    class _BedrockModuleClient(_ModuleClient, BedrockOpenAI):  # type: ignore
+        @property  # type: ignore
+        @override
+        def api_key(self) -> str | None:
+            return api_key if api_key is not None else _bedrock_api_key
+
+        @api_key.setter  # type: ignore
+        def api_key(self, value: str | None) -> None:  # type: ignore
+            global _bedrock_api_key
+
+            _bedrock_api_key = value
+
+    return _BedrockModuleClient
+
+
+_BEDROCK_MODULE_CLIENT_CLASS: type[OpenAI] | None = None
+
+
+def _bedrock_module_client_class() -> type[OpenAI]:
+    global _BEDROCK_MODULE_CLIENT_CLASS
+
+    if _BEDROCK_MODULE_CLIENT_CLASS is None:
+        _BEDROCK_MODULE_CLIENT_CLASS = _create_bedrock_module_client_class()
+
+    return _BEDROCK_MODULE_CLIENT_CLASS
 
     @override
     def _refresh_api_key(self) -> str:
@@ -390,7 +518,7 @@ def _load_client() -> OpenAI:  # type: ignore[reportUnusedFunction]
                 api_type = "openai"
 
         if api_type == "azure":
-            _client = _AzureModuleClient(  # type: ignore
+            _client = _azure_module_client_class()(  # type: ignore
                 api_version=api_version,
                 azure_endpoint=azure_endpoint,
                 api_key=api_key,
@@ -407,7 +535,7 @@ def _load_client() -> OpenAI:  # type: ignore[reportUnusedFunction]
             return _client
 
         if api_type == "amazon-bedrock":
-            _client = _BedrockModuleClient(  # type: ignore
+            _client = _bedrock_module_client_class()(  # type: ignore
                 api_key=api_key,
                 bedrock_token_provider=bedrock_token_provider,
                 organization=organization,
