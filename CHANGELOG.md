@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.48.0 (2026-07-23)
+
+Full Changelog: [v2.47.0...v2.48.0](https://github.com/openai/openai-python/compare/v2.47.0...v2.48.0)
+
+### Features
+
+* **api:** accept `None` for prompt_cache_key/safety_identifier ([36820e6](https://github.com/openai/openai-python/commit/36820e69ba6cf1dc3f8d411e48a36e56084fbbc4))
+* **api:** add support for `spend_limit` admin apis ([1ff13af](https://github.com/openai/openai-python/commit/1ff13afb6e831394036686a1c352bbec6d704c68))
+
 ## 2.47.0 (2026-07-21)
 
 Full Changelog: [v2.46.0...v2.47.0](https://github.com/openai/openai-python/compare/v2.46.0...v2.47.0)
