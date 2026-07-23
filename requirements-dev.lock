@@ -10,16 +10,27 @@
 #   universal: false
 
 -e file:.
+aiohappyeyeballs==2.7.1
+    # via aiohttp
+aiohttp==3.14.1
+    # via httpx-aiohttp
+    # via openai
+aiosignal==1.4.0
+    # via aiohttp
 annotated-types==0.7.0
     # via pydantic
 anyio==4.12.1
     # via httpx
+    # via httpx2
     # via openai
 argcomplete==3.6.3
     # via nox
 asttokens==3.0.1
     # via inline-snapshot
+async-timeout==5.0.1
+    # via aiohttp
 attrs==25.4.0
+    # via aiohttp
     # via jsonschema
     # via nox
     # via outcome
@@ -66,21 +77,34 @@ executing==2.2.1
     # via inline-snapshot
 filelock==3.19.1
     # via virtualenv
+frozenlist==1.8.0
+    # via aiohttp
+    # via aiosignal
 griffe==1.14.0
 h11==0.16.0
     # via httpcore
+    # via httpcore2
 httpcore==1.0.9
     # via httpx
+httpcore2==2.7.0
+    # via httpx2
 httpx==0.28.1
+    # via httpx-aiohttp
     # via openai
     # via respx
+httpx-aiohttp==0.1.12
+    # via openai
+httpx2==2.7.0
+    # via openai
 humanize==4.13.0
     # via nox
-idna==3.11
+idna==3.18
     # via anyio
     # via httpx
+    # via httpx2
     # via requests
     # via trio
+    # via yarl
 importlib-metadata==8.7.1
 iniconfig==2.1.0
     # via pytest
@@ -101,6 +125,9 @@ msal==1.34.0
     # via msal-extensions
 msal-extensions==1.3.1
     # via azure-identity
+multidict==6.7.1
+    # via aiohttp
+    # via yarl
 mypy==1.17.0
 mypy-extensions==1.1.0
     # via mypy
@@ -128,6 +155,9 @@ platformdirs==4.4.0
     # via virtualenv
 pluggy==1.6.0
     # via pytest
+propcache==0.5.2
+    # via aiohttp
+    # via yarl
 pycparser==2.23
     # via cffi
 pydantic==2.12.5
@@ -184,6 +214,9 @@ tomli==2.4.0
 tqdm==4.67.1
     # via openai
 trio==0.31.0
+truststore==0.10.4
+    # via httpcore2
+    # via httpx2
 types-pyaudio==0.2.16.20250801
 types-pytz==2025.2.0.20251108
     # via pandas-stubs
@@ -193,11 +226,15 @@ types-tqdm==4.67.0.20250809
 types-urllib3==1.26.25.14
     # via types-requests
 typing-extensions==4.15.0
+    # via aiohttp
+    # via aiosignal
     # via anyio
     # via azure-core
     # via azure-identity
     # via cryptography
     # via exceptiongroup
+    # via httpx2
+    # via multidict
     # via mypy
     # via openai
     # via pydantic
@@ -218,5 +255,7 @@ virtualenv==20.35.4
     # via nox
 websockets==15.0.1
     # via openai
+yarl==1.24.2
+    # via aiohttp
 zipp==3.23.0
     # via importlib-metadata

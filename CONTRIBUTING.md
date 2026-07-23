@@ -1,5 +1,10 @@
 ## Setting up the environment
 
+The minimum supported runtime, contributor toolchain, CI matrix, and release
+rules are documented in [PYTHON_VERSION_POLICY.md](./PYTHON_VERSION_POLICY.md).
+Changes to the minimum Python version must keep those surfaces synchronized and
+must include a release note naming the final compatible SDK release.
+
 ### With Rye
 
 We use [Rye](https://rye.astral.sh/) to manage dependencies because it will automatically provision a Python environment with the expected Python version. To set it up, run:

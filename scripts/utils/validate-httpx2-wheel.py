@@ -25,8 +25,8 @@ def validate_metadata(wheel: Path) -> None:
     httpx2 = [value for value in requirements if "extra == 'httpx2'" in value]
     aiohttp = [value for value in requirements if "extra == 'aiohttp'" in value]
 
-    if metadata["Requires-Python"] != ">=3.9":
-        raise RuntimeError(f"Expected Python >=3.9, found: {metadata['Requires-Python']}")
+    if metadata["Requires-Python"] != ">=3.10":
+        raise RuntimeError(f"Expected Python >=3.10, found: {metadata['Requires-Python']}")
     if not any(value.startswith("httpx<1,>=0.23.0") for value in base):
         raise RuntimeError(f"Expected the base wheel to require HTTPX >=0.23.0,<1: {base}")
     if not any(value.startswith("anyio<5,>=3.5.0") for value in base):
@@ -37,8 +37,8 @@ def validate_metadata(wheel: Path) -> None:
     for expected in ("httpx<1,>=0.25.1", "httpx2<3,>=2.7.0", "anyio<5,>=4.10.0"):
         if not any(value.startswith(expected) for value in httpx2):
             raise RuntimeError(f"Expected the HTTPX2 extra to require {expected}: {httpx2}")
-    if not all("python_version >= '3.10'" in value for value in httpx2):
-        raise RuntimeError(f"HTTPX2 requirements must be marked for Python >=3.10: {httpx2}")
+    if any("python_version" in value for value in httpx2):
+        raise RuntimeError(f"HTTPX2 requirements have redundant Python markers: {httpx2}")
 
     if not any(value.startswith("aiohttp>=3.14.1") for value in aiohttp):
         raise RuntimeError(f"Expected the unchanged aiohttp requirement: {aiohttp}")
@@ -60,10 +60,13 @@ def run_case(wheel: Path, *, extra: str | None, tests: list[Path], dependencies:
             env=environment,
             check=True,
         )
+        test_environment = environment.copy()
+        for name in ("ALL_PROXY", "HTTPS_PROXY", "HTTP_PROXY", "all_proxy", "https_proxy", "http_proxy"):
+            test_environment.pop(name, None)
         subprocess.run(
             [str(python), "-m", "pytest", "-o", "addopts=", *(str(test) for test in tests)],
             cwd=directory,
-            env=environment,
+            env=test_environment,
             check=True,
         )
 
@@ -96,10 +99,6 @@ def assert_incompatible_pin_fails(wheel: Path) -> None:
             raise RuntimeError(f"The incompatible resolution failed for an unexpected reason:\n{output}")
 
 
-def supports_httpx2() -> bool:
-    return sys.version_info >= (3, 10)
-
-
 def main() -> None:
     wheels = list((ROOT / "dist").glob("*.whl"))
     if len(wheels) != 1:
@@ -115,11 +114,6 @@ def main() -> None:
         tests=[BASE_TEST],
         dependencies=["pytest==8.4.1", "pytest-asyncio==1.1.0", "respx==0.20.2", "httpx==0.23.0", "anyio==3.5.0"],
     )
-
-    if not supports_httpx2():
-        run_case(wheel, extra="httpx2", tests=[BASE_TEST], dependencies=common)
-        print("Validated base HTTPX, RESPX, supported floors, and the Python 3.9 HTTPX2 marker")
-        return
 
     run_case(wheel, extra="aiohttp", tests=[BASE_TEST], dependencies=common)
     run_case(wheel, extra="httpx2", tests=[BASE_TEST, HTTPX2_TEST], dependencies=common)

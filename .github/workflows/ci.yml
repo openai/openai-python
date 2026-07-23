@@ -13,6 +13,11 @@ on:
     branches-ignore:
       - 'stl-preview-head/**'
       - 'stl-preview-base/**'
+  workflow_dispatch:
+  # Exercise the complete supported matrix and the next CPython prerelease
+  # even when the repository has not changed.
+  schedule:
+    - cron: '47 9 * * *'
 
 jobs:
   lint:
@@ -58,18 +63,29 @@ jobs:
       - name: Run build
         run: rye build
 
+      - name: Validate Python version metadata
+        run: rye run python scripts/utils/validate-python-version-wheel.py
+
       - name: Validate Bedrock wheel
         run: rye run python scripts/utils/validate-bedrock-wheel.py
 
-      - name: Validate HTTPX2 wheel on Python 3.9
+      - name: Validate HTTPX2 wheel on Python 3.10
         run: rye run python scripts/utils/validate-httpx2-wheel.py
 
-      - name: Set up Python 3.12
+      - name: Set up Python 3.9 for resolver rejection
         uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
-          python-version: '3.12'
+          python-version: '3.9'
 
-      - name: Validate HTTPX2 wheel
+      - name: Prove Python 3.9 rejects the wheel
+        run: python scripts/utils/validate-python-version-wheel.py --check-python-39
+
+      - name: Set up Python 3.14
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.14'
+
+      - name: Validate HTTPX2 wheel on Python 3.14
         run: python scripts/utils/validate-httpx2-wheel.py
 
       - name: Get GitHub OIDC Token
@@ -93,9 +109,14 @@ jobs:
 
   test:
     timeout-minutes: 10
-    name: test
+    name: test (Python ${{ matrix.python-version }})
     runs-on: ${{ startsWith(github.repository, 'stainless-sdks/') && 'depot-ubuntu-24.04' || 'ubuntu-latest' }}
     if: github.event_name == 'push' || github.event.pull_request.head.repo.fork
+    strategy:
+      fail-fast: false
+      matrix:
+        # Per-PR coverage protects both ends of the support window.
+        python-version: ["3.10", "3.14"]
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
@@ -104,6 +125,9 @@ jobs:
         with:
           version: '0.44.0'
           enable-cache: true
+
+      - name: Select Python ${{ matrix.python-version }}
+        run: rye pin --relaxed --no-update-requires-python "${{ matrix.python-version }}"
 
       - name: Bootstrap
         run: ./scripts/bootstrap
@@ -127,7 +151,7 @@ jobs:
 
       - name: Install HTTPX2 test dependencies
         run: |
-          rye pin 3.12
+          rye pin --relaxed --no-update-requires-python 3.14
           rye sync --all-features
 
       - name: Run tests with HTTPX and HTTPX2 installed
@@ -167,3 +191,63 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
             rye run python examples/async_demo.py
+
+  python-policy:
+    timeout-minutes: 5
+    name: Python support policy
+    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
+
+      - name: Check version-policy surfaces
+        run: python scripts/check-python-version-policy.py
+
+  compatibility:
+    timeout-minutes: 20
+    name: compatibility (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    continue-on-error: ${{ matrix.experimental }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - python-version: "3.10"
+            experimental: false
+          - python-version: "3.11"
+            experimental: false
+          - python-version: "3.12"
+            experimental: false
+          - python-version: "3.13"
+            experimental: false
+          - python-version: "3.14"
+            experimental: false
+          - python-version: "3.15"
+            experimental: true
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
+
+      - name: Set up Rye
+        uses: eifinger/setup-rye@c694239a43768373e87d0103d7f547027a23f3c8
+        with:
+          version: '0.44.0'
+          enable-cache: true
+
+      - name: Select Python ${{ matrix.python-version }}
+        run: rye pin --relaxed --no-update-requires-python "${{ matrix.python-version }}"
+
+      - name: Install dependencies
+        run: rye sync --all-features
+
+      - name: Smoke-test the supported runtime
+        run: |
+          rye run python -c 'import openai; from openai import AsyncOpenAI, OpenAI'
+          rye run pytest -o addopts= --quiet \
+            tests/test_client.py \
+            tests/test_streaming.py \
+            tests/lib/test_pydantic.py
