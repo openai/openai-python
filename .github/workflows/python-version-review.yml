@@ -1,0 +1,225 @@
+name: Monthly Python version review
+
+on:
+  schedule:
+    - cron: '19 14 1 * *'
+  workflow_dispatch:
+
+concurrency:
+  group: monthly-python-version-review
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  assess:
+    name: Assess Python version support
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # OPENAI_API_KEY lives in this environment. The environment must permit
+    # only the default branch so another ref cannot receive the secret.
+    environment: ci
+    env:
+      CODEX_AUTOMATION_DIR: ${{ github.workspace }}/.codex-automation
+      CODEX_AUTOMATION_HOME: ${{ github.workspace }}/.codex-automation/home
+      CODEX_OUTPUT_FILE: ${{ github.workspace }}/.codex-automation/codex-issue-body.md
+      PYTHON_RELEASE_CYCLE: ${{ github.workspace }}/.codex-automation/python-release-cycle.json
+      PYPI_PYTHON_MINOR_STATS: ${{ github.workspace }}/.codex-automation/pypi-python-minor.json
+      REVIEW_DATE_FILE: ${{ github.workspace }}/.codex-automation/review-date.txt
+    outputs:
+      action_required: ${{ steps.report.outputs.action_required }}
+    steps:
+      - name: Create an unprivileged Codex user
+        # This runs before the key is passed to any process. Separating the
+        # agent from the runner user prevents a lingering process from
+        # inspecting credentials used by later runner-owned steps.
+        run: |
+          sudo adduser \
+            --system \
+            --home /home/codex \
+            --shell /bin/bash \
+            --group codex
+          sudo usermod --append --groups codex runner
+
+      - name: Check out the trusted default branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Prepare the isolated Codex workspace
+        run: |
+          mkdir --parents "$CODEX_AUTOMATION_HOME"
+          cp \
+            .github/codex/python-version-review-config.toml \
+            "$CODEX_AUTOMATION_HOME/config.toml"
+          echo '/.codex-automation/' >> .git/info/exclude
+
+      - name: Snapshot official lifecycle and public usage data
+        run: |
+          curl \
+            --fail \
+            --location \
+            --max-time 30 \
+            --proto '=https' \
+            --retry 3 \
+            --retry-all-errors \
+            --silent \
+            --show-error \
+            --tlsv1.2 \
+            'https://peps.python.org/api/release-cycle.json' \
+            --output "$PYTHON_RELEASE_CYCLE"
+          jq --exit-status \
+            'type == "object" and length > 5 and all(.[]; has("status") and has("end_of_life"))' \
+            "$PYTHON_RELEASE_CYCLE" >/dev/null
+
+          curl \
+            --fail \
+            --location \
+            --max-time 30 \
+            --proto '=https' \
+            --retry 3 \
+            --retry-all-errors \
+            --silent \
+            --show-error \
+            --tlsv1.2 \
+            'https://pypistats.org/api/packages/openai/python_minor' \
+            --output "$PYPI_PYTHON_MINOR_STATS"
+          jq --exit-status \
+            'type == "object" and has("data")' \
+            "$PYPI_PYTHON_MINOR_STATS" >/dev/null
+
+          date --utc +%F > "$REVIEW_DATE_FILE"
+
+      - name: Grant the Codex user controlled workspace access
+        run: |
+          sudo chown --recursive runner:codex "$GITHUB_WORKSPACE"
+          sudo chmod --recursive g+rX "$GITHUB_WORKSPACE"
+          sudo chmod --recursive g+rwX "$CODEX_AUTOMATION_DIR"
+
+          # Git metadata remains runner-owned and non-writable to the agent.
+          sudo chown --recursive runner:runner "$GITHUB_WORKSPACE/.git"
+          sudo chmod --recursive go-w "$GITHUB_WORKSPACE/.git"
+
+      - name: Ask Codex to assess the policy
+        id: codex
+        uses: openai/codex-action@52fe01ec70a42f454c9d2ebd47598f9fd6893d56 # v1
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          prompt-file: .github/codex/prompts/python-version-review.md
+          output-file: ${{ env.CODEX_OUTPUT_FILE }}
+          codex-home: ${{ env.CODEX_AUTOMATION_HOME }}
+          codex-version: '0.144.6'
+          codex-args: '["--ephemeral"]'
+          permission-profile: python-version-review
+          safety-strategy: unprivileged-user
+          codex-user: codex
+
+      - name: Terminate Codex-owned processes
+        if: always()
+        run: |
+          sudo pkill -KILL -u codex 2>/dev/null || true
+          pkill -KILL -f '[c]odex-responses-api-proxy' 2>/dev/null || true
+          sudo chown runner:runner "$CODEX_OUTPUT_FILE" 2>/dev/null || true
+
+      - name: Validate and package the assessment
+        id: report
+        if: steps.codex.outcome == 'success'
+        env:
+          CODEX_ARTIFACT_DIR: ${{ runner.temp }}/monthly-python-version-review
+        run: |
+          if ! git diff --quiet HEAD || [[ -n "$(git ls-files --others --exclude-standard)" ]]; then
+            echo '::error::The read-only Python review modified the repository'
+            exit 1
+          fi
+          if [[ ! -s "$CODEX_OUTPUT_FILE" ]]; then
+            echo '::error::Codex produced no assessment'
+            exit 1
+          fi
+          if [[ "$(wc -c < "$CODEX_OUTPUT_FILE")" -gt 60000 ]]; then
+            echo '::error::Codex assessment exceeds the GitHub issue size budget'
+            exit 1
+          fi
+
+          first_line="$(head -n 1 "$CODEX_OUTPUT_FILE")"
+          case "$first_line" in
+            '<!-- python-version-review: action-required -->')
+              echo 'action_required=true' >> "$GITHUB_OUTPUT"
+              mkdir --parents "$CODEX_ARTIFACT_DIR"
+              cp "$CODEX_OUTPUT_FILE" "$CODEX_ARTIFACT_DIR/issue-body.md"
+              ;;
+            '<!-- python-version-review: no-action -->')
+              echo 'action_required=false' >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo '::error::Codex assessment has an invalid action marker'
+              exit 1
+              ;;
+          esac
+
+          cat "$CODEX_OUTPUT_FILE" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload the action-required assessment
+        if: steps.report.outputs.action_required == 'true'
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        with:
+          name: monthly-python-version-review
+          path: ${{ runner.temp }}/monthly-python-version-review
+          if-no-files-found: error
+          retention-days: 7
+
+  open_issue:
+    name: Open or refresh Python version review
+    needs: assess
+    if: needs.assess.outputs.action_required == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Download the Codex assessment
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        with:
+          name: monthly-python-version-review
+          path: ${{ runner.temp }}/monthly-python-version-review
+
+      - name: Publish the review issue
+        env:
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+          REPORT_PATH: ${{ runner.temp }}/monthly-python-version-review/issue-body.md
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          marker='<!-- monthly-python-version-review -->'
+          existing_issue="$(
+            gh issue list \
+              --repo "$GH_REPO" \
+              --state open \
+              --limit 100 \
+              --json number,body \
+              --jq "map(select(((.body // \"\") | contains(\"$marker\"))))[0].number // empty"
+          )"
+
+          {
+            echo "$marker"
+            cat "$REPORT_PATH"
+            echo
+            echo '---'
+            echo
+            echo "Generated by the [monthly Python version review]($RUN_URL)."
+            echo 'This issue is advisory; changing the Python floor requires a separate reviewed pull request.'
+          } > "$RUNNER_TEMP/issue-body.md"
+
+          if [[ -n "$existing_issue" ]]; then
+            gh issue edit "$existing_issue" \
+              --repo "$GH_REPO" \
+              --title 'Monthly Python version support review' \
+              --body-file "$RUNNER_TEMP/issue-body.md"
+          else
+            gh issue create \
+              --repo "$GH_REPO" \
+              --title 'Monthly Python version support review' \
+              --body-file "$RUNNER_TEMP/issue-body.md"
+          fi

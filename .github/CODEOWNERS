@@ -2,3 +2,11 @@
 # For more information see: https://help.github.com/en/github/creating-cloning-and-archiving-repositories/about-code-owners
 
 * @openai/sdks-team
+
+# Minimum Python version and policy changes require SDK-team review.
+/pyproject.toml @openai/sdks-team
+/.python-version @openai/sdks-team
+/.github/workflows/ci.yml @openai/sdks-team
+/.github/workflows/python-version-review.yml @openai/sdks-team
+/.github/codex/ @openai/sdks-team
+/PYTHON_VERSION_POLICY.md @openai/sdks-team

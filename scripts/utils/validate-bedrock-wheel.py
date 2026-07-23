@@ -89,14 +89,18 @@ def main() -> None:
 
         requirements = metadata.get_all("Requires-Dist", [])
         botocore_requirements = [requirement for requirement in requirements if requirement.startswith("botocore")]
-        if len(botocore_requirements) != 2:
-            raise RuntimeError(f"Expected two Python-version-specific botocore requirements: {botocore_requirements}")
+        if len(botocore_requirements) != 1:
+            raise RuntimeError(
+                f"Expected one Botocore requirement for supported Python versions: {botocore_requirements}"
+            )
         if any("[crt]" in requirement for requirement in botocore_requirements):
             raise RuntimeError(
                 f"The Bedrock extra must not install the unused botocore CRT extra: {botocore_requirements}"
             )
         if not all("extra == 'bedrock'" in requirement for requirement in botocore_requirements):
             raise RuntimeError(f"Botocore requirements must belong to the Bedrock extra: {botocore_requirements}")
+        if any("python_version" in requirement for requirement in botocore_requirements):
+            raise RuntimeError(f"Botocore requirements have redundant Python markers: {botocore_requirements}")
 
         environment = os.environ.copy()
         for name in (
