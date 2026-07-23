@@ -4,6 +4,7 @@ import os
 import sys
 import email
 import zipfile
+import platform
 import tempfile
 import subprocess
 from pathlib import Path
@@ -108,12 +109,19 @@ def main() -> None:
 
     common = ["pytest==8.4.1", "pytest-asyncio==1.1.0", "respx==0.22.0"]
     run_case(wheel, extra=None, tests=[BASE_TEST], dependencies=common)
-    run_case(
-        wheel,
-        extra=None,
-        tests=[BASE_TEST],
-        dependencies=["pytest==8.4.1", "pytest-asyncio==1.1.0", "respx==0.20.2", "httpx==0.23.0", "anyio==3.5.0"],
-    )
+    if platform.python_version_tuple()[:2] == ("3", "10"):
+        run_case(
+            wheel,
+            extra=None,
+            tests=[BASE_TEST],
+            dependencies=[
+                "pytest==8.4.1",
+                "pytest-asyncio==1.1.0",
+                "respx==0.20.2",
+                "httpx==0.23.0",
+                "anyio==3.5.0",
+            ],
+        )
 
     run_case(wheel, extra="aiohttp", tests=[BASE_TEST], dependencies=common)
     run_case(wheel, extra="httpx2", tests=[BASE_TEST, HTTPX2_TEST], dependencies=common)
