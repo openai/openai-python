@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+﻿# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -71,7 +71,8 @@ class APIError(OpenAIError):
         self.body = body
 
         if is_dict(body):
-            self.code = cast(Any, construct_type(type_=Optional[str], value=body.get("code")))
+            code_val = body.get("code")
+            self.code = str(code_val) if code_val is not None else None
             self.param = cast(Any, construct_type(type_=Optional[str], value=body.get("param")))
             self.type = cast(Any, construct_type(type_=str, value=body.get("type")))
         else:
