@@ -17,7 +17,7 @@ from ...._types import Omit, omit
 from ...._utils import is_given, consume_sync_iterator, consume_async_iterator
 from ...._models import build, construct_type_unchecked
 from ...._streaming import Stream, AsyncStream
-from ....types.responses import ParsedResponse, ResponseStreamEvent as RawResponseStreamEvent
+from ....types.responses import Response, ParsedResponse, ResponseStreamEvent as RawResponseStreamEvent
 from ..._parsing._responses import TextFormatT, parse_text, parse_response
 from ....types.responses.tool_param import ToolParam
 from ....types.responses.parsed_response import (
@@ -357,9 +357,20 @@ class ResponseStreamState(Generic[TextFormatT]):
             if output.type == "function_call":
                 output.arguments += event.delta
         elif event.type == "response.completed":
+            response: Response = event.response
+            if response.output is None:
+                # Some backends omit `output` on the completion event even though the
+                # individual output items were streamed via `response.output_item.*` /
+                # `response.*.delta` events. Fall back to the accumulated snapshot so we
+                # don't silently drop the generated content.
+                response = construct_type_unchecked(
+                    type_=cast(Any, Response),
+                    value={**response.to_dict(), "output": snapshot.output},
+                )
+
             self._completed_response = parse_response(
                 text_format=self._text_format,
-                response=event.response,
+                response=response,
                 input_tools=self._input_tools,
             )
 

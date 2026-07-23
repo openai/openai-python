@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import Any, cast
 from typing_extensions import TypeVar
 
 import pytest
@@ -10,8 +11,14 @@ from openai import OpenAI, AsyncOpenAI
 from openai._types import omit
 from openai._utils import assert_signatures_in_sync
 from openai._models import construct_type_unchecked
-from openai.types.responses import Response
+from openai.types.responses import (
+    Response,
+    ResponseCreatedEvent,
+    ResponseCompletedEvent,
+    ResponseOutputItemAddedEvent,
+)
 from openai.lib._parsing._responses import parse_response
+from openai.lib.streaming.responses._responses import ResponseStreamState
 
 from ...conftest import base_url
 from ..snapshots import make_snapshot_request
@@ -78,6 +85,66 @@ def test_parse_response_handles_null_output() -> None:
     parsed = parse_response(text_format=omit, input_tools=omit, response=response)
 
     assert parsed.output == []
+
+
+def test_stream_state_preserves_accumulated_output_on_null_completion() -> None:
+    """Regression test: some backends omit `output` on `response.completed` even though
+    the output items were streamed via `response.output_item.*` events beforehand. The
+    accumulated snapshot must be used instead of discarding the generated content.
+    """
+    state: ResponseStreamState[None] = ResponseStreamState(input_tools=omit, text_format=omit)
+
+    state.handle_event(
+        construct_type_unchecked(
+            type_=cast(Any, ResponseCreatedEvent),
+            value={
+                "type": "response.created",
+                "sequence_number": 0,
+                "response": {"output": []},
+            },
+        )
+    )
+
+    message_item = {
+        "id": "msg_123",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [{"type": "output_text", "text": "hello world", "annotations": []}],
+    }
+    state.handle_event(
+        construct_type_unchecked(
+            type_=cast(Any, ResponseOutputItemAddedEvent),
+            value={
+                "type": "response.output_item.added",
+                "sequence_number": 1,
+                "output_index": 0,
+                "item": message_item,
+            },
+        )
+    )
+
+    events = state.handle_event(
+        construct_type_unchecked(
+            type_=cast(Any, ResponseCompletedEvent),
+            value={
+                "type": "response.completed",
+                "sequence_number": 2,
+                "response": {"status": "completed", "output": None},
+            },
+        )
+    )
+
+    assert state._completed_response is not None
+    output = state._completed_response.output
+    assert len(output) == 1
+    assert output[0].type == "message"
+    assert output[0].content[0].type == "output_text"
+    assert output[0].content[0].text == "hello world"
+
+    completed_event = events[-1]
+    assert completed_event.type == "response.completed"
+    assert completed_event.response.output == output
 
 
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
