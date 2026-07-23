@@ -20,6 +20,7 @@ from .beta_tool_choice_options import BetaToolChoiceOptions
 from .beta_response_output_item import BetaResponseOutputItem
 from .beta_response_text_config import BetaResponseTextConfig
 from .beta_tool_choice_function import BetaToolChoiceFunction
+from .beta_response_output_message import BetaResponseOutputMessage
 from .beta_tool_choice_apply_patch import BetaToolChoiceApplyPatch
 
 __all__ = [
@@ -617,3 +618,38 @@ class BetaResponse(BaseModel):
     similar requests and to help OpenAI detect and prevent abuse.
     [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
     """
+
+    @property
+    def output_text(self) -> str:
+        """Convenience property that returns the response's output text.
+
+        For multi-agent responses, this returns text from the last root
+        `final_answer` message. Otherwise, it aggregates all `output_text` content
+        blocks from the `output` list.
+        """
+        has_agent_metadata = False
+        final_root_message: Optional[BetaResponseOutputMessage] = None
+
+        for output in self.output:
+            if output.type != "message" or output.agent is None:
+                continue
+
+            has_agent_metadata = True
+            if output.agent.agent_name == "/root" and output.phase == "final_answer":
+                final_root_message = output
+
+        if has_agent_metadata and final_root_message is None:
+            return ""
+
+        texts: List[str] = []
+        for output in self.output:
+            if output.type != "message":
+                continue
+            if has_agent_metadata and output is not final_root_message:
+                continue
+
+            for content in output.content:
+                if content.type == "output_text":
+                    texts.append(content.text)
+
+        return "".join(texts)
