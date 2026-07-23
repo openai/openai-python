@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sys
+import os
 import json
 import time
 import uuid
@@ -1443,6 +1444,8 @@ class _DefaultAsyncHttpxClient(httpx.AsyncClient):
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
         kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
+        # Sanitize NO_PROXY for async clients too — see _sanitize_no_proxy.
+        _sanitize_no_proxy()
         super().__init__(**kwargs)
 
 
