@@ -60,12 +60,15 @@ def accumulate_delta(acc: dict[object, object], delta: dict[object, object]) -> 
                 # index (e.g. from speculative decoding), the physical position
                 # does not match the logical index. Find the existing entry by
                 # its index field and merge into it.
+                #
+                # If acc_value already contains duplicate-index entries
+                # (e.g. from a prior chunk that wasn't coalesced), merge into
+                # all of them so none are stranded.
                 found = False
                 for i, existing in enumerate(acc_value):
                     if is_dict(existing) and existing.get("index") == index:
                         acc_value[i] = accumulate_delta(existing, delta_entry)
                         found = True
-                        break
 
                 if not found:
                     # Ensure the list is large enough
