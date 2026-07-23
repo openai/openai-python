@@ -120,14 +120,22 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
+      - name: Set up Python ${{ matrix.python-version }}
+        id: setup-python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: ${{ matrix.python-version }}
+
       - name: Set up Rye
         uses: eifinger/setup-rye@c694239a43768373e87d0103d7f547027a23f3c8
         with:
           version: '0.44.0'
-          enable-cache: true
+          enable-cache: false
 
       - name: Select Python ${{ matrix.python-version }}
-        run: rye pin --relaxed --no-update-requires-python "${{ matrix.python-version }}"
+        run: |
+          rye toolchain register "${{ steps.setup-python.outputs.python-path }}"
+          rye pin --relaxed --no-update-requires-python "${{ matrix.python-version }}"
 
       - name: Bootstrap
         run: ./scripts/bootstrap
@@ -143,14 +151,21 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
+      - name: Set up Python 3.14
+        id: setup-python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.14'
+
       - name: Set up Rye
         uses: eifinger/setup-rye@c694239a43768373e87d0103d7f547027a23f3c8
         with:
           version: '0.44.0'
-          enable-cache: true
+          enable-cache: false
 
       - name: Install HTTPX2 test dependencies
         run: |
+          rye toolchain register "${{ steps.setup-python.outputs.python-path }}"
           rye pin --relaxed --no-update-requires-python 3.14
           rye sync --all-features
 
@@ -232,14 +247,23 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Set up Python ${{ matrix.python-version }}
+        id: setup-python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: ${{ matrix.python-version }}
+          allow-prereleases: ${{ matrix.experimental }}
+
       - name: Set up Rye
         uses: eifinger/setup-rye@c694239a43768373e87d0103d7f547027a23f3c8
         with:
           version: '0.44.0'
-          enable-cache: true
+          enable-cache: false
 
       - name: Select Python ${{ matrix.python-version }}
-        run: rye pin --relaxed --no-update-requires-python "${{ matrix.python-version }}"
+        run: |
+          rye toolchain register "${{ steps.setup-python.outputs.python-path }}"
+          rye pin --relaxed --no-update-requires-python "${{ matrix.python-version }}"
 
       - name: Install dependencies
         run: rye sync --all-features
