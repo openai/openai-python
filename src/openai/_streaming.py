@@ -61,6 +61,14 @@ class Stream(Generic[_T]):
         try:
             for sse in iterator:
                 if sse.data.startswith("[DONE]"):
+                    # Drain any remaining bytes so that h11 can parse the
+                    # HTTP/1.1 chunked terminator (`0\r\n\r\n`) before
+                    # response.close() is called.  Without this, h11's
+                    # their_state is still SEND_RESPONSE, so httpcore takes
+                    # the "destroy" branch instead of returning the connection
+                    # to the pool, causing a spurious TCP FIN.
+                    for _ in iterator:
+                        pass
                     break
 
                 # we have to special case the Assistants `thread.` events since we won't have an "event" key in the data
@@ -171,6 +179,14 @@ class AsyncStream(Generic[_T]):
         try:
             async for sse in iterator:
                 if sse.data.startswith("[DONE]"):
+                    # Drain any remaining bytes so that h11 can parse the
+                    # HTTP/1.1 chunked terminator (`0\r\n\r\n`) before
+                    # response.aclose() is called.  Without this, h11's
+                    # their_state is still SEND_RESPONSE, so httpcore takes
+                    # the "destroy" branch instead of returning the connection
+                    # to the pool, causing a spurious TCP FIN.
+                    async for _ in iterator:
+                        pass
                     break
 
                 # we have to special case the Assistants `thread.` events since we won't have an "event" key in the data
