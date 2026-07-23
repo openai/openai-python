@@ -29,8 +29,7 @@ concurrency:
 jobs:
   promote:
     name: open public-main draft PR
-    # Keep the draft-stack pin inert until it is replaced with the merged SHA
-    # and admins explicitly enable the protected promotion environment.
+    # Keep promotion inert until admins explicitly configure and enable it.
     if: >-
       vars.CASTIRON_PROMOTION_ENABLED == 'true' &&
       github.repository == 'openai/openai-python' &&
@@ -60,8 +59,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           repository: openai/openai
-          # Replace this draft-stack SHA with the merged monorepo SHA before enabling.
-          ref: 7b8693d173a6d00a826817adccc2ceee93c0e1e8
+          ref: d2dbbaefab9ec4c7513abe593015a9f97597c18c
           path: openai
           token: ${{ steps.monorepo-token.outputs.token }}
           persist-credentials: false
