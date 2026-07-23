@@ -67,7 +67,7 @@ class Stream(Generic[_T]):
                 if sse.event and sse.event.startswith("thread."):
                     data = sse.json()
 
-                    if sse.event == "error" and is_mapping(data) and data.get("error"):
+                    if is_mapping(data) and data.get("error"):
                         message = None
                         error = data.get("error")
                         if is_mapping(error):
@@ -177,7 +177,7 @@ class AsyncStream(Generic[_T]):
                 if sse.event and sse.event.startswith("thread."):
                     data = sse.json()
 
-                    if sse.event == "error" and is_mapping(data) and data.get("error"):
+                    if is_mapping(data) and data.get("error"):
                         message = None
                         error = data.get("error")
                         if is_mapping(error):
