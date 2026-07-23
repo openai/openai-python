@@ -17,9 +17,7 @@ from openai.types.responses import (
     ResponseCompletedEvent,
     ResponseOutputItemAddedEvent,
 )
-from openai.lib._parsing._responses import parse_response
-from openai.lib.streaming.responses._responses import ResponseStreamState
-
+from openai.lib.streaming.responses import ResponseStreamState
 from ...conftest import base_url
 from ..snapshots import make_snapshot_request
 
