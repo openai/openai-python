@@ -14,6 +14,10 @@ BASE_TEST = ROOT / "tests/test_httpx2_base.py"
 HTTPX2_TEST = ROOT / "tests/test_httpx2.py"
 
 
+def venv_python(environment_path: Path) -> Path:
+    return environment_path / ("Scripts/python.exe" if sys.platform == "win32" else "bin/python")
+
+
 def validate_metadata(wheel: Path) -> None:
     with zipfile.ZipFile(wheel) as archive:
         metadata_names = [name for name in archive.namelist() if name.endswith(".dist-info/METADATA")]
@@ -51,7 +55,7 @@ def run_case(wheel: Path, *, extra: str | None, tests: list[Path], dependencies:
     with tempfile.TemporaryDirectory(prefix="openai-httpx2-wheel-") as directory:
         environment_path = Path(directory) / "venv"
         subprocess.run([sys.executable, "-m", "venv", str(environment_path)], check=True)
-        python = environment_path / "bin/python"
+        python = venv_python(environment_path)
         requirement = str(wheel.resolve()) if extra is None else f"{wheel.resolve()}[{extra}]"
         environment = os.environ.copy()
         environment.setdefault("PIP_DISABLE_CLIENT_CERTIFICATE", "1")
@@ -76,14 +80,14 @@ def assert_incompatible_pin_fails(wheel: Path) -> None:
     with tempfile.TemporaryDirectory(prefix="openai-httpx2-conflict-") as directory:
         environment_path = Path(directory) / "venv"
         subprocess.run([sys.executable, "-m", "venv", str(environment_path)], check=True)
-        python = environment_path / "bin/python"
+        python = venv_python(environment_path)
         result = subprocess.run(
             [
                 str(python),
                 "-m",
                 "pip",
                 "install",
-                "--dry-run",
+                "--no-input",
                 f"{wheel.resolve()}[httpx2]",
                 "httpx==0.25.0",
             ],
