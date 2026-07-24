@@ -369,16 +369,18 @@ class ResponseStreamState(Generic[TextFormatT]):
                 input_tools=self._input_tools,
             )
         elif event.type == "response.incomplete":
+            # Don't strictly parse structured output: truncation often yields invalid JSON.
             self._completed_response = parse_response(
-                text_format=self._text_format,
+                text_format=omit,
                 response=event.response,
-                input_tools=self._input_tools,
+                input_tools=omit,
             )
         elif event.type == "response.failed":
+            # Same as incomplete: preserve the terminal Response without strict parsing.
             self._completed_response = parse_response(
-                text_format=self._text_format,
+                text_format=omit,
                 response=event.response,
-                input_tools=self._input_tools,
+                input_tools=omit,
             )
 
         return snapshot

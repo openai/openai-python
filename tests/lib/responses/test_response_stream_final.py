@@ -4,6 +4,7 @@ from typing import Any, Iterator, AsyncIterator, cast
 
 import httpx
 import pytest
+import pydantic
 
 from openai import omit
 from openai._models import construct_type_unchecked
@@ -18,7 +19,11 @@ from openai.lib.streaming.responses import ResponseStream, AsyncResponseStream
 from openai.lib.streaming.responses._responses import ResponseStreamState
 
 
-def _response_payload(*, status: str, **extra: Any) -> dict[str, Any]:
+class _Answer(pydantic.BaseModel):
+    value: str
+
+
+def _response_payload(*, status: str, text: str = "partial answer", **extra: Any) -> dict[str, Any]:
     payload: dict[str, Any] = {
         "id": "resp_test",
         "object": "response",
@@ -33,7 +38,7 @@ def _response_payload(*, status: str, **extra: Any) -> dict[str, Any]:
                 "content": [
                     {
                         "type": "output_text",
-                        "text": "partial answer",
+                        "text": text,
                         "annotations": [],
                         "logprobs": [],
                     }
@@ -53,15 +58,22 @@ def _event(type_: type[Any], value: dict[str, Any]) -> RawResponseStreamEvent:
     return cast(RawResponseStreamEvent, construct_type_unchecked(type_=type_, value=value))
 
 
-def _drive_state_to_terminal(event_type: str, *, status: str, **extra: Any) -> ResponseStreamState[None]:
-    state: ResponseStreamState[None] = ResponseStreamState(input_tools=omit, text_format=omit)
+def _drive_state_to_terminal(
+    event_type: str,
+    *,
+    status: str,
+    text: str = "partial answer",
+    text_format: type[Any] | Any = omit,
+    **extra: Any,
+) -> ResponseStreamState[Any]:
+    state: ResponseStreamState[Any] = ResponseStreamState(input_tools=omit, text_format=text_format)
     state.handle_event(
         _event(
             ResponseCreatedEvent,
             {
                 "type": "response.created",
                 "sequence_number": 0,
-                "response": _response_payload(status="in_progress"),
+                "response": _response_payload(status="in_progress", text=""),
             },
         )
     )
@@ -82,7 +94,7 @@ def _drive_state_to_terminal(event_type: str, *, status: str, **extra: Any) -> R
             {
                 "type": event_type,
                 "sequence_number": 1,
-                "response": _response_payload(status=status, **extra),
+                "response": _response_payload(status=status, text=text, **extra),
             },
         )
     )
@@ -107,6 +119,52 @@ def test_stream_state_stores_final_response_for_terminal_events(
     assert state._completed_response is not None
     assert state._completed_response.status == status
     assert state._completed_response.output_text == "partial answer"
+
+
+@pytest.mark.parametrize(
+    ("event_type", "status", "extra"),
+    [
+        ("response.incomplete", "incomplete", {"incomplete_details": {"reason": "max_output_tokens"}}),
+        ("response.failed", "failed", {"error": {"code": "server_error", "message": "boom"}}),
+    ],
+)
+def test_stream_state_preserves_truncated_output_on_non_completed_terminal_events(
+    event_type: str,
+    status: str,
+    extra: dict[str, Any],
+) -> None:
+    truncated = '{"value":'
+    state = _drive_state_to_terminal(
+        event_type,
+        status=status,
+        text=truncated,
+        text_format=_Answer,
+        **extra,
+    )
+
+    assert state._completed_response is not None
+    assert state._completed_response.status == status
+    assert state._completed_response.output_text == truncated
+
+    content = state._completed_response.output[0]
+    assert content.type == "message"
+    assert content.content[0].type == "output_text"
+    assert content.content[0].parsed is None
+
+
+def test_stream_state_parses_structured_output_on_completed_event() -> None:
+    state = _drive_state_to_terminal(
+        "response.completed",
+        status="completed",
+        text='{"value":"done"}',
+        text_format=_Answer,
+    )
+
+    assert state._completed_response is not None
+    content = state._completed_response.output[0]
+    assert content.type == "message"
+    assert content.content[0].type == "output_text"
+    assert content.content[0].parsed == _Answer(value="done")
 
 
 def test_stream_state_without_terminal_event_has_no_final_response() -> None:
@@ -150,13 +208,19 @@ class _FakeAsyncRawStream:
         self.response.close()
 
 
-def _terminal_events(event_type: str, *, status: str, **extra: Any) -> list[RawResponseStreamEvent]:
+def _terminal_events(
+    event_type: str,
+    *,
+    status: str,
+    text: str = "partial answer",
+    **extra: Any,
+) -> list[RawResponseStreamEvent]:
     created = _event(
         ResponseCreatedEvent,
         {
             "type": "response.created",
             "sequence_number": 0,
-            "response": _response_payload(status="in_progress"),
+            "response": _response_payload(status="in_progress", text=""),
         },
     )
     terminal_type: type[Any]
@@ -172,7 +236,7 @@ def _terminal_events(event_type: str, *, status: str, **extra: Any) -> list[RawR
         {
             "type": event_type,
             "sequence_number": 1,
-            "response": _response_payload(status=status, **extra),
+            "response": _response_payload(status=status, text=text, **extra),
         },
     )
     return [created, terminal]
@@ -206,6 +270,40 @@ def test_sync_get_final_response_accepts_terminal_events(
     assert final.output_text == "partial answer"
 
 
+@pytest.mark.parametrize(
+    ("event_type", "status", "extra"),
+    [
+        ("response.incomplete", "incomplete", {"incomplete_details": {"reason": "max_output_tokens"}}),
+        ("response.failed", "failed", {"error": {"code": "server_error", "message": "boom"}}),
+    ],
+)
+def test_sync_get_final_response_preserves_truncated_structured_output(
+    event_type: str,
+    status: str,
+    extra: dict[str, Any],
+) -> None:
+    truncated = '{"value":'
+    response = httpx.Response(200, content=b"")
+    stream = ResponseStream(
+        raw_stream=_FakeRawStream(  # type: ignore[arg-type]
+            _terminal_events(event_type, status=status, text=truncated, **extra),
+            response,
+        ),
+        text_format=_Answer,
+        input_tools=omit,
+        starting_after=None,
+    )
+
+    final = stream.get_final_response()
+
+    assert final.status == status
+    assert final.output_text == truncated
+    content = final.output[0]
+    assert content.type == "message"
+    assert content.content[0].type == "output_text"
+    assert content.content[0].parsed is None
+
+
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     ("event_type", "status", "extra"),
@@ -233,6 +331,41 @@ async def test_async_get_final_response_accepts_terminal_events(
 
     assert final.status == status
     assert final.output_text == "partial answer"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("event_type", "status", "extra"),
+    [
+        ("response.incomplete", "incomplete", {"incomplete_details": {"reason": "max_output_tokens"}}),
+        ("response.failed", "failed", {"error": {"code": "server_error", "message": "boom"}}),
+    ],
+)
+async def test_async_get_final_response_preserves_truncated_structured_output(
+    event_type: str,
+    status: str,
+    extra: dict[str, Any],
+) -> None:
+    truncated = '{"value":'
+    response = httpx.Response(200, content=b"")
+    stream = AsyncResponseStream(
+        raw_stream=_FakeAsyncRawStream(  # type: ignore[arg-type]
+            _terminal_events(event_type, status=status, text=truncated, **extra),
+            response,
+        ),
+        text_format=_Answer,
+        input_tools=omit,
+        starting_after=None,
+    )
+
+    final = await stream.get_final_response()
+
+    assert final.status == status
+    assert final.output_text == truncated
+    content = final.output[0]
+    assert content.type == "message"
+    assert content.content[0].type == "output_text"
+    assert content.content[0].parsed is None
 
 
 def test_sync_get_final_response_requires_terminal_event() -> None:
