@@ -78,11 +78,14 @@ class ResponseStream(Generic[TextFormatT]):
     def get_final_response(self) -> ParsedResponse[TextFormatT]:
         """Waits until the stream has been read to completion and returns
         the accumulated `ParsedResponse` object.
+
+        A terminal `response.completed`, `response.incomplete`, or
+        `response.failed` event is required.
         """
         self.until_done()
         response = self._state._completed_response
         if not response:
-            raise RuntimeError("Didn't receive a `response.completed` event.")
+            raise RuntimeError("Didn't receive a terminal response event.")
 
         return response
 
@@ -180,11 +183,14 @@ class AsyncResponseStream(Generic[TextFormatT]):
     async def get_final_response(self) -> ParsedResponse[TextFormatT]:
         """Waits until the stream has been read to completion and returns
         the accumulated `ParsedResponse` object.
+
+        A terminal `response.completed`, `response.incomplete`, or
+        `response.failed` event is required.
         """
         await self.until_done()
         response = self._state._completed_response
         if not response:
-            raise RuntimeError("Didn't receive a `response.completed` event.")
+            raise RuntimeError("Didn't receive a terminal response event.")
 
         return response
 
@@ -357,6 +363,18 @@ class ResponseStreamState(Generic[TextFormatT]):
             if output.type == "function_call":
                 output.arguments += event.delta
         elif event.type == "response.completed":
+            self._completed_response = parse_response(
+                text_format=self._text_format,
+                response=event.response,
+                input_tools=self._input_tools,
+            )
+        elif event.type == "response.incomplete":
+            self._completed_response = parse_response(
+                text_format=self._text_format,
+                response=event.response,
+                input_tools=self._input_tools,
+            )
+        elif event.type == "response.failed":
             self._completed_response = parse_response(
                 text_format=self._text_format,
                 response=event.response,
