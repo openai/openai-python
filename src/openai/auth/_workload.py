@@ -56,7 +56,7 @@ def k8s_service_account_token_provider(
 
     def get_token() -> str:
         try:
-            with open(token_file_path, "r") as f:
+            with open(token_file_path, "r", encoding="utf-8") as f:
                 token = f.read().strip()
                 if not token:
                     raise SubjectTokenProviderError(f"The token file at {token_file_path} is empty.")
