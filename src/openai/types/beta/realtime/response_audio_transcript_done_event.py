@@ -26,5 +26,5 @@ class ResponseAudioTranscriptDoneEvent(BaseModel):
     transcript: str
     """The final transcript of the audio."""
 
-    type: Literal["response.audio_transcript.done"]
+    type: Literal["response.audio_transcript.done"] = "response.audio_transcript.done"
     """The event type, must be `response.audio_transcript.done`."""

@@ -20,5 +20,5 @@ class TranscriptionSessionUpdatedEvent(BaseModel):
     not present when a session is updated via the WebSocket API.
     """
 
-    type: Literal["transcription_session.updated"]
+    type: Literal["transcription_session.updated"] = "transcription_session.updated"
     """The event type, must be `transcription_session.updated`."""

@@ -55,7 +55,7 @@ class ConversationItemRetrieved(BaseModel):
     item: ConversationItem
     """The item to add to the conversation."""
 
-    type: Literal["conversation.item.retrieved"]
+    type: Literal["conversation.item.retrieved"] = "conversation.item.retrieved"
     """The event type, must be `conversation.item.retrieved`."""
 
 
@@ -66,7 +66,7 @@ class OutputAudioBufferStarted(BaseModel):
     response_id: str
     """The unique ID of the response that produced the audio."""
 
-    type: Literal["output_audio_buffer.started"]
+    type: Literal["output_audio_buffer.started"] = "output_audio_buffer.started"
     """The event type, must be `output_audio_buffer.started`."""
 
 
@@ -77,7 +77,7 @@ class OutputAudioBufferStopped(BaseModel):
     response_id: str
     """The unique ID of the response that produced the audio."""
 
-    type: Literal["output_audio_buffer.stopped"]
+    type: Literal["output_audio_buffer.stopped"] = "output_audio_buffer.stopped"
     """The event type, must be `output_audio_buffer.stopped`."""
 
 
@@ -88,7 +88,7 @@ class OutputAudioBufferCleared(BaseModel):
     response_id: str
     """The unique ID of the response that produced the audio."""
 
-    type: Literal["output_audio_buffer.cleared"]
+    type: Literal["output_audio_buffer.cleared"] = "output_audio_buffer.cleared"
     """The event type, must be `output_audio_buffer.cleared`."""
 
 

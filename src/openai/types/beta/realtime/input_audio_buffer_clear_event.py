@@ -9,7 +9,7 @@ __all__ = ["InputAudioBufferClearEvent"]
 
 
 class InputAudioBufferClearEvent(BaseModel):
-    type: Literal["input_audio_buffer.clear"]
+    type: Literal["input_audio_buffer.clear"] = "input_audio_buffer.clear"
     """The event type, must be `input_audio_buffer.clear`."""
 
     event_id: Optional[str] = None

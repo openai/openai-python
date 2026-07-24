@@ -11,5 +11,5 @@ class InputAudioBufferClearedEvent(BaseModel):
     event_id: str
     """The unique ID of the server event."""
 
-    type: Literal["input_audio_buffer.cleared"]
+    type: Literal["input_audio_buffer.cleared"] = "input_audio_buffer.cleared"
     """The event type, must be `input_audio_buffer.cleared`."""
