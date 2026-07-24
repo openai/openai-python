@@ -95,7 +95,16 @@ def main() -> None:
         f"PR test matrix is {pr_versions}, expected {expected_pr_versions}",
     )
 
-    compatibility = compatibility_matrix(workflow_job(workflow, "compatibility"))
+    compatibility_job = workflow_job(workflow, "compatibility")
+    require(
+        "continue-on-error: ${{ matrix.experimental }}" in compatibility_job,
+        "Scheduled compatibility failures are not controlled by matrix.experimental",
+    )
+    require(
+        "allow-prereleases: ${{ matrix.experimental }}" in compatibility_job,
+        "Scheduled compatibility prerelease setup is not controlled by matrix.experimental",
+    )
+    compatibility = compatibility_matrix(compatibility_job)
     expected_compatibility = tuple((version, False) for version in SUPPORTED) + ((PRERELEASE, True),)
     require(
         compatibility == expected_compatibility,
