@@ -20,6 +20,7 @@ import openai
 from openai import OpenAI, AsyncOpenAI
 from openai._utils import consume_sync_iterator, assert_signatures_in_sync
 from openai._compat import model_copy
+from openai._models import construct_type
 from openai.types.chat import ChatCompletionChunk
 from openai.lib.streaming.chat import (
     ContentDoneEvent,
@@ -832,6 +833,80 @@ def test_parse_multiple_pydantic_tools(client: OpenAI, respx_mock: MockRouter, m
 ]
 """
     )
+
+
+def test_streaming_tool_calls_merge_duplicate_indexes_in_initial_chunk() -> None:
+    state = ChatCompletionStreamState()
+
+    first_chunk = cast(
+        ChatCompletionChunk,
+        construct_type(
+            type_=ChatCompletionChunk,
+            value={
+                "id": "chatcmpl-duplicate-tool-index",
+                "object": "chat.completion.chunk",
+                "created": 0,
+                "model": "gpt-4o-mini",
+                "choices": [
+                    {
+                        "index": 0,
+                        "delta": {
+                            "role": "assistant",
+                            "tool_calls": [
+                                {
+                                    "index": 0,
+                                    "id": "call_abc",
+                                    "type": "function",
+                                    "function": {"name": "list_files"},
+                                },
+                                {
+                                    "index": 0,
+                                    "function": {"arguments": ' {"'},
+                                },
+                            ],
+                        },
+                        "finish_reason": None,
+                    }
+                ],
+            },
+        ),
+    )
+    second_chunk = cast(
+        ChatCompletionChunk,
+        construct_type(
+            type_=ChatCompletionChunk,
+            value={
+                "id": "chatcmpl-duplicate-tool-index",
+                "object": "chat.completion.chunk",
+                "created": 0,
+                "model": "gpt-4o-mini",
+                "choices": [
+                    {
+                        "index": 0,
+                        "delta": {
+                            "tool_calls": [
+                                {
+                                    "index": 0,
+                                    "function": {"arguments": 'path": "."}'},
+                                },
+                            ],
+                        },
+                        "finish_reason": "tool_calls",
+                    }
+                ],
+            },
+        ),
+    )
+
+    state.handle_chunk(first_chunk)
+    state.handle_chunk(second_chunk)
+
+    tool_calls = state.get_final_completion().choices[0].message.tool_calls
+
+    assert tool_calls is not None
+    assert len(tool_calls) == 1
+    assert tool_calls[0].function.name == "list_files"
+    assert tool_calls[0].function.arguments == ' {"path": "."}'
 
 
 @pytest.mark.respx(base_url=base_url)
