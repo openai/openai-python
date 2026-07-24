@@ -6,6 +6,7 @@ import gc
 import os
 import sys
 import json
+import socket
 import asyncio
 import inspect
 import dataclasses
@@ -1305,6 +1306,52 @@ class TestOpenAI:
             limits=httpx.Limits(max_connections=100, max_keepalive_connections=20),
         )
 
+    def test_default_transport_has_tcp_keepalive(self) -> None:
+        proxy_vars = ("HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "http_proxy", "https_proxy", "all_proxy")
+        with mock.patch.dict(os.environ, {v: "" for v in proxy_vars}, clear=False):
+            client = OpenAI(base_url=base_url, api_key=api_key)
+            transport = client._client._transport
+            assert isinstance(transport, httpx.HTTPTransport)
+            pool = transport._pool
+            socket_options = pool._socket_options
+            assert any(
+                opt[0] == socket.SOL_SOCKET and opt[1] == socket.SO_KEEPALIVE and opt[2] == 1
+                for opt in socket_options
+            )
+
+    def test_custom_http_client_transport_not_overridden(self) -> None:
+        with httpx.Client() as http_client:
+            client = OpenAI(base_url=base_url, api_key=api_key, http_client=http_client)
+            assert client._client is http_client
+
+    def test_keepalive_skipped_when_proxy_env_set(self) -> None:
+        with mock.patch.dict(os.environ, {"HTTP_PROXY": "http://proxy:8080"}, clear=False):
+            client = OpenAI(base_url=base_url, api_key=api_key)
+            transport = client._client._transport
+            assert isinstance(transport, httpx.HTTPTransport)
+            pool = transport._pool
+            socket_options = list(pool._socket_options)
+            assert not any(
+                opt[0] == socket.SOL_SOCKET and opt[1] == socket.SO_KEEPALIVE
+                for opt in socket_options
+            ), "Keepalive should NOT be set when HTTP_PROXY is configured"
+
+    def test_keepalive_not_skipped_when_trust_env_false_and_proxy_set(self) -> None:
+        with mock.patch.dict(os.environ, {"HTTP_PROXY": "http://proxy:8080"}, clear=False):
+            client = OpenAI(base_url=base_url, api_key=api_key, http_client=httpx.Client(trust_env=False))
+            assert client._client is not None
+
+    def test_keepalive_skipped_when_explicit_proxy_arg(self) -> None:
+        with mock.patch.dict(os.environ, clear=True):
+            client = DefaultHttpxClient(proxy="http://proxy:8080")
+            transport = client._transport
+            assert isinstance(transport, httpx.HTTPTransport)
+            so = list(transport._pool._socket_options)
+            assert not any(
+                opt[0] == socket.SOL_SOCKET and opt[1] == socket.SO_KEEPALIVE
+                for opt in so
+            ), "Keepalive should NOT be set when proxy= is passed"
+
     @pytest.mark.respx(base_url=base_url)
     def test_follow_redirects(self, respx_mock: MockRouter, client: OpenAI) -> None:
         # Test that the default follow_redirects=True allows following redirects
@@ -2564,6 +2611,47 @@ class TestAsyncOpenAI:
             http2=False,
             limits=httpx.Limits(max_connections=100, max_keepalive_connections=20),
         )
+
+    async def test_default_transport_has_tcp_keepalive(self) -> None:
+        proxy_vars = ("HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "http_proxy", "https_proxy", "all_proxy")
+        with mock.patch.dict(os.environ, {v: "" for v in proxy_vars}, clear=False):
+            client = AsyncOpenAI(base_url=base_url, api_key=api_key)
+            transport = client._client._transport
+            assert isinstance(transport, httpx.AsyncHTTPTransport)
+            pool = transport._pool
+            socket_options = pool._socket_options
+            assert any(
+                opt[0] == socket.SOL_SOCKET and opt[1] == socket.SO_KEEPALIVE and opt[2] == 1
+                for opt in socket_options
+            )
+
+    async def test_custom_async_http_client_transport_not_overridden(self) -> None:
+        async with httpx.AsyncClient() as http_client:
+            client = AsyncOpenAI(base_url=base_url, api_key=api_key, http_client=http_client)
+            assert client._client is http_client
+
+    async def test_async_keepalive_skipped_when_proxy_env_set(self) -> None:
+        with mock.patch.dict(os.environ, {"HTTPS_PROXY": "http://proxy:8080"}, clear=False):
+            client = AsyncOpenAI(base_url=base_url, api_key=api_key)
+            transport = client._client._transport
+            assert isinstance(transport, httpx.AsyncHTTPTransport)
+            pool = transport._pool
+            socket_options = list(pool._socket_options)
+            assert not any(
+                opt[0] == socket.SOL_SOCKET and opt[1] == socket.SO_KEEPALIVE
+                for opt in socket_options
+            )
+
+    async def test_async_keepalive_skipped_when_explicit_proxy_arg(self) -> None:
+        with mock.patch.dict(os.environ, clear=True):
+            client = DefaultAsyncHttpxClient(proxy="http://proxy:8080")
+            transport = client._transport
+            assert isinstance(transport, httpx.AsyncHTTPTransport)
+            so = list(transport._pool._socket_options)
+            assert not any(
+                opt[0] == socket.SOL_SOCKET and opt[1] == socket.SO_KEEPALIVE
+                for opt in so
+            )
 
     @pytest.mark.respx(base_url=base_url)
     async def test_follow_redirects(self, respx_mock: MockRouter, async_client: AsyncOpenAI) -> None:
