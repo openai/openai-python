@@ -34,7 +34,7 @@ def workflow_job(workflow: str, name: str) -> str:
     return match.group("body")
 
 
-def matrix_versions(job: str) -> tuple[str, ...]:
+def matrix_body(job: str) -> str:
     match = re.search(
         r"^      matrix:\n(?P<body>.*?)(?=^    [A-Za-z0-9_-]+:\n|\Z)",
         job,
@@ -42,12 +42,24 @@ def matrix_versions(job: str) -> tuple[str, ...]:
     )
     if match is None:
         raise RuntimeError("CI job does not define a strategy matrix")
+    return match.group("body")
 
+
+def matrix_versions(job: str) -> tuple[str, ...]:
     versions: list[str] = []
-    for line in match.group("body").splitlines():
+    for line in matrix_body(job).splitlines():
         if re.match(r"^\s+(?:-\s+)?python-version:", line):
             versions.extend(re.findall(r'"(3\.\d+)"', line))
     return tuple(versions)
+
+
+def compatibility_matrix(job: str) -> tuple[tuple[str, bool], ...]:
+    rows = re.findall(
+        r'^ +-\s+python-version: "(3\.\d+)"\n +experimental: (true|false)$',
+        matrix_body(job),
+        re.MULTILINE,
+    )
+    return tuple((version, experimental == "true") for version, experimental in rows)
 
 
 def main() -> None:
@@ -83,12 +95,11 @@ def main() -> None:
         f"PR test matrix is {pr_versions}, expected {expected_pr_versions}",
     )
 
-    compatibility_versions = matrix_versions(workflow_job(workflow, "compatibility"))
-    expected_compatibility_versions = SUPPORTED + (PRERELEASE,)
+    compatibility = compatibility_matrix(workflow_job(workflow, "compatibility"))
+    expected_compatibility = tuple((version, False) for version in SUPPORTED) + ((PRERELEASE, True),)
     require(
-        compatibility_versions == expected_compatibility_versions,
-        "Scheduled compatibility matrix is "
-        f"{compatibility_versions}, expected {expected_compatibility_versions}",
+        compatibility == expected_compatibility,
+        f"Scheduled compatibility matrix is {compatibility}, expected {expected_compatibility}",
     )
     require(
         f"Python {MINIMUM} through\n{CURRENT_STABLE}" in policy,
