@@ -58,7 +58,13 @@ def parse_response(
 ) -> ParsedResponse[TextFormatT]:
     output_list: List[ParsedResponseOutputItem[TextFormatT]] = []
 
-    for output in response.output:
+    # Guard against `response.output` being `None` (observed in the chatgpt.com
+    # Codex backend's consolidated `response.completed` event — see issue #3325).
+    # When the streaming accumulator has already collected output items, it
+    # injects them into the response before calling this function, so reaching
+    # here with `None` means the stream genuinely had no output items and an
+    # empty list is the correct result.
+    for output in response.output or []:
         if output.type == "message":
             content_list: List[ParsedContent[TextFormatT]] = []
             for item in output.content:
