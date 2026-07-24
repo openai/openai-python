@@ -39,7 +39,7 @@ from ...._streaming import Stream, AsyncStream
 from ....types.chat import ChatCompletionChunk, ParsedChatCompletion, ChatCompletionToolUnionParam
 from ...._exceptions import LengthFinishReasonError, ContentFilterFinishReasonError
 from ....types.chat.chat_completion import ChoiceLogprobs
-from ....types.chat.chat_completion_chunk import Choice as ChoiceChunk
+from ....types.chat.chat_completion_chunk import Choice as ChoiceChunk, ChoiceDelta
 from ....types.chat.completion_create_params import ResponseFormat as ResponseFormatParam
 
 
@@ -393,7 +393,7 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
                                     ),
                                 ),
                             ),
-                            cast("dict[object, object]", choice.delta.to_dict()),
+                            _convert_delta_to_message(choice.delta),
                         ),
                     ),
                 )
@@ -415,7 +415,7 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
                         type_=ParsedChoiceSnapshot,
                         value={
                             **choice.model_dump(exclude_unset=True, exclude={"delta"}),
-                            "message": choice.delta.to_dict(),
+                            "message": _convert_delta_to_message(choice.delta),
                         },
                     ),
                 )
@@ -744,7 +744,7 @@ def _convert_initial_chunk_into_snapshot(chunk: ChatCompletionChunk) -> ParsedCh
     for choice in chunk.choices:
         choices[choice.index] = {
             **choice.model_dump(exclude_unset=True, exclude={"delta"}),
-            "message": choice.delta.to_dict(),
+            "message": _convert_delta_to_message(choice.delta),
         }
 
     return cast(
@@ -758,6 +758,10 @@ def _convert_initial_chunk_into_snapshot(chunk: ChatCompletionChunk) -> ParsedCh
             },
         ),
     )
+
+
+def _convert_delta_to_message(delta: ChoiceDelta) -> dict[object, object]:
+    return accumulate_delta({}, cast("dict[object, object]", delta.to_dict()))
 
 
 def _is_valid_chat_completion_chunk_weak(sse_event: ChatCompletionChunk) -> bool:
