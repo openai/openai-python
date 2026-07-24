@@ -1015,3 +1015,16 @@ def test_iterable_construction_str_falls_back_to_list() -> None:
     # falls back to list of chars rather than calling str(["h", "e", "l", "l", "o"])
     assert m.data["items"] == ["h", "e", "l", "l", "o"]
     assert m.model_dump()["data"]["items"] == ["h", "e", "l", "l", "o"]
+
+
+def test_construct_type_bare_dict_does_not_crash() -> None:
+    """construct_type must not raise ValueError when type_ is bare dict (issue #3341)."""
+    result = construct_type(value={"key": "value"}, type_=dict)
+    assert result == {"key": "value"}
+
+
+def test_construct_type_parameterised_dict_still_works() -> None:
+    """dict[str, str] must still work after the bare-dict guard."""
+    from typing import Dict
+    result = construct_type(value={"k": "v"}, type_=Dict[str, str])
+    assert result == {"k": "v"}
