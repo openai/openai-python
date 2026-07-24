@@ -31,8 +31,11 @@ The standing policy is:
    line in scheduled CI, and the next prerelease as allowed-failure.
 5. Treat a floor increase as an SDK minor release. Name the final compatible
    SDK release and require human approval.
-6. Do not raise the floor more than once in 12 months unless the policy records
-   a security or critical-dependency exception.
+6. Do not normally raise the floor more than once in 12 months. Permit an
+   earlier increase when a scheduled EOL plus the maximum six-month grace
+   period would otherwise violate the support policy, and require the policy
+   to record that scheduled-EOL exception and its timing. Security and
+   critical-dependency exceptions must be recorded the same way.
 
 Action is required when any of the following is true:
 

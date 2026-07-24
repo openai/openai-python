@@ -28,9 +28,13 @@ security exceptions and require unusually prominent communication.
 
 The SDK team reviews this policy within 30 days of every October CPython
 release and scheduled end of life. It does not normally raise the Python floor
-more than once in a 12-month period. New stable CPython releases should be
-added within 30 days of general availability when dependencies and CI images
-are ready.
+more than once in a 12-month period. A scheduled upstream end of life may
+require an earlier increase when the maximum six-month grace period would
+expire before that cadence window ends; the compatibility history must record
+that scheduled-EOL exception and its timing. Security and critical-dependency
+exceptions must be recorded the same way. New stable CPython releases should
+be added within 30 days of general availability when dependencies and CI
+images are ready.
 
 ### Testing
 
