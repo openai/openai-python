@@ -42,8 +42,9 @@ does not decide whether an EOL grace period or floor increase is appropriate.
   - Nightly and manually: smoke-tests every supported Python release and the
     allowed-failure prerelease.
 - `.github/workflows/python-version-review.yml`
-  - Monthly and manually: snapshots official CPython lifecycle data plus the
-    public PyPI Python-minor distribution and asks Codex for a policy review.
+  - Monthly on the default branch: snapshots official CPython lifecycle data
+    plus the public PyPI Python-minor distribution and asks Codex for a policy
+    review.
   - Runs a pinned Codex runtime as an unprivileged user with no command network
     access and read-only repository permissions.
   - Codex cannot edit the repository or call GitHub. A separate job with no

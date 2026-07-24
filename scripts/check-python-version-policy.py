@@ -15,6 +15,34 @@ def require(condition: bool, message: str) -> None:
         raise RuntimeError(message)
 
 
+def workflow_job(workflow: str, name: str) -> str:
+    match = re.search(
+        rf"^  {re.escape(name)}:\n(?P<body>.*?)(?=^  [A-Za-z0-9_-]+:\n|\Z)",
+        workflow,
+        re.MULTILINE | re.DOTALL,
+    )
+    if match is None:
+        raise RuntimeError(f"CI does not define the {name!r} job")
+    return match.group("body")
+
+
+def matrix_versions(job: str) -> tuple[str, ...]:
+    versions: list[str] = []
+    for match in re.finditer(
+        r'^\s+(?:-\s+)?python-version:\s*(?:"(?P<single>3\.\d+)"|\[(?P<inline>[^\]]+)\])\s*$',
+        job,
+        re.MULTILINE,
+    ):
+        if single := match.group("single"):
+            versions.append(single)
+        else:
+            inline = match.group("inline")
+            if inline is None:
+                raise RuntimeError("Malformed Python version matrix")
+            versions.extend(re.findall(r'"(3\.\d+)"', inline))
+    return tuple(versions)
+
+
 def main() -> None:
     pyproject = (ROOT / "pyproject.toml").read_text()
     readme = (ROOT / "README.md").read_text()
@@ -41,9 +69,20 @@ def main() -> None:
         "Realtime example metadata does not state the minimum Python",
     )
 
-    for version in SUPPORTED:
-        require(f'"{version}"' in workflow, f"CI does not include supported Python {version}")
-    require(f'"{PRERELEASE}"' in workflow, f"CI does not include prerelease Python {PRERELEASE}")
+    pr_versions = matrix_versions(workflow_job(workflow, "test"))
+    expected_pr_versions = (MINIMUM, CURRENT_STABLE)
+    require(
+        pr_versions == expected_pr_versions,
+        f"PR test matrix is {pr_versions}, expected {expected_pr_versions}",
+    )
+
+    compatibility_versions = matrix_versions(workflow_job(workflow, "compatibility"))
+    expected_compatibility_versions = SUPPORTED + (PRERELEASE,)
+    require(
+        compatibility_versions == expected_compatibility_versions,
+        "Scheduled compatibility matrix is "
+        f"{compatibility_versions}, expected {expected_compatibility_versions}",
+    )
     require(
         f"Python {MINIMUM} through\n{CURRENT_STABLE}" in policy,
         "Policy current-compatibility text does not match the supported matrix",
