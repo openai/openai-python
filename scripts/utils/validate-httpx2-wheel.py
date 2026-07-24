@@ -4,7 +4,6 @@ import os
 import sys
 import email
 import zipfile
-import platform
 import tempfile
 import subprocess
 from pathlib import Path
@@ -113,7 +112,7 @@ def main() -> None:
 
     common = ["pytest==8.4.1", "pytest-asyncio==1.1.0", "respx==0.22.0"]
     run_case(wheel, extra=None, tests=[BASE_TEST], dependencies=common)
-    if platform.python_version_tuple()[:2] == ("3", "10"):
+    if sys.version_info[:2] == (3, 10):
         run_case(
             wheel,
             extra=None,

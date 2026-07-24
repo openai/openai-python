@@ -4,10 +4,18 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-MINIMUM = "3.10"
-CURRENT_STABLE = "3.14"
 SUPPORTED = ("3.10", "3.11", "3.12", "3.13", "3.14")
+MINIMUM = SUPPORTED[0]
+CURRENT_STABLE = SUPPORTED[-1]
 PRERELEASE = "3.15"
+UNMARKED_OPTIONAL_DEPENDENCIES = (
+    "aiohttp>=3.14.1",
+    "httpx_aiohttp>=0.1.9",
+    "httpx>=0.25.1, <1",
+    "httpx2>=2.7.0, <3",
+    "anyio>=4.10.0, <5",
+    "botocore>=1.40.0,<2",
+)
 
 
 def require(condition: bool, message: str) -> None:
@@ -27,19 +35,18 @@ def workflow_job(workflow: str, name: str) -> str:
 
 
 def matrix_versions(job: str) -> tuple[str, ...]:
-    versions: list[str] = []
-    for match in re.finditer(
-        r'^\s+(?:-\s+)?python-version:\s*(?:"(?P<single>3\.\d+)"|\[(?P<inline>[^\]]+)\])\s*$',
+    match = re.search(
+        r"^      matrix:\n(?P<body>.*?)(?=^    [A-Za-z0-9_-]+:\n|\Z)",
         job,
-        re.MULTILINE,
-    ):
-        if single := match.group("single"):
-            versions.append(single)
-        else:
-            inline = match.group("inline")
-            if inline is None:
-                raise RuntimeError("Malformed Python version matrix")
-            versions.extend(re.findall(r'"(3\.\d+)"', inline))
+        re.MULTILINE | re.DOTALL,
+    )
+    if match is None:
+        raise RuntimeError("CI job does not define a strategy matrix")
+
+    versions: list[str] = []
+    for line in match.group("body").splitlines():
+        if re.match(r"^\s+(?:-\s+)?python-version:", line):
+            versions.extend(re.findall(r'"(3\.\d+)"', line))
     return tuple(versions)
 
 
@@ -89,8 +96,15 @@ def main() -> None:
     )
 
     project_metadata = pyproject.split("[tool.rye]", 1)[0]
-    require("python_version" not in project_metadata, "Package metadata contains a redundant Python-version marker")
-    require('"botocore>=1.40.0,<2"' in project_metadata, "Bedrock does not use the supported Botocore range")
+    for requirement in UNMARKED_OPTIONAL_DEPENDENCIES:
+        require(
+            f'"{requirement}"' in project_metadata,
+            f"Package metadata does not contain the unmarked requirement {requirement!r}",
+        )
+        require(
+            re.search(rf'"{re.escape(requirement)};\s*python_version\b', project_metadata) is None,
+            f"Package metadata still contains a Python marker for {requirement!r}",
+        )
 
     print(
         f"Python policy is synchronized: minimum {MINIMUM}, "
