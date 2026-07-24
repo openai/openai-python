@@ -68,11 +68,19 @@ def main() -> None:
     contributing = (ROOT / "CONTRIBUTING.md").read_text()
     policy = (ROOT / "PYTHON_VERSION_POLICY.md").read_text()
     workflow = (ROOT / ".github/workflows/ci.yml").read_text()
+    uv_lock = (ROOT / "uv.lock").read_text()
     realtime_example = (ROOT / "examples/realtime/push_to_talk_app.py").read_text()
     python_version = (ROOT / ".python-version").read_text().strip()
 
     requires_python = re.findall(r'^requires-python = "([^"]+)"$', pyproject, re.MULTILINE)
     require(requires_python == [f">= {MINIMUM}"], f"Unexpected requires-python values: {requires_python}")
+
+    uv_metadata = uv_lock.split("[[package]]", 1)[0]
+    uv_requires_python = re.findall(r'^requires-python = "([^"]+)"$', uv_metadata, re.MULTILINE)
+    require(
+        uv_requires_python == [f">={MINIMUM}"],
+        f"uv.lock requires-python is {uv_requires_python}, expected >={MINIMUM}",
+    )
 
     classifiers = re.findall(r'"Programming Language :: Python :: (3\.\d+)"', pyproject)
     require(tuple(classifiers) == SUPPORTED, f"Unexpected Python classifiers: {classifiers}")
