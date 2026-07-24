@@ -19,11 +19,10 @@ dependencies = [
     "jiter>=0.10.0, <1",
 ]
 
-requires-python = ">= 3.9"
+requires-python = ">= 3.10"
 classifiers = [
   "Typing :: Typed",
   "Intended Audience :: Developers",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
@@ -44,20 +43,19 @@ Repository = "https://github.com/openai/openai-python"
 
 [project.optional-dependencies]
 aiohttp = [
-  "aiohttp>=3.14.1; python_version >= '3.10'",
-  "httpx_aiohttp>=0.1.9; python_version >= '3.10'",
+  "aiohttp>=3.14.1",
+  "httpx_aiohttp>=0.1.9",
 ]
 httpx2 = [
-  "httpx>=0.25.1, <1; python_version >= '3.10'",
-  "httpx2>=2.7.0, <3; python_version >= '3.10'",
-  "anyio>=4.10.0, <5; python_version >= '3.10'",
+  "httpx>=0.25.1, <1",
+  "httpx2>=2.7.0, <3",
+  "anyio>=4.10.0, <5",
 ]
 realtime = ["websockets >= 13, < 16"]
 datalib = ["numpy >= 1", "pandas >= 1.2.3", "pandas-stubs >= 1.1.0.11"]
 voice_helpers = ["sounddevice>=0.5.1", "numpy>=2.0.2"]
 bedrock = [
-  "botocore>=1.40.0,<1.43; python_version < '3.10'",
-  "botocore>=1.40.0,<2; python_version >= '3.10'",
+  "botocore>=1.40.0,<2",
 ]
 
 [tool.rye]
@@ -172,7 +170,7 @@ format-command="ruff format --stdin-filename {filename}"
 # there are a couple of flags that are still disabled by
 # default in strict mode as they are experimental and niche.
 typeCheckingMode = "strict"
-pythonVersion = "3.9"
+pythonVersion = "3.10"
 
 exclude = [
     "_dev",
@@ -256,7 +254,7 @@ ignore_missing_imports = true
 [tool.ruff]
 line-length = 120
 output-format = "grouped"
-target-version = "py38"
+target-version = "py310"
 
 [tool.ruff.format]
 docstring-code-format = true
