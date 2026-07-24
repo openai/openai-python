@@ -11,7 +11,8 @@ from openai._types import omit
 from openai._utils import assert_signatures_in_sync
 from openai._models import construct_type_unchecked
 from openai.types.responses import Response
-from openai.lib._parsing._responses import parse_response
+from openai.lib._parsing._responses import parse_response, parse_function_tool_arguments
+from openai.types.responses.response_function_tool_call import ResponseFunctionToolCall
 
 from ...conftest import base_url
 from ..snapshots import make_snapshot_request
@@ -70,6 +71,47 @@ def test_parse_response_preserves_program_items(item: dict[str, object]) -> None
     parsed = parse_response(text_format=omit, input_tools=omit, response=response)
 
     assert parsed.output[0].to_dict() == item
+
+
+@pytest.mark.parametrize("arguments", ["", " \n ", "\t"])
+def test_parse_function_tool_empty_arguments(arguments: str) -> None:
+    # the API sends empty-string arguments (not `{}`) for strict tools with no/all-optional
+    # params, which used to raise json.JSONDecodeError instead of returning an empty object
+    function_call = ResponseFunctionToolCall.construct(
+        name="noop", arguments=arguments, call_id="call_1", type="function_call"
+    )
+    assert (
+        parse_function_tool_arguments(
+            input_tools=[
+                {
+                    "type": "function",
+                    "name": "noop",
+                    "strict": True,
+                    "parameters": {"type": "object", "properties": {}, "additionalProperties": False},
+                }
+            ],
+            function_call=function_call,
+        )
+        == {}
+    )
+
+
+def test_parse_function_tool_non_empty_arguments_still_parsed() -> None:
+    # regression guard: non-empty arguments must be unaffected by the empty-string handling
+    function_call = ResponseFunctionToolCall.construct(
+        name="noop", arguments='{"city": "SF"}', call_id="call_1", type="function_call"
+    )
+    assert parse_function_tool_arguments(
+        input_tools=[
+            {
+                "type": "function",
+                "name": "noop",
+                "strict": True,
+                "parameters": {"type": "object", "properties": {}, "additionalProperties": False},
+            }
+        ],
+        function_call=function_call,
+    ) == {"city": "SF"}
 
 
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
