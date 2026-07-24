@@ -38,7 +38,7 @@ from textual.reactive import reactive
 from textual.containers import Container
 
 from openai import AsyncOpenAI
-from openai.types.realtime.session import Session
+from openai.types.realtime.session_update_event_param import Session
 from openai.resources.realtime.realtime import AsyncRealtimeConnection
 
 
