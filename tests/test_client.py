@@ -1304,6 +1304,52 @@ class TestOpenAI:
             limits=httpx.Limits(max_connections=100, max_keepalive_connections=20),
         )
 
+    @pytest.fixture
+    def _http2_sync_spy(self) -> dict[str, Any]:
+        """Spy on httpx.Client.__init__ to capture http2 kwarg."""
+        captured: dict[str, Any] = {}
+        original_init = httpx.Client.__init__
+
+        def fake_init(self: Any, **kwargs: Any) -> None:
+            captured.update(kwargs)
+            return original_init(self, **kwargs)
+
+        with mock.patch.object(httpx.Client, "__init__", fake_init):
+            yield captured
+
+    def test_default_http2_enabled_when_h2_available(self, _http2_sync_spy: dict[str, Any]) -> None:
+        """http2=True should be passed through to httpx.Client when h2 is present."""
+        from openai._base_client import _HTTP2_AVAILABLE, _DefaultHttpxClient
+
+        # h2 is installed in the test environment, so _HTTP2_AVAILABLE should be True
+        assert _HTTP2_AVAILABLE is True
+
+        _DefaultHttpxClient()
+
+        assert _http2_sync_spy.get("http2") is True
+
+    def test_default_http2_can_be_explicitly_overridden(self, _http2_sync_spy: dict[str, Any]) -> None:
+        """Explicit http2=False should override the default when h2 is available."""
+        from openai._base_client import _DefaultHttpxClient
+
+        _DefaultHttpxClient(http2=False)
+
+        assert _http2_sync_spy.get("http2") is False
+
+    def test_construction_with_http2_when_h2_not_available(
+        self, monkeypatch: pytest.MonkeyPatch, _http2_sync_spy: dict[str, Any]
+    ) -> None:
+        """Construction should not break and http2 should default to False when h2 is absent."""
+        import openai._base_client as base_client_module
+
+        monkeypatch.setattr(base_client_module, "_HTTP2_AVAILABLE", False)
+
+        from openai._base_client import _DefaultHttpxClient
+
+        _DefaultHttpxClient()
+
+        assert _http2_sync_spy.get("http2") is False
+
     @pytest.mark.respx(base_url=base_url)
     def test_follow_redirects(self, respx_mock: MockRouter, client: OpenAI) -> None:
         # Test that the default follow_redirects=True allows following redirects
@@ -2563,6 +2609,52 @@ class TestAsyncOpenAI:
             http2=False,
             limits=httpx.Limits(max_connections=100, max_keepalive_connections=20),
         )
+
+    @pytest.fixture
+    def _http2_async_spy(self) -> dict[str, Any]:
+        """Spy on httpx.AsyncClient.__init__ to capture http2 kwarg."""
+        captured: dict[str, Any] = {}
+        original_init = httpx.AsyncClient.__init__
+
+        def fake_init(self: Any, **kwargs: Any) -> None:
+            captured.update(kwargs)
+            return original_init(self, **kwargs)
+
+        with mock.patch.object(httpx.AsyncClient, "__init__", fake_init):
+            yield captured
+
+    async def test_default_http2_enabled_when_h2_available(self, _http2_async_spy: dict[str, Any]) -> None:
+        """http2=True should be passed through to httpx.AsyncClient when h2 is present."""
+        from openai._base_client import _HTTP2_AVAILABLE, _DefaultAsyncHttpxClient
+
+        # h2 is installed in the test environment, so _HTTP2_AVAILABLE should be True
+        assert _HTTP2_AVAILABLE is True
+
+        _DefaultAsyncHttpxClient()
+
+        assert _http2_async_spy.get("http2") is True
+
+    async def test_default_http2_can_be_explicitly_overridden(self, _http2_async_spy: dict[str, Any]) -> None:
+        """Explicit http2=False should override the default when h2 is available."""
+        from openai._base_client import _DefaultAsyncHttpxClient
+
+        _DefaultAsyncHttpxClient(http2=False)
+
+        assert _http2_async_spy.get("http2") is False
+
+    async def test_construction_with_http2_when_h2_not_available(
+        self, monkeypatch: pytest.MonkeyPatch, _http2_async_spy: dict[str, Any]
+    ) -> None:
+        """Construction should not break and http2 should default to False when h2 is absent."""
+        import openai._base_client as base_client_module
+
+        monkeypatch.setattr(base_client_module, "_HTTP2_AVAILABLE", False)
+
+        from openai._base_client import _DefaultAsyncHttpxClient
+
+        _DefaultAsyncHttpxClient()
+
+        assert _http2_async_spy.get("http2") is False
 
     @pytest.mark.respx(base_url=base_url)
     async def test_follow_redirects(self, respx_mock: MockRouter, async_client: AsyncOpenAI) -> None:
