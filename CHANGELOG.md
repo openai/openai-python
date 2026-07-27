@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.49.0 (2026-07-27)
+
+Full Changelog: [v2.48.0...v2.49.0](https://github.com/openai/openai-python/compare/v2.48.0...v2.49.0)
+
+### Features
+
+* require Python 3.10 and automate version reviews ([#3537](https://github.com/openai/openai-python/issues/3537)) ([d4c151d](https://github.com/openai/openai-python/commit/d4c151d92ba713e56518a4483d3b7918dd1be838))
+
 ## 2.48.0 (2026-07-23)
 
 Full Changelog: [v2.47.0...v2.48.0](https://github.com/openai/openai-python/compare/v2.47.0...v2.48.0)
