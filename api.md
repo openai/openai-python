@@ -1102,6 +1102,20 @@ Methods:
 - <code title="get /organization/data_retention">client.admin.organization.data_retention.<a href="./src/openai/resources/admin/organization/data_retention.py">retrieve</a>() -> <a href="./src/openai/types/admin/organization/organization_data_retention.py">OrganizationDataRetention</a></code>
 - <code title="post /organization/data_retention">client.admin.organization.data_retention.<a href="./src/openai/resources/admin/organization/data_retention.py">update</a>(\*\*<a href="src/openai/types/admin/organization/data_retention_update_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/organization_data_retention.py">OrganizationDataRetention</a></code>
 
+### SpendLimit
+
+Types:
+
+```python
+from openai.types.admin.organization import OrganizationSpendLimit, OrganizationSpendLimitDeleted
+```
+
+Methods:
+
+- <code title="get /organization/spend_limit">client.admin.organization.spend_limit.<a href="./src/openai/resources/admin/organization/spend_limit.py">retrieve</a>() -> <a href="./src/openai/types/admin/organization/organization_spend_limit.py">OrganizationSpendLimit</a></code>
+- <code title="post /organization/spend_limit">client.admin.organization.spend_limit.<a href="./src/openai/resources/admin/organization/spend_limit.py">update</a>(\*\*<a href="src/openai/types/admin/organization/spend_limit_update_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/organization_spend_limit.py">OrganizationSpendLimit</a></code>
+- <code title="delete /organization/spend_limit">client.admin.organization.spend_limit.<a href="./src/openai/resources/admin/organization/spend_limit.py">delete</a>() -> <a href="./src/openai/types/admin/organization/organization_spend_limit_deleted.py">OrganizationSpendLimitDeleted</a></code>
+
 ### SpendAlerts
 
 Types:
@@ -1208,11 +1222,23 @@ from openai.types.admin.organization.projects import (
 
 Methods:
 
-- <code title="post /organization/projects/{project_id}/service_accounts">client.admin.organization.projects.service_accounts.<a href="./src/openai/resources/admin/organization/projects/service_accounts.py">create</a>(project_id, \*\*<a href="src/openai/types/admin/organization/projects/service_account_create_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/projects/service_account_create_response.py">ServiceAccountCreateResponse</a></code>
-- <code title="get /organization/projects/{project_id}/service_accounts/{service_account_id}">client.admin.organization.projects.service_accounts.<a href="./src/openai/resources/admin/organization/projects/service_accounts.py">retrieve</a>(service_account_id, \*, project_id) -> <a href="./src/openai/types/admin/organization/projects/project_service_account.py">ProjectServiceAccount</a></code>
-- <code title="post /organization/projects/{project_id}/service_accounts/{service_account_id}">client.admin.organization.projects.service_accounts.<a href="./src/openai/resources/admin/organization/projects/service_accounts.py">update</a>(service_account_id, \*, project_id, \*\*<a href="src/openai/types/admin/organization/projects/service_account_update_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/projects/project_service_account.py">ProjectServiceAccount</a></code>
-- <code title="get /organization/projects/{project_id}/service_accounts">client.admin.organization.projects.service_accounts.<a href="./src/openai/resources/admin/organization/projects/service_accounts.py">list</a>(project_id, \*\*<a href="src/openai/types/admin/organization/projects/service_account_list_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/projects/project_service_account.py">SyncConversationCursorPage[ProjectServiceAccount]</a></code>
-- <code title="delete /organization/projects/{project_id}/service_accounts/{service_account_id}">client.admin.organization.projects.service_accounts.<a href="./src/openai/resources/admin/organization/projects/service_accounts.py">delete</a>(service_account_id, \*, project_id) -> <a href="./src/openai/types/admin/organization/projects/service_account_delete_response.py">ServiceAccountDeleteResponse</a></code>
+- <code title="post /organization/projects/{project_id}/service_accounts">client.admin.organization.projects.service_accounts.<a href="./src/openai/resources/admin/organization/projects/service_accounts/service_accounts.py">create</a>(project_id, \*\*<a href="src/openai/types/admin/organization/projects/service_account_create_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/projects/service_account_create_response.py">ServiceAccountCreateResponse</a></code>
+- <code title="get /organization/projects/{project_id}/service_accounts/{service_account_id}">client.admin.organization.projects.service_accounts.<a href="./src/openai/resources/admin/organization/projects/service_accounts/service_accounts.py">retrieve</a>(service_account_id, \*, project_id) -> <a href="./src/openai/types/admin/organization/projects/project_service_account.py">ProjectServiceAccount</a></code>
+- <code title="post /organization/projects/{project_id}/service_accounts/{service_account_id}">client.admin.organization.projects.service_accounts.<a href="./src/openai/resources/admin/organization/projects/service_accounts/service_accounts.py">update</a>(service_account_id, \*, project_id, \*\*<a href="src/openai/types/admin/organization/projects/service_account_update_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/projects/project_service_account.py">ProjectServiceAccount</a></code>
+- <code title="get /organization/projects/{project_id}/service_accounts">client.admin.organization.projects.service_accounts.<a href="./src/openai/resources/admin/organization/projects/service_accounts/service_accounts.py">list</a>(project_id, \*\*<a href="src/openai/types/admin/organization/projects/service_account_list_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/projects/project_service_account.py">SyncConversationCursorPage[ProjectServiceAccount]</a></code>
+- <code title="delete /organization/projects/{project_id}/service_accounts/{service_account_id}">client.admin.organization.projects.service_accounts.<a href="./src/openai/resources/admin/organization/projects/service_accounts/service_accounts.py">delete</a>(service_account_id, \*, project_id) -> <a href="./src/openai/types/admin/organization/projects/service_account_delete_response.py">ServiceAccountDeleteResponse</a></code>
+
+##### APIKeys
+
+Types:
+
+```python
+from openai.types.admin.organization.projects.service_accounts import APIKeyCreateResponse
+```
+
+Methods:
+
+- <code title="post /organization/projects/{project_id}/service_accounts/{service_account_id}/api_keys">client.admin.organization.projects.service_accounts.api_keys.<a href="./src/openai/resources/admin/organization/projects/service_accounts/api_keys.py">create</a>(service_account_id, \*, project_id, \*\*<a href="src/openai/types/admin/organization/projects/service_accounts/api_key_create_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/projects/service_accounts/api_key_create_response.py">APIKeyCreateResponse</a></code>
 
 #### APIKeys
 
@@ -1334,6 +1360,20 @@ Methods:
 
 - <code title="get /organization/projects/{project_id}/data_retention">client.admin.organization.projects.data_retention.<a href="./src/openai/resources/admin/organization/projects/data_retention.py">retrieve</a>(project_id) -> <a href="./src/openai/types/admin/organization/projects/project_data_retention.py">ProjectDataRetention</a></code>
 - <code title="post /organization/projects/{project_id}/data_retention">client.admin.organization.projects.data_retention.<a href="./src/openai/resources/admin/organization/projects/data_retention.py">update</a>(project_id, \*\*<a href="src/openai/types/admin/organization/projects/data_retention_update_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/projects/project_data_retention.py">ProjectDataRetention</a></code>
+
+#### SpendLimit
+
+Types:
+
+```python
+from openai.types.admin.organization.projects import ProjectSpendLimit, ProjectSpendLimitDeleted
+```
+
+Methods:
+
+- <code title="get /organization/projects/{project_id}/spend_limit">client.admin.organization.projects.spend_limit.<a href="./src/openai/resources/admin/organization/projects/spend_limit.py">retrieve</a>(project_id) -> <a href="./src/openai/types/admin/organization/projects/project_spend_limit.py">ProjectSpendLimit</a></code>
+- <code title="post /organization/projects/{project_id}/spend_limit">client.admin.organization.projects.spend_limit.<a href="./src/openai/resources/admin/organization/projects/spend_limit.py">update</a>(project_id, \*\*<a href="src/openai/types/admin/organization/projects/spend_limit_update_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/projects/project_spend_limit.py">ProjectSpendLimit</a></code>
+- <code title="delete /organization/projects/{project_id}/spend_limit">client.admin.organization.projects.spend_limit.<a href="./src/openai/resources/admin/organization/projects/spend_limit.py">delete</a>(project_id) -> <a href="./src/openai/types/admin/organization/projects/project_spend_limit_deleted.py">ProjectSpendLimitDeleted</a></code>
 
 #### SpendAlerts
 

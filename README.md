@@ -3,7 +3,7 @@
 <!-- prettier-ignore -->
 [![PyPI version](https://img.shields.io/pypi/v/openai.svg?label=pypi%20(stable))](https://pypi.org/project/openai/)
 
-The OpenAI Python library provides convenient access to the OpenAI REST API from any Python 3.9+
+The OpenAI Python library provides convenient access to the OpenAI REST API from any Python 3.10+
 application. The library includes type definitions for all request params and response fields,
 and offers both synchronous and asynchronous clients powered by [httpx](https://github.com/encode/httpx).
 
@@ -246,6 +246,8 @@ Functionality between the synchronous and asynchronous clients is otherwise iden
 
 By default, the async client uses `httpx` for HTTP requests. However, for improved concurrency performance you may also use `aiohttp` as the HTTP backend.
 
+The `aiohttp` backend requires Python 3.10 or later.
+
 You can enable this by installing `aiohttp`:
 
 ```sh
@@ -280,6 +282,33 @@ async def main() -> None:
 
 asyncio.run(main())
 ```
+
+### Experimental HTTPX2 support
+
+To opt in to experimental HTTPX2 support, install the optional extra on Python 3.10 or later:
+
+```sh
+pip install 'openai[httpx2]'
+```
+
+```python
+from openai import OpenAI, AsyncOpenAI, DefaultHttpx2Client, DefaultAsyncHttpx2Client
+
+client = OpenAI(http_client=DefaultHttpx2Client())
+async_client = AsyncOpenAI(http_client=DefaultAsyncHttpx2Client())
+```
+
+See [`examples/httpx2_client.py`](examples/httpx2_client.py) for a minimal runnable example.
+
+The module-level client can be configured in the same way:
+
+```python
+import openai
+
+openai.http_client = openai.DefaultHttpx2Client()
+```
+
+Parsed API models are unchanged, but requests, raw and streaming responses, and transport-level exceptions may be HTTPX2 objects at runtime. Code that catches HTTPX exceptions or relies on HTTPX-specific mocks, transports, authentication, hooks, or instrumentation may need to be updated. Transport-facing type annotations may still describe HTTPX.
 
 ## Streaming responses
 
@@ -1010,6 +1039,8 @@ This package generally follows [SemVer](https://semver.org/spec/v2.0.0.html) con
 2. Changes to library internals which are technically public but not intended or documented for external use. _(Please open a GitHub issue to let us know if you are relying on such internals.)_
 3. Changes that we do not expect to impact the vast majority of users in practice.
 
+Minimum supported Python version increases are released as minor versions, not patches, when package metadata can keep users on the final compatible SDK release. See the [Python version support policy](./PYTHON_VERSION_POLICY.md) for the support window, release treatment, and compatibility history.
+
 We take backwards-compatibility seriously and work hard to ensure you can rely on a smooth upgrade experience.
 
 We are keen for your feedback; please open an [issue](https://www.github.com/openai/openai-python/issues) with questions, bugs, or suggestions.
@@ -1027,7 +1058,7 @@ print(openai.__version__)
 
 ## Requirements
 
-Python 3.9 or higher.
+Python 3.10 or higher.
 
 ## Contributing
 

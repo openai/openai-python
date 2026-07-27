@@ -186,7 +186,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     far, increasing the model's likelihood to talk about new topics.
     """
 
-    prompt_cache_key: str
+    prompt_cache_key: Optional[str]
     """
     Used by OpenAI to cache responses for similar requests to optimize your cache
     hit rates. Replaces the `user` field.
@@ -251,7 +251,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     preferred for models that support it.
     """
 
-    safety_identifier: str
+    safety_identifier: Optional[str]
     """
     A stable identifier used to help detect users of your application that may be
     violating OpenAI's usage policies. The IDs should be a string that uniquely
@@ -368,7 +368,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
 
     Lower values will result in more concise responses, while higher values will
     result in more verbose responses. Currently supported values are `low`,
-    `medium`, and `high`.
+    `medium`, and `high`. The default is `medium`.
     """
 
     web_search_options: WebSearchOptions

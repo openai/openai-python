@@ -12,6 +12,7 @@ from .._types import NOT_GIVEN, Omit, Query, Headers, Timeout, NotGiven
 from .._utils import is_given, is_mapping
 from .._client import OpenAI, AsyncOpenAI
 from .._compat import model_copy
+from .._httpx2 import normalize_httpx_url
 from .._models import SecurityOptions, FinalRequestOptions
 from .._provider import _Provider
 from .._streaming import Stream, AsyncStream
@@ -407,7 +408,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
                 auth_headers = {"Authorization": f"Bearer {token}"}
 
         if self.websocket_base_url is not None:
-            base_url = httpx.URL(self.websocket_base_url)
+            base_url = normalize_httpx_url(self.websocket_base_url)
             merge_raw_path = base_url.raw_path.rstrip(b"/") + b"/realtime"
             realtime_url = base_url.copy_with(raw_path=merge_raw_path)
         else:
@@ -733,7 +734,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
                 auth_headers = {"Authorization": f"Bearer {token}"}
 
         if self.websocket_base_url is not None:
-            base_url = httpx.URL(self.websocket_base_url)
+            base_url = normalize_httpx_url(self.websocket_base_url)
             merge_raw_path = base_url.raw_path.rstrip(b"/") + b"/realtime"
             realtime_url = base_url.copy_with(raw_path=merge_raw_path)
         else:

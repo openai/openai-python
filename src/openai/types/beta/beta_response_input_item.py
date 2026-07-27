@@ -47,9 +47,10 @@ __all__ = [
     "MultiAgentCallAgent",
     "MultiAgentCallOutput",
     "MultiAgentCallOutputOutput",
-    "MultiAgentCallOutputOutputAnnotationsUnionMember0",
-    "MultiAgentCallOutputOutputAnnotationsUnionMember1",
-    "MultiAgentCallOutputOutputAnnotationsUnionMember2",
+    "MultiAgentCallOutputOutputAnnotation",
+    "MultiAgentCallOutputOutputAnnotationFileCitation",
+    "MultiAgentCallOutputOutputAnnotationURLCitation",
+    "MultiAgentCallOutputOutputAnnotationContainerFileCitation",
     "MultiAgentCallOutputAgent",
     "ToolSearchCall",
     "ToolSearchCallAgent",
@@ -328,7 +329,7 @@ class MultiAgentCall(BaseModel):
     """The agent that produced this item."""
 
 
-class MultiAgentCallOutputOutputAnnotationsUnionMember0(BaseModel):
+class MultiAgentCallOutputOutputAnnotationFileCitation(BaseModel):
     file_id: str
     """The ID of the file."""
 
@@ -342,7 +343,7 @@ class MultiAgentCallOutputOutputAnnotationsUnionMember0(BaseModel):
     """The citation type. Always `file_citation`."""
 
 
-class MultiAgentCallOutputOutputAnnotationsUnionMember1(BaseModel):
+class MultiAgentCallOutputOutputAnnotationURLCitation(BaseModel):
     end_index: int
     """The index of the last character of the citation in the message."""
 
@@ -359,7 +360,7 @@ class MultiAgentCallOutputOutputAnnotationsUnionMember1(BaseModel):
     """The URL of the cited resource."""
 
 
-class MultiAgentCallOutputOutputAnnotationsUnionMember2(BaseModel):
+class MultiAgentCallOutputOutputAnnotationContainerFileCitation(BaseModel):
     container_id: str
     """The ID of the container."""
 
@@ -379,6 +380,16 @@ class MultiAgentCallOutputOutputAnnotationsUnionMember2(BaseModel):
     """The citation type. Always `container_file_citation`."""
 
 
+MultiAgentCallOutputOutputAnnotation: TypeAlias = Annotated[
+    Union[
+        MultiAgentCallOutputOutputAnnotationFileCitation,
+        MultiAgentCallOutputOutputAnnotationURLCitation,
+        MultiAgentCallOutputOutputAnnotationContainerFileCitation,
+    ],
+    PropertyInfo(discriminator="type"),
+]
+
+
 class MultiAgentCallOutputOutput(BaseModel):
     text: str
     """The text content."""
@@ -386,12 +397,7 @@ class MultiAgentCallOutputOutput(BaseModel):
     type: Literal["output_text"]
     """The content type. Always `output_text`."""
 
-    annotations: Union[
-        List[MultiAgentCallOutputOutputAnnotationsUnionMember0],
-        List[MultiAgentCallOutputOutputAnnotationsUnionMember1],
-        List[MultiAgentCallOutputOutputAnnotationsUnionMember2],
-        None,
-    ] = None
+    annotations: Optional[List[MultiAgentCallOutputOutputAnnotation]] = None
     """Citations associated with the text content."""
 
 

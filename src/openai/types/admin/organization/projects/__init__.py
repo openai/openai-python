@@ -16,6 +16,7 @@ from .user_update_params import UserUpdateParams as UserUpdateParams
 from .api_key_list_params import APIKeyListParams as APIKeyListParams
 from .group_create_params import GroupCreateParams as GroupCreateParams
 from .project_spend_alert import ProjectSpendAlert as ProjectSpendAlert
+from .project_spend_limit import ProjectSpendLimit as ProjectSpendLimit
 from .role_delete_response import RoleDeleteResponse as RoleDeleteResponse
 from .user_delete_response import UserDeleteResponse as UserDeleteResponse
 from .group_delete_response import GroupDeleteResponse as GroupDeleteResponse
@@ -29,8 +30,10 @@ from .certificate_list_response import CertificateListResponse as CertificateLis
 from .project_model_permissions import ProjectModelPermissions as ProjectModelPermissions
 from .spend_alert_create_params import SpendAlertCreateParams as SpendAlertCreateParams
 from .spend_alert_update_params import SpendAlertUpdateParams as SpendAlertUpdateParams
+from .spend_limit_update_params import SpendLimitUpdateParams as SpendLimitUpdateParams
 from .certificate_activate_params import CertificateActivateParams as CertificateActivateParams
 from .project_spend_alert_deleted import ProjectSpendAlertDeleted as ProjectSpendAlertDeleted
+from .project_spend_limit_deleted import ProjectSpendLimitDeleted as ProjectSpendLimitDeleted
 from .service_account_list_params import ServiceAccountListParams as ServiceAccountListParams
 from .data_retention_update_params import DataRetentionUpdateParams as DataRetentionUpdateParams
 from .certificate_activate_response import CertificateActivateResponse as CertificateActivateResponse
