@@ -72,7 +72,7 @@ class Transcriptions(SyncAPIResource):
         model: Union[str, AudioModel],
         chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | Omit = omit,
         include: List[TranscriptionInclude] | Omit = omit,
-
+        keywords: SequenceNotStr[str] | Omit = omit,
         language: str | Omit = omit,
         languages: SequenceNotStr[str] | Omit = omit,
         prompt: str | Omit = omit,
