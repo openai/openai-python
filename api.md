@@ -174,6 +174,7 @@ from openai.types.audio import (
     TranscriptionDiarized,
     TranscriptionDiarizedSegment,
     TranscriptionInclude,
+    TranscriptionLanguage,
     TranscriptionSegment,
     TranscriptionStreamEvent,
     TranscriptionTextDeltaEvent,

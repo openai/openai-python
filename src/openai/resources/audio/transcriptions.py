@@ -67,9 +67,11 @@ class Transcriptions(SyncAPIResource):
         model: Union[str, AudioModel],
         chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | Omit = omit,
         include: List[TranscriptionInclude] | Omit = omit,
+        keywords: SequenceNotStr[str] | Omit = omit,
         known_speaker_names: SequenceNotStr[str] | Omit = omit,
         known_speaker_references: SequenceNotStr[str] | Omit = omit,
         language: str | Omit = omit,
+        languages: SequenceNotStr[str] | Omit = omit,
         prompt: str | Omit = omit,
         response_format: AudioResponseFormat | Omit = omit,
         stream: Optional[Literal[False]] | Omit = omit,
@@ -93,7 +95,7 @@ class Transcriptions(SyncAPIResource):
               The audio file object (not file name) to transcribe, in one of these formats:
               flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.
 
-          model: ID of the model to use. The options are `gpt-4o-transcribe`,
+          model: ID of the model to use. The options are `gpt-transcribe`, `gpt-4o-transcribe`,
               `gpt-4o-mini-transcribe`, `gpt-4o-mini-transcribe-2025-12-15`, `whisper-1`
               (which is powered by our open source Whisper V2 model), and
               `gpt-4o-transcribe-diarize`.
@@ -112,6 +114,9 @@ class Transcriptions(SyncAPIResource):
               `gpt-4o-mini-transcribe`, and `gpt-4o-mini-transcribe-2025-12-15`. This field is
               not supported when using `gpt-4o-transcribe-diarize`.
 
+          keywords: Words or phrases to guide transcription of the input audio. Supported by
+              `gpt-transcribe`.
+
           known_speaker_names: Optional list of speaker names that correspond to the audio samples provided in
               `known_speaker_references[]`. Each entry should be a short identifier (for
               example `customer` or `agent`). Up to 4 speakers are supported.
@@ -125,6 +130,10 @@ class Transcriptions(SyncAPIResource):
           language: The language of the input audio. Supplying the input language in
               [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) (e.g. `en`)
               format will improve accuracy and latency.
+
+          languages: Possible languages of the input audio, in
+              [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) format.
+              Supported by `gpt-transcribe`.
 
           prompt: An optional text to guide the model's style or continue a previous audio
               segment. The
@@ -179,9 +188,11 @@ class Transcriptions(SyncAPIResource):
         stream: Literal[True],
         chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | Omit = omit,
         include: List[TranscriptionInclude] | Omit = omit,
+        keywords: SequenceNotStr[str] | Omit = omit,
         known_speaker_names: SequenceNotStr[str] | Omit = omit,
         known_speaker_references: SequenceNotStr[str] | Omit = omit,
         language: str | Omit = omit,
+        languages: SequenceNotStr[str] | Omit = omit,
         prompt: str | Omit = omit,
         response_format: AudioResponseFormat | Omit = omit,
         temperature: float | Omit = omit,
@@ -204,7 +215,7 @@ class Transcriptions(SyncAPIResource):
               The audio file object (not file name) to transcribe, in one of these formats:
               flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.
 
-          model: ID of the model to use. The options are `gpt-4o-transcribe`,
+          model: ID of the model to use. The options are `gpt-transcribe`, `gpt-4o-transcribe`,
               `gpt-4o-mini-transcribe`, `gpt-4o-mini-transcribe-2025-12-15`, `whisper-1`
               (which is powered by our open source Whisper V2 model), and
               `gpt-4o-transcribe-diarize`.
@@ -232,6 +243,9 @@ class Transcriptions(SyncAPIResource):
               `gpt-4o-mini-transcribe`, and `gpt-4o-mini-transcribe-2025-12-15`. This field is
               not supported when using `gpt-4o-transcribe-diarize`.
 
+          keywords: Words or phrases to guide transcription of the input audio. Supported by
+              `gpt-transcribe`.
+
           known_speaker_names: Optional list of speaker names that correspond to the audio samples provided in
               `known_speaker_references[]`. Each entry should be a short identifier (for
               example `customer` or `agent`). Up to 4 speakers are supported.
@@ -245,6 +259,10 @@ class Transcriptions(SyncAPIResource):
           language: The language of the input audio. Supplying the input language in
               [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) (e.g. `en`)
               format will improve accuracy and latency.
+
+          languages: Possible languages of the input audio, in
+              [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) format.
+              Supported by `gpt-transcribe`.
 
           prompt: An optional text to guide the model's style or continue a previous audio
               segment. The
@@ -290,9 +308,11 @@ class Transcriptions(SyncAPIResource):
         stream: bool,
         chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | Omit = omit,
         include: List[TranscriptionInclude] | Omit = omit,
+        keywords: SequenceNotStr[str] | Omit = omit,
         known_speaker_names: SequenceNotStr[str] | Omit = omit,
         known_speaker_references: SequenceNotStr[str] | Omit = omit,
         language: str | Omit = omit,
+        languages: SequenceNotStr[str] | Omit = omit,
         prompt: str | Omit = omit,
         response_format: AudioResponseFormat | Omit = omit,
         temperature: float | Omit = omit,
@@ -315,7 +335,7 @@ class Transcriptions(SyncAPIResource):
               The audio file object (not file name) to transcribe, in one of these formats:
               flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.
 
-          model: ID of the model to use. The options are `gpt-4o-transcribe`,
+          model: ID of the model to use. The options are `gpt-transcribe`, `gpt-4o-transcribe`,
               `gpt-4o-mini-transcribe`, `gpt-4o-mini-transcribe-2025-12-15`, `whisper-1`
               (which is powered by our open source Whisper V2 model), and
               `gpt-4o-transcribe-diarize`.
@@ -343,6 +363,9 @@ class Transcriptions(SyncAPIResource):
               `gpt-4o-mini-transcribe`, and `gpt-4o-mini-transcribe-2025-12-15`. This field is
               not supported when using `gpt-4o-transcribe-diarize`.
 
+          keywords: Words or phrases to guide transcription of the input audio. Supported by
+              `gpt-transcribe`.
+
           known_speaker_names: Optional list of speaker names that correspond to the audio samples provided in
               `known_speaker_references[]`. Each entry should be a short identifier (for
               example `customer` or `agent`). Up to 4 speakers are supported.
@@ -356,6 +379,10 @@ class Transcriptions(SyncAPIResource):
           language: The language of the input audio. Supplying the input language in
               [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) (e.g. `en`)
               format will improve accuracy and latency.
+
+          languages: Possible languages of the input audio, in
+              [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) format.
+              Supported by `gpt-transcribe`.
 
           prompt: An optional text to guide the model's style or continue a previous audio
               segment. The
@@ -400,9 +427,11 @@ class Transcriptions(SyncAPIResource):
         model: Union[str, AudioModel],
         chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | Omit = omit,
         include: List[TranscriptionInclude] | Omit = omit,
+        keywords: SequenceNotStr[str] | Omit = omit,
         known_speaker_names: SequenceNotStr[str] | Omit = omit,
         known_speaker_references: SequenceNotStr[str] | Omit = omit,
         language: str | Omit = omit,
+        languages: SequenceNotStr[str] | Omit = omit,
         prompt: str | Omit = omit,
         response_format: AudioResponseFormat | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
@@ -421,9 +450,11 @@ class Transcriptions(SyncAPIResource):
                 "model": model,
                 "chunking_strategy": chunking_strategy,
                 "include": include,
+                "keywords": keywords,
                 "known_speaker_names": known_speaker_names,
                 "known_speaker_references": known_speaker_references,
                 "language": language,
+                "languages": languages,
                 "prompt": prompt,
                 "response_format": response_format,
                 "stream": stream,
@@ -491,9 +522,11 @@ class AsyncTranscriptions(AsyncAPIResource):
         model: Union[str, AudioModel],
         chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | Omit = omit,
         include: List[TranscriptionInclude] | Omit = omit,
+        keywords: SequenceNotStr[str] | Omit = omit,
         known_speaker_names: SequenceNotStr[str] | Omit = omit,
         known_speaker_references: SequenceNotStr[str] | Omit = omit,
         language: str | Omit = omit,
+        languages: SequenceNotStr[str] | Omit = omit,
         prompt: str | Omit = omit,
         response_format: AudioResponseFormat | Omit = omit,
         stream: Optional[Literal[False]] | Omit = omit,
@@ -517,7 +550,7 @@ class AsyncTranscriptions(AsyncAPIResource):
               The audio file object (not file name) to transcribe, in one of these formats:
               flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.
 
-          model: ID of the model to use. The options are `gpt-4o-transcribe`,
+          model: ID of the model to use. The options are `gpt-transcribe`, `gpt-4o-transcribe`,
               `gpt-4o-mini-transcribe`, `gpt-4o-mini-transcribe-2025-12-15`, `whisper-1`
               (which is powered by our open source Whisper V2 model), and
               `gpt-4o-transcribe-diarize`.
@@ -536,6 +569,9 @@ class AsyncTranscriptions(AsyncAPIResource):
               `gpt-4o-mini-transcribe`, and `gpt-4o-mini-transcribe-2025-12-15`. This field is
               not supported when using `gpt-4o-transcribe-diarize`.
 
+          keywords: Words or phrases to guide transcription of the input audio. Supported by
+              `gpt-transcribe`.
+
           known_speaker_names: Optional list of speaker names that correspond to the audio samples provided in
               `known_speaker_references[]`. Each entry should be a short identifier (for
               example `customer` or `agent`). Up to 4 speakers are supported.
@@ -549,6 +585,10 @@ class AsyncTranscriptions(AsyncAPIResource):
           language: The language of the input audio. Supplying the input language in
               [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) (e.g. `en`)
               format will improve accuracy and latency.
+
+          languages: Possible languages of the input audio, in
+              [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) format.
+              Supported by `gpt-transcribe`.
 
           prompt: An optional text to guide the model's style or continue a previous audio
               segment. The
@@ -603,9 +643,11 @@ class AsyncTranscriptions(AsyncAPIResource):
         stream: Literal[True],
         chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | Omit = omit,
         include: List[TranscriptionInclude] | Omit = omit,
+        keywords: SequenceNotStr[str] | Omit = omit,
         known_speaker_names: SequenceNotStr[str] | Omit = omit,
         known_speaker_references: SequenceNotStr[str] | Omit = omit,
         language: str | Omit = omit,
+        languages: SequenceNotStr[str] | Omit = omit,
         prompt: str | Omit = omit,
         response_format: AudioResponseFormat | Omit = omit,
         temperature: float | Omit = omit,
@@ -628,7 +670,7 @@ class AsyncTranscriptions(AsyncAPIResource):
               The audio file object (not file name) to transcribe, in one of these formats:
               flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.
 
-          model: ID of the model to use. The options are `gpt-4o-transcribe`,
+          model: ID of the model to use. The options are `gpt-transcribe`, `gpt-4o-transcribe`,
               `gpt-4o-mini-transcribe`, `gpt-4o-mini-transcribe-2025-12-15`, `whisper-1`
               (which is powered by our open source Whisper V2 model), and
               `gpt-4o-transcribe-diarize`.
@@ -656,6 +698,9 @@ class AsyncTranscriptions(AsyncAPIResource):
               `gpt-4o-mini-transcribe`, and `gpt-4o-mini-transcribe-2025-12-15`. This field is
               not supported when using `gpt-4o-transcribe-diarize`.
 
+          keywords: Words or phrases to guide transcription of the input audio. Supported by
+              `gpt-transcribe`.
+
           known_speaker_names: Optional list of speaker names that correspond to the audio samples provided in
               `known_speaker_references[]`. Each entry should be a short identifier (for
               example `customer` or `agent`). Up to 4 speakers are supported.
@@ -669,6 +714,10 @@ class AsyncTranscriptions(AsyncAPIResource):
           language: The language of the input audio. Supplying the input language in
               [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) (e.g. `en`)
               format will improve accuracy and latency.
+
+          languages: Possible languages of the input audio, in
+              [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) format.
+              Supported by `gpt-transcribe`.
 
           prompt: An optional text to guide the model's style or continue a previous audio
               segment. The
@@ -714,9 +763,11 @@ class AsyncTranscriptions(AsyncAPIResource):
         stream: bool,
         chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | Omit = omit,
         include: List[TranscriptionInclude] | Omit = omit,
+        keywords: SequenceNotStr[str] | Omit = omit,
         known_speaker_names: SequenceNotStr[str] | Omit = omit,
         known_speaker_references: SequenceNotStr[str] | Omit = omit,
         language: str | Omit = omit,
+        languages: SequenceNotStr[str] | Omit = omit,
         prompt: str | Omit = omit,
         response_format: AudioResponseFormat | Omit = omit,
         temperature: float | Omit = omit,
@@ -739,7 +790,7 @@ class AsyncTranscriptions(AsyncAPIResource):
               The audio file object (not file name) to transcribe, in one of these formats:
               flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.
 
-          model: ID of the model to use. The options are `gpt-4o-transcribe`,
+          model: ID of the model to use. The options are `gpt-transcribe`, `gpt-4o-transcribe`,
               `gpt-4o-mini-transcribe`, `gpt-4o-mini-transcribe-2025-12-15`, `whisper-1`
               (which is powered by our open source Whisper V2 model), and
               `gpt-4o-transcribe-diarize`.
@@ -767,6 +818,9 @@ class AsyncTranscriptions(AsyncAPIResource):
               `gpt-4o-mini-transcribe`, and `gpt-4o-mini-transcribe-2025-12-15`. This field is
               not supported when using `gpt-4o-transcribe-diarize`.
 
+          keywords: Words or phrases to guide transcription of the input audio. Supported by
+              `gpt-transcribe`.
+
           known_speaker_names: Optional list of speaker names that correspond to the audio samples provided in
               `known_speaker_references[]`. Each entry should be a short identifier (for
               example `customer` or `agent`). Up to 4 speakers are supported.
@@ -780,6 +834,10 @@ class AsyncTranscriptions(AsyncAPIResource):
           language: The language of the input audio. Supplying the input language in
               [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) (e.g. `en`)
               format will improve accuracy and latency.
+
+          languages: Possible languages of the input audio, in
+              [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) format.
+              Supported by `gpt-transcribe`.
 
           prompt: An optional text to guide the model's style or continue a previous audio
               segment. The
@@ -824,9 +882,11 @@ class AsyncTranscriptions(AsyncAPIResource):
         model: Union[str, AudioModel],
         chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | Omit = omit,
         include: List[TranscriptionInclude] | Omit = omit,
+        keywords: SequenceNotStr[str] | Omit = omit,
         known_speaker_names: SequenceNotStr[str] | Omit = omit,
         known_speaker_references: SequenceNotStr[str] | Omit = omit,
         language: str | Omit = omit,
+        languages: SequenceNotStr[str] | Omit = omit,
         prompt: str | Omit = omit,
         response_format: AudioResponseFormat | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
@@ -845,9 +905,11 @@ class AsyncTranscriptions(AsyncAPIResource):
                 "model": model,
                 "chunking_strategy": chunking_strategy,
                 "include": include,
+                "keywords": keywords,
                 "known_speaker_names": known_speaker_names,
                 "known_speaker_references": known_speaker_references,
                 "language": language,
+                "languages": languages,
                 "prompt": prompt,
                 "response_format": response_format,
                 "stream": stream,

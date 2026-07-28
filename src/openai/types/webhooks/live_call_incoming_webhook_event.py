@@ -5,7 +5,7 @@ from typing_extensions import Literal
 
 from ..._models import BaseModel
 
-__all__ = ["RealtimeCallIncomingWebhookEvent", "Data", "DataSipHeader"]
+__all__ = ["LiveCallIncomingWebhookEvent", "Data", "DataSipHeader"]
 
 
 class DataSipHeader(BaseModel):
@@ -21,20 +21,21 @@ class DataSipHeader(BaseModel):
 class Data(BaseModel):
     """Event data payload."""
 
-    call_id: str
+    session_id: str
     """The Transceiver `rtc_...` ID of the pending SIP session.
 
-    The same value appears as `session_id` in `live.call.incoming`.
+    The same value appears as `call_id` in `realtime.call.incoming`.
     """
 
     sip_headers: List[DataSipHeader]
     """Headers from the SIP Invite."""
 
 
-class RealtimeCallIncomingWebhookEvent(BaseModel):
-    """
-    Sent when an incoming API SIP session is available for Realtime acceptance.
-    The same pending session can also emit `live.call.incoming`; the first
+class LiveCallIncomingWebhookEvent(BaseModel):
+    """Sent when an incoming API SIP session is available for Live acceptance.
+
+    The
+    same pending session can also emit `realtime.call.incoming`; the first
     successful Realtime or Live accept endpoint selects the runtime surface.
     """
 
@@ -42,13 +43,13 @@ class RealtimeCallIncomingWebhookEvent(BaseModel):
     """The unique ID of the event."""
 
     created_at: int
-    """The Unix timestamp (in seconds) of when the model response was completed."""
+    """The Unix timestamp (in seconds) of when the event was created."""
 
     data: Data
     """Event data payload."""
 
-    type: Literal["realtime.call.incoming"]
-    """The type of the event. Always `realtime.call.incoming`."""
+    type: Literal["live.call.incoming"]
+    """The type of the event. Always `live.call.incoming`."""
 
     object: Optional[Literal["event"]] = None
     """The object of the event. Always `event`."""
