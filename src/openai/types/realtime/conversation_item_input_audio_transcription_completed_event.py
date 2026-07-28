@@ -5,6 +5,7 @@ from typing_extensions import Literal, TypeAlias
 
 from ..._models import BaseModel
 from .log_prob_properties import LogProbProperties
+from ..audio.transcription_language import TranscriptionLanguage
 
 __all__ = [
     "ConversationItemInputAudioTranscriptionCompletedEvent",
@@ -92,6 +93,13 @@ class ConversationItemInputAudioTranscriptionCompletedEvent(BaseModel):
     """
     Usage statistics for the transcription, this is billed according to the ASR
     model's pricing rather than the realtime model's pricing.
+    """
+
+    languages: Optional[List[TranscriptionLanguage]] = None
+    """The languages detected in the audio.
+
+    Returned by `gpt-transcribe`. An empty array indicates that no language could be
+    reliably detected.
     """
 
     logprobs: Optional[List[LogProbProperties]] = None

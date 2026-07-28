@@ -4,6 +4,7 @@ from typing import List, Optional
 from typing_extensions import Literal
 
 from ..._models import BaseModel
+from .transcription_language import TranscriptionLanguage
 
 __all__ = ["TranscriptionTextDoneEvent", "Logprob", "Usage", "UsageInputTokenDetails"]
 
@@ -59,6 +60,13 @@ class TranscriptionTextDoneEvent(BaseModel):
 
     type: Literal["transcript.text.done"]
     """The type of the event. Always `transcript.text.done`."""
+
+    languages: Optional[List[TranscriptionLanguage]] = None
+    """The languages detected in the audio.
+
+    Returned by `gpt-transcribe`. An empty array indicates that no language could be
+    reliably detected.
+    """
 
     logprobs: Optional[List[Logprob]] = None
     """The log probabilities of the individual tokens in the transcription.

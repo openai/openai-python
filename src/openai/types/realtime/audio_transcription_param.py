@@ -5,6 +5,8 @@ from __future__ import annotations
 from typing import Union
 from typing_extensions import Literal, TypedDict
 
+from ..._types import SequenceNotStr
+
 __all__ = ["AudioTranscriptionParam"]
 
 
@@ -16,6 +18,12 @@ class AudioTranscriptionParam(TypedDict, total=False):
     with `gpt-realtime-whisper` in GA Realtime sessions.
     """
 
+    keywords: SequenceNotStr[str]
+    """Words or phrases to guide transcription of the input audio.
+
+    Supported by `gpt-transcribe` and `gpt-live-transcribe`.
+    """
+
     language: str
     """The language of the input audio.
 
@@ -24,10 +32,19 @@ class AudioTranscriptionParam(TypedDict, total=False):
     format will improve accuracy and latency.
     """
 
+    languages: SequenceNotStr[str]
+    """
+    Possible languages of the input audio, in
+    [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) format.
+    Supported by `gpt-transcribe` and `gpt-live-transcribe`.
+    """
+
     model: Union[
         str,
         Literal[
             "whisper-1",
+            "gpt-transcribe",
+            "gpt-live-transcribe",
             "gpt-4o-mini-transcribe",
             "gpt-4o-mini-transcribe-2025-12-15",
             "gpt-4o-transcribe",
@@ -37,10 +54,10 @@ class AudioTranscriptionParam(TypedDict, total=False):
     ]
     """The model to use for transcription.
 
-    Current options are `whisper-1`, `gpt-4o-mini-transcribe`,
-    `gpt-4o-mini-transcribe-2025-12-15`, `gpt-4o-transcribe`,
-    `gpt-4o-transcribe-diarize`, and `gpt-realtime-whisper`. Use
-    `gpt-4o-transcribe-diarize` when you need diarization with speaker labels.
+    Current options are `whisper-1`, `gpt-transcribe`, `gpt-live-transcribe`,
+    `gpt-4o-mini-transcribe`, `gpt-4o-mini-transcribe-2025-12-15`,
+    `gpt-4o-transcribe`, `gpt-4o-transcribe-diarize`, and `gpt-realtime-whisper`.
+    Use `gpt-4o-transcribe-diarize` when you need diarization with speaker labels.
     """
 
     prompt: str
