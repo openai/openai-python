@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import json
 import logging
-from typing import Union, cast
+from typing import Union, Iterator, AsyncIterator, cast
 from typing_extensions import Literal, Protocol
 
 import httpx
@@ -30,9 +31,137 @@ async_client = AsyncAzureOpenAI(
     azure_endpoint="https://example-resource.azure.openai.com",
 )
 
+AZURE_RESPONSES_URL = "https://example-resource.azure.openai.com/openai/responses?api-version=2024-02-01"
+AZURE_DEPLOYMENT_MODEL = "gpt-5-nano"
+AZURE_SERVED_MODEL = "gpt-5-nano-2025-08-07"
+
+
+def _azure_response_payload(*, model: str = AZURE_DEPLOYMENT_MODEL) -> dict[str, object]:
+    return {
+        "id": "resp_123",
+        "object": "response",
+        "created_at": 0,
+        "model": model,
+        "output": [],
+        "parallel_tool_calls": True,
+        "tool_choice": "auto",
+        "tools": [],
+    }
+
+
+def _azure_response_stream_body() -> Iterator[bytes]:
+    yield b"event: response.created\n"
+    yield (
+        b'data: {"type":"response.created","sequence_number":0,"response":'
+        + json.dumps(_azure_response_payload(), separators=(",", ":")).encode()
+        + b"}\n\n"
+    )
+    yield b"data: [DONE]\n\n"
+
+
+async def _async_azure_response_stream_body() -> AsyncIterator[bytes]:
+    for chunk in _azure_response_stream_body():
+        yield chunk
+
 
 class MockRequestCall(Protocol):
     request: httpx.Request
+
+
+@pytest.mark.respx()
+def test_azure_responses_uses_served_model_header(respx_mock: MockRouter) -> None:
+    respx_mock.post(AZURE_RESPONSES_URL).mock(
+        return_value=httpx.Response(
+            200,
+            headers={"x-ms-served-model": f" {AZURE_SERVED_MODEL} "},
+            json=_azure_response_payload(),
+        )
+    )
+
+    client = AzureOpenAI(
+        api_version="2024-02-01",
+        api_key="example API key",
+        azure_endpoint="https://example-resource.azure.openai.com",
+    )
+
+    response = client.responses.create(model=AZURE_DEPLOYMENT_MODEL, input="ping")
+
+    assert response.model == AZURE_SERVED_MODEL
+
+
+@pytest.mark.asyncio
+@pytest.mark.respx()
+async def test_async_azure_responses_uses_served_model_header(respx_mock: MockRouter) -> None:
+    respx_mock.post(AZURE_RESPONSES_URL).mock(
+        return_value=httpx.Response(
+            200,
+            headers={"x-ms-served-model": AZURE_SERVED_MODEL},
+            json=_azure_response_payload(),
+        )
+    )
+
+    client = AsyncAzureOpenAI(
+        api_version="2024-02-01",
+        api_key="example API key",
+        azure_endpoint="https://example-resource.azure.openai.com",
+    )
+
+    response = await client.responses.create(model=AZURE_DEPLOYMENT_MODEL, input="ping")
+
+    assert response.model == AZURE_SERVED_MODEL
+
+
+@pytest.mark.respx()
+def test_azure_responses_stream_uses_served_model_header(respx_mock: MockRouter) -> None:
+    respx_mock.post(AZURE_RESPONSES_URL).mock(
+        return_value=httpx.Response(
+            200,
+            headers={
+                "content-type": "text/event-stream",
+                "x-ms-served-model": AZURE_SERVED_MODEL,
+            },
+            content=_azure_response_stream_body(),
+        )
+    )
+
+    client = AzureOpenAI(
+        api_version="2024-02-01",
+        api_key="example API key",
+        azure_endpoint="https://example-resource.azure.openai.com",
+    )
+
+    stream = client.responses.create(model=AZURE_DEPLOYMENT_MODEL, input="ping", stream=True)
+    event = next(stream)
+
+    assert event.type == "response.created"
+    assert event.response.model == AZURE_SERVED_MODEL
+
+
+@pytest.mark.asyncio
+@pytest.mark.respx()
+async def test_async_azure_responses_stream_uses_served_model_header(respx_mock: MockRouter) -> None:
+    respx_mock.post(AZURE_RESPONSES_URL).mock(
+        return_value=httpx.Response(
+            200,
+            headers={
+                "content-type": "text/event-stream",
+                "x-ms-served-model": AZURE_SERVED_MODEL,
+            },
+            content=_async_azure_response_stream_body(),
+        )
+    )
+
+    client = AsyncAzureOpenAI(
+        api_version="2024-02-01",
+        api_key="example API key",
+        azure_endpoint="https://example-resource.azure.openai.com",
+    )
+
+    stream = await client.responses.create(model=AZURE_DEPLOYMENT_MODEL, input="ping", stream=True)
+    event = await stream.__anext__()
+
+    assert event.type == "response.created"
+    assert event.response.model == AZURE_SERVED_MODEL
 
 
 @pytest.mark.parametrize("client", [sync_client, async_client])
