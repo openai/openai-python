@@ -964,6 +964,10 @@ def test_extra_properties() -> None:
     assert model.other == "foo"
 
 
+def test_bare_dict_annotation() -> None:
+    assert construct_type(value={"key": "value"}, type_=dict) == {"key": "value"}
+
+
 # NOTE: Workaround for Pydantic Iterable behavior.
 # Iterable fields are replaced with a ValidatorIterator and may be consumed
 # during serialization, which can cause subsequent dumps to return empty data.
