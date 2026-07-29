@@ -11,6 +11,7 @@ if TYPE_CHECKING:
     from .resources.models import Models
     from .resources.videos import Videos
     from .resources.batches import Batches
+    from .resources.demo_api import DemoAPI
     from .resources.beta.beta import Beta
     from .resources.chat.chat import Chat
     from .resources.embeddings import Embeddings
@@ -105,6 +106,12 @@ class UploadsProxy(LazyProxy["Uploads"]):
         return _load_client().uploads
 
 
+class DemoAPIProxy(LazyProxy["DemoAPI"]):
+    @override
+    def __load__(self) -> DemoAPI:
+        return _load_client().demo_api
+
+
 class WebhooksProxy(LazyProxy["Webhooks"]):
     @override
     def __load__(self) -> Webhooks:
@@ -177,6 +184,7 @@ skills: Skills = SkillsProxy().__as_proxied__()
 videos: Videos = VideosProxy().__as_proxied__()
 batches: Batches = BatchesProxy().__as_proxied__()
 uploads: Uploads = UploadsProxy().__as_proxied__()
+demo_api: DemoAPI = DemoAPIProxy().__as_proxied__()
 webhooks: Webhooks = WebhooksProxy().__as_proxied__()
 realtime: Realtime = RealtimeProxy().__as_proxied__()
 responses: Responses = ResponsesProxy().__as_proxied__()

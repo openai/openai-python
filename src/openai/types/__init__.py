@@ -37,6 +37,7 @@ from .video_size import VideoSize as VideoSize
 from .audio_model import AudioModel as AudioModel
 from .batch_error import BatchError as BatchError
 from .batch_usage import BatchUsage as BatchUsage
+from .demo_widget import DemoWidget as DemoWidget
 from .file_object import FileObject as FileObject
 from .image_model import ImageModel as ImageModel
 from .video_model import VideoModel as VideoModel
@@ -67,11 +68,13 @@ from .file_create_params import FileCreateParams as FileCreateParams
 from .video_create_error import VideoCreateError as VideoCreateError
 from .video_remix_params import VideoRemixParams as VideoRemixParams
 from .batch_create_params import BatchCreateParams as BatchCreateParams
+from .demo_widget_history import DemoWidgetHistory as DemoWidgetHistory
 from .skill_create_params import SkillCreateParams as SkillCreateParams
 from .skill_update_params import SkillUpdateParams as SkillUpdateParams
 from .video_create_params import VideoCreateParams as VideoCreateParams
 from .video_extend_params import VideoExtendParams as VideoExtendParams
 from .batch_request_counts import BatchRequestCounts as BatchRequestCounts
+from .demo_api_list_params import DemoAPIListParams as DemoAPIListParams
 from .eval_create_response import EvalCreateResponse as EvalCreateResponse
 from .eval_delete_response import EvalDeleteResponse as EvalDeleteResponse
 from .eval_update_response import EvalUpdateResponse as EvalUpdateResponse
@@ -81,6 +84,8 @@ from .audio_response_format import AudioResponseFormat as AudioResponseFormat
 from .container_list_params import ContainerListParams as ContainerListParams
 from .image_generate_params import ImageGenerateParams as ImageGenerateParams
 from .video_delete_response import VideoDeleteResponse as VideoDeleteResponse
+from .demo_api_create_params import DemoAPICreateParams as DemoAPICreateParams
+from .demo_api_list_response import DemoAPIListResponse as DemoAPIListResponse
 from .eval_retrieve_response import EvalRetrieveResponse as EvalRetrieveResponse
 from .file_chunking_strategy import FileChunkingStrategy as FileChunkingStrategy
 from .image_gen_stream_event import ImageGenStreamEvent as ImageGenStreamEvent
@@ -94,10 +99,12 @@ from .container_list_response import ContainerListResponse as ContainerListRespo
 from .embedding_create_params import EmbeddingCreateParams as EmbeddingCreateParams
 from .image_edit_stream_event import ImageEditStreamEvent as ImageEditStreamEvent
 from .completion_create_params import CompletionCreateParams as CompletionCreateParams
+from .demo_api_retrieve_params import DemoAPIRetrieveParams as DemoAPIRetrieveParams
 from .moderation_create_params import ModerationCreateParams as ModerationCreateParams
 from .vector_store_list_params import VectorStoreListParams as VectorStoreListParams
 from .container_create_response import ContainerCreateResponse as ContainerCreateResponse
 from .create_embedding_response import CreateEmbeddingResponse as CreateEmbeddingResponse
+from .demo_widget_configuration import DemoWidgetConfiguration as DemoWidgetConfiguration
 from .image_gen_completed_event import ImageGenCompletedEvent as ImageGenCompletedEvent
 from .image_edit_completed_event import ImageEditCompletedEvent as ImageEditCompletedEvent
 from .moderation_create_response import ModerationCreateResponse as ModerationCreateResponse
@@ -121,6 +128,7 @@ from .video_create_character_params import VideoCreateCharacterParams as VideoCr
 from .video_download_content_params import VideoDownloadContentParams as VideoDownloadContentParams
 from .eval_custom_data_source_config import EvalCustomDataSourceConfig as EvalCustomDataSourceConfig
 from .image_edit_partial_image_event import ImageEditPartialImageEvent as ImageEditPartialImageEvent
+from .demo_widget_configuration_param import DemoWidgetConfigurationParam as DemoWidgetConfigurationParam
 from .video_create_character_response import VideoCreateCharacterResponse as VideoCreateCharacterResponse
 from .moderation_image_url_input_param import ModerationImageURLInputParam as ModerationImageURLInputParam
 from .auto_file_chunking_strategy_param import AutoFileChunkingStrategyParam as AutoFileChunkingStrategyParam

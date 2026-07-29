@@ -460,6 +460,7 @@ from ._module_client import (
     videos as videos,
     batches as batches,
     uploads as uploads,
+    demo_api as demo_api,
     realtime as realtime,
     webhooks as webhooks,
     responses as responses,

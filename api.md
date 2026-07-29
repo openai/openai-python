@@ -248,6 +248,20 @@ Methods:
 - <code title="get /models">client.models.<a href="./src/openai/resources/models.py">list</a>() -> <a href="./src/openai/types/model.py">SyncPage[Model]</a></code>
 - <code title="delete /models/{model}">client.models.<a href="./src/openai/resources/models.py">delete</a>(model) -> <a href="./src/openai/types/model_deleted.py">ModelDeleted</a></code>
 
+# DemoAPI
+
+Types:
+
+```python
+from openai.types import DemoWidget, DemoWidgetConfiguration, DemoWidgetHistory, DemoAPIListResponse
+```
+
+Methods:
+
+- <code title="post /demo_api/widgets">client.demo_api.<a href="./src/openai/resources/demo_api.py">create</a>(\*\*<a href="src/openai/types/demo_api_create_params.py">params</a>) -> <a href="./src/openai/types/demo_widget.py">DemoWidget</a></code>
+- <code title="get /demo_api/widgets/{widget_id}">client.demo_api.<a href="./src/openai/resources/demo_api.py">retrieve</a>(widget_id, \*\*<a href="src/openai/types/demo_api_retrieve_params.py">params</a>) -> <a href="./src/openai/types/demo_widget.py">DemoWidget</a></code>
+- <code title="get /demo_api/widgets">client.demo_api.<a href="./src/openai/resources/demo_api.py">list</a>(\*\*<a href="src/openai/types/demo_api_list_params.py">params</a>) -> <a href="./src/openai/types/demo_api_list_response.py">DemoAPIListResponse</a></code>
+
 # FineTuning
 
 ## Methods

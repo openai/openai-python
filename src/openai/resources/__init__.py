@@ -96,6 +96,14 @@ from .uploads import (
     UploadsWithStreamingResponse,
     AsyncUploadsWithStreamingResponse,
 )
+from .demo_api import (
+    DemoAPI,
+    AsyncDemoAPI,
+    DemoAPIWithRawResponse,
+    AsyncDemoAPIWithRawResponse,
+    DemoAPIWithStreamingResponse,
+    AsyncDemoAPIWithStreamingResponse,
+)
 from .containers import (
     Containers,
     AsyncContainers,
@@ -194,6 +202,12 @@ __all__ = [
     "AsyncModelsWithRawResponse",
     "ModelsWithStreamingResponse",
     "AsyncModelsWithStreamingResponse",
+    "DemoAPI",
+    "AsyncDemoAPI",
+    "DemoAPIWithRawResponse",
+    "AsyncDemoAPIWithRawResponse",
+    "DemoAPIWithStreamingResponse",
+    "AsyncDemoAPIWithStreamingResponse",
     "FineTuning",
     "AsyncFineTuning",
     "FineTuningWithRawResponse",

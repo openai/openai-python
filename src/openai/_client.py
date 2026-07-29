@@ -55,6 +55,7 @@ if TYPE_CHECKING:
         videos,
         batches,
         uploads,
+        demo_api,
         realtime,
         responses,
         containers,
@@ -70,6 +71,7 @@ if TYPE_CHECKING:
     from .resources.models import Models, AsyncModels
     from .resources.videos import Videos, AsyncVideos
     from .resources.batches import Batches, AsyncBatches
+    from .resources.demo_api import DemoAPI, AsyncDemoAPI
     from .resources.beta.beta import Beta, AsyncBeta
     from .resources.chat.chat import Chat, AsyncChat
     from .resources.embeddings import Embeddings, AsyncEmbeddings
@@ -340,6 +342,13 @@ class OpenAI(SyncAPIClient):
         from .resources.models import Models
 
         return Models(self)
+
+    @cached_property
+    def demo_api(self) -> DemoAPI:
+        """Manage demo widgets used to test SDK generation."""
+        from .resources.demo_api import DemoAPI
+
+        return DemoAPI(self)
 
     @cached_property
     def fine_tuning(self) -> FineTuning:
@@ -942,6 +951,13 @@ class AsyncOpenAI(AsyncAPIClient):
         return AsyncModels(self)
 
     @cached_property
+    def demo_api(self) -> AsyncDemoAPI:
+        """Manage demo widgets used to test SDK generation."""
+        from .resources.demo_api import AsyncDemoAPI
+
+        return AsyncDemoAPI(self)
+
+    @cached_property
     def fine_tuning(self) -> AsyncFineTuning:
         from .resources.fine_tuning import AsyncFineTuning
 
@@ -1382,6 +1398,13 @@ class OpenAIWithRawResponse:
         return ModelsWithRawResponse(self._client.models)
 
     @cached_property
+    def demo_api(self) -> demo_api.DemoAPIWithRawResponse:
+        """Manage demo widgets used to test SDK generation."""
+        from .resources.demo_api import DemoAPIWithRawResponse
+
+        return DemoAPIWithRawResponse(self._client.demo_api)
+
+    @cached_property
     def fine_tuning(self) -> fine_tuning.FineTuningWithRawResponse:
         from .resources.fine_tuning import FineTuningWithRawResponse
 
@@ -1531,6 +1554,13 @@ class AsyncOpenAIWithRawResponse:
         from .resources.models import AsyncModelsWithRawResponse
 
         return AsyncModelsWithRawResponse(self._client.models)
+
+    @cached_property
+    def demo_api(self) -> demo_api.AsyncDemoAPIWithRawResponse:
+        """Manage demo widgets used to test SDK generation."""
+        from .resources.demo_api import AsyncDemoAPIWithRawResponse
+
+        return AsyncDemoAPIWithRawResponse(self._client.demo_api)
 
     @cached_property
     def fine_tuning(self) -> fine_tuning.AsyncFineTuningWithRawResponse:
@@ -1684,6 +1714,13 @@ class OpenAIWithStreamedResponse:
         return ModelsWithStreamingResponse(self._client.models)
 
     @cached_property
+    def demo_api(self) -> demo_api.DemoAPIWithStreamingResponse:
+        """Manage demo widgets used to test SDK generation."""
+        from .resources.demo_api import DemoAPIWithStreamingResponse
+
+        return DemoAPIWithStreamingResponse(self._client.demo_api)
+
+    @cached_property
     def fine_tuning(self) -> fine_tuning.FineTuningWithStreamingResponse:
         from .resources.fine_tuning import FineTuningWithStreamingResponse
 
@@ -1833,6 +1870,13 @@ class AsyncOpenAIWithStreamedResponse:
         from .resources.models import AsyncModelsWithStreamingResponse
 
         return AsyncModelsWithStreamingResponse(self._client.models)
+
+    @cached_property
+    def demo_api(self) -> demo_api.AsyncDemoAPIWithStreamingResponse:
+        """Manage demo widgets used to test SDK generation."""
+        from .resources.demo_api import AsyncDemoAPIWithStreamingResponse
+
+        return AsyncDemoAPIWithStreamingResponse(self._client.demo_api)
 
     @cached_property
     def fine_tuning(self) -> fine_tuning.AsyncFineTuningWithStreamingResponse:
