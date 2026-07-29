@@ -17,6 +17,9 @@ class Error(BaseModel):
     code: Optional[str] = None
     """Error code, if any."""
 
+    message: Optional[str] = None
+    """A human-readable description of the error, if any."""
+
     type: Optional[str] = None
     """The type of error."""
 
