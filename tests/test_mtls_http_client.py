@@ -46,6 +46,7 @@ class _Handler(BaseHTTPRequestHandler):
 def _mtls_server() -> Iterator[ThreadingHTTPServer]:
     _Handler.peer_certificates = []
     server_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    server_context.minimum_version = ssl.TLSVersion.TLSv1_2
     server_context.load_cert_chain(
         certfile=SERVER_CERTIFICATE_CHAIN,
         keyfile=SERVER_PRIVATE_KEY,
