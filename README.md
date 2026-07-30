@@ -1004,7 +1004,9 @@ from the configured mTLS origin before enabling `follow_redirects`.
 files and for a private key that does not match the leaf certificate. Certificate
 expiry, key usage, extended key usage, SAN, and trust policy remain TLS server
 decisions. OpenAI does not fetch missing intermediates through AIA, so provide a
-complete, leaf-first client-chain PEM.
+complete, leaf-first client-chain PEM. Intermediate-chain support is currently
+enabled by request. Until it is enabled for your organization, use a client leaf
+certificate directly signed by the uploaded CA.
 
 For certificate rotation, build a new `SSLContext`, HTTP client, and `OpenAI` or
 `AsyncOpenAI` client. This creates a fresh connection pool; close the old SDK

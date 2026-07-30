@@ -25,11 +25,13 @@ SERVER_PRIVATE_KEY = FIXTURES / "server.key"
 
 class _Handler(BaseHTTPRequestHandler):
     peer_certificates: list[dict[str, Any]] = []
+    request_paths: list[str] = []
 
     def do_GET(self) -> None:
         peer_certificate = cast(ssl.SSLSocket, self.connection).getpeercert()
         assert peer_certificate is not None
         self.peer_certificates.append(cast(dict[str, Any], peer_certificate))
+        self.request_paths.append(self.path)
         body = b'{"object":"list","data":[]}'
         self.send_response(200)
         self.send_header("Content-Type", "application/json")
@@ -45,6 +47,7 @@ class _Handler(BaseHTTPRequestHandler):
 @contextmanager
 def _mtls_server() -> Iterator[ThreadingHTTPServer]:
     _Handler.peer_certificates = []
+    _Handler.request_paths = []
     server_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
     server_context.minimum_version = ssl.TLSVersion.TLSv1_2
     server_context.load_cert_chain(
@@ -109,4 +112,5 @@ def test_mtls_example_presents_full_client_chain(example: str) -> None:
 
     assert result.returncode == 0, result.stderr
     assert "data=[]" in result.stdout
+    assert _Handler.request_paths == ["/v1/files"]
     assert _Handler.peer_certificates[0]["subject"] == ((("commonName", "openai-python-mtls-test-client"),),)
