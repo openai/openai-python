@@ -802,7 +802,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
     ) -> float:
         max_retries = options.get_max_retries(self.max_retries)
 
-        # Honor server-directed delays up to one day.
+        # Honor server-directed delays up to two minutes.
         retry_after = self._parse_retry_after_header(response_headers)
         if retry_after is not None and math.isfinite(retry_after) and 0 < retry_after <= MAX_RETRY_AFTER_DELAY:
             return retry_after
