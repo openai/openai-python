@@ -901,6 +901,10 @@ client.with_options(http_client=DefaultHttpxClient(...))
 
 #### Mutual TLS
 
+Before configuring a client, review the
+[OpenAI Mutual TLS Beta Program](https://help.openai.com/en/articles/10876024-openai-mutual-tls-beta-program)
+for enrollment, currently supported endpoints, and certificate requirements.
+
 For API-key authenticated HTTP requests that require mutual TLS (mTLS), configure
 a native [`ssl.SSLContext`](https://docs.python.org/3/library/ssl.html#ssl.SSLContext)
 and pass it through the custom HTTP client:
