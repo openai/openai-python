@@ -105,7 +105,7 @@ class Completions(SyncAPIResource):
         response_format: completion_create_params.ResponseFormat | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Omit = omit,
@@ -318,9 +318,13 @@ class Completions(SyncAPIResource):
                 will use 'default'.
               - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
-              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                '[priority](https://openai.com/api-priority-processing/)', then the request
-                will be processed with the corresponding service tier.
+              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)',
+                then the request will be processed with the Flex Processing service tier.
+              - To opt-in to [Fast mode](/api/docs/guides/fast-mode) at the request level,
+                include the `service_tier=fast` or `service_tier=priority` parameter for
+                Responses or Chat Completions. The response will show `service_tier=priority`
+                regardless of if you specify `service_tier=fast` or `priority` in your
+                request.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -434,7 +438,7 @@ class Completions(SyncAPIResource):
         response_format: completion_create_params.ResponseFormat | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
@@ -655,9 +659,13 @@ class Completions(SyncAPIResource):
                 will use 'default'.
               - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
-              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                '[priority](https://openai.com/api-priority-processing/)', then the request
-                will be processed with the corresponding service tier.
+              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)',
+                then the request will be processed with the Flex Processing service tier.
+              - To opt-in to [Fast mode](/api/docs/guides/fast-mode) at the request level,
+                include the `service_tier=fast` or `service_tier=priority` parameter for
+                Responses or Chat Completions. The response will show `service_tier=priority`
+                regardless of if you specify `service_tier=fast` or `priority` in your
+                request.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -762,7 +770,7 @@ class Completions(SyncAPIResource):
         response_format: completion_create_params.ResponseFormat | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
@@ -983,9 +991,13 @@ class Completions(SyncAPIResource):
                 will use 'default'.
               - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
-              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                '[priority](https://openai.com/api-priority-processing/)', then the request
-                will be processed with the corresponding service tier.
+              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)',
+                then the request will be processed with the Flex Processing service tier.
+              - To opt-in to [Fast mode](/api/docs/guides/fast-mode) at the request level,
+                include the `service_tier=fast` or `service_tier=priority` parameter for
+                Responses or Chat Completions. The response will show `service_tier=priority`
+                regardless of if you specify `service_tier=fast` or `priority` in your
+                request.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -1089,7 +1101,7 @@ class Completions(SyncAPIResource):
         response_format: completion_create_params.ResponseFormat | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
@@ -1420,7 +1432,7 @@ class AsyncCompletions(AsyncAPIResource):
         response_format: completion_create_params.ResponseFormat | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Omit = omit,
@@ -1633,9 +1645,13 @@ class AsyncCompletions(AsyncAPIResource):
                 will use 'default'.
               - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
-              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                '[priority](https://openai.com/api-priority-processing/)', then the request
-                will be processed with the corresponding service tier.
+              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)',
+                then the request will be processed with the Flex Processing service tier.
+              - To opt-in to [Fast mode](/api/docs/guides/fast-mode) at the request level,
+                include the `service_tier=fast` or `service_tier=priority` parameter for
+                Responses or Chat Completions. The response will show `service_tier=priority`
+                regardless of if you specify `service_tier=fast` or `priority` in your
+                request.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -1749,7 +1765,7 @@ class AsyncCompletions(AsyncAPIResource):
         response_format: completion_create_params.ResponseFormat | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
@@ -1970,9 +1986,13 @@ class AsyncCompletions(AsyncAPIResource):
                 will use 'default'.
               - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
-              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                '[priority](https://openai.com/api-priority-processing/)', then the request
-                will be processed with the corresponding service tier.
+              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)',
+                then the request will be processed with the Flex Processing service tier.
+              - To opt-in to [Fast mode](/api/docs/guides/fast-mode) at the request level,
+                include the `service_tier=fast` or `service_tier=priority` parameter for
+                Responses or Chat Completions. The response will show `service_tier=priority`
+                regardless of if you specify `service_tier=fast` or `priority` in your
+                request.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -2077,7 +2097,7 @@ class AsyncCompletions(AsyncAPIResource):
         response_format: completion_create_params.ResponseFormat | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
@@ -2298,9 +2318,13 @@ class AsyncCompletions(AsyncAPIResource):
                 will use 'default'.
               - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
-              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                '[priority](https://openai.com/api-priority-processing/)', then the request
-                will be processed with the corresponding service tier.
+              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)',
+                then the request will be processed with the Flex Processing service tier.
+              - To opt-in to [Fast mode](/api/docs/guides/fast-mode) at the request level,
+                include the `service_tier=fast` or `service_tier=priority` parameter for
+                Responses or Chat Completions. The response will show `service_tier=priority`
+                regardless of if you specify `service_tier=fast` or `priority` in your
+                request.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -2404,7 +2428,7 @@ class AsyncCompletions(AsyncAPIResource):
         response_format: completion_create_params.ResponseFormat | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
         seed: Optional[int] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
