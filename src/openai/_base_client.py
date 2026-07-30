@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import sys
 import json
+import math
 import time
 import uuid
 import email
@@ -796,9 +797,9 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
     ) -> float:
         max_retries = options.get_max_retries(self.max_retries)
 
-        # If the API asks us to wait a certain amount of time (and it's a reasonable amount), just do what it says.
+        # If the API asks us to wait a certain amount of time, just do what it says.
         retry_after = self._parse_retry_after_header(response_headers)
-        if retry_after is not None and 0 < retry_after <= 60:
+        if retry_after is not None and math.isfinite(retry_after) and retry_after > 0:
             return retry_after
 
         # Also cap retry count to 1000 to avoid any potential overflows with `pow`
