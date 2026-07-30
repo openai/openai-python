@@ -1,6 +1,6 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import Optional
+from typing import Optional, Union
 
 from ..._models import BaseModel
 
@@ -8,7 +8,7 @@ __all__ = ["ErrorObject"]
 
 
 class ErrorObject(BaseModel):
-    code: Optional[str] = None
+    code: Optional[Union[str, int]] = None
 
     message: str
 

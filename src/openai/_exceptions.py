@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Optional, cast
+from typing import TYPE_CHECKING, Any, Optional, cast, Union
 from typing_extensions import Literal
 
 import httpx
@@ -60,7 +60,7 @@ class APIError(OpenAIError):
     If there was no response associated with this error then it will be `None`.
     """
 
-    code: Optional[str] = None
+    code: Optional[Union[str, int]] = None
     param: Optional[str] = None
     type: Optional[str]
 
@@ -71,7 +71,7 @@ class APIError(OpenAIError):
         self.body = body
 
         if is_dict(body):
-            self.code = cast(Any, construct_type(type_=Optional[str], value=body.get("code")))
+            self.code = cast(Any, construct_type(type_=Optional[Union[str, int]], value=body.get("code")))
             self.param = cast(Any, construct_type(type_=Optional[str], value=body.get("param")))
             self.type = cast(Any, construct_type(type_=str, value=body.get("type")))
         else:
