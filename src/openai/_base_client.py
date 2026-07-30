@@ -783,11 +783,15 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
             pass
 
         # Last, try parsing `retry-after` as a date.
-        retry_date_tuple = email.utils.parsedate_tz(retry_header)
-        if retry_date_tuple is None:
+        try:
+            retry_date_tuple = email.utils.parsedate_tz(retry_header)
+            if retry_date_tuple is None:
+                return None
+
+            retry_date = email.utils.mktime_tz(retry_date_tuple)
+        except (TypeError, ValueError, OverflowError, OSError):
             return None
 
-        retry_date = email.utils.mktime_tz(retry_date_tuple)
         return float(retry_date - time.time())
 
     def _calculate_retry_timeout(
