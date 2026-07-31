@@ -248,7 +248,7 @@ class OpenAI(SyncAPIClient):
         if provider_runtime is not None:
             base_url = provider_runtime.base_url
         elif base_url is None:
-            base_url = os.environ.get("OPENAI_BASE_URL")
+            base_url = os.environ.get("OPENAI_BASE_URL") or None
         if base_url is None:
             base_url = f"https://api.openai.com/v1"
 
@@ -844,7 +844,7 @@ class AsyncOpenAI(AsyncAPIClient):
         if provider_runtime is not None:
             base_url = provider_runtime.base_url
         elif base_url is None:
-            base_url = os.environ.get("OPENAI_BASE_URL")
+            base_url = os.environ.get("OPENAI_BASE_URL") or None
         if base_url is None:
             base_url = f"https://api.openai.com/v1"
 
