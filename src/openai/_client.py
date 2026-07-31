@@ -64,6 +64,7 @@ if TYPE_CHECKING:
         moderations,
         conversations,
         vector_stores,
+        content_provenance_checks,
     )
     from .resources.files import Files, AsyncFiles
     from .resources.images import Images, AsyncImages
@@ -85,6 +86,7 @@ if TYPE_CHECKING:
     from .resources.responses.responses import Responses, AsyncResponses
     from .resources.containers.containers import Containers, AsyncContainers
     from .resources.fine_tuning.fine_tuning import FineTuning, AsyncFineTuning
+    from .resources.content_provenance_checks import ContentProvenanceChecks, AsyncContentProvenanceChecks
     from .resources.conversations.conversations import Conversations, AsyncConversations
     from .resources.vector_stores.vector_stores import VectorStores, AsyncVectorStores
 
@@ -318,6 +320,12 @@ class OpenAI(SyncAPIClient):
         from .resources.images import Images
 
         return Images(self)
+
+    @cached_property
+    def content_provenance_checks(self) -> ContentProvenanceChecks:
+        from .resources.content_provenance_checks import ContentProvenanceChecks
+
+        return ContentProvenanceChecks(self)
 
     @cached_property
     def audio(self) -> Audio:
@@ -920,6 +928,12 @@ class AsyncOpenAI(AsyncAPIClient):
         return AsyncImages(self)
 
     @cached_property
+    def content_provenance_checks(self) -> AsyncContentProvenanceChecks:
+        from .resources.content_provenance_checks import AsyncContentProvenanceChecks
+
+        return AsyncContentProvenanceChecks(self)
+
+    @cached_property
     def audio(self) -> AsyncAudio:
         from .resources.audio import AsyncAudio
 
@@ -1360,6 +1374,12 @@ class OpenAIWithRawResponse:
         return ImagesWithRawResponse(self._client.images)
 
     @cached_property
+    def content_provenance_checks(self) -> content_provenance_checks.ContentProvenanceChecksWithRawResponse:
+        from .resources.content_provenance_checks import ContentProvenanceChecksWithRawResponse
+
+        return ContentProvenanceChecksWithRawResponse(self._client.content_provenance_checks)
+
+    @cached_property
     def audio(self) -> audio.AudioWithRawResponse:
         from .resources.audio import AudioWithRawResponse
 
@@ -1509,6 +1529,12 @@ class AsyncOpenAIWithRawResponse:
         from .resources.images import AsyncImagesWithRawResponse
 
         return AsyncImagesWithRawResponse(self._client.images)
+
+    @cached_property
+    def content_provenance_checks(self) -> content_provenance_checks.AsyncContentProvenanceChecksWithRawResponse:
+        from .resources.content_provenance_checks import AsyncContentProvenanceChecksWithRawResponse
+
+        return AsyncContentProvenanceChecksWithRawResponse(self._client.content_provenance_checks)
 
     @cached_property
     def audio(self) -> audio.AsyncAudioWithRawResponse:
@@ -1662,6 +1688,12 @@ class OpenAIWithStreamedResponse:
         return ImagesWithStreamingResponse(self._client.images)
 
     @cached_property
+    def content_provenance_checks(self) -> content_provenance_checks.ContentProvenanceChecksWithStreamingResponse:
+        from .resources.content_provenance_checks import ContentProvenanceChecksWithStreamingResponse
+
+        return ContentProvenanceChecksWithStreamingResponse(self._client.content_provenance_checks)
+
+    @cached_property
     def audio(self) -> audio.AudioWithStreamingResponse:
         from .resources.audio import AudioWithStreamingResponse
 
@@ -1811,6 +1843,12 @@ class AsyncOpenAIWithStreamedResponse:
         from .resources.images import AsyncImagesWithStreamingResponse
 
         return AsyncImagesWithStreamingResponse(self._client.images)
+
+    @cached_property
+    def content_provenance_checks(self) -> content_provenance_checks.AsyncContentProvenanceChecksWithStreamingResponse:
+        from .resources.content_provenance_checks import AsyncContentProvenanceChecksWithStreamingResponse
+
+        return AsyncContentProvenanceChecksWithStreamingResponse(self._client.content_provenance_checks)
 
     @cached_property
     def audio(self) -> audio.AsyncAudioWithStreamingResponse:

@@ -470,4 +470,5 @@ from ._module_client import (
     moderations as moderations,
     conversations as conversations,
     vector_stores as vector_stores,
+    content_provenance_checks as content_provenance_checks,
 )

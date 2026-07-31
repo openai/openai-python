@@ -26,6 +26,7 @@ if TYPE_CHECKING:
     from .resources.responses.responses import Responses
     from .resources.containers.containers import Containers
     from .resources.fine_tuning.fine_tuning import FineTuning
+    from .resources.content_provenance_checks import ContentProvenanceChecks
     from .resources.conversations.conversations import Conversations
     from .resources.vector_stores.vector_stores import VectorStores
 
@@ -165,6 +166,12 @@ class ConversationsProxy(LazyProxy["Conversations"]):
         return _load_client().conversations
 
 
+class ContentProvenanceChecksProxy(LazyProxy["ContentProvenanceChecks"]):
+    @override
+    def __load__(self) -> ContentProvenanceChecks:
+        return _load_client().content_provenance_checks
+
+
 chat: Chat = ChatProxy().__as_proxied__()
 beta: Beta = BetaProxy().__as_proxied__()
 files: Files = FilesProxy().__as_proxied__()
@@ -187,3 +194,4 @@ moderations: Moderations = ModerationsProxy().__as_proxied__()
 fine_tuning: FineTuning = FineTuningProxy().__as_proxied__()
 vector_stores: VectorStores = VectorStoresProxy().__as_proxied__()
 conversations: Conversations = ConversationsProxy().__as_proxied__()
+content_provenance_checks: ContentProvenanceChecks = ContentProvenanceChecksProxy().__as_proxied__()

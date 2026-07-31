@@ -161,8 +161,24 @@ class ResponseCompactParams(TypedDict, total=False):
     prompt_cache_retention: Optional[Literal["in_memory", "24h"]]
     """How long to retain a prompt cache entry created by this request."""
 
-    service_tier: Optional[Literal["auto", "default", "flex", "priority"]]
-    """The service tier to use for this request."""
+    service_tier: Optional[Literal["auto", "default", "fast", "flex", "priority"]]
+    """Specifies the processing type used for serving the request.
+
+    - If set to 'auto', then the request will be processed with the service tier
+      configured in the Project settings. Unless otherwise configured, the Project
+      will use 'default'. - If set to 'default', then the request will be processed
+      with the standard pricing and performance for the selected model. - If set to
+      '[flex](https://platform.openai.com/docs/guides/flex-processing)', then the
+      request will be processed with the Flex Processing service tier. - To opt-in
+      to [Fast mode](/api/docs/guides/fast-mode) at the request level, include the
+      `service_tier=fast` or `service_tier=priority` parameter for Responses or Chat
+      Completions. The response will show `service_tier=priority` regardless of if
+      you specify `service_tier=fast` or `priority` in your request. - When not set,
+      the default behavior is 'auto'. When the `service_tier` parameter is set, the
+      response body will include the `service_tier` value based on the processing
+      mode actually used to serve the request. This response value may be different
+      from the value set in the parameter.
+    """
 
 
 class PromptCacheOptions(TypedDict, total=False):
