@@ -1851,7 +1851,7 @@ class Responses(SyncAPIResource):
         prompt_cache_key: Optional[str] | Omit = omit,
         prompt_cache_options: Optional[response_compact_params.PromptCacheOptions] | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "priority"]] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "fast", "flex", "priority"]] | Omit = omit,
         betas: List[Literal["responses_multi_agent=v1"]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1902,7 +1902,21 @@ class Responses(SyncAPIResource):
 
           prompt_cache_retention: How long to retain a prompt cache entry created by this request.
 
-          service_tier: The service tier to use for this request.
+          service_tier: Specifies the processing type used for serving the request. - If set to 'auto',
+              then the request will be processed with the service tier configured in the
+              Project settings. Unless otherwise configured, the Project will use 'default'. -
+              If set to 'default', then the request will be processed with the standard
+              pricing and performance for the selected model. - If set to
+              '[flex](https://platform.openai.com/docs/guides/flex-processing)', then the
+              request will be processed with the Flex Processing service tier. - To opt-in to
+              [Fast mode](/api/docs/guides/fast-mode) at the request level, include the
+              `service_tier=fast` or `service_tier=priority` parameter for Responses or Chat
+              Completions. The response will show `service_tier=priority` regardless of if you
+              specify `service_tier=fast` or `priority` in your request. - When not set, the
+              default behavior is 'auto'. When the `service_tier` parameter is set, the
+              response body will include the `service_tier` value based on the processing mode
+              actually used to serve the request. This response value may be different from
+              the value set in the parameter.
 
           extra_headers: Send extra headers
 
@@ -3745,7 +3759,7 @@ class AsyncResponses(AsyncAPIResource):
         prompt_cache_key: Optional[str] | Omit = omit,
         prompt_cache_options: Optional[response_compact_params.PromptCacheOptions] | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "priority"]] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "fast", "flex", "priority"]] | Omit = omit,
         betas: List[Literal["responses_multi_agent=v1"]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -3796,7 +3810,21 @@ class AsyncResponses(AsyncAPIResource):
 
           prompt_cache_retention: How long to retain a prompt cache entry created by this request.
 
-          service_tier: The service tier to use for this request.
+          service_tier: Specifies the processing type used for serving the request. - If set to 'auto',
+              then the request will be processed with the service tier configured in the
+              Project settings. Unless otherwise configured, the Project will use 'default'. -
+              If set to 'default', then the request will be processed with the standard
+              pricing and performance for the selected model. - If set to
+              '[flex](https://platform.openai.com/docs/guides/flex-processing)', then the
+              request will be processed with the Flex Processing service tier. - To opt-in to
+              [Fast mode](/api/docs/guides/fast-mode) at the request level, include the
+              `service_tier=fast` or `service_tier=priority` parameter for Responses or Chat
+              Completions. The response will show `service_tier=priority` regardless of if you
+              specify `service_tier=fast` or `priority` in your request. - When not set, the
+              default behavior is 'auto'. When the `service_tier` parameter is set, the
+              response body will include the `service_tier` value based on the processing mode
+              actually used to serve the request. This response value may be different from
+              the value set in the parameter.
 
           extra_headers: Send extra headers
 
