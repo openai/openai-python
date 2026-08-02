@@ -71,7 +71,12 @@ def parse_response(
                         type_=ParsedResponseOutputText[TextFormatT],
                         value={
                             **item.to_dict(),
-                            "parsed": parse_text(item.text, text_format=text_format) if item.text is not None else None,
+                            # item.text is typed str, but some backends send null; guard anyway.
+                            "parsed": (
+                                parse_text(item.text, text_format=text_format)
+                                if item.text is not None  # pyright: ignore[reportUnnecessaryComparison]
+                                else None
+                            ),
                         },
                     )
                 )

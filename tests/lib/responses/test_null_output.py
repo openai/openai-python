@@ -1,11 +1,15 @@
 """Regression tests for null-output edge cases in the Responses API."""
+
 from __future__ import annotations
 
+from typing import Any
+
+from openai import omit
 from openai.lib._parsing._responses import parse_response
 from openai.types.responses.response import Response
 
 
-def _make_response(output):
+def _make_response(output: Any) -> Response:
     """Build a minimal Response fixture with the given output value."""
     return Response.model_construct(
         id="resp_test",
@@ -68,17 +72,15 @@ def test_output_text_property_null_text_in_content():
 
 def test_parse_response_null_output_does_not_crash():
     """parse_response must not raise TypeError when response.output is None (issue #3325)."""
-    from openai import NOT_GIVEN
 
     resp = _make_response(output=None)
     # Should not raise
-    parsed = parse_response(text_format=NOT_GIVEN, input_tools=NOT_GIVEN, response=resp)
+    parsed = parse_response(text_format=omit, input_tools=omit, response=resp)
     assert parsed.output == []
 
 
 def test_parse_response_null_text_skips_structured_parse():
     """parse_response must not crash when an output_text item has text=None (issue #3063)."""
-    from openai import NOT_GIVEN
     from openai.types.responses.response_output_text import ResponseOutputText
     from openai.types.responses.response_output_message import ResponseOutputMessage
 
@@ -95,5 +97,5 @@ def test_parse_response_null_text_skips_structured_parse():
     )
     resp = _make_response(output=[msg])
     # Should not raise; null-text item gets parsed=None, non-null item gets parsed normally.
-    parsed = parse_response(text_format=NOT_GIVEN, input_tools=NOT_GIVEN, response=resp)
+    parsed = parse_response(text_format=omit, input_tools=omit, response=resp)
     assert len(parsed.output) == 1

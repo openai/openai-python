@@ -19,6 +19,7 @@ from ...._models import build, construct_type_unchecked
 from ...._streaming import Stream, AsyncStream
 from ....types.responses import ParsedResponse, ResponseStreamEvent as RawResponseStreamEvent
 from ..._parsing._responses import TextFormatT, parse_text, parse_response
+from ....types.responses.response import Response
 from ....types.responses.tool_param import ToolParam
 from ....types.responses.parsed_response import (
     ParsedContent,
@@ -365,11 +366,17 @@ class ResponseStreamState(Generic[TextFormatT]):
             # output list; instead we patch the completed event's response with
             # the accumulated snapshot output before parsing so that the final
             # ParsedResponse contains the real content.
-            completed_response = event.response
-            if completed_response.output is None and snapshot is not None:
-                completed_response = build(
-                    type(completed_response),
-                    **{**completed_response.to_dict(), "output": [item.to_dict() for item in snapshot.output]},
+            completed_response: Response = event.response
+            # output is typed as a list, but the null-completed backend case is
+            # exactly what this branch exists for.
+            if completed_response.output is None and snapshot is not None:  # pyright: ignore[reportUnnecessaryComparison]
+                # build() is untyped, so cast to keep the annotation meaningful.
+                completed_response = cast(
+                    Response,
+                    build(
+                        type(completed_response),
+                        **{**completed_response.to_dict(), "output": [item.to_dict() for item in snapshot.output]},
+                    ),
                 )
             self._completed_response = parse_response(
                 text_format=self._text_format,

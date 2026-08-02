@@ -482,7 +482,7 @@ class Response(BaseModel):
         for output in self.output or []:
             if output.type == "message":
                 for content in output.content:
-                    if content.type == "output_text" and content.text is not None:
+                    if content.type == "output_text" and content.text is not None:  # pyright: ignore[reportUnnecessaryComparison]
                         texts.append(content.text)
 
         return "".join(texts)
