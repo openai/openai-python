@@ -74,5 +74,8 @@ class ProjectAPIKey(BaseModel):
 
     owner: Owner
 
+    owner_project_access: Literal["active", "inactive"]
+    """Whether the API key's owner currently has effective access to the project."""
+
     redacted_value: str
     """The redacted value of the API key"""

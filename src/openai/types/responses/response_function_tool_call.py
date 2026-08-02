@@ -1,11 +1,26 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import Optional
-from typing_extensions import Literal
+from typing import Union, Optional
+from typing_extensions import Literal, Annotated, TypeAlias
 
+from ..._utils import PropertyInfo
 from ..._models import BaseModel
 
-__all__ = ["ResponseFunctionToolCall"]
+__all__ = ["ResponseFunctionToolCall", "Caller", "CallerDirect", "CallerProgram"]
+
+
+class CallerDirect(BaseModel):
+    type: Literal["direct"]
+
+
+class CallerProgram(BaseModel):
+    caller_id: str
+    """The call ID of the program item that produced this tool call."""
+
+    type: Literal["program"]
+
+
+Caller: TypeAlias = Annotated[Union[CallerDirect, CallerProgram, None], PropertyInfo(discriminator="type")]
 
 
 class ResponseFunctionToolCall(BaseModel):
@@ -29,6 +44,9 @@ class ResponseFunctionToolCall(BaseModel):
 
     id: Optional[str] = None
     """The unique ID of the function tool call."""
+
+    caller: Optional[Caller] = None
+    """The execution context that produced this tool call."""
 
     namespace: Optional[str] = None
     """The namespace of the function to run."""

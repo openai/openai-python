@@ -7,13 +7,16 @@ from typing_extensions import Literal, Required, TypedDict
 
 from .response_input_item_param import ResponseInputItemParam
 
-__all__ = ["ResponseCompactParams"]
+__all__ = ["ResponseCompactParams", "PromptCacheOptions"]
 
 
 class ResponseCompactParams(TypedDict, total=False):
     model: Required[
         Union[
             Literal[
+                "gpt-5.6-sol",
+                "gpt-5.6-terra",
+                "gpt-5.6-luna",
                 "gpt-5.4",
                 "gpt-5.4-mini",
                 "gpt-5.4-nano",
@@ -141,8 +144,62 @@ class ResponseCompactParams(TypedDict, total=False):
     prompt_cache_key: Optional[str]
     """A key to use when reading from or writing to the prompt cache."""
 
+    prompt_cache_options: Optional[PromptCacheOptions]
+    """Options for prompt caching.
+
+    Supported for `gpt-5.6` and later models. By default, OpenAI automatically
+    chooses one implicit cache breakpoint. You can add explicit breakpoints to
+    content blocks with `prompt_cache_breakpoint`. Each request can write up to four
+    breakpoints. For cache matching, OpenAI considers up to the latest 80
+    breakpoints in the conversation, without a content-block lookback limit. Set
+    `mode` to `explicit` to disable the implicit breakpoint. The `ttl` defaults to
+    `30m`, which is currently the only supported value. See the
+    [prompt caching guide](https://platform.openai.com/docs/guides/prompt-caching)
+    for current details.
+    """
+
     prompt_cache_retention: Optional[Literal["in_memory", "24h"]]
     """How long to retain a prompt cache entry created by this request."""
 
-    service_tier: Optional[Literal["auto", "default", "flex", "priority"]]
-    """The service tier to use for this request."""
+    service_tier: Optional[Literal["auto", "default", "fast", "flex", "priority"]]
+    """Specifies the processing type used for serving the request.
+
+    - If set to 'auto', then the request will be processed with the service tier
+      configured in the Project settings. Unless otherwise configured, the Project
+      will use 'default'. - If set to 'default', then the request will be processed
+      with the standard pricing and performance for the selected model. - If set to
+      '[flex](https://platform.openai.com/docs/guides/flex-processing)', then the
+      request will be processed with the Flex Processing service tier. - To opt-in
+      to [Fast mode](/api/docs/guides/fast-mode) at the request level, include the
+      `service_tier=fast` or `service_tier=priority` parameter for Responses or Chat
+      Completions. The response will show `service_tier=priority` regardless of if
+      you specify `service_tier=fast` or `priority` in your request. - When not set,
+      the default behavior is 'auto'. When the `service_tier` parameter is set, the
+      response body will include the `service_tier` value based on the processing
+      mode actually used to serve the request. This response value may be different
+      from the value set in the parameter.
+    """
+
+
+class PromptCacheOptions(TypedDict, total=False):
+    """Options for prompt caching.
+
+    Supported for `gpt-5.6` and later models. By default, OpenAI automatically chooses one implicit cache breakpoint. You can add explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each request can write up to four breakpoints. For cache matching, OpenAI considers up to the latest 80 breakpoints in the conversation, without a content-block lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The `ttl` defaults to `30m`, which is currently the only supported value. See the [prompt caching guide](https://platform.openai.com/docs/guides/prompt-caching) for current details.
+    """
+
+    mode: Literal["implicit", "explicit"]
+    """Controls whether OpenAI automatically creates an implicit cache breakpoint.
+
+    Defaults to `implicit`. With `implicit`, OpenAI creates one implicit breakpoint
+    and writes up to the latest three explicit breakpoints in the request. With
+    `explicit`, OpenAI does not create an implicit breakpoint and writes up to the
+    latest four explicit breakpoints. If there are no explicit breakpoints, the
+    request does not use prompt caching.
+    """
+
+    ttl: Literal["30m"]
+    """
+    The minimum lifetime applied to every implicit and explicit cache breakpoint
+    written by the request. Defaults to `30m`, which is currently the only supported
+    value. The backend may retain cache entries for longer.
+    """

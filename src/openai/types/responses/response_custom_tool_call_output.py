@@ -9,11 +9,27 @@ from .response_input_file import ResponseInputFile
 from .response_input_text import ResponseInputText
 from .response_input_image import ResponseInputImage
 
-__all__ = ["ResponseCustomToolCallOutput", "OutputOutputContentList"]
+__all__ = ["ResponseCustomToolCallOutput", "OutputOutputContentList", "Caller", "CallerDirect", "CallerProgram"]
 
 OutputOutputContentList: TypeAlias = Annotated[
     Union[ResponseInputText, ResponseInputImage, ResponseInputFile], PropertyInfo(discriminator="type")
 ]
+
+
+class CallerDirect(BaseModel):
+    type: Literal["direct"]
+    """The caller type. Always `direct`."""
+
+
+class CallerProgram(BaseModel):
+    caller_id: str
+    """The call ID of the program item that produced this tool call."""
+
+    type: Literal["program"]
+    """The caller type. Always `program`."""
+
+
+Caller: TypeAlias = Annotated[Union[CallerDirect, CallerProgram, None], PropertyInfo(discriminator="type")]
 
 
 class ResponseCustomToolCallOutput(BaseModel):
@@ -33,3 +49,6 @@ class ResponseCustomToolCallOutput(BaseModel):
 
     id: Optional[str] = None
     """The unique ID of the custom tool call output in the OpenAI platform."""
+
+    caller: Optional[Caller] = None
+    """The execution context that produced this tool call."""

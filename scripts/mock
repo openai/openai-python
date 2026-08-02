@@ -7,6 +7,15 @@ cd "$(dirname "$0")/.."
 if [[ -n "$1" && "$1" != '--'* ]]; then
   URL="$1"
   shift
+elif [[ -f .castiron.stats.yml && -f api_reference/openapi.transformed.yml ]]; then
+  URL="api_reference/openapi.transformed.yml"
+  EXPECTED_HASH="$(awk '$1 == "openapi_transformed_spec_hash:" { print $2; exit }' .castiron.stats.yml)"
+  ACTUAL_HASH="$(node -e 'process.stdout.write(require("node:crypto").createHash("md5").update(require("node:fs").readFileSync(process.argv[1])).digest("hex"))' "$URL")"
+
+  if [[ -z "$EXPECTED_HASH" || "$ACTUAL_HASH" != "$EXPECTED_HASH" ]]; then
+    echo "Error: Local OpenAPI specification does not match generation metadata" >&2
+    exit 1
+  fi
 else
   URL="$(grep 'openapi_spec_url' .stats.yml | cut -d' ' -f2)"
 fi

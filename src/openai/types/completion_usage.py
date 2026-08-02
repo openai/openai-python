@@ -37,6 +37,9 @@ class PromptTokensDetails(BaseModel):
     audio_tokens: Optional[int] = None
     """Audio input tokens present in the prompt."""
 
+    cache_write_tokens: Optional[int] = None
+    """The unadjusted number of prompt tokens written to cache."""
+
     cached_tokens: Optional[int] = None
     """Cached tokens present in the prompt."""
 

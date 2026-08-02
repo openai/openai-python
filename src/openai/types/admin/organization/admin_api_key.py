@@ -37,6 +37,9 @@ class AdminAPIKey(BaseModel):
     created_at: int
     """The Unix timestamp (in seconds) of when the API key was created"""
 
+    expires_at: Optional[int] = None
+    """The Unix timestamp (in seconds) of when the API key expires"""
+
     object: Literal["organization.admin_api_key"]
     """The object type, which is always `organization.admin_api_key`"""
 

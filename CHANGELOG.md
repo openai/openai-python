@@ -1,5 +1,147 @@
 # Changelog
 
+## 2.52.0 (2026-07-31)
+
+Full Changelog: [v2.51.0...v2.52.0](https://github.com/openai/openai-python/compare/v2.51.0...v2.52.0)
+
+### Features
+
+* **api:** content provenance checks ([1d6c118](https://github.com/openai/openai-python/commit/1d6c1180f8eaa71bfd45cae67360987b2bea3656))
+
+
+### Bug Fixes
+
+* **client:** honor Retry-After delays up to two minutes ([#3555](https://github.com/openai/openai-python/issues/3555)) ([7fa7946](https://github.com/openai/openai-python/commit/7fa7946485b5ecbadd0ebf8624c574e2c9e3370c))
+
+
+### Documentation
+
+* add API-key mTLS HTTP client recipes ([#3552](https://github.com/openai/openai-python/issues/3552)) ([7a3d5e4](https://github.com/openai/openai-python/commit/7a3d5e46b61cb36109dc4e7fd6d4ab70cc6d6c0f))
+
+## 2.51.0 (2026-07-30)
+
+Full Changelog: [v2.50.0...v2.51.0](https://github.com/openai/openai-python/compare/v2.50.0...v2.51.0)
+
+### Features
+
+* **api:** fast tier ([8808ed2](https://github.com/openai/openai-python/commit/8808ed27952dae13fb8761f045376af5b3e5bec2))
+
+
+### Bug Fixes
+
+* **api:** add fast tier to helper methods ([6064126](https://github.com/openai/openai-python/commit/60641266ff4b296044a81fe1717c17a70ceadbf1))
+
+## 2.50.0 (2026-07-28)
+
+Full Changelog: [v2.49.0...v2.50.0](https://github.com/openai/openai-python/compare/v2.49.0...v2.50.0)
+
+### Features
+
+* **api:** transcription model updates ([fd57393](https://github.com/openai/openai-python/commit/fd57393389eac75af08c2e887cb188590448be20))
+
+
+### Bug Fixes
+
+* **audio:** restore transcription keyword overload ([713a262](https://github.com/openai/openai-python/commit/713a2624966c40f4e5b0c20436b8a79aa8383b08))
+
+## 2.49.0 (2026-07-27)
+
+Full Changelog: [v2.48.0...v2.49.0](https://github.com/openai/openai-python/compare/v2.48.0...v2.49.0)
+
+### Features
+
+* require Python 3.10 and automate version reviews ([#3537](https://github.com/openai/openai-python/issues/3537)) ([d4c151d](https://github.com/openai/openai-python/commit/d4c151d92ba713e56518a4483d3b7918dd1be838))
+
+## 2.48.0 (2026-07-23)
+
+Full Changelog: [v2.47.0...v2.48.0](https://github.com/openai/openai-python/compare/v2.47.0...v2.48.0)
+
+### Features
+
+* **api:** accept `None` for prompt_cache_key/safety_identifier ([36820e6](https://github.com/openai/openai-python/commit/36820e69ba6cf1dc3f8d411e48a36e56084fbbc4))
+* **api:** add support for `spend_limit` admin apis ([1ff13af](https://github.com/openai/openai-python/commit/1ff13afb6e831394036686a1c352bbec6d704c68))
+
+## 2.47.0 (2026-07-21)
+
+Full Changelog: [v2.46.0...v2.47.0](https://github.com/openai/openai-python/compare/v2.46.0...v2.47.0)
+
+### Features
+
+* **client:** Add experimental runtime support for HTTPX2 clients ([#3524](https://github.com/openai/openai-python/issues/3524)) ([317260c](https://github.com/openai/openai-python/commit/317260cd16395b2338bcdaacd7daa0b179c90105))
+* **stlc:** configurable CI runner and private-production-repo support in workflow templates ([4303e97](https://github.com/openai/openai-python/commit/4303e974f08394789c6075b6745357b2f1c36e21))
+
+
+### Bug Fixes
+
+* **deps:** require patched aiohttp on Python 3.10+ ([#3515](https://github.com/openai/openai-python/issues/3515)) ([d4dceb2](https://github.com/openai/openai-python/commit/d4dceb221b9a92c55c232d5b330ae89beb539415))
+
+## 2.46.0 (2026-07-17)
+
+Full Changelog: [v2.45.0...v2.46.0](https://github.com/openai/openai-python/compare/v2.45.0...v2.46.0)
+
+### Features
+
+* **api:** /organization/projects/{project_id}/service_accounts/{service_account_id}/api_keys" endpoint ([5a00941](https://github.com/openai/openai-python/commit/5a0094194eac9c605c8ca84d47d1c5518f8e2131))
+* **api:** add owner_project_access to APIKeyListParams ([f589d04](https://github.com/openai/openai-python/commit/f589d04bf9f377ecb1f54335ab3ab9d825b5dfee))
+* **api:** manual updates ([980f176](https://github.com/openai/openai-python/commit/980f176e83ee5d991bf9e8e4def80d9905ade5ec))
+* **api:** manual updates ([2eae984](https://github.com/openai/openai-python/commit/2eae984315580cdbf9ceb14d6cb568c581baa768))
+
+
+### Bug Fixes
+
+* **api:** preserve generated type compatibility ([00bd72a](https://github.com/openai/openai-python/commit/00bd72adbe03f4b5c4b89d91b8d317f11b58bbdf))
+* **api:** remove beta annotation compatibility aliases ([99dbd15](https://github.com/openai/openai-python/commit/99dbd15ff3ad1628b94a729a6b688212d4655908))
+
+## 2.45.0 (2026-07-09)
+
+Full Changelog: [v2.44.0...v2.45.0](https://github.com/openai/openai-python/compare/v2.44.0...v2.45.0)
+
+### Features
+
+* **api:** gpt-5.6-sol updates ([039d1fe](https://github.com/openai/openai-python/commit/039d1feb264a2dca7195ba5028e9fb47a5e04987))
+
+
+### Bug Fixes
+
+* **api:** restore beta resource accessors ([2dfc130](https://github.com/openai/openai-python/commit/2dfc130b8f0fdb0049e075aac21aaef29482b4e3))
+
+
+### Chores
+
+* retrigger release automation ([7b61351](https://github.com/openai/openai-python/commit/7b61351b014bb6ca4623ff6cce7f32f45038a92e))
+
+## 2.44.0 (2026-06-24)
+
+Full Changelog: [v2.43.0...v2.44.0](https://github.com/openai/openai-python/compare/v2.43.0...v2.44.0)
+
+### Bug Fixes
+
+* **auth:** prioritize first auth header ([797e336](https://github.com/openai/openai-python/commit/797e3362e222ae14e587a4543b76a54d8992d66c))
+
+## 2.43.0 (2026-06-17)
+
+Full Changelog: [v2.42.0...v2.43.0](https://github.com/openai/openai-python/compare/v2.42.0...v2.43.0)
+
+### Features
+
+* **api:** update OpenAPI spec or Stainless config ([2254235](https://github.com/openai/openai-python/commit/22542358490ef8f31f0d373e17f7b791b3d983ca))
+
+## 2.42.0 (2026-06-16)
+
+Full Changelog: [v2.41.1...v2.42.0](https://github.com/openai/openai-python/compare/v2.41.1...v2.42.0)
+
+### Features
+
+* **api:** admin spend_alerts ([6134198](https://github.com/openai/openai-python/commit/6134198a488996c4ff6fca4551afd55fb3294fdc))
+* **api:** manual updates ([f337bf4](https://github.com/openai/openai-python/commit/f337bf43276c880d2daf09a5d7f9fc9a886c4bf2))
+* **api:** update OpenAPI spec or Stainless config ([7015158](https://github.com/openai/openai-python/commit/7015158c3119acf57af6c20903587cef928530a9))
+
+
+### Build System
+
+* fix release workflow permissions ([#3389](https://github.com/openai/openai-python/issues/3389)) ([a526ee8](https://github.com/openai/openai-python/commit/a526ee813f085318fe3c6923ac3fa10c1cf56420))
+* Use CI environment for examples API key ([#3394](https://github.com/openai/openai-python/issues/3394)) ([d64d811](https://github.com/openai/openai-python/commit/d64d811e82aff724397e32d593e50657fee3f905))
+
 ## 2.41.1 (2026-06-05)
 
 Full Changelog: [v2.41.0...v2.41.1](https://github.com/openai/openai-python/compare/v2.41.0...v2.41.1)

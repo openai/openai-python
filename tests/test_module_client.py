@@ -253,6 +253,30 @@ def test_bedrock_module_api_key_overrides_cached_env_token_after_load() -> None:
         assert client.api_key == "new Bedrock token"
 
 
+def test_bedrock_module_api_key_switches_cached_aws_client_to_bearer() -> None:
+    requests: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        return httpx.Response(200, request=request, json={})
+
+    with fresh_env():
+        openai.api_type = "amazon-bedrock"
+        openai.http_client = httpx.Client(transport=httpx.MockTransport(handler), trust_env=False)
+        _os.environ["AWS_ACCESS_KEY_ID"] = "access key"
+        _os.environ["AWS_SECRET_ACCESS_KEY"] = "secret key"
+        _os.environ["AWS_REGION"] = "us-west-2"
+
+        client = openai.responses._client
+        assert isinstance(client, BedrockOpenAI)
+        assert client._uses_aws_auth()
+
+        openai.api_key = "new Bedrock token"
+        client.get("/models", cast_to=httpx.Response)
+
+        assert requests[0].headers["Authorization"] == "Bearer new Bedrock token"
+
+
 def test_bedrock_api_type_uses_token_provider_without_mutating_module_api_key() -> None:
     with fresh_env():
         openai.api_type = "amazon-bedrock"
@@ -263,3 +287,32 @@ def test_bedrock_api_type_uses_token_provider_without_mutating_module_api_key() 
         assert isinstance(client, BedrockOpenAI)
         assert client._refresh_api_key() == "provider Bedrock token"
         assert openai.api_key is None
+
+
+def test_bedrock_module_api_key_overrides_cached_token_provider() -> None:
+    requests: list[httpx.Request] = []
+    provider_calls = 0
+
+    def token_provider() -> str:
+        nonlocal provider_calls
+        provider_calls += 1
+        raise AssertionError("the replaced token provider must not be called")
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        return httpx.Response(200, request=request, json={})
+
+    with fresh_env():
+        openai.api_type = "amazon-bedrock"
+        openai.bedrock_token_provider = token_provider
+        openai.http_client = httpx.Client(transport=httpx.MockTransport(handler), trust_env=False)
+        _os.environ["AWS_REGION"] = "us-west-2"
+
+        client = openai.responses._client
+        assert isinstance(client, BedrockOpenAI)
+
+        openai.api_key = "new Bedrock token"
+        client.get("/models", cast_to=httpx.Response)
+
+    assert provider_calls == 0
+    assert requests[0].headers["Authorization"] == "Bearer new Bedrock token"

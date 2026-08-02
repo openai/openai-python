@@ -26,6 +26,7 @@ import pydantic
 
 from ._types import NoneType
 from ._utils import is_given, extract_type_arg, is_annotated_type, is_type_alias_type, extract_type_var_from_base
+from ._httpx2 import http_response_types, stream_consumed_exceptions
 from ._models import BaseModel, is_basemodel, add_request_id
 from ._constants import RAW_RESPONSE_HEADER, OVERRIDE_CAST_TO_HEADER
 from ._streaming import Stream, AsyncStream, is_stream_class_type, extract_stream_chunk_type
@@ -207,14 +208,15 @@ class BaseAPIResponse(Generic[R]):
         if origin == APIResponse:
             raise RuntimeError("Unexpected state - cast_to is `APIResponse`")
 
-        if inspect.isclass(origin) and issubclass(origin, httpx.Response):
+        response_types = http_response_types()
+        if inspect.isclass(origin) and issubclass(origin, response_types):
             # Because of the invariance of our ResponseT TypeVar, users can subclass httpx.Response
             # and pass that class to our request functions. We cannot change the variance to be either
             # covariant or contravariant as that makes our usage of ResponseT illegal. We could construct
             # the response class ourselves but that is something that should be supported directly in httpx
             # as it would be easy to incorrectly construct the Response object due to the multitude of arguments.
-            if cast_to != httpx.Response:
-                raise ValueError(f"Subclasses of httpx.Response cannot be passed to `cast_to`")
+            if cast_to not in response_types:
+                raise ValueError("Subclasses of HTTP response classes cannot be passed to `cast_to`")
             return cast(R, response)
 
         if (
@@ -337,7 +339,7 @@ class APIResponse(BaseAPIResponse[R]):
         """Read and return the binary response content."""
         try:
             return self.http_response.read()
-        except httpx.StreamConsumed as exc:
+        except stream_consumed_exceptions() as exc:
             # The default error raised by httpx isn't very
             # helpful in our case so we re-raise it with
             # a different error message.
@@ -444,7 +446,7 @@ class AsyncAPIResponse(BaseAPIResponse[R]):
         """Read and return the binary response content."""
         try:
             return await self.http_response.aread()
-        except httpx.StreamConsumed as exc:
+        except stream_consumed_exceptions() as exc:
             # the default error raised by httpx isn't very
             # helpful in our case so we re-raise it with
             # a different error message

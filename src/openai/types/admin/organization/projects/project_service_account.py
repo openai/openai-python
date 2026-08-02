@@ -22,5 +22,5 @@ class ProjectServiceAccount(BaseModel):
     object: Literal["organization.project.service_account"]
     """The object type, which is always `organization.project.service_account`"""
 
-    role: Literal["owner", "member"]
-    """`owner` or `member`"""
+    role: Literal["owner", "member", "none"]
+    """`owner`, `member`, or `none`"""

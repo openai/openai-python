@@ -40,7 +40,9 @@ class TestClientSecrets:
                         "noise_reduction": {"type": "near_field"},
                         "transcription": {
                             "delay": "minimal",
+                            "keywords": ["string"],
                             "language": "language",
+                            "languages": ["string"],
                             "model": "whisper-1",
                             "prompt": "prompt",
                         },
@@ -139,7 +141,9 @@ class TestAsyncClientSecrets:
                         "noise_reduction": {"type": "near_field"},
                         "transcription": {
                             "delay": "minimal",
+                            "keywords": ["string"],
                             "language": "language",
+                            "languages": ["string"],
                             "model": "whisper-1",
                             "prompt": "prompt",
                         },

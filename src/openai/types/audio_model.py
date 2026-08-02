@@ -6,6 +6,7 @@ __all__ = ["AudioModel"]
 
 AudioModel: TypeAlias = Literal[
     "whisper-1",
+    "gpt-transcribe",
     "gpt-4o-transcribe",
     "gpt-4o-mini-transcribe",
     "gpt-4o-mini-transcribe-2025-12-15",

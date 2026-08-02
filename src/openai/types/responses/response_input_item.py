@@ -31,6 +31,9 @@ __all__ = [
     "ComputerCallOutput",
     "ComputerCallOutputAcknowledgedSafetyCheck",
     "FunctionCallOutput",
+    "FunctionCallOutputCaller",
+    "FunctionCallOutputCallerDirect",
+    "FunctionCallOutputCallerProgram",
     "ToolSearchCall",
     "AdditionalTools",
     "ImageGenerationCall",
@@ -39,14 +42,26 @@ __all__ = [
     "LocalShellCallOutput",
     "ShellCall",
     "ShellCallAction",
+    "ShellCallCaller",
+    "ShellCallCallerDirect",
+    "ShellCallCallerProgram",
     "ShellCallEnvironment",
     "ShellCallOutput",
+    "ShellCallOutputCaller",
+    "ShellCallOutputCallerDirect",
+    "ShellCallOutputCallerProgram",
     "ApplyPatchCall",
     "ApplyPatchCallOperation",
     "ApplyPatchCallOperationCreateFile",
     "ApplyPatchCallOperationDeleteFile",
     "ApplyPatchCallOperationUpdateFile",
+    "ApplyPatchCallCaller",
+    "ApplyPatchCallCallerDirect",
+    "ApplyPatchCallCallerProgram",
     "ApplyPatchCallOutput",
+    "ApplyPatchCallOutputCaller",
+    "ApplyPatchCallOutputCallerDirect",
+    "ApplyPatchCallOutputCallerProgram",
     "McpListTools",
     "McpListToolsTool",
     "McpApprovalRequest",
@@ -54,6 +69,8 @@ __all__ = [
     "McpCall",
     "CompactionTrigger",
     "ItemReference",
+    "Program",
+    "ProgramOutput",
 ]
 
 
@@ -126,6 +143,24 @@ class ComputerCallOutput(BaseModel):
     """
 
 
+class FunctionCallOutputCallerDirect(BaseModel):
+    type: Literal["direct"]
+    """The caller type. Always `direct`."""
+
+
+class FunctionCallOutputCallerProgram(BaseModel):
+    caller_id: str
+    """The call ID of the program item that produced this tool call."""
+
+    type: Literal["program"]
+    """The caller type. Always `program`."""
+
+
+FunctionCallOutputCaller: TypeAlias = Annotated[
+    Union[FunctionCallOutputCallerDirect, FunctionCallOutputCallerProgram, None], PropertyInfo(discriminator="type")
+]
+
+
 class FunctionCallOutput(BaseModel):
     """The output of a function tool call."""
 
@@ -143,6 +178,9 @@ class FunctionCallOutput(BaseModel):
 
     Populated when this item is returned via API.
     """
+
+    caller: Optional[FunctionCallOutputCaller] = None
+    """The execution context that produced this tool call."""
 
     status: Optional[Literal["in_progress", "completed", "incomplete"]] = None
     """The status of the item.
@@ -275,6 +313,23 @@ class ShellCallAction(BaseModel):
     """Maximum wall-clock time in milliseconds to allow the shell commands to run."""
 
 
+class ShellCallCallerDirect(BaseModel):
+    type: Literal["direct"]
+    """The caller type. Always `direct`."""
+
+
+class ShellCallCallerProgram(BaseModel):
+    caller_id: str
+    """The call ID of the program item that produced this tool call."""
+
+    type: Literal["program"]
+    """The caller type. Always `program`."""
+
+
+ShellCallCaller: TypeAlias = Annotated[
+    Union[ShellCallCallerDirect, ShellCallCallerProgram, None], PropertyInfo(discriminator="type")
+]
+
 ShellCallEnvironment: TypeAlias = Annotated[
     Union[LocalEnvironment, ContainerReference, None], PropertyInfo(discriminator="type")
 ]
@@ -298,6 +353,9 @@ class ShellCall(BaseModel):
     Populated when this item is returned via API.
     """
 
+    caller: Optional[ShellCallCaller] = None
+    """The execution context that produced this tool call."""
+
     environment: Optional[ShellCallEnvironment] = None
     """The environment to execute the shell commands in."""
 
@@ -306,6 +364,24 @@ class ShellCall(BaseModel):
 
     One of `in_progress`, `completed`, or `incomplete`.
     """
+
+
+class ShellCallOutputCallerDirect(BaseModel):
+    type: Literal["direct"]
+    """The caller type. Always `direct`."""
+
+
+class ShellCallOutputCallerProgram(BaseModel):
+    caller_id: str
+    """The call ID of the program item that produced this tool call."""
+
+    type: Literal["program"]
+    """The caller type. Always `program`."""
+
+
+ShellCallOutputCaller: TypeAlias = Annotated[
+    Union[ShellCallOutputCallerDirect, ShellCallOutputCallerProgram, None], PropertyInfo(discriminator="type")
+]
 
 
 class ShellCallOutput(BaseModel):
@@ -328,6 +404,9 @@ class ShellCallOutput(BaseModel):
 
     Populated when this item is returned via API.
     """
+
+    caller: Optional[ShellCallOutputCaller] = None
+    """The execution context that produced this tool call."""
 
     max_output_length: Optional[int] = None
     """
@@ -381,6 +460,24 @@ ApplyPatchCallOperation: TypeAlias = Annotated[
 ]
 
 
+class ApplyPatchCallCallerDirect(BaseModel):
+    type: Literal["direct"]
+    """The caller type. Always `direct`."""
+
+
+class ApplyPatchCallCallerProgram(BaseModel):
+    caller_id: str
+    """The call ID of the program item that produced this tool call."""
+
+    type: Literal["program"]
+    """The caller type. Always `program`."""
+
+
+ApplyPatchCallCaller: TypeAlias = Annotated[
+    Union[ApplyPatchCallCallerDirect, ApplyPatchCallCallerProgram, None], PropertyInfo(discriminator="type")
+]
+
+
 class ApplyPatchCall(BaseModel):
     """
     A tool call representing a request to create, delete, or update files using diff patches.
@@ -407,6 +504,27 @@ class ApplyPatchCall(BaseModel):
     Populated when this item is returned via API.
     """
 
+    caller: Optional[ApplyPatchCallCaller] = None
+    """The execution context that produced this tool call."""
+
+
+class ApplyPatchCallOutputCallerDirect(BaseModel):
+    type: Literal["direct"]
+    """The caller type. Always `direct`."""
+
+
+class ApplyPatchCallOutputCallerProgram(BaseModel):
+    caller_id: str
+    """The call ID of the program item that produced this tool call."""
+
+    type: Literal["program"]
+    """The caller type. Always `program`."""
+
+
+ApplyPatchCallOutputCaller: TypeAlias = Annotated[
+    Union[ApplyPatchCallOutputCallerDirect, ApplyPatchCallOutputCallerProgram, None], PropertyInfo(discriminator="type")
+]
+
 
 class ApplyPatchCallOutput(BaseModel):
     """The streamed output emitted by an apply patch tool call."""
@@ -425,6 +543,9 @@ class ApplyPatchCallOutput(BaseModel):
 
     Populated when this item is returned via API.
     """
+
+    caller: Optional[ApplyPatchCallOutputCaller] = None
+    """The execution context that produced this tool call."""
 
     output: Optional[str] = None
     """
@@ -561,6 +682,40 @@ class ItemReference(BaseModel):
     """The type of item to reference. Always `item_reference`."""
 
 
+class Program(BaseModel):
+    id: str
+    """The unique ID of this program item."""
+
+    call_id: str
+    """The stable call ID of the program item."""
+
+    code: str
+    """The JavaScript source executed by programmatic tool calling."""
+
+    fingerprint: str
+    """Opaque program replay fingerprint that must be round-tripped."""
+
+    type: Literal["program"]
+    """The item type. Always `program`."""
+
+
+class ProgramOutput(BaseModel):
+    id: str
+    """The unique ID of this program output item."""
+
+    call_id: str
+    """The call ID of the program item."""
+
+    result: str
+    """The result produced by the program item."""
+
+    status: Literal["completed", "incomplete"]
+    """The terminal status of the program output."""
+
+    type: Literal["program_output"]
+    """The item type. Always `program_output`."""
+
+
 ResponseInputItem: TypeAlias = Annotated[
     Union[
         EasyInputMessage,
@@ -593,6 +748,8 @@ ResponseInputItem: TypeAlias = Annotated[
         ResponseCustomToolCall,
         CompactionTrigger,
         ItemReference,
+        Program,
+        ProgramOutput,
     ],
     PropertyInfo(discriminator="type"),
 ]

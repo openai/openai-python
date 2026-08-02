@@ -32,6 +32,7 @@ from ... import _legacy_response
 from ..._types import NOT_GIVEN, Body, Omit, Query, Headers, NoneType, NotGiven, omit, not_given
 from ..._utils import is_given, path_template, maybe_transform, strip_not_given, async_maybe_transform
 from ..._compat import cached_property
+from ..._httpx2 import normalize_httpx_url
 from ..._models import construct_type_unchecked
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -146,11 +147,12 @@ class Responses(SyncAPIResource):
         parallel_tool_calls: Optional[bool] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
+        prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
-        safety_identifier: str | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
@@ -267,11 +269,26 @@ class Responses(SyncAPIResource):
               hit rates. Replaces the `user` field.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
 
-          prompt_cache_retention: The retention policy for the prompt cache. Set to `24h` to enable extended
+          prompt_cache_options: Options for prompt caching. Supported for `gpt-5.6` and later models. By
+              default, OpenAI automatically chooses one implicit cache breakpoint. You can add
+              explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each
+              request can write up to four breakpoints. For cache matching, OpenAI considers
+              up to the latest 80 breakpoints in the conversation, without a content-block
+              lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The
+              `ttl` defaults to `30m`, which is currently the only supported value. See the
+              [prompt caching guide](https://platform.openai.com/docs/guides/prompt-caching)
+              for current details.
+
+          prompt_cache_retention: Deprecated. Use `prompt_cache_options.ttl` instead.
+
+              The retention policy for the prompt cache. Set to `24h` to enable extended
               prompt caching, which keeps cached prefixes active for longer, up to a maximum
               of 24 hours.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
-              For `gpt-5.5`, `gpt-5.5-pro`, and future models, only `24h` is supported.
+              This field expresses a maximum retention policy, while
+              `prompt_cache_options.ttl` expresses a minimum cache lifetime. The two fields
+              are independent and do not interact. For `gpt-5.5`, `gpt-5.5-pro`, and future
+              models, only `24h` is supported.
 
               For older models that support both `in_memory` and `24h`, the default depends on
               your organization's data retention policy:
@@ -299,9 +316,13 @@ class Responses(SyncAPIResource):
                 will use 'default'.
               - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
-              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                '[priority](https://openai.com/api-priority-processing/)', then the request
-                will be processed with the corresponding service tier.
+              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)',
+                then the request will be processed with the Flex Processing service tier.
+              - To opt-in to [Fast mode](/api/docs/guides/fast-mode) at the request level,
+                include the `service_tier=fast` or `service_tier=priority` parameter for
+                Responses or Chat Completions. The response will show `service_tier=priority`
+                regardless of if you specify `service_tier=fast` or `priority` in your
+                request.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -408,11 +429,12 @@ class Responses(SyncAPIResource):
         parallel_tool_calls: Optional[bool] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
+        prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
-        safety_identifier: str | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -535,11 +557,26 @@ class Responses(SyncAPIResource):
               hit rates. Replaces the `user` field.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
 
-          prompt_cache_retention: The retention policy for the prompt cache. Set to `24h` to enable extended
+          prompt_cache_options: Options for prompt caching. Supported for `gpt-5.6` and later models. By
+              default, OpenAI automatically chooses one implicit cache breakpoint. You can add
+              explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each
+              request can write up to four breakpoints. For cache matching, OpenAI considers
+              up to the latest 80 breakpoints in the conversation, without a content-block
+              lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The
+              `ttl` defaults to `30m`, which is currently the only supported value. See the
+              [prompt caching guide](https://platform.openai.com/docs/guides/prompt-caching)
+              for current details.
+
+          prompt_cache_retention: Deprecated. Use `prompt_cache_options.ttl` instead.
+
+              The retention policy for the prompt cache. Set to `24h` to enable extended
               prompt caching, which keeps cached prefixes active for longer, up to a maximum
               of 24 hours.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
-              For `gpt-5.5`, `gpt-5.5-pro`, and future models, only `24h` is supported.
+              This field expresses a maximum retention policy, while
+              `prompt_cache_options.ttl` expresses a minimum cache lifetime. The two fields
+              are independent and do not interact. For `gpt-5.5`, `gpt-5.5-pro`, and future
+              models, only `24h` is supported.
 
               For older models that support both `in_memory` and `24h`, the default depends on
               your organization's data retention policy:
@@ -567,9 +604,13 @@ class Responses(SyncAPIResource):
                 will use 'default'.
               - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
-              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                '[priority](https://openai.com/api-priority-processing/)', then the request
-                will be processed with the corresponding service tier.
+              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)',
+                then the request will be processed with the Flex Processing service tier.
+              - To opt-in to [Fast mode](/api/docs/guides/fast-mode) at the request level,
+                include the `service_tier=fast` or `service_tier=priority` parameter for
+                Responses or Chat Completions. The response will show `service_tier=priority`
+                regardless of if you specify `service_tier=fast` or `priority` in your
+                request.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -669,11 +710,12 @@ class Responses(SyncAPIResource):
         parallel_tool_calls: Optional[bool] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
+        prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
-        safety_identifier: str | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -796,11 +838,26 @@ class Responses(SyncAPIResource):
               hit rates. Replaces the `user` field.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
 
-          prompt_cache_retention: The retention policy for the prompt cache. Set to `24h` to enable extended
+          prompt_cache_options: Options for prompt caching. Supported for `gpt-5.6` and later models. By
+              default, OpenAI automatically chooses one implicit cache breakpoint. You can add
+              explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each
+              request can write up to four breakpoints. For cache matching, OpenAI considers
+              up to the latest 80 breakpoints in the conversation, without a content-block
+              lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The
+              `ttl` defaults to `30m`, which is currently the only supported value. See the
+              [prompt caching guide](https://platform.openai.com/docs/guides/prompt-caching)
+              for current details.
+
+          prompt_cache_retention: Deprecated. Use `prompt_cache_options.ttl` instead.
+
+              The retention policy for the prompt cache. Set to `24h` to enable extended
               prompt caching, which keeps cached prefixes active for longer, up to a maximum
               of 24 hours.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
-              For `gpt-5.5`, `gpt-5.5-pro`, and future models, only `24h` is supported.
+              This field expresses a maximum retention policy, while
+              `prompt_cache_options.ttl` expresses a minimum cache lifetime. The two fields
+              are independent and do not interact. For `gpt-5.5`, `gpt-5.5-pro`, and future
+              models, only `24h` is supported.
 
               For older models that support both `in_memory` and `24h`, the default depends on
               your organization's data retention policy:
@@ -828,9 +885,13 @@ class Responses(SyncAPIResource):
                 will use 'default'.
               - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
-              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                '[priority](https://openai.com/api-priority-processing/)', then the request
-                will be processed with the corresponding service tier.
+              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)',
+                then the request will be processed with the Flex Processing service tier.
+              - To opt-in to [Fast mode](/api/docs/guides/fast-mode) at the request level,
+                include the `service_tier=fast` or `service_tier=priority` parameter for
+                Responses or Chat Completions. The response will show `service_tier=priority`
+                regardless of if you specify `service_tier=fast` or `priority` in your
+                request.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -928,11 +989,12 @@ class Responses(SyncAPIResource):
         parallel_tool_calls: Optional[bool] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
+        prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
-        safety_identifier: str | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
@@ -970,6 +1032,7 @@ class Responses(SyncAPIResource):
                     "previous_response_id": previous_response_id,
                     "prompt": prompt,
                     "prompt_cache_key": prompt_cache_key,
+                    "prompt_cache_options": prompt_cache_options,
                     "prompt_cache_retention": prompt_cache_retention,
                     "reasoning": reasoning,
                     "safety_identifier": safety_identifier,
@@ -1037,11 +1100,12 @@ class Responses(SyncAPIResource):
         moderation: Optional[response_create_params.Moderation] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
+        prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
-        safety_identifier: str | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -1079,11 +1143,12 @@ class Responses(SyncAPIResource):
         moderation: Optional[response_create_params.Moderation] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
+        prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
-        safety_identifier: str | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -1116,6 +1181,7 @@ class Responses(SyncAPIResource):
             "previous_response_id": previous_response_id,
             "prompt": prompt,
             "prompt_cache_key": prompt_cache_key,
+            "prompt_cache_options": prompt_cache_options,
             "prompt_cache_retention": prompt_cache_retention,
             "reasoning": reasoning,
             "safety_identifier": safety_identifier,
@@ -1173,6 +1239,7 @@ class Responses(SyncAPIResource):
                 previous_response_id=previous_response_id,
                 prompt=prompt,
                 prompt_cache_key=prompt_cache_key,
+                prompt_cache_options=prompt_cache_options,
                 prompt_cache_retention=prompt_cache_retention,
                 store=store,
                 stream_options=stream_options,
@@ -1194,7 +1261,12 @@ class Responses(SyncAPIResource):
                 timeout=timeout,
             )
 
-            return ResponseStreamManager(api_request, text_format=text_format, input_tools=tools, starting_after=None)
+            return ResponseStreamManager(
+                api_request,
+                text_format=text_format,
+                input_tools=tools,
+                starting_after=None,
+            )
         else:
             if not is_given(response_id):
                 raise ValueError("id must be provided when streaming an existing response")
@@ -1233,11 +1305,12 @@ class Responses(SyncAPIResource):
         parallel_tool_calls: Optional[bool] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
+        prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
-        safety_identifier: str | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
@@ -1294,6 +1367,7 @@ class Responses(SyncAPIResource):
                     "previous_response_id": previous_response_id,
                     "prompt": prompt,
                     "prompt_cache_key": prompt_cache_key,
+                    "prompt_cache_options": prompt_cache_options,
                     "prompt_cache_retention": prompt_cache_retention,
                     "reasoning": reasoning,
                     "safety_identifier": safety_identifier,
@@ -1644,6 +1718,9 @@ class Responses(SyncAPIResource):
         *,
         model: Union[
             Literal[
+                "gpt-5.6-sol",
+                "gpt-5.6-terra",
+                "gpt-5.6-luna",
                 "gpt-5.4",
                 "gpt-5.4-mini",
                 "gpt-5.4-nano",
@@ -1744,8 +1821,9 @@ class Responses(SyncAPIResource):
         instructions: Optional[str] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt_cache_key: Optional[str] | Omit = omit,
+        prompt_cache_options: Optional[response_compact_params.PromptCacheOptions] | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "priority"]] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "fast", "flex", "priority"]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -1783,9 +1861,33 @@ class Responses(SyncAPIResource):
 
           prompt_cache_key: A key to use when reading from or writing to the prompt cache.
 
+          prompt_cache_options: Options for prompt caching. Supported for `gpt-5.6` and later models. By
+              default, OpenAI automatically chooses one implicit cache breakpoint. You can add
+              explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each
+              request can write up to four breakpoints. For cache matching, OpenAI considers
+              up to the latest 80 breakpoints in the conversation, without a content-block
+              lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The
+              `ttl` defaults to `30m`, which is currently the only supported value. See the
+              [prompt caching guide](https://platform.openai.com/docs/guides/prompt-caching)
+              for current details.
+
           prompt_cache_retention: How long to retain a prompt cache entry created by this request.
 
-          service_tier: The service tier to use for this request.
+          service_tier: Specifies the processing type used for serving the request. - If set to 'auto',
+              then the request will be processed with the service tier configured in the
+              Project settings. Unless otherwise configured, the Project will use 'default'. -
+              If set to 'default', then the request will be processed with the standard
+              pricing and performance for the selected model. - If set to
+              '[flex](https://platform.openai.com/docs/guides/flex-processing)', then the
+              request will be processed with the Flex Processing service tier. - To opt-in to
+              [Fast mode](/api/docs/guides/fast-mode) at the request level, include the
+              `service_tier=fast` or `service_tier=priority` parameter for Responses or Chat
+              Completions. The response will show `service_tier=priority` regardless of if you
+              specify `service_tier=fast` or `priority` in your request. - When not set, the
+              default behavior is 'auto'. When the `service_tier` parameter is set, the
+              response body will include the `service_tier` value based on the processing mode
+              actually used to serve the request. This response value may be different from
+              the value set in the parameter.
 
           extra_headers: Send extra headers
 
@@ -1804,6 +1906,7 @@ class Responses(SyncAPIResource):
                     "instructions": instructions,
                     "previous_response_id": previous_response_id,
                     "prompt_cache_key": prompt_cache_key,
+                    "prompt_cache_options": prompt_cache_options,
                     "prompt_cache_retention": prompt_cache_retention,
                     "service_tier": service_tier,
                 },
@@ -1893,11 +1996,12 @@ class AsyncResponses(AsyncAPIResource):
         parallel_tool_calls: Optional[bool] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
+        prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
-        safety_identifier: str | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
@@ -2014,11 +2118,26 @@ class AsyncResponses(AsyncAPIResource):
               hit rates. Replaces the `user` field.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
 
-          prompt_cache_retention: The retention policy for the prompt cache. Set to `24h` to enable extended
+          prompt_cache_options: Options for prompt caching. Supported for `gpt-5.6` and later models. By
+              default, OpenAI automatically chooses one implicit cache breakpoint. You can add
+              explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each
+              request can write up to four breakpoints. For cache matching, OpenAI considers
+              up to the latest 80 breakpoints in the conversation, without a content-block
+              lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The
+              `ttl` defaults to `30m`, which is currently the only supported value. See the
+              [prompt caching guide](https://platform.openai.com/docs/guides/prompt-caching)
+              for current details.
+
+          prompt_cache_retention: Deprecated. Use `prompt_cache_options.ttl` instead.
+
+              The retention policy for the prompt cache. Set to `24h` to enable extended
               prompt caching, which keeps cached prefixes active for longer, up to a maximum
               of 24 hours.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
-              For `gpt-5.5`, `gpt-5.5-pro`, and future models, only `24h` is supported.
+              This field expresses a maximum retention policy, while
+              `prompt_cache_options.ttl` expresses a minimum cache lifetime. The two fields
+              are independent and do not interact. For `gpt-5.5`, `gpt-5.5-pro`, and future
+              models, only `24h` is supported.
 
               For older models that support both `in_memory` and `24h`, the default depends on
               your organization's data retention policy:
@@ -2046,9 +2165,13 @@ class AsyncResponses(AsyncAPIResource):
                 will use 'default'.
               - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
-              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                '[priority](https://openai.com/api-priority-processing/)', then the request
-                will be processed with the corresponding service tier.
+              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)',
+                then the request will be processed with the Flex Processing service tier.
+              - To opt-in to [Fast mode](/api/docs/guides/fast-mode) at the request level,
+                include the `service_tier=fast` or `service_tier=priority` parameter for
+                Responses or Chat Completions. The response will show `service_tier=priority`
+                regardless of if you specify `service_tier=fast` or `priority` in your
+                request.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -2155,11 +2278,12 @@ class AsyncResponses(AsyncAPIResource):
         parallel_tool_calls: Optional[bool] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
+        prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
-        safety_identifier: str | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -2282,11 +2406,26 @@ class AsyncResponses(AsyncAPIResource):
               hit rates. Replaces the `user` field.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
 
-          prompt_cache_retention: The retention policy for the prompt cache. Set to `24h` to enable extended
+          prompt_cache_options: Options for prompt caching. Supported for `gpt-5.6` and later models. By
+              default, OpenAI automatically chooses one implicit cache breakpoint. You can add
+              explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each
+              request can write up to four breakpoints. For cache matching, OpenAI considers
+              up to the latest 80 breakpoints in the conversation, without a content-block
+              lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The
+              `ttl` defaults to `30m`, which is currently the only supported value. See the
+              [prompt caching guide](https://platform.openai.com/docs/guides/prompt-caching)
+              for current details.
+
+          prompt_cache_retention: Deprecated. Use `prompt_cache_options.ttl` instead.
+
+              The retention policy for the prompt cache. Set to `24h` to enable extended
               prompt caching, which keeps cached prefixes active for longer, up to a maximum
               of 24 hours.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
-              For `gpt-5.5`, `gpt-5.5-pro`, and future models, only `24h` is supported.
+              This field expresses a maximum retention policy, while
+              `prompt_cache_options.ttl` expresses a minimum cache lifetime. The two fields
+              are independent and do not interact. For `gpt-5.5`, `gpt-5.5-pro`, and future
+              models, only `24h` is supported.
 
               For older models that support both `in_memory` and `24h`, the default depends on
               your organization's data retention policy:
@@ -2314,9 +2453,13 @@ class AsyncResponses(AsyncAPIResource):
                 will use 'default'.
               - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
-              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                '[priority](https://openai.com/api-priority-processing/)', then the request
-                will be processed with the corresponding service tier.
+              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)',
+                then the request will be processed with the Flex Processing service tier.
+              - To opt-in to [Fast mode](/api/docs/guides/fast-mode) at the request level,
+                include the `service_tier=fast` or `service_tier=priority` parameter for
+                Responses or Chat Completions. The response will show `service_tier=priority`
+                regardless of if you specify `service_tier=fast` or `priority` in your
+                request.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -2416,11 +2559,12 @@ class AsyncResponses(AsyncAPIResource):
         parallel_tool_calls: Optional[bool] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
+        prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
-        safety_identifier: str | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -2543,11 +2687,26 @@ class AsyncResponses(AsyncAPIResource):
               hit rates. Replaces the `user` field.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
 
-          prompt_cache_retention: The retention policy for the prompt cache. Set to `24h` to enable extended
+          prompt_cache_options: Options for prompt caching. Supported for `gpt-5.6` and later models. By
+              default, OpenAI automatically chooses one implicit cache breakpoint. You can add
+              explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each
+              request can write up to four breakpoints. For cache matching, OpenAI considers
+              up to the latest 80 breakpoints in the conversation, without a content-block
+              lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The
+              `ttl` defaults to `30m`, which is currently the only supported value. See the
+              [prompt caching guide](https://platform.openai.com/docs/guides/prompt-caching)
+              for current details.
+
+          prompt_cache_retention: Deprecated. Use `prompt_cache_options.ttl` instead.
+
+              The retention policy for the prompt cache. Set to `24h` to enable extended
               prompt caching, which keeps cached prefixes active for longer, up to a maximum
               of 24 hours.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
-              For `gpt-5.5`, `gpt-5.5-pro`, and future models, only `24h` is supported.
+              This field expresses a maximum retention policy, while
+              `prompt_cache_options.ttl` expresses a minimum cache lifetime. The two fields
+              are independent and do not interact. For `gpt-5.5`, `gpt-5.5-pro`, and future
+              models, only `24h` is supported.
 
               For older models that support both `in_memory` and `24h`, the default depends on
               your organization's data retention policy:
@@ -2575,9 +2734,13 @@ class AsyncResponses(AsyncAPIResource):
                 will use 'default'.
               - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
-              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                '[priority](https://openai.com/api-priority-processing/)', then the request
-                will be processed with the corresponding service tier.
+              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)',
+                then the request will be processed with the Flex Processing service tier.
+              - To opt-in to [Fast mode](/api/docs/guides/fast-mode) at the request level,
+                include the `service_tier=fast` or `service_tier=priority` parameter for
+                Responses or Chat Completions. The response will show `service_tier=priority`
+                regardless of if you specify `service_tier=fast` or `priority` in your
+                request.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -2675,11 +2838,12 @@ class AsyncResponses(AsyncAPIResource):
         parallel_tool_calls: Optional[bool] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
+        prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
-        safety_identifier: str | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
@@ -2717,6 +2881,7 @@ class AsyncResponses(AsyncAPIResource):
                     "previous_response_id": previous_response_id,
                     "prompt": prompt,
                     "prompt_cache_key": prompt_cache_key,
+                    "prompt_cache_options": prompt_cache_options,
                     "prompt_cache_retention": prompt_cache_retention,
                     "reasoning": reasoning,
                     "safety_identifier": safety_identifier,
@@ -2784,11 +2949,12 @@ class AsyncResponses(AsyncAPIResource):
         moderation: Optional[response_create_params.Moderation] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
+        prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
-        safety_identifier: str | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -2826,11 +2992,12 @@ class AsyncResponses(AsyncAPIResource):
         moderation: Optional[response_create_params.Moderation] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
+        prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
-        safety_identifier: str | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -2863,6 +3030,7 @@ class AsyncResponses(AsyncAPIResource):
             "previous_response_id": previous_response_id,
             "prompt": prompt,
             "prompt_cache_key": prompt_cache_key,
+            "prompt_cache_options": prompt_cache_options,
             "prompt_cache_retention": prompt_cache_retention,
             "reasoning": reasoning,
             "safety_identifier": safety_identifier,
@@ -2920,6 +3088,7 @@ class AsyncResponses(AsyncAPIResource):
                 previous_response_id=previous_response_id,
                 prompt=prompt,
                 prompt_cache_key=prompt_cache_key,
+                prompt_cache_options=prompt_cache_options,
                 prompt_cache_retention=prompt_cache_retention,
                 store=store,
                 stream_options=stream_options,
@@ -2984,11 +3153,12 @@ class AsyncResponses(AsyncAPIResource):
         parallel_tool_calls: Optional[bool] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
+        prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
-        safety_identifier: str | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
@@ -3045,6 +3215,7 @@ class AsyncResponses(AsyncAPIResource):
                     "previous_response_id": previous_response_id,
                     "prompt": prompt,
                     "prompt_cache_key": prompt_cache_key,
+                    "prompt_cache_options": prompt_cache_options,
                     "prompt_cache_retention": prompt_cache_retention,
                     "reasoning": reasoning,
                     "safety_identifier": safety_identifier,
@@ -3395,6 +3566,9 @@ class AsyncResponses(AsyncAPIResource):
         *,
         model: Union[
             Literal[
+                "gpt-5.6-sol",
+                "gpt-5.6-terra",
+                "gpt-5.6-luna",
                 "gpt-5.4",
                 "gpt-5.4-mini",
                 "gpt-5.4-nano",
@@ -3495,8 +3669,9 @@ class AsyncResponses(AsyncAPIResource):
         instructions: Optional[str] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt_cache_key: Optional[str] | Omit = omit,
+        prompt_cache_options: Optional[response_compact_params.PromptCacheOptions] | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "priority"]] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "fast", "flex", "priority"]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -3534,9 +3709,33 @@ class AsyncResponses(AsyncAPIResource):
 
           prompt_cache_key: A key to use when reading from or writing to the prompt cache.
 
+          prompt_cache_options: Options for prompt caching. Supported for `gpt-5.6` and later models. By
+              default, OpenAI automatically chooses one implicit cache breakpoint. You can add
+              explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each
+              request can write up to four breakpoints. For cache matching, OpenAI considers
+              up to the latest 80 breakpoints in the conversation, without a content-block
+              lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The
+              `ttl` defaults to `30m`, which is currently the only supported value. See the
+              [prompt caching guide](https://platform.openai.com/docs/guides/prompt-caching)
+              for current details.
+
           prompt_cache_retention: How long to retain a prompt cache entry created by this request.
 
-          service_tier: The service tier to use for this request.
+          service_tier: Specifies the processing type used for serving the request. - If set to 'auto',
+              then the request will be processed with the service tier configured in the
+              Project settings. Unless otherwise configured, the Project will use 'default'. -
+              If set to 'default', then the request will be processed with the standard
+              pricing and performance for the selected model. - If set to
+              '[flex](https://platform.openai.com/docs/guides/flex-processing)', then the
+              request will be processed with the Flex Processing service tier. - To opt-in to
+              [Fast mode](/api/docs/guides/fast-mode) at the request level, include the
+              `service_tier=fast` or `service_tier=priority` parameter for Responses or Chat
+              Completions. The response will show `service_tier=priority` regardless of if you
+              specify `service_tier=fast` or `priority` in your request. - When not set, the
+              default behavior is 'auto'. When the `service_tier` parameter is set, the
+              response body will include the `service_tier` value based on the processing mode
+              actually used to serve the request. This response value may be different from
+              the value set in the parameter.
 
           extra_headers: Send extra headers
 
@@ -3555,6 +3754,7 @@ class AsyncResponses(AsyncAPIResource):
                     "instructions": instructions,
                     "previous_response_id": previous_response_id,
                     "prompt_cache_key": prompt_cache_key,
+                    "prompt_cache_options": prompt_cache_options,
                     "prompt_cache_retention": prompt_cache_retention,
                     "service_tier": service_tier,
                 },
@@ -4199,7 +4399,7 @@ class AsyncResponsesConnectionManager:
 
     def _prepare_url(self) -> httpx.URL:
         if self.__client.websocket_base_url is not None:
-            base_url = httpx.URL(self.__client.websocket_base_url)
+            base_url = normalize_httpx_url(self.__client.websocket_base_url)
         else:
             scheme = self.__client._base_url.scheme
             ws_scheme = "ws" if scheme == "http" else "wss"
@@ -4644,7 +4844,7 @@ class ResponsesConnectionManager:
 
     def _prepare_url(self) -> httpx.URL:
         if self.__client.websocket_base_url is not None:
-            base_url = httpx.URL(self.__client.websocket_base_url)
+            base_url = normalize_httpx_url(self.__client.websocket_base_url)
         else:
             scheme = self.__client._base_url.scheme
             ws_scheme = "ws" if scheme == "http" else "wss"
@@ -4683,11 +4883,12 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
         parallel_tool_calls: Optional[bool] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
+        prompt_cache_options: responses_client_event_param.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
-        safety_identifier: str | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[bool] | Omit = omit,
         stream_options: Optional[responses_client_event_param.StreamOptions] | Omit = omit,
@@ -4721,6 +4922,7 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
                         "previous_response_id": previous_response_id,
                         "prompt": prompt,
                         "prompt_cache_key": prompt_cache_key,
+                        "prompt_cache_options": prompt_cache_options,
                         "prompt_cache_retention": prompt_cache_retention,
                         "reasoning": reasoning,
                         "safety_identifier": safety_identifier,
@@ -4765,11 +4967,12 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
         parallel_tool_calls: Optional[bool] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
+        prompt_cache_options: responses_client_event_param.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
-        safety_identifier: str | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[bool] | Omit = omit,
         stream_options: Optional[responses_client_event_param.StreamOptions] | Omit = omit,
@@ -4803,6 +5006,7 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
                         "previous_response_id": previous_response_id,
                         "prompt": prompt,
                         "prompt_cache_key": prompt_cache_key,
+                        "prompt_cache_options": prompt_cache_options,
                         "prompt_cache_retention": prompt_cache_retention,
                         "reasoning": reasoning,
                         "safety_identifier": safety_identifier,
