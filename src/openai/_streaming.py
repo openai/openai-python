@@ -61,12 +61,27 @@ class Stream(Generic[_T]):
         try:
             for sse in iterator:
                 if sse.data.startswith("[DONE]"):
-                    # Drain the remaining bytes from the underlying iterator so that
-                    # the HTTP/1.1 chunked terminator (0\r\n\r\n) is fully consumed.
-                    # Without this, h11's `their_state` is still SEND_RESPONSE when
-                    # response.close() is called, causing httpcore to destroy the
-                    # connection (TCP FIN) instead of returning it to the pool.
-                    for _ in iterator:
+                    # Best-effort drain: consume the remaining bytes so that
+                    # the HTTP/1.1 chunked terminator (0\r\n\r\n) is read by
+                    # h11 before response.close() is called. Without this,
+                    # h11's `their_state` stays SEND_RESPONSE and httpcore
+                    # destroys the socket (TCP FIN) instead of returning the
+                    # connection to the pool.
+                    #
+                    # The drain is wrapped in try/except for two reasons:
+                    # 1. Suppress post-DONE transport errors: if the proxy
+                    #    closes the connection abruptly after [DONE], the
+                    #    read raises a protocol error that is irrelevant
+                    #    because the application-level stream is already done.
+                    # 2. Bound the drain: if the server keeps the SSE
+                    #    connection open indefinitely after [DONE], the
+                    #    user's configured read timeout will eventually fire
+                    #    as an exception here, which we catch and ignore so
+                    #    the stream still closes cleanly.
+                    try:
+                        for _ in iterator:
+                            pass
+                    except Exception:
                         pass
                     break
 
@@ -178,13 +193,27 @@ class AsyncStream(Generic[_T]):
         try:
             async for sse in iterator:
                 if sse.data.startswith("[DONE]"):
-                    # Drain the remaining bytes from the underlying async iterator so
-                    # that the HTTP/1.1 chunked terminator (0\r\n\r\n) is fully
-                    # consumed. Without this, h11's `their_state` is still
-                    # SEND_RESPONSE when aclose() is called, causing httpcore to
-                    # destroy the connection (TCP FIN) instead of returning it to the
-                    # pool.
-                    async for _ in iterator:
+                    # Best-effort drain: consume the remaining bytes so that
+                    # the HTTP/1.1 chunked terminator (0\r\n\r\n) is read by
+                    # h11 before aclose() is called. Without this, h11's
+                    # `their_state` stays SEND_RESPONSE and httpcore destroys
+                    # the socket (TCP FIN) instead of returning the connection
+                    # to the pool.
+                    #
+                    # The drain is wrapped in try/except for two reasons:
+                    # 1. Suppress post-DONE transport errors: if the proxy
+                    #    closes the connection abruptly after [DONE], the
+                    #    read raises a protocol error that is irrelevant
+                    #    because the application-level stream is already done.
+                    # 2. Bound the drain: if the server keeps the SSE
+                    #    connection open indefinitely after [DONE], the
+                    #    user's configured read timeout will eventually fire
+                    #    as an exception here, which we catch and ignore so
+                    #    the stream still closes cleanly.
+                    try:
+                        async for _ in iterator:
+                            pass
+                    except Exception:
                         pass
                     break
 
