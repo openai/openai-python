@@ -367,17 +367,20 @@ class ResponseStreamState(Generic[TextFormatT]):
             # the accumulated snapshot output before parsing so that the final
             # ParsedResponse contains the real content.
             completed_response: Response = event.response
-            # output is typed as a list, but the null-completed backend case is
-            # exactly what this branch exists for.
-            if completed_response.output is None and snapshot is not None:  # pyright: ignore[reportUnnecessaryComparison]
-                # build() is untyped, so cast to keep the annotation meaningful.
-                completed_response = cast(
-                    Response,
-                    build(
-                        type(completed_response),
-                        **{**completed_response.to_dict(), "output": [item.to_dict() for item in snapshot.output]},
-                    ),
-                )
+            # `output` is generated as non-optional, so both type checkers treat
+            # `is None` as impossible. Some backends do send null here, which is the
+            # case this branch exists for, so read it through getattr rather than
+            # silencing mypy and pyright separately. `snapshot` is already known to
+            # be non-None by this point.
+            completed_output = getattr(completed_response, "output", None)
+            if completed_output is None:
+                # to_dict() gives dict[str, object], so the ** spread cannot be
+                # checked field by field against Response.
+                patched: dict[str, Any] = {
+                    **completed_response.to_dict(),
+                    "output": [item.to_dict() for item in snapshot.output],
+                }
+                completed_response = build(type(completed_response), **patched)
             self._completed_response = parse_response(
                 text_format=self._text_format,
                 response=completed_response,

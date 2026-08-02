@@ -43,13 +43,13 @@ def _make_response(output: Any) -> Response:
     )
 
 
-def test_output_text_property_null_output():
+def test_output_text_property_null_output() -> None:
     """Response.output_text must return '' when output is None (issue #3325 / #3063)."""
     resp = _make_response(output=None)
     assert resp.output_text == ""
 
 
-def test_output_text_property_null_text_in_content():
+def test_output_text_property_null_text_in_content() -> None:
     """Response.output_text must skip output_text items with text=None (issue #3063)."""
     from openai.types.responses.response_output_text import ResponseOutputText
     from openai.types.responses.response_output_message import ResponseOutputMessage
@@ -70,7 +70,7 @@ def test_output_text_property_null_text_in_content():
     assert resp.output_text == '{"ok": true}'
 
 
-def test_parse_response_null_output_does_not_crash():
+def test_parse_response_null_output_does_not_crash() -> None:
     """parse_response must not raise TypeError when response.output is None (issue #3325)."""
 
     resp = _make_response(output=None)
@@ -79,7 +79,7 @@ def test_parse_response_null_output_does_not_crash():
     assert parsed.output == []
 
 
-def test_parse_response_null_text_skips_structured_parse():
+def test_parse_response_null_text_skips_structured_parse() -> None:
     """parse_response must not crash when an output_text item has text=None (issue #3063)."""
     from openai.types.responses.response_output_text import ResponseOutputText
     from openai.types.responses.response_output_message import ResponseOutputMessage
