@@ -12,7 +12,9 @@ from .._types import NOT_GIVEN, Omit, Query, Headers, Timeout, NotGiven
 from .._utils import is_given, is_mapping
 from .._client import OpenAI, AsyncOpenAI
 from .._compat import model_copy
+from .._httpx2 import normalize_httpx_url
 from .._models import SecurityOptions, FinalRequestOptions
+from .._provider import _Provider
 from .._streaming import Stream, AsyncStream
 from .._exceptions import OpenAIError
 from .._base_client import DEFAULT_MAX_RETRIES, BaseClient
@@ -283,6 +285,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         api_key: str | Callable[[], str] | None = None,
         admin_api_key: str | None = None,
         workload_identity: WorkloadIdentity | None = None,
+        provider: _Provider | None | NotGiven = NOT_GIVEN,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -304,6 +307,9 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         """
         Create a new client instance re-using the same options given to the current client with optional overriding.
         """
+        if not isinstance(provider, NotGiven):
+            raise OpenAIError("Configure `provider` on `OpenAI`, not on `AzureOpenAI.with_options()`.")
+
         return super().copy(
             api_key=api_key,
             admin_api_key=admin_api_key,
@@ -402,7 +408,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
                 auth_headers = {"Authorization": f"Bearer {token}"}
 
         if self.websocket_base_url is not None:
-            base_url = httpx.URL(self.websocket_base_url)
+            base_url = normalize_httpx_url(self.websocket_base_url)
             merge_raw_path = base_url.raw_path.rstrip(b"/") + b"/realtime"
             realtime_url = base_url.copy_with(raw_path=merge_raw_path)
         else:
@@ -603,6 +609,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         api_key: str | Callable[[], Awaitable[str]] | None = None,
         admin_api_key: str | None = None,
         workload_identity: WorkloadIdentity | None = None,
+        provider: _Provider | None | NotGiven = NOT_GIVEN,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -624,6 +631,9 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         """
         Create a new client instance re-using the same options given to the current client with optional overriding.
         """
+        if not isinstance(provider, NotGiven):
+            raise OpenAIError("Configure `provider` on `AsyncOpenAI`, not on `AsyncAzureOpenAI.with_options()`.")
+
         return super().copy(
             api_key=api_key,
             admin_api_key=admin_api_key,
@@ -724,7 +734,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
                 auth_headers = {"Authorization": f"Bearer {token}"}
 
         if self.websocket_base_url is not None:
-            base_url = httpx.URL(self.websocket_base_url)
+            base_url = normalize_httpx_url(self.websocket_base_url)
             merge_raw_path = base_url.raw_path.rstrip(b"/") + b"/realtime"
             realtime_url = base_url.copy_with(raw_path=merge_raw_path)
         else:

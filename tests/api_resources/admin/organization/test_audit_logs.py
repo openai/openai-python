@@ -40,6 +40,7 @@ class TestAuditLogs:
             limit=0,
             project_ids=["string"],
             resource_ids=["string"],
+            tenant_only=True,
         )
         assert_matches_type(SyncConversationCursorPage[AuditLogListResponse], audit_log, path=["response"])
 
@@ -91,6 +92,7 @@ class TestAsyncAuditLogs:
             limit=0,
             project_ids=["string"],
             resource_ids=["string"],
+            tenant_only=True,
         )
         assert_matches_type(AsyncConversationCursorPage[AuditLogListResponse], audit_log, path=["response"])
 

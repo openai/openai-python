@@ -9,3 +9,9 @@ __all__ = ["AdminAPIKeyCreateParams"]
 
 class AdminAPIKeyCreateParams(TypedDict, total=False):
     name: Required[str]
+
+    expires_in_seconds: int
+    """The number of seconds until the API key expires.
+
+    Omit this field for a key that does not expire.
+    """

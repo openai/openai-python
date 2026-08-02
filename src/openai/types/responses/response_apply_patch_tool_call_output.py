@@ -1,11 +1,26 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import Optional
-from typing_extensions import Literal
+from typing import Union, Optional
+from typing_extensions import Literal, Annotated, TypeAlias
 
+from ..._utils import PropertyInfo
 from ..._models import BaseModel
 
-__all__ = ["ResponseApplyPatchToolCallOutput"]
+__all__ = ["ResponseApplyPatchToolCallOutput", "Caller", "CallerDirect", "CallerProgram"]
+
+
+class CallerDirect(BaseModel):
+    type: Literal["direct"]
+
+
+class CallerProgram(BaseModel):
+    caller_id: str
+    """The call ID of the program item that produced this tool call."""
+
+    type: Literal["program"]
+
+
+Caller: TypeAlias = Annotated[Union[CallerDirect, CallerProgram, None], PropertyInfo(discriminator="type")]
 
 
 class ResponseApplyPatchToolCallOutput(BaseModel):
@@ -25,6 +40,9 @@ class ResponseApplyPatchToolCallOutput(BaseModel):
 
     type: Literal["apply_patch_call_output"]
     """The type of the item. Always `apply_patch_call_output`."""
+
+    caller: Optional[Caller] = None
+    """The execution context that produced this tool call."""
 
     created_by: Optional[str] = None
     """The ID of the entity that created this tool call output."""

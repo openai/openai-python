@@ -29,6 +29,8 @@ __all__ = [
     "ConversationItem",
     "ImageGenerationCall",
     "AdditionalTools",
+    "Program",
+    "ProgramOutput",
     "LocalShellCall",
     "LocalShellCallAction",
     "LocalShellCallOutput",
@@ -68,6 +70,40 @@ class AdditionalTools(BaseModel):
 
     type: Literal["additional_tools"]
     """The type of the item. Always `additional_tools`."""
+
+
+class Program(BaseModel):
+    id: str
+    """The unique ID of the program item."""
+
+    call_id: str
+    """The stable call ID of the program item."""
+
+    code: str
+    """The JavaScript source executed by programmatic tool calling."""
+
+    fingerprint: str
+    """Opaque program replay fingerprint that must be round-tripped."""
+
+    type: Literal["program"]
+    """The type of the item. Always `program`."""
+
+
+class ProgramOutput(BaseModel):
+    id: str
+    """The unique ID of the program output item."""
+
+    call_id: str
+    """The call ID of the program item."""
+
+    result: str
+    """The result produced by the program item."""
+
+    status: Literal["completed", "incomplete"]
+    """The terminal status of the program output item."""
+
+    type: Literal["program_output"]
+    """The type of the item. Always `program_output`."""
 
 
 class LocalShellCallAction(BaseModel):
@@ -252,6 +288,8 @@ ConversationItem: TypeAlias = Annotated[
         ResponseToolSearchOutputItem,
         AdditionalTools,
         ResponseReasoningItem,
+        Program,
+        ProgramOutput,
         ResponseCompactionItem,
         ResponseCodeInterpreterToolCall,
         LocalShellCall,

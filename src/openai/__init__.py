@@ -10,6 +10,7 @@ from . import types
 from ._types import NOT_GIVEN, Omit, NoneType, NotGiven, Transport, ProxiesTypes, omit, not_given
 from ._utils import file_from_path
 from ._client import Client, OpenAI, Stream, Timeout, Transport, AsyncClient, AsyncOpenAI, AsyncStream, RequestOptions
+from ._httpx2 import DefaultHttpx2Client, DefaultAsyncHttpx2Client, normalize_httpx_url as _normalize_httpx_url
 from ._models import BaseModel
 from ._version import __title__, __version__
 from ._response import APIResponse as APIResponse, AsyncAPIResponse as AsyncAPIResponse
@@ -89,6 +90,8 @@ __all__ = [
     "DefaultHttpxClient",
     "DefaultAsyncHttpxClient",
     "DefaultAioHttpClient",
+    "DefaultHttpx2Client",
+    "DefaultAsyncHttpx2Client",
     "ReconnectingEvent",
     "ReconnectingOverrides",
     "WebSocketQueueFullError",
@@ -233,7 +236,7 @@ class _ModuleClient(OpenAI):
     @override
     def base_url(self) -> _httpx.URL:
         if base_url is not None:
-            return _httpx.URL(base_url)
+            return _normalize_httpx_url(base_url)
 
         return super().base_url
 
@@ -312,6 +315,19 @@ class _BedrockModuleClient(_ModuleClient, BedrockOpenAI):  # type: ignore
         global _bedrock_api_key
 
         _bedrock_api_key = value
+
+    @override
+    def _refresh_api_key(self) -> str:
+        if api_key is not None:
+            return api_key
+
+        return super()._refresh_api_key()
+
+    @override
+    def _legacy_auth_configuration(self) -> _bedrock._LegacyAuthConfiguration:
+        if api_key is not None:
+            return ("bearer", api_key)
+        return super()._legacy_auth_configuration()
 
 
 class _AmbiguousModuleClientUsageError(OpenAIError):
@@ -454,4 +470,5 @@ from ._module_client import (
     moderations as moderations,
     conversations as conversations,
     vector_stores as vector_stores,
+    content_provenance_checks as content_provenance_checks,
 )

@@ -12,6 +12,9 @@ __all__ = [
     "OperationCreateFile",
     "OperationDeleteFile",
     "OperationUpdateFile",
+    "Caller",
+    "CallerDirect",
+    "CallerProgram",
 ]
 
 
@@ -56,6 +59,20 @@ Operation: TypeAlias = Annotated[
 ]
 
 
+class CallerDirect(BaseModel):
+    type: Literal["direct"]
+
+
+class CallerProgram(BaseModel):
+    caller_id: str
+    """The call ID of the program item that produced this tool call."""
+
+    type: Literal["program"]
+
+
+Caller: TypeAlias = Annotated[Union[CallerDirect, CallerProgram, None], PropertyInfo(discriminator="type")]
+
+
 class ResponseApplyPatchToolCall(BaseModel):
     """A tool call that applies file diffs by creating, deleting, or updating files."""
 
@@ -79,6 +96,9 @@ class ResponseApplyPatchToolCall(BaseModel):
 
     type: Literal["apply_patch_call"]
     """The type of the item. Always `apply_patch_call`."""
+
+    caller: Optional[Caller] = None
+    """The execution context that produced this tool call."""
 
     created_by: Optional[str] = None
     """The ID of the entity that created this tool call."""

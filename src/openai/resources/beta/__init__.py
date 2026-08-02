@@ -24,6 +24,14 @@ from .threads import (
     ThreadsWithStreamingResponse,
     AsyncThreadsWithStreamingResponse,
 )
+from .responses import (
+    Responses,
+    AsyncResponses,
+    ResponsesWithRawResponse,
+    AsyncResponsesWithRawResponse,
+    ResponsesWithStreamingResponse,
+    AsyncResponsesWithStreamingResponse,
+)
 from .assistants import (
     Assistants,
     AsyncAssistants,
@@ -34,6 +42,12 @@ from .assistants import (
 )
 
 __all__ = [
+    "Responses",
+    "AsyncResponses",
+    "ResponsesWithRawResponse",
+    "AsyncResponsesWithRawResponse",
+    "ResponsesWithStreamingResponse",
+    "AsyncResponsesWithStreamingResponse",
     "ChatKit",
     "AsyncChatKit",
     "ChatKitWithRawResponse",

@@ -29,9 +29,10 @@ class DataResultOrganizationUsageCompletionsResult(BaseModel):
     """The aggregated completions usage details of the specific time bucket."""
 
     input_tokens: int
-    """The aggregated number of text input tokens used, including cached tokens.
-
-    For customers subscribe to scale tier, this includes scale tier tokens.
+    """
+    The aggregated number of input tokens used, including cached and cache-write
+    tokens. This includes text, audio, and image tokens. For customers subscribed to
+    Scale Tier, this includes Scale Tier tokens.
     """
 
     num_model_requests: int
@@ -40,9 +41,10 @@ class DataResultOrganizationUsageCompletionsResult(BaseModel):
     object: Literal["organization.usage.completions.result"]
 
     output_tokens: int
-    """The aggregated number of text output tokens used.
-
-    For customers subscribe to scale tier, this includes scale tier tokens.
+    """
+    The aggregated number of output tokens used across text, audio, and image
+    outputs. For customers subscribed to Scale Tier, this includes Scale Tier
+    tokens.
     """
 
     api_key_id: Optional[str] = None
@@ -58,13 +60,39 @@ class DataResultOrganizationUsageCompletionsResult(BaseModel):
     """
 
     input_audio_tokens: Optional[int] = None
-    """The aggregated number of audio input tokens used, including cached tokens."""
+    """The aggregated number of uncached audio input tokens used."""
+
+    input_cache_write_tokens: Optional[int] = None
+    """The aggregated number of input tokens written to the cache."""
+
+    input_cached_audio_tokens: Optional[int] = None
+    """The aggregated number of cached audio input tokens used."""
+
+    input_cached_image_tokens: Optional[int] = None
+    """The aggregated number of cached image input tokens used."""
+
+    input_cached_text_tokens: Optional[int] = None
+    """The aggregated number of cached text input tokens used."""
 
     input_cached_tokens: Optional[int] = None
     """
-    The aggregated number of text input tokens that has been cached from previous
-    requests. For customers subscribe to scale tier, this includes scale tier
+    The aggregated number of cached input tokens used across text, audio, and image
+    inputs. For customers subscribed to Scale Tier, this includes Scale Tier tokens.
+    """
+
+    input_image_tokens: Optional[int] = None
+    """The aggregated number of uncached image input tokens used."""
+
+    input_text_tokens: Optional[int] = None
+    """
+    The aggregated number of uncached text input tokens used, excluding cache-write
     tokens.
+    """
+
+    input_uncached_tokens: Optional[int] = None
+    """
+    The aggregated number of uncached input tokens used across text, audio, and
+    image inputs, excluding cache-write tokens.
     """
 
     model: Optional[str] = None
@@ -75,6 +103,12 @@ class DataResultOrganizationUsageCompletionsResult(BaseModel):
 
     output_audio_tokens: Optional[int] = None
     """The aggregated number of audio output tokens used."""
+
+    output_image_tokens: Optional[int] = None
+    """The aggregated number of image output tokens used."""
+
+    output_text_tokens: Optional[int] = None
+    """The aggregated number of text output tokens used."""
 
     project_id: Optional[str] = None
     """

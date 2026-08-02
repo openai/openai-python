@@ -56,6 +56,14 @@ from .audit_logs import (
     AuditLogsWithStreamingResponse,
     AsyncAuditLogsWithStreamingResponse,
 )
+from .spend_limit import (
+    SpendLimit,
+    AsyncSpendLimit,
+    SpendLimitWithRawResponse,
+    AsyncSpendLimitWithRawResponse,
+    SpendLimitWithStreamingResponse,
+    AsyncSpendLimitWithStreamingResponse,
+)
 from .certificates import (
     Certificates,
     AsyncCertificates,
@@ -146,6 +154,12 @@ __all__ = [
     "AsyncDataRetentionWithRawResponse",
     "DataRetentionWithStreamingResponse",
     "AsyncDataRetentionWithStreamingResponse",
+    "SpendLimit",
+    "AsyncSpendLimit",
+    "SpendLimitWithRawResponse",
+    "AsyncSpendLimitWithRawResponse",
+    "SpendLimitWithStreamingResponse",
+    "AsyncSpendLimitWithStreamingResponse",
     "SpendAlerts",
     "AsyncSpendAlerts",
     "SpendAlertsWithRawResponse",

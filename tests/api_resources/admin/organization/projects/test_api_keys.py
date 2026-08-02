@@ -79,6 +79,7 @@ class TestAPIKeys:
             project_id="project_id",
             after="after",
             limit=0,
+            owner_project_access="active",
         )
         assert_matches_type(SyncConversationCursorPage[ProjectAPIKey], api_key, path=["response"])
 
@@ -228,6 +229,7 @@ class TestAsyncAPIKeys:
             project_id="project_id",
             after="after",
             limit=0,
+            owner_project_access="active",
         )
         assert_matches_type(AsyncConversationCursorPage[ProjectAPIKey], api_key, path=["response"])
 

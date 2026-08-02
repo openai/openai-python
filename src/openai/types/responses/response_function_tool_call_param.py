@@ -2,9 +2,24 @@
 
 from __future__ import annotations
 
-from typing_extensions import Literal, Required, TypedDict
+from typing import Union, Optional
+from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
-__all__ = ["ResponseFunctionToolCallParam"]
+__all__ = ["ResponseFunctionToolCallParam", "Caller", "CallerDirect", "CallerProgram"]
+
+
+class CallerDirect(TypedDict, total=False):
+    type: Required[Literal["direct"]]
+
+
+class CallerProgram(TypedDict, total=False):
+    caller_id: Required[str]
+    """The call ID of the program item that produced this tool call."""
+
+    type: Required[Literal["program"]]
+
+
+Caller: TypeAlias = Union[CallerDirect, CallerProgram]
 
 
 class ResponseFunctionToolCallParam(TypedDict, total=False):
@@ -28,6 +43,9 @@ class ResponseFunctionToolCallParam(TypedDict, total=False):
 
     id: str
     """The unique ID of the function tool call."""
+
+    caller: Optional[Caller]
+    """The execution context that produced this tool call."""
 
     namespace: str
     """The namespace of the function to run."""

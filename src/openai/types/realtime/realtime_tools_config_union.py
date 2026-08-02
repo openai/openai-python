@@ -97,6 +97,9 @@ class Mcp(BaseModel):
     type: Literal["mcp"]
     """The type of the MCP tool. Always `mcp`."""
 
+    allowed_callers: Optional[List[Literal["direct", "programmatic"]]] = None
+    """The tool invocation context(s)."""
+
     allowed_tools: Optional[McpAllowedTools] = None
     """List of allowed tool names or a filter object."""
 
@@ -121,8 +124,8 @@ class Mcp(BaseModel):
     ] = None
     """Identifier for service connectors, like those available in ChatGPT.
 
-    One of `server_url` or `connector_id` must be provided. Learn more about service
-    connectors
+    One of `server_url`, `connector_id`, or `tunnel_id` must be provided. Learn more
+    about service connectors
     [here](https://platform.openai.com/docs/guides/tools-remote-mcp#connectors).
 
     Currently supported `connector_id` values are:
@@ -155,7 +158,13 @@ class Mcp(BaseModel):
     server_url: Optional[str] = None
     """The URL for the MCP server.
 
-    One of `server_url` or `connector_id` must be provided.
+    One of `server_url`, `connector_id`, or `tunnel_id` must be provided.
+    """
+
+    tunnel_id: Optional[str] = None
+    """The Secure MCP Tunnel ID to use instead of a direct server URL.
+
+    One of `server_url`, `connector_id`, or `tunnel_id` must be provided.
     """
 
 

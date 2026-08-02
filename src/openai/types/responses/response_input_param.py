@@ -33,6 +33,9 @@ __all__ = [
     "ComputerCallOutput",
     "ComputerCallOutputAcknowledgedSafetyCheck",
     "FunctionCallOutput",
+    "FunctionCallOutputCaller",
+    "FunctionCallOutputCallerDirect",
+    "FunctionCallOutputCallerProgram",
     "ToolSearchCall",
     "AdditionalTools",
     "ImageGenerationCall",
@@ -41,14 +44,26 @@ __all__ = [
     "LocalShellCallOutput",
     "ShellCall",
     "ShellCallAction",
+    "ShellCallCaller",
+    "ShellCallCallerDirect",
+    "ShellCallCallerProgram",
     "ShellCallEnvironment",
     "ShellCallOutput",
+    "ShellCallOutputCaller",
+    "ShellCallOutputCallerDirect",
+    "ShellCallOutputCallerProgram",
     "ApplyPatchCall",
     "ApplyPatchCallOperation",
     "ApplyPatchCallOperationCreateFile",
     "ApplyPatchCallOperationDeleteFile",
     "ApplyPatchCallOperationUpdateFile",
+    "ApplyPatchCallCaller",
+    "ApplyPatchCallCallerDirect",
+    "ApplyPatchCallCallerProgram",
     "ApplyPatchCallOutput",
+    "ApplyPatchCallOutputCaller",
+    "ApplyPatchCallOutputCallerDirect",
+    "ApplyPatchCallOutputCallerProgram",
     "McpListTools",
     "McpListToolsTool",
     "McpApprovalRequest",
@@ -56,6 +71,8 @@ __all__ = [
     "McpCall",
     "CompactionTrigger",
     "ItemReference",
+    "Program",
+    "ProgramOutput",
 ]
 
 
@@ -128,6 +145,22 @@ class ComputerCallOutput(TypedDict, total=False):
     """
 
 
+class FunctionCallOutputCallerDirect(TypedDict, total=False):
+    type: Required[Literal["direct"]]
+    """The caller type. Always `direct`."""
+
+
+class FunctionCallOutputCallerProgram(TypedDict, total=False):
+    caller_id: Required[str]
+    """The call ID of the program item that produced this tool call."""
+
+    type: Required[Literal["program"]]
+    """The caller type. Always `program`."""
+
+
+FunctionCallOutputCaller: TypeAlias = Union[FunctionCallOutputCallerDirect, FunctionCallOutputCallerProgram]
+
+
 class FunctionCallOutput(TypedDict, total=False):
     """The output of a function tool call."""
 
@@ -145,6 +178,9 @@ class FunctionCallOutput(TypedDict, total=False):
 
     Populated when this item is returned via API.
     """
+
+    caller: Optional[FunctionCallOutputCaller]
+    """The execution context that produced this tool call."""
 
     status: Optional[Literal["in_progress", "completed", "incomplete"]]
     """The status of the item.
@@ -277,6 +313,21 @@ class ShellCallAction(TypedDict, total=False):
     """Maximum wall-clock time in milliseconds to allow the shell commands to run."""
 
 
+class ShellCallCallerDirect(TypedDict, total=False):
+    type: Required[Literal["direct"]]
+    """The caller type. Always `direct`."""
+
+
+class ShellCallCallerProgram(TypedDict, total=False):
+    caller_id: Required[str]
+    """The call ID of the program item that produced this tool call."""
+
+    type: Required[Literal["program"]]
+    """The caller type. Always `program`."""
+
+
+ShellCallCaller: TypeAlias = Union[ShellCallCallerDirect, ShellCallCallerProgram]
+
 ShellCallEnvironment: TypeAlias = Union[LocalEnvironmentParam, ContainerReferenceParam]
 
 
@@ -298,6 +349,9 @@ class ShellCall(TypedDict, total=False):
     Populated when this item is returned via API.
     """
 
+    caller: Optional[ShellCallCaller]
+    """The execution context that produced this tool call."""
+
     environment: Optional[ShellCallEnvironment]
     """The environment to execute the shell commands in."""
 
@@ -306,6 +360,22 @@ class ShellCall(TypedDict, total=False):
 
     One of `in_progress`, `completed`, or `incomplete`.
     """
+
+
+class ShellCallOutputCallerDirect(TypedDict, total=False):
+    type: Required[Literal["direct"]]
+    """The caller type. Always `direct`."""
+
+
+class ShellCallOutputCallerProgram(TypedDict, total=False):
+    caller_id: Required[str]
+    """The call ID of the program item that produced this tool call."""
+
+    type: Required[Literal["program"]]
+    """The caller type. Always `program`."""
+
+
+ShellCallOutputCaller: TypeAlias = Union[ShellCallOutputCallerDirect, ShellCallOutputCallerProgram]
 
 
 class ShellCallOutput(TypedDict, total=False):
@@ -328,6 +398,9 @@ class ShellCallOutput(TypedDict, total=False):
 
     Populated when this item is returned via API.
     """
+
+    caller: Optional[ShellCallOutputCaller]
+    """The execution context that produced this tool call."""
 
     max_output_length: Optional[int]
     """
@@ -380,6 +453,22 @@ ApplyPatchCallOperation: TypeAlias = Union[
 ]
 
 
+class ApplyPatchCallCallerDirect(TypedDict, total=False):
+    type: Required[Literal["direct"]]
+    """The caller type. Always `direct`."""
+
+
+class ApplyPatchCallCallerProgram(TypedDict, total=False):
+    caller_id: Required[str]
+    """The call ID of the program item that produced this tool call."""
+
+    type: Required[Literal["program"]]
+    """The caller type. Always `program`."""
+
+
+ApplyPatchCallCaller: TypeAlias = Union[ApplyPatchCallCallerDirect, ApplyPatchCallCallerProgram]
+
+
 class ApplyPatchCall(TypedDict, total=False):
     """
     A tool call representing a request to create, delete, or update files using diff patches.
@@ -406,6 +495,25 @@ class ApplyPatchCall(TypedDict, total=False):
     Populated when this item is returned via API.
     """
 
+    caller: Optional[ApplyPatchCallCaller]
+    """The execution context that produced this tool call."""
+
+
+class ApplyPatchCallOutputCallerDirect(TypedDict, total=False):
+    type: Required[Literal["direct"]]
+    """The caller type. Always `direct`."""
+
+
+class ApplyPatchCallOutputCallerProgram(TypedDict, total=False):
+    caller_id: Required[str]
+    """The call ID of the program item that produced this tool call."""
+
+    type: Required[Literal["program"]]
+    """The caller type. Always `program`."""
+
+
+ApplyPatchCallOutputCaller: TypeAlias = Union[ApplyPatchCallOutputCallerDirect, ApplyPatchCallOutputCallerProgram]
+
 
 class ApplyPatchCallOutput(TypedDict, total=False):
     """The streamed output emitted by an apply patch tool call."""
@@ -424,6 +532,9 @@ class ApplyPatchCallOutput(TypedDict, total=False):
 
     Populated when this item is returned via API.
     """
+
+    caller: Optional[ApplyPatchCallOutputCaller]
+    """The execution context that produced this tool call."""
 
     output: Optional[str]
     """
@@ -560,6 +671,40 @@ class ItemReference(TypedDict, total=False):
     """The type of item to reference. Always `item_reference`."""
 
 
+class Program(TypedDict, total=False):
+    id: Required[str]
+    """The unique ID of this program item."""
+
+    call_id: Required[str]
+    """The stable call ID of the program item."""
+
+    code: Required[str]
+    """The JavaScript source executed by programmatic tool calling."""
+
+    fingerprint: Required[str]
+    """Opaque program replay fingerprint that must be round-tripped."""
+
+    type: Required[Literal["program"]]
+    """The item type. Always `program`."""
+
+
+class ProgramOutput(TypedDict, total=False):
+    id: Required[str]
+    """The unique ID of this program output item."""
+
+    call_id: Required[str]
+    """The call ID of the program item."""
+
+    result: Required[str]
+    """The result produced by the program item."""
+
+    status: Required[Literal["completed", "incomplete"]]
+    """The terminal status of the program output."""
+
+    type: Required[Literal["program_output"]]
+    """The item type. Always `program_output`."""
+
+
 ResponseInputItemParam: TypeAlias = Union[
     EasyInputMessageParam,
     Message,
@@ -591,6 +736,8 @@ ResponseInputItemParam: TypeAlias = Union[
     ResponseCustomToolCallParam,
     CompactionTrigger,
     ItemReference,
+    Program,
+    ProgramOutput,
 ]
 
 ResponseInputParam: TypeAlias = List[ResponseInputItemParam]
