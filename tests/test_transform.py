@@ -466,7 +466,9 @@ class TestBareDict:
         from typing import TypedDict
 
         class Params(TypedDict, total=False):
-            metadata: dict  # bare, unparameterised dict
+            # the bare annotation is the point of the test, so pyright's
+            # request for type arguments is silenced deliberately
+            metadata: dict  # type: ignore[type-arg]  # pyright: ignore[reportMissingTypeArgument]
 
         result = _transform({"metadata": {"k": "v"}}, Params)
         assert result == {"metadata": {"k": "v"}}
