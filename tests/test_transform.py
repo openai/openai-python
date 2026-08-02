@@ -473,7 +473,7 @@ class TestBareDict:
 
     def test_transform_parameterised_dict_still_works(self) -> None:
         """dict[str, str] annotation must still recurse into values."""
-        from typing import Dict, TypedDict
+        from typing import TypedDict
 
         class Params(TypedDict, total=False):
             tags: Dict[str, str]
