@@ -23,6 +23,7 @@ _AWS_SIGNING_HEADERS = (
     "x-amz-date",
     "x-amz-security-token",
 )
+_HOP_BY_HOP_HEADERS = ("connection",)
 
 
 def _load_botocore() -> tuple[Any, Any, Any, Any]:
@@ -142,7 +143,9 @@ class BedrockAwsAuth:
                 credentials = get_frozen_credentials()
 
             signed_headers = {
-                name: value for name, value in headers.items() if name.lower() not in _AWS_SIGNING_HEADERS
+                name: value
+                for name, value in headers.items()
+                if name.lower() not in _AWS_SIGNING_HEADERS and name.lower() not in _HOP_BY_HOP_HEADERS
             }
             signed_headers["X-Amz-Content-SHA256"] = hashlib.sha256(body or b"").hexdigest()
             aws_request = self._aws_request_cls(

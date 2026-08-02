@@ -113,6 +113,34 @@ def test_shared_sigv4_fixture_matches_node(monkeypatch: pytest.MonkeyPatch) -> N
     assert signed_headers["x-amz-date"] == fixture["expected"]["date"]
 
 
+def test_sign_excludes_connection_header() -> None:
+    auth = BedrockAwsAuth(
+        BedrockAwsAuthConfig(
+            region="us-east-1",
+            source="static",
+            access_key_id="AKIDEXAMPLE",
+            secret_access_key="wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY",
+            session_token="session-token",
+        )
+    )
+    signed_headers = _lower_headers(
+        auth.sign(
+            method="POST",
+            url="https://bedrock-mantle.us-east-1.api.aws/openai/v1/responses",
+            headers={
+                "content-type": "application/json",
+                "host": "bedrock-mantle.us-east-1.api.aws",
+                "connection": "keep-alive",
+            },
+            body=b"{}",
+        )
+    )
+    signed_header_names = signed_headers["authorization"].split("SignedHeaders=", 1)[1].split(",", 1)[0].split(";")
+
+    assert "connection" not in signed_headers
+    assert "connection" not in signed_header_names
+
+
 @pytest.mark.parametrize("case", _cases("auth_selection"), ids=lambda case: case["id"])
 def test_auth_selection_fixture(case: dict[str, Any], monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("AWS_BEARER_TOKEN_BEDROCK", raising=False)
