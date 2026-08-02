@@ -1,10 +1,8 @@
 """Regression tests for null-output edge cases in the Responses API."""
 from __future__ import annotations
 
-import pytest
-
-from openai.types.responses.response import Response
 from openai.lib._parsing._responses import parse_response
+from openai.types.responses.response import Response
 
 
 def _make_response(output):
@@ -49,8 +47,8 @@ def test_output_text_property_null_output():
 
 def test_output_text_property_null_text_in_content():
     """Response.output_text must skip output_text items with text=None (issue #3063)."""
-    from openai.types.responses.response_output_message import ResponseOutputMessage
     from openai.types.responses.response_output_text import ResponseOutputText
+    from openai.types.responses.response_output_message import ResponseOutputMessage
 
     content = [
         ResponseOutputText.model_construct(type="output_text", text=None, annotations=[], logprobs=[]),
@@ -81,8 +79,8 @@ def test_parse_response_null_output_does_not_crash():
 def test_parse_response_null_text_skips_structured_parse():
     """parse_response must not crash when an output_text item has text=None (issue #3063)."""
     from openai import NOT_GIVEN
-    from openai.types.responses.response_output_message import ResponseOutputMessage
     from openai.types.responses.response_output_text import ResponseOutputText
+    from openai.types.responses.response_output_message import ResponseOutputMessage
 
     content = [
         ResponseOutputText.model_construct(type="output_text", text=None, annotations=[], logprobs=[]),
