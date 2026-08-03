@@ -2,8 +2,11 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, cast
 
+import pytest
+import pydantic
+
 from openai._types import omit
-from openai.types.chat import ChatCompletion, ParsedFunctionToolCall
+from openai.types.chat import ChatCompletion, ChatCompletionChunk, ParsedFunctionToolCall
 from openai.lib._parsing import parse_chat_completion
 from openai.types.chat.chat_completion_message_custom_tool_call import ChatCompletionMessageCustomToolCall
 
@@ -111,3 +114,32 @@ def test_parse_round_trips_a_custom_tool_call() -> None:
     assert isinstance(custom, ChatCompletionMessageCustomToolCall)
     assert custom.custom.name == "run_python"
     assert custom.custom.input == "print(1)"
+
+
+def test_streaming_deltas_cannot_carry_a_custom_tool_call_yet() -> None:
+    """Pins why this fix is scoped to non-streaming `.parse()`.
+
+    `ChoiceDeltaToolCall.type` is `Optional[Literal["function"]]`, so a custom
+    tool-call delta fails validation well before `get_final_completion()` reaches
+    `parse_chat_completion`. Extending the streaming path means widening the
+    generated chunk delta types and the accumulator, which is a separate change.
+
+    When those types do gain a custom member this test starts failing, which is the
+    signal to revisit the streaming half rather than discovering it in the field.
+    """
+    chunk: Dict[str, Any] = {
+        "id": "chatcmpl-test",
+        "object": "chat.completion.chunk",
+        "created": 0,
+        "model": "gpt-5",
+        "choices": [
+            {
+                "index": 0,
+                "finish_reason": None,
+                "delta": {"role": "assistant", "tool_calls": [{"index": 0, **_CUSTOM_CALL}]},
+            }
+        ],
+    }
+
+    with pytest.raises(pydantic.ValidationError, match="Input should be 'function'"):
+        ChatCompletionChunk.model_validate(chunk)

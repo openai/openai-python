@@ -125,12 +125,17 @@ def parse_chat_completion(
                         )
                     )
                 elif tool_call.type == "custom":
-                    # `.parse()` doesn't attach `parsed_arguments` to custom tool calls
-                    # (there's no schema to parse their free-form input against), but the
-                    # call must still be surfaced rather than dropped — the raw completion
-                    # includes it and callers rely on `tool_calls` reflecting every call
-                    # the model made. This mirrors the `else` branch below, which already
-                    # preserves any non-function tool call unchanged.
+                    # No `parsed_arguments` for a custom call: there's no schema to parse
+                    # its free-form input against. The call still has to be surfaced
+                    # rather than dropped, because the raw completion includes it and
+                    # callers rely on `tool_calls` reflecting every call the model made.
+                    # This mirrors the `else` branch below, which already preserves any
+                    # non-function tool call unchanged.
+                    #
+                    # Non-streaming only. A streamed custom call cannot reach here at all:
+                    # `ChoiceDeltaToolCall.type` is `Literal["function"]`, so the chunk
+                    # fails validation before `get_final_completion()` gets this far. See
+                    # test_streaming_deltas_cannot_carry_a_custom_tool_call_yet.
                     tool_calls.append(tool_call)
                 elif TYPE_CHECKING:  # type: ignore[unreachable]
                     assert_never(tool_call)
