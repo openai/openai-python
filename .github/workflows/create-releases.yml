@@ -9,20 +9,20 @@ jobs:
     name: release
     if: github.ref == 'refs/heads/main' && github.repository == 'openai/openai-python'
     runs-on: ubuntu-latest
-    environment: publish
     outputs:
       releases_created: ${{ steps.release.outputs.releases_created }}
     permissions:
       contents: write
+      issues: write
+      pull-requests: write
 
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-
-      - uses: stainless-api/trigger-release-please@bb6677c5a04578eec1ccfd9e1913b5b78ed64c61 # v1.4.0
+      - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
         id: release
         with:
-          repo: ${{ github.event.repository.full_name }}
-          stainless-api-key: ${{ secrets.STAINLESS_API_KEY }}
+          target-branch: main
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
 
   build:
     name: build
