@@ -12,6 +12,7 @@ jobs:
     outputs:
       releases_created: ${{ steps.release.outputs.releases_created }}
       release_pr_branch: ${{ steps.release_pr.outputs.branch }}
+      release_pr_number: ${{ steps.release_pr.outputs.number }}
     # Release Please writes its PR branch, tags/releases, PR, and PR labels.
     permissions:
       contents: write
@@ -27,34 +28,54 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
 
-      - name: Capture release PR branch
+      - name: Capture release PR
         if: steps.release.outputs.prs_created == 'true'
         id: release_pr
         env:
           RELEASE_PR: ${{ steps.release.outputs.pr }}
         run: |
-          branch="$(jq -er '.headBranchName | select(startswith("release-please--branches--"))' <<<"$RELEASE_PR")"
+          branch="$(jq -er '.headBranchName | select(. == "release-please--branches--main")' <<<"$RELEASE_PR")"
+          number="$(jq -er '.number | select(type == "number")' <<<"$RELEASE_PR")"
           echo "branch=$branch" >> "$GITHUB_OUTPUT"
+          echo "number=$number" >> "$GITHUB_OUTPUT"
 
   release-pr-ci:
     name: release PR CI
     needs: release
     if: ${{ needs.release.outputs.release_pr_branch != '' }}
     runs-on: ubuntu-latest
-    # Dispatching workflows is the only operation in this job. Keeping it
-    # separate prevents Release Please from receiving Actions write access.
+    # Read the release PR's current base SHA, then dispatch its required
+    # workflows. Keeping this separate prevents Release Please from receiving
+    # Actions write access.
     permissions:
       actions: write
+      pull-requests: read
 
     steps:
       - name: Run required checks for release PR
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         env:
           RELEASE_PR_BRANCH: ${{ needs.release.outputs.release_pr_branch }}
+          RELEASE_PR_NUMBER: ${{ needs.release.outputs.release_pr_number }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const ref = process.env.RELEASE_PR_BRANCH;
+            const expectedRef = process.env.RELEASE_PR_BRANCH;
+            const pullNumber = Number(process.env.RELEASE_PR_NUMBER);
+            if (!Number.isSafeInteger(pullNumber) || pullNumber <= 0) {
+              throw new Error('Release Please returned an invalid PR number');
+            }
+
+            const { data: pull } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pullNumber,
+            });
+            if (pull.head.ref !== expectedRef) {
+              throw new Error(`Release PR branch changed: expected ${expectedRef}, got ${pull.head.ref}`);
+            }
+
+            const ref = pull.head.ref;
             await Promise.all([
               github.rest.actions.createWorkflowDispatch({
                 owner: context.repo.owner,
@@ -70,8 +91,14 @@ jobs:
                 ref,
                 inputs: {
                   release_pr: 'true',
-                  base_sha: context.sha,
+                  base_sha: pull.base.sha,
                 },
+              }),
+              github.rest.actions.createWorkflowDispatch({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                workflow_id: 'codeql.yml',
+                ref,
               }),
             ]);
 

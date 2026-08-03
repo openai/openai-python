@@ -23,7 +23,7 @@ jobs:
   detect_breaking_changes:
     runs-on: 'ubuntu-latest'
     name: detect-breaking-changes
-    if: github.repository == 'openai/openai-python' && (github.event_name == 'pull_request' || (inputs.release_pr && startsWith(github.ref, 'refs/heads/release-please--branches--')))
+    if: github.repository == 'openai/openai-python' && (github.event_name == 'pull_request' || (inputs.release_pr && github.ref == 'refs/heads/release-please--branches--main'))
     env:
       BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || inputs.base_sha }}
       FETCH_DEPTH: 0
@@ -60,7 +60,7 @@ jobs:
   agents_sdk:
     runs-on: 'ubuntu-latest'
     name: Detect Agents SDK regressions
-    if: github.repository == 'openai/openai-python' && (github.event_name == 'pull_request' || (inputs.release_pr && startsWith(github.ref, 'refs/heads/release-please--branches--')))
+    if: github.repository == 'openai/openai-python' && (github.event_name == 'pull_request' || (inputs.release_pr && github.ref == 'refs/heads/release-please--branches--main'))
     steps:
       # Setup this sdk
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
