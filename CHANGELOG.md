@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.53.0 (2026-08-03)
+
+Full Changelog: [v2.52.1...v2.53.0](https://github.com/openai/openai-python/compare/v2.52.1...v2.53.0)
+
+### Features
+
+* **api:** Add gpt-5.5 and tool name/namespace to Responses types ([#3569](https://github.com/openai/openai-python/issues/3569)) ([dd1202d](https://github.com/openai/openai-python/commit/dd1202d5dacff985861289c1d9c46996ded2d2a5))
+
+
+### Chores
+
+* **api:** disable stainless codeflow ([9ac42a8](https://github.com/openai/openai-python/commit/9ac42a8bf75b4f7709e6d11caa0fb019131c9502))
+
 ## 2.52.1 (2026-07-31)
 
 Full Changelog: [v2.52.0...v2.52.1](https://github.com/openai/openai-python/compare/v2.52.0...v2.52.1)
