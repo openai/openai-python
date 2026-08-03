@@ -1,4 +1,0 @@
-{
-  "extends": "../pyproject.toml",
-  "reportDeprecated": false
-}

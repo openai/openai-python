@@ -12,7 +12,7 @@ __all__ = [
     "ActionSearch",
     "ActionSearchSource",
     "ActionOpenPage",
-    "ActionFind",
+    "ActionFindInPage",
 ]
 
 
@@ -52,7 +52,7 @@ class ActionOpenPage(BaseModel):
     """The URL opened by the model."""
 
 
-class ActionFind(BaseModel):
+class ActionFindInPage(BaseModel):
     """Action type "find_in_page": Searches for a pattern within a loaded page."""
 
     pattern: str
@@ -65,7 +65,7 @@ class ActionFind(BaseModel):
     """The URL of the page searched for the pattern."""
 
 
-Action: TypeAlias = Annotated[Union[ActionSearch, ActionOpenPage, ActionFind], PropertyInfo(discriminator="type")]
+Action: TypeAlias = Annotated[Union[ActionSearch, ActionOpenPage, ActionFindInPage], PropertyInfo(discriminator="type")]
 
 
 class ResponseFunctionWebSearch(BaseModel):

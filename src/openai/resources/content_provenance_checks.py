@@ -51,8 +51,7 @@ class ContentProvenanceChecks(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ContentProvenanceCheck:
-        """
-        Check whether an image or audio file contains known OpenAI provenance signals.
+        """Check whether an image or audio file contains known OpenAI provenance signals.
         [Learn more about content provenance](/api/docs/guides/content-provenance).
 
         If `not_detected`, it means the tool did not find supported signals in the
@@ -125,8 +124,7 @@ class AsyncContentProvenanceChecks(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ContentProvenanceCheck:
-        """
-        Check whether an image or audio file contains known OpenAI provenance signals.
+        """Check whether an image or audio file contains known OpenAI provenance signals.
         [Learn more about content provenance](/api/docs/guides/content-provenance).
 
         If `not_detected`, it means the tool did not find supported signals in the

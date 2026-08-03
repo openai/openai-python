@@ -5,8 +5,6 @@ from __future__ import annotations
 from typing import Dict, List, Union, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
-from . import web_search_tool_param
-from ..chat import ChatCompletionFunctionToolParam
 from ..._types import SequenceNotStr
 from .custom_tool_param import CustomToolParam
 from .computer_tool_param import ComputerToolParam
@@ -40,10 +38,6 @@ __all__ = [
     "ImageGenerationInputImageMask",
     "LocalShell",
 ]
-
-WebSearchTool = web_search_tool_param.WebSearchToolParam
-WebSearchToolFilters = web_search_tool_param.Filters
-WebSearchToolUserLocation = web_search_tool_param.UserLocation
 
 
 class McpAllowedToolsMcpToolFilter(TypedDict, total=False):
@@ -373,6 +367,3 @@ ToolParam: TypeAlias = Union[
     WebSearchPreviewToolParam,
     ApplyPatchToolParam,
 ]
-
-
-ParseableToolParam: TypeAlias = Union[ToolParam, ChatCompletionFunctionToolParam]

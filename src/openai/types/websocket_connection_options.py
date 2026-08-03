@@ -3,9 +3,7 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
-from typing_extensions import Sequence, TypeAlias, TypedDict
-
-__all__ = ["WebSocketConnectionOptions", "WebsocketConnectionOptions"]
+from typing_extensions import Sequence, TypedDict
 
 if TYPE_CHECKING:
     from websockets import Subprotocol
@@ -36,7 +34,3 @@ class WebSocketConnectionOptions(TypedDict, total=False):
 
     write_limit: int | tuple[int, int | None]
     """High-water mark of write buffer in bytes. It is passed to set_write_buffer_limits(). It defaults to 32 KiB. You may pass a (high, low) tuple to set the high-water and low-water marks."""
-
-
-# Backward compatibility for pre-rename imports.
-WebsocketConnectionOptions: TypeAlias = WebSocketConnectionOptions

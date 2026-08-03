@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-import logging
-from typing import TYPE_CHECKING, Union, Mapping, cast
-from typing_extensions import Literal, overload, assert_never
+from typing import Any, Union, Mapping, cast
+from typing_extensions import Literal
 
 import httpx
 
@@ -18,13 +17,9 @@ from ..._response import to_streamed_response_wrapper, async_to_streamed_respons
 from ...types.audio import translation_create_params
 from ..._base_client import make_request_options
 from ...types.audio_model import AudioModel
-from ...types.audio.translation import Translation
-from ...types.audio_response_format import AudioResponseFormat
-from ...types.audio.translation_verbose import TranslationVerbose
+from ...types.audio.translation_create_response import TranslationCreateResponse
 
 __all__ = ["Translations", "AsyncTranslations"]
-
-log: logging.Logger = logging.getLogger("openai.audio.transcriptions")
 
 
 class Translations(SyncAPIResource):
@@ -49,14 +44,13 @@ class Translations(SyncAPIResource):
         """
         return TranslationsWithStreamingResponse(self)
 
-    @overload
     def create(
         self,
         *,
         file: FileTypes,
         model: Union[str, AudioModel],
-        response_format: Union[Literal["json"], Omit] = omit,
         prompt: str | Omit = omit,
+        response_format: Literal["json", "text", "srt", "verbose_json", "vtt"] | Omit = omit,
         temperature: float | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -64,57 +58,7 @@ class Translations(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> Translation: ...
-
-    @overload
-    def create(
-        self,
-        *,
-        file: FileTypes,
-        model: Union[str, AudioModel],
-        response_format: Literal["verbose_json"],
-        prompt: str | Omit = omit,
-        temperature: float | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
-        extra_headers: Headers | None = None,
-        extra_query: Query | None = None,
-        extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> TranslationVerbose: ...
-
-    @overload
-    def create(
-        self,
-        *,
-        file: FileTypes,
-        model: Union[str, AudioModel],
-        response_format: Literal["text", "srt", "vtt"],
-        prompt: str | Omit = omit,
-        temperature: float | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
-        extra_headers: Headers | None = None,
-        extra_query: Query | None = None,
-        extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> str: ...
-
-    def create(
-        self,
-        *,
-        file: FileTypes,
-        model: Union[str, AudioModel],
-        prompt: str | Omit = omit,
-        response_format: Union[Literal["json", "text", "srt", "verbose_json", "vtt"], Omit] = omit,
-        temperature: float | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
-        extra_headers: Headers | None = None,
-        extra_query: Query | None = None,
-        extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> Translation | TranslationVerbose | str:
+    ) -> TranslationCreateResponse:
         """
         Translates audio into English.
 
@@ -162,18 +106,23 @@ class Translations(SyncAPIResource):
         # sent to the server will contain a `boundary` parameter, e.g.
         # multipart/form-data; boundary=---abc--
         extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
-        return self._post(  # type: ignore[return-value]
-            "/audio/translations",
-            body=maybe_transform(body, translation_create_params.TranslationCreateParams),
-            files=files,
-            options=make_request_options(
-                extra_headers=extra_headers,
-                extra_query=extra_query,
-                extra_body=extra_body,
-                timeout=timeout,
-                security={"bearer_auth": True},
+        return cast(
+            TranslationCreateResponse,
+            self._post(
+                "/audio/translations",
+                body=maybe_transform(body, translation_create_params.TranslationCreateParams),
+                files=files,
+                options=make_request_options(
+                    extra_headers=extra_headers,
+                    extra_query=extra_query,
+                    extra_body=extra_body,
+                    timeout=timeout,
+                    security={"bearer_auth": True},
+                ),
+                cast_to=cast(
+                    Any, TranslationCreateResponse
+                ),  # Union types cannot be passed in as arguments in the type system
             ),
-            cast_to=_get_response_format_type(response_format),
         )
 
 
@@ -199,14 +148,13 @@ class AsyncTranslations(AsyncAPIResource):
         """
         return AsyncTranslationsWithStreamingResponse(self)
 
-    @overload
     async def create(
         self,
         *,
         file: FileTypes,
         model: Union[str, AudioModel],
-        response_format: Union[Literal["json"], Omit] = omit,
         prompt: str | Omit = omit,
+        response_format: Literal["json", "text", "srt", "verbose_json", "vtt"] | Omit = omit,
         temperature: float | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -214,57 +162,7 @@ class AsyncTranslations(AsyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> Translation: ...
-
-    @overload
-    async def create(
-        self,
-        *,
-        file: FileTypes,
-        model: Union[str, AudioModel],
-        response_format: Literal["verbose_json"],
-        prompt: str | Omit = omit,
-        temperature: float | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
-        extra_headers: Headers | None = None,
-        extra_query: Query | None = None,
-        extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> TranslationVerbose: ...
-
-    @overload
-    async def create(
-        self,
-        *,
-        file: FileTypes,
-        model: Union[str, AudioModel],
-        response_format: Literal["text", "srt", "vtt"],
-        prompt: str | Omit = omit,
-        temperature: float | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
-        extra_headers: Headers | None = None,
-        extra_query: Query | None = None,
-        extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> str: ...
-
-    async def create(
-        self,
-        *,
-        file: FileTypes,
-        model: Union[str, AudioModel],
-        prompt: str | Omit = omit,
-        response_format: Union[AudioResponseFormat, Omit] = omit,
-        temperature: float | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
-        extra_headers: Headers | None = None,
-        extra_query: Query | None = None,
-        extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> Translation | TranslationVerbose | str:
+    ) -> TranslationCreateResponse:
         """
         Translates audio into English.
 
@@ -312,18 +210,23 @@ class AsyncTranslations(AsyncAPIResource):
         # sent to the server will contain a `boundary` parameter, e.g.
         # multipart/form-data; boundary=---abc--
         extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
-        return await self._post(
-            "/audio/translations",
-            body=await async_maybe_transform(body, translation_create_params.TranslationCreateParams),
-            files=files,
-            options=make_request_options(
-                extra_headers=extra_headers,
-                extra_query=extra_query,
-                extra_body=extra_body,
-                timeout=timeout,
-                security={"bearer_auth": True},
+        return cast(
+            TranslationCreateResponse,
+            await self._post(
+                "/audio/translations",
+                body=await async_maybe_transform(body, translation_create_params.TranslationCreateParams),
+                files=files,
+                options=make_request_options(
+                    extra_headers=extra_headers,
+                    extra_query=extra_query,
+                    extra_body=extra_body,
+                    timeout=timeout,
+                    security={"bearer_auth": True},
+                ),
+                cast_to=cast(
+                    Any, TranslationCreateResponse
+                ),  # Union types cannot be passed in as arguments in the type system
             ),
-            cast_to=_get_response_format_type(response_format),
         )
 
 
@@ -361,22 +264,3 @@ class AsyncTranslationsWithStreamingResponse:
         self.create = async_to_streamed_response_wrapper(
             translations.create,
         )
-
-
-def _get_response_format_type(
-    response_format: AudioResponseFormat | Omit,
-) -> type[Translation | TranslationVerbose | str]:
-    if isinstance(response_format, Omit) or response_format is None:  # pyright: ignore[reportUnnecessaryComparison]
-        return Translation
-
-    if response_format == "json":
-        return Translation
-    elif response_format == "verbose_json":
-        return TranslationVerbose
-    elif response_format == "srt" or response_format == "text" or response_format == "vtt":
-        return str
-    elif TYPE_CHECKING and response_format != "diarized_json":  # type: ignore[unreachable]
-        assert_never(response_format)
-    else:
-        log.warning("Unexpected audio response format: %s", response_format)
-        return Translation

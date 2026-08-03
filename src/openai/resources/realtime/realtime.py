@@ -22,15 +22,8 @@ from .calls import (
     AsyncCallsWithStreamingResponse,
 )
 from ..._types import Omit, Query, Headers, omit
-from ..._utils import (
-    is_azure_client,
-    maybe_transform,
-    strip_not_given,
-    async_maybe_transform,
-    is_async_azure_client,
-)
+from ..._utils import maybe_transform, strip_not_given, async_maybe_transform
 from ..._compat import cached_property
-from ..._httpx2 import normalize_httpx_url
 from ..._models import construct_type_unchecked
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._exceptions import OpenAIError, WebSocketConnectionClosedError
@@ -73,9 +66,7 @@ class Realtime(SyncAPIResource):
 
     @cached_property
     def calls(self) -> Calls:
-        from ...lib._realtime import _Calls
-
-        return _Calls(self._client)
+        return Calls(self._client)
 
     @cached_property
     def with_raw_response(self) -> RealtimeWithRawResponse:
@@ -143,9 +134,7 @@ class AsyncRealtime(AsyncAPIResource):
 
     @cached_property
     def calls(self) -> AsyncCalls:
-        from ...lib._realtime import _AsyncCalls
-
-        return _AsyncCalls(self._client)
+        return AsyncCalls(self._client)
 
     @cached_property
     def with_raw_response(self) -> AsyncRealtimeWithRawResponse:
@@ -686,24 +675,14 @@ class AsyncRealtimeConnectionManager:
         except ImportError as exc:
             raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
 
-        await self.__client._refresh_api_key()
-        auth_headers = self.__client.auth_headers
-        if self.__call_id is not omit:
-            extra_query = {**extra_query, "call_id": self.__call_id}
-        if is_async_azure_client(self.__client):
-            model = self.__model
-            if not model:
-                raise OpenAIError("`model` is required for Azure Realtime API")
-            else:
-                url, auth_headers = await self.__client._configure_realtime(model, extra_query)
-        else:
-            url = self._prepare_url().copy_with(
-                params={
-                    **self.__client.base_url.params,
-                    **({"model": self.__model} if self.__model is not omit else {}),
-                    **extra_query,
-                },
-            )
+        url = self._prepare_url().copy_with(
+            params={
+                **self.__client.base_url.params,
+                "call_id": self.__call_id,
+                "model": self.__model,
+                **extra_query,
+            },
+        )
         log.debug("Connecting to %s", url)
         if self.__websocket_connection_options:
             log.debug("Connection options: %s", self.__websocket_connection_options)
@@ -713,7 +692,7 @@ class AsyncRealtimeConnectionManager:
             user_agent_header=self.__client.user_agent,
             additional_headers=_merge_mappings(
                 {
-                    **auth_headers,
+                    **self.__client.auth_headers,
                 },
                 extra_headers,
             ),
@@ -722,7 +701,7 @@ class AsyncRealtimeConnectionManager:
 
     def _prepare_url(self) -> httpx.URL:
         if self.__client.websocket_base_url is not None:
-            base_url = normalize_httpx_url(self.__client.websocket_base_url)
+            base_url = httpx.URL(self.__client.websocket_base_url)
         else:
             scheme = self.__client._base_url.scheme
             ws_scheme = "ws" if scheme == "http" else "wss"
@@ -1154,24 +1133,14 @@ class RealtimeConnectionManager:
         except ImportError as exc:
             raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
 
-        self.__client._refresh_api_key()
-        auth_headers = self.__client.auth_headers
-        if self.__call_id is not omit:
-            extra_query = {**extra_query, "call_id": self.__call_id}
-        if is_azure_client(self.__client):
-            model = self.__model
-            if not model:
-                raise OpenAIError("`model` is required for Azure Realtime API")
-            else:
-                url, auth_headers = self.__client._configure_realtime(model, extra_query)
-        else:
-            url = self._prepare_url().copy_with(
-                params={
-                    **self.__client.base_url.params,
-                    **({"model": self.__model} if self.__model is not omit else {}),
-                    **extra_query,
-                },
-            )
+        url = self._prepare_url().copy_with(
+            params={
+                **self.__client.base_url.params,
+                "call_id": self.__call_id,
+                "model": self.__model,
+                **extra_query,
+            },
+        )
         log.debug("Connecting to %s", url)
         if self.__websocket_connection_options:
             log.debug("Connection options: %s", self.__websocket_connection_options)
@@ -1181,7 +1150,7 @@ class RealtimeConnectionManager:
             user_agent_header=self.__client.user_agent,
             additional_headers=_merge_mappings(
                 {
-                    **auth_headers,
+                    **self.__client.auth_headers,
                 },
                 extra_headers,
             ),
@@ -1190,7 +1159,7 @@ class RealtimeConnectionManager:
 
     def _prepare_url(self) -> httpx.URL:
         if self.__client.websocket_base_url is not None:
-            base_url = normalize_httpx_url(self.__client.websocket_base_url)
+            base_url = httpx.URL(self.__client.websocket_base_url)
         else:
             scheme = self.__client._base_url.scheme
             ws_scheme = "ws" if scheme == "http" else "wss"
