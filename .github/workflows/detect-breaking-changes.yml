@@ -4,6 +4,9 @@ on:
     branches:
       - main
       - next
+  merge_group:
+    types:
+      - checks_requested
   workflow_dispatch:
     inputs:
       release_pr:
@@ -23,9 +26,9 @@ jobs:
   detect_breaking_changes:
     runs-on: 'ubuntu-latest'
     name: detect-breaking-changes
-    if: github.repository == 'openai/openai-python' && (github.event_name == 'pull_request' || (inputs.release_pr && github.ref == 'refs/heads/release-please--branches--main'))
+    if: github.repository == 'openai/openai-python' && (github.event_name == 'pull_request' || github.event_name == 'merge_group' || (inputs.release_pr && github.ref == 'refs/heads/release-please--branches--main'))
     env:
-      BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || inputs.base_sha }}
+      BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event_name == 'merge_group' && github.event.merge_group.base_sha || inputs.base_sha }}
       FETCH_DEPTH: 0
     steps:
       - name: Calculate fetch-depth
@@ -37,7 +40,7 @@ jobs:
 
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
-          # Ensure we can check out the pull request base in the script below.
+          # Ensure the comparison base is available to the scripts below.
           fetch-depth: ${{ env.FETCH_DEPTH }}
 
       - name: Set up Rye

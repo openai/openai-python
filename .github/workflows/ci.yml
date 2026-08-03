@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - '**'
+      - '!gh-readonly-queue/**'
       - '!integrated/**'
       - '!stl-preview-head/**'
       - '!stl-preview-base/**'
@@ -13,6 +14,9 @@ on:
     branches-ignore:
       - 'stl-preview-head/**'
       - 'stl-preview-base/**'
+  merge_group:
+    types:
+      - checks_requested
   workflow_dispatch:
     inputs:
       release_pr:
@@ -33,7 +37,7 @@ jobs:
     timeout-minutes: 10
     name: lint
     runs-on: ${{ startsWith(github.repository, 'stainless-sdks/') && 'depot-ubuntu-24.04' || 'ubuntu-latest' }}
-    if: (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.release_pr && github.ref == 'refs/heads/release-please--branches--main') || github.event.pull_request.head.repo.fork) && (github.event_name != 'push' || github.event.head_commit.message != 'codegen metadata')
+    if: (github.event_name == 'push' || github.event_name == 'merge_group' || (github.event_name == 'workflow_dispatch' && inputs.release_pr && github.ref == 'refs/heads/release-please--branches--main') || github.event.pull_request.head.repo.fork) && (github.event_name != 'push' || github.event.head_commit.message != 'codegen metadata')
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
@@ -50,7 +54,7 @@ jobs:
         run: ./scripts/lint
 
   build:
-    if: (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.release_pr && github.ref == 'refs/heads/release-please--branches--main') || github.event.pull_request.head.repo.fork) && (github.event_name != 'push' || github.event.head_commit.message != 'codegen metadata')
+    if: (github.event_name == 'push' || github.event_name == 'merge_group' || (github.event_name == 'workflow_dispatch' && inputs.release_pr && github.ref == 'refs/heads/release-please--branches--main') || github.event.pull_request.head.repo.fork) && (github.event_name != 'push' || github.event.head_commit.message != 'codegen metadata')
     timeout-minutes: 10
     name: build
     permissions:
@@ -146,7 +150,7 @@ jobs:
     timeout-minutes: 15
     name: test (Python ${{ matrix.python-version }})
     runs-on: ${{ startsWith(github.repository, 'stainless-sdks/') && 'depot-ubuntu-24.04' || 'ubuntu-latest' }}
-    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.release_pr && github.ref == 'refs/heads/release-please--branches--main') || github.event.pull_request.head.repo.fork
+    if: github.event_name == 'push' || github.event_name == 'merge_group' || (github.event_name == 'workflow_dispatch' && inputs.release_pr && github.ref == 'refs/heads/release-please--branches--main') || github.event.pull_request.head.repo.fork
     strategy:
       fail-fast: false
       matrix:
@@ -182,7 +186,7 @@ jobs:
     timeout-minutes: 20
     name: test (HTTPX2)
     runs-on: ${{ startsWith(github.repository, 'stainless-sdks/') && 'depot-ubuntu-24.04' || 'ubuntu-latest' }}
-    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.release_pr && github.ref == 'refs/heads/release-please--branches--main') || github.event.pull_request.head.repo.fork
+    if: github.event_name == 'push' || github.event_name == 'merge_group' || (github.event_name == 'workflow_dispatch' && inputs.release_pr && github.ref == 'refs/heads/release-please--branches--main') || github.event.pull_request.head.repo.fork
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
