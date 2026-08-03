@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.52.1 (2026-07-31)
+
+Full Changelog: [v2.52.0...v2.52.1](https://github.com/openai/openai-python/compare/v2.52.0...v2.52.1)
+
+### Chores
+
+* **ci:** pin setup-uv v5 to its underlying commit ([#3560](https://github.com/openai/openai-python/issues/3560)) ([cbdc98b](https://github.com/openai/openai-python/commit/cbdc98b6c1e21df7ee43d13b5de7243c6ed1ee7f))
+
 ## 2.52.0 (2026-07-31)
 
 Full Changelog: [v2.51.0...v2.52.0](https://github.com/openai/openai-python/compare/v2.51.0...v2.52.0)
