@@ -165,8 +165,13 @@ jobs:
         uses: eifinger/setup-rye@c694239a43768373e87d0103d7f547027a23f3c8
         with:
           version: '0.44.0'
-          enable-cache: true
-          cache-prefix: python-${{ matrix.python-version }}
+          enable-cache: false
+
+      - name: Cache Rye virtual environment
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .venv
+          key: rye-${{ runner.os }}-${{ runner.arch }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('requirements.lock', 'requirements-dev.lock') }}
 
       - name: Select Python ${{ matrix.python-version }}
         run: |
@@ -197,8 +202,13 @@ jobs:
         uses: eifinger/setup-rye@c694239a43768373e87d0103d7f547027a23f3c8
         with:
           version: '0.44.0'
-          enable-cache: true
-          cache-prefix: python-3.14
+          enable-cache: false
+
+      - name: Cache Rye virtual environment
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .venv
+          key: rye-${{ runner.os }}-${{ runner.arch }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('requirements.lock', 'requirements-dev.lock') }}
 
       - name: Install HTTPX2 test dependencies
         run: |
@@ -290,8 +300,13 @@ jobs:
         uses: eifinger/setup-rye@c694239a43768373e87d0103d7f547027a23f3c8
         with:
           version: '0.44.0'
-          enable-cache: true
-          cache-prefix: python-${{ matrix.python-version }}
+          enable-cache: false
+
+      - name: Cache Rye virtual environment
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .venv
+          key: rye-${{ runner.os }}-${{ runner.arch }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('requirements.lock', 'requirements-dev.lock') }}
 
       - name: Select Python ${{ matrix.python-version }}
         run: |
