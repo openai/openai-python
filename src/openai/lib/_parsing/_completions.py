@@ -23,6 +23,7 @@ from ...types.chat import (
     ParsedChatCompletionMessage,
     ChatCompletionToolUnionParam,
     ChatCompletionFunctionToolParam,
+    ParsedChatCompletionMessageToolCallUnion,
     completion_create_params,
 )
 from ..._exceptions import LengthFinishReasonError, ContentFilterFinishReasonError
@@ -104,7 +105,7 @@ def parse_chat_completion(
 
         message = choice.message
 
-        tool_calls: list[ParsedFunctionToolCall] = []
+        tool_calls: list[ParsedChatCompletionMessageToolCallUnion] = []
         if message.tool_calls:
             for tool_call in message.tool_calls:
                 if tool_call.type == "function":
