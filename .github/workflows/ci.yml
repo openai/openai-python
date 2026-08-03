@@ -165,7 +165,8 @@ jobs:
         uses: eifinger/setup-rye@c694239a43768373e87d0103d7f547027a23f3c8
         with:
           version: '0.44.0'
-          enable-cache: false
+          enable-cache: true
+          cache-prefix: python-${{ matrix.python-version }}
 
       - name: Select Python ${{ matrix.python-version }}
         run: |
@@ -196,18 +197,14 @@ jobs:
         uses: eifinger/setup-rye@c694239a43768373e87d0103d7f547027a23f3c8
         with:
           version: '0.44.0'
-          enable-cache: false
+          enable-cache: true
+          cache-prefix: python-3.14
 
       - name: Install HTTPX2 test dependencies
         run: |
           rye toolchain register "${{ steps.setup-python.outputs.python-path }}"
           rye pin --relaxed --no-update-requires-python 3.14
           rye sync --all-features
-
-      - name: Run tests with HTTPX and HTTPX2 installed
-        env:
-          OPENAI_TEST_HTTP_CLIENT: httpx
-        run: ./scripts/test
 
       - name: Run tests with HTTPX2
         env:
@@ -293,7 +290,8 @@ jobs:
         uses: eifinger/setup-rye@c694239a43768373e87d0103d7f547027a23f3c8
         with:
           version: '0.44.0'
-          enable-cache: false
+          enable-cache: true
+          cache-prefix: python-${{ matrix.python-version }}
 
       - name: Select Python ${{ matrix.python-version }}
         run: |
