@@ -247,6 +247,12 @@ class FunctionCallOutput(TypedDict, total=False):
     caller: Optional[FunctionCallOutputCaller]
     """The execution context that produced this tool call."""
 
+    name: Optional[str]
+    """The name of the tool that produced the output."""
+
+    namespace: Optional[str]
+    """The namespace of the tool that produced the output."""
+
     status: Optional[Literal["in_progress", "completed", "incomplete"]]
     """The status of the item.
 
