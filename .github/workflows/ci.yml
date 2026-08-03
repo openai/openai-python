@@ -14,17 +14,26 @@ on:
       - 'stl-preview-head/**'
       - 'stl-preview-base/**'
   workflow_dispatch:
+    inputs:
+      release_pr:
+        description: Run required CI for a Release Please branch
+        required: false
+        default: false
+        type: boolean
   # Exercise the complete supported matrix and the next CPython prerelease
   # even when the repository has not changed.
   schedule:
     - cron: '47 9 * * *'
+
+permissions:
+  contents: read
 
 jobs:
   lint:
     timeout-minutes: 10
     name: lint
     runs-on: ${{ startsWith(github.repository, 'stainless-sdks/') && 'depot-ubuntu-24.04' || 'ubuntu-latest' }}
-    if: (github.event_name == 'push' || github.event.pull_request.head.repo.fork) && (github.event_name != 'push' || github.event.head_commit.message != 'codegen metadata')
+    if: (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.release_pr && github.ref == 'refs/heads/release-please--branches--main') || github.event.pull_request.head.repo.fork) && (github.event_name != 'push' || github.event.head_commit.message != 'codegen metadata')
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
@@ -41,15 +50,16 @@ jobs:
         run: ./scripts/lint
 
   build:
-    if: (github.event_name == 'push' || github.event.pull_request.head.repo.fork) && (github.event_name != 'push' || github.event.head_commit.message != 'codegen metadata')
+    if: (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.release_pr && github.ref == 'refs/heads/release-please--branches--main') || github.event.pull_request.head.repo.fork) && (github.event_name != 'push' || github.event.head_commit.message != 'codegen metadata')
     timeout-minutes: 10
     name: build
     permissions:
       contents: read
-      id-token: write
     runs-on: ${{ startsWith(github.repository, 'stainless-sdks/') && 'depot-ubuntu-24.04' || 'ubuntu-latest' }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
 
       - name: Set up Rye
         uses: eifinger/setup-rye@c694239a43768373e87d0103d7f547027a23f3c8
@@ -88,19 +98,44 @@ jobs:
       - name: Validate HTTPX2 wheel on Python 3.14
         run: python scripts/utils/validate-httpx2-wheel.py
 
-      - name: Get GitHub OIDC Token
+      - name: Stage tarball for Stainless upload
         if: |-
           github.repository == 'stainless-sdks/openai-python' &&
           !startsWith(github.ref, 'refs/heads/stl/')
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: stainless-package-tarball
+          path: dist/
+          if-no-files-found: error
+          retention-days: 1
+
+  stainless-upload:
+    name: upload tarball to Stainless
+    needs: build
+    if: github.repository == 'stainless-sdks/openai-python' && !startsWith(github.ref, 'refs/heads/stl/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
+
+      - name: Download tarball
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: stainless-package-tarball
+          path: dist/
+
+      - name: Get GitHub OIDC Token
         id: github-oidc
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         with:
           script: core.setOutput('github_token', await core.getIDToken());
 
       - name: Upload tarball
-        if: |-
-          github.repository == 'stainless-sdks/openai-python' &&
-          !startsWith(github.ref, 'refs/heads/stl/')
         env:
           URL: https://pkg.stainless.com/s
           AUTH: ${{ steps.github-oidc.outputs.github_token }}
@@ -111,7 +146,7 @@ jobs:
     timeout-minutes: 15
     name: test (Python ${{ matrix.python-version }})
     runs-on: ${{ startsWith(github.repository, 'stainless-sdks/') && 'depot-ubuntu-24.04' || 'ubuntu-latest' }}
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.fork
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.release_pr && github.ref == 'refs/heads/release-please--branches--main') || github.event.pull_request.head.repo.fork
     strategy:
       fail-fast: false
       matrix:
@@ -147,7 +182,7 @@ jobs:
     timeout-minutes: 20
     name: test (HTTPX2)
     runs-on: ${{ startsWith(github.repository, 'stainless-sdks/') && 'depot-ubuntu-24.04' || 'ubuntu-latest' }}
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.fork
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.release_pr && github.ref == 'refs/heads/release-please--branches--main') || github.event.pull_request.head.repo.fork
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
@@ -224,7 +259,7 @@ jobs:
     timeout-minutes: 20
     name: compatibility (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && !inputs.release_pr)
     continue-on-error: ${{ matrix.experimental }}
     strategy:
       fail-fast: false
