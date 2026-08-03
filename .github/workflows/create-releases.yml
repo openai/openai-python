@@ -9,20 +9,98 @@ jobs:
     name: release
     if: github.ref == 'refs/heads/main' && github.repository == 'openai/openai-python'
     runs-on: ubuntu-latest
-    environment: publish
     outputs:
       releases_created: ${{ steps.release.outputs.releases_created }}
+      release_pr_branch: ${{ steps.release_pr.outputs.branch }}
+      release_pr_number: ${{ steps.release_pr.outputs.number }}
+    # Release Please writes its PR branch, tags/releases, PR, and PR labels.
     permissions:
       contents: write
+      issues: write
+      pull-requests: write
 
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-
-      - uses: stainless-api/trigger-release-please@bb6677c5a04578eec1ccfd9e1913b5b78ed64c61 # v1.4.0
+      - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
         id: release
         with:
-          repo: ${{ github.event.repository.full_name }}
-          stainless-api-key: ${{ secrets.STAINLESS_API_KEY }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          target-branch: main
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+      - name: Capture release PR
+        if: steps.release.outputs.prs_created == 'true'
+        id: release_pr
+        env:
+          RELEASE_PR: ${{ steps.release.outputs.pr }}
+        run: |
+          branch="$(jq -er '.headBranchName | select(. == "release-please--branches--main")' <<<"$RELEASE_PR")"
+          number="$(jq -er '.number | select(type == "number")' <<<"$RELEASE_PR")"
+          echo "branch=$branch" >> "$GITHUB_OUTPUT"
+          echo "number=$number" >> "$GITHUB_OUTPUT"
+
+  release-pr-ci:
+    name: release PR CI
+    needs: release
+    if: ${{ needs.release.outputs.release_pr_branch != '' }}
+    runs-on: ubuntu-latest
+    # Read the release PR's current base SHA, then dispatch its required
+    # workflows. Keeping this separate prevents Release Please from receiving
+    # Actions write access.
+    permissions:
+      actions: write
+      pull-requests: read
+
+    steps:
+      - name: Run required checks for release PR
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        env:
+          RELEASE_PR_BRANCH: ${{ needs.release.outputs.release_pr_branch }}
+          RELEASE_PR_NUMBER: ${{ needs.release.outputs.release_pr_number }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const expectedRef = process.env.RELEASE_PR_BRANCH;
+            const pullNumber = Number(process.env.RELEASE_PR_NUMBER);
+            if (!Number.isSafeInteger(pullNumber) || pullNumber <= 0) {
+              throw new Error('Release Please returned an invalid PR number');
+            }
+
+            const { data: pull } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pullNumber,
+            });
+            if (pull.head.ref !== expectedRef) {
+              throw new Error(`Release PR branch changed: expected ${expectedRef}, got ${pull.head.ref}`);
+            }
+
+            const ref = pull.head.ref;
+            await Promise.all([
+              github.rest.actions.createWorkflowDispatch({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                workflow_id: 'ci.yml',
+                ref,
+                inputs: { release_pr: 'true' },
+              }),
+              github.rest.actions.createWorkflowDispatch({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                workflow_id: 'detect-breaking-changes.yml',
+                ref,
+                inputs: {
+                  release_pr: 'true',
+                  base_sha: pull.base.sha,
+                },
+              }),
+              github.rest.actions.createWorkflowDispatch({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                workflow_id: 'codeql.yml',
+                ref,
+              }),
+            ]);
 
   build:
     name: build
@@ -36,6 +114,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
 
       - name: Set up Rye
         uses: eifinger/setup-rye@c694239a43768373e87d0103d7f547027a23f3c8
@@ -64,7 +144,6 @@ jobs:
     # PyPI Trusted Publishing requires id-token: write. Keep it scoped to this
     # minimal upload-only job rather than the build job.
     permissions:
-      contents: read
       id-token: write
 
     steps:

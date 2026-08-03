@@ -7,7 +7,7 @@
 #   all-features: true
 #   with-sources: false
 #   generate-hashes: false
-#   universal: false
+#   universal: true
 
 -e file:.
 aiohappyeyeballs==2.7.1
@@ -23,7 +23,7 @@ anyio==4.12.1
     # via httpx
     # via httpx2
     # via openai
-async-timeout==5.0.1
+async-timeout==5.0.1 ; python_full_version < '3.11'
     # via aiohttp
 attrs==26.1.0
     # via aiohttp
@@ -34,9 +34,11 @@ certifi==2026.1.4
     # via httpx
 cffi==2.0.0
     # via sounddevice
+colorama==0.4.6 ; sys_platform == 'win32'
+    # via tqdm
 distro==1.9.0
     # via openai
-exceptiongroup==1.3.1
+exceptiongroup==1.3.1 ; python_full_version < '3.11'
     # via anyio
 frozenlist==1.8.0
     # via aiohttp
@@ -67,7 +69,11 @@ jmespath==1.1.0
 multidict==6.7.1
     # via aiohttp
     # via yarl
-numpy==2.0.2
+numpy==2.2.6 ; python_full_version < '3.11'
+    # via openai
+    # via pandas
+    # via pandas-stubs
+numpy==2.4.6 ; python_full_version >= '3.11'
     # via openai
     # via pandas
     # via pandas-stubs
@@ -78,7 +84,7 @@ pandas-stubs==2.2.2.240807
 propcache==0.5.2
     # via aiohttp
     # via yarl
-pycparser==2.23
+pycparser==2.23 ; implementation_name != 'PyPy'
     # via cffi
 pydantic==2.12.5
     # via openai
