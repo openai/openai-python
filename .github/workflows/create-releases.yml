@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       releases_created: ${{ steps.release.outputs.releases_created }}
+    # Release Please writes its PR branch, tags/releases, PR, and PR labels.
     permissions:
       contents: write
       issues: write
@@ -20,6 +21,7 @@ jobs:
       - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
         id: release
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           target-branch: main
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
@@ -36,6 +38,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
 
       - name: Set up Rye
         uses: eifinger/setup-rye@c694239a43768373e87d0103d7f547027a23f3c8
@@ -64,7 +68,6 @@ jobs:
     # PyPI Trusted Publishing requires id-token: write. Keep it scoped to this
     # minimal upload-only job rather than the build job.
     permissions:
-      contents: read
       id-token: write
 
     steps:
