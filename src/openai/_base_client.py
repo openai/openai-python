@@ -1137,9 +1137,15 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
                 # The retry classification below may inspect the response body (e.g. to
                 # detect `insufficient_quota`), so make sure it has been read first. For
                 # `stream=True` requests the body is not read automatically and accessing
-                # it before this point raises `httpx.ResponseNotRead`.
+                # it before this point raises `httpx.ResponseNotRead`. Reading can itself
+                # fail (e.g. a dropped connection mid-stream) for errors that are still
+                # retriable on status/headers alone, so a read failure here must not stop
+                # `_should_retry` from running.
                 if not err.response.is_closed:
-                    err.response.read()
+                    try:
+                        err.response.read()
+                    except Exception:
+                        pass
 
                 if remaining_retries > 0 and self._should_retry(err.response):
                     err.response.close()
@@ -1767,9 +1773,15 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
                 # The retry classification below may inspect the response body (e.g. to
                 # detect `insufficient_quota`), so make sure it has been read first. For
                 # `stream=True` requests the body is not read automatically and accessing
-                # it before this point raises `httpx.ResponseNotRead`.
+                # it before this point raises `httpx.ResponseNotRead`. Reading can itself
+                # fail (e.g. a dropped connection mid-stream) for errors that are still
+                # retriable on status/headers alone, so a read failure here must not stop
+                # `_should_retry` from running.
                 if not err.response.is_closed:
-                    await err.response.aread()
+                    try:
+                        await err.response.aread()
+                    except Exception:
+                        pass
 
                 if remaining_retries > 0 and self._should_retry(err.response):
                     await err.response.aclose()

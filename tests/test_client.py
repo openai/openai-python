@@ -1565,6 +1565,40 @@ class TestOpenAI:
             calls = cast("list[MockRequestCall]", respx_mock.calls)
             assert len(calls) == 1
 
+    @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @pytest.mark.respx(base_url=base_url)
+    def test_429_still_retried_if_streamed_body_read_fails(self, respx_mock: MockRouter, client: OpenAI) -> None:
+        respx_mock.post("/chat/completions").mock(return_value=httpx.Response(429))
+
+        # respx pre-reads its own canned response while resolving each mocked call
+        # (a distinct object each time), then our own retry-classification code reads
+        # the actual response object handed back — always the 2nd .read() of each pair.
+        # Fail that one to simulate the connection dropping mid-stream; that must not
+        # stop a plain 429 from being retried on status code alone.
+        original_read = httpx.Response.read
+        read_calls = [0]
+
+        def flaky_read(self: httpx.Response) -> bytes:
+            read_calls[0] += 1
+            if read_calls[0] % 2 == 0:
+                raise httpx.ReadError("mid-stream connection reset")
+            return original_read(self)
+
+        with mock.patch.object(httpx.Response, "read", flaky_read):
+            with pytest.raises(RateLimitError):
+                client.chat.completions.with_streaming_response.create(
+                    messages=[
+                        {
+                            "content": "string",
+                            "role": "developer",
+                        }
+                    ],
+                    model="gpt-5.4",
+                ).__enter__()
+
+        calls = cast("list[MockRequestCall]", respx_mock.calls)
+        assert len(calls) == client.max_retries + 1
+
 
 class TestAsyncOpenAI:
     @pytest.mark.respx2(base_url=base_url)
@@ -2964,6 +2998,42 @@ class TestAsyncOpenAI:
             # the request should not be retried even though max_retries > 0.
             calls = cast("list[MockRequestCall]", respx_mock.calls)
             assert len(calls) == 1
+
+    @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @pytest.mark.respx(base_url=base_url)
+    async def test_429_still_retried_if_streamed_body_read_fails(
+        self, respx_mock: MockRouter, async_client: AsyncOpenAI
+    ) -> None:
+        respx_mock.post("/chat/completions").mock(return_value=httpx.Response(429))
+
+        # respx pre-reads its own canned response while resolving each mocked call
+        # (a distinct object each time), then our own retry-classification code reads
+        # the actual response object handed back — always the 2nd .aread() of each pair.
+        # Fail that one to simulate the connection dropping mid-stream; that must not
+        # stop a plain 429 from being retried on status code alone.
+        original_aread = httpx.Response.aread
+        aread_calls = [0]
+
+        async def flaky_aread(self: httpx.Response) -> bytes:
+            aread_calls[0] += 1
+            if aread_calls[0] % 2 == 0:
+                raise httpx.ReadError("mid-stream connection reset")
+            return await original_aread(self)
+
+        with mock.patch.object(httpx.Response, "aread", flaky_aread):
+            with pytest.raises(RateLimitError):
+                await async_client.chat.completions.with_streaming_response.create(
+                    messages=[
+                        {
+                            "content": "string",
+                            "role": "developer",
+                        }
+                    ],
+                    model="gpt-5.4",
+                ).__aenter__()
+
+        calls = cast("list[MockRequestCall]", respx_mock.calls)
+        assert len(calls) == async_client.max_retries + 1
 
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx()
