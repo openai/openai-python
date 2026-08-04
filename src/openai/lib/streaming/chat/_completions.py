@@ -22,7 +22,7 @@ from ._events import (
     FunctionToolCallArgumentsDoneEvent,
     FunctionToolCallArgumentsDeltaEvent,
 )
-from .._deltas import accumulate_delta
+from .._deltas import _normalize_indexed_list, accumulate_delta
 from ...._types import Omit, IncEx, omit
 from ...._utils import is_given, consume_sync_iterator, consume_async_iterator
 from ...._compat import model_dump
@@ -409,13 +409,17 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
                     elif TYPE_CHECKING:  # type: ignore[unreachable]
                         assert_never(prev_tool)
             except IndexError:
+                message = choice.delta.to_dict()
+                tool_calls = message.get("tool_calls")
+                if isinstance(tool_calls, list):
+                    message["tool_calls"] = _normalize_indexed_list(tool_calls)
                 choice_snapshot = cast(
                     ParsedChoiceSnapshot,
                     construct_type(
                         type_=ParsedChoiceSnapshot,
                         value={
                             **choice.model_dump(exclude_unset=True, exclude={"delta"}),
-                            "message": choice.delta.to_dict(),
+                            "message": message,
                         },
                     ),
                 )
@@ -742,9 +746,13 @@ def _convert_initial_chunk_into_snapshot(chunk: ChatCompletionChunk) -> ParsedCh
     choices = cast("list[object]", data["choices"])
 
     for choice in chunk.choices:
+        message = choice.delta.to_dict()
+        tool_calls = message.get("tool_calls")
+        if isinstance(tool_calls, list):
+            message["tool_calls"] = _normalize_indexed_list(tool_calls)
         choices[choice.index] = {
             **choice.model_dump(exclude_unset=True, exclude={"delta"}),
-            "message": choice.delta.to_dict(),
+            "message": message,
         }
 
     return cast(
