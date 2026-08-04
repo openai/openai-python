@@ -1134,6 +1134,13 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
             except status_exceptions() as err:  # thrown on 4xx and 5xx status code
                 log.debug("Encountered an HTTP status error: %i", response.status_code)
 
+                # The retry classification below may inspect the response body (e.g. to
+                # detect `insufficient_quota`), so make sure it has been read first. For
+                # `stream=True` requests the body is not read automatically and accessing
+                # it before this point raises `httpx.ResponseNotRead`.
+                if not err.response.is_closed:
+                    err.response.read()
+
                 if remaining_retries > 0 and self._should_retry(err.response):
                     err.response.close()
                     self._sleep_for_retry(
@@ -1756,6 +1763,13 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
                 response.raise_for_status()
             except status_exceptions() as err:  # thrown on 4xx and 5xx status code
                 log.debug("Encountered an HTTP status error: %i", response.status_code)
+
+                # The retry classification below may inspect the response body (e.g. to
+                # detect `insufficient_quota`), so make sure it has been read first. For
+                # `stream=True` requests the body is not read automatically and accessing
+                # it before this point raises `httpx.ResponseNotRead`.
+                if not err.response.is_closed:
+                    await err.response.aread()
 
                 if remaining_retries > 0 and self._should_retry(err.response):
                     await err.response.aclose()
