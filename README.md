@@ -899,6 +899,128 @@ You can also customize the client on a per-request basis by using `with_options(
 client.with_options(http_client=DefaultHttpxClient(...))
 ```
 
+#### Mutual TLS
+
+Before configuring a client, review the
+[OpenAI Mutual TLS Beta Program](https://help.openai.com/en/articles/10876024-openai-mutual-tls-beta-program)
+for enrollment, currently supported endpoints, and certificate requirements.
+
+For API-key authenticated HTTP requests that require mutual TLS (mTLS), configure
+a native [`ssl.SSLContext`](https://docs.python.org/3/library/ssl.html#ssl.SSLContext)
+and pass it through the custom HTTP client:
+
+```python
+import os
+import ssl
+
+from openai import OpenAI, DefaultHttpxClient
+
+# Server trust is configured independently. Without `cafile`, this uses the
+# operating system's normal trusted certificate authorities.
+ssl_context = ssl.create_default_context(
+    cafile=os.environ.get("OPENAI_MTLS_CA_BUNDLE"),
+)
+ssl_context.load_cert_chain(
+    # This PEM must contain the leaf certificate first, followed by every
+    # intermediate certificate needed to reach the server's trust anchor.
+    certfile=os.environ["OPENAI_MTLS_CERTIFICATE_CHAIN"],
+    keyfile=os.environ["OPENAI_MTLS_PRIVATE_KEY"],
+    password=os.environ.get("OPENAI_MTLS_PRIVATE_KEY_PASSWORD"),
+)
+
+client = OpenAI(
+    api_key=os.environ["OPENAI_API_KEY"],
+    # A custom HTTP client does not tell the SDK that mTLS is configured, so
+    # select the mTLS endpoint explicitly. Preserve an EU or custom override.
+    base_url=os.environ.get(
+        "OPENAI_BASE_URL",
+        "https://mtls.api.openai.com/v1",
+    ),
+    # A client certificate belongs to the HTTP client, not the base URL.
+    # Disable redirects so it cannot follow a response to another origin.
+    http_client=DefaultHttpxClient(
+        verify=ssl_context,
+        follow_redirects=False,
+    ),
+)
+```
+
+The async configuration is equivalent:
+
+```python
+import os
+import ssl
+
+from openai import AsyncOpenAI, DefaultAsyncHttpxClient
+
+ssl_context = ssl.create_default_context(
+    cafile=os.environ.get("OPENAI_MTLS_CA_BUNDLE"),
+)
+ssl_context.load_cert_chain(
+    certfile=os.environ["OPENAI_MTLS_CERTIFICATE_CHAIN"],
+    keyfile=os.environ["OPENAI_MTLS_PRIVATE_KEY"],
+    password=os.environ.get("OPENAI_MTLS_PRIVATE_KEY_PASSWORD"),
+)
+
+client = AsyncOpenAI(
+    api_key=os.environ["OPENAI_API_KEY"],
+    base_url=os.environ.get(
+        "OPENAI_BASE_URL",
+        "https://mtls.api.openai.com/v1",
+    ),
+    http_client=DefaultAsyncHttpxClient(
+        verify=ssl_context,
+        follow_redirects=False,
+    ),
+)
+```
+
+Experimental HTTPX2 uses the same native `SSLContext`. Install the optional
+extra with `pip install 'openai[httpx2]'`, then use `DefaultHttpx2Client` or
+`DefaultAsyncHttpx2Client` in place of the corresponding HTTPX client above:
+
+```python
+from openai import OpenAI, DefaultHttpx2Client
+
+client = OpenAI(
+    api_key=os.environ["OPENAI_API_KEY"],
+    base_url=os.environ.get(
+        "OPENAI_BASE_URL",
+        "https://mtls.api.openai.com/v1",
+    ),
+    http_client=DefaultHttpx2Client(
+        verify=ssl_context,
+        follow_redirects=False,
+    ),
+)
+```
+
+See the complete [sync HTTPX2](examples/mtls_httpx2.py) and
+[async HTTPX2](examples/mtls_httpx2_async.py) examples.
+
+The certificate-bearing HTTP client is transport-wide. Dedicate it to the
+selected mTLS origin; do not reuse it for other services or pass it through
+`with_options()` with a different `base_url`. If redirects are required, add an
+HTTPX request hook that rejects requests whose scheme, host, or port differs
+from the configured mTLS origin before enabling `follow_redirects`.
+
+`SSLContext.load_cert_chain()` raises during setup for unreadable or malformed
+files and for a private key that does not match the leaf certificate. Certificate
+expiry, key usage, extended key usage, SAN, and trust policy remain TLS server
+decisions. OpenAI does not fetch missing intermediates through AIA, so provide a
+complete, leaf-first client-chain PEM. Intermediate-chain support is currently
+enabled by request. Until it is enabled for your organization, use a client leaf
+certificate directly signed by the uploaded CA.
+
+For certificate rotation, build a new `SSLContext`, HTTP client, and `OpenAI` or
+`AsyncOpenAI` client. This creates a fresh connection pool; close the old SDK
+client after its in-flight requests finish. Do not assume existing TLS
+connections will renegotiate.
+
+This recipe applies to ordinary API-key HTTP traffic. It does not implement
+certificate-only X.509 workload identity, token exchange, or Realtime WebSocket
+mTLS.
+
 ### Managing HTTP resources
 
 By default the library closes underlying HTTP connections whenever the client is [garbage collected](https://docs.python.org/3/reference/datamodel.html#object.__del__). You can manually close the client using the `.close()` method if desired, or with a context manager that closes when exiting.

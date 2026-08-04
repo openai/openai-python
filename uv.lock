@@ -959,7 +959,7 @@ wheels = [
 
 [[package]]
 name = "openai"
-version = "2.48.0"
+version = "2.53.0" # x-release-please-version
 source = { editable = "." }
 dependencies = [
     { name = "anyio" },

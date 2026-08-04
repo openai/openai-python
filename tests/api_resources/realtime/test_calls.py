@@ -48,7 +48,9 @@ class TestCalls:
                         "noise_reduction": {"type": "near_field"},
                         "transcription": {
                             "delay": "minimal",
+                            "keywords": ["string"],
                             "language": "language",
+                            "languages": ["string"],
                             "model": "whisper-1",
                             "prompt": "prompt",
                         },
@@ -150,7 +152,9 @@ class TestCalls:
                     "noise_reduction": {"type": "near_field"},
                     "transcription": {
                         "delay": "minimal",
+                        "keywords": ["string"],
                         "language": "language",
+                        "languages": ["string"],
                         "model": "whisper-1",
                         "prompt": "prompt",
                     },
@@ -392,7 +396,9 @@ class TestAsyncCalls:
                         "noise_reduction": {"type": "near_field"},
                         "transcription": {
                             "delay": "minimal",
+                            "keywords": ["string"],
                             "language": "language",
+                            "languages": ["string"],
                             "model": "whisper-1",
                             "prompt": "prompt",
                         },
@@ -494,7 +500,9 @@ class TestAsyncCalls:
                     "noise_reduction": {"type": "near_field"},
                     "transcription": {
                         "delay": "minimal",
+                        "keywords": ["string"],
                         "language": "language",
+                        "languages": ["string"],
                         "model": "whisper-1",
                         "prompt": "prompt",
                     },

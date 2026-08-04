@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import sys
 import json
+import math
 import time
 import uuid
 import email
@@ -86,6 +87,7 @@ from ._constants import (
     DEFAULT_MAX_RETRIES,
     INITIAL_RETRY_DELAY,
     RAW_RESPONSE_HEADER,
+    MAX_RETRY_AFTER_DELAY,
     OVERRIDE_CAST_TO_HEADER,
     DEFAULT_CONNECTION_LIMITS,
 )
@@ -781,11 +783,15 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
             pass
 
         # Last, try parsing `retry-after` as a date.
-        retry_date_tuple = email.utils.parsedate_tz(retry_header)
-        if retry_date_tuple is None:
+        try:
+            retry_date_tuple = email.utils.parsedate_tz(retry_header)
+            if retry_date_tuple is None:
+                return None
+
+            retry_date = email.utils.mktime_tz(retry_date_tuple)
+        except (TypeError, ValueError, OverflowError, OSError):
             return None
 
-        retry_date = email.utils.mktime_tz(retry_date_tuple)
         return float(retry_date - time.time())
 
     def _calculate_retry_timeout(
@@ -796,9 +802,9 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
     ) -> float:
         max_retries = options.get_max_retries(self.max_retries)
 
-        # If the API asks us to wait a certain amount of time (and it's a reasonable amount), just do what it says.
+        # Honor server-directed delays up to two minutes.
         retry_after = self._parse_retry_after_header(response_headers)
-        if retry_after is not None and 0 < retry_after <= 60:
+        if retry_after is not None and math.isfinite(retry_after) and 0 < retry_after <= MAX_RETRY_AFTER_DELAY:
             return retry_after
 
         # Also cap retry count to 1000 to avoid any potential overflows with `pow`
@@ -813,6 +819,15 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         return timeout if timeout >= 0 else 0
 
     def _should_retry(self, response: httpx.Response) -> bool:
+        retry_after = self._parse_retry_after_header(response.headers)
+        if retry_after is not None and math.isfinite(retry_after) and retry_after > MAX_RETRY_AFTER_DELAY:
+            log.debug(
+                "Not retrying because `Retry-After` of %s seconds exceeds the maximum of %s seconds",
+                retry_after,
+                MAX_RETRY_AFTER_DELAY,
+            )
+            return False
+
         # Note: this is not a standard header
         should_retry_header = response.headers.get("x-should-retry")
 

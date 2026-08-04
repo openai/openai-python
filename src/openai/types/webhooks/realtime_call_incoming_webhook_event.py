@@ -22,14 +22,21 @@ class Data(BaseModel):
     """Event data payload."""
 
     call_id: str
-    """The unique ID of this call."""
+    """The Transceiver `rtc_...` ID of the pending SIP session.
+
+    The same value appears as `session_id` in `live.call.incoming`.
+    """
 
     sip_headers: List[DataSipHeader]
     """Headers from the SIP Invite."""
 
 
 class RealtimeCallIncomingWebhookEvent(BaseModel):
-    """Sent when Realtime API Receives a incoming SIP call."""
+    """
+    Sent when an incoming API SIP session is available for Realtime acceptance.
+    The same pending session can also emit `live.call.incoming`; the first
+    successful Realtime or Live accept endpoint selects the runtime surface.
+    """
 
     id: str
     """The unique ID of the event."""

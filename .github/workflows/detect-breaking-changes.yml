@@ -4,20 +4,43 @@ on:
     branches:
       - main
       - next
+  merge_group:
+    types:
+      - checks_requested
+  workflow_dispatch:
+    inputs:
+      release_pr:
+        description: Run checks for a Release Please branch
+        required: false
+        default: false
+        type: boolean
+      base_sha:
+        description: Base commit for breaking-change comparison
+        required: false
+        type: string
+
+permissions:
+  contents: read
 
 jobs:
   detect_breaking_changes:
     runs-on: 'ubuntu-latest'
     name: detect-breaking-changes
-    if: github.repository == 'openai/openai-python'
+    if: github.repository == 'openai/openai-python' && (github.event_name == 'pull_request' || github.event_name == 'merge_group' || (inputs.release_pr && github.ref == 'refs/heads/release-please--branches--main'))
+    env:
+      BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event_name == 'merge_group' && github.event.merge_group.base_sha || inputs.base_sha }}
+      FETCH_DEPTH: 0
     steps:
       - name: Calculate fetch-depth
+        if: github.event_name == 'pull_request'
+        env:
+          PR_COMMITS: ${{ github.event.pull_request.commits }}
         run: |
-          echo "FETCH_DEPTH=$(expr ${{ github.event.pull_request.commits }} + 1)" >> $GITHUB_ENV
+          echo "FETCH_DEPTH=$((PR_COMMITS + 1))" >> "$GITHUB_ENV"
 
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
-          # Ensure we can check out the pull request base in the script below.
+          # Ensure the comparison base is available to the scripts below.
           fetch-depth: ${{ env.FETCH_DEPTH }}
 
       - name: Set up Rye
@@ -30,17 +53,17 @@ jobs:
           rye sync --all-features
       - name: Detect removed symbols
         run: |
-          rye run python scripts/detect-breaking-changes.py "${{ github.event.pull_request.base.sha }}"
+          rye run python scripts/detect-breaking-changes.py "$BASE_SHA"
 
       - name: Detect breaking changes
         run: |
           test -f ./scripts/detect-breaking-changes || { echo "Missing scripts/detect-breaking-changes"; exit 1; }
-          ./scripts/detect-breaking-changes ${{ github.event.pull_request.base.sha }}
+          ./scripts/detect-breaking-changes "$BASE_SHA"
 
   agents_sdk:
     runs-on: 'ubuntu-latest'
     name: Detect Agents SDK regressions
-    if: github.repository == 'openai/openai-python'
+    if: github.repository == 'openai/openai-python' && (github.event_name == 'pull_request' || (inputs.release_pr && github.ref == 'refs/heads/release-please--branches--main'))
     steps:
       # Setup this sdk
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -66,7 +89,7 @@ jobs:
           path: openai-agents-python
 
       - name: Setup uv
-        uses: astral-sh/setup-uv@e58605a9b6da7c637471fab8847a5e5a6b8df081 # v5
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
         with:
           enable-cache: true
 

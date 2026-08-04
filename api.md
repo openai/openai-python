@@ -157,6 +157,18 @@ Methods:
 - <code title="post /images/edits">client.images.<a href="./src/openai/resources/images.py">edit</a>(\*\*<a href="src/openai/types/image_edit_params.py">params</a>) -> <a href="./src/openai/types/images_response.py">ImagesResponse</a></code>
 - <code title="post /images/generations">client.images.<a href="./src/openai/resources/images.py">generate</a>(\*\*<a href="src/openai/types/image_generate_params.py">params</a>) -> <a href="./src/openai/types/images_response.py">ImagesResponse</a></code>
 
+# ContentProvenanceChecks
+
+Types:
+
+```python
+from openai.types import ContentProvenanceCheck
+```
+
+Methods:
+
+- <code title="post /content_provenance_checks">client.content_provenance_checks.<a href="./src/openai/resources/content_provenance_checks.py">create</a>(\*\*<a href="src/openai/types/content_provenance_check_create_params.py">params</a>) -> <a href="./src/openai/types/content_provenance_check.py">ContentProvenanceCheck</a></code>
+
 # Audio
 
 Types:
@@ -175,6 +187,7 @@ from openai.types.audio import (
     TranscriptionDiarized,
     TranscriptionDiarizedSegment,
     TranscriptionInclude,
+    TranscriptionLanguage,
     TranscriptionSegment,
     TranscriptionStreamEvent,
     TranscriptionTextDeltaEvent,
