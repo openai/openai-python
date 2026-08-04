@@ -23,7 +23,28 @@ _AWS_SIGNING_HEADERS = (
     "x-amz-date",
     "x-amz-security-token",
 )
-_HOP_BY_HOP_HEADERS = ("connection",)
+# Volatile transport headers that intermediaries (proxies, load balancers, and
+# other nodes) may add or rewrite in transit. AWS SigV4 guidance is to exclude
+# these from the signature so such rewrites do not invalidate it. This mirrors
+# botocore's own SIGNED_HEADERS_BLACKLIST so signing behavior is identical across
+# the supported botocore>=1.40.0 range, including releases that predate the
+# equivalent upstream fix (boto/botocore#3643).
+# https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_sigv-create-signed-request.html
+_UNSIGNED_HEADERS = frozenset(
+    {
+        "connection",
+        "expect",
+        "keep-alive",
+        "proxy-authenticate",
+        "proxy-authorization",
+        "te",
+        "trailer",
+        "transfer-encoding",
+        "upgrade",
+        "user-agent",
+        "x-amzn-trace-id",
+    }
+)
 
 
 def _load_botocore() -> tuple[Any, Any, Any, Any]:
@@ -145,7 +166,7 @@ class BedrockAwsAuth:
             signed_headers = {
                 name: value
                 for name, value in headers.items()
-                if name.lower() not in _AWS_SIGNING_HEADERS and name.lower() not in _HOP_BY_HOP_HEADERS
+                if name.lower() not in _AWS_SIGNING_HEADERS and name.lower() not in _UNSIGNED_HEADERS
             }
             signed_headers["X-Amz-Content-SHA256"] = hashlib.sha256(body or b"").hexdigest()
             aws_request = self._aws_request_cls(
@@ -163,7 +184,15 @@ class BedrockAwsAuth:
                 "or runtime identity configuration and try again."
             ) from exc
 
-        return dict(aws_request.headers.items())
+        result = dict(aws_request.headers.items())
+        # Preserve the caller's volatile transport headers (e.g. an explicit
+        # `Connection: close`) on the outgoing request. They were excluded from
+        # the signature above, not from the request itself, matching how botocore
+        # leaves blacklisted headers on the request while keeping them unsigned.
+        for name, value in headers.items():
+            if name.lower() in _UNSIGNED_HEADERS and name not in result:
+                result[name] = value
+        return result
 
 
 def resolve_aws_region_with_source(
