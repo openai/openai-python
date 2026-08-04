@@ -1083,14 +1083,21 @@ class TestOpenAI:
             [3, "0", 0.5],
             [3, "-10", 0.5],
             [3, "60", 60],
-            [3, "61", 0.5],
+            [3, "61", 61],
+            [3, "120", 120],
+            [3, "121", 0.5],
             [3, "Fri, 29 Sep 2023 16:26:57 GMT", 20],
             [3, "Fri, 29 Sep 2023 16:26:37 GMT", 0.5],
             [3, "Fri, 29 Sep 2023 16:26:27 GMT", 0.5],
             [3, "Fri, 29 Sep 2023 16:27:37 GMT", 60],
-            [3, "Fri, 29 Sep 2023 16:27:38 GMT", 0.5],
+            [3, "Fri, 29 Sep 2023 16:27:38 GMT", 61],
+            [3, "Fri, 29 Sep 2023 16:28:37 GMT", 120],
+            [3, "Fri, 29 Sep 2023 16:28:38 GMT", 0.5],
             [3, "99999999999999999999999999999999999", 0.5],
+            [3, "inf", 0.5],
+            [3, "nan", 0.5],
             [3, "Zun, 29 Sep 2023 16:26:27 GMT", 0.5],
+            [3, "Fri, 29 Sep 100000 16:26:57 GMT", 0.5],
             [3, "", 0.5],
             [2, "", 0.5 * 2.0],
             [1, "", 0.5 * 4.0],
@@ -1105,6 +1112,48 @@ class TestOpenAI:
         options = FinalRequestOptions(method="get", url="/foo", max_retries=3)
         calculated = client._calculate_retry_timeout(remaining_retries, options, headers)
         assert calculated == pytest.approx(timeout, 0.5 * 0.875)  # pyright: ignore[reportUnknownMemberType]
+
+    @pytest.mark.parametrize(
+        "headers,should_retry",
+        [
+            [{"retry-after": "120"}, True],
+            [{"retry-after": "121"}, False],
+            [{"retry-after-ms": "120000"}, True],
+            [{"retry-after-ms": "120001"}, False],
+            [{"retry-after": "Fri, 29 Sep 2023 16:28:37 GMT"}, True],
+            [{"retry-after": "Fri, 29 Sep 2023 16:28:38 GMT"}, False],
+        ],
+    )
+    @mock.patch("time.time", mock.MagicMock(return_value=1696004797))
+    def test_retry_after_max_delay(self, headers: dict[str, str], should_retry: bool, client: OpenAI) -> None:
+        response = httpx.Response(429, headers=headers)
+        assert client._should_retry(response) is should_retry
+
+    @pytest.mark.respx(base_url=base_url)
+    def test_does_not_retry_retry_after_above_max(self, respx_mock: MockRouter, client: OpenAI) -> None:
+        route = respx_mock.get("/foo").mock(
+            return_value=httpx.Response(429, headers={"retry-after": "121"}, json={"error": {}})
+        )
+
+        with pytest.raises(APIStatusError):
+            client.get("/foo", cast_to=httpx.Response)
+
+        assert route.call_count == 1
+
+    @pytest.mark.respx(base_url=base_url)
+    def test_invalid_retry_after_date_does_not_mask_status_error(self, respx_mock: MockRouter, client: OpenAI) -> None:
+        route = respx_mock.get("/foo").mock(
+            return_value=httpx.Response(
+                400,
+                headers={"retry-after": "Fri, 29 Sep 100000 16:26:57 GMT"},
+                json={"error": {}},
+            )
+        )
+
+        with pytest.raises(APIStatusError):
+            client.get("/foo", cast_to=httpx.Response)
+
+        assert route.call_count == 1
 
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
@@ -2339,14 +2388,21 @@ class TestAsyncOpenAI:
             [3, "0", 0.5],
             [3, "-10", 0.5],
             [3, "60", 60],
-            [3, "61", 0.5],
+            [3, "61", 61],
+            [3, "120", 120],
+            [3, "121", 0.5],
             [3, "Fri, 29 Sep 2023 16:26:57 GMT", 20],
             [3, "Fri, 29 Sep 2023 16:26:37 GMT", 0.5],
             [3, "Fri, 29 Sep 2023 16:26:27 GMT", 0.5],
             [3, "Fri, 29 Sep 2023 16:27:37 GMT", 60],
-            [3, "Fri, 29 Sep 2023 16:27:38 GMT", 0.5],
+            [3, "Fri, 29 Sep 2023 16:27:38 GMT", 61],
+            [3, "Fri, 29 Sep 2023 16:28:37 GMT", 120],
+            [3, "Fri, 29 Sep 2023 16:28:38 GMT", 0.5],
             [3, "99999999999999999999999999999999999", 0.5],
+            [3, "inf", 0.5],
+            [3, "nan", 0.5],
             [3, "Zun, 29 Sep 2023 16:26:27 GMT", 0.5],
+            [3, "Fri, 29 Sep 100000 16:26:57 GMT", 0.5],
             [3, "", 0.5],
             [2, "", 0.5 * 2.0],
             [1, "", 0.5 * 4.0],
@@ -2361,6 +2417,36 @@ class TestAsyncOpenAI:
         options = FinalRequestOptions(method="get", url="/foo", max_retries=3)
         calculated = async_client._calculate_retry_timeout(remaining_retries, options, headers)
         assert calculated == pytest.approx(timeout, 0.5 * 0.875)  # pyright: ignore[reportUnknownMemberType]
+
+    @pytest.mark.respx(base_url=base_url)
+    async def test_does_not_retry_retry_after_above_max(
+        self, respx_mock: MockRouter, async_client: AsyncOpenAI
+    ) -> None:
+        route = respx_mock.get("/foo").mock(
+            return_value=httpx.Response(429, headers={"retry-after": "121"}, json={"error": {}})
+        )
+
+        with pytest.raises(APIStatusError):
+            await async_client.get("/foo", cast_to=httpx.Response)
+
+        assert route.call_count == 1
+
+    @pytest.mark.respx(base_url=base_url)
+    async def test_invalid_retry_after_date_does_not_mask_status_error(
+        self, respx_mock: MockRouter, async_client: AsyncOpenAI
+    ) -> None:
+        route = respx_mock.get("/foo").mock(
+            return_value=httpx.Response(
+                400,
+                headers={"retry-after": "Fri, 29 Sep 100000 16:26:57 GMT"},
+                json={"error": {}},
+            )
+        )
+
+        with pytest.raises(APIStatusError):
+            await async_client.get("/foo", cast_to=httpx.Response)
+
+        assert route.call_count == 1
 
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)

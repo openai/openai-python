@@ -12,6 +12,7 @@ from .eval_run_failed_webhook_event import EvalRunFailedWebhookEvent
 from .response_failed_webhook_event import ResponseFailedWebhookEvent
 from .eval_run_canceled_webhook_event import EvalRunCanceledWebhookEvent
 from .eval_run_succeeded_webhook_event import EvalRunSucceededWebhookEvent
+from .live_call_incoming_webhook_event import LiveCallIncomingWebhookEvent
 from .response_cancelled_webhook_event import ResponseCancelledWebhookEvent
 from .response_completed_webhook_event import ResponseCompletedWebhookEvent
 from .response_incomplete_webhook_event import ResponseIncompleteWebhookEvent
@@ -34,6 +35,7 @@ UnwrapWebhookEvent: TypeAlias = Annotated[
         FineTuningJobCancelledWebhookEvent,
         FineTuningJobFailedWebhookEvent,
         FineTuningJobSucceededWebhookEvent,
+        LiveCallIncomingWebhookEvent,
         RealtimeCallIncomingWebhookEvent,
         ResponseCancelledWebhookEvent,
         ResponseCompletedWebhookEvent,

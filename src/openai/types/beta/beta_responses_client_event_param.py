@@ -135,7 +135,10 @@ class ResponseCreateReasoning(TypedDict, total=False):
 
     context: Optional[Literal["auto", "current_turn", "all_turns"]]
     """
-    Controls which reasoning items are rendered back to the model on later turns.
+    Controls which reasoning items are rendered back to the model on later turns. If
+    omitted or set to `auto`, the model determines the context mode. The `gpt-5.6`
+    model family defaults to `all_turns`; earlier models default to `current_turn`.
+
     When returned on a response, this is the effective reasoning context mode used
     for the response.
     """
@@ -311,6 +314,7 @@ class ResponseCreate(TypedDict, total=False):
             "gpt-5.6-sol",
             "gpt-5.6-terra",
             "gpt-5.6-luna",
+            "gpt-5.5",
             "gpt-5.4",
             "gpt-5.4-mini",
             "gpt-5.4-nano",
@@ -437,7 +441,7 @@ class ResponseCreate(TypedDict, total=False):
     [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
     """
 
-    prompt_cache_key: str
+    prompt_cache_key: Optional[str]
     """
     Used by OpenAI to cache responses for similar requests to optimize your cache
     hit rates. Replaces the `user` field.
@@ -485,7 +489,7 @@ class ResponseCreate(TypedDict, total=False):
     [reasoning models](https://platform.openai.com/docs/guides/reasoning).
     """
 
-    safety_identifier: str
+    safety_identifier: Optional[str]
     """
     A stable identifier used to help detect users of your application that may be
     violating OpenAI's usage policies. The IDs should be a string that uniquely
@@ -495,7 +499,7 @@ class ResponseCreate(TypedDict, total=False):
     [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
     """
 
-    service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]]
+    service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]]
     """Specifies the processing type used for serving the request.
 
     - If set to 'auto', then the request will be processed with the service tier
@@ -503,9 +507,13 @@ class ResponseCreate(TypedDict, total=False):
       will use 'default'.
     - If set to 'default', then the request will be processed with the standard
       pricing and performance for the selected model.
-    - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-      '[priority](https://openai.com/api-priority-processing/)', then the request
-      will be processed with the corresponding service tier.
+    - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)',
+      then the request will be processed with the Flex Processing service tier.
+    - To opt-in to [Fast mode](/api/docs/guides/fast-mode) at the request level,
+      include the `service_tier=fast` or `service_tier=priority` parameter for
+      Responses or Chat Completions. The response will show `service_tier=priority`
+      regardless of if you specify `service_tier=fast` or `priority` in your
+      request.
     - When not set, the default behavior is 'auto'.
 
     When the `service_tier` parameter is set, the response body will include the

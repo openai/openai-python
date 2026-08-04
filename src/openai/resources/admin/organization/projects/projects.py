@@ -34,6 +34,14 @@ from .rate_limits import (
     RateLimitsWithStreamingResponse,
     AsyncRateLimitsWithStreamingResponse,
 )
+from .spend_limit import (
+    SpendLimit,
+    AsyncSpendLimit,
+    SpendLimitWithRawResponse,
+    AsyncSpendLimitWithRawResponse,
+    SpendLimitWithStreamingResponse,
+    AsyncSpendLimitWithStreamingResponse,
+)
 from .users.users import (
     Users,
     AsyncUsers,
@@ -144,6 +152,10 @@ class Projects(SyncAPIResource):
     @cached_property
     def data_retention(self) -> DataRetention:
         return DataRetention(self._client)
+
+    @cached_property
+    def spend_limit(self) -> SpendLimit:
+        return SpendLimit(self._client)
 
     @cached_property
     def spend_alerts(self) -> SpendAlerts:
@@ -453,6 +465,10 @@ class AsyncProjects(AsyncAPIResource):
     @cached_property
     def data_retention(self) -> AsyncDataRetention:
         return AsyncDataRetention(self._client)
+
+    @cached_property
+    def spend_limit(self) -> AsyncSpendLimit:
+        return AsyncSpendLimit(self._client)
 
     @cached_property
     def spend_alerts(self) -> AsyncSpendAlerts:
@@ -783,6 +799,10 @@ class ProjectsWithRawResponse:
         return DataRetentionWithRawResponse(self._projects.data_retention)
 
     @cached_property
+    def spend_limit(self) -> SpendLimitWithRawResponse:
+        return SpendLimitWithRawResponse(self._projects.spend_limit)
+
+    @cached_property
     def spend_alerts(self) -> SpendAlertsWithRawResponse:
         return SpendAlertsWithRawResponse(self._projects.spend_alerts)
 
@@ -846,6 +866,10 @@ class AsyncProjectsWithRawResponse:
     @cached_property
     def data_retention(self) -> AsyncDataRetentionWithRawResponse:
         return AsyncDataRetentionWithRawResponse(self._projects.data_retention)
+
+    @cached_property
+    def spend_limit(self) -> AsyncSpendLimitWithRawResponse:
+        return AsyncSpendLimitWithRawResponse(self._projects.spend_limit)
 
     @cached_property
     def spend_alerts(self) -> AsyncSpendAlertsWithRawResponse:
@@ -913,6 +937,10 @@ class ProjectsWithStreamingResponse:
         return DataRetentionWithStreamingResponse(self._projects.data_retention)
 
     @cached_property
+    def spend_limit(self) -> SpendLimitWithStreamingResponse:
+        return SpendLimitWithStreamingResponse(self._projects.spend_limit)
+
+    @cached_property
     def spend_alerts(self) -> SpendAlertsWithStreamingResponse:
         return SpendAlertsWithStreamingResponse(self._projects.spend_alerts)
 
@@ -976,6 +1004,10 @@ class AsyncProjectsWithStreamingResponse:
     @cached_property
     def data_retention(self) -> AsyncDataRetentionWithStreamingResponse:
         return AsyncDataRetentionWithStreamingResponse(self._projects.data_retention)
+
+    @cached_property
+    def spend_limit(self) -> AsyncSpendLimitWithStreamingResponse:
+        return AsyncSpendLimitWithStreamingResponse(self._projects.spend_limit)
 
     @cached_property
     def spend_alerts(self) -> AsyncSpendAlertsWithStreamingResponse:

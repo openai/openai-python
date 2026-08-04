@@ -186,7 +186,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     far, increasing the model's likelihood to talk about new topics.
     """
 
-    prompt_cache_key: str
+    prompt_cache_key: Optional[str]
     """
     Used by OpenAI to cache responses for similar requests to optimize your cache
     hit rates. Replaces the `user` field.
@@ -251,7 +251,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     preferred for models that support it.
     """
 
-    safety_identifier: str
+    safety_identifier: Optional[str]
     """
     A stable identifier used to help detect users of your application that may be
     violating OpenAI's usage policies. The IDs should be a string that uniquely
@@ -270,7 +270,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     in the backend.
     """
 
-    service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]]
+    service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]]
     """Specifies the processing type used for serving the request.
 
     - If set to 'auto', then the request will be processed with the service tier
@@ -278,9 +278,13 @@ class CompletionCreateParamsBase(TypedDict, total=False):
       will use 'default'.
     - If set to 'default', then the request will be processed with the standard
       pricing and performance for the selected model.
-    - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-      '[priority](https://openai.com/api-priority-processing/)', then the request
-      will be processed with the corresponding service tier.
+    - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)',
+      then the request will be processed with the Flex Processing service tier.
+    - To opt-in to [Fast mode](/api/docs/guides/fast-mode) at the request level,
+      include the `service_tier=fast` or `service_tier=priority` parameter for
+      Responses or Chat Completions. The response will show `service_tier=priority`
+      regardless of if you specify `service_tier=fast` or `priority` in your
+      request.
     - When not set, the default behavior is 'auto'.
 
     When the `service_tier` parameter is set, the response body will include the
@@ -368,7 +372,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
 
     Lower values will result in more concise responses, while higher values will
     result in more verbose responses. Currently supported values are `low`,
-    `medium`, and `high`.
+    `medium`, and `high`. The default is `medium`.
     """
 
     web_search_options: WebSearchOptions

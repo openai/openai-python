@@ -245,7 +245,7 @@ def test_retry_signing_fixture(monkeypatch: pytest.MonkeyPatch) -> None:
     assert provider_calls == case["expected"]["credential_provider_calls"]
     assert [request.headers["X-Amz-Date"] for request in requests] == case["expected"]["x_amz_dates"]
     assert [hashlib.sha256(request.content).hexdigest() for request in requests] == case["expected"]["body_sha256"]
-    for request, access_key in zip(requests, case["given"]["access_key_ids"]):
+    for request, access_key in zip(requests, case["given"]["access_key_ids"], strict=True):
         assert f"Credential={access_key}/" in request.headers["Authorization"]
 
 

@@ -147,12 +147,12 @@ class Responses(SyncAPIResource):
         parallel_tool_calls: Optional[bool] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
         prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
-        safety_identifier: str | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
@@ -316,9 +316,13 @@ class Responses(SyncAPIResource):
                 will use 'default'.
               - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
-              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                '[priority](https://openai.com/api-priority-processing/)', then the request
-                will be processed with the corresponding service tier.
+              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)',
+                then the request will be processed with the Flex Processing service tier.
+              - To opt-in to [Fast mode](/api/docs/guides/fast-mode) at the request level,
+                include the `service_tier=fast` or `service_tier=priority` parameter for
+                Responses or Chat Completions. The response will show `service_tier=priority`
+                regardless of if you specify `service_tier=fast` or `priority` in your
+                request.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -425,12 +429,12 @@ class Responses(SyncAPIResource):
         parallel_tool_calls: Optional[bool] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
         prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
-        safety_identifier: str | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -600,9 +604,13 @@ class Responses(SyncAPIResource):
                 will use 'default'.
               - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
-              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                '[priority](https://openai.com/api-priority-processing/)', then the request
-                will be processed with the corresponding service tier.
+              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)',
+                then the request will be processed with the Flex Processing service tier.
+              - To opt-in to [Fast mode](/api/docs/guides/fast-mode) at the request level,
+                include the `service_tier=fast` or `service_tier=priority` parameter for
+                Responses or Chat Completions. The response will show `service_tier=priority`
+                regardless of if you specify `service_tier=fast` or `priority` in your
+                request.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -702,12 +710,12 @@ class Responses(SyncAPIResource):
         parallel_tool_calls: Optional[bool] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
         prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
-        safety_identifier: str | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -877,9 +885,13 @@ class Responses(SyncAPIResource):
                 will use 'default'.
               - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
-              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                '[priority](https://openai.com/api-priority-processing/)', then the request
-                will be processed with the corresponding service tier.
+              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)',
+                then the request will be processed with the Flex Processing service tier.
+              - To opt-in to [Fast mode](/api/docs/guides/fast-mode) at the request level,
+                include the `service_tier=fast` or `service_tier=priority` parameter for
+                Responses or Chat Completions. The response will show `service_tier=priority`
+                regardless of if you specify `service_tier=fast` or `priority` in your
+                request.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -977,12 +989,12 @@ class Responses(SyncAPIResource):
         parallel_tool_calls: Optional[bool] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
         prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
-        safety_identifier: str | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
@@ -1088,12 +1100,12 @@ class Responses(SyncAPIResource):
         moderation: Optional[response_create_params.Moderation] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
         prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
-        safety_identifier: str | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -1131,12 +1143,12 @@ class Responses(SyncAPIResource):
         moderation: Optional[response_create_params.Moderation] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
         prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
-        safety_identifier: str | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -1293,12 +1305,12 @@ class Responses(SyncAPIResource):
         parallel_tool_calls: Optional[bool] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
         prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
-        safety_identifier: str | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
@@ -1709,6 +1721,7 @@ class Responses(SyncAPIResource):
                 "gpt-5.6-sol",
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",
+                "gpt-5.5",
                 "gpt-5.4",
                 "gpt-5.4-mini",
                 "gpt-5.4-nano",
@@ -1811,7 +1824,7 @@ class Responses(SyncAPIResource):
         prompt_cache_key: Optional[str] | Omit = omit,
         prompt_cache_options: Optional[response_compact_params.PromptCacheOptions] | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "priority"]] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "fast", "flex", "priority"]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -1861,7 +1874,21 @@ class Responses(SyncAPIResource):
 
           prompt_cache_retention: How long to retain a prompt cache entry created by this request.
 
-          service_tier: The service tier to use for this request.
+          service_tier: Specifies the processing type used for serving the request. - If set to 'auto',
+              then the request will be processed with the service tier configured in the
+              Project settings. Unless otherwise configured, the Project will use 'default'. -
+              If set to 'default', then the request will be processed with the standard
+              pricing and performance for the selected model. - If set to
+              '[flex](https://platform.openai.com/docs/guides/flex-processing)', then the
+              request will be processed with the Flex Processing service tier. - To opt-in to
+              [Fast mode](/api/docs/guides/fast-mode) at the request level, include the
+              `service_tier=fast` or `service_tier=priority` parameter for Responses or Chat
+              Completions. The response will show `service_tier=priority` regardless of if you
+              specify `service_tier=fast` or `priority` in your request. - When not set, the
+              default behavior is 'auto'. When the `service_tier` parameter is set, the
+              response body will include the `service_tier` value based on the processing mode
+              actually used to serve the request. This response value may be different from
+              the value set in the parameter.
 
           extra_headers: Send extra headers
 
@@ -1970,12 +1997,12 @@ class AsyncResponses(AsyncAPIResource):
         parallel_tool_calls: Optional[bool] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
         prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
-        safety_identifier: str | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
@@ -2139,9 +2166,13 @@ class AsyncResponses(AsyncAPIResource):
                 will use 'default'.
               - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
-              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                '[priority](https://openai.com/api-priority-processing/)', then the request
-                will be processed with the corresponding service tier.
+              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)',
+                then the request will be processed with the Flex Processing service tier.
+              - To opt-in to [Fast mode](/api/docs/guides/fast-mode) at the request level,
+                include the `service_tier=fast` or `service_tier=priority` parameter for
+                Responses or Chat Completions. The response will show `service_tier=priority`
+                regardless of if you specify `service_tier=fast` or `priority` in your
+                request.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -2248,12 +2279,12 @@ class AsyncResponses(AsyncAPIResource):
         parallel_tool_calls: Optional[bool] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
         prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
-        safety_identifier: str | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -2423,9 +2454,13 @@ class AsyncResponses(AsyncAPIResource):
                 will use 'default'.
               - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
-              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                '[priority](https://openai.com/api-priority-processing/)', then the request
-                will be processed with the corresponding service tier.
+              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)',
+                then the request will be processed with the Flex Processing service tier.
+              - To opt-in to [Fast mode](/api/docs/guides/fast-mode) at the request level,
+                include the `service_tier=fast` or `service_tier=priority` parameter for
+                Responses or Chat Completions. The response will show `service_tier=priority`
+                regardless of if you specify `service_tier=fast` or `priority` in your
+                request.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -2525,12 +2560,12 @@ class AsyncResponses(AsyncAPIResource):
         parallel_tool_calls: Optional[bool] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
         prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
-        safety_identifier: str | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -2700,9 +2735,13 @@ class AsyncResponses(AsyncAPIResource):
                 will use 'default'.
               - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
-              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                '[priority](https://openai.com/api-priority-processing/)', then the request
-                will be processed with the corresponding service tier.
+              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)',
+                then the request will be processed with the Flex Processing service tier.
+              - To opt-in to [Fast mode](/api/docs/guides/fast-mode) at the request level,
+                include the `service_tier=fast` or `service_tier=priority` parameter for
+                Responses or Chat Completions. The response will show `service_tier=priority`
+                regardless of if you specify `service_tier=fast` or `priority` in your
+                request.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -2800,12 +2839,12 @@ class AsyncResponses(AsyncAPIResource):
         parallel_tool_calls: Optional[bool] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
         prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
-        safety_identifier: str | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
@@ -2911,12 +2950,12 @@ class AsyncResponses(AsyncAPIResource):
         moderation: Optional[response_create_params.Moderation] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
         prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
-        safety_identifier: str | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -2954,12 +2993,12 @@ class AsyncResponses(AsyncAPIResource):
         moderation: Optional[response_create_params.Moderation] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
         prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
-        safety_identifier: str | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -3115,12 +3154,12 @@ class AsyncResponses(AsyncAPIResource):
         parallel_tool_calls: Optional[bool] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
         prompt_cache_options: response_create_params.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
-        safety_identifier: str | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
@@ -3531,6 +3570,7 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-5.6-sol",
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",
+                "gpt-5.5",
                 "gpt-5.4",
                 "gpt-5.4-mini",
                 "gpt-5.4-nano",
@@ -3633,7 +3673,7 @@ class AsyncResponses(AsyncAPIResource):
         prompt_cache_key: Optional[str] | Omit = omit,
         prompt_cache_options: Optional[response_compact_params.PromptCacheOptions] | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "priority"]] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "fast", "flex", "priority"]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -3683,7 +3723,21 @@ class AsyncResponses(AsyncAPIResource):
 
           prompt_cache_retention: How long to retain a prompt cache entry created by this request.
 
-          service_tier: The service tier to use for this request.
+          service_tier: Specifies the processing type used for serving the request. - If set to 'auto',
+              then the request will be processed with the service tier configured in the
+              Project settings. Unless otherwise configured, the Project will use 'default'. -
+              If set to 'default', then the request will be processed with the standard
+              pricing and performance for the selected model. - If set to
+              '[flex](https://platform.openai.com/docs/guides/flex-processing)', then the
+              request will be processed with the Flex Processing service tier. - To opt-in to
+              [Fast mode](/api/docs/guides/fast-mode) at the request level, include the
+              `service_tier=fast` or `service_tier=priority` parameter for Responses or Chat
+              Completions. The response will show `service_tier=priority` regardless of if you
+              specify `service_tier=fast` or `priority` in your request. - When not set, the
+              default behavior is 'auto'. When the `service_tier` parameter is set, the
+              response body will include the `service_tier` value based on the processing mode
+              actually used to serve the request. This response value may be different from
+              the value set in the parameter.
 
           extra_headers: Send extra headers
 
@@ -4831,12 +4885,12 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
         parallel_tool_calls: Optional[bool] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
         prompt_cache_options: responses_client_event_param.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
-        safety_identifier: str | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[bool] | Omit = omit,
         stream_options: Optional[responses_client_event_param.StreamOptions] | Omit = omit,
@@ -4915,12 +4969,12 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
         parallel_tool_calls: Optional[bool] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
-        prompt_cache_key: str | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
         prompt_cache_options: responses_client_event_param.PromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
-        safety_identifier: str | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        safety_identifier: Optional[str] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[bool] | Omit = omit,
         stream_options: Optional[responses_client_event_param.StreamOptions] | Omit = omit,

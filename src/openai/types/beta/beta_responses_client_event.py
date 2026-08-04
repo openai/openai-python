@@ -135,7 +135,10 @@ class ResponseCreateReasoning(BaseModel):
 
     context: Optional[Literal["auto", "current_turn", "all_turns"]] = None
     """
-    Controls which reasoning items are rendered back to the model on later turns.
+    Controls which reasoning items are rendered back to the model on later turns. If
+    omitted or set to `auto`, the model determines the context mode. The `gpt-5.6`
+    model family defaults to `all_turns`; earlier models default to `current_turn`.
+
     When returned on a response, this is the effective reasoning context mode used
     for the response.
     """
@@ -311,6 +314,7 @@ class ResponseCreate(BaseModel):
             "gpt-5.6-sol",
             "gpt-5.6-terra",
             "gpt-5.6-luna",
+            "gpt-5.5",
             "gpt-5.4",
             "gpt-5.4-mini",
             "gpt-5.4-nano",
@@ -496,7 +500,7 @@ class ResponseCreate(BaseModel):
     [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
     """
 
-    service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] = None
+    service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] = None
     """Specifies the processing type used for serving the request.
 
     - If set to 'auto', then the request will be processed with the service tier
@@ -504,9 +508,13 @@ class ResponseCreate(BaseModel):
       will use 'default'.
     - If set to 'default', then the request will be processed with the standard
       pricing and performance for the selected model.
-    - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-      '[priority](https://openai.com/api-priority-processing/)', then the request
-      will be processed with the corresponding service tier.
+    - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)',
+      then the request will be processed with the Flex Processing service tier.
+    - To opt-in to [Fast mode](/api/docs/guides/fast-mode) at the request level,
+      include the `service_tier=fast` or `service_tier=priority` parameter for
+      Responses or Chat Completions. The response will show `service_tier=priority`
+      regardless of if you specify `service_tier=fast` or `priority` in your
+      request.
     - When not set, the default behavior is 'auto'.
 
     When the `service_tier` parameter is set, the response body will include the

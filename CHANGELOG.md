@@ -1,5 +1,86 @@
 # Changelog
 
+## [2.53.0](https://github.com/openai/openai-python/compare/v2.52.1...v2.53.0) (2026-08-03)
+
+
+### Features
+
+* **api:** Add gpt-5.5 and tool name/namespace to Responses types ([#3569](https://github.com/openai/openai-python/issues/3569)) ([dd1202d](https://github.com/openai/openai-python/commit/dd1202d5dacff985861289c1d9c46996ded2d2a5))
+
+
+### Bug Fixes
+
+* **ci:** avoid NumPy source builds and duplicate HTTPX coverage ([#3573](https://github.com/openai/openai-python/issues/3573)) ([b58332f](https://github.com/openai/openai-python/commit/b58332f8a0717f7b1effb1788a594011cee6e02f))
+
+## 2.52.1 (2026-07-31)
+
+Full Changelog: [v2.52.0...v2.52.1](https://github.com/openai/openai-python/compare/v2.52.0...v2.52.1)
+
+### Chores
+
+* **ci:** pin setup-uv v5 to its underlying commit ([#3560](https://github.com/openai/openai-python/issues/3560)) ([cbdc98b](https://github.com/openai/openai-python/commit/cbdc98b6c1e21df7ee43d13b5de7243c6ed1ee7f))
+
+## 2.52.0 (2026-07-31)
+
+Full Changelog: [v2.51.0...v2.52.0](https://github.com/openai/openai-python/compare/v2.51.0...v2.52.0)
+
+### Features
+
+* **api:** content provenance checks ([1d6c118](https://github.com/openai/openai-python/commit/1d6c1180f8eaa71bfd45cae67360987b2bea3656))
+
+
+### Bug Fixes
+
+* **client:** honor Retry-After delays up to two minutes ([#3555](https://github.com/openai/openai-python/issues/3555)) ([7fa7946](https://github.com/openai/openai-python/commit/7fa7946485b5ecbadd0ebf8624c574e2c9e3370c))
+
+
+### Documentation
+
+* add API-key mTLS HTTP client recipes ([#3552](https://github.com/openai/openai-python/issues/3552)) ([7a3d5e4](https://github.com/openai/openai-python/commit/7a3d5e46b61cb36109dc4e7fd6d4ab70cc6d6c0f))
+
+## 2.51.0 (2026-07-30)
+
+Full Changelog: [v2.50.0...v2.51.0](https://github.com/openai/openai-python/compare/v2.50.0...v2.51.0)
+
+### Features
+
+* **api:** fast tier ([8808ed2](https://github.com/openai/openai-python/commit/8808ed27952dae13fb8761f045376af5b3e5bec2))
+
+
+### Bug Fixes
+
+* **api:** add fast tier to helper methods ([6064126](https://github.com/openai/openai-python/commit/60641266ff4b296044a81fe1717c17a70ceadbf1))
+
+## 2.50.0 (2026-07-28)
+
+Full Changelog: [v2.49.0...v2.50.0](https://github.com/openai/openai-python/compare/v2.49.0...v2.50.0)
+
+### Features
+
+* **api:** transcription model updates ([fd57393](https://github.com/openai/openai-python/commit/fd57393389eac75af08c2e887cb188590448be20))
+
+
+### Bug Fixes
+
+* **audio:** restore transcription keyword overload ([713a262](https://github.com/openai/openai-python/commit/713a2624966c40f4e5b0c20436b8a79aa8383b08))
+
+## 2.49.0 (2026-07-27)
+
+Full Changelog: [v2.48.0...v2.49.0](https://github.com/openai/openai-python/compare/v2.48.0...v2.49.0)
+
+### Features
+
+* require Python 3.10 and automate version reviews ([#3537](https://github.com/openai/openai-python/issues/3537)) ([d4c151d](https://github.com/openai/openai-python/commit/d4c151d92ba713e56518a4483d3b7918dd1be838))
+
+## 2.48.0 (2026-07-23)
+
+Full Changelog: [v2.47.0...v2.48.0](https://github.com/openai/openai-python/compare/v2.47.0...v2.48.0)
+
+### Features
+
+* **api:** accept `None` for prompt_cache_key/safety_identifier ([36820e6](https://github.com/openai/openai-python/commit/36820e69ba6cf1dc3f8d411e48a36e56084fbbc4))
+* **api:** add support for `spend_limit` admin apis ([1ff13af](https://github.com/openai/openai-python/commit/1ff13afb6e831394036686a1c352bbec6d704c68))
+
 ## 2.47.0 (2026-07-21)
 
 Full Changelog: [v2.46.0...v2.47.0](https://github.com/openai/openai-python/compare/v2.46.0...v2.47.0)
