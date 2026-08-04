@@ -7,17 +7,6 @@ on:
   merge_group:
     types:
       - checks_requested
-  workflow_dispatch:
-    inputs:
-      release_pr:
-        description: Run checks for a Release Please branch
-        required: false
-        default: false
-        type: boolean
-      base_sha:
-        description: Base commit for breaking-change comparison
-        required: false
-        type: string
 
 permissions:
   contents: read
@@ -26,9 +15,9 @@ jobs:
   detect_breaking_changes:
     runs-on: 'ubuntu-latest'
     name: detect-breaking-changes
-    if: github.repository == 'openai/openai-python' && (github.event_name == 'pull_request' || github.event_name == 'merge_group' || (inputs.release_pr && github.ref == 'refs/heads/release-please--branches--main'))
+    if: github.repository == 'openai/openai-python' && (github.event_name == 'pull_request' || github.event_name == 'merge_group')
     env:
-      BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event_name == 'merge_group' && github.event.merge_group.base_sha || inputs.base_sha }}
+      BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
       FETCH_DEPTH: 0
     steps:
       - name: Calculate fetch-depth
@@ -63,7 +52,7 @@ jobs:
   agents_sdk:
     runs-on: 'ubuntu-latest'
     name: Detect Agents SDK regressions
-    if: github.repository == 'openai/openai-python' && (github.event_name == 'pull_request' || (inputs.release_pr && github.ref == 'refs/heads/release-please--branches--main'))
+    if: github.repository == 'openai/openai-python' && github.event_name == 'pull_request'
     steps:
       # Setup this sdk
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
