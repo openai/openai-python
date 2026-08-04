@@ -894,7 +894,7 @@ class SyncHttpxClientWrapper(DefaultHttpxClient):
         try:
             self.close()
         except Exception:
-            pass
+            pass  # best-effort; __del__ may run during interpreter teardown
 
 
 class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
@@ -1520,7 +1520,7 @@ class AsyncHttpxClientWrapper(DefaultAsyncHttpxClient):
             # TODO(someday): support non asyncio runtimes here
             asyncio.get_running_loop().create_task(self.aclose())
         except Exception:
-            pass
+            pass  # expected when no event loop is running (GC / interpreter shutdown)
 
 
 class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
