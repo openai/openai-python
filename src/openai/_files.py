@@ -27,13 +27,11 @@ def is_base64_file_input(obj: object) -> TypeGuard[Base64FileInput]:
 
 
 def is_file_content(obj: object) -> TypeGuard[FileContent]:
-    return (
-        isinstance(obj, bytes) or isinstance(obj, tuple) or isinstance(obj, io.IOBase) or isinstance(obj, os.PathLike)
-    )
+    return isinstance(obj, bytes) or isinstance(obj, io.IOBase) or isinstance(obj, os.PathLike)
 
 
 def assert_is_file_content(obj: object, *, key: str | None = None) -> None:
-    if not is_file_content(obj):
+    if not is_file_content(obj) and not is_tuple_t(obj):
         prefix = f"Expected entry at `{key}`" if key is not None else f"Expected file input `{obj!r}`"
         raise RuntimeError(
             f"{prefix} to be bytes, an io.IOBase instance, PathLike or a tuple but received {type(obj)} instead. See https://github.com/openai/openai-python/tree/main#file-uploads"
