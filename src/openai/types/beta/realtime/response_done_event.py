@@ -15,5 +15,5 @@ class ResponseDoneEvent(BaseModel):
     response: RealtimeResponse
     """The response resource."""
 
-    type: Literal["response.done"]
+    type: Literal["response.done"] = "response.done"
     """The event type, must be `response.done`."""

@@ -15,5 +15,5 @@ class SessionUpdatedEvent(BaseModel):
     session: Session
     """Realtime session object configuration."""
 
-    type: Literal["session.updated"]
+    type: Literal["session.updated"] = "session.updated"
     """The event type, must be `session.updated`."""

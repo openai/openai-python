@@ -23,5 +23,5 @@ class ConversationCreatedEvent(BaseModel):
     event_id: str
     """The unique ID of the server event."""
 
-    type: Literal["conversation.created"]
+    type: Literal["conversation.created"] = "conversation.created"
     """The event type, must be `conversation.created`."""

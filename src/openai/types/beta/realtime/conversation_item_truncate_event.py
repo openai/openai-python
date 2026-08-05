@@ -25,7 +25,7 @@ class ConversationItemTruncateEvent(BaseModel):
     Only assistant message items can be truncated.
     """
 
-    type: Literal["conversation.item.truncate"]
+    type: Literal["conversation.item.truncate"] = "conversation.item.truncate"
     """The event type, must be `conversation.item.truncate`."""
 
     event_id: Optional[str] = None

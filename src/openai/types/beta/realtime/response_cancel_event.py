@@ -9,7 +9,7 @@ __all__ = ["ResponseCancelEvent"]
 
 
 class ResponseCancelEvent(BaseModel):
-    type: Literal["response.cancel"]
+    type: Literal["response.cancel"] = "response.cancel"
     """The event type, must be `response.cancel`."""
 
     event_id: Optional[str] = None
