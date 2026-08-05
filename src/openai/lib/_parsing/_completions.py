@@ -175,16 +175,22 @@ def parse_function_tool_arguments(
     if not input_tool:
         return None
 
+    # The API sends empty-string arguments (rather than `{}`) for strict tools that take no
+    # arguments or whose parameters are all optional, so normalize those to an empty object.
+    args = function.arguments
+    if not args or not args.strip():
+        args = "{}"
+
     input_fn = cast(object, input_tool.get("function"))
     if isinstance(input_fn, PydanticFunctionTool):
-        return model_parse_json(input_fn.model, function.arguments)
+        return model_parse_json(input_fn.model, args)
 
     input_fn = cast(FunctionDefinition, input_fn)
 
     if not input_fn.get("strict"):
         return None
 
-    return json.loads(function.arguments)  # type: ignore[no-any-return]
+    return json.loads(args)  # type: ignore[no-any-return]
 
 
 def maybe_parse_content(

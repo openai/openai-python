@@ -11,8 +11,18 @@ from inline_snapshot import snapshot
 
 import openai
 from openai import OpenAI, AsyncOpenAI
+from openai._types import omit
 from openai._utils import assert_signatures_in_sync
 from openai._compat import PYDANTIC_V1
+from openai.types.chat import (
+    ChatCompletion,
+    ChatCompletionMessage,
+    ChatCompletionToolParam,
+    ChatCompletionMessageFunctionToolCall,
+)
+from openai.lib._parsing._completions import parse_chat_completion, parse_function_tool_arguments
+from openai.types.chat.chat_completion import Choice
+from openai.types.chat.chat_completion_message_function_tool_call import Function
 
 from ..utils import print_obj
 from ...conftest import base_url
@@ -999,3 +1009,80 @@ def test_parse_method_in_sync(sync: bool, client: OpenAI, async_client: AsyncOpe
         checking_client.chat.completions.parse,
         exclude_params={"response_format", "stream"},
     )
+
+
+# a strict function tool with no parameters; the API returns empty-string arguments for these
+STRICT_NOOP_TOOL: ChatCompletionToolParam = {
+    "type": "function",
+    "function": {
+        "name": "noop",
+        "strict": True,
+        "parameters": {"type": "object", "properties": {}, "additionalProperties": False},
+    },
+}
+
+
+@pytest.mark.parametrize("arguments", ["", " \n ", "\t"])
+def test_parse_function_tool_empty_arguments(arguments: str) -> None:
+    # the API sends empty-string arguments (not `{}`) for strict tools with no/all-optional
+    # params, which used to raise json.JSONDecodeError instead of returning an empty object
+    assert (
+        parse_function_tool_arguments(
+            input_tools=[STRICT_NOOP_TOOL],
+            function=Function(name="noop", arguments=arguments),
+        )
+        == {}
+    )
+
+
+def test_parse_function_tool_non_empty_arguments_still_parsed() -> None:
+    # regression guard: non-empty arguments must be unaffected by the empty-string handling
+    assert parse_function_tool_arguments(
+        input_tools=[STRICT_NOOP_TOOL],
+        function=Function(name="noop", arguments='{"city": "SF"}'),
+    ) == {"city": "SF"}
+
+
+def test_parse_pydantic_function_tool_empty_arguments() -> None:
+    class NoArgs(BaseModel):
+        pass
+
+    result = parse_function_tool_arguments(
+        input_tools=[openai.pydantic_function_tool(NoArgs)],
+        function=Function(name="NoArgs", arguments=""),
+    )
+    assert isinstance(result, NoArgs)
+
+
+def test_parse_chat_completion_empty_function_tool_arguments() -> None:
+    completion = parse_chat_completion(
+        response_format=omit,
+        input_tools=[STRICT_NOOP_TOOL],
+        chat_completion=ChatCompletion.construct(
+            id="chatcmpl-1",
+            created=0,
+            model="gpt-4o-2024-08-06",
+            object="chat.completion",
+            choices=[
+                Choice.construct(
+                    index=0,
+                    finish_reason="tool_calls",
+                    message=ChatCompletionMessage.construct(
+                        role="assistant",
+                        content=None,
+                        tool_calls=[
+                            ChatCompletionMessageFunctionToolCall.construct(
+                                id="call_1",
+                                type="function",
+                                function=Function(name="noop", arguments=""),
+                            )
+                        ],
+                    ),
+                )
+            ],
+        ),
+    )
+
+    tool_calls = completion.choices[0].message.tool_calls
+    assert tool_calls is not None
+    assert tool_calls[0].function.parsed_arguments == {}
