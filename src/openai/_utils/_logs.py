@@ -34,9 +34,24 @@ def setup_logging() -> None:
 class SensitiveHeadersFilter(logging.Filter):
     @override
     def filter(self, record: logging.LogRecord) -> bool:
+        # Case 1: headers passed as a dict in record.args (structured logging)
         if is_dict(record.args) and "headers" in record.args and is_dict(record.args["headers"]):
             headers = record.args["headers"] = {**record.args["headers"]}
             for header in headers:
                 if str(header).lower() in SENSITIVE_HEADERS:
                     headers[header] = "<redacted>"
+
+        # Case 2: headers already interpolated into the log message string
+        # (e.g. httpx debug output: "headers={'authorization': 'Bearer sk-...'}")
+        import re
+        msg = record.getMessage()
+        for header in SENSITIVE_HEADERS:
+            # Match header: 'value' or header: "value" in the formatted message
+            pattern = rf"(?i)({re.escape(header)}['"]?\s*:\s*['"]?)([^'"\s,}}]+)"
+            redacted = re.sub(pattern, r"\1<redacted>", msg)
+            if redacted != msg:
+                record.msg = redacted
+                record.args = ()
+                break
+
         return True
