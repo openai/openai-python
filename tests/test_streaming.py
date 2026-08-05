@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Iterator, AsyncIterator
+from unittest.mock import patch, MagicMock, AsyncMock
 
 import httpx
 import pytest
@@ -214,6 +215,66 @@ async def test_multi_byte_character_multiple_chunks(
     sse = await iter_next(iterator)
     assert sse.event is None
     assert sse.json() == {"content": "известни"}
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+async def test_done_drains_remaining_bytes_before_close(
+    sync: bool, client: OpenAI, async_client: AsyncOpenAI
+) -> None:
+    """Regression test for #3440.
+
+    When Stream/__stream__ sees [DONE] it must drain the underlying byte
+    iterator before calling response.close() / response.aclose().  Without
+    the drain, h11's their_state is still SEND_RESPONSE at the time of
+    close(), so httpcore destroys the connection instead of returning it to
+    the pool, producing a spurious TCP FIN.
+    """
+    drain_calls: list[str] = []
+
+    def body() -> Iterator[bytes]:
+        yield b'data: {"id":"1"}\n\n'
+        yield b"data: [DONE]\n\n"
+        # bytes that arrive after [DONE] — the HTTP/1.1 chunked terminator
+        # would appear here in a real response
+        drain_calls.append("trailing-bytes-yielded")
+        yield b""
+
+    if sync:
+        response = httpx.Response(200, content=body())
+        close_calls: list[str] = []
+        original_close = response.close
+
+        def tracking_close() -> None:
+            close_calls.append("closed")
+            original_close()
+
+        response.close = tracking_close  # type: ignore[method-assign]
+        stream = Stream(cast_to=object, client=client, response=response)
+        list(stream.__stream__())
+
+        # The trailing bytes must have been consumed *before* close() was called.
+        assert drain_calls == ["trailing-bytes-yielded"], (
+            "trailing bytes were not drained before close()"
+        )
+    else:
+        async_body = to_aiter(body())
+        response = httpx.Response(200, content=async_body)
+        aclose_calls: list[str] = []
+        original_aclose = response.aclose
+
+        async def tracking_aclose() -> None:
+            aclose_calls.append("aclosed")
+            await original_aclose()
+
+        response.aclose = tracking_aclose  # type: ignore[method-assign]
+        stream = AsyncStream(cast_to=object, client=async_client, response=response)
+        async for _ in stream.__stream__():
+            pass
+
+        assert drain_calls == ["trailing-bytes-yielded"], (
+            "trailing bytes were not drained before aclose()"
+        )
 
 
 async def to_aiter(iter: Iterator[bytes]) -> AsyncIterator[bytes]:
