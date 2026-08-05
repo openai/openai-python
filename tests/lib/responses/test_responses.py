@@ -4,6 +4,7 @@ from typing_extensions import TypeVar
 
 import pytest
 from respx import MockRouter
+from pydantic import BaseModel
 from inline_snapshot import snapshot
 
 from openai import OpenAI, AsyncOpenAI
@@ -70,6 +71,52 @@ def test_parse_response_preserves_program_items(item: dict[str, object]) -> None
     parsed = parse_response(text_format=omit, input_tools=omit, response=response)
 
     assert parsed.output[0].to_dict() == item
+
+
+def test_parse_incomplete_output_text() -> None:
+    class CalendarEvent(BaseModel):
+        name: str
+
+    content_item: dict[str, object] = {
+        "type": "output_text",
+        "text": '{"name":',
+        "annotations": [],
+        "logprobs": [],
+    }
+    output_item: dict[str, object] = {
+        "id": "msg_123",
+        "type": "message",
+        "role": "assistant",
+        "status": "incomplete",
+        "content": [content_item],
+    }
+    response_payload: dict[str, object] = {
+        "id": "resp_123",
+        "object": "response",
+        "created_at": 0,
+        "model": "gpt-4o-mini",
+        "output": [output_item],
+        "parallel_tool_calls": True,
+        "tool_choice": "auto",
+        "tools": [],
+    }
+    response = construct_type_unchecked(
+        type_=Response,
+        value=response_payload,
+    )
+
+    parsed = parse_response(text_format=CalendarEvent, input_tools=None, response=response)
+
+    assert parsed.output_parsed is None
+
+    output = parsed.output[0]
+    assert output.type == "message"
+    assert output.status == "incomplete"
+
+    content = output.content[0]
+    assert content.type == "output_text"
+    assert content.text == '{"name":'
+    assert content.parsed is None
 
 
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
