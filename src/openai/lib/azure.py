@@ -353,11 +353,13 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         return None
 
     @override
-    def _auth_headers(self, security: SecurityOptions) -> dict[str, str]:  # noqa: ARG002
+    def _auth_headers(self, security: SecurityOptions) -> dict[str, str]:
         if self._azure_ad_token is not None:
             return {"Authorization": f"Bearer {self._azure_ad_token}"}
 
         if self.api_key and self.api_key != API_KEY_SENTINEL:
+            if security.get("bearer_auth", False):
+                return {"Authorization": f"Bearer {self.api_key}"}
             return {"api-key": self.api_key}
 
         return {}
@@ -383,7 +385,10 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
             if not _has_header(headers, "Authorization"):
                 headers["Authorization"] = f"Bearer {azure_ad_token}"
         elif self.api_key and self.api_key != API_KEY_SENTINEL:
-            if not _has_header(headers, "api-key"):
+            if options.security.get("bearer_auth", False):
+                if not _has_header(headers, "Authorization"):
+                    headers["Authorization"] = f"Bearer {self.api_key}"
+            elif not _has_header(headers, "api-key"):
                 headers["api-key"] = self.api_key
         elif _has_auth_header(headers) or _has_auth_header(self.default_headers):
             pass
@@ -679,11 +684,13 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         return None
 
     @override
-    def _auth_headers(self, security: SecurityOptions) -> dict[str, str]:  # noqa: ARG002
+    def _auth_headers(self, security: SecurityOptions) -> dict[str, str]:
         if self._azure_ad_token is not None:
             return {"Authorization": f"Bearer {self._azure_ad_token}"}
 
         if self.api_key and self.api_key != API_KEY_SENTINEL:
+            if security.get("bearer_auth", False):
+                return {"Authorization": f"Bearer {self.api_key}"}
             return {"api-key": self.api_key}
 
         return {}
@@ -709,7 +716,10 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
             if not _has_header(headers, "Authorization"):
                 headers["Authorization"] = f"Bearer {azure_ad_token}"
         elif self.api_key and self.api_key != API_KEY_SENTINEL:
-            if not _has_header(headers, "api-key"):
+            if options.security.get("bearer_auth", False):
+                if not _has_header(headers, "Authorization"):
+                    headers["Authorization"] = f"Bearer {self.api_key}"
+            elif not _has_header(headers, "api-key"):
                 headers["api-key"] = self.api_key
         elif _has_auth_header(headers) or _has_auth_header(self.default_headers):
             pass
