@@ -9,7 +9,7 @@ from typing_extensions import Self, Protocol, TypeGuard, override, get_origin, r
 
 import httpx
 
-from ._utils import is_mapping, extract_type_var_from_base
+from ._utils import is_mapping, consume_sync_iterator, consume_async_iterator, extract_type_var_from_base
 from ._exceptions import APIError
 
 if TYPE_CHECKING:
@@ -63,8 +63,7 @@ class Stream(Generic[_T]):
                 if sse.data.startswith("[DONE]"):
                     # Drain remaining bytes so close() can return the connection to the pool
                     # instead of discarding it because the body was only partially read.
-                    for _sse in iterator:
-                        pass
+                    consume_sync_iterator(iterator)
                     break
 
                 # we have to special case the Assistants `thread.` events since we won't have an "event" key in the data
@@ -177,8 +176,7 @@ class AsyncStream(Generic[_T]):
                 if sse.data.startswith("[DONE]"):
                     # Drain remaining bytes so aclose() can return the connection to the pool
                     # instead of discarding it because the body was only partially read.
-                    async for _sse in iterator:
-                        pass
+                    await consume_async_iterator(iterator)
                     break
 
                 # we have to special case the Assistants `thread.` events since we won't have an "event" key in the data
