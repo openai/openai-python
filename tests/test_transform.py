@@ -436,6 +436,53 @@ async def test_base64_file_input(use_async: bool) -> None:
 
 @parametrize
 @pytest.mark.asyncio
+async def test_dict_of_base64_file_input(use_async: bool) -> None:
+    # a base64 file field nested inside a `Dict[str, T]` value is still transformed correctly
+    assert await transform({"key": {"foo": SAMPLE_FILE_PATH}}, Dict[str, TypedDictBase64Input], use_async) == {
+        "key": {"foo": "SGVsbG8sIHdvcmxkIQo="}
+    }  # type: ignore[comparison-overlap]
+
+
+@pytest.mark.asyncio
+async def test_async_dict_values_use_async_transform(monkeypatch: pytest.MonkeyPatch) -> None:
+    # Regression test: the async transform pipeline must recurse into `Dict[str, T]`
+    # values using the *async* helpers so that file/base64 reads don't block the event
+    # loop. Previously the async dict branch mistakenly called the synchronous
+    # `_transform_recursive`, which reads files with a blocking `Path.read_bytes()`
+    # instead of the non-blocking `anyio.Path(...).read_bytes()`.
+    import openai._utils._transform as transform_mod
+
+    sync_calls = 0
+    async_calls = 0
+
+    real_format_data = transform_mod._format_data
+    real_async_format_data = transform_mod._async_format_data
+
+    def counting_format_data(*args: Any, **kwargs: Any) -> object:
+        nonlocal sync_calls
+        sync_calls += 1
+        return real_format_data(*args, **kwargs)
+
+    async def counting_async_format_data(*args: Any, **kwargs: Any) -> object:
+        nonlocal async_calls
+        async_calls += 1
+        return await real_async_format_data(*args, **kwargs)
+
+    monkeypatch.setattr(transform_mod, "_format_data", counting_format_data)
+    monkeypatch.setattr(transform_mod, "_async_format_data", counting_async_format_data)
+
+    result = await _async_transform(
+        {"key": {"foo": SAMPLE_FILE_PATH}},
+        expected_type=Dict[str, TypedDictBase64Input],
+    )
+
+    assert result == {"key": {"foo": "SGVsbG8sIHdvcmxkIQo="}}
+    assert async_calls >= 1, "async transform must use the async file-read path for dict values"
+    assert sync_calls == 0, "async transform must not fall back to the blocking sync file-read path"
+
+
+@parametrize
+@pytest.mark.asyncio
 async def test_transform_skipping(use_async: bool) -> None:
     # lists of ints are left as-is
     data = [1, 2, 3]
