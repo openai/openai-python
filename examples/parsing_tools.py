@@ -75,6 +75,9 @@ completion = client.chat.completions.parse(
 )
 
 tool_call = (completion.choices[0].message.tool_calls or [])[0]
+# `tool_calls` can hold custom tool calls too, so narrow on `type` before reaching
+# for `.function` (the raw, unparsed completion has always required this)
+assert tool_call.type == "function"
 rich.print(tool_call.function)
 assert isinstance(tool_call.function.parsed_arguments, Query)
 print(tool_call.function.parsed_arguments.table_name)

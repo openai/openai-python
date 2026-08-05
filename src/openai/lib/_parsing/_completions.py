@@ -23,6 +23,7 @@ from ...types.chat import (
     ParsedChatCompletionMessage,
     ChatCompletionToolUnionParam,
     ChatCompletionFunctionToolParam,
+    ParsedChatCompletionMessageToolCallUnion,
     completion_create_params,
 )
 from ..._exceptions import LengthFinishReasonError, ContentFilterFinishReasonError
@@ -104,7 +105,7 @@ def parse_chat_completion(
 
         message = choice.message
 
-        tool_calls: list[ParsedFunctionToolCall] = []
+        tool_calls: list[ParsedChatCompletionMessageToolCallUnion] = []
         if message.tool_calls:
             for tool_call in message.tool_calls:
                 if tool_call.type == "function":
@@ -124,13 +125,18 @@ def parse_chat_completion(
                         )
                     )
                 elif tool_call.type == "custom":
-                    # warn user that custom tool calls are not callable here
-                    log.warning(
-                        "Custom tool calls are not callable. Ignoring tool call: %s - %s",
-                        tool_call.id,
-                        tool_call.custom.name,
-                        stacklevel=2,
-                    )
+                    # No `parsed_arguments` for a custom call: there's no schema to parse
+                    # its free-form input against. The call still has to be surfaced
+                    # rather than dropped, because the raw completion includes it and
+                    # callers rely on `tool_calls` reflecting every call the model made.
+                    # This mirrors the `else` branch below, which already preserves any
+                    # non-function tool call unchanged.
+                    #
+                    # Non-streaming only. A streamed custom call cannot reach here at all:
+                    # `ChoiceDeltaToolCall.type` is `Literal["function"]`, so the chunk
+                    # fails validation before `get_final_completion()` gets this far. See
+                    # test_streaming_deltas_cannot_carry_a_custom_tool_call_yet.
+                    tool_calls.append(tool_call)
                 elif TYPE_CHECKING:  # type: ignore[unreachable]
                     assert_never(tool_call)
                 else:

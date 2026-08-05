@@ -406,6 +406,10 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
                     if prev_tool.type == "function":
                         assert new_tool.type == "function"
                         new_tool.function.parsed_arguments = prev_tool.function.parsed_arguments
+                    elif prev_tool.type == "custom":
+                        # custom tool calls carry no `parsed_arguments`, so there is
+                        # nothing to copy forward into the new snapshot
+                        pass
                     elif TYPE_CHECKING:  # type: ignore[unreachable]
                         assert_never(prev_tool)
             except IndexError:
@@ -462,6 +466,9 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
                             bytes(tool_call_snapshot.function.arguments, "utf-8"),
                             partial_mode=True,
                         )
+                elif tool_call_snapshot.type == "custom":
+                    # no schema to partially parse a custom tool's free-form input against
+                    pass
                 elif TYPE_CHECKING:  # type: ignore[unreachable]
                     assert_never(tool_call_snapshot)
 
@@ -547,6 +554,10 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
                                 arguments_delta=tool_call_delta.function.arguments or "",
                             )
                         )
+                    elif tool_call.type == "custom":
+                        # the streaming event types are function-tool specific, so a custom
+                        # call produces no argument-delta events
+                        pass
                     elif TYPE_CHECKING:  # type: ignore[unreachable]
                         assert_never(tool_call)
 
@@ -733,6 +744,9 @@ class ChoiceEventState:
                     parsed_arguments=parsed_arguments,
                 )
             )
+        elif tool_call_snapshot.type == "custom":
+            # no arguments-done event for a custom call; there is nothing to parse
+            pass
         elif TYPE_CHECKING:  # type: ignore[unreachable]
             assert_never(tool_call_snapshot)
 
