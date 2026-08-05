@@ -198,6 +198,13 @@ class OpenAI(SyncAPIClient):
         self.workload_identity = workload_identity if provider_runtime is None else None
 
         _api_key_explicitly_set = api_key is not None
+        # Tracks whether the caller explicitly passed a literal `api_key=""`, as opposed
+        # to it defaulting to an empty string because no credentials were configured, or
+        # a key provider/workload identity being used (which resolve the real key later).
+        # This is needed so that requests don't fail header validation below when the
+        # caller intentionally disabled authentication (e.g. for local, auth-less
+        # OpenAI-compatible servers).
+        self._api_key_explicitly_empty = api_key == ""
         if provider_runtime is not None:
             self.api_key = ""
             self._api_key_provider = None
@@ -546,11 +553,21 @@ class OpenAI(SyncAPIClient):
         }
 
     @override
-    def _validate_headers(self, headers: Headers, custom_headers: Headers) -> None:
+    def _validate_headers(
+        self, headers: Headers, custom_headers: Headers, security: SecurityOptions | None = None
+    ) -> None:
         if self._provider_runtime is not None:
             return
 
         if _has_header(headers, "Authorization") or _has_omitted_header(custom_headers, "Authorization"):
+            return
+
+        # An explicitly-passed `api_key=""` means the caller intentionally disabled
+        # authentication (e.g. for a local, auth-less OpenAI-compatible server), so
+        # don't fail requests just because no `Authorization` header could be built —
+        # unless the request specifically requires admin credentials, which an empty
+        # `api_key` cannot satisfy.
+        if self._api_key_explicitly_empty and not (security or {}).get("admin_api_key_auth", False):
             return
 
         raise TypeError(
@@ -806,6 +823,13 @@ class AsyncOpenAI(AsyncAPIClient):
         self.workload_identity = workload_identity if provider_runtime is None else None
 
         _api_key_explicitly_set = api_key is not None
+        # Tracks whether the caller explicitly passed a literal `api_key=""`, as opposed
+        # to it defaulting to an empty string because no credentials were configured, or
+        # a key provider/workload identity being used (which resolve the real key later).
+        # This is needed so that requests don't fail header validation below when the
+        # caller intentionally disabled authentication (e.g. for local, auth-less
+        # OpenAI-compatible servers).
+        self._api_key_explicitly_empty = api_key == ""
         if provider_runtime is not None:
             self.api_key = ""
             self._api_key_provider = None
@@ -1157,11 +1181,21 @@ class AsyncOpenAI(AsyncAPIClient):
         }
 
     @override
-    def _validate_headers(self, headers: Headers, custom_headers: Headers) -> None:
+    def _validate_headers(
+        self, headers: Headers, custom_headers: Headers, security: SecurityOptions | None = None
+    ) -> None:
         if self._provider_runtime is not None:
             return
 
         if _has_header(headers, "Authorization") or _has_omitted_header(custom_headers, "Authorization"):
+            return
+
+        # An explicitly-passed `api_key=""` means the caller intentionally disabled
+        # authentication (e.g. for a local, auth-less OpenAI-compatible server), so
+        # don't fail requests just because no `Authorization` header could be built —
+        # unless the request specifically requires admin credentials, which an empty
+        # `api_key` cannot satisfy.
+        if self._api_key_explicitly_empty and not (security or {}).get("admin_api_key_auth", False):
             return
 
         raise TypeError(

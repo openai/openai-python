@@ -540,6 +540,24 @@ class TestOpenAI:
             )
             assert client.api_key == ""
 
+            # Requests should also succeed, not just client construction: no `Authorization`
+            # header should be required or added when api_key was explicitly set to "".
+            request = client._build_request(
+                FinalRequestOptions(method="get", url="/foo", security={"bearer_auth": True})
+            )
+            assert "Authorization" not in request.headers
+
+            # An explicit empty api_key should not bypass validation for endpoints that
+            # require credentials the client doesn't have (e.g. admin-only endpoints).
+            with pytest.raises(TypeError, match="Could not resolve authentication method"):
+                client._build_request(
+                    FinalRequestOptions(
+                        method="get",
+                        url="/organization/projects",
+                        security={"admin_api_key_auth": True},
+                    )
+                )
+
         # OPENAI_API_KEY="" in the environment (without explicit api_key arg) should still raise,
         # as an empty env var likely indicates misconfiguration rather than intentional use.
         with update_env(
@@ -1879,6 +1897,24 @@ class TestAsyncOpenAI:
                 _strict_response_validation=True,
             )
             assert client.api_key == ""
+
+            # Requests should also succeed, not just client construction: no `Authorization`
+            # header should be required or added when api_key was explicitly set to "".
+            request = client._build_request(
+                FinalRequestOptions(method="get", url="/foo", security={"bearer_auth": True})
+            )
+            assert "Authorization" not in request.headers
+
+            # An explicit empty api_key should not bypass validation for endpoints that
+            # require credentials the client doesn't have (e.g. admin-only endpoints).
+            with pytest.raises(TypeError, match="Could not resolve authentication method"):
+                client._build_request(
+                    FinalRequestOptions(
+                        method="get",
+                        url="/organization/projects",
+                        security={"admin_api_key_auth": True},
+                    )
+                )
 
         # OPENAI_API_KEY="" in the environment (without explicit api_key arg) should still raise,
         # as an empty env var likely indicates misconfiguration rather than intentional use.
