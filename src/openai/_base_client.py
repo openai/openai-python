@@ -851,6 +851,18 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
 
         # Retry on rate limits.
         if response.status_code == 429:
+            # An `insufficient_quota` error means the account has run out of
+            # quota; retrying will not help, so don't burn the retry budget
+            # on a request that is guaranteed to fail again.
+            try:
+                body = response.json()
+            except Exception:
+                body = None
+            data = body.get("error", body) if is_mapping(body) else body
+            if is_mapping(data) and data.get("code") == "insufficient_quota":
+                log.debug("Not retrying as the error code is `insufficient_quota`")
+                return False
+
             log.debug("Retrying due to status code %i", response.status_code)
             return True
 
@@ -1128,6 +1140,19 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
                 response.raise_for_status()
             except status_exceptions() as err:  # thrown on 4xx and 5xx status code
                 log.debug("Encountered an HTTP status error", exc_info=True)
+
+                # The retry classification below may inspect the response body (e.g. to
+                # detect `insufficient_quota`), so make sure it has been read first. For
+                # `stream=True` requests the body is not read automatically and accessing
+                # it before this point raises `httpx.ResponseNotRead`. Reading can itself
+                # fail (e.g. a dropped connection mid-stream) for errors that are still
+                # retriable on status/headers alone, so a read failure here must not stop
+                # `_should_retry` from running.
+                if not err.response.is_closed:
+                    try:
+                        err.response.read()
+                    except Exception:
+                        pass
 
                 if remaining_retries > 0 and self._should_retry(err.response):
                     err.response.close()
@@ -1757,6 +1782,19 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
                 response.raise_for_status()
             except status_exceptions() as err:  # thrown on 4xx and 5xx status code
                 log.debug("Encountered an HTTP status error", exc_info=True)
+
+                # The retry classification below may inspect the response body (e.g. to
+                # detect `insufficient_quota`), so make sure it has been read first. For
+                # `stream=True` requests the body is not read automatically and accessing
+                # it before this point raises `httpx.ResponseNotRead`. Reading can itself
+                # fail (e.g. a dropped connection mid-stream) for errors that are still
+                # retriable on status/headers alone, so a read failure here must not stop
+                # `_should_retry` from running.
+                if not err.response.is_closed:
+                    try:
+                        await err.response.aread()
+                    except Exception:
+                        pass
 
                 if remaining_retries > 0 and self._should_retry(err.response):
                     await err.response.aclose()
