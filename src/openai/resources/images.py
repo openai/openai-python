@@ -11,7 +11,7 @@ from .. import _legacy_response
 from ..types import image_edit_params, image_generate_params, image_create_variation_params
 from .._files import deepcopy_with_paths
 from .._types import Body, Omit, Query, Headers, NotGiven, FileTypes, SequenceNotStr, omit, not_given
-from .._utils import extract_files, required_args, maybe_transform, async_maybe_transform
+from .._utils import is_list, is_mapping, extract_files, required_args, maybe_transform, async_maybe_transform
 from .._compat import cached_property
 from .._resource import SyncAPIResource, AsyncAPIResource
 from .._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -21,6 +21,7 @@ from ..types.image_model import ImageModel
 from ..types.images_response import ImagesResponse
 from ..types.image_gen_stream_event import ImageGenStreamEvent
 from ..types.image_edit_stream_event import ImageEditStreamEvent
+from ..types.image_input_reference_param import ImageInputReferenceParam
 
 __all__ = ["Images", "AsyncImages"]
 
@@ -129,7 +130,7 @@ class Images(SyncAPIResource):
     def edit(
         self,
         *,
-        image: Union[FileTypes, SequenceNotStr[FileTypes]],
+        image: Union[FileTypes, ImageInputReferenceParam, SequenceNotStr[Union[FileTypes, ImageInputReferenceParam]]],
         prompt: str,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
         input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
@@ -259,7 +260,7 @@ class Images(SyncAPIResource):
     def edit(
         self,
         *,
-        image: Union[FileTypes, SequenceNotStr[FileTypes]],
+        image: Union[FileTypes, ImageInputReferenceParam, SequenceNotStr[Union[FileTypes, ImageInputReferenceParam]]],
         prompt: str,
         stream: Literal[True],
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
@@ -389,7 +390,7 @@ class Images(SyncAPIResource):
     def edit(
         self,
         *,
-        image: Union[FileTypes, SequenceNotStr[FileTypes]],
+        image: Union[FileTypes, ImageInputReferenceParam, SequenceNotStr[Union[FileTypes, ImageInputReferenceParam]]],
         prompt: str,
         stream: bool,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
@@ -519,7 +520,7 @@ class Images(SyncAPIResource):
     def edit(
         self,
         *,
-        image: Union[FileTypes, SequenceNotStr[FileTypes]],
+        image: Union[FileTypes, ImageInputReferenceParam, SequenceNotStr[Union[FileTypes, ImageInputReferenceParam]]],
         prompt: str,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
         input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
@@ -542,6 +543,7 @@ class Images(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse | Stream[ImageEditStreamEvent]:
+        is_url_input = is_mapping(image) or (is_list(image) and len(image) > 0 and is_mapping(image[0]))
         body = deepcopy_with_paths(
             {
                 "image": image,
@@ -560,13 +562,16 @@ class Images(SyncAPIResource):
                 "stream": stream,
                 "user": user,
             },
-            [["image"], ["image", "<array>"], ["mask"]],
+            [] if is_url_input else [["image"], ["image", "<array>"], ["mask"]],
         )
-        files = extract_files(cast(Mapping[str, object], body), paths=[["image"], ["image", "<array>"], ["mask"]])
-        # It should be noted that the actual Content-Type header that will be
-        # sent to the server will contain a `boundary` parameter, e.g.
-        # multipart/form-data; boundary=---abc--
-        extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
+        if is_url_input:
+            files = None
+        else:
+            files = extract_files(cast(Mapping[str, object], body), paths=[["image"], ["image", "<array>"], ["mask"]])
+            # It should be noted that the actual Content-Type header that will be
+            # sent to the server will contain a `boundary` parameter, e.g.
+            # multipart/form-data; boundary=---abc--
+            extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
         return self._post(
             "/images/edits",
             body=maybe_transform(
@@ -1134,7 +1139,7 @@ class AsyncImages(AsyncAPIResource):
     async def edit(
         self,
         *,
-        image: Union[FileTypes, SequenceNotStr[FileTypes]],
+        image: Union[FileTypes, ImageInputReferenceParam, SequenceNotStr[Union[FileTypes, ImageInputReferenceParam]]],
         prompt: str,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
         input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
@@ -1264,7 +1269,7 @@ class AsyncImages(AsyncAPIResource):
     async def edit(
         self,
         *,
-        image: Union[FileTypes, SequenceNotStr[FileTypes]],
+        image: Union[FileTypes, ImageInputReferenceParam, SequenceNotStr[Union[FileTypes, ImageInputReferenceParam]]],
         prompt: str,
         stream: Literal[True],
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
@@ -1394,7 +1399,7 @@ class AsyncImages(AsyncAPIResource):
     async def edit(
         self,
         *,
-        image: Union[FileTypes, SequenceNotStr[FileTypes]],
+        image: Union[FileTypes, ImageInputReferenceParam, SequenceNotStr[Union[FileTypes, ImageInputReferenceParam]]],
         prompt: str,
         stream: bool,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
@@ -1524,7 +1529,7 @@ class AsyncImages(AsyncAPIResource):
     async def edit(
         self,
         *,
-        image: Union[FileTypes, SequenceNotStr[FileTypes]],
+        image: Union[FileTypes, ImageInputReferenceParam, SequenceNotStr[Union[FileTypes, ImageInputReferenceParam]]],
         prompt: str,
         background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
         input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
@@ -1547,6 +1552,7 @@ class AsyncImages(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse | AsyncStream[ImageEditStreamEvent]:
+        is_url_input = is_mapping(image) or (is_list(image) and len(image) > 0 and is_mapping(image[0]))
         body = deepcopy_with_paths(
             {
                 "image": image,
@@ -1565,13 +1571,16 @@ class AsyncImages(AsyncAPIResource):
                 "stream": stream,
                 "user": user,
             },
-            [["image"], ["image", "<array>"], ["mask"]],
+            [] if is_url_input else [["image"], ["image", "<array>"], ["mask"]],
         )
-        files = extract_files(cast(Mapping[str, object], body), paths=[["image"], ["image", "<array>"], ["mask"]])
-        # It should be noted that the actual Content-Type header that will be
-        # sent to the server will contain a `boundary` parameter, e.g.
-        # multipart/form-data; boundary=---abc--
-        extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
+        if is_url_input:
+            files = None
+        else:
+            files = extract_files(cast(Mapping[str, object], body), paths=[["image"], ["image", "<array>"], ["mask"]])
+            # It should be noted that the actual Content-Type header that will be
+            # sent to the server will contain a `boundary` parameter, e.g.
+            # multipart/form-data; boundary=---abc--
+            extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
         return await self._post(
             "/images/edits",
             body=await async_maybe_transform(

@@ -7,12 +7,13 @@ from typing_extensions import Literal, Required, TypedDict
 
 from .._types import FileTypes, SequenceNotStr
 from .image_model import ImageModel
+from .image_input_reference_param import ImageInputReferenceParam
 
 __all__ = ["ImageEditParamsBase", "ImageEditParamsNonStreaming", "ImageEditParamsStreaming"]
 
 
 class ImageEditParamsBase(TypedDict, total=False):
-    image: Required[Union[FileTypes, SequenceNotStr[FileTypes]]]
+    image: Required[Union[FileTypes, ImageInputReferenceParam, SequenceNotStr[Union[FileTypes, ImageInputReferenceParam]]]]
     """The image(s) to edit. Must be a supported image file or an array of images.
 
     For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`,
