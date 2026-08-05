@@ -246,3 +246,72 @@ def make_event_iterator(
     return AsyncStream(
         cast_to=object, client=async_client, response=httpx.Response(200, content=to_aiter(content))
     )._iter_events()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+async def test_stream_drains_before_close(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
+    """Regression test for https://github.com/openai/openai-python/issues/3440
+
+    After [DONE], the response stream should be fully drained (including the
+    chunked transfer-encoding terminator) before close() is called.
+    """
+    chunks = [
+        b'data: {"choices":[{"delta":{"content":"hi"}}]}\n\n',
+        b'data: [DONE]\n\n',
+    ]
+
+    if sync:
+        response = httpx.Response(200, content=iter(chunks))
+        stream = Stream(cast_to=object, client=client, response=response)
+        for _ in stream:
+            pass
+        assert response.is_stream_consumed
+    else:
+        response = httpx.Response(200, content=to_aiter(iter(chunks)))
+        stream = AsyncStream(cast_to=object, client=async_client, response=response)
+        async for _ in stream:
+            pass
+        assert response.is_stream_consumed
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+async def test_stream_no_drain_on_error(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
+    """When an error occurs before [DONE], the drain loop should be skipped.
+
+    This prevents hanging on stalled streams during error paths.
+    """
+    stall_reached = False
+    dummy_request = httpx.Request("POST", "https://example.com/v1/chat/completions")
+
+    def body() -> Iterator[bytes]:
+        nonlocal stall_reached
+        yield b'data: {"error":{"message":"bad request"}}\n\n'
+        # If drain loop runs, it will hang here
+        stall_reached = True
+        while True:
+            yield b""
+
+    if sync:
+        response = httpx.Response(200, content=body(), request=dummy_request)
+        stream = Stream(cast_to=object, client=client, response=response)
+        with pytest.raises(Exception, match="bad request"):
+            for _ in stream:
+                pass
+        assert not stall_reached
+    else:
+
+        async def abody() -> AsyncIterator[bytes]:
+            nonlocal stall_reached
+            yield b'data: {"error":{"message":"bad request"}}\n\n'
+            stall_reached = True
+            while True:
+                yield b""
+
+        response = httpx.Response(200, content=abody(), request=dummy_request)
+        stream = AsyncStream(cast_to=object, client=async_client, response=response)
+        with pytest.raises(Exception, match="bad request"):
+            async for _ in stream:
+                pass
+        assert not stall_reached
