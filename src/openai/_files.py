@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import io
 import os
+import shutil
 import pathlib
-from typing import Sequence, cast, overload
+import tempfile
+from typing import IO, Sequence, cast, overload
 from typing_extensions import TypeVar, TypeGuard
 
 import anyio
@@ -20,6 +22,69 @@ from ._types import (
 from ._utils import is_list, is_mapping, is_tuple_t, is_mapping_t, is_sequence_t
 
 _T = TypeVar("_T")
+
+_SPOOLED_FILE_MAX_SIZE = 8 * 1024 * 1024
+
+
+class ReplayableFiles:
+    def __init__(self, files: HttpxRequestFiles | None) -> None:
+        self._positions: list[tuple[IO[bytes], int]] = []
+        self._temporary_files: list[IO[bytes]] = []
+        try:
+            self.files = self._transform_files(files)
+        except Exception:
+            self.close()
+            raise
+
+    def _transform_files(self, files: HttpxRequestFiles | None) -> HttpxRequestFiles | None:
+        if files is None:
+            return None
+
+        if is_mapping_t(files):
+            return {key: self._transform_file(file) for key, file in files.items()}
+
+        sequence = cast(Sequence[tuple[str, HttpxFileTypes]], files)
+        return [(key, self._transform_file(file)) for key, file in sequence]
+
+    def _transform_file(self, file: HttpxFileTypes) -> HttpxFileTypes:
+        if isinstance(file, tuple):
+            return cast(HttpxFileTypes, (file[0], self._transform_file_content(file[1]), *file[2:]))
+
+        return self._transform_file_content(file)
+
+    def _transform_file_content(self, file: HttpxFileContent) -> HttpxFileContent:
+        if not isinstance(file, io.IOBase):
+            return file
+
+        file = cast(IO[bytes], file)
+        try:
+            if file.seekable():
+                position = file.tell()
+                file.seek(position)
+                self._positions.append((file, position))
+                return file
+        except (OSError, ValueError):
+            pass
+
+        buffered = cast(IO[bytes], tempfile.SpooledTemporaryFile(max_size=_SPOOLED_FILE_MAX_SIZE))
+        try:
+            shutil.copyfileobj(file, buffered)
+        except Exception:
+            buffered.close()
+            raise
+
+        buffered.seek(0)
+        self._positions.append((buffered, 0))
+        self._temporary_files.append(buffered)
+        return buffered
+
+    def rewind(self) -> None:
+        for file, position in self._positions:
+            file.seek(position)
+
+    def close(self) -> None:
+        for file in self._temporary_files:
+            file.close()
 
 
 def is_base64_file_input(obj: object) -> TypeGuard[Base64FileInput]:
