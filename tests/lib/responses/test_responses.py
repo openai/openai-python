@@ -7,7 +7,7 @@ from respx import MockRouter
 from inline_snapshot import snapshot
 
 from openai import OpenAI, AsyncOpenAI
-from openai._types import omit
+from openai._types import omit, NOT_GIVEN
 from openai._utils import assert_signatures_in_sync
 from openai._models import construct_type_unchecked
 from openai.types.responses import Response
@@ -92,3 +92,27 @@ def test_parse_method_definition_in_sync(sync: bool, client: OpenAI, async_clien
         checking_client.responses.parse,
         exclude_params={"tools"},
     )
+
+
+def test_parse_response_handles_null_output() -> None:
+    response = Response.model_construct(
+        id="resp_123",
+        object="response",
+        created_at=0,
+        status="completed",
+        error=None,
+        incomplete_details=None,
+        instructions=None,
+        max_output_tokens=None,
+        model="gpt-4o-mini",
+        output=None,
+        parallel_tool_calls=True,
+        temperature=1.0,
+        tool_choice="auto",
+        tools=[],
+        top_p=1.0,
+    )
+
+    parsed = parse_response(text_format=NOT_GIVEN, input_tools=None, response=response)
+
+    assert parsed.output == []
