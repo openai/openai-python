@@ -363,7 +363,12 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         return {}
 
     @override
-    def _validate_headers(self, headers: Headers, custom_headers: Headers) -> None:
+    def _validate_headers(
+        self,
+        headers: Headers,
+        custom_headers: Headers,
+        security: SecurityOptions | None = None,  # noqa: ARG002
+    ) -> None:
         if _has_auth_header(headers) or _has_auth_header(custom_headers):
             return
 
@@ -689,7 +694,12 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         return {}
 
     @override
-    def _validate_headers(self, headers: Headers, custom_headers: Headers) -> None:
+    def _validate_headers(
+        self,
+        headers: Headers,
+        custom_headers: Headers,
+        security: SecurityOptions | None = None,  # noqa: ARG002
+    ) -> None:
         if _has_auth_header(headers) or _has_auth_header(custom_headers):
             return
 
