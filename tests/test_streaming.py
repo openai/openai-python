@@ -216,6 +216,33 @@ async def test_multi_byte_character_multiple_chunks(
     assert sse.json() == {"content": "известни"}
 
 
+@pytest.mark.asyncio
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+async def test_done_drains_remaining_body(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
+    """After [DONE], remaining body bytes must be consumed so close() can reuse the connection."""
+    exhausted = False
+
+    def body() -> Iterator[bytes]:
+        nonlocal exhausted
+        yield b'data: {"foo":true}\n\n'
+        yield b"data: [DONE]\n\n"
+        yield b": trailing comment after done\n\n"
+        exhausted = True
+
+    content: Iterator[bytes] | AsyncIterator[bytes] = body() if sync else to_aiter(body())
+    response = httpx.Response(200, content=content)
+
+    if sync:
+        stream: Stream[object] | AsyncStream[object] = Stream(cast_to=object, client=client, response=response)
+        chunks = list(stream)
+    else:
+        stream = AsyncStream(cast_to=object, client=async_client, response=response)
+        chunks = [chunk async for chunk in stream]
+
+    assert chunks == [{"foo": True}]
+    assert exhausted is True
+
+
 async def to_aiter(iter: Iterator[bytes]) -> AsyncIterator[bytes]:
     for chunk in iter:
         yield chunk

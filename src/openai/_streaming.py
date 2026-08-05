@@ -61,6 +61,10 @@ class Stream(Generic[_T]):
         try:
             for sse in iterator:
                 if sse.data.startswith("[DONE]"):
+                    # Drain remaining bytes so close() can return the connection to the pool
+                    # instead of discarding it because the body was only partially read.
+                    for _sse in iterator:
+                        pass
                     break
 
                 # we have to special case the Assistants `thread.` events since we won't have an "event" key in the data
@@ -171,6 +175,10 @@ class AsyncStream(Generic[_T]):
         try:
             async for sse in iterator:
                 if sse.data.startswith("[DONE]"):
+                    # Drain remaining bytes so aclose() can return the connection to the pool
+                    # instead of discarding it because the body was only partially read.
+                    async for _sse in iterator:
+                        pass
                     break
 
                 # we have to special case the Assistants `thread.` events since we won't have an "event" key in the data
