@@ -19,7 +19,7 @@ from .sessions import (
     SessionsWithStreamingResponse,
     AsyncSessionsWithStreamingResponse,
 )
-from ...._types import NOT_GIVEN, Query, Headers, NotGiven
+from ...._types import NOT_GIVEN, Omit, Query, Headers, NotGiven, omit
 from ...._utils import (
     is_azure_client,
     maybe_transform,
@@ -94,7 +94,7 @@ class Realtime(SyncAPIResource):
     def connect(
         self,
         *,
-        model: str,
+        model: str | Omit = omit,
         extra_query: Query = {},
         extra_headers: Headers = {},
         websocket_connection_options: WebsocketConnectionOptions = {},
@@ -150,7 +150,7 @@ class AsyncRealtime(AsyncAPIResource):
     def connect(
         self,
         *,
-        model: str,
+        model: str | Omit = omit,
         extra_query: Query = {},
         extra_headers: Headers = {},
         websocket_connection_options: WebsocketConnectionOptions = {},
@@ -328,7 +328,7 @@ class AsyncRealtimeConnectionManager:
         self,
         *,
         client: AsyncOpenAI,
-        model: str,
+        model: str | Omit = omit,
         extra_query: Query,
         extra_headers: Headers,
         websocket_connection_options: WebsocketConnectionOptions,
@@ -362,12 +362,15 @@ class AsyncRealtimeConnectionManager:
         await self.__client._refresh_api_key()
         auth_headers = self.__client.auth_headers
         if is_async_azure_client(self.__client):
-            url, auth_headers = await self.__client._configure_realtime(self.__model, extra_query)
+            model = self.__model
+            if not model or model is omit:
+                raise OpenAIError("`model` is required for Azure Realtime API")
+            url, auth_headers = await self.__client._configure_realtime(model, extra_query)
         else:
             url = self._prepare_url().copy_with(
                 params={
                     **self.__client.base_url.params,
-                    "model": self.__model,
+                    **({"model": self.__model} if self.__model is not omit else {}),
                     **extra_query,
                 },
             )
@@ -511,7 +514,7 @@ class RealtimeConnectionManager:
         self,
         *,
         client: OpenAI,
-        model: str,
+        model: str | Omit = omit,
         extra_query: Query,
         extra_headers: Headers,
         websocket_connection_options: WebsocketConnectionOptions,
@@ -545,12 +548,15 @@ class RealtimeConnectionManager:
         self.__client._refresh_api_key()
         auth_headers = self.__client.auth_headers
         if is_azure_client(self.__client):
-            url, auth_headers = self.__client._configure_realtime(self.__model, extra_query)
+            model = self.__model
+            if not model or model is omit:
+                raise OpenAIError("`model` is required for Azure Realtime API")
+            url, auth_headers = self.__client._configure_realtime(model, extra_query)
         else:
             url = self._prepare_url().copy_with(
                 params={
                     **self.__client.base_url.params,
-                    "model": self.__model,
+                    **({"model": self.__model} if self.__model is not omit else {}),
                     **extra_query,
                 },
             )
