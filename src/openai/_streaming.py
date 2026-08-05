@@ -65,7 +65,7 @@ class Stream(Generic[_T]):
                     # [DONE] is already terminal for callers; drain failures must not fail the stream.
                     try:
                         consume_sync_iterator(iterator)
-                    except httpx.HTTPError:
+                    except (httpx.HTTPError, UnicodeError):
                         pass
                     break
 
@@ -181,7 +181,7 @@ class AsyncStream(Generic[_T]):
                     # [DONE] is already terminal for callers; drain failures must not fail the stream.
                     try:
                         await consume_async_iterator(iterator)
-                    except httpx.HTTPError:
+                    except (httpx.HTTPError, UnicodeError):
                         pass
                     break
 

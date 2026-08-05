@@ -268,6 +268,32 @@ async def test_drain_failure_after_done_preserves_result(
     assert response.is_closed is True
 
 
+@pytest.mark.asyncio
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+async def test_drain_decode_error_after_done_preserves_result(
+    sync: bool, client: OpenAI, async_client: AsyncOpenAI
+) -> None:
+    """Malformed trailing bytes after [DONE] must not fail an already-complete stream."""
+
+    def body() -> Iterator[bytes]:
+        yield b'data: {"foo":true}\n\n'
+        yield b"data: [DONE]\n\n"
+        # Truncated multi-byte UTF-8 sequence that the SSE decoder will reject.
+        yield b"data: \xff\n\n"
+
+    response = httpx.Response(200, content=body() if sync else to_aiter(body()))
+
+    if sync:
+        stream: Stream[object] | AsyncStream[object] = Stream(cast_to=object, client=client, response=response)
+        chunks = list(stream)
+    else:
+        stream = AsyncStream(cast_to=object, client=async_client, response=response)
+        chunks = [chunk async for chunk in stream]
+
+    assert chunks == [{"foo": True}]
+    assert response.is_closed is True
+
+
 async def to_aiter(iter: Iterator[bytes]) -> AsyncIterator[bytes]:
     for chunk in iter:
         yield chunk
