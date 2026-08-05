@@ -360,7 +360,7 @@ class AsyncRealtimeConnectionManager:
 
         extra_query = self.__extra_query
         await self.__client._refresh_api_key()
-        auth_headers = self.__client.auth_headers
+        auth_headers = await self.__client._websocket_auth_headers(self.__extra_headers)
         if is_async_azure_client(self.__client):
             url, auth_headers = await self.__client._configure_realtime(self.__model, extra_query)
         else:
@@ -375,8 +375,8 @@ class AsyncRealtimeConnectionManager:
         if self.__websocket_connection_options:
             log.debug("Connection options: %s", self.__websocket_connection_options)
 
-        self.__connection = AsyncRealtimeConnection(
-            await connect(
+        try:
+            websocket = await connect(
                 str(url),
                 user_agent_header=self.__client.user_agent,
                 additional_headers=_merge_mappings(
@@ -388,7 +388,19 @@ class AsyncRealtimeConnectionManager:
                 ),
                 **self.__websocket_connection_options,
             )
-        )
+        except Exception as exc:
+            retry_auth_headers = await self.__client._retry_websocket_auth_headers(exc, self.__extra_headers)
+            if retry_auth_headers is None:
+                raise
+            websocket = await connect(
+                str(url),
+                user_agent_header=self.__client.user_agent,
+                additional_headers=_merge_mappings(
+                    {**retry_auth_headers, "OpenAI-Beta": "realtime=v1"}, self.__extra_headers
+                ),
+                **self.__websocket_connection_options,
+            )
+        self.__connection = AsyncRealtimeConnection(websocket)
 
         return self.__connection
 
@@ -543,7 +555,7 @@ class RealtimeConnectionManager:
 
         extra_query = self.__extra_query
         self.__client._refresh_api_key()
-        auth_headers = self.__client.auth_headers
+        auth_headers = self.__client._websocket_auth_headers(self.__extra_headers)
         if is_azure_client(self.__client):
             url, auth_headers = self.__client._configure_realtime(self.__model, extra_query)
         else:
@@ -558,8 +570,8 @@ class RealtimeConnectionManager:
         if self.__websocket_connection_options:
             log.debug("Connection options: %s", self.__websocket_connection_options)
 
-        self.__connection = RealtimeConnection(
-            connect(
+        try:
+            websocket = connect(
                 str(url),
                 user_agent_header=self.__client.user_agent,
                 additional_headers=_merge_mappings(
@@ -571,7 +583,19 @@ class RealtimeConnectionManager:
                 ),
                 **self.__websocket_connection_options,
             )
-        )
+        except Exception as exc:
+            retry_auth_headers = self.__client._retry_websocket_auth_headers(exc, self.__extra_headers)
+            if retry_auth_headers is None:
+                raise
+            websocket = connect(
+                str(url),
+                user_agent_header=self.__client.user_agent,
+                additional_headers=_merge_mappings(
+                    {**retry_auth_headers, "OpenAI-Beta": "realtime=v1"}, self.__extra_headers
+                ),
+                **self.__websocket_connection_options,
+            )
+        self.__connection = RealtimeConnection(websocket)
 
         return self.__connection
 

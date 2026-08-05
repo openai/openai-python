@@ -687,7 +687,7 @@ class AsyncRealtimeConnectionManager:
             raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
 
         await self.__client._refresh_api_key()
-        auth_headers = self.__client.auth_headers
+        auth_headers = await self.__client._websocket_auth_headers(extra_headers)
         if self.__call_id is not omit:
             extra_query = {**extra_query, "call_id": self.__call_id}
         if is_async_azure_client(self.__client):
@@ -708,17 +708,28 @@ class AsyncRealtimeConnectionManager:
         if self.__websocket_connection_options:
             log.debug("Connection options: %s", self.__websocket_connection_options)
 
-        return await connect(
-            str(url),
-            user_agent_header=self.__client.user_agent,
-            additional_headers=_merge_mappings(
-                {
-                    **auth_headers,
-                },
-                extra_headers,
-            ),
-            **self.__websocket_connection_options,
-        )
+        try:
+            return await connect(
+                str(url),
+                user_agent_header=self.__client.user_agent,
+                additional_headers=_merge_mappings(
+                    {
+                        **auth_headers,
+                    },
+                    extra_headers,
+                ),
+                **self.__websocket_connection_options,
+            )
+        except Exception as exc:
+            retry_auth_headers = await self.__client._retry_websocket_auth_headers(exc, extra_headers)
+            if retry_auth_headers is None:
+                raise
+            return await connect(
+                str(url),
+                user_agent_header=self.__client.user_agent,
+                additional_headers=_merge_mappings(retry_auth_headers, extra_headers),
+                **self.__websocket_connection_options,
+            )
 
     def _prepare_url(self) -> httpx.URL:
         if self.__client.websocket_base_url is not None:
@@ -1155,7 +1166,7 @@ class RealtimeConnectionManager:
             raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
 
         self.__client._refresh_api_key()
-        auth_headers = self.__client.auth_headers
+        auth_headers = self.__client._websocket_auth_headers(extra_headers)
         if self.__call_id is not omit:
             extra_query = {**extra_query, "call_id": self.__call_id}
         if is_azure_client(self.__client):
@@ -1176,17 +1187,28 @@ class RealtimeConnectionManager:
         if self.__websocket_connection_options:
             log.debug("Connection options: %s", self.__websocket_connection_options)
 
-        return connect(
-            str(url),
-            user_agent_header=self.__client.user_agent,
-            additional_headers=_merge_mappings(
-                {
-                    **auth_headers,
-                },
-                extra_headers,
-            ),
-            **self.__websocket_connection_options,
-        )
+        try:
+            return connect(
+                str(url),
+                user_agent_header=self.__client.user_agent,
+                additional_headers=_merge_mappings(
+                    {
+                        **auth_headers,
+                    },
+                    extra_headers,
+                ),
+                **self.__websocket_connection_options,
+            )
+        except Exception as exc:
+            retry_auth_headers = self.__client._retry_websocket_auth_headers(exc, extra_headers)
+            if retry_auth_headers is None:
+                raise
+            return connect(
+                str(url),
+                user_agent_header=self.__client.user_agent,
+                additional_headers=_merge_mappings(retry_auth_headers, extra_headers),
+                **self.__websocket_connection_options,
+            )
 
     def _prepare_url(self) -> httpx.URL:
         if self.__client.websocket_base_url is not None:
