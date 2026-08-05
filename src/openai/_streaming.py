@@ -9,7 +9,7 @@ from typing_extensions import Self, Protocol, TypeGuard, override, get_origin, r
 
 import httpx
 
-from ._utils import is_mapping, extract_type_var_from_base
+from ._utils import is_mapping, consume_sync_iterator, consume_async_iterator, extract_type_var_from_base
 from ._exceptions import APIError
 
 if TYPE_CHECKING:
@@ -61,6 +61,12 @@ class Stream(Generic[_T]):
         try:
             for sse in iterator:
                 if sse.data.startswith("[DONE]"):
+                    # Best-effort drain so close() can return the connection to the pool.
+                    # [DONE] is already terminal for callers; drain failures must not fail the stream.
+                    try:
+                        consume_sync_iterator(iterator)
+                    except httpx.HTTPError:
+                        pass
                     break
 
                 # we have to special case the Assistants `thread.` events since we won't have an "event" key in the data
@@ -171,6 +177,12 @@ class AsyncStream(Generic[_T]):
         try:
             async for sse in iterator:
                 if sse.data.startswith("[DONE]"):
+                    # Best-effort drain so aclose() can return the connection to the pool.
+                    # [DONE] is already terminal for callers; drain failures must not fail the stream.
+                    try:
+                        await consume_async_iterator(iterator)
+                    except httpx.HTTPError:
+                        pass
                     break
 
                 # we have to special case the Assistants `thread.` events since we won't have an "event" key in the data

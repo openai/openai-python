@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from typing import Iterator, AsyncIterator
+from collections.abc import AsyncIterator, Iterator
 
 import httpx
 import pytest
 
-from openai import OpenAI, AsyncOpenAI
-from openai._streaming import Stream, AsyncStream, ServerSentEvent
+from openai import AsyncOpenAI, OpenAI
+from openai._streaming import AsyncStream, ServerSentEvent, Stream
 
 
 @pytest.mark.asyncio
@@ -214,6 +214,58 @@ async def test_multi_byte_character_multiple_chunks(
     sse = await iter_next(iterator)
     assert sse.event is None
     assert sse.json() == {"content": "известни"}
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+async def test_done_drains_remaining_body(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
+    """After [DONE], remaining body bytes must be consumed so close() can reuse the connection."""
+    exhausted = False
+
+    def body() -> Iterator[bytes]:
+        nonlocal exhausted
+        yield b'data: {"foo":true}\n\n'
+        yield b"data: [DONE]\n\n"
+        yield b": trailing comment after done\n\n"
+        exhausted = True
+
+    response = httpx.Response(200, content=body() if sync else to_aiter(body()))
+
+    if sync:
+        stream: Stream[object] | AsyncStream[object] = Stream(cast_to=object, client=client, response=response)
+        chunks = list(stream)
+    else:
+        stream = AsyncStream(cast_to=object, client=async_client, response=response)
+        chunks = [chunk async for chunk in stream]
+
+    assert chunks == [{"foo": True}]
+    assert exhausted is True
+    assert response.is_closed is True
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+async def test_drain_failure_after_done_preserves_result(
+    sync: bool, client: OpenAI, async_client: AsyncOpenAI
+) -> None:
+    """Transport errors while draining after [DONE] must not fail an already-complete stream."""
+
+    def body() -> Iterator[bytes]:
+        yield b'data: {"foo":true}\n\n'
+        yield b"data: [DONE]\n\n"
+        raise httpx.RemoteProtocolError("peer closed connection")
+
+    response = httpx.Response(200, content=body() if sync else to_aiter(body()))
+
+    if sync:
+        stream: Stream[object] | AsyncStream[object] = Stream(cast_to=object, client=client, response=response)
+        chunks = list(stream)
+    else:
+        stream = AsyncStream(cast_to=object, client=async_client, response=response)
+        chunks = [chunk async for chunk in stream]
+
+    assert chunks == [{"foo": True}]
+    assert response.is_closed is True
 
 
 async def to_aiter(iter: Iterator[bytes]) -> AsyncIterator[bytes]:
