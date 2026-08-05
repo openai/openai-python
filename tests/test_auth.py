@@ -154,7 +154,7 @@ def test_workload_identity_exchange_error() -> None:
 
 def test_k8s_service_account_token_provider(tmp_path: Path) -> None:
     token_file = tmp_path / "token"
-    token_file.write_text("my-k8s-token")
+    token_file.write_text("my-k8s-token", encoding="utf-8")
 
     provider = k8s_service_account_token_provider(token_file)
 
