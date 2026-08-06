@@ -415,7 +415,7 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
                         type_=ParsedChoiceSnapshot,
                         value={
                             **choice.model_dump(exclude_unset=True, exclude={"delta"}),
-                            "message": choice.delta.to_dict(),
+                            "message": accumulate_delta({}, cast("dict[object, object]", choice.delta.to_dict())),
                         },
                     ),
                 )
@@ -744,7 +744,7 @@ def _convert_initial_chunk_into_snapshot(chunk: ChatCompletionChunk) -> ParsedCh
     for choice in chunk.choices:
         choices[choice.index] = {
             **choice.model_dump(exclude_unset=True, exclude={"delta"}),
-            "message": choice.delta.to_dict(),
+            "message": accumulate_delta({}, cast("dict[object, object]", choice.delta.to_dict())),
         }
 
     return cast(
