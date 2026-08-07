@@ -133,6 +133,18 @@ def test_raw_dictionary() -> None:
     assert cast(Any, m.nested) is False
 
 
+def test_bare_dictionary() -> None:
+    class NestedModel(BaseModel):
+        nested: dict
+
+    m = NestedModel.construct(nested={"hello": {"world": True}})
+    assert m.nested == {"hello": {"world": True}}
+
+    # mismatched types
+    m = NestedModel.construct(nested=False)
+    assert cast(Any, m.nested) is False
+
+
 def test_nested_dictionary_model() -> None:
     class NestedModel(BaseModel):
         nested: Dict[str, BasicModel]
