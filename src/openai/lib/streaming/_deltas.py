@@ -3,6 +3,27 @@ from __future__ import annotations
 from ..._utils import is_dict, is_list
 
 
+def _is_placeholder(entry: object) -> bool:
+    """Detect a gap-filler placeholder that should be replaced in-place.
+
+    When a sparse tool-call stream emits index 0 then 2, the gap at index 1
+    is padded with an empty ``{}``.  After the snapshot is round-tripped
+    through ``model_dump`` (which happens on the next chunk), that placeholder
+    is no longer empty — it becomes a dict of unset tool-call fields such as
+    ``{"id": None, "function": None, "type": None}``.  Both forms must be
+    detected so a later-arriving entry at the same index *replaces* the
+    placeholder instead of being inserted before it (which would shift
+    higher-index entries and break ``tool_calls[index]`` lookups).
+    """
+    if not is_dict(entry):
+        return False
+    # Empty placeholder from the padding path.
+    if not entry:
+        return True
+    # Dumped placeholder: every value is None (or the dict is empty).
+    return all(v is None for v in entry.values())
+
+
 def accumulate_delta(acc: dict[object, object], delta: dict[object, object]) -> dict[object, object]:
     for key, delta_value in delta.items():
         if key not in acc:
@@ -85,12 +106,14 @@ def accumulate_delta(acc: dict[object, object], delta: dict[object, object]) -> 
                         acc_value.append(delta_entry)
                     else:
                         # The list is large enough but no entry has this
-                        # index.  If the slot at `index` is an empty
-                        # placeholder ({}), replace it in-place.  Otherwise
-                        # insert at the correct position to keep the list
-                        # addressable by logical index.
+                        # index.  If the slot at `index` is a placeholder
+                        # (empty {} or a dumped placeholder with only None
+                        # values from a model_dump round-trip), replace it
+                        # in-place.  Otherwise insert at the correct
+                        # position to keep the list addressable by logical
+                        # index.
                         existing = acc_value[index]
-                        if isinstance(existing, dict) and not existing:
+                        if _is_placeholder(existing):
                             acc_value[index] = delta_entry
                         else:
                             acc_value.insert(index, delta_entry)
@@ -135,9 +158,11 @@ def _coalesce_list_by_index(lst: list[object]) -> list[object]:
             # logical index.
             while len(result) <= index:
                 result.append({})
-            # Replace the placeholder at `index` or shift if occupied
+            # Replace the placeholder at `index` (empty {} or a dumped
+            # placeholder with only None values from a model_dump round-trip)
+            # or shift if occupied by a real entry.
             existing = result[index]
-            if isinstance(existing, dict) and not existing:
+            if _is_placeholder(existing):
                 result[index] = entry
             else:
                 result.insert(index, entry)
