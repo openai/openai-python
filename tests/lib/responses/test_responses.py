@@ -92,3 +92,114 @@ def test_parse_method_definition_in_sync(sync: bool, client: OpenAI, async_clien
         checking_client.responses.parse,
         exclude_params={"tools"},
     )
+
+
+def test_parse_response_with_null_output() -> None:
+    # some backends (e.g. Codex) emit a terminal `response.completed` event where
+    # `output` is null; the SDK constructs the model leniently so `.output` ends
+    # up as None and parsing must not crash, see #3312/#3313/#3314/#3321/#3325
+    from openai._types import omit
+    from openai._models import construct_type
+    from openai.lib._parsing._responses import parse_response
+    from openai.types.responses.response import Response
+
+    response = construct_type(
+        type_=Response,
+        value={
+            "id": "resp_123",
+            "created_at": 0,
+            "model": "gpt-5",
+            "object": "response",
+            "output": None,
+            "parallel_tool_calls": True,
+            "tool_choice": "auto",
+            "tools": [],
+            "status": "incomplete",
+        },
+    )
+    assert isinstance(response, Response)
+    assert response.output is None
+
+    parsed = parse_response(text_format=omit, input_tools=omit, response=response)
+    assert parsed.output == []
+
+
+def test_streaming_completed_with_null_output_keeps_snapshot() -> None:
+    # if the terminal `response.completed` event omits output but items were
+    # streamed earlier, the final response should keep the accumulated content
+    # rather than collapsing to an empty list
+    from openai._types import omit
+    from openai._models import construct_type_unchecked
+    from openai.types.responses import ResponseStreamEvent
+    from openai.lib.streaming.responses._responses import ResponseStreamState
+
+    def ev(value: dict) -> ResponseStreamEvent:
+        return construct_type_unchecked(type_=ResponseStreamEvent, value=value)
+
+    base_resp = {
+        "id": "resp_1",
+        "created_at": 0,
+        "model": "gpt-5",
+        "object": "response",
+        "parallel_tool_calls": True,
+        "tool_choice": "auto",
+        "tools": [],
+        "status": "in_progress",
+        "output": [],
+    }
+
+    state: ResponseStreamState[object] = ResponseStreamState(input_tools=omit, text_format=omit)
+    state.handle_event(ev({"type": "response.created", "sequence_number": 0, "response": base_resp}))
+    state.handle_event(
+        ev(
+            {
+                "type": "response.output_item.added",
+                "sequence_number": 1,
+                "output_index": 0,
+                "item": {
+                    "id": "msg_1",
+                    "type": "message",
+                    "role": "assistant",
+                    "status": "in_progress",
+                    "content": [],
+                },
+            }
+        )
+    )
+    state.handle_event(
+        ev(
+            {
+                "type": "response.content_part.added",
+                "sequence_number": 2,
+                "output_index": 0,
+                "content_index": 0,
+                "item_id": "msg_1",
+                "part": {"type": "output_text", "text": "", "annotations": []},
+            }
+        )
+    )
+    state.handle_event(
+        ev(
+            {
+                "type": "response.output_text.delta",
+                "sequence_number": 3,
+                "output_index": 0,
+                "content_index": 0,
+                "item_id": "msg_1",
+                "delta": "Hello world",
+                "logprobs": [],
+            }
+        )
+    )
+
+    completed_resp = dict(base_resp)
+    completed_resp["status"] = "completed"
+    completed_resp["output"] = None
+    state.handle_event(ev({"type": "response.completed", "sequence_number": 4, "response": completed_resp}))
+
+    final = state._completed_response
+    assert final is not None
+    assert len(final.output) == 1
+    message = final.output[0]
+    assert message.type == "message"
+    assert message.content[0].text == "Hello world"
