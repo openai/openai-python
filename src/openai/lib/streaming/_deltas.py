@@ -71,10 +71,29 @@ def accumulate_delta(acc: dict[object, object], delta: dict[object, object]) -> 
                         found = True
 
                 if not found:
-                    # Ensure the list is large enough
-                    while len(acc_value) <= index:
-                        acc_value.append({})
-                    acc_value[index] = delta_entry
+                    # Add the new entry.  Don't assume the logical index is a
+                    # safe physical slot — if acc_value already has entries at
+                    # higher indexes (e.g. [{"index": 1, ...}] and index 0
+                    # arrives), acc_value[index] would overwrite the existing
+                    # entry.  Place the entry at the position matching the
+                    # logical index so downstream code that does
+                    # tool_calls[index] (treating logical index as physical
+                    # position) reads the right entry.
+                    if len(acc_value) <= index:
+                        while len(acc_value) < index:
+                            acc_value.append({})
+                        acc_value.append(delta_entry)
+                    else:
+                        # The list is large enough but no entry has this
+                        # index.  If the slot at `index` is an empty
+                        # placeholder ({}), replace it in-place.  Otherwise
+                        # insert at the correct position to keep the list
+                        # addressable by logical index.
+                        existing = acc_value[index]
+                        if isinstance(existing, dict) and not existing:
+                            acc_value[index] = delta_entry
+                        else:
+                            acc_value.insert(index, delta_entry)
 
         acc[key] = acc_value
 
@@ -89,6 +108,10 @@ def _coalesce_list_by_index(lst: list[object]) -> list[object]:
     leave duplicate entries. This function coalesces them by merging entries
     with the same index using :func:`accumulate_delta`, so the snapshot starts
     in a clean state. (#3201)
+
+    The result is sorted by the ``index`` field so the list stays addressable
+    by logical index — downstream code does ``tool_calls[index]`` treating
+    logical index as physical position.
     """
     result: list[object] = []
     for entry in lst:
@@ -107,5 +130,15 @@ def _coalesce_list_by_index(lst: list[object]) -> list[object]:
                 found = True
                 break
         if not found:
-            result.append(entry)
+            # Place at the position matching the logical index, padding
+            # with empty dicts if needed, so the list is addressable by
+            # logical index.
+            while len(result) <= index:
+                result.append({})
+            # Replace the placeholder at `index` or shift if occupied
+            existing = result[index]
+            if isinstance(existing, dict) and not existing:
+                result[index] = entry
+            else:
+                result.insert(index, entry)
     return result
