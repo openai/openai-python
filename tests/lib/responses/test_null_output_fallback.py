@@ -33,7 +33,14 @@ from openai.types.responses.response_function_call_arguments_done_event import (
 
 
 def _make_created_event() -> RawResponseStreamEvent:
-    """Create a minimal `response.created` event to seed the stream state."""
+    """Create a minimal `response.created` event to seed the stream state.
+
+    The ``response`` field is passed as the *model object* (not a dict) so that
+    ``construct_type_unchecked`` preserves it as a ``Response`` instance.
+    ``ResponseStreamState._create_initial_response`` calls
+    ``event.response.to_dict()``, which would raise ``AttributeError`` on a
+    plain dict.
+    """
     response = construct_type_unchecked(
         type_=Response,
         value={
@@ -50,7 +57,7 @@ def _make_created_event() -> RawResponseStreamEvent:
         value={
             "type": "response.created",
             "sequence_number": 0,
-            "response": response.to_dict(),
+            "response": response,
         },
     )
 
@@ -157,7 +164,7 @@ def _make_completed_event_with_output() -> RawResponseStreamEvent:
         value={
             "type": "response.completed",
             "sequence_number": 5,
-            "response": response.to_dict(),
+            "response": response,
         },
     )
 
@@ -180,7 +187,7 @@ def _make_completed_event_empty_output() -> RawResponseStreamEvent:
         value={
             "type": "response.completed",
             "sequence_number": 5,
-            "response": response.to_dict(),
+            "response": response,
         },
     )
 
