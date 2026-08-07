@@ -22,9 +22,9 @@ from ._events import (
     FunctionToolCallArgumentsDoneEvent,
     FunctionToolCallArgumentsDeltaEvent,
 )
-from .._deltas import accumulate_delta
+from .._deltas import accumulate_delta, _coalesce_list_by_index
 from ...._types import Omit, IncEx, omit
-from ...._utils import is_given, consume_sync_iterator, consume_async_iterator
+from ...._utils import is_list, is_given, consume_sync_iterator, consume_async_iterator
 from ...._compat import model_dump
 from ...._models import build, construct_type
 from ..._parsing import (
@@ -409,13 +409,19 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
                     elif TYPE_CHECKING:  # type: ignore[unreachable]
                         assert_never(prev_tool)
             except IndexError:
+                # A new choice appeared that wasn't in the initial chunk.
+                # Coalesce tool_calls by index to handle duplicate-index entries
+                # from speculative decoding, same as _convert_initial_chunk_into_snapshot.
+                delta_dict = choice.delta.to_dict()
+                if is_list(delta_dict.get("tool_calls")):
+                    delta_dict["tool_calls"] = _coalesce_list_by_index(cast("list[object]", delta_dict["tool_calls"]))
                 choice_snapshot = cast(
                     ParsedChoiceSnapshot,
                     construct_type(
                         type_=ParsedChoiceSnapshot,
                         value={
                             **choice.model_dump(exclude_unset=True, exclude={"delta"}),
-                            "message": choice.delta.to_dict(),
+                            "message": delta_dict,
                         },
                     ),
                 )
@@ -742,9 +748,17 @@ def _convert_initial_chunk_into_snapshot(chunk: ChatCompletionChunk) -> ParsedCh
     choices = cast("list[object]", data["choices"])
 
     for choice in chunk.choices:
+        message_dict = choice.delta.to_dict()
+        # Coalesce duplicate-index tool_calls in the initial chunk. (#3201)
+        # When the first chunk contains multiple tool_calls with the same index
+        # (e.g. from speculative decoding), storing them directly would leave
+        # duplicate entries that later merges can't fix.
+        tool_calls = message_dict.get("tool_calls")
+        if is_list(tool_calls) and len(tool_calls) > 1:
+            message_dict["tool_calls"] = _coalesce_list_by_index(tool_calls)
         choices[choice.index] = {
             **choice.model_dump(exclude_unset=True, exclude={"delta"}),
-            "message": choice.delta.to_dict(),
+            "message": message_dict,
         }
 
     return cast(
