@@ -18,7 +18,7 @@ from ...._utils import is_given, consume_sync_iterator, consume_async_iterator
 from ...._compat import PYDANTIC_V1
 from ...._models import build, construct_type_unchecked
 from ...._streaming import Stream, AsyncStream
-from ....types.responses import ParsedResponse, ResponseStreamEvent as RawResponseStreamEvent
+from ....types.responses import Response, ParsedResponse, ResponseStreamEvent as RawResponseStreamEvent
 from ..._parsing._responses import TextFormatT, parse_text, parse_response
 from ....types.responses.tool_param import ToolParam
 from ....types.responses.parsed_response import (
@@ -331,22 +331,18 @@ class ResponseStreamState(Generic[TextFormatT]):
         if event.type == "response.output_item.added":
             if event.item.type == "function_call":
                 snapshot.output.append(
-                    construct_type_unchecked(
-                        type_=cast(Any, ParsedResponseFunctionToolCall), value=event.item.to_dict()
-                    )
+                    construct_type_unchecked(type_=cast(Any, ParsedResponseFunctionToolCall), value=event.item)
                 )
             elif event.item.type == "message":
                 snapshot.output.append(
-                    construct_type_unchecked(type_=cast(Any, ParsedResponseOutputMessage), value=event.item.to_dict())
+                    construct_type_unchecked(type_=cast(Any, ParsedResponseOutputMessage), value=event.item)
                 )
             else:
                 snapshot.output.append(event.item)
         elif event.type == "response.content_part.added":
             output = snapshot.output[event.output_index]
             if output.type == "message":
-                output.content.append(
-                    construct_type_unchecked(type_=cast(Any, ParsedContent), value=event.part.to_dict())
-                )
+                output.content.append(construct_type_unchecked(type_=cast(Any, ParsedContent), value=event.part))
         elif event.type == "response.output_text.delta":
             output = snapshot.output[event.output_index]
             if output.type == "message":
@@ -370,10 +366,15 @@ class ResponseStreamState(Generic[TextFormatT]):
             # items, or a final `status` of `failed`/`incomplete`. Simply
             # setting `status = "completed"` would discard those fields and
             # produce a stale final response in the null-output fallback path.
+            #
+            # Use event.item directly instead of event.item.to_dict() —
+            # construct_type_unchecked is shallow, so round-tripping through
+            # to_dict() would leave nested content parts as plain dicts,
+            # causing parse_response() to crash on output.content[].type.
             if event.output_index < len(snapshot.output):
                 snapshot.output[event.output_index] = construct_type_unchecked(
                     type_=type(snapshot.output[event.output_index]),
-                    value=event.item.to_dict(),
+                    value=event.item,
                 )
         elif event.type == "response.content_part.done":
             # Replace the content part in the snapshot with the finalized part
@@ -381,11 +382,14 @@ class ResponseStreamState(Generic[TextFormatT]):
             # payload here, which may include metadata like annotations,
             # logprobs, or finalized text/refusal content that the delta
             # accumulation may not fully capture.
+            #
+            # Use event.part directly instead of event.part.to_dict() for the
+            # same shallow-construction reason as output_item.done above.
             output = snapshot.output[event.output_index]
             if output.type == "message" and event.content_index < len(output.content):
                 output.content[event.content_index] = construct_type_unchecked(
                     type_=type(output.content[event.content_index]),
-                    value=event.part.to_dict(),
+                    value=event.part,
                 )
         elif event.type == "response.function_call_arguments.done":
             # Apply the finalized arguments string from the done event.
@@ -412,7 +416,19 @@ class ResponseStreamState(Generic[TextFormatT]):
             # `output` is typed as non-nullable but the wire value can violate
             # that contract; the `pyright: ignore` makes the check explicit
             # without weakening the model contract.
-            if event.response.output is None and snapshot.output:  # pyright: ignore[reportUnnecessaryComparison]
+            #
+            # In the default streaming path, SSE data is converted through
+            # `construct_type(...)`.  For a `response.completed` payload whose
+            # nested `response.output` is `null`, validation of the nested
+            # `Response` can fail and the discriminator fallback
+            # shallow-constructs the event, leaving `event.response` as the
+            # raw dict.  Normalize it to a `Response` model before
+            # dereferencing `.output` so the guard doesn't raise
+            # `AttributeError` before the fallback can run.
+            response = event.response
+            if not isinstance(response, Response):  # pyright: ignore[reportUnnecessaryIsInstance]
+                response = construct_type_unchecked(type_=Response, value=response)
+            if response.output is None and snapshot.output:  # pyright: ignore[reportUnnecessaryComparison]
                 # Build a copy of the response with the accumulated output
                 # items injected.  Use warnings=False on Pydantic v2 to suppress
                 # the serializer warning from dumping the invalid null output
@@ -421,11 +437,11 @@ class ResponseStreamState(Generic[TextFormatT]):
                 # the dict without dumping the invalid field — exclude_unset
                 # skips the null output entirely.
                 if PYDANTIC_V1:
-                    base_dict = event.response.to_dict()
+                    base_dict = response.to_dict()
                 else:
-                    base_dict = event.response.to_dict(warnings=False)  # type: ignore[call-arg]
+                    base_dict = response.to_dict(warnings=False)  # type: ignore[call-arg]
                 response_with_output = construct_type_unchecked(
-                    type_=type(event.response),
+                    type_=type(response),
                     value=cast(
                         Any,
                         {
@@ -446,7 +462,7 @@ class ResponseStreamState(Generic[TextFormatT]):
             else:
                 self._completed_response = parse_response(
                     text_format=self._text_format,
-                    response=event.response,
+                    response=response,
                     input_tools=self._input_tools,
                 )
 

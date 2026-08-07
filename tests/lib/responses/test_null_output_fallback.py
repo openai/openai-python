@@ -277,6 +277,43 @@ class TestNullOutputFallback:
         assert events[0].type == "response.completed"
         assert len(events[0].response.output) == 0
 
+    def test_dict_response_coerced_before_null_output_check(self):
+        """When the discriminator fallback leaves event.response as a raw dict
+        (because validation of Response(output=None) failed), the null-output
+        guard must coerce it to a Response model before dereferencing .output
+        instead of raising AttributeError."""
+        state = _make_state()
+        state.handle_event(_make_created_event())
+        state.handle_event(_make_output_item_added_message())
+        state.handle_event(_make_output_item_done_message("Hello world"))
+
+        # Build a completed event where `response` is a plain dict (simulating
+        # the discriminator fallback from construct_type on invalid null output)
+        completed_with_dict_response = construct_type_unchecked(
+            type_=ResponseCompletedEvent,
+            value={
+                "type": "response.completed",
+                "sequence_number": 5,
+                "response": {
+                    "id": "resp_test",
+                    "object": "response",
+                    "created_at": 1754925861,
+                    "status": "completed",
+                    "model": "gpt-4o",
+                    "output": None,
+                },
+            },
+        )
+
+        events = state.handle_event(completed_with_dict_response)
+
+        assert len(events) == 1
+        assert events[0].type == "response.completed"
+        response = events[0].response
+        assert len(response.output) == 1
+        assert response.output[0].type == "message"
+        assert response.output[0].content[0].text == "Hello world"
+
 
 class TestFunctionCallArgumentsDone:
     """Tests for the function_call_arguments.done event handling."""
