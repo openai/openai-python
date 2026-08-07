@@ -12,6 +12,7 @@ import inspect
 import logging
 import platform
 import warnings
+import threading
 import contextlib
 import email.utils
 from types import TracebackType
@@ -862,6 +863,8 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         return f"stainless-python-retry-{uuid.uuid4()}"
 
 
+_no_proxy_sanitizer_lock = threading.Lock()
+
 
 @contextlib.contextmanager
 def _sanitized_no_proxy() -> Iterator[None]:
@@ -876,21 +879,26 @@ def _sanitized_no_proxy() -> Iterator[None]:
     sanitized value to be visible for that window and then restore the original
     afterwards — this avoids permanently mutating process-global state for
     unrelated clients.
+
+    A module-level lock serializes concurrent client constructions so that one
+    call cannot restore the original (invalid) value while another call's
+    ``super().__init__()`` is still reading the environment.
     """
-    originals: dict[str, str] = {}
-    try:
-        for key in ("NO_PROXY", "no_proxy"):
-            val = os.environ.get(key)
-            if val and any(c in val for c in "\n\r"):
-                originals[key] = val
-                # splitlines() handles \n, \r, \r\n, and other Unicode line
-                # separators uniformly.
-                parts = [part.strip() for part in val.splitlines()]
-                os.environ[key] = ",".join(p for p in parts if p)
-        yield
-    finally:
-        for key, val in originals.items():
-            os.environ[key] = val
+    with _no_proxy_sanitizer_lock:
+        originals: dict[str, str] = {}
+        try:
+            for key in ("NO_PROXY", "no_proxy"):
+                val = os.environ.get(key)
+                if val and any(c in val for c in "\n\r"):
+                    originals[key] = val
+                    # splitlines() handles \n, \r, \r\n, and other Unicode line
+                    # separators uniformly.
+                    parts = [part.strip() for part in val.splitlines()]
+                    os.environ[key] = ",".join(p for p in parts if p)
+            yield
+        finally:
+            for key, val in originals.items():
+                os.environ[key] = val
 
 
 class _DefaultHttpxClient(httpx2.Client):

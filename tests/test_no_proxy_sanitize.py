@@ -7,6 +7,8 @@
 
 from __future__ import annotations
 
+import os
+
 import pytest
 
 
@@ -197,3 +199,36 @@ def test_aiohttp_client_trust_env_false_skips_sanitization(monkeypatch: pytest.M
 
     assert os.environ.get("NO_PROXY") == "localhost\n127.0.0.1"
     assert client._mounts == {}
+
+
+def test_concurrent_client_construction_serializes_sanitization(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Concurrent client constructions must not race on the env mutation.
+
+    Without the lock, one call could restore the original (invalid) NO_PROXY
+    value while another call's ``super().__init__()`` is still reading the
+    environment, exposing the second client to InvalidURL.  The lock
+    serializes the sanitize-construct-restore window so each call sees a
+    consistent environment.
+    """
+    import threading
+
+    from openai._base_client import _DefaultHttpxClient
+
+    _set_no_proxy(monkeypatch, "localhost\n127.0.0.1")
+    errors: list[Exception] = []
+
+    def construct() -> None:
+        try:
+            _DefaultHttpxClient()
+        except Exception as exc:
+            errors.append(exc)
+
+    threads = [threading.Thread(target=construct) for _ in range(10)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+
+    assert not errors, f"Concurrent constructions failed: {errors}"
+    # The original (invalid) value must be restored after all constructions
+    assert os.environ.get("NO_PROXY") == "localhost\n127.0.0.1"
