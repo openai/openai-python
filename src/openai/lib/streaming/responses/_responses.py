@@ -430,7 +430,11 @@ class ResponseStreamState(Generic[TextFormatT]):
                         Any,
                         {
                             **base_dict,
-                            "output": [item.to_dict() for item in snapshot.output],
+                            # Preserve the accumulated model objects directly
+                            # instead of converting to dicts — construct_type_unchecked
+                            # is shallow, so dicts would stay dicts and
+                            # parse_response() would crash on `output.type`.
+                            "output": list(snapshot.output),
                         },
                     ),
                 )
