@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import sys
 import json
 import time
@@ -10,6 +11,7 @@ import inspect
 import logging
 import platform
 import warnings
+import contextlib
 import email.utils
 from types import TracebackType
 from random import random
@@ -831,12 +833,49 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         return f"stainless-python-retry-{uuid.uuid4()}"
 
 
+@contextlib.contextmanager
+def _sanitized_no_proxy() -> Iterator[None]:
+    """Temporarily normalize line separators in NO_PROXY/no_proxy for the
+    duration of a httpx client construction.
+
+    httpx's ``get_environment_proxies()`` only splits on commas, so a trailing
+    newline or carriage return in ``NO_PROXY`` (common in Docker/``.env`` files
+    or CRLF values where the ``\\n`` was stripped but ``\\r`` remains) becomes
+    part of the hostname and httpx raises ``InvalidURL`` (issue #3303).  httpx
+    reads the environment once during ``__init__``, so we only need the
+    sanitized value to be visible for that window and then restore the original
+    afterwards — this avoids permanently mutating process-global state for
+    unrelated clients.
+    """
+    originals: dict[str, str] = {}
+    try:
+        for key in ("NO_PROXY", "no_proxy"):
+            val = os.environ.get(key)
+            if val and any(c in val for c in "\n\r"):
+                originals[key] = val
+                # splitlines() handles \n, \r, \r\n, and other Unicode line
+                # separators uniformly.
+                parts = [part.strip() for part in val.splitlines()]
+                os.environ[key] = ",".join(p for p in parts if p)
+        yield
+    finally:
+        for key, val in originals.items():
+            os.environ[key] = val
+
+
 class _DefaultHttpxClient(httpx.Client):
     def __init__(self, **kwargs: Any) -> None:
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
         kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
-        super().__init__(**kwargs)
+        # httpx reads proxy env vars during __init__; temporarily normalize
+        # newlines in NO_PROXY so they don't become part of the hostname
+        # (issue #3303).  Skip when the caller opted out of env-based proxies.
+        if kwargs.get("trust_env", True):
+            with _sanitized_no_proxy():
+                super().__init__(**kwargs)
+        else:
+            super().__init__(**kwargs)
 
 
 if TYPE_CHECKING:
@@ -1423,10 +1462,16 @@ class _DefaultAsyncHttpxClient(httpx.AsyncClient):
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
         kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
-        super().__init__(**kwargs)
+        # See _DefaultHttpxClient for the rationale behind the NO_PROXY guard.
+        if kwargs.get("trust_env", True):
+            with _sanitized_no_proxy():
+                super().__init__(**kwargs)
+        else:
+            super().__init__(**kwargs)
 
 
 if sys.version_info < (3, 10):
+
     class _DefaultAioHttpClient(httpx.AsyncClient):
         def __init__(self, **_kwargs: Any) -> None:
             raise RuntimeError("The aiohttp client requires Python 3.10 or later")
@@ -1447,8 +1492,12 @@ else:
                 kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
                 kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
                 kwargs.setdefault("follow_redirects", True)
-
-                super().__init__(**kwargs)
+                # See _DefaultHttpxClient for the rationale behind the NO_PROXY guard.
+                if kwargs.get("trust_env", True):
+                    with _sanitized_no_proxy():
+                        super().__init__(**kwargs)
+                else:
+                    super().__init__(**kwargs)
 
 
 if TYPE_CHECKING:
