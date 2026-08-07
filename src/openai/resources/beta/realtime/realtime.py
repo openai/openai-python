@@ -113,7 +113,7 @@ class Realtime(SyncAPIResource):
         return RealtimeConnectionManager(
             client=self._client,
             extra_query=extra_query,
-            extra_headers=extra_headers,
+            extra_headers=extra_headers or self._client.default_headers,
             websocket_connection_options=websocket_connection_options,
             model=model,
         )
@@ -169,7 +169,7 @@ class AsyncRealtime(AsyncAPIResource):
         return AsyncRealtimeConnectionManager(
             client=self._client,
             extra_query=extra_query,
-            extra_headers=extra_headers,
+            extra_headers=extra_headers or self._client.default_headers,
             websocket_connection_options=websocket_connection_options,
             model=model,
         )
