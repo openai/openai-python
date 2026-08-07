@@ -15,6 +15,7 @@ from ._events import (
 )
 from ...._types import Omit, omit
 from ...._utils import is_given, consume_sync_iterator, consume_async_iterator
+from ...._compat import PYDANTIC_V1
 from ...._models import build, construct_type_unchecked
 from ...._streaming import Stream, AsyncStream
 from ....types.responses import ParsedResponse, ResponseStreamEvent as RawResponseStreamEvent
@@ -407,13 +408,31 @@ class ResponseStreamState(Generic[TextFormatT]):
             # output but the snapshot has accumulated items, inject the streamed
             # items into a shallow copy of the response so `parse_response()` can
             # still run its text_format / parsed_arguments logic on them.
-            if event.response.output is None and snapshot.output:
+            #
+            # `output` is typed as non-nullable but the wire value can violate
+            # that contract; the `pyright: ignore` makes the check explicit
+            # without weakening the model contract.
+            if event.response.output is None and snapshot.output:  # pyright: ignore[reportUnnecessaryComparison]
+                # Build a copy of the response with the accumulated output
+                # items injected.  Use warnings=False on Pydantic v2 to suppress
+                # the serializer warning from dumping the invalid null output
+                # field (the repo's pytest config treats warnings as errors).
+                # On Pydantic v1, warnings=False is not supported, so we build
+                # the dict without dumping the invalid field — exclude_unset
+                # skips the null output entirely.
+                if PYDANTIC_V1:
+                    base_dict = event.response.to_dict()
+                else:
+                    base_dict = event.response.to_dict(warnings=False)  # type: ignore[call-arg]
                 response_with_output = construct_type_unchecked(
                     type_=type(event.response),
-                    value={
-                        **event.response.to_dict(),
-                        "output": [item.to_dict() for item in snapshot.output],
-                    },
+                    value=cast(
+                        Any,
+                        {
+                            **base_dict,
+                            "output": [item.to_dict() for item in snapshot.output],
+                        },
+                    ),
                 )
                 self._completed_response = parse_response(
                     text_format=self._text_format,
