@@ -66,6 +66,14 @@ __all__ = ["Realtime", "AsyncRealtime"]
 log: logging.Logger = logging.getLogger(__name__)
 
 
+def _serialize_realtime_client_event(event: RealtimeClientEvent | RealtimeClientEventParam) -> str:
+    return (
+        event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
+        if isinstance(event, BaseModel)
+        else json.dumps(maybe_transform(event, RealtimeClientEventParam))
+    )
+
+
 class Realtime(SyncAPIResource):
     @cached_property
     def client_secrets(self) -> ClientSecrets:
@@ -602,11 +610,7 @@ class AsyncRealtimeConnectionManager:
         This can be called before entering the context manager. Queued messages
         are automatically sent once the WebSocket connection opens.
         """
-        data = (
-            event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
-            if isinstance(event, BaseModel)
-            else json.dumps(event)
-        )
+        data = _serialize_realtime_client_event(event)
         self.__send_queue.enqueue(data)
 
     def on(
@@ -824,11 +828,7 @@ class RealtimeConnection:
         return message
 
     def send(self, event: RealtimeClientEvent | RealtimeClientEventParam) -> None:
-        data = (
-            event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
-            if isinstance(event, BaseModel)
-            else json.dumps(maybe_transform(event, RealtimeClientEventParam))
-        )
+        data = _serialize_realtime_client_event(event)
         if self._is_reconnecting:
             self._send_queue.enqueue(data)
             return
@@ -1070,11 +1070,7 @@ class RealtimeConnectionManager:
         This can be called before entering the context manager. Queued messages
         are automatically sent once the WebSocket connection opens.
         """
-        data = (
-            event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
-            if isinstance(event, BaseModel)
-            else json.dumps(event)
-        )
+        data = _serialize_realtime_client_event(event)
         self.__send_queue.enqueue(data)
 
     def on(
