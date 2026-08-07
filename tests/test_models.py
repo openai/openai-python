@@ -133,6 +133,12 @@ def test_raw_dictionary() -> None:
     assert cast(Any, m.nested) is False
 
 
+def test_bare_dictionary_annotation() -> None:
+    value = {"hello": "world"}
+
+    assert construct_type(value=value, type_=dict) is value
+
+
 def test_nested_dictionary_model() -> None:
     class NestedModel(BaseModel):
         nested: Dict[str, BasicModel]
