@@ -7,6 +7,7 @@ from typing import Any, cast
 
 import pytest
 
+import openai.resources.vector_stores.files as files_module
 from openai import OpenAI, AsyncOpenAI
 from tests.utils import assert_matches_type
 from openai._utils import assert_signatures_in_sync
@@ -18,6 +19,23 @@ from openai.types.vector_stores import (
 )
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
+
+
+class _VectorStoreFilePollResponse:
+    headers: dict[str, str] = {}
+
+    def __init__(self, status: str = "in_progress") -> None:
+        self._file = VectorStoreFile(
+            id="file-abc123",
+            created_at=0,
+            object="vector_store.file",
+            status=status,
+            usage_bytes=0,
+            vector_store_id="vs_abc123",
+        )
+
+    def parse(self) -> VectorStoreFile:
+        return self._file
 
 
 class TestFiles:
@@ -74,6 +92,50 @@ class TestFiles:
                 vector_store_id="",
                 file_id="file_id",
             )
+
+    def test_poll_times_out_for_stuck_in_progress(self, client: OpenAI, monkeypatch: pytest.MonkeyPatch) -> None:
+        files = client.vector_stores.files
+        times = iter([0.0, 2.0])
+
+        def retrieve(*_args: object, **_kwargs: object) -> _VectorStoreFilePollResponse:
+            return _VectorStoreFilePollResponse()
+
+        monkeypatch.setattr(files.with_raw_response, "retrieve", retrieve)
+        monkeypatch.setattr(files, "_sleep", lambda _seconds: None)
+        monkeypatch.setattr(files_module.time, "time", lambda: next(times))
+
+        with pytest.raises(
+            RuntimeError,
+            match=r"Giving up on waiting for vector store file file-abc123 to finish processing after 1.0 seconds.",
+        ):
+            files.poll(
+                "file-abc123",
+                vector_store_id="vs_abc123",
+                poll_interval_ms=1,
+                max_wait_seconds=1.0,
+            )
+
+    def test_poll_limits_sleep_to_remaining_timeout(self, client: OpenAI, monkeypatch: pytest.MonkeyPatch) -> None:
+        files = client.vector_stores.files
+        sleep_durations: list[float] = []
+        times = iter([0.0, 0.25, 1.25])
+
+        def retrieve(*_args: object, **_kwargs: object) -> _VectorStoreFilePollResponse:
+            return _VectorStoreFilePollResponse()
+
+        monkeypatch.setattr(files.with_raw_response, "retrieve", retrieve)
+        monkeypatch.setattr(files, "_sleep", sleep_durations.append)
+        monkeypatch.setattr(files_module.time, "time", lambda: next(times))
+
+        with pytest.raises(RuntimeError):
+            files.poll(
+                "file-abc123",
+                vector_store_id="vs_abc123",
+                poll_interval_ms=60_000,
+                max_wait_seconds=1.0,
+            )
+
+        assert sleep_durations == [pytest.approx(0.75)]
 
     @parametrize
     def test_method_retrieve(self, client: OpenAI) -> None:
@@ -379,6 +441,60 @@ class TestAsyncFiles:
                 vector_store_id="",
                 file_id="file_id",
             )
+
+    async def test_poll_times_out_for_stuck_in_progress(
+        self, async_client: AsyncOpenAI, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        files = async_client.vector_stores.files
+        times = iter([0.0, 2.0])
+
+        async def retrieve(*_args: object, **_kwargs: object) -> _VectorStoreFilePollResponse:
+            return _VectorStoreFilePollResponse()
+
+        async def sleep(_seconds: float) -> None:
+            return None
+
+        monkeypatch.setattr(files.with_raw_response, "retrieve", retrieve)
+        monkeypatch.setattr(files, "_sleep", sleep)
+        monkeypatch.setattr(files_module.time, "time", lambda: next(times))
+
+        with pytest.raises(
+            RuntimeError,
+            match=r"Giving up on waiting for vector store file file-abc123 to finish processing after 1.0 seconds.",
+        ):
+            await files.poll(
+                "file-abc123",
+                vector_store_id="vs_abc123",
+                poll_interval_ms=1,
+                max_wait_seconds=1.0,
+            )
+
+    async def test_poll_limits_sleep_to_remaining_timeout(
+        self, async_client: AsyncOpenAI, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        files = async_client.vector_stores.files
+        sleep_durations: list[float] = []
+        times = iter([0.0, 0.25, 1.25])
+
+        async def retrieve(*_args: object, **_kwargs: object) -> _VectorStoreFilePollResponse:
+            return _VectorStoreFilePollResponse()
+
+        async def sleep(seconds: float) -> None:
+            sleep_durations.append(seconds)
+
+        monkeypatch.setattr(files.with_raw_response, "retrieve", retrieve)
+        monkeypatch.setattr(files, "_sleep", sleep)
+        monkeypatch.setattr(files_module.time, "time", lambda: next(times))
+
+        with pytest.raises(RuntimeError):
+            await files.poll(
+                "file-abc123",
+                vector_store_id="vs_abc123",
+                poll_interval_ms=60_000,
+                max_wait_seconds=1.0,
+            )
+
+        assert sleep_durations == [pytest.approx(0.75)]
 
     @parametrize
     async def test_method_retrieve(self, async_client: AsyncOpenAI) -> None:
