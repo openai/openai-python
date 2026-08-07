@@ -7,6 +7,7 @@ import pytest
 
 from openai import OpenAI, AsyncOpenAI
 from openai._streaming import Stream, AsyncStream, ServerSentEvent
+from openai._exceptions import APIError
 
 
 @pytest.mark.asyncio
@@ -102,6 +103,37 @@ async def test_multiple_events_with_data(sync: bool, client: OpenAI, async_clien
     assert sse.json() == {"bar": False}
 
     await assert_empty_iter(iterator)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+async def test_thread_events_keep_event_wrapper(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
+    def body() -> Iterator[bytes]:
+        yield b"event: thread.message.delta\n"
+        yield b'data: {"id":"msg_123","delta":{"content":[]}}\n'
+        yield b"\n"
+
+    stream = make_stream(content=body(), sync=sync, client=client, async_client=async_client)
+
+    assert await iter_next(stream) == {
+        "data": {"id": "msg_123", "delta": {"content": []}},
+        "event": "thread.message.delta",
+    }
+    await assert_empty_iter(stream)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+async def test_error_events_raise_api_error(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
+    def body() -> Iterator[bytes]:
+        yield b"event: error\n"
+        yield b'data: {"error":{"message":"boom"}}\n'
+        yield b"\n"
+
+    stream = make_stream(content=body(), sync=sync, client=client, async_client=async_client)
+
+    with pytest.raises(APIError, match="boom"):
+        await iter_next(stream)
 
 
 @pytest.mark.asyncio
@@ -240,9 +272,22 @@ def make_event_iterator(
     client: OpenAI,
     async_client: AsyncOpenAI,
 ) -> Iterator[ServerSentEvent] | AsyncIterator[ServerSentEvent]:
+    response = httpx.Response(200, content=content if sync else to_aiter(content), request=httpx.Request("GET", "https://example.com"))
     if sync:
-        return Stream(cast_to=object, client=client, response=httpx.Response(200, content=content))._iter_events()
+        return Stream(cast_to=object, client=client, response=response)._iter_events()
 
-    return AsyncStream(
-        cast_to=object, client=async_client, response=httpx.Response(200, content=to_aiter(content))
-    )._iter_events()
+    return AsyncStream(cast_to=object, client=async_client, response=response)._iter_events()
+
+
+def make_stream(
+    content: Iterator[bytes],
+    *,
+    sync: bool,
+    client: OpenAI,
+    async_client: AsyncOpenAI,
+) -> Iterator[object] | AsyncIterator[object]:
+    response = httpx.Response(200, content=content if sync else to_aiter(content), request=httpx.Request("GET", "https://example.com"))
+    if sync:
+        return iter(Stream(cast_to=object, client=client, response=response))
+
+    return AsyncStream(cast_to=object, client=async_client, response=response).__stream__()
