@@ -726,6 +726,38 @@ def test_parse_pydantic_tool(client: OpenAI, respx_mock: MockRouter, monkeypatch
 
 
 @pytest.mark.respx(base_url=base_url)
+def test_duplicate_tool_call_index_in_initial_chunk(client: OpenAI, respx_mock: MockRouter) -> None:
+    listener = _make_stream_snapshot_request(
+        lambda c: c.chat.completions.stream(
+            model="gpt-4o-2024-08-06",
+            messages=[{"role": "user", "content": "List files"}],
+            tools=[
+                {
+                    "type": "function",
+                    "function": {
+                        "name": "list_files",
+                        "parameters": {"type": "object", "properties": {"path": {"type": "string"}}},
+                    },
+                }
+            ],
+        ),
+        content_snapshot=snapshot(
+            b'data: {"id":"chatcmpl-test","object":"chat.completion.chunk","created":1727346161,"model":"gpt-4o-2024-08-06","choices":[{"index":0,"delta":{"role":"assistant","tool_calls":[{"index":0,"id":"call_abc","type":"function","function":{"name":"list_files"}},{"index":0,"function":{"arguments":"{\\"path\\""}}]}}]}\n\n'
+            b'data: {"id":"chatcmpl-test","object":"chat.completion.chunk","created":1727346161,"model":"gpt-4o-2024-08-06","choices":[{"index":0,"delta":{"tool_calls":[{"index":0,"function":{"arguments":": \\".\\"}"}}]}}]}\n\n'
+            b'data: {"id":"chatcmpl-test","object":"chat.completion.chunk","created":1727346161,"model":"gpt-4o-2024-08-06","choices":[{"index":0,"delta":{},"finish_reason":"tool_calls"}]}\n\n'
+            b"data: [DONE]\n\n"
+        ),
+        mock_client=client,
+        respx_mock=respx_mock,
+    )
+
+    final_choice = listener.stream.get_final_completion().choices[0]
+    assert final_choice.message.tool_calls is not None
+    assert len(final_choice.message.tool_calls) == 1
+    assert final_choice.message.tool_calls[0].function.arguments == '{"path": "."}'
+
+
+@pytest.mark.respx(base_url=base_url)
 def test_parse_multiple_pydantic_tools(client: OpenAI, respx_mock: MockRouter, monkeypatch: pytest.MonkeyPatch) -> None:
     class GetWeatherArgs(BaseModel):
         """Get the temperature for the given country/city combo"""
