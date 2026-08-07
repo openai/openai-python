@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import logging
 from typing import Union, cast
 from typing_extensions import Literal, Protocol
@@ -538,6 +539,47 @@ def test_prepare_url_deployment_endpoint(
     )
     assert req.url == expected
     assert client.base_url == base_url
+
+
+@pytest.mark.parametrize(
+    "client",
+    [
+        AzureOpenAI(
+            api_version="2024-10-21",
+            api_key="example API key",
+            azure_endpoint="https://example-resource.azure.openai.com",
+        ),
+        AsyncAzureOpenAI(
+            api_version="2024-10-21",
+            api_key="example API key",
+            azure_endpoint="https://example-resource.azure.openai.com",
+        ),
+    ],
+)
+def test_deployment_endpoint_strips_model_from_request_body(client: Client) -> None:
+    body = {
+        "model": "gpt-image-1-5",
+        "prompt": "A sunset over mountains",
+        "size": "1024x1024",
+    }
+
+    req = client._build_request(
+        FinalRequestOptions.construct(
+            method="post",
+            url="/images/generations",
+            json_data=body,
+        )
+    )
+
+    assert req.url == httpx.URL(
+        "https://example-resource.azure.openai.com/openai/deployments/"
+        "gpt-image-1-5/images/generations?api-version=2024-10-21"
+    )
+    assert json.loads(req.content) == {
+        "prompt": "A sunset over mountains",
+        "size": "1024x1024",
+    }
+    assert body["model"] == "gpt-image-1-5"
 
 
 @pytest.mark.parametrize(
