@@ -207,3 +207,58 @@ class TestAccumulateDelta:
         assert calls[0]["id"] == "call_a"
         assert calls[1]["index"] == 1
         assert calls[1]["id"] == "call_b"
+
+    def test_dumped_placeholder_replaced_not_shifted(self) -> None:
+        """Regression for Codex P2: after the snapshot is round-tripped through
+        model_dump, a gap-filler {} placeholder becomes a dict of unset
+        tool-call fields (e.g. {"id": None, "function": None, "type": None}).
+        If index 1 arrives later, it must replace that dumped placeholder
+        in-place, not insert before it (which would shift the index-2 entry
+        to slot 3 and break tool_calls[2] lookups)."""
+        acc: dict[object, object] = {
+            "tool_calls": [
+                {"index": 0, "id": "call_a", "function": {"name": "tool_a"}, "type": "function"},
+                # Simulates a {} placeholder after model_dump round-trip
+                {"id": None, "function": None, "type": None},
+                {"index": 2, "id": "call_c", "function": {"name": "tool_c"}, "type": "function"},
+            ]
+        }
+        delta: dict[object, object] = {
+            "tool_calls": [
+                {"index": 1, "id": "call_b", "function": {"name": "tool_b"}, "type": "function"},
+            ]
+        }
+        result = accumulate_delta(acc, delta)
+        calls = cast(list[dict[str, Any]], result["tool_calls"])
+        # The dumped placeholder at index 1 should be replaced, not shifted
+        assert len(calls) == 3
+        assert calls[0]["index"] == 0
+        assert calls[0]["id"] == "call_a"
+        assert calls[1]["index"] == 1
+        assert calls[1]["id"] == "call_b"
+        assert calls[2]["index"] == 2
+        assert calls[2]["id"] == "call_c"
+
+    def test_coalesce_dumped_placeholder_replaced(self) -> None:
+        """Regression for Codex P2: _coalesce_list_by_index must also detect
+        dumped placeholders (all-None values from model_dump) and replace them
+        in-place instead of inserting before them."""
+        from openai.lib.streaming._deltas import _coalesce_list_by_index
+
+        lst: list[object] = [
+            {"index": 0, "id": "call_a", "function": {"name": "tool_a"}, "type": "function"},
+            # Dumped placeholder at index 1 (all values None)
+            {"id": None, "function": None, "type": None},
+            {"index": 2, "id": "call_c", "function": {"name": "tool_c"}, "type": "function"},
+            # Index 1 arriving later — should replace the placeholder
+            {"index": 1, "id": "call_b", "function": {"name": "tool_b"}, "type": "function"},
+        ]
+        result = _coalesce_list_by_index(lst)
+        calls = cast(list[dict[str, Any]], result)
+        assert len(calls) == 3
+        assert calls[0]["index"] == 0
+        assert calls[0]["id"] == "call_a"
+        assert calls[1]["index"] == 1
+        assert calls[1]["id"] == "call_b"
+        assert calls[2]["index"] == 2
+        assert calls[2]["id"] == "call_c"
