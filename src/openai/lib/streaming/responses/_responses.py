@@ -357,9 +357,19 @@ class ResponseStreamState(Generic[TextFormatT]):
             if output.type == "function_call":
                 output.arguments += event.delta
         elif event.type == "response.completed":
+            response = event.response
+            if response.output is None:
+                response = construct_type_unchecked(
+                    type_=ParsedResponseSnapshot,
+                    value={
+                        **response.to_dict(),
+                        "output": snapshot.output,
+                    },
+                )
+
             self._completed_response = parse_response(
                 text_format=self._text_format,
-                response=event.response,
+                response=response,
                 input_tools=self._input_tools,
             )
 
