@@ -397,6 +397,22 @@ async def test_dictionary_items(use_async: bool) -> None:
     assert await transform({"foo": {"foo_baz": "bar"}}, Dict[str, DictItems], use_async) == {"foo": {"fooBaz": "bar"}}
 
 
+
+class BareDictTypedDict(TypedDict, total=False):
+    metadata: dict  # bare dict — no type parameters
+
+
+@parametrize
+@pytest.mark.asyncio
+async def test_bare_dict_in_typeddict(use_async: bool) -> None:
+    """transform should not crash on bare dict annotations in TypedDict."""
+    result = await transform({"metadata": {"key": "value"}}, BareDictTypedDict, use_async)
+    assert result == {"metadata": {"key": "value"}}
+
+    result = await transform({"metadata": {}}, BareDictTypedDict, use_async)
+    assert result == {"metadata": {}}
+
+
 class TypedDictIterableUnionStr(TypedDict):
     foo: Annotated[Union[str, Iterable[Baz8]], PropertyInfo(alias="FOO")]
 
