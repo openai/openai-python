@@ -310,7 +310,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         if not isinstance(provider, NotGiven):
             raise OpenAIError("Configure `provider` on `OpenAI`, not on `AzureOpenAI.with_options()`.")
 
-        return super().copy(
+        copied = super().copy(
             api_key=api_key,
             admin_api_key=admin_api_key,
             workload_identity=workload_identity,
@@ -334,6 +334,14 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
                 **_extra_kwargs,
             },
         )
+        # `super().copy()` reconstructs the client from `base_url`, which does not carry the
+        # Azure endpoint/deployment context that `_prepare_url` relies on to route
+        # non-deployment endpoints (e.g. `/models`). Preserve it unless the caller overrides
+        # the base URL.
+        if base_url is None:
+            copied._azure_endpoint = self._azure_endpoint
+            copied._azure_deployment = self._azure_deployment
+        return copied
 
     with_options = copy
 
@@ -634,7 +642,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         if not isinstance(provider, NotGiven):
             raise OpenAIError("Configure `provider` on `AsyncOpenAI`, not on `AsyncAzureOpenAI.with_options()`.")
 
-        return super().copy(
+        copied = super().copy(
             api_key=api_key,
             admin_api_key=admin_api_key,
             workload_identity=workload_identity,
@@ -658,6 +666,14 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
                 **_extra_kwargs,
             },
         )
+        # `super().copy()` reconstructs the client from `base_url`, which does not carry the
+        # Azure endpoint/deployment context that `_prepare_url` relies on to route
+        # non-deployment endpoints (e.g. `/models`). Preserve it unless the caller overrides
+        # the base URL.
+        if base_url is None:
+            copied._azure_endpoint = self._azure_endpoint
+            copied._azure_deployment = self._azure_deployment
+        return copied
 
     with_options = copy
 
