@@ -104,7 +104,7 @@ for __name in __all__:
 # ------ Module level client ------
 import typing as _t
 
-import httpx as _httpx
+import httpx2 as _httpx
 
 from ._base_client import DEFAULT_TIMEOUT, DEFAULT_MAX_RETRIES
 

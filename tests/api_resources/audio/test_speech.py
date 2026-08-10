@@ -5,13 +5,13 @@ from __future__ import annotations
 import os
 from typing import Any, cast
 
-import httpx
+import httpx2
 import pytest
-from respx import MockRouter
 
 import openai._legacy_response as _legacy_response
 from openai import OpenAI, AsyncOpenAI
 from tests.utils import assert_matches_type
+from tests.respx2 import MockRouter
 
 # pyright: reportDeprecated=false
 
@@ -22,9 +22,9 @@ class TestSpeech:
     parametrize = pytest.mark.parametrize("client", [False, True], indirect=True, ids=["loose", "strict"])
 
     @parametrize
-    @pytest.mark.respx(base_url=base_url)
-    def test_method_create(self, client: OpenAI, respx_mock: MockRouter) -> None:
-        respx_mock.post("/audio/speech").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+    @pytest.mark.respx2(base_url=base_url)
+    def test_method_create(self, client: OpenAI, respx2_mock: MockRouter) -> None:
+        respx2_mock.post("/audio/speech").mock(return_value=httpx2.Response(200, json={"foo": "bar"}))
         speech = client.audio.speech.create(
             input="input",
             model="tts-1",
@@ -34,9 +34,9 @@ class TestSpeech:
         assert speech.json() == {"foo": "bar"}
 
     @parametrize
-    @pytest.mark.respx(base_url=base_url)
-    def test_method_create_with_all_params(self, client: OpenAI, respx_mock: MockRouter) -> None:
-        respx_mock.post("/audio/speech").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+    @pytest.mark.respx2(base_url=base_url)
+    def test_method_create_with_all_params(self, client: OpenAI, respx2_mock: MockRouter) -> None:
+        respx2_mock.post("/audio/speech").mock(return_value=httpx2.Response(200, json={"foo": "bar"}))
         speech = client.audio.speech.create(
             input="input",
             model="tts-1",
@@ -50,9 +50,9 @@ class TestSpeech:
         assert speech.json() == {"foo": "bar"}
 
     @parametrize
-    @pytest.mark.respx(base_url=base_url)
-    def test_raw_response_create(self, client: OpenAI, respx_mock: MockRouter) -> None:
-        respx_mock.post("/audio/speech").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+    @pytest.mark.respx2(base_url=base_url)
+    def test_raw_response_create(self, client: OpenAI, respx2_mock: MockRouter) -> None:
+        respx2_mock.post("/audio/speech").mock(return_value=httpx2.Response(200, json={"foo": "bar"}))
 
         response = client.audio.speech.with_raw_response.create(
             input="input",
@@ -66,9 +66,9 @@ class TestSpeech:
         assert_matches_type(_legacy_response.HttpxBinaryResponseContent, speech, path=["response"])
 
     @parametrize
-    @pytest.mark.respx(base_url=base_url)
-    def test_streaming_response_create(self, client: OpenAI, respx_mock: MockRouter) -> None:
-        respx_mock.post("/audio/speech").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+    @pytest.mark.respx2(base_url=base_url)
+    def test_streaming_response_create(self, client: OpenAI, respx2_mock: MockRouter) -> None:
+        respx2_mock.post("/audio/speech").mock(return_value=httpx2.Response(200, json={"foo": "bar"}))
         with client.audio.speech.with_streaming_response.create(
             input="input",
             model="tts-1",
@@ -89,9 +89,9 @@ class TestAsyncSpeech:
     )
 
     @parametrize
-    @pytest.mark.respx(base_url=base_url)
-    async def test_method_create(self, async_client: AsyncOpenAI, respx_mock: MockRouter) -> None:
-        respx_mock.post("/audio/speech").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+    @pytest.mark.respx2(base_url=base_url)
+    async def test_method_create(self, async_client: AsyncOpenAI, respx2_mock: MockRouter) -> None:
+        respx2_mock.post("/audio/speech").mock(return_value=httpx2.Response(200, json={"foo": "bar"}))
         speech = await async_client.audio.speech.create(
             input="input",
             model="tts-1",
@@ -101,9 +101,9 @@ class TestAsyncSpeech:
         assert speech.json() == {"foo": "bar"}
 
     @parametrize
-    @pytest.mark.respx(base_url=base_url)
-    async def test_method_create_with_all_params(self, async_client: AsyncOpenAI, respx_mock: MockRouter) -> None:
-        respx_mock.post("/audio/speech").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+    @pytest.mark.respx2(base_url=base_url)
+    async def test_method_create_with_all_params(self, async_client: AsyncOpenAI, respx2_mock: MockRouter) -> None:
+        respx2_mock.post("/audio/speech").mock(return_value=httpx2.Response(200, json={"foo": "bar"}))
         speech = await async_client.audio.speech.create(
             input="input",
             model="tts-1",
@@ -117,9 +117,9 @@ class TestAsyncSpeech:
         assert speech.json() == {"foo": "bar"}
 
     @parametrize
-    @pytest.mark.respx(base_url=base_url)
-    async def test_raw_response_create(self, async_client: AsyncOpenAI, respx_mock: MockRouter) -> None:
-        respx_mock.post("/audio/speech").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+    @pytest.mark.respx2(base_url=base_url)
+    async def test_raw_response_create(self, async_client: AsyncOpenAI, respx2_mock: MockRouter) -> None:
+        respx2_mock.post("/audio/speech").mock(return_value=httpx2.Response(200, json={"foo": "bar"}))
 
         response = await async_client.audio.speech.with_raw_response.create(
             input="input",
@@ -133,9 +133,9 @@ class TestAsyncSpeech:
         assert_matches_type(_legacy_response.HttpxBinaryResponseContent, speech, path=["response"])
 
     @parametrize
-    @pytest.mark.respx(base_url=base_url)
-    async def test_streaming_response_create(self, async_client: AsyncOpenAI, respx_mock: MockRouter) -> None:
-        respx_mock.post("/audio/speech").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+    @pytest.mark.respx2(base_url=base_url)
+    async def test_streaming_response_create(self, async_client: AsyncOpenAI, respx2_mock: MockRouter) -> None:
+        respx2_mock.post("/audio/speech").mock(return_value=httpx2.Response(200, json={"foo": "bar"}))
         async with async_client.audio.speech.with_streaming_response.create(
             input="input",
             model="tts-1",

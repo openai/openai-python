@@ -5,9 +5,8 @@ from __future__ import annotations
 import os
 from typing import Any, cast
 
-import httpx
+import httpx2
 import pytest
-from respx import MockRouter
 
 import openai._legacy_response as _legacy_response
 from openai import OpenAI, AsyncOpenAI
@@ -18,6 +17,7 @@ from openai.types import (
     VideoGetCharacterResponse,
     VideoCreateCharacterResponse,
 )
+from tests.respx2 import MockRouter
 from openai.pagination import SyncConversationCursorPage, AsyncConversationCursorPage
 
 # pyright: reportDeprecated=false
@@ -215,9 +215,9 @@ class TestVideos:
         assert cast(Any, response.is_closed) is True
 
     @parametrize
-    @pytest.mark.respx(base_url=base_url)
-    def test_method_download_content(self, client: OpenAI, respx_mock: MockRouter) -> None:
-        respx_mock.get("/videos/video_123/content").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+    @pytest.mark.respx2(base_url=base_url)
+    def test_method_download_content(self, client: OpenAI, respx2_mock: MockRouter) -> None:
+        respx2_mock.get("/videos/video_123/content").mock(return_value=httpx2.Response(200, json={"foo": "bar"}))
         video = client.videos.download_content(
             video_id="video_123",
         )
@@ -225,9 +225,9 @@ class TestVideos:
         assert video.json() == {"foo": "bar"}
 
     @parametrize
-    @pytest.mark.respx(base_url=base_url)
-    def test_method_download_content_with_all_params(self, client: OpenAI, respx_mock: MockRouter) -> None:
-        respx_mock.get("/videos/video_123/content").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+    @pytest.mark.respx2(base_url=base_url)
+    def test_method_download_content_with_all_params(self, client: OpenAI, respx2_mock: MockRouter) -> None:
+        respx2_mock.get("/videos/video_123/content").mock(return_value=httpx2.Response(200, json={"foo": "bar"}))
         video = client.videos.download_content(
             video_id="video_123",
             variant="video",
@@ -236,9 +236,9 @@ class TestVideos:
         assert video.json() == {"foo": "bar"}
 
     @parametrize
-    @pytest.mark.respx(base_url=base_url)
-    def test_raw_response_download_content(self, client: OpenAI, respx_mock: MockRouter) -> None:
-        respx_mock.get("/videos/video_123/content").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+    @pytest.mark.respx2(base_url=base_url)
+    def test_raw_response_download_content(self, client: OpenAI, respx2_mock: MockRouter) -> None:
+        respx2_mock.get("/videos/video_123/content").mock(return_value=httpx2.Response(200, json={"foo": "bar"}))
 
         response = client.videos.with_raw_response.download_content(
             video_id="video_123",
@@ -250,9 +250,9 @@ class TestVideos:
         assert_matches_type(_legacy_response.HttpxBinaryResponseContent, video, path=["response"])
 
     @parametrize
-    @pytest.mark.respx(base_url=base_url)
-    def test_streaming_response_download_content(self, client: OpenAI, respx_mock: MockRouter) -> None:
-        respx_mock.get("/videos/video_123/content").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+    @pytest.mark.respx2(base_url=base_url)
+    def test_streaming_response_download_content(self, client: OpenAI, respx2_mock: MockRouter) -> None:
+        respx2_mock.get("/videos/video_123/content").mock(return_value=httpx2.Response(200, json={"foo": "bar"}))
         with client.videos.with_streaming_response.download_content(
             video_id="video_123",
         ) as response:
@@ -265,7 +265,7 @@ class TestVideos:
         assert cast(Any, response.is_closed) is True
 
     @parametrize
-    @pytest.mark.respx(base_url=base_url)
+    @pytest.mark.respx2(base_url=base_url)
     def test_path_params_download_content(self, client: OpenAI) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `video_id` but received ''"):
             client.videos.with_raw_response.download_content(
@@ -616,9 +616,9 @@ class TestAsyncVideos:
         assert cast(Any, response.is_closed) is True
 
     @parametrize
-    @pytest.mark.respx(base_url=base_url)
-    async def test_method_download_content(self, async_client: AsyncOpenAI, respx_mock: MockRouter) -> None:
-        respx_mock.get("/videos/video_123/content").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+    @pytest.mark.respx2(base_url=base_url)
+    async def test_method_download_content(self, async_client: AsyncOpenAI, respx2_mock: MockRouter) -> None:
+        respx2_mock.get("/videos/video_123/content").mock(return_value=httpx2.Response(200, json={"foo": "bar"}))
         video = await async_client.videos.download_content(
             video_id="video_123",
         )
@@ -626,11 +626,11 @@ class TestAsyncVideos:
         assert video.json() == {"foo": "bar"}
 
     @parametrize
-    @pytest.mark.respx(base_url=base_url)
+    @pytest.mark.respx2(base_url=base_url)
     async def test_method_download_content_with_all_params(
-        self, async_client: AsyncOpenAI, respx_mock: MockRouter
+        self, async_client: AsyncOpenAI, respx2_mock: MockRouter
     ) -> None:
-        respx_mock.get("/videos/video_123/content").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+        respx2_mock.get("/videos/video_123/content").mock(return_value=httpx2.Response(200, json={"foo": "bar"}))
         video = await async_client.videos.download_content(
             video_id="video_123",
             variant="video",
@@ -639,9 +639,9 @@ class TestAsyncVideos:
         assert video.json() == {"foo": "bar"}
 
     @parametrize
-    @pytest.mark.respx(base_url=base_url)
-    async def test_raw_response_download_content(self, async_client: AsyncOpenAI, respx_mock: MockRouter) -> None:
-        respx_mock.get("/videos/video_123/content").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+    @pytest.mark.respx2(base_url=base_url)
+    async def test_raw_response_download_content(self, async_client: AsyncOpenAI, respx2_mock: MockRouter) -> None:
+        respx2_mock.get("/videos/video_123/content").mock(return_value=httpx2.Response(200, json={"foo": "bar"}))
 
         response = await async_client.videos.with_raw_response.download_content(
             video_id="video_123",
@@ -653,9 +653,11 @@ class TestAsyncVideos:
         assert_matches_type(_legacy_response.HttpxBinaryResponseContent, video, path=["response"])
 
     @parametrize
-    @pytest.mark.respx(base_url=base_url)
-    async def test_streaming_response_download_content(self, async_client: AsyncOpenAI, respx_mock: MockRouter) -> None:
-        respx_mock.get("/videos/video_123/content").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+    @pytest.mark.respx2(base_url=base_url)
+    async def test_streaming_response_download_content(
+        self, async_client: AsyncOpenAI, respx2_mock: MockRouter
+    ) -> None:
+        respx2_mock.get("/videos/video_123/content").mock(return_value=httpx2.Response(200, json={"foo": "bar"}))
         async with async_client.videos.with_streaming_response.download_content(
             video_id="video_123",
         ) as response:
@@ -668,7 +670,7 @@ class TestAsyncVideos:
         assert cast(Any, response.is_closed) is True
 
     @parametrize
-    @pytest.mark.respx(base_url=base_url)
+    @pytest.mark.respx2(base_url=base_url)
     async def test_path_params_download_content(self, async_client: AsyncOpenAI) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `video_id` but received ''"):
             await async_client.videos.with_raw_response.download_content(
