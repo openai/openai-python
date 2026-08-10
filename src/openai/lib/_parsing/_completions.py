@@ -94,12 +94,20 @@ def parse_chat_completion(
     else:
         input_tools = []
 
+    # `length` / `content_filter` finish reasons only prevent us from producing a valid
+    # parsed result when there is actually something to parse. For a plain completion
+    # (no `response_format` and no parseable tools) there is nothing to parse, so we
+    # mirror the streaming accumulator (`ChatCompletionStreamState`), which guards these
+    # errors with `has_parseable_input`, and leave the completion untouched — matching
+    # `chat.completions.create()`.
+    raise_on_incomplete = has_parseable_input(response_format=response_format, input_tools=input_tools)
+
     choices: list[ParsedChoice[ResponseFormatT]] = []
     for choice in chat_completion.choices:
-        if choice.finish_reason == "length":
+        if raise_on_incomplete and choice.finish_reason == "length":
             raise LengthFinishReasonError(completion=chat_completion)
 
-        if choice.finish_reason == "content_filter":
+        if raise_on_incomplete and choice.finish_reason == "content_filter":
             raise ContentFilterFinishReasonError()
 
         message = choice.message
