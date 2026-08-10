@@ -61674,7 +61674,6 @@ components:
           description: The namespace name used in tool calls (for example, `crm`).
         description:
           type: string
-          minLength: 1
           description: A description of the namespace shown to the model.
         tools:
           items:
@@ -62651,8 +62650,8 @@ components:
           - type: 'null'
       type: object
       required:
-      - call_id
       - type
+      - call_id
       - output
       title: Function tool call output
       description: The output of a function tool call.
@@ -66541,7 +66540,6 @@ components:
           description: The namespace name used in tool calls (for example, `crm`).
         description:
           type: string
-          minLength: 1
           description: A description of the namespace shown to the model.
         tools:
           items:
@@ -69679,8 +69677,8 @@ components:
           - type: 'null'
       type: object
       required:
-      - call_id
       - type
+      - call_id
       - output
       title: Function tool call output
       description: The output of a function tool call.
