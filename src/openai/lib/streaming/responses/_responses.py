@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import inspect
 from types import TracebackType
-from typing import Any, List, Generic, Iterable, Awaitable, cast
+from typing import Any, List, Generic, Iterable, Optional, Awaitable, cast
 from typing_extensions import Self, Callable, Iterator, AsyncIterator
 
 from ._types import ParsedResponseSnapshot
@@ -18,7 +18,12 @@ from ...._utils import is_given, consume_sync_iterator, consume_async_iterator
 from ...._compat import PYDANTIC_V1
 from ...._models import build, construct_type_unchecked
 from ...._streaming import Stream, AsyncStream
-from ....types.responses import Response, ParsedResponse, ResponseStreamEvent as RawResponseStreamEvent
+from ....types.responses import (
+    Response,
+    ParsedResponse,
+    ResponseOutputItem,
+    ResponseStreamEvent as RawResponseStreamEvent,
+)
 from ..._parsing._responses import TextFormatT, parse_text, parse_response
 from ....types.responses.tool_param import ToolParam
 from ....types.responses.parsed_response import (
@@ -414,8 +419,9 @@ class ResponseStreamState(Generic[TextFormatT]):
             # still run its text_format / parsed_arguments logic on them.
             #
             # `output` is typed as non-nullable but the wire value can violate
-            # that contract; the `pyright: ignore` makes the check explicit
-            # without weakening the model contract.
+            # that contract; cast to `Optional[List[...]]` at the boundary so
+            # both Pyright and Mypy accept the None check without weakening
+            # the model contract.
             #
             # In the default streaming path, SSE data is converted through
             # `construct_type(...)`.  For a `response.completed` payload whose
@@ -426,9 +432,10 @@ class ResponseStreamState(Generic[TextFormatT]):
             # dereferencing `.output` so the guard doesn't raise
             # `AttributeError` before the fallback can run.
             response = event.response
-            if not isinstance(response, Response):  # pyright: ignore[reportUnnecessaryIsInstance]
+            if not isinstance(response, Response):
                 response = construct_type_unchecked(type_=Response, value=response)
-            if response.output is None and snapshot.output:  # pyright: ignore[reportUnnecessaryComparison]
+            output = cast(Optional[List[ResponseOutputItem]], response.output)
+            if output is None and snapshot.output:
                 # Build a copy of the response with the accumulated output
                 # items injected.  Use warnings=False on Pydantic v2 to suppress
                 # the serializer warning from dumping the invalid null output
