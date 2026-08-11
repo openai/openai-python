@@ -20,7 +20,8 @@ import openai
 from openai import OpenAI, AsyncOpenAI
 from openai._utils import consume_sync_iterator, assert_signatures_in_sync
 from openai._compat import model_copy
-from openai.types.chat import ChatCompletionChunk
+from openai._models import construct_type_unchecked
+from openai.types.chat import ChatCompletionChunk, ChatCompletionToolParam
 from openai.lib.streaming.chat import (
     ContentDoneEvent,
     ChatCompletionStream,
@@ -1067,6 +1068,65 @@ recommend checking a reliable weather website or a weather app.",
 ]
 """
     )
+
+
+def test_stream_state_handles_empty_function_tool_arguments() -> None:
+    # the API sends empty-string arguments (not `{}`) for strict tools with no/all-optional
+    # params; the done/final path used to leak a json.JSONDecodeError out of handle_chunk()
+    strict_noop_tool: ChatCompletionToolParam = {
+        "type": "function",
+        "function": {
+            "name": "noop",
+            "strict": True,
+            "parameters": {"type": "object", "properties": {}, "additionalProperties": False},
+        },
+    }
+    state = ChatCompletionStreamState(input_tools=[strict_noop_tool])
+
+    tool_call_chunk: dict[str, object] = {
+        "id": "chatcmpl-1",
+        "created": 0,
+        "model": "gpt-4o-2024-08-06",
+        "object": "chat.completion.chunk",
+        "choices": [
+            {
+                "index": 0,
+                "delta": {
+                    "role": "assistant",
+                    "tool_calls": [
+                        {
+                            "index": 0,
+                            "id": "call_1",
+                            "type": "function",
+                            "function": {"name": "noop", "arguments": ""},
+                        }
+                    ],
+                },
+                "finish_reason": None,
+            }
+        ],
+    }
+    finish_chunk: dict[str, object] = {
+        "id": "chatcmpl-1",
+        "created": 0,
+        "model": "gpt-4o-2024-08-06",
+        "object": "chat.completion.chunk",
+        "choices": [{"index": 0, "delta": {}, "finish_reason": "tool_calls"}],
+    }
+
+    events: list[ChatCompletionStreamEvent[None]] = []
+    for value in (tool_call_chunk, finish_chunk):
+        chunk = construct_type_unchecked(type_=ChatCompletionChunk, value=value)
+        events.extend(state.handle_chunk(chunk))
+
+    done_events = [event for event in events if event.type == "tool_calls.function.arguments.done"]
+    assert len(done_events) == 1
+    assert done_events[0].parsed_arguments == {}
+
+    completion = state.get_final_completion()
+    tool_calls = completion.choices[0].message.tool_calls
+    assert tool_calls is not None
+    assert tool_calls[0].function.parsed_arguments == {}
 
 
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
