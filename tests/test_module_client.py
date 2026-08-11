@@ -10,6 +10,7 @@ from httpx import URL
 
 import openai
 from openai import DEFAULT_TIMEOUT, DEFAULT_MAX_RETRIES
+from openai._models import FinalRequestOptions
 
 
 def reset_state() -> None:
@@ -98,6 +99,24 @@ def test_http_client_option() -> None:
     openai.http_client = new_client
 
     assert openai.completions._client._client is new_client
+
+
+def test_module_api_key_set_empty_after_load_bypasses_auth() -> None:
+    # The module client is constructed lazily on first access, capturing whatever
+    # `openai.api_key` was set to at that time. If the caller mutates `openai.api_key`
+    # afterwards, the already-constructed client must still pick up the new value —
+    # including switching to (or away from) the "explicitly disabled auth" state that
+    # an empty string represents, not just the plain `api_key` value.
+    openai.api_key = "real-key"
+
+    client = openai.completions._client
+    assert client.api_key == "real-key"
+
+    openai.api_key = ""
+
+    assert client.api_key == ""
+    request = client._build_request(FinalRequestOptions(method="get", url="/foo", security={"bearer_auth": True}))
+    assert "Authorization" not in request.headers
 
 
 import contextlib

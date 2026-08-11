@@ -558,6 +558,23 @@ class TestOpenAI:
                     )
                 )
 
+            # Raw request helpers (`client.get(...)`, `.post(...)`, etc.) don't pass an
+            # explicit `security` override, so they fall back to `FinalRequestOptions`'s
+            # default of requiring *either* bearer or admin auth. Since bearer auth is
+            # one of the accepted methods here, the empty `api_key` should still bypass
+            # validation instead of being treated as admin-only.
+            default_security_request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
+            assert "Authorization" not in default_security_request.headers
+
+            # `copy()`/`with_options()` should also honor an explicitly-passed empty
+            # `api_key`, rather than silently falling back to the inherited key.
+            copied_client = client.copy(api_key="")
+            assert copied_client.api_key == ""
+            copied_request = copied_client._build_request(
+                FinalRequestOptions(method="get", url="/foo", security={"bearer_auth": True})
+            )
+            assert "Authorization" not in copied_request.headers
+
         # OPENAI_API_KEY="" in the environment (without explicit api_key arg) should still raise,
         # as an empty env var likely indicates misconfiguration rather than intentional use.
         with update_env(
@@ -568,6 +585,22 @@ class TestOpenAI:
         ):
             with pytest.raises(OpenAIError, match="Missing credentials"):
                 OpenAI(base_url=base_url, admin_api_key=None, _strict_response_validation=True)
+
+    def test_with_options_preserves_explicit_empty_api_key(self) -> None:
+        # `client.with_options(api_key="")` should disable auth on the copy, rather than
+        # inheriting the original client's non-empty `api_key` (a plain `or` fallback
+        # would treat the explicit `""` as "not provided" and keep the old key).
+        client = OpenAI(base_url=base_url, api_key=api_key, admin_api_key=None, _strict_response_validation=True)
+
+        copied = client.with_options(api_key="")
+        assert copied.api_key == ""
+
+        request = copied._build_request(FinalRequestOptions(method="get", url="/foo", security={"bearer_auth": True}))
+        assert "Authorization" not in request.headers
+
+        # With no override, `with_options()` should still inherit the original api_key.
+        inherited = client.with_options(timeout=5)
+        assert inherited.api_key == api_key
 
     @pytest.mark.respx(base_url=base_url)
     def test_api_key_provider_preserves_admin_auth(self, respx_mock: MockRouter) -> None:
@@ -1916,6 +1949,23 @@ class TestAsyncOpenAI:
                     )
                 )
 
+            # Raw request helpers (`client.get(...)`, `.post(...)`, etc.) don't pass an
+            # explicit `security` override, so they fall back to `FinalRequestOptions`'s
+            # default of requiring *either* bearer or admin auth. Since bearer auth is
+            # one of the accepted methods here, the empty `api_key` should still bypass
+            # validation instead of being treated as admin-only.
+            default_security_request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
+            assert "Authorization" not in default_security_request.headers
+
+            # `copy()`/`with_options()` should also honor an explicitly-passed empty
+            # `api_key`, rather than silently falling back to the inherited key.
+            copied_client = client.copy(api_key="")
+            assert copied_client.api_key == ""
+            copied_request = copied_client._build_request(
+                FinalRequestOptions(method="get", url="/foo", security={"bearer_auth": True})
+            )
+            assert "Authorization" not in copied_request.headers
+
         # OPENAI_API_KEY="" in the environment (without explicit api_key arg) should still raise,
         # as an empty env var likely indicates misconfiguration rather than intentional use.
         with update_env(
@@ -1926,6 +1976,22 @@ class TestAsyncOpenAI:
         ):
             with pytest.raises(OpenAIError, match="Missing credentials"):
                 AsyncOpenAI(base_url=base_url, admin_api_key=None, _strict_response_validation=True)
+
+    def test_with_options_preserves_explicit_empty_api_key(self) -> None:
+        # `client.with_options(api_key="")` should disable auth on the copy, rather than
+        # inheriting the original client's non-empty `api_key` (a plain `or` fallback
+        # would treat the explicit `""` as "not provided" and keep the old key).
+        client = AsyncOpenAI(base_url=base_url, api_key=api_key, admin_api_key=None, _strict_response_validation=True)
+
+        copied = client.with_options(api_key="")
+        assert copied.api_key == ""
+
+        request = copied._build_request(FinalRequestOptions(method="get", url="/foo", security={"bearer_auth": True}))
+        assert "Authorization" not in request.headers
+
+        # With no override, `with_options()` should still inherit the original api_key.
+        inherited = client.with_options(timeout=5)
+        assert inherited.api_key == api_key
 
     @pytest.mark.respx(base_url=base_url)
     async def test_api_key_provider_preserves_admin_auth(self, respx_mock: MockRouter) -> None:
