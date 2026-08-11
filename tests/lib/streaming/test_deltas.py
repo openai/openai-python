@@ -262,3 +262,141 @@ class TestAccumulateDelta:
         assert calls[1]["id"] == "call_b"
         assert calls[2]["index"] == 2
         assert calls[2]["id"] == "call_c"
+
+
+class TestChatCompletionStreamStateIntegration:
+    """Integration-level regression for #3201: feed the two problematic chunks
+    through ChatCompletionStreamState and verify the final snapshot has exactly
+    one tool call per index with merged fields."""
+
+    def test_duplicate_index_through_stream_state(self) -> None:
+        """Replay the exact issue shape from #3201 through the full stream state.
+
+        The first chunk contains two tool_calls at index 0 (one with id/name,
+        one with arguments).  The second chunk adds a delta to index 0.
+        The final snapshot must contain a single index-0 call with all fields.
+        """
+        from openai.types.chat import ChatCompletionChunk
+        from openai.lib.streaming.chat import ChatCompletionStreamState
+        from openai.types.chat.chat_completion_chunk import Choice as ChoiceChunk
+
+        chunk1 = ChatCompletionChunk.construct(
+            id="chatcmpl-1",
+            created=0,
+            model="gpt-4",
+            choices=[
+                ChoiceChunk.construct(
+                    index=0,
+                    delta={
+                        "tool_calls": [
+                            {
+                                "index": 0,
+                                "id": "call_abc",
+                                "function": {"name": "list_files"},
+                                "type": "function",
+                            },
+                            {
+                                "index": 0,
+                                "function": {"arguments": ' {"'},
+                            },
+                        ]
+                    },
+                ),
+            ],
+        )
+
+        chunk2 = ChatCompletionChunk.construct(
+            id="chatcmpl-1",
+            created=0,
+            model="gpt-4",
+            choices=[
+                ChoiceChunk.construct(
+                    index=0,
+                    delta={
+                        "tool_calls": [
+                            {
+                                "index": 0,
+                                "function": {"arguments": "path"},
+                            },
+                        ]
+                    },
+                ),
+            ],
+        )
+
+        state = ChatCompletionStreamState()
+        list(state.handle_chunk(chunk1))
+        list(state.handle_chunk(chunk2))
+
+        snapshot = cast(Any, state.current_completion_snapshot)
+        assert len(snapshot.choices) == 1
+        message = snapshot.choices[0].message
+        tool_calls = message.tool_calls
+        assert tool_calls is not None
+        assert len(tool_calls) == 1, f"Expected 1 tool call, got {len(tool_calls)}"
+        call = tool_calls[0]
+        assert call.id == "call_abc"
+        func = call.function
+        assert func is not None
+        assert func.name == "list_files"
+        assert func.arguments == ' {"path'
+
+    def test_sparse_out_of_order_through_stream_state(self) -> None:
+        """Index 1 arrives before index 0 — no data loss, list stays addressable."""
+        from openai.types.chat import ChatCompletionChunk
+        from openai.lib.streaming.chat import ChatCompletionStreamState
+        from openai.types.chat.chat_completion_chunk import Choice as ChoiceChunk
+
+        chunk1 = ChatCompletionChunk.construct(
+            id="chatcmpl-2",
+            created=0,
+            model="gpt-4",
+            choices=[
+                ChoiceChunk.construct(
+                    index=0,
+                    delta={
+                        "tool_calls": [
+                            {
+                                "index": 1,
+                                "id": "call_b",
+                                "function": {"name": "tool_b"},
+                                "type": "function",
+                            },
+                        ]
+                    },
+                ),
+            ],
+        )
+
+        chunk2 = ChatCompletionChunk.construct(
+            id="chatcmpl-2",
+            created=0,
+            model="gpt-4",
+            choices=[
+                ChoiceChunk.construct(
+                    index=0,
+                    delta={
+                        "tool_calls": [
+                            {
+                                "index": 0,
+                                "id": "call_a",
+                                "function": {"name": "tool_a"},
+                                "type": "function",
+                            },
+                        ]
+                    },
+                ),
+            ],
+        )
+
+        state = ChatCompletionStreamState()
+        list(state.handle_chunk(chunk1))
+        list(state.handle_chunk(chunk2))
+
+        snapshot = cast(Any, state.current_completion_snapshot)
+        message = snapshot.choices[0].message
+        tool_calls = message.tool_calls
+        assert tool_calls is not None
+        assert len(tool_calls) == 2, f"Expected 2 tool calls, got {len(tool_calls)}"
+        assert tool_calls[0].id == "call_a"
+        assert tool_calls[1].id == "call_b"

@@ -38,6 +38,11 @@ def accumulate_delta(acc: dict[object, object], delta: dict[object, object]) -> 
 
         acc_value = acc[key]
         if acc_value is None:
+            # Coalesce duplicate-index entries here too — a prior chunk may
+            # have set acc[key] to None via a delta that only contained the
+            # key without a value, and now the actual list arrives. (#3201)
+            if is_list(delta_value) and len(delta_value) > 1:
+                delta_value = _coalesce_list_by_index(delta_value)
             acc[key] = delta_value
             continue
 

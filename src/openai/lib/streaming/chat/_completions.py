@@ -412,9 +412,10 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
                 # A new choice appeared that wasn't in the initial chunk.
                 # Coalesce tool_calls by index to handle duplicate-index entries
                 # from speculative decoding, same as _convert_initial_chunk_into_snapshot.
-                delta_dict = choice.delta.to_dict()
-                if is_list(delta_dict.get("tool_calls")):
-                    delta_dict["tool_calls"] = _coalesce_list_by_index(cast("list[object]", delta_dict["tool_calls"]))
+                delta_dict = cast("dict[object, object]", choice.delta.to_dict())
+                tool_calls = delta_dict.get("tool_calls")
+                if is_list(tool_calls) and len(tool_calls) > 1:
+                    delta_dict["tool_calls"] = _coalesce_list_by_index(tool_calls)
                 choice_snapshot = cast(
                     ParsedChoiceSnapshot,
                     construct_type(
@@ -538,7 +539,16 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
                 assert tool_calls is not None
 
                 for tool_call_delta in choice.delta.tool_calls:
-                    tool_call = tool_calls[tool_call_delta.index]
+                    # Find the tool call by logical index, not physical
+                    # position.  When entries arrive out of order (e.g.
+                    # index 1 before index 0), the physical position does
+                    # not match the logical index. (#3201)
+                    tool_call = next(
+                        (tc for tc in tool_calls if tc.index == tool_call_delta.index),
+                        None,
+                    )
+                    if tool_call is None:
+                        continue
 
                     if tool_call.type == "function":
                         assert tool_call_delta.function is not None
@@ -749,7 +759,7 @@ def _convert_initial_chunk_into_snapshot(chunk: ChatCompletionChunk) -> ParsedCh
     choices = cast("list[object]", data["choices"])
 
     for choice in chunk.choices:
-        message_dict = choice.delta.to_dict()
+        message_dict = cast("dict[object, object]", choice.delta.to_dict())
         # Coalesce duplicate-index tool_calls in the initial chunk. (#3201)
         # When the first chunk contains multiple tool_calls with the same index
         # (e.g. from speculative decoding), storing them directly would leave
