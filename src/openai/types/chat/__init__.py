@@ -11,6 +11,7 @@ from .parsed_chat_completion import (
     ParsedChoice as ParsedChoice,
     ParsedChatCompletion as ParsedChatCompletion,
     ParsedChatCompletionMessage as ParsedChatCompletionMessage,
+    ParsedChatCompletionMessageToolCallUnion as ParsedChatCompletionMessageToolCallUnion,
 )
 from .chat_completion_deleted import ChatCompletionDeleted as ChatCompletionDeleted
 from .chat_completion_message import ChatCompletionMessage as ChatCompletionMessage
