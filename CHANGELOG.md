@@ -5,7 +5,6 @@
 
 ### Features
 
-* **api:** Add new Responses model identifiers ([0652787](https://github.com/openai/openai-python/commit/06527878b8759ba52f28ab53e4d95a33989700d0))
 * **api:** Add new Responses model identifiers ([#3595](https://github.com/openai/openai-python/issues/3595)) ([0652787](https://github.com/openai/openai-python/commit/06527878b8759ba52f28ab53e4d95a33989700d0))
 
 
