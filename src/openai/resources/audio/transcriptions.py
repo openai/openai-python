@@ -94,9 +94,10 @@ class Transcriptions(SyncAPIResource):
         format, or a stream of transcript events.
 
         Args:
-          file:
-              The audio file object (not file name) to transcribe, in one of these formats:
-              flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.
+          file: The audio file object (not file name) to transcribe, in one of these formats:
+              flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm. The request must include
+              enough format metadata for the file to be identified. We recommend an
+              extension-bearing filename and an appropriate content type.
 
           model: ID of the model to use. The options are `gpt-transcribe`, `gpt-4o-transcribe`,
               `gpt-4o-mini-transcribe`, `gpt-4o-mini-transcribe-2025-12-15`, `whisper-1`
@@ -260,9 +261,10 @@ class Transcriptions(SyncAPIResource):
         format, or a stream of transcript events.
 
         Args:
-          file:
-              The audio file object (not file name) to transcribe, in one of these formats:
-              flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.
+          file: The audio file object (not file name) to transcribe, in one of these formats:
+              flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm. The request must include
+              enough format metadata for the file to be identified. We recommend an
+              extension-bearing filename and an appropriate content type.
 
           model: ID of the model to use. The options are `gpt-transcribe`, `gpt-4o-transcribe`,
               `gpt-4o-mini-transcribe`, `gpt-4o-mini-transcribe-2025-12-15`, `whisper-1`
@@ -380,9 +382,10 @@ class Transcriptions(SyncAPIResource):
         format, or a stream of transcript events.
 
         Args:
-          file:
-              The audio file object (not file name) to transcribe, in one of these formats:
-              flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.
+          file: The audio file object (not file name) to transcribe, in one of these formats:
+              flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm. The request must include
+              enough format metadata for the file to be identified. We recommend an
+              extension-bearing filename and an appropriate content type.
 
           model: ID of the model to use. The options are `gpt-transcribe`, `gpt-4o-transcribe`,
               `gpt-4o-mini-transcribe`, `gpt-4o-mini-transcribe-2025-12-15`, `whisper-1`
@@ -593,9 +596,10 @@ class AsyncTranscriptions(AsyncAPIResource):
         format, or a stream of transcript events.
 
         Args:
-          file:
-              The audio file object (not file name) to transcribe, in one of these formats:
-              flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.
+          file: The audio file object (not file name) to transcribe, in one of these formats:
+              flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm. The request must include
+              enough format metadata for the file to be identified. We recommend an
+              extension-bearing filename and an appropriate content type.
 
           model: ID of the model to use. The options are `gpt-transcribe`, `gpt-4o-transcribe`,
               `gpt-4o-mini-transcribe`, `gpt-4o-mini-transcribe-2025-12-15`, `whisper-1`
@@ -754,9 +758,10 @@ class AsyncTranscriptions(AsyncAPIResource):
         format, or a stream of transcript events.
 
         Args:
-          file:
-              The audio file object (not file name) to transcribe, in one of these formats:
-              flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.
+          file: The audio file object (not file name) to transcribe, in one of these formats:
+              flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm. The request must include
+              enough format metadata for the file to be identified. We recommend an
+              extension-bearing filename and an appropriate content type.
 
           model: ID of the model to use. The options are `gpt-transcribe`, `gpt-4o-transcribe`,
               `gpt-4o-mini-transcribe`, `gpt-4o-mini-transcribe-2025-12-15`, `whisper-1`
@@ -874,9 +879,10 @@ class AsyncTranscriptions(AsyncAPIResource):
         format, or a stream of transcript events.
 
         Args:
-          file:
-              The audio file object (not file name) to transcribe, in one of these formats:
-              flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.
+          file: The audio file object (not file name) to transcribe, in one of these formats:
+              flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm. The request must include
+              enough format metadata for the file to be identified. We recommend an
+              extension-bearing filename and an appropriate content type.
 
           model: ID of the model to use. The options are `gpt-transcribe`, `gpt-4o-transcribe`,
               `gpt-4o-mini-transcribe`, `gpt-4o-mini-transcribe-2025-12-15`, `whisper-1`
