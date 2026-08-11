@@ -247,6 +247,12 @@ class FunctionCallOutput(BaseModel):
     caller: Optional[FunctionCallOutputCaller] = None
     """The execution context that produced this tool call."""
 
+    name: Optional[str] = None
+    """The name of the tool that produced the output."""
+
+    namespace: Optional[str] = None
+    """The namespace of the tool that produced the output."""
+
     status: Optional[Literal["in_progress", "completed", "incomplete"]] = None
     """The status of the item.
 

@@ -77,3 +77,9 @@ class BetaResponseFunctionToolCallOutputItem(BaseModel):
 
     created_by: Optional[str] = None
     """The identifier of the actor that created the item."""
+
+    name: Optional[str] = None
+    """The name of the tool that produced the output."""
+
+    namespace: Optional[str] = None
+    """The namespace of the tool that produced the output."""
