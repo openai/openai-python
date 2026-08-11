@@ -197,6 +197,14 @@ class OpenAI(SyncAPIClient):
 
         self.workload_identity = workload_identity if provider_runtime is None else None
 
+        _api_key_explicitly_set = api_key is not None
+        # Tracks whether the caller explicitly passed a literal `api_key=""`, as opposed
+        # to it defaulting to an empty string because no credentials were configured, or
+        # a key provider/workload identity being used (which resolve the real key later).
+        # This is needed so that requests don't fail header validation below when the
+        # caller intentionally disabled authentication (e.g. for local, auth-less
+        # OpenAI-compatible servers).
+        self._api_key_explicitly_empty = api_key == ""
         if provider_runtime is not None:
             self.api_key = ""
             self._api_key_provider = None
@@ -224,6 +232,7 @@ class OpenAI(SyncAPIClient):
             provider_runtime is None
             and _enforce_credentials
             and not self.api_key
+            and not _api_key_explicitly_set
             and self._api_key_provider is None
             and workload_identity is None
             and self.admin_api_key is None
@@ -544,11 +553,23 @@ class OpenAI(SyncAPIClient):
         }
 
     @override
-    def _validate_headers(self, headers: Headers, custom_headers: Headers) -> None:
+    def _validate_headers(
+        self, headers: Headers, custom_headers: Headers, security: SecurityOptions | None = None
+    ) -> None:
         if self._provider_runtime is not None:
             return
 
         if _has_header(headers, "Authorization") or _has_omitted_header(custom_headers, "Authorization"):
+            return
+
+        # An explicitly-passed `api_key=""` means the caller intentionally disabled
+        # authentication (e.g. for a local, auth-less OpenAI-compatible server), so
+        # don't fail requests just because no `Authorization` header could be built —
+        # as long as bearer auth (the auth method an empty `api_key` disables) is one
+        # of the accepted security methods for this request. Endpoints that *only*
+        # accept admin credentials (no `bearer_auth` alternative) still require them,
+        # since an empty `api_key` can never satisfy those.
+        if self._api_key_explicitly_empty and (security or {}).get("bearer_auth", False):
             return
 
         raise TypeError(
@@ -651,7 +672,12 @@ class OpenAI(SyncAPIClient):
             }
         else:
             auth_options = {
-                "api_key": api_key or self._api_key_provider or self.api_key,
+                # `api_key` defaults to `None`, meaning "not overridden, inherit from
+                # `self`" — but an explicitly-passed `api_key=""` (used to disable auth
+                # for local, auth-less servers) must still be honored rather than falling
+                # through to the inherited provider/key, so this checks `is not None`
+                # rather than truthiness.
+                "api_key": api_key if api_key is not None else (self._api_key_provider or self.api_key),
                 "admin_api_key": admin_api_key or self.admin_api_key,
                 "workload_identity": workload_identity or self.workload_identity,
                 "base_url": base_url or self.base_url,
@@ -803,6 +829,14 @@ class AsyncOpenAI(AsyncAPIClient):
 
         self.workload_identity = workload_identity if provider_runtime is None else None
 
+        _api_key_explicitly_set = api_key is not None
+        # Tracks whether the caller explicitly passed a literal `api_key=""`, as opposed
+        # to it defaulting to an empty string because no credentials were configured, or
+        # a key provider/workload identity being used (which resolve the real key later).
+        # This is needed so that requests don't fail header validation below when the
+        # caller intentionally disabled authentication (e.g. for local, auth-less
+        # OpenAI-compatible servers).
+        self._api_key_explicitly_empty = api_key == ""
         if provider_runtime is not None:
             self.api_key = ""
             self._api_key_provider = None
@@ -830,6 +864,7 @@ class AsyncOpenAI(AsyncAPIClient):
             provider_runtime is None
             and _enforce_credentials
             and not self.api_key
+            and not _api_key_explicitly_set
             and self._api_key_provider is None
             and workload_identity is None
             and self.admin_api_key is None
@@ -1153,11 +1188,23 @@ class AsyncOpenAI(AsyncAPIClient):
         }
 
     @override
-    def _validate_headers(self, headers: Headers, custom_headers: Headers) -> None:
+    def _validate_headers(
+        self, headers: Headers, custom_headers: Headers, security: SecurityOptions | None = None
+    ) -> None:
         if self._provider_runtime is not None:
             return
 
         if _has_header(headers, "Authorization") or _has_omitted_header(custom_headers, "Authorization"):
+            return
+
+        # An explicitly-passed `api_key=""` means the caller intentionally disabled
+        # authentication (e.g. for a local, auth-less OpenAI-compatible server), so
+        # don't fail requests just because no `Authorization` header could be built —
+        # as long as bearer auth (the auth method an empty `api_key` disables) is one
+        # of the accepted security methods for this request. Endpoints that *only*
+        # accept admin credentials (no `bearer_auth` alternative) still require them,
+        # since an empty `api_key` can never satisfy those.
+        if self._api_key_explicitly_empty and (security or {}).get("bearer_auth", False):
             return
 
         raise TypeError(
@@ -1267,7 +1314,12 @@ class AsyncOpenAI(AsyncAPIClient):
             }
         else:
             auth_options = {
-                "api_key": api_key or self._api_key_provider or self.api_key,
+                # `api_key` defaults to `None`, meaning "not overridden, inherit from
+                # `self`" — but an explicitly-passed `api_key=""` (used to disable auth
+                # for local, auth-less servers) must still be honored rather than falling
+                # through to the inherited provider/key, so this checks `is not None`
+                # rather than truthiness.
+                "api_key": api_key if api_key is not None else (self._api_key_provider or self.api_key),
                 "admin_api_key": admin_api_key or self.admin_api_key,
                 "workload_identity": workload_identity or self.workload_identity,
                 "base_url": base_url or self.base_url,

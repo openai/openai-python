@@ -190,6 +190,24 @@ class _ModuleClient(OpenAI):
 
     @property  # type: ignore
     @override
+    def _api_key_explicitly_empty(self) -> bool:
+        # Unlike the regular client, the module client's `api_key` can be reassigned
+        # at any time via the `openai.api_key = ...` module attribute, after the
+        # underlying client instance was already constructed. So rather than relying
+        # on the flag captured once at construction time, check the current value
+        # directly to decide whether auth was intentionally disabled.
+        return api_key == ""
+
+    @_api_key_explicitly_empty.setter  # type: ignore
+    def _api_key_explicitly_empty(self, value: bool) -> None:  # type: ignore
+        # No-op: the getter above always derives this from the live `api_key`, so
+        # there is nothing to store. The setter only needs to exist so that
+        # `OpenAI.__init__` can assign to `self._api_key_explicitly_empty` without
+        # raising `AttributeError`.
+        pass
+
+    @property  # type: ignore
+    @override
     def admin_api_key(self) -> str | None:
         return admin_api_key
 

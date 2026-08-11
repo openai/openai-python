@@ -468,7 +468,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
     def _build_headers(self, options: FinalRequestOptions, *, retries_taken: int = 0) -> httpx.Headers:
         custom_headers = options.headers or {}
         headers_dict = _merge_mappings({**self._auth_headers(options.security), **self.default_headers}, custom_headers)
-        self._validate_headers(headers_dict, custom_headers)
+        self._validate_headers(headers_dict, custom_headers, options.security)
 
         # headers are case-insensitive while dictionaries are not.
         headers = httpx.Headers(headers_dict)
@@ -731,6 +731,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         self,
         headers: Headers,  # noqa: ARG002
         custom_headers: Headers,  # noqa: ARG002
+        security: SecurityOptions | None = None,  # noqa: ARG002
     ) -> None:
         """Validate the given default headers and custom headers.
 
