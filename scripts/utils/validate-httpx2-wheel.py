@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 import sys
 import email
 import zipfile
@@ -11,10 +12,18 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 BASE_TEST = ROOT / "tests/test_httpx2_base.py"
 HTTPX2_TEST = ROOT / "tests/test_httpx2.py"
+LEGACY_TEST = ROOT / "tests/test_httpx_compat.py"
 
 
 def venv_python(environment_path: Path) -> Path:
     return environment_path / ("Scripts/python.exe" if sys.platform == "win32" else "bin/python")
+
+
+def requirement_name(requirement: str) -> str:
+    match = re.match(r"[A-Za-z0-9_.-]+", requirement)
+    if match is None:
+        raise RuntimeError(f"Cannot determine the package name for {requirement!r}")
+    return match.group().replace("_", "-").lower()
 
 
 def validate_metadata(wheel: Path) -> None:
@@ -24,39 +33,40 @@ def validate_metadata(wheel: Path) -> None:
             raise RuntimeError(f"Expected exactly one METADATA file in {wheel}, found: {metadata_names}")
         metadata = email.message_from_bytes(archive.read(metadata_names[0]))
 
+        for name in ("LICENSE", "README.md", "FORK.md"):
+            if f"openai/_vendor/httpx_aiohttp/{name}" not in archive.namelist():
+                raise RuntimeError(f"The wheel omitted the vendored aiohttp adapter's {name}")
+
     requirements = metadata.get_all("Requires-Dist", [])
     base = [value for value in requirements if "extra ==" not in value]
-    httpx2 = [value for value in requirements if "extra == 'httpx2'" in value]
     aiohttp = [value for value in requirements if "extra == 'aiohttp'" in value]
+    extras = set(metadata.get_all("Provides-Extra", []))
 
     if metadata["Requires-Python"] != ">=3.10":
         raise RuntimeError(f"Expected Python >=3.10, found: {metadata['Requires-Python']}")
-    if not any(value.startswith("httpx<1,>=0.23.0") for value in base):
-        raise RuntimeError(f"Expected the base wheel to require HTTPX >=0.23.0,<1: {base}")
-    if not any(value.startswith("anyio<5,>=3.5.0") for value in base):
-        raise RuntimeError(f"Expected the base wheel to require AnyIO >=3.5.0,<5: {base}")
-    if any(value.startswith("httpx2") for value in base):
-        raise RuntimeError(f"HTTPX2 leaked into the base wheel requirements: {base}")
-
-    for expected in ("httpx<1,>=0.25.1", "httpx2<3,>=2.7.0", "anyio<5,>=4.10.0"):
-        if not any(value.startswith(expected) for value in httpx2):
-            raise RuntimeError(f"Expected the HTTPX2 extra to require {expected}: {httpx2}")
-    if any("python_version" in value for value in httpx2):
-        raise RuntimeError(f"HTTPX2 requirements have redundant Python markers: {httpx2}")
-
+    for expected in ("httpx2<3,>=2.7.0", "anyio<5,>=4.10.0"):
+        if not any(value.startswith(expected) for value in base):
+            raise RuntimeError(f"Expected the base wheel to require {expected}: {base}")
+    if any(requirement_name(value) == "httpx" for value in requirements):
+        raise RuntimeError(f"Legacy HTTPX must not be installed by any SDK extra: {requirements}")
+    if any(requirement_name(value) == "httpx-aiohttp" for value in requirements):
+        raise RuntimeError(f"The aiohttp extra must not install the legacy adapter package: {requirements}")
+    if {"httpx", "httpx2"} & extras:
+        raise RuntimeError(f"HTTP client selection must not require or expose an SDK extra: {extras}")
     if not any(value.startswith("aiohttp>=3.14.1") for value in aiohttp):
-        raise RuntimeError(f"Expected the unchanged aiohttp requirement: {aiohttp}")
-    if not any(value.startswith("httpx-aiohttp>=0.1.9") for value in aiohttp):
-        raise RuntimeError(f"Expected the unchanged httpx-aiohttp requirement: {aiohttp}")
+        raise RuntimeError(f"Expected the aiohttp extra to require a patched aiohttp release: {aiohttp}")
 
 
-def run_case(wheel: Path, *, extra: str | None, tests: list[Path], dependencies: list[str]) -> None:
+def run_case(
+    wheel: Path, *, extra: str | None, tests: list[Path], dependencies: list[str], legacy: bool = False
+) -> None:
     with tempfile.TemporaryDirectory(prefix="openai-httpx2-wheel-") as directory:
         environment_path = Path(directory) / "venv"
         subprocess.run([sys.executable, "-m", "venv", str(environment_path)], check=True)
         python = venv_python(environment_path)
         requirement = str(wheel.resolve()) if extra is None else f"{wheel.resolve()}[{extra}]"
         environment = os.environ.copy()
+        environment.pop("PYTHONPATH", None)
         environment.setdefault("PIP_DISABLE_CLIENT_CERTIFICATE", "1")
         subprocess.run(
             [str(python), "-m", "pip", "install", "--quiet", requirement, *dependencies],
@@ -64,43 +74,26 @@ def run_case(wheel: Path, *, extra: str | None, tests: list[Path], dependencies:
             env=environment,
             check=True,
         )
+
+        if not legacy:
+            subprocess.run(
+                [str(python), "-c", "import importlib.util; assert importlib.util.find_spec('httpx') is None"],
+                cwd=directory,
+                env=environment,
+                check=True,
+            )
+
         test_environment = environment.copy()
         for name in ("ALL_PROXY", "HTTPS_PROXY", "HTTP_PROXY", "all_proxy", "https_proxy", "http_proxy"):
             test_environment.pop(name, None)
+        if legacy:
+            test_environment["OPENAI_TEST_LEGACY_HTTPX"] = "1"
         subprocess.run(
             [str(python), "-m", "pytest", "-o", "addopts=", *(str(test) for test in tests)],
             cwd=directory,
             env=test_environment,
             check=True,
         )
-
-
-def assert_incompatible_pin_fails(wheel: Path) -> None:
-    with tempfile.TemporaryDirectory(prefix="openai-httpx2-conflict-") as directory:
-        environment_path = Path(directory) / "venv"
-        subprocess.run([sys.executable, "-m", "venv", str(environment_path)], check=True)
-        python = venv_python(environment_path)
-        result = subprocess.run(
-            [
-                str(python),
-                "-m",
-                "pip",
-                "install",
-                "--no-input",
-                f"{wheel.resolve()}[httpx2]",
-                "httpx==0.25.0",
-            ],
-            cwd=directory,
-            env=os.environ.copy(),
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        if result.returncode == 0:
-            raise RuntimeError("Expected openai[httpx2] with httpx==0.25.0 to fail dependency resolution")
-        output = result.stdout + result.stderr
-        if "ResolutionImpossible" not in output and "conflicting dependencies" not in output:
-            raise RuntimeError(f"The incompatible resolution failed for an unexpected reason:\n{output}")
 
 
 def main() -> None:
@@ -110,32 +103,17 @@ def main() -> None:
     wheel = wheels[0]
     validate_metadata(wheel)
 
-    common = ["pytest==8.4.1", "pytest-asyncio==1.1.0", "respx==0.22.0"]
-    run_case(wheel, extra=None, tests=[BASE_TEST], dependencies=common)
-    if sys.version_info[:2] == (3, 10):
-        run_case(
-            wheel,
-            extra=None,
-            tests=[BASE_TEST],
-            dependencies=[
-                "pytest==8.4.1",
-                "pytest-asyncio==1.1.0",
-                "respx==0.20.2",
-                "httpx==0.23.0",
-                "anyio==3.5.0",
-            ],
-        )
-
+    common = ["pytest==8.4.1", "pytest-asyncio==1.1.0"]
+    run_case(wheel, extra=None, tests=[BASE_TEST, HTTPX2_TEST], dependencies=common)
     run_case(wheel, extra="aiohttp", tests=[BASE_TEST], dependencies=common)
-    run_case(wheel, extra="httpx2", tests=[BASE_TEST, HTTPX2_TEST], dependencies=common)
     run_case(
         wheel,
-        extra="httpx2",
-        tests=[BASE_TEST, HTTPX2_TEST],
-        dependencies=[*common, "httpx==0.25.1", "anyio==4.10.0", "pydantic<2", "botocore==1.42.97"],
+        extra=None,
+        tests=[LEGACY_TEST],
+        dependencies=[*common, "httpx-aiohttp>=0.2.0,<0.3"],
+        legacy=True,
     )
-    assert_incompatible_pin_fails(wheel)
-    print("Validated base, aiohttp, native HTTPX2, supported floors, Pydantic modes, and resolver conflicts")
+    print("Validated HTTPX2-only base and aiohttp installs plus isolated legacy HTTPX/aiohttp compatibility")
 
 
 if __name__ == "__main__":

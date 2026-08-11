@@ -8,10 +8,8 @@ SUPPORTED = ("3.10", "3.11", "3.12", "3.13", "3.14")
 MINIMUM = SUPPORTED[0]
 CURRENT_STABLE = SUPPORTED[-1]
 PRERELEASE = "3.15"
-UNMARKED_OPTIONAL_DEPENDENCIES = (
+UNMARKED_DEPENDENCIES = (
     "aiohttp>=3.14.1",
-    "httpx_aiohttp>=0.1.9",
-    "httpx>=0.25.1, <1",
     "httpx2>=2.7.0, <3",
     "anyio>=4.10.0, <5",
     "botocore>=1.40.0,<2",
@@ -124,7 +122,7 @@ def main() -> None:
     )
 
     project_metadata = pyproject.split("[tool.rye]", 1)[0]
-    for requirement in UNMARKED_OPTIONAL_DEPENDENCIES:
+    for requirement in UNMARKED_DEPENDENCIES:
         require(
             f'"{requirement}"' in project_metadata,
             f"Package metadata does not contain the unmarked requirement {requirement!r}",

@@ -20,7 +20,7 @@ from typing import (
 from typing_extensions import Awaitable, ParamSpec, override, deprecated, get_origin
 
 import anyio
-import httpx
+import httpx2
 import pydantic
 
 from ._types import NoneType
@@ -63,7 +63,7 @@ class LegacyAPIResponse(Generic[R]):
     _stream_cls: type[Stream[Any]] | type[AsyncStream[Any]] | None
     _options: FinalRequestOptions
 
-    http_response: httpx.Response
+    http_response: httpx2.Response
 
     retries_taken: int
     """The number of retries made. If no retries happened this will be `0`"""
@@ -71,7 +71,7 @@ class LegacyAPIResponse(Generic[R]):
     def __init__(
         self,
         *,
-        raw: httpx.Response,
+        raw: httpx2.Response,
         cast_to: type[R],
         client: BaseClient[Any, Any],
         stream: bool,
@@ -128,7 +128,7 @@ class LegacyAPIResponse(Generic[R]):
           - `str`
           - `int`
           - `float`
-          - `httpx.Response`
+          - `httpx2.Response`
         """
         cache_key = to if to is not None else self._cast_to
         cached = self._parsed_by_type.get(cache_key)
@@ -146,11 +146,11 @@ class LegacyAPIResponse(Generic[R]):
         return cast(R, parsed)
 
     @property
-    def headers(self) -> httpx.Headers:
+    def headers(self) -> httpx2.Headers:
         return self.http_response.headers
 
     @property
-    def http_request(self) -> httpx.Request:
+    def http_request(self) -> httpx2.Request:
         return self.http_response.request
 
     @property
@@ -158,7 +158,7 @@ class LegacyAPIResponse(Generic[R]):
         return self.http_response.status_code
 
     @property
-    def url(self) -> httpx.URL:
+    def url(self) -> httpx2.URL:
         return self.http_response.url
 
     @property
@@ -303,7 +303,7 @@ class LegacyAPIResponse(Generic[R]):
             and not issubclass(origin, BaseModel)
         ):
             raise RuntimeError(
-                f"Unsupported type, expected {cast_to} to be a subclass of {BaseModel}, {dict}, {list}, {Union}, {NoneType}, {str} or {httpx.Response}."
+                f"Unsupported type, expected {cast_to} to be a subclass of {BaseModel}, {dict}, {list}, {Union}, {NoneType}, {str} or {httpx2.Response}."
             )
 
         # split is required to handle cases where additional information is included
@@ -389,9 +389,9 @@ def async_to_raw_response_wrapper(func: Callable[P, Awaitable[R]]) -> Callable[P
 
 
 class HttpxBinaryResponseContent:
-    response: httpx.Response
+    response: httpx2.Response
 
-    def __init__(self, response: httpx.Response) -> None:
+    def __init__(self, response: httpx2.Response) -> None:
         self.response = response
 
     @property

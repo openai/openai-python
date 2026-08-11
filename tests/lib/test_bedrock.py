@@ -4,17 +4,16 @@ import json
 from typing import Any, Union, Protocol, cast
 from pathlib import Path
 
-import httpx
+import httpx2
 import pytest
-from httpx import URL
-from respx import MockRouter
+from httpx2 import URL
 
 import openai.lib._bedrock_auth as bedrock_auth_module
-from openai import OpenAIError, NotFoundError
+from openai import OpenAIError, NotFoundError, DefaultHttpx2Client, DefaultAsyncHttpx2Client
 from tests.utils import update_env
+from tests.respx2 import MockRouter
 from openai._types import Omit
 from openai.lib.bedrock import BedrockOpenAI, AsyncBedrockOpenAI
-from tests._httpx2_respx import sync_http_client, async_http_client
 
 Client = Union[BedrockOpenAI, AsyncBedrockOpenAI]
 
@@ -76,7 +75,7 @@ INPUT_TOKENS_BODY: dict[str, Any] = {
 
 
 class MockRequestCall(Protocol):
-    request: httpx.Request
+    request: httpx2.Request
 
 
 class MockAwsCredentials:
@@ -87,11 +86,11 @@ class MockAwsCredentials:
 
 
 def make_sync_client(**kwargs: Any) -> BedrockOpenAI:
-    return BedrockOpenAI(http_client=sync_http_client(trust_env=False), **kwargs)
+    return BedrockOpenAI(http_client=DefaultHttpx2Client(trust_env=False), **kwargs)
 
 
 def make_async_client(**kwargs: Any) -> AsyncBedrockOpenAI:
-    return AsyncBedrockOpenAI(http_client=async_http_client(trust_env=False), **kwargs)
+    return AsyncBedrockOpenAI(http_client=DefaultAsyncHttpx2Client(trust_env=False), **kwargs)
 
 
 def response_created_sse() -> str:
@@ -133,14 +132,14 @@ def test_bedrock_config_precedence(client_cls: type[Client]) -> None:
     assert client.api_key == "explicit token"
 
 
-@pytest.mark.respx()
-def test_env_bearer_does_not_require_botocore(monkeypatch: pytest.MonkeyPatch, respx_mock: MockRouter) -> None:
+@pytest.mark.respx2()
+def test_env_bearer_does_not_require_botocore(monkeypatch: pytest.MonkeyPatch, respx2_mock: MockRouter) -> None:
     def load_botocore() -> None:
         raise AssertionError("bearer authentication must not import botocore")
 
     monkeypatch.setattr(bedrock_auth_module, "_load_botocore", load_botocore)
-    respx_mock.post("https://example.com/openai/v1/responses").mock(
-        return_value=httpx.Response(200, json=RESPONSE_BODY)
+    respx2_mock.post("https://example.com/openai/v1/responses").mock(
+        return_value=httpx2.Response(200, json=RESPONSE_BODY)
     )
     with update_env(
         AWS_BEDROCK_BASE_URL="https://example.com/openai/v1",
@@ -150,7 +149,7 @@ def test_env_bearer_does_not_require_botocore(monkeypatch: pytest.MonkeyPatch, r
 
     client.responses.create(model="gpt-4o", input="hello")
 
-    request = cast("list[MockRequestCall]", respx_mock.calls)[0].request
+    request = cast("list[MockRequestCall]", respx2_mock.calls)[0].request
     assert request.headers["Authorization"] == "Bearer env token"
 
 
@@ -165,11 +164,11 @@ def test_empty_env_bearer_without_botocore_uses_aws_credentials(monkeypatch: pyt
     with update_env(AWS_BEDROCK_BASE_URL=Omit(), AWS_BEARER_TOKEN_BEDROCK="", AWS_REGION="us-east-1"):
         client = make_sync_client()
         with pytest.raises(OpenAIError, match="requires optional AWS dependencies"):
-            client.get("/models", cast_to=httpx.Response)
+            client.get("/models", cast_to=httpx2.Response)
 
 
-@pytest.mark.respx()
-def test_env_bearer_does_not_use_botocore_bearer_auth(monkeypatch: pytest.MonkeyPatch, respx_mock: MockRouter) -> None:
+@pytest.mark.respx2()
+def test_env_bearer_does_not_use_botocore_bearer_auth(monkeypatch: pytest.MonkeyPatch, respx2_mock: MockRouter) -> None:
     auth_module = pytest.importorskip("botocore.auth")
     calls = 0
     real_add_auth = auth_module.BearerAuth.add_auth
@@ -180,15 +179,15 @@ def test_env_bearer_does_not_use_botocore_bearer_auth(monkeypatch: pytest.Monkey
         real_add_auth(auth, request)
 
     monkeypatch.setattr(auth_module.BearerAuth, "add_auth", add_auth)
-    respx_mock.post("https://example.com/openai/v1/responses").mock(
-        return_value=httpx.Response(200, json=RESPONSE_BODY)
+    respx2_mock.post("https://example.com/openai/v1/responses").mock(
+        return_value=httpx2.Response(200, json=RESPONSE_BODY)
     )
     with update_env(AWS_BEARER_TOKEN_BEDROCK="env token"):
         client = make_sync_client(base_url="https://example.com/openai/v1")
 
     client.responses.create(model="gpt-4o", input="hello")
 
-    request = cast("list[MockRequestCall]", respx_mock.calls)[0].request
+    request = cast("list[MockRequestCall]", respx2_mock.calls)[0].request
     assert request.headers["Authorization"] == "Bearer env token"
     assert calls == 0
 
@@ -322,57 +321,57 @@ def test_requires_refreshable_tokens_to_use_provider_option(client_cls: type[Cli
         )
 
 
-@pytest.mark.respx()
-def test_token_provider_refresh_sync(respx_mock: MockRouter) -> None:
-    respx_mock.post("https://example.com/openai/v1/responses").mock(
+@pytest.mark.respx2()
+def test_token_provider_refresh_sync(respx2_mock: MockRouter) -> None:
+    respx2_mock.post("https://example.com/openai/v1/responses").mock(
         side_effect=[
-            httpx.Response(500, json={"error": "server error"}),
-            httpx.Response(200, json=RESPONSE_BODY),
+            httpx2.Response(500, json={"error": "server error"}),
+            httpx2.Response(200, json=RESPONSE_BODY),
         ]
     )
     tokens = iter(["first", "second"])
     client = BedrockOpenAI(
         base_url="https://example.com/openai/v1",
         bedrock_token_provider=lambda: next(tokens),
-        http_client=sync_http_client(trust_env=False),
+        http_client=DefaultHttpx2Client(trust_env=False),
         max_retries=1,
     )
 
     client.responses.create(model="gpt-4o", input="hello")
 
-    calls = cast("list[MockRequestCall]", respx_mock.calls)
+    calls = cast("list[MockRequestCall]", respx2_mock.calls)
     assert calls[0].request.headers["Authorization"] == "Bearer first"
     assert calls[1].request.headers["Authorization"] == "Bearer second"
 
 
 @pytest.mark.asyncio
-@pytest.mark.respx()
-async def test_token_provider_refresh_async(respx_mock: MockRouter) -> None:
-    respx_mock.post("https://example.com/openai/v1/responses").mock(
+@pytest.mark.respx2()
+async def test_token_provider_refresh_async(respx2_mock: MockRouter) -> None:
+    respx2_mock.post("https://example.com/openai/v1/responses").mock(
         side_effect=[
-            httpx.Response(500, json={"error": "server error"}),
-            httpx.Response(200, json=RESPONSE_BODY),
+            httpx2.Response(500, json={"error": "server error"}),
+            httpx2.Response(200, json=RESPONSE_BODY),
         ]
     )
     tokens = iter(["first", "second"])
     client = AsyncBedrockOpenAI(
         base_url="https://example.com/openai/v1",
         bedrock_token_provider=lambda: next(tokens),
-        http_client=async_http_client(trust_env=False),
+        http_client=DefaultAsyncHttpx2Client(trust_env=False),
         max_retries=1,
     )
 
     await client.responses.create(model="gpt-4o", input="hello")
 
-    calls = cast("list[MockRequestCall]", respx_mock.calls)
+    calls = cast("list[MockRequestCall]", respx2_mock.calls)
     assert calls[0].request.headers["Authorization"] == "Bearer first"
     assert calls[1].request.headers["Authorization"] == "Bearer second"
 
 
-@pytest.mark.respx()
-def test_explicit_aws_credentials_override_ambient_bearer(respx_mock: MockRouter) -> None:
-    respx_mock.post("https://example.com/openai/v1/responses").mock(
-        return_value=httpx.Response(200, json=RESPONSE_BODY)
+@pytest.mark.respx2()
+def test_explicit_aws_credentials_override_ambient_bearer(respx2_mock: MockRouter) -> None:
+    respx2_mock.post("https://example.com/openai/v1/responses").mock(
+        return_value=httpx2.Response(200, json=RESPONSE_BODY)
     )
     with update_env(AWS_BEARER_TOKEN_BEDROCK="ambient token"):
         client = BedrockOpenAI(
@@ -381,22 +380,22 @@ def test_explicit_aws_credentials_override_ambient_bearer(respx_mock: MockRouter
             aws_access_key_id="access key",
             aws_secret_access_key="secret key",
             aws_session_token="session token",
-            http_client=sync_http_client(trust_env=False),
+            http_client=DefaultHttpx2Client(trust_env=False),
         )
 
     client.responses.create(model="gpt-4o", input="hello")
 
-    request = cast("list[MockRequestCall]", respx_mock.calls)[0].request
+    request = cast("list[MockRequestCall]", respx2_mock.calls)[0].request
     assert request.headers["Authorization"].startswith("AWS4-HMAC-SHA256 Credential=access key/")
     assert request.headers["X-Amz-Security-Token"] == "session token"
 
 
-@pytest.mark.respx()
-def test_aws_credentials_provider_refreshes_before_retries(respx_mock: MockRouter) -> None:
-    respx_mock.post("https://example.com/openai/v1/responses").mock(
+@pytest.mark.respx2()
+def test_aws_credentials_provider_refreshes_before_retries(respx2_mock: MockRouter) -> None:
+    respx2_mock.post("https://example.com/openai/v1/responses").mock(
         side_effect=[
-            httpx.Response(500, json={"error": "server error"}),
-            httpx.Response(200, json=RESPONSE_BODY),
+            httpx2.Response(500, json={"error": "server error"}),
+            httpx2.Response(200, json=RESPONSE_BODY),
         ]
     )
     credentials = iter(
@@ -409,13 +408,13 @@ def test_aws_credentials_provider_refreshes_before_retries(respx_mock: MockRoute
         base_url="https://example.com/openai/v1",
         aws_region="us-east-1",
         aws_credentials_provider=lambda: next(credentials),
-        http_client=sync_http_client(trust_env=False),
+        http_client=DefaultHttpx2Client(trust_env=False),
         max_retries=1,
     )
 
     client.responses.create(model="gpt-4o", input="hello")
 
-    calls = cast("list[MockRequestCall]", respx_mock.calls)
+    calls = cast("list[MockRequestCall]", respx2_mock.calls)
     assert "Credential=first access key/" in calls[0].request.headers["Authorization"]
     assert calls[0].request.headers["X-Amz-Security-Token"] == "first session token"
     assert "Credential=second access key/" in calls[1].request.headers["Authorization"]
@@ -426,7 +425,7 @@ def test_preserves_token_provider_across_with_options() -> None:
     client = BedrockOpenAI(
         base_url="https://example.com/openai/v1",
         bedrock_token_provider=lambda: "provider token",
-        http_client=sync_http_client(trust_env=False),
+        http_client=DefaultHttpx2Client(trust_env=False),
     )
 
     copied_client = client.with_options(timeout=1)
@@ -435,65 +434,65 @@ def test_preserves_token_provider_across_with_options() -> None:
 
 
 def test_preserves_environment_bearer_across_with_options() -> None:
-    requests: list[httpx.Request] = []
+    requests: list[httpx2.Request] = []
 
-    def handler(request: httpx.Request) -> httpx.Response:
+    def handler(request: httpx2.Request) -> httpx2.Response:
         requests.append(request)
-        return httpx.Response(200, request=request, json={})
+        return httpx2.Response(200, request=request, json={})
 
     with update_env(AWS_BEARER_TOKEN_BEDROCK="first token"):
         client = BedrockOpenAI(
             base_url="https://example.com/openai/v1",
-            http_client=httpx.Client(transport=httpx.MockTransport(handler), trust_env=False),
+            http_client=httpx2.Client(transport=httpx2.MockTransport(handler), trust_env=False),
         )
 
     with update_env(AWS_BEARER_TOKEN_BEDROCK="second token"):
         copied_client = client.with_options(timeout=1)
-        copied_client.get("/models", cast_to=httpx.Response)
+        copied_client.get("/models", cast_to=httpx2.Response)
 
     assert copied_client.api_key == "first token"
     assert requests[0].headers["Authorization"] == "Bearer first token"
 
 
 def test_environment_bearer_routing_copy_remains_mutable() -> None:
-    requests: list[httpx.Request] = []
+    requests: list[httpx2.Request] = []
 
-    def handler(request: httpx.Request) -> httpx.Response:
+    def handler(request: httpx2.Request) -> httpx2.Response:
         requests.append(request)
-        return httpx.Response(200, request=request, json={})
+        return httpx2.Response(200, request=request, json={})
 
     with update_env(AWS_BEARER_TOKEN_BEDROCK="first token"):
         client = BedrockOpenAI(
             aws_region="us-east-1",
-            http_client=httpx.Client(transport=httpx.MockTransport(handler), trust_env=False),
+            http_client=httpx2.Client(transport=httpx2.MockTransport(handler), trust_env=False),
         )
     copied_client = client.with_options(aws_region="us-west-2")
     copied_client.api_key = "second token"
-    copied_client.get("/models", cast_to=httpx.Response)
+    copied_client.get("/models", cast_to=httpx2.Response)
 
     assert copied_client.api_key == "second token"
     assert requests[0].headers["Authorization"] == "Bearer second token"
 
 
 def test_legacy_api_key_mutation_updates_requests_and_copies() -> None:
-    requests: list[httpx.Request] = []
+    requests: list[httpx2.Request] = []
 
-    def handler(request: httpx.Request) -> httpx.Response:
+    def handler(request: httpx2.Request) -> httpx2.Response:
         requests.append(request)
-        return httpx.Response(200, request=request, json={})
+        return httpx2.Response(200, request=request, json={})
 
     client = BedrockOpenAI(
         base_url="https://example.com/openai/v1",
         api_key="first token",
-        http_client=httpx.Client(transport=httpx.MockTransport(handler), trust_env=False),
+        http_client=httpx2.Client(transport=httpx2.MockTransport(handler), trust_env=False),
     )
     client.api_key = "second token"
-    client.get("/models", cast_to=httpx.Response)
+    client.get("/models", cast_to=httpx2.Response)
     copied_client = client.with_options(timeout=1)
-    copied_client.get("/models", cast_to=httpx.Response)
+    copied_client.get("/models", cast_to=httpx2.Response)
     client.api_key = "first token"
     reverted_client = client.with_options(timeout=2)
-    reverted_client.get("/models", cast_to=httpx.Response)
+    reverted_client.get("/models", cast_to=httpx2.Response)
 
     assert copied_client.api_key == "second token"
     assert reverted_client.api_key == "first token"
@@ -505,21 +504,21 @@ def test_legacy_api_key_mutation_updates_requests_and_copies() -> None:
 
 
 def test_legacy_api_key_mutation_switches_aws_client_to_bearer() -> None:
-    requests: list[httpx.Request] = []
+    requests: list[httpx2.Request] = []
 
-    def handler(request: httpx.Request) -> httpx.Response:
+    def handler(request: httpx2.Request) -> httpx2.Response:
         requests.append(request)
-        return httpx.Response(200, request=request, json={})
+        return httpx2.Response(200, request=request, json={})
 
     client = BedrockOpenAI(
         base_url="https://example.com/openai/v1",
         aws_region="us-east-1",
         aws_access_key_id="access key",
         aws_secret_access_key="secret key",
-        http_client=httpx.Client(transport=httpx.MockTransport(handler), trust_env=False),
+        http_client=httpx2.Client(transport=httpx2.MockTransport(handler), trust_env=False),
     )
     client.api_key = "bearer token"
-    client.get("/models", cast_to=httpx.Response, options={"follow_redirects": True})
+    client.get("/models", cast_to=httpx2.Response, options={"follow_redirects": True})
 
     assert requests[0].headers["Authorization"] == "Bearer bearer token"
 
@@ -528,7 +527,7 @@ def test_explicit_aws_copy_override_wins_over_mutated_api_key() -> None:
     client = BedrockOpenAI(
         base_url="https://example.com/openai/v1",
         api_key="first token",
-        http_client=sync_http_client(trust_env=False),
+        http_client=DefaultHttpx2Client(trust_env=False),
     )
     client.api_key = "second token"
 
@@ -545,20 +544,20 @@ def test_explicit_aws_copy_override_wins_over_mutated_api_key() -> None:
 def test_clearing_legacy_bearer_does_not_switch_to_aws_authentication() -> None:
     network_calls = 0
 
-    def handler(request: httpx.Request) -> httpx.Response:
+    def handler(request: httpx2.Request) -> httpx2.Response:
         nonlocal network_calls
         network_calls += 1
-        return httpx.Response(200, request=request)
+        return httpx2.Response(200, request=request)
 
     with update_env(AWS_ACCESS_KEY_ID="access key", AWS_SECRET_ACCESS_KEY="secret key"):
         client = BedrockOpenAI(
             base_url="https://example.com/openai/v1",
             api_key="bearer token",
-            http_client=httpx.Client(transport=httpx.MockTransport(handler), trust_env=False),
+            http_client=httpx2.Client(transport=httpx2.MockTransport(handler), trust_env=False),
         )
         client.api_key = None  # type: ignore[assignment]
         with pytest.raises(OpenAIError, match="bearer credential must not be empty"):
-            client.get("/models", cast_to=httpx.Response)
+            client.get("/models", cast_to=httpx2.Response)
 
     assert network_calls == 0
 
@@ -570,7 +569,7 @@ def test_legacy_state_repr_does_not_expose_credentials() -> None:
         aws_access_key_id="secret access key id",
         aws_secret_access_key="secret access key",
         aws_session_token="secret session token",
-        http_client=sync_http_client(trust_env=False),
+        http_client=DefaultHttpx2Client(trust_env=False),
     )
 
     assert "secret" not in repr(client._bedrock_state)
@@ -578,7 +577,7 @@ def test_legacy_state_repr_does_not_expose_credentials() -> None:
     bearer_client = BedrockOpenAI(
         base_url="https://example.com/openai/v1",
         api_key="secret bearer token",
-        http_client=sync_http_client(trust_env=False),
+        http_client=DefaultHttpx2Client(trust_env=False),
     )
     assert "secret bearer token" not in repr(bearer_client._bedrock_runtime_signature)
 
@@ -648,7 +647,7 @@ def test_preserves_aws_credentials_across_with_options() -> None:
         aws_region="us-east-1",
         aws_access_key_id="access key",
         aws_secret_access_key="secret key",
-        http_client=sync_http_client(trust_env=False),
+        http_client=DefaultHttpx2Client(trust_env=False),
     )
 
     copied_client = client.with_options(timeout=1)
@@ -912,13 +911,13 @@ def test_with_options_supports_subclasses_with_the_previous_constructor_signatur
             organization: str | None = None,
             project: str | None = None,
             webhook_secret: str | None = None,
-            base_url: str | httpx.URL | None = None,
-            websocket_base_url: str | httpx.URL | None = None,
+            base_url: str | httpx2.URL | None = None,
+            websocket_base_url: str | httpx2.URL | None = None,
             timeout: Any = None,
             max_retries: int = 2,
             default_headers: Any = None,
             default_query: Any = None,
-            http_client: httpx.Client | None = None,
+            http_client: httpx2.Client | None = None,
             _enforce_credentials: bool = True,
         ) -> None:
             super().__init__(
@@ -942,7 +941,7 @@ def test_with_options_supports_subclasses_with_the_previous_constructor_signatur
         client = LegacyBedrockOpenAI(
             api_key="token",
             aws_region="us-east-1",
-            http_client=sync_http_client(trust_env=False),
+            http_client=DefaultHttpx2Client(trust_env=False),
         )
 
         copied_client = client.with_options(timeout=1).with_options(aws_region="us-west-2")
@@ -1031,10 +1030,10 @@ def test_rejects_non_bedrock_copy_auth(copy_kwargs: dict[str, Any]) -> None:
         client.with_options(**copy_kwargs)
 
 
-@pytest.mark.respx()
-def test_passes_non_responses_resources_through(respx_mock: MockRouter) -> None:
-    respx_mock.post("https://example.com/openai/v1/chat/completions").mock(
-        return_value=httpx.Response(
+@pytest.mark.respx2()
+def test_passes_non_responses_resources_through(respx2_mock: MockRouter) -> None:
+    respx2_mock.post("https://example.com/openai/v1/chat/completions").mock(
+        return_value=httpx2.Response(
             404,
             json={"error": {"message": "AWS does not support chat completions here"}},
             headers={"x-request-id": "req_chat"},
@@ -1046,15 +1045,15 @@ def test_passes_non_responses_resources_through(respx_mock: MockRouter) -> None:
         client.chat.completions.create(model="gpt-4o", messages=[])
 
     assert exc.value.request_id == "req_chat"
-    calls = cast("list[MockRequestCall]", respx_mock.calls)
+    calls = cast("list[MockRequestCall]", respx2_mock.calls)
     assert calls[0].request.url == URL("https://example.com/openai/v1/chat/completions")
 
 
 @pytest.mark.asyncio
-@pytest.mark.respx()
-async def test_passes_non_responses_resources_through_async(respx_mock: MockRouter) -> None:
-    respx_mock.post("https://example.com/openai/v1/chat/completions").mock(
-        return_value=httpx.Response(
+@pytest.mark.respx2()
+async def test_passes_non_responses_resources_through_async(respx2_mock: MockRouter) -> None:
+    respx2_mock.post("https://example.com/openai/v1/chat/completions").mock(
+        return_value=httpx2.Response(
             404,
             json={"error": {"message": "AWS does not support chat completions here"}},
             headers={"x-request-id": "req_chat"},
@@ -1066,14 +1065,14 @@ async def test_passes_non_responses_resources_through_async(respx_mock: MockRout
         await client.chat.completions.create(model="gpt-4o", messages=[])
 
     assert exc.value.request_id == "req_chat"
-    calls = cast("list[MockRequestCall]", respx_mock.calls)
+    calls = cast("list[MockRequestCall]", respx2_mock.calls)
     assert calls[0].request.url == URL("https://example.com/openai/v1/chat/completions")
 
 
-@pytest.mark.respx()
-def test_passes_responses_features_through(respx_mock: MockRouter) -> None:
-    respx_mock.post("https://example.com/openai/v1/responses").mock(
-        return_value=httpx.Response(200, json=RESPONSE_BODY)
+@pytest.mark.respx2()
+def test_passes_responses_features_through(respx2_mock: MockRouter) -> None:
+    respx2_mock.post("https://example.com/openai/v1/responses").mock(
+        return_value=httpx2.Response(200, json=RESPONSE_BODY)
     )
     client = make_sync_client(base_url="https://example.com/openai/v1", api_key="token")
 
@@ -1084,14 +1083,14 @@ def test_passes_responses_features_through(respx_mock: MockRouter) -> None:
     )
 
     assert response.id == "resp_123"
-    calls = cast("list[MockRequestCall]", respx_mock.calls)
+    calls = cast("list[MockRequestCall]", respx2_mock.calls)
     assert json.loads(calls[0].request.content)["tools"] == [{"type": "web_search_preview"}]
 
 
-@pytest.mark.respx()
-def test_passes_admin_security_routes_through(respx_mock: MockRouter) -> None:
-    respx_mock.get("https://example.com/openai/v1/organization/invites").mock(
-        return_value=httpx.Response(
+@pytest.mark.respx2()
+def test_passes_admin_security_routes_through(respx2_mock: MockRouter) -> None:
+    respx2_mock.get("https://example.com/openai/v1/organization/invites").mock(
+        return_value=httpx2.Response(
             404,
             json={"error": {"message": "AWS does not support organization invites here"}},
             headers={"x-request-id": "req_admin"},
@@ -1102,16 +1101,16 @@ def test_passes_admin_security_routes_through(respx_mock: MockRouter) -> None:
     with pytest.raises(NotFoundError, match="AWS does not support organization invites here"):
         list(client.admin.organization.invites.list())
 
-    calls = cast("list[MockRequestCall]", respx_mock.calls)
+    calls = cast("list[MockRequestCall]", respx2_mock.calls)
     assert calls[0].request.headers["Authorization"] == "Bearer token"
 
 
-@pytest.mark.respx()
-def test_refreshes_token_provider_for_admin_security_routes(respx_mock: MockRouter) -> None:
-    respx_mock.get("https://example.com/openai/v1/organization/invites").mock(
+@pytest.mark.respx2()
+def test_refreshes_token_provider_for_admin_security_routes(respx2_mock: MockRouter) -> None:
+    respx2_mock.get("https://example.com/openai/v1/organization/invites").mock(
         side_effect=[
-            httpx.Response(500, json={"error": "server error"}),
-            httpx.Response(
+            httpx2.Response(500, json={"error": "server error"}),
+            httpx2.Response(
                 404,
                 json={"error": {"message": "AWS does not support organization invites here"}},
                 headers={"x-request-id": "req_admin"},
@@ -1122,43 +1121,43 @@ def test_refreshes_token_provider_for_admin_security_routes(respx_mock: MockRout
     client = BedrockOpenAI(
         base_url="https://example.com/openai/v1",
         bedrock_token_provider=lambda: next(tokens),
-        http_client=sync_http_client(trust_env=False),
+        http_client=DefaultHttpx2Client(trust_env=False),
         max_retries=1,
     )
 
     with pytest.raises(NotFoundError, match="AWS does not support organization invites here"):
         list(client.admin.organization.invites.list())
 
-    calls = cast("list[MockRequestCall]", respx_mock.calls)
+    calls = cast("list[MockRequestCall]", respx2_mock.calls)
     assert calls[0].request.headers["Authorization"] == "Bearer first"
     assert calls[1].request.headers["Authorization"] == "Bearer second"
 
 
-@pytest.mark.respx()
-def test_allows_responses_http_methods(respx_mock: MockRouter) -> None:
-    respx_mock.post("https://example.com/openai/v1/responses").mock(
-        return_value=httpx.Response(200, json=RESPONSE_BODY)
+@pytest.mark.respx2()
+def test_allows_responses_http_methods(respx2_mock: MockRouter) -> None:
+    respx2_mock.post("https://example.com/openai/v1/responses").mock(
+        return_value=httpx2.Response(200, json=RESPONSE_BODY)
     )
-    respx_mock.get("https://example.com/openai/v1/responses/resp_123?starting_after=1&stream=true").mock(
-        return_value=httpx.Response(200, text=response_created_sse(), headers={"Content-Type": "text/event-stream"})
+    respx2_mock.get("https://example.com/openai/v1/responses/resp_123?starting_after=1&stream=true").mock(
+        return_value=httpx2.Response(200, text=response_created_sse(), headers={"Content-Type": "text/event-stream"})
     )
-    respx_mock.get("https://example.com/openai/v1/responses/resp_123?stream=true").mock(
-        return_value=httpx.Response(200, text=response_created_sse(), headers={"Content-Type": "text/event-stream"})
+    respx2_mock.get("https://example.com/openai/v1/responses/resp_123?stream=true").mock(
+        return_value=httpx2.Response(200, text=response_created_sse(), headers={"Content-Type": "text/event-stream"})
     )
-    respx_mock.get("https://example.com/openai/v1/responses/resp_123").mock(
-        return_value=httpx.Response(200, json=RESPONSE_BODY)
+    respx2_mock.get("https://example.com/openai/v1/responses/resp_123").mock(
+        return_value=httpx2.Response(200, json=RESPONSE_BODY)
     )
-    respx_mock.post("https://example.com/openai/v1/responses/resp_123/cancel").mock(
-        return_value=httpx.Response(200, json=RESPONSE_BODY)
+    respx2_mock.post("https://example.com/openai/v1/responses/resp_123/cancel").mock(
+        return_value=httpx2.Response(200, json=RESPONSE_BODY)
     )
-    respx_mock.post("https://example.com/openai/v1/responses/compact").mock(
-        return_value=httpx.Response(200, json=COMPACTED_RESPONSE_BODY)
+    respx2_mock.post("https://example.com/openai/v1/responses/compact").mock(
+        return_value=httpx2.Response(200, json=COMPACTED_RESPONSE_BODY)
     )
-    respx_mock.get("https://example.com/openai/v1/responses/resp_123/input_items").mock(
-        return_value=httpx.Response(200, json=INPUT_ITEMS_BODY)
+    respx2_mock.get("https://example.com/openai/v1/responses/resp_123/input_items").mock(
+        return_value=httpx2.Response(200, json=INPUT_ITEMS_BODY)
     )
-    respx_mock.post("https://example.com/openai/v1/responses/input_tokens").mock(
-        return_value=httpx.Response(200, json=INPUT_TOKENS_BODY)
+    respx2_mock.post("https://example.com/openai/v1/responses/input_tokens").mock(
+        return_value=httpx2.Response(200, json=INPUT_TOKENS_BODY)
     )
     client = make_sync_client(base_url="https://example.com/openai/v1", api_key="token")
 
@@ -1173,17 +1172,17 @@ def test_allows_responses_http_methods(respx_mock: MockRouter) -> None:
     assert list(client.responses.input_items.list("resp_123")) == []
     assert client.responses.input_tokens.count(model="gpt-4o", input="hello").input_tokens == 1
 
-    calls = cast("list[MockRequestCall]", respx_mock.calls)
+    calls = cast("list[MockRequestCall]", respx2_mock.calls)
     assert {call.request.headers["Authorization"] for call in calls} == {"Bearer token"}
 
 
-@pytest.mark.respx()
-def test_allows_sse_and_response_wrappers(respx_mock: MockRouter) -> None:
-    respx_mock.post("https://example.com/openai/v1/responses").mock(
+@pytest.mark.respx2()
+def test_allows_sse_and_response_wrappers(respx2_mock: MockRouter) -> None:
+    respx2_mock.post("https://example.com/openai/v1/responses").mock(
         side_effect=[
-            httpx.Response(200, text=response_created_sse(), headers={"Content-Type": "text/event-stream"}),
-            httpx.Response(200, json=RESPONSE_BODY),
-            httpx.Response(200, json=RESPONSE_BODY),
+            httpx2.Response(200, text=response_created_sse(), headers={"Content-Type": "text/event-stream"}),
+            httpx2.Response(200, json=RESPONSE_BODY),
+            httpx2.Response(200, json=RESPONSE_BODY),
         ]
     )
     client = make_sync_client(base_url="https://example.com/openai/v1", api_key="token")
