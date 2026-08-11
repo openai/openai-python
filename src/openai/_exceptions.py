@@ -71,7 +71,8 @@ class APIError(OpenAIError):
         self.body = body
 
         if is_dict(body):
-            self.code = cast(Any, construct_type(type_=Optional[str], value=body.get("code")))
+            code = body.get("code")
+            self.code = str(code) if code is not None else None
             self.param = cast(Any, construct_type(type_=Optional[str], value=body.get("param")))
             self.type = cast(Any, construct_type(type_=str, value=body.get("type")))
         else:

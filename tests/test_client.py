@@ -125,6 +125,12 @@ def _get_open_connections(client: OpenAI | AsyncOpenAI) -> int:
 
 
 class TestOpenAI:
+    def test_api_error_code_is_string(self) -> None:
+        response = httpx.Response(400, request=httpx.Request("GET", base_url))
+        error = APIStatusError("Error", response=response, body={"code": 404})
+
+        assert error.code == "404"
+
     @pytest.mark.respx(base_url=base_url)
     def test_raw_response(self, respx_mock: MockRouter, client: OpenAI) -> None:
         respx_mock.post("/foo").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
