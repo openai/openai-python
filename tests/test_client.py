@@ -1,5 +1,3 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
-
 from __future__ import annotations
 
 import gc
@@ -188,13 +186,13 @@ class TestOpenAI:
         assert copied.default_headers["X-Foo"] == "bar"
 
         # merges already given headers
-        copied = client.copy(default_headers={"X-Bar": "stainless"})
+        copied = client.copy(default_headers={"X-Bar": "openai"})
         assert copied.default_headers["X-Foo"] == "bar"
-        assert copied.default_headers["X-Bar"] == "stainless"
+        assert copied.default_headers["X-Bar"] == "openai"
 
         # uses new values for any already given headers
-        copied = client.copy(default_headers={"X-Foo": "stainless"})
-        assert copied.default_headers["X-Foo"] == "stainless"
+        copied = client.copy(default_headers={"X-Foo": "openai"})
+        assert copied.default_headers["X-Foo"] == "openai"
 
         # set_default_headers
 
@@ -227,14 +225,14 @@ class TestOpenAI:
         assert _get_params(copied)["foo"] == "bar"
 
         # merges already given params
-        copied = client.copy(default_query={"bar": "stainless"})
+        copied = client.copy(default_query={"bar": "openai"})
         params = _get_params(copied)
         assert params["foo"] == "bar"
-        assert params["bar"] == "stainless"
+        assert params["bar"] == "openai"
 
         # uses new values for any already given headers
-        copied = client.copy(default_query={"foo": "stainless"})
-        assert _get_params(copied)["foo"] == "stainless"
+        copied = client.copy(default_query={"foo": "openai"})
+        assert _get_params(copied)["foo"] == "openai"
 
         # set_default_query
 
@@ -435,12 +433,12 @@ class TestOpenAI:
             admin_api_key=admin_api_key,
             _strict_response_validation=True,
             default_headers={
-                "X-Foo": "stainless",
+                "X-Foo": "openai",
                 "X-Stainless-Lang": "my-overriding-header",
             },
         )
         request = test_client2._build_request(FinalRequestOptions(method="get", url="/foo"))
-        assert request.headers.get("x-foo") == "stainless"
+        assert request.headers.get("x-foo") == "openai"
         assert request.headers.get("x-stainless-lang") == "my-overriding-header"
 
         test_client.close()
@@ -1502,13 +1500,13 @@ class TestAsyncOpenAI:
         assert copied.default_headers["X-Foo"] == "bar"
 
         # merges already given headers
-        copied = client.copy(default_headers={"X-Bar": "stainless"})
+        copied = client.copy(default_headers={"X-Bar": "openai"})
         assert copied.default_headers["X-Foo"] == "bar"
-        assert copied.default_headers["X-Bar"] == "stainless"
+        assert copied.default_headers["X-Bar"] == "openai"
 
         # uses new values for any already given headers
-        copied = client.copy(default_headers={"X-Foo": "stainless"})
-        assert copied.default_headers["X-Foo"] == "stainless"
+        copied = client.copy(default_headers={"X-Foo": "openai"})
+        assert copied.default_headers["X-Foo"] == "openai"
 
         # set_default_headers
 
@@ -1541,14 +1539,14 @@ class TestAsyncOpenAI:
         assert _get_params(copied)["foo"] == "bar"
 
         # merges already given params
-        copied = client.copy(default_query={"bar": "stainless"})
+        copied = client.copy(default_query={"bar": "openai"})
         params = _get_params(copied)
         assert params["foo"] == "bar"
-        assert params["bar"] == "stainless"
+        assert params["bar"] == "openai"
 
         # uses new values for any already given headers
-        copied = client.copy(default_query={"foo": "stainless"})
-        assert _get_params(copied)["foo"] == "stainless"
+        copied = client.copy(default_query={"foo": "openai"})
+        assert _get_params(copied)["foo"] == "openai"
 
         # set_default_query
 
@@ -1751,12 +1749,12 @@ class TestAsyncOpenAI:
             admin_api_key=admin_api_key,
             _strict_response_validation=True,
             default_headers={
-                "X-Foo": "stainless",
+                "X-Foo": "openai",
                 "X-Stainless-Lang": "my-overriding-header",
             },
         )
         request = test_client2._build_request(FinalRequestOptions(method="get", url="/foo"))
-        assert request.headers.get("x-foo") == "stainless"
+        assert request.headers.get("x-foo") == "openai"
         assert request.headers.get("x-stainless-lang") == "my-overriding-header"
 
         await test_client.close()
