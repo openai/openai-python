@@ -59,17 +59,11 @@ jobs:
         with:
           path: openai-python
 
-      - name: Set up Rye
-        uses: eifinger/setup-rye@c694239a43768373e87d0103d7f547027a23f3c8
+      - name: Check out the base SDK
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
-          version: '0.44.0'
-          enable-cache: true
-          working-directory: openai-python
-
-      - name: Install dependencies
-        working-directory: openai-python
-        run: |
-          rye sync --all-features
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: openai-python-base
 
       # Setup the agents lib
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -82,14 +76,53 @@ jobs:
         with:
           enable-cache: true
 
-      - name: Link to local SDK
+      - name: Detect Agents SDK regressions
         working-directory: openai-agents-python
-        run: uv add ../openai-python
+        env:
+          BASE_SDK: ../openai-python-base
+          PR_SDK: ../openai-python
+        run: |
+          base_errors="$RUNNER_TEMP/agents-base-mypy.jsonl"
+          pr_errors="$RUNNER_TEMP/agents-pr-mypy.jsonl"
 
-      - name: Install dependencies
-        working-directory: openai-agents-python
-        run: make sync
+          run_mypy() {
+            local label="$1"
+            local output="$2"
+            local status
 
-      - name: Run integration type checks
-        working-directory: openai-agents-python
-        run: make mypy
+            set +e
+            uv run mypy src -O json > "$output"
+            status=$?
+            set -e
+
+            sed '/^[[:space:]]*$/d' "$output" > "$output.normalized"
+            mv "$output.normalized" "$output"
+
+            if (( status > 1 )) || { (( status == 1 )) && [[ ! -s "$output" ]]; }; then
+              echo "::error::The Agents SDK $label check failed unexpectedly (mypy exit $status)."
+              exit "$status"
+            fi
+          }
+
+          uv add "$BASE_SDK"
+          make sync
+          run_mypy baseline "$base_errors"
+
+          uv add "$PR_SDK"
+          make sync
+          run_mypy PR "$pr_errors"
+
+          LC_ALL=C sort -u "$base_errors" > "$RUNNER_TEMP/agents-base-mypy.sorted"
+          LC_ALL=C sort -u "$pr_errors" > "$RUNNER_TEMP/agents-pr-mypy.sorted"
+          comm -13 \
+            "$RUNNER_TEMP/agents-base-mypy.sorted" \
+            "$RUNNER_TEMP/agents-pr-mypy.sorted" \
+            > "$RUNNER_TEMP/agents-new-mypy-errors.jsonl"
+
+          if [[ -s "$RUNNER_TEMP/agents-new-mypy-errors.jsonl" ]]; then
+            echo '::error::The PR adds Agents SDK type-checking errors beyond the existing baseline.'
+            cat "$RUNNER_TEMP/agents-new-mypy-errors.jsonl"
+            exit 1
+          fi
+
+          echo '::notice::The PR introduces no new Agents SDK type-checking errors beyond the PR base.'
