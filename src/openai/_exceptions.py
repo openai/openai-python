@@ -71,7 +71,8 @@ class APIError(OpenAIError):
         self.body = body
 
         if is_dict(body):
-            self.code = cast(Any, construct_type(type_=Optional[Union[str, int]], value=body.get("code")))
+            code_value = body.get("code")
+            self.code = code_value if isinstance(code_value, (str, int)) else None
             self.param = cast(Any, construct_type(type_=Optional[str], value=body.get("param")))
             self.type = cast(Any, construct_type(type_=str, value=body.get("type")))
         else:
