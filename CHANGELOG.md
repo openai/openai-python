@@ -1,5 +1,16 @@
 # Changelog
 
+## [3.0.0](https://github.com/openai/openai-python/compare/v2.54.0...v3.0.0) (2026-08-12)
+
+
+### ⚠ BREAKING CHANGES
+
+* **api:** migrate to HTTPX2 ([#3594](https://github.com/openai/openai-python/issues/3594))
+
+### Features
+
+* **api:** migrate to HTTPX2 ([#3594](https://github.com/openai/openai-python/issues/3594)) ([ae8c3d5](https://github.com/openai/openai-python/commit/ae8c3d5d8be96c8253e5875e7c79b646a0c239d6))
+
 ## [2.54.0](https://github.com/openai/openai-python/compare/v2.53.0...v2.54.0) (2026-08-11)
 
 
