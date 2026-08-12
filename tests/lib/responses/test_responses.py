@@ -72,6 +72,46 @@ def test_parse_response_preserves_program_items(item: dict[str, object]) -> None
     assert parsed.output[0].to_dict() == item
 
 
+def test_parse_response_handles_null_output() -> None:
+    response = construct_type_unchecked(
+        type_=Response,
+        value={
+            "id": "resp_null_output",
+            "object": "response",
+            "created_at": 0,
+            "status": "completed",
+            "error": None,
+            "incomplete_details": None,
+            "instructions": None,
+            "max_output_tokens": None,
+            "max_tool_calls": None,
+            "model": "gpt-4o-mini",
+            "output": None,
+            "parallel_tool_calls": True,
+            "previous_response_id": None,
+            "prompt_cache_key": None,
+            "reasoning": {"effort": None, "summary": None},
+            "safety_identifier": None,
+            "service_tier": "default",
+            "store": False,
+            "temperature": 1.0,
+            "text": {"format": {"type": "text"}, "verbosity": "medium"},
+            "tool_choice": "auto",
+            "tools": [],
+            "top_logprobs": 0,
+            "top_p": 1.0,
+            "truncation": "disabled",
+            "usage": None,
+            "user": None,
+            "metadata": {},
+        },
+    )
+
+    parsed = parse_response(text_format=omit, input_tools=omit, response=response)
+
+    assert parsed.output == []
+
+
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
 def test_stream_method_definition_in_sync(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
     checking_client: OpenAI | AsyncOpenAI = client if sync else async_client
