@@ -7,7 +7,7 @@ The OpenAI Python library provides convenient access to the OpenAI REST API from
 application. The library includes type definitions for all request params and response fields,
 and offers both synchronous and asynchronous clients powered by [HTTPX2](https://httpx2.pydantic.dev/).
 
-It is generated from our [OpenAPI specification](https://github.com/openai/openai-openapi) with [Stainless](https://stainlessapi.com/).
+It is generated from our [OpenAPI specification](https://github.com/openai/openai-openapi).
 
 ## Documentation
 
