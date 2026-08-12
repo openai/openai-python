@@ -59,37 +59,85 @@ jobs:
         with:
           path: openai-python
 
-      - name: Set up Rye
-        uses: eifinger/setup-rye@c694239a43768373e87d0103d7f547027a23f3c8
+      - name: Check out the base SDK
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
-          version: '0.44.0'
-          enable-cache: true
-          working-directory: openai-python
-
-      - name: Install dependencies
-        working-directory: openai-python
-        run: |
-          rye sync --all-features
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: openai-python-base
 
       # Setup the agents lib
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           repository: openai/openai-agents-python
-          path: openai-agents-python
+          path: openai-agents-python-base
+
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          repository: openai/openai-agents-python
+          path: openai-agents-python-head
 
       - name: Setup uv
         uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
         with:
           enable-cache: true
 
-      - name: Link to local SDK
-        working-directory: openai-agents-python
-        run: uv add ../openai-python
+      - name: Install Agents SDK against the base SDK
+        working-directory: openai-agents-python-base
+        run: |
+          uv add ../openai-python-base
+          make sync
 
-      - name: Install dependencies
-        working-directory: openai-agents-python
-        run: make sync
+      - name: Install Agents SDK against the proposed SDK
+        working-directory: openai-agents-python-head
+        run: |
+          uv add ../openai-python
+          make sync
 
-      - name: Run integration type checks
-        working-directory: openai-agents-python
-        run: make mypy
+      - name: Detect new integration type errors
+        shell: bash
+        run: |
+          set +e
+          (cd openai-agents-python-base && uv run mypy src --no-color-output --no-error-summary) \
+            2>&1 | tee "$RUNNER_TEMP/agents-base-mypy.log"
+          base_status=${PIPESTATUS[0]}
+          (cd openai-agents-python-head && uv run mypy src --no-color-output --no-error-summary) \
+            2>&1 | tee "$RUNNER_TEMP/agents-head-mypy.log"
+          head_status=${PIPESTATUS[0]}
+          set -e
+
+          sed -nE '/^[^:]+:[0-9]+: error: /p' "$RUNNER_TEMP/agents-base-mypy.log" \
+            | LC_ALL=C sort > "$RUNNER_TEMP/agents-base-errors.txt"
+          sed -nE '/^[^:]+:[0-9]+: error: /p' "$RUNNER_TEMP/agents-head-mypy.log" \
+            | LC_ALL=C sort > "$RUNNER_TEMP/agents-head-errors.txt"
+
+          if (( base_status > 1 || head_status > 1 )); then
+            echo '::error::An integration type-check command failed unexpectedly.'
+            exit 1
+          fi
+
+          if (( base_status == 0 )); then
+            exit "$head_status"
+          fi
+
+          if (( head_status == 0 )); then
+            echo '::notice::The proposed SDK fixes existing Agents SDK type errors.'
+            exit 0
+          fi
+
+          if [[ ! -s "$RUNNER_TEMP/agents-base-errors.txt" || ! -s "$RUNNER_TEMP/agents-head-errors.txt" ]]; then
+            echo '::error::A type-check command failed without producing comparable mypy diagnostics.'
+            exit 1
+          fi
+
+          comm -13 \
+            "$RUNNER_TEMP/agents-base-errors.txt" \
+            "$RUNNER_TEMP/agents-head-errors.txt" \
+            > "$RUNNER_TEMP/agents-new-errors.txt"
+
+          if [[ -s "$RUNNER_TEMP/agents-new-errors.txt" ]]; then
+            echo '::error::The proposed SDK introduces new Agents SDK type errors:'
+            cat "$RUNNER_TEMP/agents-new-errors.txt"
+            exit 1
+          fi
+
+          echo '::notice::The Agents SDK has pre-existing type errors, but the proposed SDK adds none.'
