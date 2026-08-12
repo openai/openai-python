@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Union, Mapping, Optional, cast
 from typing_extensions import Literal, overload
 
-import httpx
+import httpx2
 
 from .. import _legacy_response
 from ..types import image_edit_params, image_generate_params, image_create_variation_params
@@ -61,7 +61,7 @@ class Images(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse:
         """Creates a variation of a given image.
 
@@ -150,7 +150,7 @@ class Images(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse:
         """Creates an edited or extended image given one or more source images and a
         prompt.
@@ -280,7 +280,7 @@ class Images(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Stream[ImageEditStreamEvent]:
         """Creates an edited or extended image given one or more source images and a
         prompt.
@@ -410,7 +410,7 @@ class Images(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse | Stream[ImageEditStreamEvent]:
         """Creates an edited or extended image given one or more source images and a
         prompt.
@@ -540,7 +540,7 @@ class Images(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse | Stream[ImageEditStreamEvent]:
         body = deepcopy_with_paths(
             {
@@ -614,7 +614,7 @@ class Images(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse:
         """
         Creates an image given a prompt.
@@ -740,7 +740,7 @@ class Images(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Stream[ImageGenStreamEvent]:
         """
         Creates an image given a prompt.
@@ -866,7 +866,7 @@ class Images(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse | Stream[ImageGenStreamEvent]:
         """
         Creates an image given a prompt.
@@ -992,7 +992,7 @@ class Images(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse | Stream[ImageGenStreamEvent]:
         return self._post(
             "/images/generations",
@@ -1066,7 +1066,7 @@ class AsyncImages(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse:
         """Creates a variation of a given image.
 
@@ -1155,7 +1155,7 @@ class AsyncImages(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse:
         """Creates an edited or extended image given one or more source images and a
         prompt.
@@ -1285,7 +1285,7 @@ class AsyncImages(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncStream[ImageEditStreamEvent]:
         """Creates an edited or extended image given one or more source images and a
         prompt.
@@ -1415,7 +1415,7 @@ class AsyncImages(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse | AsyncStream[ImageEditStreamEvent]:
         """Creates an edited or extended image given one or more source images and a
         prompt.
@@ -1545,7 +1545,7 @@ class AsyncImages(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse | AsyncStream[ImageEditStreamEvent]:
         body = deepcopy_with_paths(
             {
@@ -1619,7 +1619,7 @@ class AsyncImages(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse:
         """
         Creates an image given a prompt.
@@ -1745,7 +1745,7 @@ class AsyncImages(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncStream[ImageGenStreamEvent]:
         """
         Creates an image given a prompt.
@@ -1871,7 +1871,7 @@ class AsyncImages(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse | AsyncStream[ImageGenStreamEvent]:
         """
         Creates an image given a prompt.
@@ -1997,7 +1997,7 @@ class AsyncImages(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse | AsyncStream[ImageGenStreamEvent]:
         return await self._post(
             "/images/generations",

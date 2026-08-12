@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import httpx
+import httpx2
 
 from ..... import _legacy_response
 from ....._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
@@ -53,7 +53,7 @@ class RateLimits(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncConversationCursorPage[ProjectRateLimit]:
         """
         Returns the rate limits per model for a project.
@@ -118,7 +118,7 @@ class RateLimits(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ProjectRateLimit:
         """
         Updates a project rate limit.
@@ -208,7 +208,7 @@ class AsyncRateLimits(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[ProjectRateLimit, AsyncConversationCursorPage[ProjectRateLimit]]:
         """
         Returns the rate limits per model for a project.
@@ -273,7 +273,7 @@ class AsyncRateLimits(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ProjectRateLimit:
         """
         Updates a project rate limit.

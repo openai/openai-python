@@ -1,151 +1,141 @@
 from __future__ import annotations
 
 import sys
-import importlib
 from typing import Any, Protocol, cast
 
-import httpx
+import httpx2
 
 from ._constants import DEFAULT_TIMEOUT, DEFAULT_CONNECTION_LIMITS
 
 
-class _Httpx2Module(Protocol):
-    Auth: type[httpx.Auth]
-    Client: type[httpx.Client]
-    AsyncClient: type[httpx.AsyncClient]
-    URL: type[httpx.URL]
-    Response: type[httpx.Response]
-    Timeout: type[httpx.Timeout]
-    Limits: type[httpx.Limits]
-    TimeoutException: type[httpx.TimeoutException]
-    HTTPStatusError: type[httpx.HTTPStatusError]
-    StreamConsumed: type[httpx.StreamConsumed]
-    RequestNotRead: type[httpx.RequestNotRead]
+class _LegacyHttpxModule(Protocol):
+    Auth: type[httpx2.Auth]
+    Client: type[httpx2.Client]
+    AsyncClient: type[httpx2.AsyncClient]
+    URL: type[httpx2.URL]
+    Response: type[httpx2.Response]
+    Timeout: type[httpx2.Timeout]
+    Limits: type[httpx2.Limits]
+    TimeoutException: type[httpx2.TimeoutException]
+    HTTPStatusError: type[httpx2.HTTPStatusError]
+    StreamConsumed: type[httpx2.StreamConsumed]
+    RequestNotRead: type[httpx2.RequestNotRead]
 
 
-def _loaded_httpx2() -> _Httpx2Module | None:
-    module = sys.modules.get("httpx2")
-    if module is None:
-        return None
-    return cast(_Httpx2Module, module)
-
-
-def _supports_httpx2() -> bool:
-    return sys.version_info >= (3, 10)
-
-
-def _require_httpx2() -> _Httpx2Module:
-    if not _supports_httpx2():
-        raise RuntimeError(
-            "HTTPX2 requires Python 3.10 or later; install the httpx2 extra on a supported interpreter: "
-            "pip install 'openai[httpx2]'"
-        )
-
-    try:
-        module = importlib.import_module("httpx2")
-    except ImportError:
-        raise RuntimeError("To use HTTPX2, install the httpx2 extra: pip install 'openai[httpx2]'") from None
-
-    return cast(_Httpx2Module, module)
+def _loaded_legacy_httpx() -> _LegacyHttpxModule | None:
+    module = sys.modules.get("httpx")
+    return cast(_LegacyHttpxModule, module) if module is not None else None
 
 
 def is_httpx2_sync_client(value: object) -> bool:
-    module = _loaded_httpx2()
-    return module is not None and isinstance(value, module.Client)
+    return isinstance(value, httpx2.Client)
 
 
 def is_httpx2_async_client(value: object) -> bool:
-    module = _loaded_httpx2()
+    return isinstance(value, httpx2.AsyncClient)
+
+
+def is_legacy_httpx_sync_client(value: object) -> bool:
+    module = _loaded_legacy_httpx()
+    return module is not None and isinstance(value, module.Client)
+
+
+def is_legacy_httpx_async_client(value: object) -> bool:
+    module = _loaded_legacy_httpx()
     return module is not None and isinstance(value, module.AsyncClient)
 
 
-def normalize_httpx_url(value: str | httpx.URL) -> httpx.URL:
-    module = _loaded_httpx2()
-    if module is not None and isinstance(value, module.URL):
-        return httpx.URL(str(value))
-    if isinstance(value, httpx.URL):
+def normalize_httpx_url(value: str | httpx2.URL) -> httpx2.URL:
+    if isinstance(value, httpx2.URL):
         return value
-    return httpx.URL(value)
+
+    module = _loaded_legacy_httpx()
+    legacy_value: object = value
+    if module is not None and isinstance(legacy_value, module.URL):
+        return httpx2.URL(str(legacy_value))
+
+    return httpx2.URL(value)
 
 
-def http_response_types() -> tuple[type[httpx.Response], ...]:
-    module = _loaded_httpx2()
-    if module is None:
-        return (httpx.Response,)
-    return (httpx.Response, module.Response)
+def http_response_types() -> tuple[type[httpx2.Response], ...]:
+    module = _loaded_legacy_httpx()
+    return (httpx2.Response,) if module is None else (httpx2.Response, module.Response)
 
 
-def normalize_httpx_timeout(value: float | httpx.Timeout | None) -> float | httpx.Timeout | None:
-    module = _loaded_httpx2()
+def normalize_httpx_timeout(value: float | httpx2.Timeout | None) -> float | httpx2.Timeout | None:
+    module = _loaded_legacy_httpx()
     if module is not None and isinstance(value, module.Timeout):
-        return httpx.Timeout(**value.as_dict())
+        return httpx2.Timeout(**value.as_dict())
     return value
 
 
-def normalize_httpx2_timeout(value: float | httpx.Timeout | None) -> float | httpx.Timeout | None:
-    if isinstance(value, httpx.Timeout):
-        return _require_httpx2().Timeout(**value.as_dict())
+def normalize_httpx2_timeout(value: float | httpx2.Timeout | None) -> float | httpx2.Timeout | None:
+    return normalize_httpx_timeout(value)
+
+
+def normalize_legacy_httpx_timeout(value: float | httpx2.Timeout | None) -> float | httpx2.Timeout | None:
+    module = _loaded_legacy_httpx()
+    if module is not None and isinstance(value, httpx2.Timeout):
+        return module.Timeout(**value.as_dict())
     return value
 
 
-def normalize_httpx2_auth(value: httpx.Auth) -> httpx.Auth:
-    if type(value) is httpx.Auth:
-        return _require_httpx2().Auth()
+def normalize_httpx2_auth(value: httpx2.Auth) -> httpx2.Auth:
+    module = _loaded_legacy_httpx()
+    if module is not None and type(value) is module.Auth:
+        return httpx2.Auth()
     return value
 
 
-def timeout_exceptions() -> tuple[type[httpx.TimeoutException], ...]:
-    module = _loaded_httpx2()
-    if module is None:
-        return (httpx.TimeoutException,)
-    return (httpx.TimeoutException, module.TimeoutException)
+def normalize_legacy_httpx_auth(value: httpx2.Auth) -> httpx2.Auth:
+    module = _loaded_legacy_httpx()
+    if module is not None and type(value) is httpx2.Auth:
+        return module.Auth()
+    return value
 
 
-def status_exceptions() -> tuple[type[httpx.HTTPStatusError], ...]:
-    module = _loaded_httpx2()
-    if module is None:
-        return (httpx.HTTPStatusError,)
-    return (httpx.HTTPStatusError, module.HTTPStatusError)
+def timeout_exceptions() -> tuple[type[httpx2.TimeoutException], ...]:
+    module = _loaded_legacy_httpx()
+    return (httpx2.TimeoutException,) if module is None else (httpx2.TimeoutException, module.TimeoutException)
 
 
-def stream_consumed_exceptions() -> tuple[type[httpx.StreamConsumed], ...]:
-    module = _loaded_httpx2()
-    if module is None:
-        return (httpx.StreamConsumed,)
-    return (httpx.StreamConsumed, module.StreamConsumed)
+def status_exceptions() -> tuple[type[httpx2.HTTPStatusError], ...]:
+    module = _loaded_legacy_httpx()
+    return (httpx2.HTTPStatusError,) if module is None else (httpx2.HTTPStatusError, module.HTTPStatusError)
 
 
-def request_not_read_exceptions() -> tuple[type[httpx.RequestNotRead], ...]:
-    module = _loaded_httpx2()
-    if module is None:
-        return (httpx.RequestNotRead,)
-    return (httpx.RequestNotRead, module.RequestNotRead)
+def stream_consumed_exceptions() -> tuple[type[httpx2.StreamConsumed], ...]:
+    module = _loaded_legacy_httpx()
+    return (httpx2.StreamConsumed,) if module is None else (httpx2.StreamConsumed, module.StreamConsumed)
 
 
-def _set_httpx2_defaults(kwargs: dict[str, Any]) -> _Httpx2Module:
-    module = _require_httpx2()
-    timeout = kwargs.get("timeout", DEFAULT_TIMEOUT)
-    kwargs["timeout"] = normalize_httpx2_timeout(timeout)
+def request_not_read_exceptions() -> tuple[type[httpx2.RequestNotRead], ...]:
+    module = _loaded_legacy_httpx()
+    return (httpx2.RequestNotRead,) if module is None else (httpx2.RequestNotRead, module.RequestNotRead)
+
+
+def _set_httpx2_defaults(kwargs: dict[str, Any]) -> None:
+    kwargs["timeout"] = normalize_httpx2_timeout(kwargs.get("timeout", DEFAULT_TIMEOUT))
 
     limits = kwargs.get("limits", DEFAULT_CONNECTION_LIMITS)
-    if isinstance(limits, httpx.Limits):
-        kwargs["limits"] = module.Limits(
+    module = _loaded_legacy_httpx()
+    if module is not None and isinstance(limits, module.Limits):
+        limits = httpx2.Limits(
             max_connections=limits.max_connections,
             max_keepalive_connections=limits.max_keepalive_connections,
             keepalive_expiry=limits.keepalive_expiry,
         )
-
+    kwargs["limits"] = limits
     kwargs.setdefault("follow_redirects", True)
-    return module
 
 
-def DefaultHttpx2Client(**kwargs: Any) -> httpx.Client:
-    """Create an experimental HTTPX2 client with the SDK's recommended defaults."""
-    module = _set_httpx2_defaults(kwargs)
-    return module.Client(**kwargs)
+def DefaultHttpx2Client(**kwargs: Any) -> httpx2.Client:
+    """Create an HTTPX2 client with the SDK's recommended defaults."""
+    _set_httpx2_defaults(kwargs)
+    return httpx2.Client(**kwargs)
 
 
-def DefaultAsyncHttpx2Client(**kwargs: Any) -> httpx.AsyncClient:
-    """Create an experimental async HTTPX2 client with the SDK's recommended defaults."""
-    module = _set_httpx2_defaults(kwargs)
-    return module.AsyncClient(**kwargs)
+def DefaultAsyncHttpx2Client(**kwargs: Any) -> httpx2.AsyncClient:
+    """Create an async HTTPX2 client with the SDK's recommended defaults."""
+    _set_httpx2_defaults(kwargs)
+    return httpx2.AsyncClient(**kwargs)

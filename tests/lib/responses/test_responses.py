@@ -3,10 +3,10 @@ from __future__ import annotations
 from typing_extensions import TypeVar
 
 import pytest
-from respx import MockRouter
 from inline_snapshot import snapshot
 
 from openai import OpenAI, AsyncOpenAI
+from tests.respx2 import MockRouter
 from openai._types import omit
 from openai._utils import assert_signatures_in_sync
 from openai._models import construct_type_unchecked
@@ -25,8 +25,8 @@ _T = TypeVar("_T")
 # `OPENAI_LIVE=1 pytest --inline-snapshot=fix -p no:xdist -o addopts=""`
 
 
-@pytest.mark.respx(base_url=base_url)
-def test_output_text(client: OpenAI, respx_mock: MockRouter) -> None:
+@pytest.mark.respx2(base_url=base_url)
+def test_output_text(client: OpenAI, respx2_mock: MockRouter) -> None:
     response = make_snapshot_request(
         lambda c: c.responses.create(
             model="gpt-4o-mini",
@@ -37,7 +37,7 @@ def test_output_text(client: OpenAI, respx_mock: MockRouter) -> None:
         ),
         path="/responses",
         mock_client=client,
-        respx_mock=respx_mock,
+        respx2_mock=respx2_mock,
     )
 
     assert response.output_text == snapshot(

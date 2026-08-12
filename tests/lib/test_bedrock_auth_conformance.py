@@ -9,7 +9,7 @@ from typing import Any, Iterator, AsyncIterator, cast
 from pathlib import Path
 from datetime import datetime
 
-import httpx
+import httpx2
 import pytest
 import jsonschema
 
@@ -50,7 +50,7 @@ def _freeze_botocore_time(monkeypatch: pytest.MonkeyPatch, timestamps: Iterator[
     monkeypatch.setattr(botocore_auth.datetime, "datetime", FrozenDatetime)
 
 
-def _lower_headers(headers: httpx.Headers | dict[str, str]) -> dict[str, str]:
+def _lower_headers(headers: httpx2.Headers | dict[str, str]) -> dict[str, str]:
     return {name.lower(): value for name, value in headers.items()}
 
 
@@ -59,7 +59,7 @@ def _canonical_request_sha256(case: dict[str, Any], signed_headers: dict[str, st
     authorization = signed_headers["authorization"]
     signed_header_names = authorization.split("SignedHeaders=", 1)[1].split(",", 1)[0].split(";")
     canonical_headers = "".join(f"{name}:{' '.join(signed_headers[name].split())}\n" for name in signed_header_names)
-    url = httpx.URL(request["url"])
+    url = httpx2.URL(request["url"])
     canonical_request = "\n".join(
         (
             request["method"],
@@ -96,7 +96,7 @@ def test_shared_sigv4_fixture_matches_node(monkeypatch: pytest.MonkeyPatch) -> N
             url=request["url"],
             headers={
                 "content-type": request["contentType"],
-                "host": httpx.URL(request["url"]).host,
+                "host": httpx2.URL(request["url"]).host,
             },
             body=body,
         )
@@ -123,7 +123,7 @@ def test_auth_selection_fixture(case: dict[str, Any], monkeypatch: pytest.Monkey
     explicit = case["given"]["explicit"]
     kwargs: dict[str, Any] = {
         "aws_region": "us-east-1",
-        "http_client": httpx.Client(trust_env=False),
+        "http_client": httpx2.Client(trust_env=False),
         "_enforce_credentials": False,
     }
     if "bearer" in explicit:
@@ -217,12 +217,12 @@ def test_retry_signing_fixture(monkeypatch: pytest.MonkeyPatch) -> None:
 
     _freeze_botocore_time(monkeypatch, timestamps)
 
-    requests: list[httpx.Request] = []
+    requests: list[httpx2.Request] = []
     statuses = iter(case["given"]["response_statuses"])
 
-    def handler(request: httpx.Request) -> httpx.Response:
+    def handler(request: httpx2.Request) -> httpx2.Response:
         requests.append(request)
-        return httpx.Response(next(statuses), request=request, json={})
+        return httpx2.Response(next(statuses), request=request, json={})
 
     body = base64.b64decode(case["given"]["body_base64"])
     with OpenAI(
@@ -232,12 +232,12 @@ def test_retry_signing_fixture(monkeypatch: pytest.MonkeyPatch) -> None:
             credential_provider=credentials_provider,
         ),
         max_retries=case["given"].get("max_retries", 1),
-        http_client=httpx.Client(transport=httpx.MockTransport(handler), trust_env=False),
+        http_client=httpx2.Client(transport=httpx2.MockTransport(handler), trust_env=False),
     ) as client:
         client.post(
             "/responses",
             content=body,
-            cast_to=httpx.Response,
+            cast_to=httpx2.Response,
             options={"headers": {"Content-Type": "application/json"}},
         )
 
@@ -254,7 +254,7 @@ def test_body_replay_fixture(case: dict[str, Any]) -> None:
     provider_calls = 0
     network_calls = 0
     body_reads = 0
-    requests: list[httpx.Request] = []
+    requests: list[httpx2.Request] = []
 
     def credentials_provider() -> _Credentials:
         nonlocal provider_calls
@@ -267,12 +267,12 @@ def test_body_replay_fixture(case: dict[str, Any]) -> None:
         for chunk in case["given"].get("chunks_base64", []):
             yield base64.b64decode(chunk)
 
-    def handler(request: httpx.Request) -> httpx.Response:
+    def handler(request: httpx2.Request) -> httpx2.Response:
         nonlocal network_calls
         network_calls += 1
         requests.append(request)
         statuses = case["given"].get("response_statuses", [200])
-        return httpx.Response(statuses[network_calls - 1], request=request, json={})
+        return httpx2.Response(statuses[network_calls - 1], request=request, json={})
 
     body_kind = case["given"]["body_kind"]
     content: bytes | Iterator[bytes]
@@ -289,13 +289,13 @@ def test_body_replay_fixture(case: dict[str, Any]) -> None:
             credential_provider=credentials_provider,
         ),
         max_retries=case["given"].get("max_retries", 1),
-        http_client=httpx.Client(transport=httpx.MockTransport(handler), trust_env=False),
+        http_client=httpx2.Client(transport=httpx2.MockTransport(handler), trust_env=False),
     ) as client:
         if case["expected"]["result"] == "bedrock_non_replayable_body":
             with pytest.raises(OpenAIError, match="requires a replayable request body"):
-                client.post("/responses", content=content, cast_to=httpx.Response)
+                client.post("/responses", content=content, cast_to=httpx2.Response)
         else:
-            client.post("/responses", content=content, cast_to=httpx.Response)
+            client.post("/responses", content=content, cast_to=httpx2.Response)
 
     assert network_calls == case["expected"].get("network_attempts", case["expected"].get("attempts"))
     if body_kind == "bytes":
@@ -321,10 +321,10 @@ async def test_non_replayable_async_body_fails_before_credentials_or_network() -
         body_reads += 1
         yield b"body"
 
-    async def handler(request: httpx.Request) -> httpx.Response:
+    async def handler(request: httpx2.Request) -> httpx2.Response:
         nonlocal network_calls
         network_calls += 1
-        return httpx.Response(200, request=request)
+        return httpx2.Response(200, request=request)
 
     async with AsyncOpenAI(
         provider=bedrock(
@@ -332,10 +332,10 @@ async def test_non_replayable_async_body_fails_before_credentials_or_network() -
             region="us-east-1",
             credential_provider=credentials_provider,
         ),
-        http_client=httpx.AsyncClient(transport=httpx.MockTransport(handler), trust_env=False),
+        http_client=httpx2.AsyncClient(transport=httpx2.MockTransport(handler), trust_env=False),
     ) as client:
         with pytest.raises(OpenAIError, match="requires a replayable request body"):
-            await client.post("/responses", content=body(), cast_to=httpx.Response)
+            await client.post("/responses", content=body(), cast_to=httpx2.Response)
 
     assert (body_reads, provider_calls, network_calls) == (0, 0, 0)
 
@@ -349,8 +349,8 @@ async def test_async_credentials_are_resolved_off_event_loop() -> None:
         provider_threads.append(threading.get_ident())
         return _Credentials("access-key", "secret-key")
 
-    async def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(200, request=request, json={})
+    async def handler(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(200, request=request, json={})
 
     async with AsyncOpenAI(
         provider=bedrock(
@@ -358,20 +358,20 @@ async def test_async_credentials_are_resolved_off_event_loop() -> None:
             region="us-east-1",
             credential_provider=credentials_provider,
         ),
-        http_client=httpx.AsyncClient(transport=httpx.MockTransport(handler), trust_env=False),
+        http_client=httpx2.AsyncClient(transport=httpx2.MockTransport(handler), trust_env=False),
     ) as client:
-        await client.post("/responses", content=b"{}", cast_to=httpx.Response)
+        await client.post("/responses", content=b"{}", cast_to=httpx2.Response)
 
     assert provider_threads
     assert all(thread_id != event_loop_thread for thread_id in provider_threads)
 
 
 def test_custom_http_client_auth_cannot_replace_sigv4() -> None:
-    requests: list[httpx.Request] = []
+    requests: list[httpx2.Request] = []
 
-    def handler(request: httpx.Request) -> httpx.Response:
+    def handler(request: httpx2.Request) -> httpx2.Response:
         requests.append(request)
-        return httpx.Response(200, request=request, json={})
+        return httpx2.Response(200, request=request, json={})
 
     with OpenAI(
         provider=bedrock(
@@ -380,25 +380,25 @@ def test_custom_http_client_auth_cannot_replace_sigv4() -> None:
             access_key_id="access-key",
             secret_access_key="secret-key",
         ),
-        http_client=httpx.Client(
-            auth=httpx.BasicAuth("username", "password"),
-            transport=httpx.MockTransport(handler),
+        http_client=httpx2.Client(
+            auth=httpx2.BasicAuth("username", "password"),
+            transport=httpx2.MockTransport(handler),
             trust_env=False,
         ),
     ) as client:
-        client.get("/models", cast_to=httpx.Response)
+        client.get("/models", cast_to=httpx2.Response)
 
     assert requests[0].headers["Authorization"].startswith("AWS4-HMAC-SHA256 Credential=access-key/")
 
 
 def test_sigv4_redirects_are_not_followed() -> None:
-    requests: list[httpx.Request] = []
+    requests: list[httpx2.Request] = []
 
-    def handler(request: httpx.Request) -> httpx.Response:
+    def handler(request: httpx2.Request) -> httpx2.Response:
         requests.append(request)
         if len(requests) == 1:
-            return httpx.Response(307, request=request, headers={"Location": "/redirected"})
-        return httpx.Response(200, request=request)
+            return httpx2.Response(307, request=request, headers={"Location": "/redirected"})
+        return httpx2.Response(200, request=request)
 
     with OpenAI(
         provider=bedrock(
@@ -407,10 +407,10 @@ def test_sigv4_redirects_are_not_followed() -> None:
             access_key_id="access-key",
             secret_access_key="secret-key",
         ),
-        http_client=httpx.Client(transport=httpx.MockTransport(handler), trust_env=False),
+        http_client=httpx2.Client(transport=httpx2.MockTransport(handler), trust_env=False),
     ) as client:
         with pytest.raises(APIStatusError) as exc:
-            client.get("/models", cast_to=httpx.Response)
+            client.get("/models", cast_to=httpx2.Response)
 
     assert exc.value.status_code == 307
     assert len(requests) == 1

@@ -6,7 +6,7 @@ import inspect
 from typing import Literal, Callable, Awaitable, cast
 from dataclasses import field, dataclass
 
-import httpx
+import httpx2
 
 from .._types import NOT_GIVEN, NotGiven
 from .._utils import asyncify
@@ -34,7 +34,7 @@ def _normalize_optional_string(value: str | None) -> str | None:
     return normalized or None
 
 
-def _normalize_base_url(base_url: str | httpx.URL) -> httpx.URL:
+def _normalize_base_url(base_url: str | httpx2.URL) -> httpx2.URL:
     url = normalize_httpx_url(base_url)
     path = url.path.rstrip("/")
     responses_match = re.search(r"/responses(?:/.*)?$", path)
@@ -44,11 +44,11 @@ def _normalize_base_url(base_url: str | httpx.URL) -> httpx.URL:
     return url.copy_with(path=path or "/")
 
 
-def _same_origin(left: httpx.URL, right: httpx.URL) -> bool:
+def _same_origin(left: httpx2.URL, right: httpx2.URL) -> bool:
     return (left.scheme, left.host, left.port) == (right.scheme, right.host, right.port)
 
 
-def _body_for_signing(request: httpx.Request) -> bytes:
+def _body_for_signing(request: httpx2.Request) -> bytes:
     try:
         return request.content
     except request_not_read_exceptions() as exc:
@@ -58,7 +58,7 @@ def _body_for_signing(request: httpx.Request) -> bytes:
         ) from exc
 
 
-def _assert_provider_owns_authorization(request: httpx.Request) -> None:
+def _assert_provider_owns_authorization(request: httpx2.Request) -> None:
     if "Authorization" in request.headers:
         raise OpenAIError("Bedrock provider authentication cannot be combined with a custom `Authorization` header.")
 
@@ -74,11 +74,11 @@ def _without_redirects(options: FinalRequestOptions) -> FinalRequestOptions:
 
 
 class _BedrockBearerAuth:
-    def __init__(self, token_provider: BedrockTokenProvider, *, base_url: httpx.URL) -> None:
+    def __init__(self, token_provider: BedrockTokenProvider, *, base_url: httpx2.URL) -> None:
         self._token_provider = token_provider
         self._base_url = base_url
 
-    def _validate_request(self, request: httpx.Request) -> None:
+    def _validate_request(self, request: httpx2.Request) -> None:
         _assert_provider_owns_authorization(request)
         if not _same_origin(request.url, self._base_url):
             raise OpenAIError(
@@ -116,11 +116,11 @@ class _BedrockBearerAuth:
             raise OpenAIError("The Bedrock bearer credential provider must return a non-empty string.")
         return token
 
-    def prepare_request(self, request: httpx.Request) -> None:
+    def prepare_request(self, request: httpx2.Request) -> None:
         self._validate_request(request)
         request.headers["Authorization"] = f"Bearer {self._resolve_token()}"
 
-    async def prepare_async_request(self, request: httpx.Request) -> None:
+    async def prepare_async_request(self, request: httpx2.Request) -> None:
         self._validate_request(request)
         request.headers["Authorization"] = f"Bearer {await self._resolve_token_async()}"
 
@@ -130,14 +130,14 @@ class _BedrockSigV4Auth:
         self,
         *,
         config: BedrockAwsAuthConfig,
-        base_url: httpx.URL,
+        base_url: httpx2.URL,
         auth: BedrockAwsAuth | None = None,
     ) -> None:
         self._config = config
         self._base_url = base_url
         self._auth = auth
 
-    def _validate_request(self, request: httpx.Request) -> bytes:
+    def _validate_request(self, request: httpx2.Request) -> bytes:
         _assert_provider_owns_authorization(request)
         if not _same_origin(request.url, self._base_url):
             raise OpenAIError(
@@ -153,7 +153,7 @@ class _BedrockSigV4Auth:
 
         return _body_for_signing(request)
 
-    def _sign(self, request: httpx.Request, *, auth: BedrockAwsAuth, body: bytes) -> None:
+    def _sign(self, request: httpx2.Request, *, auth: BedrockAwsAuth, body: bytes) -> None:
         for header in _AWS_SIGNING_HEADERS:
             request.headers.pop(header, None)
 
@@ -166,13 +166,13 @@ class _BedrockSigV4Auth:
         request.headers.clear()
         request.headers.update(signed_headers)
 
-    def prepare_request(self, request: httpx.Request) -> None:
+    def prepare_request(self, request: httpx2.Request) -> None:
         body = self._validate_request(request)
         if self._auth is None:
             self._auth = BedrockAwsAuth(self._config)
         self._sign(request, auth=self._auth, body=body)
 
-    async def prepare_async_request(self, request: httpx.Request) -> None:
+    async def prepare_async_request(self, request: httpx2.Request) -> None:
         body = self._validate_request(request)
         if self._auth is None:
             self._auth = await asyncify(BedrockAwsAuth)(self._config)
@@ -198,7 +198,7 @@ class _BedrockProviderRuntime(_ProviderRuntime):
 class _BedrockProviderDefinition:
     configured_region: str | None
     region_source: Literal["explicit", "environment"] | None
-    configured_base_url: httpx.URL | None
+    configured_base_url: httpx2.URL | None
     api_key: str | None = field(default=None, repr=False)
     token_provider: BedrockTokenProvider | None = field(default=None, repr=False, compare=False)
     use_environment_bearer: bool = False
@@ -309,7 +309,7 @@ class _BedrockProviderDefinition:
 def bedrock(
     *,
     region: str | None = None,
-    base_url: str | httpx.URL | None | NotGiven = NOT_GIVEN,
+    base_url: str | httpx2.URL | None | NotGiven = NOT_GIVEN,
     api_key: str | None | NotGiven = NOT_GIVEN,
     token_provider: BedrockTokenProvider | None = None,
     access_key_id: str | None = None,
@@ -334,7 +334,7 @@ def bedrock(
         if normalized_region is not None:
             region_source = "environment"
 
-    configured_base_url: httpx.URL | None
+    configured_base_url: httpx2.URL | None
     if isinstance(base_url, NotGiven):
         environment_base_url = _normalize_optional_string(os.environ.get("AWS_BEDROCK_BASE_URL"))
         configured_base_url = _normalize_base_url(environment_base_url) if environment_base_url else None

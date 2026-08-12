@@ -8,7 +8,7 @@ from typing import Any, Literal, Mapping, Callable, Optional, Awaitable, cast
 from dataclasses import field, replace, dataclass
 from typing_extensions import Self, override
 
-import httpx
+import httpx2
 
 from ..auth import WorkloadIdentity
 from .._types import NOT_GIVEN, Timeout, NotGiven
@@ -71,7 +71,7 @@ def _configured_region(region: str | None) -> str | None:
     return configured.strip() if configured is not None and configured.strip() else None
 
 
-def _uses_region_derived_base_url(base_url: str | httpx.URL | None) -> bool:
+def _uses_region_derived_base_url(base_url: str | httpx2.URL | None) -> bool:
     if isinstance(base_url, str) and not base_url.strip():
         base_url = None
     if base_url is not None:
@@ -121,7 +121,7 @@ def _legacy_provider(
     aws_secret_access_key: str | None,
     aws_session_token: str | None,
     aws_credentials_provider: AwsCredentialsProvider | None,
-    base_url: str | httpx.URL | None,
+    base_url: str | httpx2.URL | None,
     region_was_explicit: bool | None = None,
 ) -> tuple[_Provider, _LegacyBedrockState, str]:
     if callable(cast(object, api_key)):
@@ -154,7 +154,7 @@ def _legacy_provider(
     resolved_region = _configured_region(aws_region)
     uses_region_derived_base_url = _uses_region_derived_base_url(base_url)
 
-    provider_base_url: str | httpx.URL | None | NotGiven
+    provider_base_url: str | httpx2.URL | None | NotGiven
     if isinstance(base_url, str) and not base_url.strip():
         provider_base_url = None
     elif base_url is None:
@@ -203,7 +203,7 @@ def _copy_configuration(
     aws_secret_access_key: str | None,
     aws_session_token: str | None,
     aws_credentials_provider: AwsCredentialsProvider | None,
-    base_url: str | httpx.URL | None,
+    base_url: str | httpx2.URL | None,
 ) -> tuple[dict[str, object], _Provider | None, _LegacyBedrockState | None]:
     _synchronize_legacy_routing_state(client)
     state = client._bedrock_state
@@ -271,7 +271,7 @@ def _copy_configuration(
         next_region = None
 
     if base_url is not None:
-        next_base_url: str | httpx.URL | None = base_url
+        next_base_url: str | httpx2.URL | None = base_url
     elif state.uses_region_derived_base_url:
         next_base_url = ""
     else:
@@ -406,13 +406,13 @@ class BedrockOpenAI(OpenAI):
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
-        base_url: str | httpx.URL | None = None,
-        websocket_base_url: str | httpx.URL | None = None,
+        base_url: str | httpx2.URL | None = None,
+        websocket_base_url: str | httpx2.URL | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
         max_retries: int = DEFAULT_MAX_RETRIES,
         default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
-        http_client: httpx.Client | None = None,
+        http_client: httpx2.Client | None = None,
         _strict_response_validation: bool = False,
         _enforce_credentials: bool = True,
         _provider: _Provider | None = None,
@@ -525,10 +525,10 @@ class BedrockOpenAI(OpenAI):
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
-        websocket_base_url: str | httpx.URL | None = None,
-        base_url: str | httpx.URL | None = None,
+        websocket_base_url: str | httpx2.URL | None = None,
+        base_url: str | httpx2.URL | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
-        http_client: httpx.Client | None = None,
+        http_client: httpx2.Client | None = None,
         max_retries: int | NotGiven = NOT_GIVEN,
         default_headers: Mapping[str, str] | None = None,
         set_default_headers: Mapping[str, str] | None = None,
@@ -640,13 +640,13 @@ class AsyncBedrockOpenAI(AsyncOpenAI):
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
-        base_url: str | httpx.URL | None = None,
-        websocket_base_url: str | httpx.URL | None = None,
+        base_url: str | httpx2.URL | None = None,
+        websocket_base_url: str | httpx2.URL | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
         max_retries: int = DEFAULT_MAX_RETRIES,
         default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
-        http_client: httpx.AsyncClient | None = None,
+        http_client: httpx2.AsyncClient | None = None,
         _strict_response_validation: bool = False,
         _enforce_credentials: bool = True,
         _provider: _Provider | None = None,
@@ -761,10 +761,10 @@ class AsyncBedrockOpenAI(AsyncOpenAI):
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
-        websocket_base_url: str | httpx.URL | None = None,
-        base_url: str | httpx.URL | None = None,
+        websocket_base_url: str | httpx2.URL | None = None,
+        base_url: str | httpx2.URL | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
-        http_client: httpx.AsyncClient | None = None,
+        http_client: httpx2.AsyncClient | None = None,
         max_retries: int | NotGiven = NOT_GIVEN,
         default_headers: Mapping[str, str] | None = None,
         set_default_headers: Mapping[str, str] | None = None,

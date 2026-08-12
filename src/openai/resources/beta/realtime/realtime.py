@@ -8,7 +8,7 @@ from types import TracebackType
 from typing import TYPE_CHECKING, Any, Iterator, cast
 from typing_extensions import AsyncIterator
 
-import httpx
+import httpx2
 from pydantic import BaseModel
 
 from .sessions import (
@@ -394,7 +394,7 @@ class AsyncRealtimeConnectionManager:
 
     enter = __aenter__
 
-    def _prepare_url(self) -> httpx.URL:
+    def _prepare_url(self) -> httpx2.URL:
         if self.__client.websocket_base_url is not None:
             base_url = normalize_httpx_url(self.__client.websocket_base_url)
         else:
@@ -577,7 +577,7 @@ class RealtimeConnectionManager:
 
     enter = __enter__
 
-    def _prepare_url(self) -> httpx.URL:
+    def _prepare_url(self) -> httpx2.URL:
         if self.__client.websocket_base_url is not None:
             base_url = normalize_httpx_url(self.__client.websocket_base_url)
         else:
