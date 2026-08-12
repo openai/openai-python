@@ -88,6 +88,13 @@ def _find_entry_index(entries: list[object], index: int) -> int | None:
         if is_dict(entry) and entry.get("index") == index:
             return entry_index
 
+    # Full Assistants snapshots omit the delta-only `index` field.
+    # Preserve their established positional merge behavior as a fallback.
+    if index < len(entries):
+        positional_entry = entries[index]
+        if is_dict(positional_entry) and "index" not in positional_entry:
+            return index
+
     return None
 
 

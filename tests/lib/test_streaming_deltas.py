@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import cast
+
 from openai.lib.streaming._deltas import accumulate_delta as accumulate_chat_delta
 from openai.lib.streaming._assistants import accumulate_delta as accumulate_assistant_delta
 
@@ -73,4 +75,30 @@ def test_assistant_accumulate_delta_uses_logical_index_for_initial_chunk() -> No
                 "type": "function",
             },
         ]
+    }
+
+
+def test_assistant_accumulate_delta_merges_indexed_delta_into_full_snapshot() -> None:
+    acc: dict[object, object] = {
+        "tool_calls": [
+            {
+                "id": "call_abc",
+                "function": {"name": "get_weather", "arguments": ""},
+                "type": "function",
+            }
+        ]
+    }
+
+    accumulate_assistant_delta(
+        acc,
+        {"tool_calls": [{"index": 0, "function": {"arguments": '{"city": "London"}'}}]},
+    )
+
+    tool_calls = cast(list[object], acc["tool_calls"])
+    assert len(tool_calls) == 1
+    assert tool_calls[0] == {
+        "index": 0,
+        "id": "call_abc",
+        "function": {"name": "get_weather", "arguments": '{"city": "London"}'},
+        "type": "function",
     }
