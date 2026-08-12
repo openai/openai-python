@@ -356,6 +356,38 @@ class ResponseStreamState(Generic[TextFormatT]):
             output = snapshot.output[event.output_index]
             if output.type == "function_call":
                 output.arguments += event.delta
+        elif event.type == "response.refusal.delta":
+            output = snapshot.output[event.output_index]
+            if output.type == "message":
+                content = output.content[event.content_index]
+                assert content.type == "refusal"
+                content.refusal += event.delta
+        elif event.type == "response.refusal.done":
+            output = snapshot.output[event.output_index]
+            if output.type == "message":
+                content = output.content[event.content_index]
+                assert content.type == "refusal"
+                content.refusal = event.refusal
+        elif event.type == "response.content_part.done":
+            output = snapshot.output[event.output_index]
+            if output.type == "message":
+                output.content[event.content_index] = construct_type_unchecked(
+                    type_=cast(Any, ParsedContent),
+                    value=event.part.to_dict(),
+                )
+        elif event.type == "response.output_item.done":
+            if event.item.type == "function_call":
+                snapshot.output[event.output_index] = construct_type_unchecked(
+                    type_=cast(Any, ParsedResponseFunctionToolCall),
+                    value=event.item.to_dict(),
+                )
+            elif event.item.type == "message":
+                snapshot.output[event.output_index] = construct_type_unchecked(
+                    type_=cast(Any, ParsedResponseOutputMessage),
+                    value=event.item.to_dict(),
+                )
+            else:
+                snapshot.output[event.output_index] = event.item
         elif event.type == "response.completed":
             response = event.response
             response_dict: dict[str, object] = response.to_dict()

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import Any
 from typing_extensions import TypeVar
 
 import pytest
@@ -16,6 +17,10 @@ from openai.lib.streaming.responses._responses import ResponseStreamState
 from openai.types.responses.response_created_event import ResponseCreatedEvent
 from openai.types.responses.response_completed_event import ResponseCompletedEvent
 from openai.types.responses.response_text_delta_event import ResponseTextDeltaEvent
+from openai.types.responses.response_refusal_done_event import ResponseRefusalDoneEvent
+from openai.types.responses.response_refusal_delta_event import ResponseRefusalDeltaEvent
+from openai.types.responses.response_output_item_done_event import ResponseOutputItemDoneEvent
+from openai.types.responses.response_content_part_done_event import ResponseContentPartDoneEvent
 from openai.types.responses.response_output_item_added_event import ResponseOutputItemAddedEvent
 from openai.types.responses.response_content_part_added_event import ResponseContentPartAddedEvent
 
@@ -62,6 +67,46 @@ def _response_payload(*, output: object) -> dict[str, object]:
         "user": None,
         "metadata": {},
     }
+
+
+def _handle_stream_event(state: ResponseStreamState[Any], event_type: Any, **value: object) -> None:
+    state.handle_event(construct_type_unchecked(type_=event_type, value=value))
+
+
+def _message_stream_state(content_part: dict[str, object]) -> ResponseStreamState[Any]:
+    state = ResponseStreamState(text_format=omit, input_tools=omit)
+    _handle_stream_event(
+        state,
+        ResponseCreatedEvent,
+        type="response.created",
+        sequence_number=0,
+        response=_response_payload(output=[]),
+    )
+    _handle_stream_event(
+        state,
+        ResponseOutputItemAddedEvent,
+        type="response.output_item.added",
+        sequence_number=1,
+        output_index=0,
+        item={
+            "id": "msg_1",
+            "type": "message",
+            "status": "in_progress",
+            "role": "assistant",
+            "content": [],
+        },
+    )
+    _handle_stream_event(
+        state,
+        ResponseContentPartAddedEvent,
+        type="response.content_part.added",
+        sequence_number=2,
+        item_id="msg_1",
+        output_index=0,
+        content_index=0,
+        part=content_part,
+    )
+    return state
 
 
 @pytest.mark.respx2(base_url=base_url)
@@ -123,65 +168,17 @@ def test_parse_response_handles_null_output() -> None:
 
 
 def test_streaming_completed_null_output_preserves_accumulated_snapshot() -> None:
-    state = ResponseStreamState(text_format=omit, input_tools=omit)
-    state.handle_event(
-        construct_type_unchecked(
-            type_=ResponseCreatedEvent,
-            value={
-                "type": "response.created",
-                "sequence_number": 0,
-                "response": _response_payload(output=[]),
-            },
-        )
-    )
-    state.handle_event(
-        construct_type_unchecked(
-            type_=ResponseOutputItemAddedEvent,
-            value={
-                "type": "response.output_item.added",
-                "sequence_number": 1,
-                "output_index": 0,
-                "item": {
-                    "id": "msg_1",
-                    "type": "message",
-                    "status": "in_progress",
-                    "role": "assistant",
-                    "content": [],
-                },
-            },
-        )
-    )
-    state.handle_event(
-        construct_type_unchecked(
-            type_=ResponseContentPartAddedEvent,
-            value={
-                "type": "response.content_part.added",
-                "sequence_number": 2,
-                "item_id": "msg_1",
-                "output_index": 0,
-                "content_index": 0,
-                "part": {
-                    "id": "text_1",
-                    "type": "output_text",
-                    "text": "",
-                    "annotations": [],
-                },
-            },
-        )
-    )
-    state.handle_event(
-        construct_type_unchecked(
-            type_=ResponseTextDeltaEvent,
-            value={
-                "type": "response.output_text.delta",
-                "sequence_number": 3,
-                "item_id": "msg_1",
-                "output_index": 0,
-                "content_index": 0,
-                "delta": "hello",
-                "logprobs": [],
-            },
-        )
+    state = _message_stream_state({"type": "output_text", "text": "", "annotations": []})
+    _handle_stream_event(
+        state,
+        ResponseTextDeltaEvent,
+        type="response.output_text.delta",
+        sequence_number=3,
+        item_id="msg_1",
+        output_index=0,
+        content_index=0,
+        delta="hello",
+        logprobs=[],
     )
 
     events = state.handle_event(
@@ -200,6 +197,125 @@ def test_streaming_completed_null_output_preserves_accumulated_snapshot() -> Non
     assert completed.response.output_text == "hello"
     assert state._completed_response is not None
     assert state._completed_response.output_text == "hello"
+
+
+def test_streaming_completed_null_output_applies_finalization_events() -> None:
+    state = _message_stream_state({"type": "output_text", "text": "", "annotations": []})
+    _handle_stream_event(
+        state,
+        ResponseTextDeltaEvent,
+        type="response.output_text.delta",
+        sequence_number=3,
+        item_id="msg_1",
+        output_index=0,
+        content_index=0,
+        delta="draft",
+        logprobs=[],
+    )
+    final_part = {
+        "type": "output_text",
+        "text": "final",
+        "annotations": [
+            {
+                "type": "url_citation",
+                "url": "https://example.com",
+                "title": "Example",
+                "start_index": 0,
+                "end_index": 5,
+            }
+        ],
+        "logprobs": [],
+    }
+    _handle_stream_event(
+        state,
+        ResponseContentPartDoneEvent,
+        type="response.content_part.done",
+        sequence_number=4,
+        item_id="msg_1",
+        output_index=0,
+        content_index=0,
+        part=final_part,
+    )
+    _handle_stream_event(
+        state,
+        ResponseOutputItemDoneEvent,
+        type="response.output_item.done",
+        sequence_number=5,
+        output_index=0,
+        item={
+            "id": "msg_1",
+            "type": "message",
+            "status": "completed",
+            "role": "assistant",
+            "content": [final_part],
+        },
+    )
+
+    events = state.handle_event(
+        construct_type_unchecked(
+            type_=ResponseCompletedEvent,
+            value={
+                "type": "response.completed",
+                "sequence_number": 6,
+                "response": _response_payload(output=None),
+            },
+        )
+    )
+
+    completed = events[0]
+    assert completed.type == "response.completed"
+    assert completed.response.output[0].to_dict() == {
+        "id": "msg_1",
+        "type": "message",
+        "status": "completed",
+        "role": "assistant",
+        "content": [{**final_part, "parsed": None}],
+    }
+
+
+def test_streaming_completed_null_output_preserves_refusal_done() -> None:
+    state = _message_stream_state({"type": "refusal", "refusal": ""})
+    _handle_stream_event(
+        state,
+        ResponseRefusalDeltaEvent,
+        type="response.refusal.delta",
+        sequence_number=3,
+        item_id="msg_1",
+        output_index=0,
+        content_index=0,
+        delta="draft",
+    )
+    _handle_stream_event(
+        state,
+        ResponseRefusalDoneEvent,
+        type="response.refusal.done",
+        sequence_number=4,
+        item_id="msg_1",
+        output_index=0,
+        content_index=0,
+        refusal="final refusal",
+    )
+
+    events = state.handle_event(
+        construct_type_unchecked(
+            type_=ResponseCompletedEvent,
+            value={
+                "type": "response.completed",
+                "sequence_number": 5,
+                "response": _response_payload(output=None),
+            },
+        )
+    )
+
+    completed = events[0]
+    assert completed.type == "response.completed"
+    assert completed.response.output[0].to_dict() == {
+        "id": "msg_1",
+        "type": "message",
+        "status": "in_progress",
+        "role": "assistant",
+        "content": [{"type": "refusal", "refusal": "final refusal"}],
+    }
 
 
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
