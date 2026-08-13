@@ -2950,3 +2950,22 @@ class TestAsyncWorkloadIdentity401Retry:
             assert len(calls) == 2
 
             assert provider_call_count == 1
+
+
+def test_api_error_code_coercion() -> None:
+    from openai._exceptions import APIError
+
+    request = httpx.Request("GET", "http://localhost")
+
+    # Test integer code coercion
+    err = APIError("message", request, body={"code": 400, "param": "some_param", "type": "some_type"})
+    assert err.code == "400"
+
+    # Test string code coercion
+    err = APIError("message", request, body={"code": "invalid_api_key"})
+    assert err.code == "invalid_api_key"
+
+    # Test None code
+    err = APIError("message", request, body={"code": None})
+    assert err.code is None
+
