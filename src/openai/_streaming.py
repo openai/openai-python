@@ -5,7 +5,7 @@ import json
 import inspect
 from types import TracebackType
 from typing import TYPE_CHECKING, Any, Generic, TypeVar, Callable, Iterator, Optional, AsyncIterator, cast
-from typing_extensions import Self, Protocol, TypeGuard, override, get_origin, runtime_checkable
+from typing_extensions import Self, Protocol, TypeGuard, get_args, override, get_origin, runtime_checkable
 
 import httpx2
 
@@ -411,9 +411,28 @@ def is_stream_class_type(typ: type) -> TypeGuard[type[Stream[object]] | type[Asy
 
 
 def _make_stream_event_normalizer(cast_to: object) -> Callable[[object], object] | None:
-    from .lib.streaming.responses._stream_event_normalizer import maybe_response_stream_event_normalizer
+    if not _is_response_stream_event_type(cast_to):
+        return None
 
-    return maybe_response_stream_event_normalizer(cast_to)
+    from .lib.streaming.responses._stream_event_normalizer import ResponseStreamEventNormalizer
+
+    return ResponseStreamEventNormalizer().normalize
+
+
+def _is_response_stream_event_type(cast_to: object) -> bool:
+    annotated_args = get_args(cast_to)
+    if not annotated_args:
+        return False
+
+    event_types = get_args(annotated_args[0])
+    return any(
+        getattr(event_type, "__module__", None)
+        in {
+            "openai.types.responses.response_function_call_arguments_done_event",
+            "openai.types.beta.beta_response_function_call_arguments_done_event",
+        }
+        for event_type in event_types
+    )
 
 
 def extract_stream_chunk_type(

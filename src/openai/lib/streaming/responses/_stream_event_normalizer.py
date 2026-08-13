@@ -1,17 +1,6 @@
 from __future__ import annotations
 
-from typing import Callable
-
 from ...._utils import is_mapping
-from ....types.beta.beta_response_stream_event import BetaResponseStreamEvent
-from ....types.responses.response_stream_event import ResponseStreamEvent
-
-
-def maybe_response_stream_event_normalizer(cast_to: object) -> Callable[[object], object] | None:
-    if cast_to != ResponseStreamEvent and cast_to != BetaResponseStreamEvent:
-        return None
-
-    return ResponseStreamEventNormalizer().normalize
 
 
 class ResponseStreamEventNormalizer:
