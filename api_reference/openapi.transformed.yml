@@ -22529,6 +22529,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/VideoResource'
+      deprecated: true
       x-oaiMeta:
         name: Create video
         group: videos
@@ -22651,6 +22652,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/VideoListResource'
+      deprecated: true
       x-oaiMeta:
         name: List videos
         group: videos
@@ -22753,6 +22755,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/VideoCharacterResource'
+      deprecated: true
       description: Create a character from an uploaded video.
   /videos/characters/{character_id}:
     get:
@@ -22775,6 +22778,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/VideoCharacterResource'
+      deprecated: true
       description: Fetch a character.
   /videos/edits:
     post:
@@ -22795,6 +22799,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/VideoResource'
+      deprecated: true
       description: Create a new video generation job by editing a source video or existing generated video.
   /videos/extensions:
     post:
@@ -22815,6 +22820,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/VideoResource'
+      deprecated: true
       description: Create an extension of a completed video.
   /videos/{video_id}:
     get:
@@ -22837,6 +22843,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/VideoResource'
+      deprecated: true
       x-oaiMeta:
         name: Retrieve video
         group: videos
@@ -22924,6 +22931,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeletedVideoResource'
+      deprecated: true
       x-oaiMeta:
         name: Delete video
         group: videos
@@ -23026,6 +23034,7 @@ paths:
             application/json:
               schema:
                 type: string
+      deprecated: true
       x-oaiMeta:
         name: Retrieve video content
         group: videos
@@ -23136,6 +23145,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/VideoResource'
+      deprecated: true
       x-oaiMeta:
         name: Remix video
         group: videos
