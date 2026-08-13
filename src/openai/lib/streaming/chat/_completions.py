@@ -539,16 +539,14 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
                 assert tool_calls is not None
 
                 for tool_call_delta in choice.delta.tool_calls:
-                    # Find the tool call by logical index, not physical
-                    # position.  When entries arrive out of order (e.g.
-                    # index 1 before index 0), the physical position does
-                    # not match the logical index. (#3201)
-                    tool_call = next(
-                        (tc for tc in tool_calls if tc.index == tool_call_delta.index),
-                        None,
-                    )
-                    if tool_call is None:
+                    # After coalescing in accumulate_delta / _coalesce_list_by_index,
+                    # the physical position in the list matches the logical index.
+                    # Use the delta's index with bounds checking to handle
+                    # sparse or out-of-order arrival. (#3201)
+                    idx = tool_call_delta.index
+                    if idx < 0 or idx >= len(tool_calls):
                         continue
+                    tool_call = tool_calls[idx]
 
                     if tool_call.type == "function":
                         assert tool_call_delta.function is not None
