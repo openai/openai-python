@@ -54296,6 +54296,7 @@ components:
             "sequence_number": 1
           }
     ResponseStreamEvent:
+      description: Event emitted while a response is streamed.
       anyOf:
       - $ref: '#/components/schemas/ResponseAudioDeltaEvent'
       - $ref: '#/components/schemas/ResponseAudioDoneEvent'
@@ -77148,6 +77149,7 @@ components:
               when the originating `response.create` event supplied a
               `stream_id`.
     BetaResponseStreamEvent:
+      description: Event emitted while a response is streamed.
       anyOf:
       - $ref: '#/components/schemas/BetaResponseAudioDeltaEvent'
       - $ref: '#/components/schemas/BetaResponseAudioDoneEvent'
