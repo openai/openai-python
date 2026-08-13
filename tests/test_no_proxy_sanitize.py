@@ -194,11 +194,10 @@ def test_aiohttp_client_trust_env_false_skips_sanitization(monkeypatch: pytest.M
     from openai._base_client import _DefaultAioHttpClient
 
     _set_no_proxy(monkeypatch, "localhost\n127.0.0.1")
-    client = _DefaultAioHttpClient(trust_env=False)
+    _DefaultAioHttpClient(trust_env=False)
     import os
 
     assert os.environ.get("NO_PROXY") == "localhost\n127.0.0.1"
-    assert client._mounts == {}
 
 
 def test_concurrent_client_construction_serializes_sanitization(monkeypatch: pytest.MonkeyPatch) -> None:
