@@ -11,6 +11,8 @@ from pydantic import Field
 from openai._utils import PropertyInfo
 from openai._compat import PYDANTIC_V1, parse_obj, model_dump, model_json
 from openai._models import DISCRIMINATOR_CACHE, BaseModel, EagerIterable, construct_type
+from openai.types.responses.response_output_text import AnnotationURLCitation
+from openai.types.responses.response_output_text_annotation_added_event import ResponseOutputTextAnnotationAddedEvent
 
 
 class BasicModel(BaseModel):
@@ -167,6 +169,30 @@ def test_strict_validation_unknown_fields() -> None:
     assert cast(Any, model).user == "Robert"
 
     assert model_dump(model) == {"foo": "hello!", "user": "Robert"}
+
+
+def test_response_output_text_annotation_added_event_annotation_type() -> None:
+    event = parse_obj(
+        ResponseOutputTextAnnotationAddedEvent,
+        {
+            "annotation": {
+                "end_index": 42,
+                "start_index": 10,
+                "title": "OpenAI",
+                "type": "url_citation",
+                "url": "https://www.openai.com/",
+            },
+            "annotation_index": 0,
+            "content_index": 0,
+            "item_id": "msg_123",
+            "output_index": 0,
+            "sequence_number": 1,
+            "type": "response.output_text.annotation.added",
+        },
+    )
+
+    assert isinstance(event.annotation, AnnotationURLCitation)
+    assert event.annotation.url == "https://www.openai.com/"
 
 
 def test_aliases() -> None:
