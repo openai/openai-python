@@ -3,6 +3,7 @@
 from typing_extensions import Literal
 
 from ..._models import BaseModel
+from .response_output_text import Annotation
 
 __all__ = ["ResponseOutputTextAnnotationAddedEvent"]
 
@@ -10,8 +11,8 @@ __all__ = ["ResponseOutputTextAnnotationAddedEvent"]
 class ResponseOutputTextAnnotationAddedEvent(BaseModel):
     """Emitted when an annotation is added to output text content."""
 
-    annotation: object
-    """The annotation object being added. (See annotation schema for details.)"""
+    annotation: Annotation
+    """The annotation object being added."""
 
     annotation_index: int
     """The index of the annotation within the content part."""
