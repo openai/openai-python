@@ -2,8 +2,16 @@ from __future__ import annotations
 
 from typing import cast
 
+from openai.types.chat import ChatCompletionChunk
+from openai.lib.streaming.chat import ChatCompletionStreamState
 from openai.lib.streaming._deltas import accumulate_delta as accumulate_chat_delta
 from openai.lib.streaming._assistants import accumulate_delta as accumulate_assistant_delta
+from openai.types.chat.chat_completion_chunk import (
+    Choice,
+    ChoiceDelta,
+    ChoiceDeltaToolCall,
+    ChoiceDeltaToolCallFunction,
+)
 
 
 def test_accumulate_delta_merges_duplicate_indexed_entries_on_initial_chunk() -> None:
@@ -35,6 +43,59 @@ def test_accumulate_delta_merges_duplicate_indexed_entries_on_initial_chunk() ->
             }
         ]
     }
+
+
+def test_chat_completion_state_merges_duplicate_indexed_entries_on_initial_chunk() -> None:
+    state = ChatCompletionStreamState()
+
+    state.handle_chunk(
+        ChatCompletionChunk(
+            id="chatcmpl_abc",
+            choices=[
+                Choice(
+                    delta=ChoiceDelta(
+                        role="assistant",
+                        tool_calls=[
+                            ChoiceDeltaToolCall(
+                                index=0,
+                                id="call_abc",
+                                function=ChoiceDeltaToolCallFunction(name="get_weather", arguments='{"city"'),
+                                type="function",
+                            ),
+                            ChoiceDeltaToolCall(
+                                index=0,
+                                function=ChoiceDeltaToolCallFunction(arguments=': "London"}'),
+                            ),
+                        ],
+                    ),
+                    finish_reason=None,
+                    index=0,
+                    logprobs=None,
+                )
+            ],
+            created=1,
+            model="gpt-test",
+            object="chat.completion.chunk",
+        )
+    )
+    state.handle_chunk(
+        ChatCompletionChunk(
+            id="chatcmpl_abc",
+            choices=[
+                Choice(delta=ChoiceDelta(), finish_reason="tool_calls", index=0, logprobs=None),
+            ],
+            created=1,
+            model="gpt-test",
+            object="chat.completion.chunk",
+        )
+    )
+
+    tool_calls = state.get_final_completion().choices[0].message.tool_calls
+    assert tool_calls is not None
+    assert len(tool_calls) == 1
+    assert tool_calls[0].id == "call_abc"
+    assert tool_calls[0].function.name == "get_weather"
+    assert tool_calls[0].function.arguments == '{"city": "London"}'
 
 
 def test_assistant_accumulate_delta_uses_logical_index_for_initial_chunk() -> None:
