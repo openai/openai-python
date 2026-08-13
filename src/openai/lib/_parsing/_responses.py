@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from typing import TYPE_CHECKING, List, Iterable, Optional, cast
+from typing import TYPE_CHECKING, List, Iterable, cast
 from typing_extensions import TypeVar, assert_never
 
 import pydantic
@@ -19,7 +19,6 @@ from ...types.responses import (
     ParsedContent,
     ParsedResponse,
     FunctionToolParam,
-    ResponseOutputItem,
     ParsedResponseOutputItem,
     ParsedResponseOutputText,
     ResponseFunctionToolCall,
@@ -68,7 +67,7 @@ def parse_response(
     # output items, it injects them into the response before calling this
     # function, so reaching here with `None` means the stream genuinely had
     # no output items and an empty list is the correct result.
-    output_items = cast(Optional[List[ResponseOutputItem]], response.output) or []
+    output_items = response.output or []
     for output in output_items:
         if output.type == "message":
             content_list: List[ParsedContent[TextFormatT]] = []

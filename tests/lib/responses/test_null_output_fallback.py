@@ -12,11 +12,18 @@ were streamed earlier. These tests verify that:
 
 from __future__ import annotations
 
+from typing import Any, cast
+
 from openai._types import omit
 from openai._models import construct_type_unchecked
 from openai.types.responses import (
     Response,
     ResponseStreamEvent as RawResponseStreamEvent,
+)
+from openai.types.responses.parsed_response import (
+    ParsedResponseOutputText,
+    ParsedResponseOutputMessage,
+    ParsedResponseFunctionToolCall,
 )
 from openai.lib.streaming.responses._responses import ResponseStreamState
 from openai.types.responses.response_created_event import ResponseCreatedEvent
@@ -85,7 +92,7 @@ def _make_output_item_done_message(text: str = "Hello world") -> RawResponseStre
     """Create a `response.output_item.done` event for a message."""
     return construct_type_unchecked(
         type_=ResponseOutputItemDoneEvent,
-        value={
+        value=cast(Any, {
             "type": "response.output_item.done",
             "sequence_number": 4,
             "output_index": 0,
@@ -103,7 +110,7 @@ def _make_output_item_done_message(text: str = "Hello world") -> RawResponseStre
                     }
                 ],
             },
-        },
+        }),
     )
 
 
@@ -135,7 +142,7 @@ def _make_completed_event_with_output() -> RawResponseStreamEvent:
     """Create a `response.completed` event with normal output."""
     response = construct_type_unchecked(
         type_=Response,
-        value={
+        value=cast(Any, {
             "id": "resp_test",
             "object": "response",
             "created_at": 1754925861,
@@ -157,7 +164,7 @@ def _make_completed_event_with_output() -> RawResponseStreamEvent:
                     ],
                 }
             ],
-        },
+        }),
     )
     return construct_type_unchecked(
         type_=ResponseCompletedEvent,
@@ -217,11 +224,14 @@ class TestNullOutputFallback:
         assert len(events) == 1
         assert events[0].type == "response.completed"
 
-        response = events[0].response
+        completed = cast(ResponseCompletedEvent, events[0])
+        response = completed.response
         # The output should contain the accumulated message, not be empty
         assert len(response.output) == 1
-        assert response.output[0].type == "message"
-        assert response.output[0].content[0].text == "Hello world"
+        msg = cast(ParsedResponseOutputMessage[None], response.output[0])
+        assert msg.type == "message"
+        text_part = cast(ParsedResponseOutputText[None], msg.content[0])
+        assert text_part.text == "Hello world"
 
     def test_done_event_status_survives_null_output(self):
         """The authoritative status from output_item.done must survive
@@ -233,9 +243,11 @@ class TestNullOutputFallback:
 
         events = state.handle_event(_make_completed_event_null_output())
 
-        response = events[0].response
+        completed = cast(ResponseCompletedEvent, events[0])
+        response = completed.response
         # The status should be "completed" from the done event, not "in_progress"
-        assert response.output[0].status == "completed"
+        msg = cast(ParsedResponseOutputMessage[None], response.output[0])
+        assert msg.status == "completed"
 
     def test_no_prior_items_returns_empty_output(self):
         """When response.completed has output=None and no items were
@@ -248,7 +260,8 @@ class TestNullOutputFallback:
         assert len(events) == 1
         assert events[0].type == "response.completed"
         # No items were accumulated, so output should be empty
-        assert len(events[0].response.output) == 0
+        completed = cast(ResponseCompletedEvent, events[0])
+        assert len(completed.response.output) == 0
 
     def test_normal_completed_with_output_still_works(self):
         """The normal path (output is not None) should still work correctly."""
@@ -263,8 +276,10 @@ class TestNullOutputFallback:
         assert events[0].type == "response.completed"
         response = events[0].response
         assert len(response.output) == 1
-        assert response.output[0].type == "message"
-        assert response.output[0].content[0].text == "Hello world"
+        msg = cast(ParsedResponseOutputMessage[None], response.output[0])
+        assert msg.type == "message"
+        text_part = cast(ParsedResponseOutputText[None], msg.content[0])
+        assert text_part.text == "Hello world"
 
     def test_empty_output_completed_still_works(self):
         """An empty output list (not None) should also produce empty output."""
@@ -275,7 +290,8 @@ class TestNullOutputFallback:
 
         assert len(events) == 1
         assert events[0].type == "response.completed"
-        assert len(events[0].response.output) == 0
+        completed = cast(ResponseCompletedEvent, events[0])
+        assert len(completed.response.output) == 0
 
     def test_dict_response_coerced_before_null_output_check(self):
         """When the discriminator fallback leaves event.response as a raw dict
@@ -311,8 +327,10 @@ class TestNullOutputFallback:
         assert events[0].type == "response.completed"
         response = events[0].response
         assert len(response.output) == 1
-        assert response.output[0].type == "message"
-        assert response.output[0].content[0].text == "Hello world"
+        msg = cast(ParsedResponseOutputMessage[None], response.output[0])
+        assert msg.type == "message"
+        text_part = cast(ParsedResponseOutputText[None], msg.content[0])
+        assert text_part.text == "Hello world"
 
 
 class TestFunctionCallArgumentsDone:
@@ -395,8 +413,10 @@ class TestFunctionCallArgumentsDone:
 
         events = state.handle_event(self._make_completed_null_output())
 
-        response = events[0].response
+        completed = cast(ResponseCompletedEvent, events[0])
+        response = completed.response
         assert len(response.output) == 1
-        assert response.output[0].type == "function_call"
-        assert response.output[0].arguments == '{"city": "SF"}'
-        assert response.output[0].name == "get_weather"
+        fc = cast(ParsedResponseFunctionToolCall, response.output[0])
+        assert fc.type == "function_call"
+        assert fc.arguments == '{"city": "SF"}'
+        assert fc.name == "get_weather"

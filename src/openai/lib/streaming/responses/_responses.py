@@ -432,7 +432,12 @@ class ResponseStreamState(Generic[TextFormatT]):
             # dereferencing `.output` so the guard doesn't raise
             # `AttributeError` before the fallback can run.
             response = event.response
-            if not isinstance(response, Response):
+            # The discriminator fallback can shallow-construct the event,
+            # leaving `event.response` as a raw dict despite the type
+            # annotation saying `Response`.  Normalize it before
+            # dereferencing `.output` so the guard doesn't raise
+            # `AttributeError` before the fallback can run.
+            if not hasattr(response, "output"):
                 response = construct_type_unchecked(type_=Response, value=response)
             output = cast(Optional[List[ResponseOutputItem]], response.output)
             if output is None and snapshot.output:
