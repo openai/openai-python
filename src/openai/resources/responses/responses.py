@@ -4178,11 +4178,11 @@ class AsyncResponsesConnection:
 
         Can be used as a method (returns ``self`` for chaining)::
 
-            connection.on("response.audio.delta", my_handler)
+            connection.on("error", my_handler)
 
         Or as a decorator::
 
-            @connection.on("response.audio.delta")
+            @connection.on("error")
             async def my_handler(event): ...
         """
         if handler is not None:
@@ -4629,11 +4629,11 @@ class ResponsesConnection:
 
         Can be used as a method (returns ``self`` for chaining)::
 
-            connection.on("response.audio.delta", my_handler)
+            connection.on("error", my_handler)
 
         Or as a decorator::
 
-            @connection.on("response.audio.delta")
+            @connection.on("error")
             def my_handler(event): ...
         """
         if handler is not None:
@@ -4899,6 +4899,7 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[bool] | Omit = omit,
+        stream_id: str | Omit = omit,
         stream_options: Optional[responses_client_event_param.StreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
         text: ResponseTextConfigParam | Omit = omit,
@@ -4937,6 +4938,7 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
                         "service_tier": service_tier,
                         "store": store,
                         "stream": stream,
+                        "stream_id": stream_id,
                         "stream_options": stream_options,
                         "temperature": temperature,
                         "text": text,
@@ -4983,6 +4985,7 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[bool] | Omit = omit,
+        stream_id: str | Omit = omit,
         stream_options: Optional[responses_client_event_param.StreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
         text: ResponseTextConfigParam | Omit = omit,
@@ -5021,6 +5024,7 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
                         "service_tier": service_tier,
                         "store": store,
                         "stream": stream,
+                        "stream_id": stream_id,
                         "stream_options": stream_options,
                         "temperature": temperature,
                         "text": text,

@@ -215,11 +215,13 @@ ResponseCreateToolChoice: TypeAlias = Union[
 class ResponseCreate(TypedDict, total=False):
     """
     Client event for creating a response over a persistent WebSocket connection.
-    This payload uses the same top-level fields as `POST /v1/responses`.
+    This payload uses the same top-level fields as `POST /v1/responses`, plus
+    WebSocket-only envelope metadata.
 
     Notes:
     - `stream` is implicit over WebSocket and should not be sent.
     - `background` is not supported over WebSocket.
+    - `stream_id` is WebSocket-only and is not part of `POST /v1/responses`.
     """
 
     type: Required[Literal["response.create"]]
@@ -536,6 +538,16 @@ class ResponseCreate(TypedDict, total=False):
     See the
     [Streaming section below](https://platform.openai.com/docs/api-reference/responses-streaming)
     for more information.
+    """
+
+    stream_id: str
+    """The WebSocket lane for this response.
+
+    Requests with the same `stream_id` are processed FIFO, and events for the
+    response echo the same `stream_id`.
+
+    `stream_id` controls routing; `previous_response_id` controls conversation
+    lineage, so a new lane can fork from a response created on another lane.
     """
 
     stream_options: Optional[ResponseCreateStreamOptions]
