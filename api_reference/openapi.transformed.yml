@@ -54665,20 +54665,36 @@ components:
             description: |
               The type of the client event. Always `response.create`.
             x-stainless-const: true
+          stream_id:
+            type: string
+            minLength: 1
+            maxLength: 256
+            pattern: ^[A-Za-z0-9_.-]+$
+            description: |
+              The WebSocket lane for this response. Requests with the same
+              `stream_id` are processed FIFO, and events for the response echo the
+              same `stream_id`.
+
+              `stream_id` controls routing; `previous_response_id` controls
+              conversation lineage, so a new lane can fork from a response created
+              on another lane.
         required:
         - type
       - $ref: '#/components/schemas/CreateResponse'
       description: |
         Client event for creating a response over a persistent WebSocket connection.
-        This payload uses the same top-level fields as `POST /v1/responses`.
+        This payload uses the same top-level fields as `POST /v1/responses`, plus
+        WebSocket-only envelope metadata.
 
         Notes:
         - `stream` is implicit over WebSocket and should not be sent.
         - `background` is not supported over WebSocket.
+        - `stream_id` is WebSocket-only and is not part of `POST /v1/responses`.
       x-oaiMeta:
         example: |
           {
             "type": "response.create",
+            "stream_id": "agent_1",
             "model": "gpt-5.5",
             "input": "Say hello."
           }
@@ -54688,7 +54704,672 @@ components:
       description: |
         Server events emitted by the Responses WebSocket server.
       anyOf:
+      - title: ResponseAudioWsDelta
+        description: Emitted when there is a partial audio response.
+        allOf:
+        - $ref: '#/components/schemas/ResponseAudioDeltaEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseAudioWsDone
+        description: Emitted when the audio response is complete.
+        allOf:
+        - $ref: '#/components/schemas/ResponseAudioDoneEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseAudioTranscriptWsDelta
+        description: Emitted when there is a partial transcript of audio.
+        allOf:
+        - $ref: '#/components/schemas/ResponseAudioTranscriptDeltaEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseAudioTranscriptWsDone
+        description: Emitted when the full audio transcript is completed.
+        allOf:
+        - $ref: '#/components/schemas/ResponseAudioTranscriptDoneEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseCodeInterpreterCallCodeWsDelta
+        description: Emitted when a partial code snippet is streamed by the code interpreter.
+        allOf:
+        - $ref: '#/components/schemas/ResponseCodeInterpreterCallCodeDeltaEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseCodeInterpreterCallCodeWsDone
+        description: Emitted when the code snippet is finalized by the code interpreter.
+        allOf:
+        - $ref: '#/components/schemas/ResponseCodeInterpreterCallCodeDoneEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseCodeInterpreterCallWsCompleted
+        description: Emitted when the code interpreter call is completed.
+        allOf:
+        - $ref: '#/components/schemas/ResponseCodeInterpreterCallCompletedEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseCodeInterpreterCallInWsProgress
+        description: Emitted when a code interpreter call is in progress.
+        allOf:
+        - $ref: '#/components/schemas/ResponseCodeInterpreterCallInProgressEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseCodeInterpreterCallWsInterpreting
+        description: Emitted when the code interpreter is actively interpreting the code snippet.
+        allOf:
+        - $ref: '#/components/schemas/ResponseCodeInterpreterCallInterpretingEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseWsCompleted
+        description: Emitted when the model response is complete.
+        allOf:
+        - $ref: '#/components/schemas/ResponseCompletedEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseContentPartWsAdded
+        description: Emitted when a new content part is added.
+        allOf:
+        - $ref: '#/components/schemas/ResponseContentPartAddedEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseContentPartWsDone
+        description: Emitted when a content part is done.
+        allOf:
+        - $ref: '#/components/schemas/ResponseContentPartDoneEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseWsCreated
+        description: |
+          An event that is emitted when a response is created.
+        allOf:
+        - $ref: '#/components/schemas/ResponseCreatedEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseWsError
+        description: Emitted when an error occurs.
+        allOf:
+        - $ref: '#/components/schemas/ResponseErrorEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseFileSearchCallWsCompleted
+        description: Emitted when a file search call is completed (results found).
+        allOf:
+        - $ref: '#/components/schemas/ResponseFileSearchCallCompletedEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseFileSearchCallInWsProgress
+        description: Emitted when a file search call is initiated.
+        allOf:
+        - $ref: '#/components/schemas/ResponseFileSearchCallInProgressEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseFileSearchCallWsSearching
+        description: Emitted when a file search is currently searching.
+        allOf:
+        - $ref: '#/components/schemas/ResponseFileSearchCallSearchingEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseFunctionCallArgumentsWsDelta
+        description: Emitted when there is a partial function-call arguments delta.
+        allOf:
+        - $ref: '#/components/schemas/ResponseFunctionCallArgumentsDeltaEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseFunctionCallArgumentsWsDone
+        description: Emitted when function-call arguments are finalized.
+        allOf:
+        - $ref: '#/components/schemas/ResponseFunctionCallArgumentsDoneEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseInWsProgress
+        description: Emitted when the response is in progress.
+        allOf:
+        - $ref: '#/components/schemas/ResponseInProgressEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseWsFailed
+        description: |
+          An event that is emitted when a response fails.
+        allOf:
+        - $ref: '#/components/schemas/ResponseFailedEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseWsIncomplete
+        description: |
+          An event that is emitted when a response finishes as incomplete.
+        allOf:
+        - $ref: '#/components/schemas/ResponseIncompleteEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseOutputItemWsAdded
+        description: Emitted when a new output item is added.
+        allOf:
+        - $ref: '#/components/schemas/ResponseOutputItemAddedEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseOutputItemWsDone
+        description: Emitted when an output item is marked done.
+        allOf:
+        - $ref: '#/components/schemas/ResponseOutputItemDoneEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseReasoningSummaryPartWsAdded
+        description: Emitted when a new reasoning summary part is added.
+        allOf:
+        - $ref: '#/components/schemas/ResponseReasoningSummaryPartAddedEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseReasoningSummaryPartWsDone
+        description: Emitted when a reasoning summary part is completed.
+        allOf:
+        - $ref: '#/components/schemas/ResponseReasoningSummaryPartDoneEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseReasoningSummaryTextWsDelta
+        description: Emitted when a delta is added to a reasoning summary text.
+        allOf:
+        - $ref: '#/components/schemas/ResponseReasoningSummaryTextDeltaEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseReasoningSummaryTextWsDone
+        description: Emitted when a reasoning summary text is completed.
+        allOf:
+        - $ref: '#/components/schemas/ResponseReasoningSummaryTextDoneEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseReasoningTextWsDelta
+        description: Emitted when a delta is added to a reasoning text.
+        allOf:
+        - $ref: '#/components/schemas/ResponseReasoningTextDeltaEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseReasoningTextWsDone
+        description: Emitted when a reasoning text is completed.
+        allOf:
+        - $ref: '#/components/schemas/ResponseReasoningTextDoneEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseRefusalWsDelta
+        description: Emitted when there is a partial refusal text.
+        allOf:
+        - $ref: '#/components/schemas/ResponseRefusalDeltaEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseRefusalWsDone
+        description: Emitted when refusal text is finalized.
+        allOf:
+        - $ref: '#/components/schemas/ResponseRefusalDoneEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseTextWsDelta
+        description: Emitted when there is an additional text delta.
+        allOf:
+        - $ref: '#/components/schemas/ResponseTextDeltaEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseTextWsDone
+        description: Emitted when text content is finalized.
+        allOf:
+        - $ref: '#/components/schemas/ResponseTextDoneEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseWebSearchCallWsCompleted
+        description: Emitted when a web search call is completed.
+        allOf:
+        - $ref: '#/components/schemas/ResponseWebSearchCallCompletedEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseWebSearchCallInWsProgress
+        description: Emitted when a web search call is initiated.
+        allOf:
+        - $ref: '#/components/schemas/ResponseWebSearchCallInProgressEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseWebSearchCallWsSearching
+        description: Emitted when a web search call is executing.
+        allOf:
+        - $ref: '#/components/schemas/ResponseWebSearchCallSearchingEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseImageGenCallWsCompleted
+        description: |
+          Emitted when an image generation tool call has completed and the final image is available.
+        allOf:
+        - $ref: '#/components/schemas/ResponseImageGenCallCompletedEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseImageGenCallWsGenerating
+        description: |
+          Emitted when an image generation tool call is actively generating an image (intermediate state).
+        allOf:
+        - $ref: '#/components/schemas/ResponseImageGenCallGeneratingEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseImageGenCallInWsProgress
+        description: |
+          Emitted when an image generation tool call is in progress.
+        allOf:
+        - $ref: '#/components/schemas/ResponseImageGenCallInProgressEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseImageGenCallPartialWsImage
+        description: |
+          Emitted when a partial image is available during image generation streaming.
+        allOf:
+        - $ref: '#/components/schemas/ResponseImageGenCallPartialImageEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseMcpCallArgumentsWsDelta
+        description: |
+          Emitted when there is a delta (partial update) to the arguments of an MCP tool call.
+        allOf:
+        - $ref: '#/components/schemas/ResponseMCPCallArgumentsDeltaEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseMcpCallArgumentsWsDone
+        description: |
+          Emitted when the arguments for an MCP tool call are finalized.
+        allOf:
+        - $ref: '#/components/schemas/ResponseMCPCallArgumentsDoneEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseMcpCallWsCompleted
+        description: |
+          Emitted when an MCP  tool call has completed successfully.
+        allOf:
+        - $ref: '#/components/schemas/ResponseMCPCallCompletedEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseMcpCallWsFailed
+        description: |
+          Emitted when an MCP  tool call has failed.
+        allOf:
+        - $ref: '#/components/schemas/ResponseMCPCallFailedEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseMcpCallInWsProgress
+        description: |
+          Emitted when an MCP  tool call is in progress.
+        allOf:
+        - $ref: '#/components/schemas/ResponseMCPCallInProgressEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseMcpListToolsWsCompleted
+        description: |
+          Emitted when the list of available MCP tools has been successfully retrieved.
+        allOf:
+        - $ref: '#/components/schemas/ResponseMCPListToolsCompletedEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseMcpListToolsWsFailed
+        description: |
+          Emitted when the attempt to list available MCP tools has failed.
+        allOf:
+        - $ref: '#/components/schemas/ResponseMCPListToolsFailedEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseMcpListToolsInWsProgress
+        description: |
+          Emitted when the system is in the process of retrieving the list of available MCP tools.
+        allOf:
+        - $ref: '#/components/schemas/ResponseMCPListToolsInProgressEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseOutputTextAnnotationWsAdded
+        description: |
+          Emitted when an annotation is added to output text content.
+        allOf:
+        - $ref: '#/components/schemas/ResponseOutputTextAnnotationAddedEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseWsQueued
+        description: |
+          Emitted when a response is queued and waiting to be processed.
+        allOf:
+        - $ref: '#/components/schemas/ResponseQueuedEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseCustomToolCallInputWsDelta
+        description: |
+          Event representing a delta (partial update) to the input of a custom tool call.
+        allOf:
+        - $ref: '#/components/schemas/ResponseCustomToolCallInputDeltaEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseCustomToolCallInputWsDone
+        description: |
+          Event indicating that input for a custom tool call is complete.
+        allOf:
+        - $ref: '#/components/schemas/ResponseCustomToolCallInputDoneEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+    ResponsesWebSocketStreamEvent:
+      allOf:
       - $ref: '#/components/schemas/ResponseStreamEvent'
+      - type: object
+        properties:
+          stream_id:
+            type: string
+            description: |
+              The WebSocket lane that emitted this event. This field is present
+              when the originating `response.create` event supplied a
+              `stream_id`.
     Role:
       type: object
       description: Details about a role that can be assigned through the public Roles API.
@@ -75691,7 +76372,661 @@ components:
       description: |
         Server events emitted by the Responses WebSocket server.
       anyOf:
-      - $ref: '#/components/schemas/BetaResponseStreamEvent'
+      - title: BetaResponseAudioWsDelta
+        description: Emitted when there is a partial audio response.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseAudioDeltaEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseAudioWsDone
+        description: Emitted when the audio response is complete.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseAudioDoneEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseAudioTranscriptWsDelta
+        description: Emitted when there is a partial transcript of audio.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseAudioTranscriptDeltaEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseAudioTranscriptWsDone
+        description: Emitted when the full audio transcript is completed.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseAudioTranscriptDoneEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseCodeInterpreterCallCodeWsDelta
+        description: Emitted when a partial code snippet is streamed by the code interpreter.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseCodeInterpreterCallCodeDeltaEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseCodeInterpreterCallCodeWsDone
+        description: Emitted when the code snippet is finalized by the code interpreter.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseCodeInterpreterCallCodeDoneEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseCodeInterpreterCallWsCompleted
+        description: Emitted when the code interpreter call is completed.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseCodeInterpreterCallCompletedEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseCodeInterpreterCallInWsProgress
+        description: Emitted when a code interpreter call is in progress.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseCodeInterpreterCallInProgressEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseCodeInterpreterCallWsInterpreting
+        description: Emitted when the code interpreter is actively interpreting the code snippet.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseCodeInterpreterCallInterpretingEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseWsCompleted
+        description: Emitted when the model response is complete.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseCompletedEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseContentPartWsAdded
+        description: Emitted when a new content part is added.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseContentPartAddedEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseContentPartWsDone
+        description: Emitted when a content part is done.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseContentPartDoneEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseWsCreated
+        description: |
+          An event that is emitted when a response is created.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseCreatedEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseWsError
+        description: Emitted when an error occurs.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseErrorEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseFileSearchCallWsCompleted
+        description: Emitted when a file search call is completed (results found).
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseFileSearchCallCompletedEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseFileSearchCallInWsProgress
+        description: Emitted when a file search call is initiated.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseFileSearchCallInProgressEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseFileSearchCallWsSearching
+        description: Emitted when a file search is currently searching.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseFileSearchCallSearchingEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseFunctionCallArgumentsWsDelta
+        description: Emitted when there is a partial function-call arguments delta.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseFunctionCallArgumentsDeltaEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseFunctionCallArgumentsWsDone
+        description: Emitted when function-call arguments are finalized.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseFunctionCallArgumentsDoneEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseInWsProgress
+        description: Emitted when the response is in progress.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseInProgressEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseWsFailed
+        description: |
+          An event that is emitted when a response fails.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseFailedEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseWsIncomplete
+        description: |
+          An event that is emitted when a response finishes as incomplete.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseIncompleteEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseOutputItemWsAdded
+        description: Emitted when a new output item is added.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseOutputItemAddedEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseOutputItemWsDone
+        description: Emitted when an output item is marked done.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseOutputItemDoneEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseReasoningSummaryPartWsAdded
+        description: Emitted when a new reasoning summary part is added.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseReasoningSummaryPartAddedEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseReasoningSummaryPartWsDone
+        description: Emitted when a reasoning summary part is completed.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseReasoningSummaryPartDoneEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseReasoningSummaryTextWsDelta
+        description: Emitted when a delta is added to a reasoning summary text.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseReasoningSummaryTextDeltaEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseReasoningSummaryTextWsDone
+        description: Emitted when a reasoning summary text is completed.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseReasoningSummaryTextDoneEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseReasoningTextWsDelta
+        description: Emitted when a delta is added to a reasoning text.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseReasoningTextDeltaEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseReasoningTextWsDone
+        description: Emitted when a reasoning text is completed.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseReasoningTextDoneEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseRefusalWsDelta
+        description: Emitted when there is a partial refusal text.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseRefusalDeltaEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseRefusalWsDone
+        description: Emitted when refusal text is finalized.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseRefusalDoneEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseTextWsDelta
+        description: Emitted when there is an additional text delta.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseTextDeltaEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseTextWsDone
+        description: Emitted when text content is finalized.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseTextDoneEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseWebSearchCallWsCompleted
+        description: Emitted when a web search call is completed.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseWebSearchCallCompletedEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseWebSearchCallInWsProgress
+        description: Emitted when a web search call is initiated.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseWebSearchCallInProgressEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseWebSearchCallWsSearching
+        description: Emitted when a web search call is executing.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseWebSearchCallSearchingEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseImageGenCallWsCompleted
+        description: |
+          Emitted when an image generation tool call has completed and the final image is available.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseImageGenCallCompletedEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseImageGenCallWsGenerating
+        description: |
+          Emitted when an image generation tool call is actively generating an image (intermediate state).
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseImageGenCallGeneratingEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseImageGenCallInWsProgress
+        description: |
+          Emitted when an image generation tool call is in progress.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseImageGenCallInProgressEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseImageGenCallPartialWsImage
+        description: |
+          Emitted when a partial image is available during image generation streaming.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseImageGenCallPartialImageEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseMcpCallArgumentsWsDelta
+        description: |
+          Emitted when there is a delta (partial update) to the arguments of an MCP tool call.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseMCPCallArgumentsDeltaEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseMcpCallArgumentsWsDone
+        description: |
+          Emitted when the arguments for an MCP tool call are finalized.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseMCPCallArgumentsDoneEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseMcpCallWsCompleted
+        description: |
+          Emitted when an MCP  tool call has completed successfully.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseMCPCallCompletedEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseMcpCallWsFailed
+        description: |
+          Emitted when an MCP  tool call has failed.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseMCPCallFailedEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseMcpCallInWsProgress
+        description: |
+          Emitted when an MCP  tool call is in progress.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseMCPCallInProgressEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseMcpListToolsWsCompleted
+        description: |
+          Emitted when the list of available MCP tools has been successfully retrieved.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseMCPListToolsCompletedEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseMcpListToolsWsFailed
+        description: |
+          Emitted when the attempt to list available MCP tools has failed.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseMCPListToolsFailedEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseMcpListToolsInWsProgress
+        description: |
+          Emitted when the system is in the process of retrieving the list of available MCP tools.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseMCPListToolsInProgressEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseOutputTextAnnotationWsAdded
+        description: |
+          Emitted when an annotation is added to output text content.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseOutputTextAnnotationAddedEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseWsQueued
+        description: |
+          Emitted when a response is queued and waiting to be processed.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseQueuedEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseCustomToolCallInputWsDelta
+        description: |
+          Event representing a delta (partial update) to the input of a custom tool call.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseCustomToolCallInputDeltaEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseCustomToolCallInputWsDone
+        description: |
+          Event indicating that input for a custom tool call is complete.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseCustomToolCallInputDoneEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
       - $ref: '#/components/schemas/BetaResponseInjectCreatedEvent'
       - $ref: '#/components/schemas/BetaResponseInjectFailedEvent'
     BetaResponseInjectFailedEvent:
@@ -75801,6 +77136,17 @@ components:
             "response_id": "resp_123",
             "sequence_number": 8
           }
+    BetaResponsesWebSocketStreamEvent:
+      allOf:
+      - $ref: '#/components/schemas/BetaResponseStreamEvent'
+      - type: object
+        properties:
+          stream_id:
+            type: string
+            description: |
+              The WebSocket lane that emitted this event. This field is present
+              when the originating `response.create` event supplied a
+              `stream_id`.
     BetaResponseStreamEvent:
       anyOf:
       - $ref: '#/components/schemas/BetaResponseAudioDeltaEvent'
@@ -75918,20 +77264,36 @@ components:
             description: |
               The type of the client event. Always `response.create`.
             x-stainless-const: true
+          stream_id:
+            type: string
+            minLength: 1
+            maxLength: 256
+            pattern: ^[A-Za-z0-9_.-]+$
+            description: |
+              The WebSocket lane for this response. Requests with the same
+              `stream_id` are processed FIFO, and events for the response echo the
+              same `stream_id`.
+
+              `stream_id` controls routing; `previous_response_id` controls
+              conversation lineage, so a new lane can fork from a response created
+              on another lane.
         required:
         - type
       - $ref: '#/components/schemas/BetaCreateResponse'
       description: |
         Client event for creating a response over a persistent WebSocket connection.
-        This payload uses the same top-level fields as `POST /v1/responses`.
+        This payload uses the same top-level fields as `POST /v1/responses`, plus
+        WebSocket-only envelope metadata.
 
         Notes:
         - `stream` is implicit over WebSocket and should not be sent.
         - `background` is not supported over WebSocket.
+        - `stream_id` is WebSocket-only and is not part of `POST /v1/responses`.
       x-oaiMeta:
         example: |
           {
             "type": "response.create",
+            "stream_id": "agent_1",
             "model": "gpt-5.5",
             "input": "Say hello."
           }

@@ -4259,11 +4259,11 @@ class AsyncResponsesConnection:
 
         Can be used as a method (returns ``self`` for chaining)::
 
-            connection.on("response.audio.delta", my_handler)
+            connection.on("response.inject.created", my_handler)
 
         Or as a decorator::
 
-            @connection.on("response.audio.delta")
+            @connection.on("response.inject.created")
             async def my_handler(event): ...
         """
         if handler is not None:
@@ -4710,11 +4710,11 @@ class ResponsesConnection:
 
         Can be used as a method (returns ``self`` for chaining)::
 
-            connection.on("response.audio.delta", my_handler)
+            connection.on("response.inject.created", my_handler)
 
         Or as a decorator::
 
-            @connection.on("response.audio.delta")
+            @connection.on("response.inject.created")
             def my_handler(event): ...
         """
         if handler is not None:
@@ -5094,6 +5094,7 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[bool] | Omit = omit,
+        stream_id: str | Omit = omit,
         stream_options: Optional[beta_responses_client_event_param.ResponseCreateStreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
         text: BetaResponseTextConfigParam | Omit = omit,
@@ -5106,11 +5107,13 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
     ) -> None:
         """
         Client event for creating a response over a persistent WebSocket connection.
-        This payload uses the same top-level fields as `POST /v1/responses`.
+        This payload uses the same top-level fields as `POST /v1/responses`, plus
+        WebSocket-only envelope metadata.
 
         Notes:
         - `stream` is implicit over WebSocket and should not be sent.
         - `background` is not supported over WebSocket.
+        - `stream_id` is WebSocket-only and is not part of `POST /v1/responses`.
         """
         self._connection.send(
             cast(
@@ -5141,6 +5144,7 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
                         "service_tier": service_tier,
                         "store": store,
                         "stream": stream,
+                        "stream_id": stream_id,
                         "stream_options": stream_options,
                         "temperature": temperature,
                         "text": text,
@@ -5301,6 +5305,7 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[bool] | Omit = omit,
+        stream_id: str | Omit = omit,
         stream_options: Optional[beta_responses_client_event_param.ResponseCreateStreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
         text: BetaResponseTextConfigParam | Omit = omit,
@@ -5313,11 +5318,13 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
     ) -> None:
         """
         Client event for creating a response over a persistent WebSocket connection.
-        This payload uses the same top-level fields as `POST /v1/responses`.
+        This payload uses the same top-level fields as `POST /v1/responses`, plus
+        WebSocket-only envelope metadata.
 
         Notes:
         - `stream` is implicit over WebSocket and should not be sent.
         - `background` is not supported over WebSocket.
+        - `stream_id` is WebSocket-only and is not part of `POST /v1/responses`.
         """
         await self._connection.send(
             cast(
@@ -5348,6 +5355,7 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
                         "service_tier": service_tier,
                         "store": store,
                         "stream": stream,
+                        "stream_id": stream_id,
                         "stream_options": stream_options,
                         "temperature": temperature,
                         "text": text,

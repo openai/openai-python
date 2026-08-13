@@ -352,6 +352,16 @@ class ResponsesClientEventParam(TypedDict, total=False):
     for more information.
     """
 
+    stream_id: str
+    """The WebSocket lane for this response.
+
+    Requests with the same `stream_id` are processed FIFO, and events for the
+    response echo the same `stream_id`.
+
+    `stream_id` controls routing; `previous_response_id` controls conversation
+    lineage, so a new lane can fork from a response created on another lane.
+    """
+
     stream_options: Optional[StreamOptions]
     """Options for streaming responses. Only set this when you set `stream: true`."""
 
