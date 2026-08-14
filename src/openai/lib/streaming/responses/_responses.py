@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import inspect
 from types import TracebackType
-from typing import Any, List, Generic, Iterable, Optional, Awaitable, cast
+from typing import Any, List, Generic, Iterable, Awaitable, cast
 from typing_extensions import Self, Callable, Iterator, AsyncIterator
 
 from ._types import ParsedResponseSnapshot
@@ -21,7 +21,6 @@ from ...._streaming import Stream, AsyncStream
 from ....types.responses import (
     Response,
     ParsedResponse,
-    ResponseOutputItem,
     ResponseStreamEvent as RawResponseStreamEvent,
 )
 from ..._parsing._responses import TextFormatT, parse_text, parse_response
@@ -419,9 +418,8 @@ class ResponseStreamState(Generic[TextFormatT]):
             # still run its text_format / parsed_arguments logic on them.
             #
             # `output` is typed as non-nullable but the wire value can violate
-            # that contract; cast to `Optional[List[...]]` at the boundary so
-            # both Pyright and Mypy accept the None check without weakening
-            # the model contract.
+            # that contract; the `pyright: ignore` on the None check makes the
+            # runtime guard explicit without weakening the model contract.
             #
             # In the default streaming path, SSE data is converted through
             # `construct_type(...)`.  For a `response.completed` payload whose
@@ -439,8 +437,13 @@ class ResponseStreamState(Generic[TextFormatT]):
             # `AttributeError` before the fallback can run.
             if not hasattr(response, "output"):
                 response = construct_type_unchecked(type_=Response, value=response)
-            output = cast(Optional[List[ResponseOutputItem]], response.output)
-            if output is None and snapshot.output:
+            # `output` is typed as non-nullable but the wire value can violate
+            # that contract (a `response.completed` payload can carry a null
+            # `response.output`).  Pyright flags the None check as unreachable
+            # because the model annotation says non-nullable, so suppress that
+            # specific diagnostic — the runtime guard is intentional.
+            output = response.output
+            if output is None and snapshot.output:  # pyright: ignore[reportUnnecessaryComparison]
                 # Build a copy of the response with the accumulated output
                 # items injected.  Use warnings=False on Pydantic v2 to suppress
                 # the serializer warning from dumping the invalid null output
