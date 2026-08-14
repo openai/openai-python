@@ -1,5 +1,6 @@
 import time
 import asyncio
+import threading
 from typing import Any, Optional
 from typing_extensions import Iterator, AsyncIterator
 
@@ -20,18 +21,27 @@ def drain_sync_iterator(iterator: Optional[Iterator[Any]], timeout_ms: int = 50)
     Attempts to drain all remaining items from iterator to enable connection
     reuse, but gives up after timeout_ms to avoid indefinite blocking when
     server holds connection open after [DONE].
+
+    Runs in background thread to prevent blocking on iterator.__next__().
     """
     if iterator is None:
         return
 
-    deadline = time.monotonic() + (timeout_ms / 1000.0)
-    while time.monotonic() < deadline:
+    def _drain() -> None:
         try:
-            next(iterator)
-        except StopIteration:
-            return
+            while True:
+                try:
+                    next(iterator)
+                except StopIteration:
+                    return
+                except Exception:
+                    break
         except Exception:
-            break
+            pass
+
+    thread = threading.Thread(target=_drain, daemon=True)
+    thread.start()
+    thread.join(timeout=timeout_ms / 1000.0)
 
 
 async def drain_async_iterator(iterator: Optional[AsyncIterator[Any]], timeout_ms: int = 50) -> None:
