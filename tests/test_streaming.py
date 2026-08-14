@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from collections.abc import Iterator, AsyncIterator
 from typing import Any
+from collections.abc import Iterator, AsyncIterator
 
 import httpx2
 import pytest
@@ -278,6 +278,7 @@ async def test_early_exit_without_done_doesnt_drain_async(async_client: AsyncOpe
 
     # Patch drain_async_iterator to track if it's called
     import openai._streaming as streaming_module
+
     original_drain = streaming_module.drain_async_iterator
     streaming_module.drain_async_iterator = patched_drain
 
@@ -291,11 +292,13 @@ async def test_early_exit_without_done_doesnt_drain_async(async_client: AsyncOpe
         # Trailing body should NOT be exhausted since _done_seen is False
         assert exhausted is False
 
-        # Delete stream to finalize the generator and trigger finally block
-        del stream
+        # Explicitly close the generator to trigger finally block
+        await stream._iterator.aclose()  # type: ignore[attr-defined]
 
         # Drain should NOT have been called since we didn't see [DONE]
         assert drained is False
+        # Response should be closed
+        assert response.is_closed is True
     finally:
         # Restore original drain function
         streaming_module.drain_async_iterator = original_drain
