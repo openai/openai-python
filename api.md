@@ -470,6 +470,7 @@ from openai.types.beta import (
     BetaInlineSkillSource,
     BetaLocalEnvironment,
     BetaLocalSkill,
+    BetaMcpToolCallError,
     BetaNamespaceTool,
     BetaResponse,
     BetaResponseApplyPatchToolCall,

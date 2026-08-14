@@ -299,7 +299,7 @@ class Files(SyncAPIResource):
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> _legacy_response.HttpxBinaryResponseContent:
         """
-        Returns the contents of the specified file.
+        Returns a response containing the contents of the specified file.
 
         Args:
           extra_headers: Send extra headers
@@ -338,7 +338,7 @@ class Files(SyncAPIResource):
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> str:
         """
-        Returns the contents of the specified file.
+        Returns a response containing the contents of the specified file.
 
         Args:
           extra_headers: Send extra headers
@@ -653,7 +653,7 @@ class AsyncFiles(AsyncAPIResource):
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> _legacy_response.HttpxBinaryResponseContent:
         """
-        Returns the contents of the specified file.
+        Returns a response containing the contents of the specified file.
 
         Args:
           extra_headers: Send extra headers
@@ -692,7 +692,7 @@ class AsyncFiles(AsyncAPIResource):
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> str:
         """
-        Returns the contents of the specified file.
+        Returns a response containing the contents of the specified file.
 
         Args:
           extra_headers: Send extra headers

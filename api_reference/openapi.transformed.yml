@@ -93,6 +93,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ListAssistantsResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: List assistants
         group: assistants
@@ -201,6 +203,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AssistantObject'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Create assistant
         group: assistants
@@ -360,6 +364,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AssistantObject'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Retrieve assistant
         group: assistants
@@ -436,6 +442,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AssistantObject'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Modify assistant
         group: assistants
@@ -530,6 +538,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeleteAssistantResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Delete assistant
         group: assistants
@@ -593,6 +603,8 @@ paths:
             text/event-stream:
               schema:
                 $ref: '#/components/schemas/CreateSpeechResponseStreamEvent'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Create speech
         group: audio
@@ -703,6 +715,8 @@ paths:
             text/event-stream:
               schema:
                 $ref: '#/components/schemas/CreateTranscriptionResponseStreamEvent'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Create transcription
         group: audio
@@ -1257,6 +1271,8 @@ paths:
                 - $ref: '#/components/schemas/CreateTranslationResponseVerboseJson'
                   x-stainless-skip:
                   - go
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Create translation
         group: audio
@@ -1988,6 +2004,8 @@ paths:
             text/event-stream:
               schema:
                 $ref: '#/components/schemas/CreateChatCompletionStreamResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Create chat completion
         group: chat
@@ -3120,6 +3138,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CreateCompletionResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Create completion
         group: completions
@@ -3289,6 +3309,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ContainerListResource'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: List containers
         group: containers
@@ -3337,6 +3359,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ContainerResource'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Create container
         group: containers
@@ -3402,6 +3426,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ContainerResource'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Retrieve container
         group: containers
@@ -3439,6 +3465,8 @@ paths:
       responses:
         '200':
           description: OK
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Delete a container
         group: containers
@@ -3484,6 +3512,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ContainerFileResource'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Create container file
         group: containers
@@ -3545,6 +3575,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ContainerFileListResource'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: List container files
         group: containers
@@ -3595,6 +3627,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ContainerFileResource'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Retrieve container file
         group: containers
@@ -3632,6 +3666,8 @@ paths:
       responses:
         '200':
           description: OK
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Delete a container file
         group: containers
@@ -3666,6 +3702,8 @@ paths:
       responses:
         '200':
           description: Success
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Retrieve container file content
         group: containers
@@ -3723,6 +3761,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ConversationItemList'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Create items
         group: conversations
@@ -3918,6 +3958,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ConversationItemList'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: List items
         group: conversations
@@ -4009,6 +4051,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ConversationItem'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Retrieve an item
         group: conversations
@@ -4084,6 +4128,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ConversationResource'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Delete an item
         group: conversations
@@ -4148,6 +4194,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CreateEmbeddingResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Create embeddings
         group: embeddings
@@ -4275,6 +4323,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EvalList'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: List evals
         group: evals
@@ -4391,6 +4441,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Eval'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Create eval
         group: evals
@@ -4573,6 +4625,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Eval'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Get an eval
         group: evals
@@ -4674,6 +4728,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Eval'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Update an eval
         group: evals
@@ -4793,6 +4849,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Delete an eval
         group: evals
@@ -4878,6 +4936,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EvalRunList'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Get eval runs
         group: evals
@@ -5014,6 +5074,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Create eval run
         group: evals
@@ -5205,6 +5267,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EvalRun'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Get an eval run
         group: evals
@@ -5408,6 +5472,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EvalRun'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Cancel eval run
         group: evals
@@ -5628,6 +5694,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Delete eval run
         group: evals
@@ -5726,6 +5794,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EvalRunOutputItemList'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Get eval run output items
         group: evals
@@ -5859,6 +5929,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EvalRunOutputItem'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Get an output item of an eval run
         group: evals
@@ -6302,13 +6374,14 @@ paths:
               const openai = new OpenAI();
 
               async function main() {
-                const file = await openai.files.content("file-abc123");
+                const response = await openai.files.content("file-abc123");
+                const content = await response.text();
 
-                console.log(file);
+                console.log(content);
               }
 
               main();
-      description: Returns the contents of the specified file.
+      description: Returns a response containing the contents of the specified file.
   /fine_tuning/alpha/graders/run:
     post:
       operationId: runGrader
@@ -8163,19 +8236,22 @@ paths:
                   "id": "model-id-0",
                   "object": "model",
                   "created": 1686935002,
-                  "owned_by": "organization-owner"
+                  "owned_by": "organization-owner",
+                  "shutdown_date": null
                 },
                 {
                   "id": "model-id-1",
                   "object": "model",
                   "created": 1686935002,
                   "owned_by": "organization-owner",
+                  "shutdown_date": null
                 },
                 {
                   "id": "model-id-2",
                   "object": "model",
                   "created": 1686935002,
-                  "owned_by": "openai"
+                  "owned_by": "openai",
+                  "shutdown_date": "2026-10-23"
                 },
               ]
             }
@@ -8243,7 +8319,8 @@ paths:
               "id": "VAR_chat_model_id",
               "object": "model",
               "created": 1686935002,
-              "owned_by": "openai"
+              "owned_by": "openai",
+              "shutdown_date": "2026-10-23"
             }
       description: Retrieves a model instance, providing basic information about the model such as the owner and permissioning.
     delete:
@@ -8884,6 +8961,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ListAuditLogsResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: List audit logs
         group: audit-logs
@@ -8995,6 +9074,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ListCertificatesResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: List organization certificates
         group: administration
@@ -9045,6 +9126,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Certificate'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Upload certificate
         group: administration
@@ -9095,6 +9178,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OrganizationCertificateActivationResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Activate certificates for organization
         group: administration
@@ -9161,6 +9246,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OrganizationCertificateDeactivationResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Deactivate certificates for organization
         group: administration
@@ -9237,6 +9324,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Certificate'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Get certificate
         group: administration
@@ -9289,6 +9378,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Certificate'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Modify certificate
         group: administration
@@ -9335,6 +9426,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeleteCertificateResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Delete certificate
         group: administration
@@ -9430,6 +9523,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UsageResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Costs
         group: usage-costs
@@ -9578,6 +9673,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GroupListResource'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: List groups
         group: administration
@@ -9624,6 +9721,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GroupResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Create group
         group: administration
@@ -9667,6 +9766,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GroupResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Retrieve group
         group: administration
@@ -9713,6 +9814,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GroupResourceWithSuccess'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Update group
         group: administration
@@ -9754,6 +9857,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GroupDeletedResource'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Delete group
         group: administration
@@ -9815,6 +9920,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RoleListResource'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: List group organization role assignments
         group: administration
@@ -9881,6 +9988,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GroupRoleAssignment'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Assign organization role to group
         group: administration
@@ -9945,6 +10054,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AssignedRoleDetails'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Retrieve group organization role
         group: administration
@@ -10000,6 +10111,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeletedRoleAssignmentResource'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Unassign organization role from group
         group: administration
@@ -10064,6 +10177,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserListResource'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: List group users
         group: administration
@@ -10115,6 +10230,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GroupUserAssignment'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Add group user
         group: administration
@@ -10162,6 +10279,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GroupMemberUser'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Retrieve group user
         group: administration
@@ -10208,6 +10327,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GroupUserDeletedResource'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Remove group user
         group: administration
@@ -10910,6 +11031,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ListProjectCertificatesResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: List project certificates
         group: administration
@@ -10968,6 +11091,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OrganizationProjectCertificateActivationResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Activate certificates for project
         group: administration
@@ -11041,6 +11166,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OrganizationProjectCertificateDeactivationResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Deactivate certificates for project
         group: administration
@@ -11212,6 +11339,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProjectGroupListResource'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: List project groups
         group: administration
@@ -11265,6 +11394,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProjectGroup'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Add project group
         group: administration
@@ -11325,6 +11456,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProjectGroup'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Retrieve project group
         group: administration
@@ -11371,6 +11504,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProjectGroupDeletedResource'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Remove project group
         group: administration
@@ -12687,6 +12822,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PublicRoleListResource'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: List organization roles
         group: administration
@@ -12738,6 +12875,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Role'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Create organization role
         group: administration
@@ -12791,6 +12930,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Role'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Retrieve organization role
         group: administration
@@ -12842,6 +12983,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Role'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Update organization role
         group: administration
@@ -12894,6 +13037,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RoleDeletedResource'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Delete organization role
         group: administration
@@ -13283,6 +13428,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UsageResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Audio speeches
         group: usage-audio-speeches
@@ -13416,6 +13563,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UsageResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Audio transcriptions
         group: usage-audio-transcriptions
@@ -13522,6 +13671,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UsageResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Code interpreter sessions
         group: usage-code-interpreter-sessions
@@ -13660,6 +13811,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UsageResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Completions
         group: usage-completions
@@ -13808,6 +13961,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UsageResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Embeddings
         group: usage-embeddings
@@ -13941,6 +14096,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UsageResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: File search calls
         group: usage-file-search-calls
@@ -14101,6 +14258,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UsageResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Images
         group: usage-images
@@ -14236,6 +14395,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UsageResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Moderations
         group: usage-moderations
@@ -14342,6 +14503,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UsageResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Vector stores
         group: usage-vector-stores
@@ -14484,6 +14647,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UsageResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Web search calls
         group: usage-web-search-calls
@@ -14758,6 +14923,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RoleListResource'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: List user organization role assignments
         group: administration
@@ -14824,6 +14991,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserRoleAssignment'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Assign organization role to user
         group: administration
@@ -14889,6 +15058,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AssignedRoleDetails'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Retrieve user organization role
         group: administration
@@ -14944,6 +15115,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeletedRoleAssignmentResource'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Unassign organization role from user
         group: administration
@@ -15010,6 +15183,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RoleListResource'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: List project group role assignments
         group: administration
@@ -15082,6 +15257,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GroupRoleAssignment'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Assign project role to group
         group: administration
@@ -15152,6 +15329,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AssignedRoleDetails'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Retrieve project group role
         group: administration
@@ -15213,6 +15392,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeletedRoleAssignmentResource'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Unassign project role from group
         group: administration
@@ -15275,6 +15456,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/PublicRoleListResource'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: List project roles
         group: administration
@@ -15333,6 +15516,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Role'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Create project role
         group: administration
@@ -15392,6 +15577,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Role'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Retrieve project role
         group: administration
@@ -15449,6 +15636,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Role'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Update project role
         group: administration
@@ -15507,6 +15696,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RoleDeletedResource'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Delete project role
         group: administration
@@ -15574,6 +15765,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RoleListResource'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: List project user role assignments
         group: administration
@@ -15646,6 +15839,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserRoleAssignment'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Assign project role to user
         group: administration
@@ -15717,6 +15912,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AssignedRoleDetails'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Retrieve project user role
         group: administration
@@ -15778,6 +15975,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeletedRoleAssignmentResource'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Unassign project role from user
         group: administration
@@ -16321,6 +16520,8 @@ paths:
             text/event-stream:
               schema:
                 $ref: '#/components/schemas/ResponseStreamEvent'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Create a model response
         group: responses
@@ -17566,6 +17767,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Response'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Get a model response
         group: responses
@@ -17670,6 +17873,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Delete a model response
         group: responses
@@ -17726,6 +17931,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Cancel a response
         group: responses
@@ -17852,6 +18059,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ResponseItemList'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: List input items
         group: responses
@@ -17912,6 +18121,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ThreadObject'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Create thread
         group: threads
@@ -18036,6 +18247,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RunObject'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Create thread and run
         group: threads
@@ -18407,6 +18620,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ThreadObject'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Retrieve thread
         group: threads
@@ -18476,6 +18691,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ThreadObject'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Modify thread
         group: threads
@@ -18553,6 +18770,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeleteThreadResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Delete thread
         group: threads
@@ -18645,6 +18864,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ListMessagesResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: List messages
         group: threads
@@ -18751,6 +18972,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MessageObject'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Create message
         group: threads
@@ -18839,6 +19062,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MessageObject'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Retrieve message
         group: threads
@@ -18927,6 +19152,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MessageObject'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Modify message
         group: threads
@@ -19023,6 +19250,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeleteMessageResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Delete message
         group: threads
@@ -19113,6 +19342,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ListRunsResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: List runs
         group: threads
@@ -19288,6 +19519,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RunObject'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Create run
         group: threads
@@ -19629,6 +19862,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RunObject'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Retrieve run
         group: threads
@@ -19736,6 +19971,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RunObject'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Modify run
         group: threads
@@ -19860,6 +20097,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RunObject'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Cancel a run
         group: threads
@@ -19999,6 +20238,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ListRunStepsResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: List run steps
         group: threads
@@ -20113,6 +20354,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RunStepObject'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Retrieve run step
         group: threads
@@ -20208,6 +20451,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/RunObject'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Submit tool outputs to run
         group: threads
@@ -20671,6 +20916,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ListVectorStoresResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: List vector stores
         group: vector_stores
@@ -20755,6 +21002,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/VectorStoreObject'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Create vector store
         group: vector_stores
@@ -20825,6 +21074,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/VectorStoreObject'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Retrieve vector store
         group: vector_stores
@@ -20887,6 +21138,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/VectorStoreObject'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Modify vector store
         group: vector_stores
@@ -20960,6 +21213,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeleteVectorStoreResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Delete vector store
         group: vector_stores
@@ -21027,6 +21282,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/VectorStoreFileBatchObject'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Create vector store file batch
         group: vector_stores
@@ -21148,6 +21405,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/VectorStoreFileBatchObject'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Retrieve vector store file batch
         group: vector_stores
@@ -21222,6 +21481,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/VectorStoreFileBatchObject'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Cancel vector store file batch
         group: vector_stores
@@ -21337,6 +21598,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ListVectorStoreFilesResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: List vector store files in a batch
         group: vector_stores
@@ -21451,6 +21714,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ListVectorStoreFilesResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: List vector store files
         group: vector_stores
@@ -21531,6 +21796,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/VectorStoreFileObject'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Create vector store file
         group: vector_stores
@@ -21608,6 +21875,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/VectorStoreFileObject'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Retrieve vector store file
         group: vector_stores
@@ -21675,6 +21944,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeleteVectorStoreFileResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Delete vector store file
         group: vector_stores
@@ -21748,6 +22019,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/VectorStoreFileObject'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Update vector store file attributes
         group: vector_stores
@@ -21799,6 +22072,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/VectorStoreFileContentResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Retrieve vector store file content
         group: vector_stores
@@ -21846,6 +22121,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/VectorStoreSearchResultsPage'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Search vector store
         group: vector_stores
@@ -21916,6 +22193,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ConversationResource'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Create a conversation
         group: conversations
@@ -22014,6 +22293,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ConversationResource'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Retrieve a conversation
         group: conversations
@@ -22073,6 +22354,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeletedConversationResource'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Delete a conversation
         group: conversations
@@ -22136,6 +22419,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ConversationResource'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Update a conversation
         group: conversations
@@ -22503,6 +22788,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProvenanceResource'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Create content provenance check
         group: content_provenance_checks
@@ -23259,6 +23546,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TokenCountsResource'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Get input token counts
         group: responses
@@ -23371,6 +23660,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CompactResource'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Compact a response
         group: responses
@@ -23530,6 +23821,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SkillResource'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       description: Create a new skill.
     get:
       tags:
@@ -23565,6 +23858,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SkillListResource'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       description: List all skills for the current project.
   /skills/{skill_id}:
     delete:
@@ -23587,6 +23882,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeletedSkillResource'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       description: Delete a skill by its ID.
     get:
       tags:
@@ -23608,6 +23905,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SkillResource'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       description: Get a skill by its ID.
     post:
       tags:
@@ -23634,6 +23933,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SkillResource'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       description: Update the default version pointer for a skill.
   /skills/{skill_id}/content:
     get:
@@ -23660,6 +23961,8 @@ paths:
             application/json:
               schema:
                 type: string
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       description: Download a skill zip bundle by its ID.
   /skills/{skill_id}/versions:
     post:
@@ -23690,6 +23993,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SkillVersionResource'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       description: Create a new immutable skill version.
     get:
       tags:
@@ -23732,6 +24037,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SkillVersionListResource'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       description: List skill versions for a skill.
   /skills/{skill_id}/versions/{version}:
     get:
@@ -23761,6 +24068,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SkillVersionResource'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       description: Get a specific skill version.
     delete:
       tags:
@@ -23789,6 +24098,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeletedSkillVersionResource'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       description: Delete a skill version.
   /skills/{skill_id}/versions/{version}/content:
     get:
@@ -23822,6 +24133,8 @@ paths:
             application/json:
               schema:
                 type: string
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       description: Download a skill version zip bundle.
   /chatkit/sessions/{session_id}/cancel:
     post:
@@ -24596,6 +24909,8 @@ paths:
             text/event-stream:
               schema:
                 $ref: '#/components/schemas/BetaResponseStreamEvent'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Create a model response
         group: responses
@@ -25868,6 +26183,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BetaResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Get a model response
         group: responses
@@ -25985,6 +26302,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BetaError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Delete a model response
         group: responses
@@ -26054,6 +26373,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BetaError'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Cancel a response
         group: responses
@@ -26155,6 +26476,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BetaCompactResource'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Compact a response
         group: responses
@@ -26360,6 +26683,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BetaResponseItemList'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: List input items
         group: responses
@@ -26432,6 +26757,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BetaTokenCountsResource'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Get input token counts
         group: responses
@@ -30154,6 +30481,9 @@ components:
               type: integer
               default: 0
               description: Tokens generated by the model for reasoning.
+            text_tokens:
+              type: integer
+              description: Text output tokens generated by the model.
             rejected_prediction_tokens:
               type: integer
               default: 0
@@ -30175,6 +30505,12 @@ components:
               type: integer
               default: 0
               description: Cached tokens present in the prompt.
+            text_tokens:
+              type: integer
+              description: Text input tokens present in the prompt.
+            image_tokens:
+              type: integer
+              description: Image input tokens present in the prompt.
             cache_write_tokens:
               type: integer
               default: 0
@@ -30920,6 +31256,8 @@ components:
               characteristics, and price points. Refer to the [model guide](https://platform.openai.com/docs/models)
               to browse and compare available models.
             $ref: '#/components/schemas/ModelIdsShared'
+          service_tier:
+            $ref: '#/components/schemas/ServiceTier'
           modalities:
             $ref: '#/components/schemas/ResponseModalities'
           verbosity:
@@ -33527,6 +33865,8 @@ components:
       - $ref: '#/components/schemas/ResponseProperties'
       - type: object
         properties:
+          service_tier:
+            $ref: '#/components/schemas/ServiceTierResponses'
           truncation:
             deprecated: true
             anyOf:
@@ -40330,10 +40670,9 @@ components:
               The output from the tool call.
           - type: 'null'
         error:
+          description: The error from the tool call, if any.
           anyOf:
-          - type: string
-            description: |
-              The error from the tool call, if any.
+          - $ref: '#/components/schemas/MCPToolCallError'
           - type: 'null'
         status:
           $ref: '#/components/schemas/MCPToolCallStatus'
@@ -40352,6 +40691,13 @@ components:
       - server_label
       - name
       - arguments
+    MCPToolCallError:
+      discriminator:
+        propertyName: type
+      anyOf:
+      - $ref: '#/components/schemas/MCPProtocolError'
+      - $ref: '#/components/schemas/MCPToolExecutionError'
+      - $ref: '#/components/schemas/HTTPError'
     MCPToolFilter:
       type: object
       title: MCP tool filter
@@ -41047,6 +41393,12 @@ components:
         owned_by:
           type: string
           description: The organization that owns the model.
+        shutdown_date:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          description: The date when the model will shut down, or null if not announced.
       required:
       - id
       - object
@@ -41059,7 +41411,8 @@ components:
             "id": "VAR_chat_model_id",
             "object": "model",
             "created": 1686935002,
-            "owned_by": "openai"
+            "owned_by": "openai",
+            "shutdown_date": "2026-10-23"
           }
     ModelIds:
       anyOf:
@@ -41088,6 +41441,8 @@ components:
         - o4-mini-deep-research-2025-06-26
         - computer-use-preview
         - computer-use-preview-2025-03-11
+        - gpt-5.5-pro
+        - gpt-5.5-pro-2026-04-23
         - gpt-5-codex
         - gpt-5-pro
         - gpt-5-pro-2025-10-06
@@ -41166,8 +41521,6 @@ components:
             description: |
               Used by OpenAI to cache responses for similar requests to optimize your cache hit rates. Replaces the `user` field. [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
           - type: 'null'
-        service_tier:
-          $ref: '#/components/schemas/ServiceTier'
         prompt_cache_retention:
           deprecated: true
           anyOf:
@@ -51648,6 +52001,12 @@ components:
               The encrypted content of the reasoning item. This is populated by default
               for reasoning items returned by `POST /v1/responses` and WebSocket
               `response.create` requests.
+
+              When streaming, use the completed reasoning item and its
+              `encrypted_content` from the `response.output_item.done` event in
+              subsequent requests. The `encrypted_content` in
+              `response.output_item.added` may be incomplete. This is especially
+              important when `store` is `false` or when using Zero Data Retention.
           - type: 'null'
         summary:
           type: array
@@ -51681,6 +52040,8 @@ components:
       - $ref: '#/components/schemas/ResponseProperties'
       - type: object
         properties:
+          service_tier:
+            $ref: '#/components/schemas/ServiceTierResponses'
           truncation:
             anyOf:
             - type: string
@@ -53633,7 +53994,10 @@ components:
         item:
           $ref: '#/components/schemas/OutputItem'
           description: |
-            The output item that was added.
+            The output item that was added. For reasoning items, `encrypted_content`
+            may be incomplete while the item is in progress. Use the reasoning item
+            from the corresponding `response.output_item.done` event when passing it
+            as input to a subsequent request.
       required:
       - type
       - output_index
@@ -53733,7 +54097,9 @@ components:
           type: integer
           description: The sequence number of this event.
         annotation:
-          type: object
+          anyOf:
+          - $ref: '#/components/schemas/Annotation'
+          - type: 'null'
           description: The annotation object being added. (See annotation schema for details.)
       required:
       - type
@@ -53754,10 +54120,10 @@ components:
             "content_index": 0,
             "annotation_index": 0,
             "annotation": {
-              "type": "text_annotation",
-              "text": "This is a test annotation",
-              "start": 0,
-              "end": 10
+              "type": "file_citation",
+              "file_id": "file-abc",
+              "index": 0,
+              "filename": "example.txt"
             },
             "sequence_number": 1
           }
@@ -54296,6 +54662,7 @@ components:
             "sequence_number": 1
           }
     ResponseStreamEvent:
+      description: Event emitted while a response is streamed.
       anyOf:
       - $ref: '#/components/schemas/ResponseAudioDeltaEvent'
       - $ref: '#/components/schemas/ResponseAudioDoneEvent'
@@ -54647,6 +55014,49 @@ components:
             "item_id": "ws_123",
             "sequence_number": 0
           }
+    ResponseWsError:
+      type: object
+      title: ResponseWsError
+      description: Emitted when an error occurs while processing a Responses WebSocket request.
+      properties:
+        type:
+          type: string
+          description: The type of the event. Always `error`.
+          enum:
+          - error
+          x-stainless-const: true
+        status:
+          type: integer
+          description: The HTTP status code associated with a WebSocket protocol error.
+        sequence_number:
+          type: integer
+          description: The sequence number of an error emitted by the response stream.
+        error:
+          $ref: '#/components/schemas/ErrorPayload'
+          description: Details about the error.
+        stream_id:
+          type: string
+          description: |
+            The WebSocket lane that emitted this event. This field is present when the
+            originating `response.create` event supplied a `stream_id`.
+      required:
+      - type
+      - error
+      x-oaiMeta:
+        name: error
+        group: responses
+        example: |
+          {
+            "type": "error",
+            "status": 400,
+            "stream_id": "agent_1",
+            "error": {
+              "type": "invalid_request_error",
+              "code": "websocket_stream_limit_reached",
+              "message": "This WebSocket connection has reached its stream limit.",
+              "param": "stream_id"
+            }
+          }
     ResponsesClientEvent:
       discriminator:
         propertyName: type
@@ -54853,18 +55263,6 @@ components:
           An event that is emitted when a response is created.
         allOf:
         - $ref: '#/components/schemas/ResponseCreatedEvent'
-        - type: object
-          properties:
-            stream_id:
-              type: string
-              description: |
-                The WebSocket lane that emitted this event. This field is present
-                when the originating `response.create` event supplied a
-                `stream_id`.
-      - title: ResponseWsError
-        description: Emitted when an error occurs.
-        allOf:
-        - $ref: '#/components/schemas/ResponseErrorEvent'
         - type: object
           properties:
             stream_id:
@@ -55359,9 +55757,62 @@ components:
                 The WebSocket lane that emitted this event. This field is present
                 when the originating `response.create` event supplied a
                 `stream_id`.
+      - $ref: '#/components/schemas/ResponseWsError'
     ResponsesWebSocketStreamEvent:
       allOf:
-      - $ref: '#/components/schemas/ResponseStreamEvent'
+      - anyOf:
+        - $ref: '#/components/schemas/ResponseAudioDeltaEvent'
+        - $ref: '#/components/schemas/ResponseAudioDoneEvent'
+        - $ref: '#/components/schemas/ResponseAudioTranscriptDeltaEvent'
+        - $ref: '#/components/schemas/ResponseAudioTranscriptDoneEvent'
+        - $ref: '#/components/schemas/ResponseCodeInterpreterCallCodeDeltaEvent'
+        - $ref: '#/components/schemas/ResponseCodeInterpreterCallCodeDoneEvent'
+        - $ref: '#/components/schemas/ResponseCodeInterpreterCallCompletedEvent'
+        - $ref: '#/components/schemas/ResponseCodeInterpreterCallInProgressEvent'
+        - $ref: '#/components/schemas/ResponseCodeInterpreterCallInterpretingEvent'
+        - $ref: '#/components/schemas/ResponseCompletedEvent'
+        - $ref: '#/components/schemas/ResponseContentPartAddedEvent'
+        - $ref: '#/components/schemas/ResponseContentPartDoneEvent'
+        - $ref: '#/components/schemas/ResponseCreatedEvent'
+        - $ref: '#/components/schemas/ResponseFileSearchCallCompletedEvent'
+        - $ref: '#/components/schemas/ResponseFileSearchCallInProgressEvent'
+        - $ref: '#/components/schemas/ResponseFileSearchCallSearchingEvent'
+        - $ref: '#/components/schemas/ResponseFunctionCallArgumentsDeltaEvent'
+        - $ref: '#/components/schemas/ResponseFunctionCallArgumentsDoneEvent'
+        - $ref: '#/components/schemas/ResponseInProgressEvent'
+        - $ref: '#/components/schemas/ResponseFailedEvent'
+        - $ref: '#/components/schemas/ResponseIncompleteEvent'
+        - $ref: '#/components/schemas/ResponseOutputItemAddedEvent'
+        - $ref: '#/components/schemas/ResponseOutputItemDoneEvent'
+        - $ref: '#/components/schemas/ResponseReasoningSummaryPartAddedEvent'
+        - $ref: '#/components/schemas/ResponseReasoningSummaryPartDoneEvent'
+        - $ref: '#/components/schemas/ResponseReasoningSummaryTextDeltaEvent'
+        - $ref: '#/components/schemas/ResponseReasoningSummaryTextDoneEvent'
+        - $ref: '#/components/schemas/ResponseReasoningTextDeltaEvent'
+        - $ref: '#/components/schemas/ResponseReasoningTextDoneEvent'
+        - $ref: '#/components/schemas/ResponseRefusalDeltaEvent'
+        - $ref: '#/components/schemas/ResponseRefusalDoneEvent'
+        - $ref: '#/components/schemas/ResponseTextDeltaEvent'
+        - $ref: '#/components/schemas/ResponseTextDoneEvent'
+        - $ref: '#/components/schemas/ResponseWebSearchCallCompletedEvent'
+        - $ref: '#/components/schemas/ResponseWebSearchCallInProgressEvent'
+        - $ref: '#/components/schemas/ResponseWebSearchCallSearchingEvent'
+        - $ref: '#/components/schemas/ResponseImageGenCallCompletedEvent'
+        - $ref: '#/components/schemas/ResponseImageGenCallGeneratingEvent'
+        - $ref: '#/components/schemas/ResponseImageGenCallInProgressEvent'
+        - $ref: '#/components/schemas/ResponseImageGenCallPartialImageEvent'
+        - $ref: '#/components/schemas/ResponseMCPCallArgumentsDeltaEvent'
+        - $ref: '#/components/schemas/ResponseMCPCallArgumentsDoneEvent'
+        - $ref: '#/components/schemas/ResponseMCPCallCompletedEvent'
+        - $ref: '#/components/schemas/ResponseMCPCallFailedEvent'
+        - $ref: '#/components/schemas/ResponseMCPCallInProgressEvent'
+        - $ref: '#/components/schemas/ResponseMCPListToolsCompletedEvent'
+        - $ref: '#/components/schemas/ResponseMCPListToolsFailedEvent'
+        - $ref: '#/components/schemas/ResponseMCPListToolsInProgressEvent'
+        - $ref: '#/components/schemas/ResponseOutputTextAnnotationAddedEvent'
+        - $ref: '#/components/schemas/ResponseQueuedEvent'
+        - $ref: '#/components/schemas/ResponseCustomToolCallInputDeltaEvent'
+        - $ref: '#/components/schemas/ResponseCustomToolCallInputDoneEvent'
       - type: object
         properties:
           stream_id:
@@ -56808,6 +57259,29 @@ components:
         - scale
         - priority
         - fast
+        default: auto
+      - type: 'null'
+    ServiceTierResponses:
+      anyOf:
+      - type: string
+        description: |
+          Specifies the processing type used for serving the request.
+            - If set to 'auto', then the request will be processed with the service tier configured in the Project settings. Unless otherwise configured, the Project will use 'default'.
+            - If set to 'default', then the request will be processed with the standard pricing and performance for the selected model.
+            - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)', then the request will be processed with the Flex Processing service tier.
+            - To opt-in to [Fast mode](/api/docs/guides/fast-mode) at the request level, include the `service_tier=fast` or `service_tier=priority` parameter for Responses or Chat Completions. The response will show `service_tier=priority` regardless of if you specify `service_tier=fast` or `priority` in your request.
+            - If set to 'ultrafast', then the request will be processed with the access-controlled Ultrafast Processing service tier. This tier is currently available for `gpt-5.6-sol`; a response served through it will show `service_tier=ultrafast`.
+            - When not set, the default behavior is 'auto'.
+
+            When the `service_tier` parameter is set, the response body will include the `service_tier` value based on the processing mode actually used to serve the request. This response value may be different from the value set in the parameter.
+        enum:
+        - auto
+        - default
+        - flex
+        - scale
+        - priority
+        - fast
+        - ultrafast
         default: auto
       - type: 'null'
     SpeechAudioDeltaEvent:
@@ -59742,6 +60216,10 @@ components:
           - web_search_2025_08_26
           description: The type of the web search tool. One of `web_search` or `web_search_2025_08_26`.
           default: web_search
+        external_web_access:
+          type: boolean
+          default: true
+          description: Allow live internet access for web search. Defaults to true when omitted. When false, the web search tool runs in offline/cache-only mode and will not fetch new external content.
         filters:
           anyOf:
           - type: object
@@ -63112,6 +63590,53 @@ components:
       - status
       title: Apply patch tool call output
       description: The output emitted by an apply patch tool call.
+    MCPProtocolError:
+      properties:
+        type:
+          type: string
+          enum:
+          - mcp_protocol_error
+          default: mcp_protocol_error
+          x-stainless-const: true
+        code:
+          type: integer
+        message:
+          type: string
+      type: object
+      required:
+      - type
+      - code
+      - message
+    MCPToolExecutionError:
+      properties:
+        type:
+          type: string
+          enum:
+          - mcp_tool_execution_error
+          default: mcp_tool_execution_error
+          x-stainless-const: true
+        content: {}
+      type: object
+      required:
+      - type
+      - content
+    HTTPError:
+      properties:
+        type:
+          type: string
+          enum:
+          - http_error
+          default: http_error
+          x-stainless-const: true
+        code:
+          type: integer
+        message:
+          type: string
+      type: object
+      required:
+      - type
+      - code
+      - message
     MCPToolCallStatus:
       type: string
       enum:
@@ -66531,6 +67056,39 @@ components:
       - y
       title: Coordinate
       description: 'An x/y coordinate pair, e.g. `{ x: 100, y: 200 }`.'
+    ErrorPayload:
+      properties:
+        type:
+          type: string
+          description: The error type that was emitted.
+        code:
+          anyOf:
+          - type: string
+            description: The error code that was emitted, if any.
+          - type: 'null'
+        message:
+          type: string
+          description: The human-readable error message that was emitted.
+        param:
+          anyOf:
+          - type: string
+            description: The parameter name that was associated with the error, if any.
+          - type: 'null'
+        headers:
+          additionalProperties:
+            type: string
+            description: The header value that was emitted.
+          type: object
+          description: The response headers that were emitted with the error, if any.
+          x-oaiTypeLabel: map
+      type: object
+      required:
+      - type
+      - code
+      - message
+      - param
+      title: Error payload
+      description: An error payload that was emitted for a streaming error event.
     BetaTokenCountsResource:
       properties:
         object:
@@ -68038,6 +68596,10 @@ components:
           - web_search_2025_08_26
           description: The type of the web search tool. One of `web_search` or `web_search_2025_08_26`.
           default: web_search
+        external_web_access:
+          type: boolean
+          default: true
+          description: Allow live internet access for web search. Defaults to true when omitted. When false, the web search tool runs in offline/cache-only mode and will not fetch new external content.
         filters:
           anyOf:
           - type: object
@@ -68869,10 +69431,9 @@ components:
               The output from the tool call.
           - type: 'null'
         error:
+          description: The error from the tool call, if any.
           anyOf:
-          - type: string
-            description: |
-              The error from the tool call, if any.
+          - $ref: '#/components/schemas/BetaMCPToolCallError'
           - type: 'null'
         status:
           $ref: '#/components/schemas/BetaMCPToolCallStatus'
@@ -68899,6 +69460,60 @@ components:
       - incomplete
       - calling
       - failed
+    BetaMCPToolCallError:
+      discriminator:
+        propertyName: type
+      anyOf:
+      - $ref: '#/components/schemas/BetaMCPProtocolError'
+      - $ref: '#/components/schemas/BetaMCPToolExecutionError'
+      - $ref: '#/components/schemas/BetaHTTPError'
+    BetaHTTPError:
+      properties:
+        type:
+          type: string
+          enum:
+          - http_error
+          default: http_error
+          x-stainless-const: true
+        code:
+          type: integer
+        message:
+          type: string
+      type: object
+      required:
+      - type
+      - code
+      - message
+    BetaMCPToolExecutionError:
+      properties:
+        type:
+          type: string
+          enum:
+          - mcp_tool_execution_error
+          default: mcp_tool_execution_error
+          x-stainless-const: true
+        content: {}
+      type: object
+      required:
+      - type
+      - content
+    BetaMCPProtocolError:
+      properties:
+        type:
+          type: string
+          enum:
+          - mcp_protocol_error
+          default: mcp_protocol_error
+          x-stainless-const: true
+        code:
+          type: integer
+        message:
+          type: string
+      type: object
+      required:
+      - type
+      - code
+      - message
     BetaMCPApprovalResponse:
       type: object
       title: MCP approval response
@@ -69761,6 +70376,12 @@ components:
               The encrypted content of the reasoning item. This is populated by default
               for reasoning items returned by `POST /v1/responses` and WebSocket
               `response.create` requests.
+
+              When streaming, use the completed reasoning item and its
+              `encrypted_content` from the `response.output_item.done` event in
+              subsequent requests. The `encrypted_content` in
+              `response.output_item.added` may be incomplete. This is especially
+              important when `store` is `false` or when using Zero Data Retention.
           - type: 'null'
         summary:
           type: array
@@ -71628,6 +72249,8 @@ components:
         - o4-mini-deep-research-2025-06-26
         - computer-use-preview
         - computer-use-preview-2025-03-11
+        - gpt-5.5-pro
+        - gpt-5.5-pro-2026-04-23
         - gpt-5-codex
         - gpt-5-pro
         - gpt-5-pro-2025-10-06
@@ -73150,6 +73773,8 @@ components:
       - $ref: '#/components/schemas/BetaResponseProperties'
       - type: object
         properties:
+          service_tier:
+            $ref: '#/components/schemas/BetaServiceTierResponses'
           truncation:
             anyOf:
             - type: string
@@ -73500,6 +74125,29 @@ components:
       - empty_image_file
       - failed_to_download_image
       - image_file_not_found
+    BetaServiceTierResponses:
+      anyOf:
+      - type: string
+        description: |
+          Specifies the processing type used for serving the request.
+            - If set to 'auto', then the request will be processed with the service tier configured in the Project settings. Unless otherwise configured, the Project will use 'default'.
+            - If set to 'default', then the request will be processed with the standard pricing and performance for the selected model.
+            - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)', then the request will be processed with the Flex Processing service tier.
+            - To opt-in to [Fast mode](/api/docs/guides/fast-mode) at the request level, include the `service_tier=fast` or `service_tier=priority` parameter for Responses or Chat Completions. The response will show `service_tier=priority` regardless of if you specify `service_tier=fast` or `priority` in your request.
+            - If set to 'ultrafast', then the request will be processed with the access-controlled Ultrafast Processing service tier. This tier is currently available for `gpt-5.6-sol`; a response served through it will show `service_tier=ultrafast`.
+            - When not set, the default behavior is 'auto'.
+
+            When the `service_tier` parameter is set, the response body will include the `service_tier` value based on the processing mode actually used to serve the request. This response value may be different from the value set in the parameter.
+        enum:
+        - auto
+        - default
+        - flex
+        - scale
+        - priority
+        - fast
+        - ultrafast
+        default: auto
+      - type: 'null'
     BetaResponseProperties:
       type: object
       properties:
@@ -73666,8 +74314,6 @@ components:
             description: |
               Used by OpenAI to cache responses for similar requests to optimize your cache hit rates. Replaces the `user` field. [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
           - type: 'null'
-        service_tier:
-          $ref: '#/components/schemas/BetaServiceTier'
         prompt_cache_retention:
           deprecated: true
           anyOf:
@@ -73688,27 +74334,6 @@ components:
                 - Organizations without ZDR enabled default to `24h`.
                 - Organizations with ZDR enabled default to `in_memory` when `prompt_cache_retention` is not specified.
           - type: 'null'
-    BetaServiceTier:
-      anyOf:
-      - type: string
-        description: |
-          Specifies the processing type used for serving the request.
-            - If set to 'auto', then the request will be processed with the service tier configured in the Project settings. Unless otherwise configured, the Project will use 'default'.
-            - If set to 'default', then the request will be processed with the standard pricing and performance for the selected model.
-            - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)', then the request will be processed with the Flex Processing service tier.
-            - To opt-in to [Fast mode](/api/docs/guides/fast-mode) at the request level, include the `service_tier=fast` or `service_tier=priority` parameter for Responses or Chat Completions. The response will show `service_tier=priority` regardless of if you specify `service_tier=fast` or `priority` in your request.
-            - When not set, the default behavior is 'auto'.
-
-            When the `service_tier` parameter is set, the response body will include the `service_tier` value based on the processing mode actually used to serve the request. This response value may be different from the value set in the parameter.
-        enum:
-        - auto
-        - default
-        - flex
-        - scale
-        - priority
-        - fast
-        default: auto
-      - type: 'null'
     BetaMetadata:
       anyOf:
       - type: object
@@ -73756,7 +74381,9 @@ components:
           type: integer
           description: The sequence number of this event.
         annotation:
-          type: object
+          anyOf:
+          - $ref: '#/components/schemas/BetaAnnotation'
+          - type: 'null'
           description: The annotation object being added. (See annotation schema for details.)
       required:
       - type
@@ -73777,10 +74404,10 @@ components:
             "content_index": 0,
             "annotation_index": 0,
             "annotation": {
-              "type": "text_annotation",
-              "text": "This is a test annotation",
-              "start": 0,
-              "end": 10
+              "type": "file_citation",
+              "file_id": "file-abc",
+              "index": 0,
+              "filename": "example.txt"
             },
             "sequence_number": 1
           }
@@ -75008,7 +75635,10 @@ components:
         item:
           $ref: '#/components/schemas/BetaOutputItem'
           description: |
-            The output item that was added.
+            The output item that was added. For reasoning items, `encrypted_content`
+            may be incomplete while the item is in progress. Use the reasoning item
+            from the corresponding `response.output_item.done` event when passing it
+            as input to a subsequent request.
       required:
       - type
       - output_index
@@ -76529,18 +77159,6 @@ components:
                 The WebSocket lane that emitted this event. This field is present
                 when the originating `response.create` event supplied a
                 `stream_id`.
-      - title: BetaResponseWsError
-        description: Emitted when an error occurs.
-        allOf:
-        - $ref: '#/components/schemas/BetaResponseErrorEvent'
-        - type: object
-          properties:
-            stream_id:
-              type: string
-              description: |
-                The WebSocket lane that emitted this event. This field is present
-                when the originating `response.create` event supplied a
-                `stream_id`.
       - title: BetaResponseFileSearchCallWsCompleted
         description: Emitted when a file search call is completed (results found).
         allOf:
@@ -77027,6 +77645,7 @@ components:
                 The WebSocket lane that emitted this event. This field is present
                 when the originating `response.create` event supplied a
                 `stream_id`.
+      - $ref: '#/components/schemas/BetaResponseWsError'
       - $ref: '#/components/schemas/BetaResponseInjectCreatedEvent'
       - $ref: '#/components/schemas/BetaResponseInjectFailedEvent'
     BetaResponseInjectFailedEvent:
@@ -77136,9 +77755,142 @@ components:
             "response_id": "resp_123",
             "sequence_number": 8
           }
+    BetaResponseWsError:
+      type: object
+      title: ResponseWsError
+      description: Emitted when an error occurs while processing a Responses WebSocket request.
+      properties:
+        agent:
+          anyOf:
+          - $ref: '#/components/schemas/BetaAgentTag'
+          - type: 'null'
+          description: The agent that owns this multi-agent streaming event.
+        type:
+          type: string
+          description: The type of the event. Always `error`.
+          enum:
+          - error
+          x-stainless-const: true
+        status:
+          type: integer
+          description: The HTTP status code associated with a WebSocket protocol error.
+        sequence_number:
+          type: integer
+          description: The sequence number of an error emitted by the response stream.
+        error:
+          $ref: '#/components/schemas/BetaErrorPayload'
+          description: Details about the error.
+        stream_id:
+          type: string
+          description: |
+            The WebSocket lane that emitted this event. This field is present when the
+            originating `response.create` event supplied a `stream_id`.
+      required:
+      - type
+      - error
+      x-oaiMeta:
+        name: error
+        group: responses
+        example: |
+          {
+            "type": "error",
+            "status": 400,
+            "stream_id": "agent_1",
+            "error": {
+              "type": "invalid_request_error",
+              "code": "websocket_stream_limit_reached",
+              "message": "This WebSocket connection has reached its stream limit.",
+              "param": "stream_id"
+            }
+          }
+    BetaErrorPayload:
+      properties:
+        type:
+          type: string
+          description: The error type that was emitted.
+        code:
+          anyOf:
+          - type: string
+            description: The error code that was emitted, if any.
+          - type: 'null'
+        message:
+          type: string
+          description: The human-readable error message that was emitted.
+        param:
+          anyOf:
+          - type: string
+            description: The parameter name that was associated with the error, if any.
+          - type: 'null'
+        headers:
+          additionalProperties:
+            type: string
+            description: The header value that was emitted.
+          type: object
+          description: The response headers that were emitted with the error, if any.
+          x-oaiTypeLabel: map
+      type: object
+      required:
+      - type
+      - code
+      - message
+      - param
+      title: Error payload
+      description: An error payload that was emitted for a streaming error event.
     BetaResponsesWebSocketStreamEvent:
       allOf:
-      - $ref: '#/components/schemas/BetaResponseStreamEvent'
+      - anyOf:
+        - $ref: '#/components/schemas/BetaResponseAudioDeltaEvent'
+        - $ref: '#/components/schemas/BetaResponseAudioDoneEvent'
+        - $ref: '#/components/schemas/BetaResponseAudioTranscriptDeltaEvent'
+        - $ref: '#/components/schemas/BetaResponseAudioTranscriptDoneEvent'
+        - $ref: '#/components/schemas/BetaResponseCodeInterpreterCallCodeDeltaEvent'
+        - $ref: '#/components/schemas/BetaResponseCodeInterpreterCallCodeDoneEvent'
+        - $ref: '#/components/schemas/BetaResponseCodeInterpreterCallCompletedEvent'
+        - $ref: '#/components/schemas/BetaResponseCodeInterpreterCallInProgressEvent'
+        - $ref: '#/components/schemas/BetaResponseCodeInterpreterCallInterpretingEvent'
+        - $ref: '#/components/schemas/BetaResponseCompletedEvent'
+        - $ref: '#/components/schemas/BetaResponseContentPartAddedEvent'
+        - $ref: '#/components/schemas/BetaResponseContentPartDoneEvent'
+        - $ref: '#/components/schemas/BetaResponseCreatedEvent'
+        - $ref: '#/components/schemas/BetaResponseFileSearchCallCompletedEvent'
+        - $ref: '#/components/schemas/BetaResponseFileSearchCallInProgressEvent'
+        - $ref: '#/components/schemas/BetaResponseFileSearchCallSearchingEvent'
+        - $ref: '#/components/schemas/BetaResponseFunctionCallArgumentsDeltaEvent'
+        - $ref: '#/components/schemas/BetaResponseFunctionCallArgumentsDoneEvent'
+        - $ref: '#/components/schemas/BetaResponseInProgressEvent'
+        - $ref: '#/components/schemas/BetaResponseFailedEvent'
+        - $ref: '#/components/schemas/BetaResponseIncompleteEvent'
+        - $ref: '#/components/schemas/BetaResponseOutputItemAddedEvent'
+        - $ref: '#/components/schemas/BetaResponseOutputItemDoneEvent'
+        - $ref: '#/components/schemas/BetaResponseReasoningSummaryPartAddedEvent'
+        - $ref: '#/components/schemas/BetaResponseReasoningSummaryPartDoneEvent'
+        - $ref: '#/components/schemas/BetaResponseReasoningSummaryTextDeltaEvent'
+        - $ref: '#/components/schemas/BetaResponseReasoningSummaryTextDoneEvent'
+        - $ref: '#/components/schemas/BetaResponseReasoningTextDeltaEvent'
+        - $ref: '#/components/schemas/BetaResponseReasoningTextDoneEvent'
+        - $ref: '#/components/schemas/BetaResponseRefusalDeltaEvent'
+        - $ref: '#/components/schemas/BetaResponseRefusalDoneEvent'
+        - $ref: '#/components/schemas/BetaResponseTextDeltaEvent'
+        - $ref: '#/components/schemas/BetaResponseTextDoneEvent'
+        - $ref: '#/components/schemas/BetaResponseWebSearchCallCompletedEvent'
+        - $ref: '#/components/schemas/BetaResponseWebSearchCallInProgressEvent'
+        - $ref: '#/components/schemas/BetaResponseWebSearchCallSearchingEvent'
+        - $ref: '#/components/schemas/BetaResponseImageGenCallCompletedEvent'
+        - $ref: '#/components/schemas/BetaResponseImageGenCallGeneratingEvent'
+        - $ref: '#/components/schemas/BetaResponseImageGenCallInProgressEvent'
+        - $ref: '#/components/schemas/BetaResponseImageGenCallPartialImageEvent'
+        - $ref: '#/components/schemas/BetaResponseMCPCallArgumentsDeltaEvent'
+        - $ref: '#/components/schemas/BetaResponseMCPCallArgumentsDoneEvent'
+        - $ref: '#/components/schemas/BetaResponseMCPCallCompletedEvent'
+        - $ref: '#/components/schemas/BetaResponseMCPCallFailedEvent'
+        - $ref: '#/components/schemas/BetaResponseMCPCallInProgressEvent'
+        - $ref: '#/components/schemas/BetaResponseMCPListToolsCompletedEvent'
+        - $ref: '#/components/schemas/BetaResponseMCPListToolsFailedEvent'
+        - $ref: '#/components/schemas/BetaResponseMCPListToolsInProgressEvent'
+        - $ref: '#/components/schemas/BetaResponseOutputTextAnnotationAddedEvent'
+        - $ref: '#/components/schemas/BetaResponseQueuedEvent'
+        - $ref: '#/components/schemas/BetaResponseCustomToolCallInputDeltaEvent'
+        - $ref: '#/components/schemas/BetaResponseCustomToolCallInputDoneEvent'
       - type: object
         properties:
           stream_id:
@@ -77147,63 +77899,6 @@ components:
               The WebSocket lane that emitted this event. This field is present
               when the originating `response.create` event supplied a
               `stream_id`.
-    BetaResponseStreamEvent:
-      anyOf:
-      - $ref: '#/components/schemas/BetaResponseAudioDeltaEvent'
-      - $ref: '#/components/schemas/BetaResponseAudioDoneEvent'
-      - $ref: '#/components/schemas/BetaResponseAudioTranscriptDeltaEvent'
-      - $ref: '#/components/schemas/BetaResponseAudioTranscriptDoneEvent'
-      - $ref: '#/components/schemas/BetaResponseCodeInterpreterCallCodeDeltaEvent'
-      - $ref: '#/components/schemas/BetaResponseCodeInterpreterCallCodeDoneEvent'
-      - $ref: '#/components/schemas/BetaResponseCodeInterpreterCallCompletedEvent'
-      - $ref: '#/components/schemas/BetaResponseCodeInterpreterCallInProgressEvent'
-      - $ref: '#/components/schemas/BetaResponseCodeInterpreterCallInterpretingEvent'
-      - $ref: '#/components/schemas/BetaResponseCompletedEvent'
-      - $ref: '#/components/schemas/BetaResponseContentPartAddedEvent'
-      - $ref: '#/components/schemas/BetaResponseContentPartDoneEvent'
-      - $ref: '#/components/schemas/BetaResponseCreatedEvent'
-      - $ref: '#/components/schemas/BetaResponseErrorEvent'
-      - $ref: '#/components/schemas/BetaResponseFileSearchCallCompletedEvent'
-      - $ref: '#/components/schemas/BetaResponseFileSearchCallInProgressEvent'
-      - $ref: '#/components/schemas/BetaResponseFileSearchCallSearchingEvent'
-      - $ref: '#/components/schemas/BetaResponseFunctionCallArgumentsDeltaEvent'
-      - $ref: '#/components/schemas/BetaResponseFunctionCallArgumentsDoneEvent'
-      - $ref: '#/components/schemas/BetaResponseInProgressEvent'
-      - $ref: '#/components/schemas/BetaResponseFailedEvent'
-      - $ref: '#/components/schemas/BetaResponseIncompleteEvent'
-      - $ref: '#/components/schemas/BetaResponseOutputItemAddedEvent'
-      - $ref: '#/components/schemas/BetaResponseOutputItemDoneEvent'
-      - $ref: '#/components/schemas/BetaResponseReasoningSummaryPartAddedEvent'
-      - $ref: '#/components/schemas/BetaResponseReasoningSummaryPartDoneEvent'
-      - $ref: '#/components/schemas/BetaResponseReasoningSummaryTextDeltaEvent'
-      - $ref: '#/components/schemas/BetaResponseReasoningSummaryTextDoneEvent'
-      - $ref: '#/components/schemas/BetaResponseReasoningTextDeltaEvent'
-      - $ref: '#/components/schemas/BetaResponseReasoningTextDoneEvent'
-      - $ref: '#/components/schemas/BetaResponseRefusalDeltaEvent'
-      - $ref: '#/components/schemas/BetaResponseRefusalDoneEvent'
-      - $ref: '#/components/schemas/BetaResponseTextDeltaEvent'
-      - $ref: '#/components/schemas/BetaResponseTextDoneEvent'
-      - $ref: '#/components/schemas/BetaResponseWebSearchCallCompletedEvent'
-      - $ref: '#/components/schemas/BetaResponseWebSearchCallInProgressEvent'
-      - $ref: '#/components/schemas/BetaResponseWebSearchCallSearchingEvent'
-      - $ref: '#/components/schemas/BetaResponseImageGenCallCompletedEvent'
-      - $ref: '#/components/schemas/BetaResponseImageGenCallGeneratingEvent'
-      - $ref: '#/components/schemas/BetaResponseImageGenCallInProgressEvent'
-      - $ref: '#/components/schemas/BetaResponseImageGenCallPartialImageEvent'
-      - $ref: '#/components/schemas/BetaResponseMCPCallArgumentsDeltaEvent'
-      - $ref: '#/components/schemas/BetaResponseMCPCallArgumentsDoneEvent'
-      - $ref: '#/components/schemas/BetaResponseMCPCallCompletedEvent'
-      - $ref: '#/components/schemas/BetaResponseMCPCallFailedEvent'
-      - $ref: '#/components/schemas/BetaResponseMCPCallInProgressEvent'
-      - $ref: '#/components/schemas/BetaResponseMCPListToolsCompletedEvent'
-      - $ref: '#/components/schemas/BetaResponseMCPListToolsFailedEvent'
-      - $ref: '#/components/schemas/BetaResponseMCPListToolsInProgressEvent'
-      - $ref: '#/components/schemas/BetaResponseOutputTextAnnotationAddedEvent'
-      - $ref: '#/components/schemas/BetaResponseQueuedEvent'
-      - $ref: '#/components/schemas/BetaResponseCustomToolCallInputDeltaEvent'
-      - $ref: '#/components/schemas/BetaResponseCustomToolCallInputDoneEvent'
-      discriminator:
-        propertyName: type
     BetaResponsesClientEvent:
       discriminator:
         propertyName: type
@@ -77303,6 +77998,8 @@ components:
       - $ref: '#/components/schemas/BetaResponseProperties'
       - type: object
         properties:
+          service_tier:
+            $ref: '#/components/schemas/BetaServiceTierResponses'
           truncation:
             deprecated: true
             anyOf:
@@ -77513,6 +78210,64 @@ components:
             type: integer
             minimum: 0
             maximum: 20
+    BetaResponseStreamEvent:
+      description: Event emitted while a response is streamed.
+      anyOf:
+      - $ref: '#/components/schemas/BetaResponseAudioDeltaEvent'
+      - $ref: '#/components/schemas/BetaResponseAudioDoneEvent'
+      - $ref: '#/components/schemas/BetaResponseAudioTranscriptDeltaEvent'
+      - $ref: '#/components/schemas/BetaResponseAudioTranscriptDoneEvent'
+      - $ref: '#/components/schemas/BetaResponseCodeInterpreterCallCodeDeltaEvent'
+      - $ref: '#/components/schemas/BetaResponseCodeInterpreterCallCodeDoneEvent'
+      - $ref: '#/components/schemas/BetaResponseCodeInterpreterCallCompletedEvent'
+      - $ref: '#/components/schemas/BetaResponseCodeInterpreterCallInProgressEvent'
+      - $ref: '#/components/schemas/BetaResponseCodeInterpreterCallInterpretingEvent'
+      - $ref: '#/components/schemas/BetaResponseCompletedEvent'
+      - $ref: '#/components/schemas/BetaResponseContentPartAddedEvent'
+      - $ref: '#/components/schemas/BetaResponseContentPartDoneEvent'
+      - $ref: '#/components/schemas/BetaResponseCreatedEvent'
+      - $ref: '#/components/schemas/BetaResponseErrorEvent'
+      - $ref: '#/components/schemas/BetaResponseFileSearchCallCompletedEvent'
+      - $ref: '#/components/schemas/BetaResponseFileSearchCallInProgressEvent'
+      - $ref: '#/components/schemas/BetaResponseFileSearchCallSearchingEvent'
+      - $ref: '#/components/schemas/BetaResponseFunctionCallArgumentsDeltaEvent'
+      - $ref: '#/components/schemas/BetaResponseFunctionCallArgumentsDoneEvent'
+      - $ref: '#/components/schemas/BetaResponseInProgressEvent'
+      - $ref: '#/components/schemas/BetaResponseFailedEvent'
+      - $ref: '#/components/schemas/BetaResponseIncompleteEvent'
+      - $ref: '#/components/schemas/BetaResponseOutputItemAddedEvent'
+      - $ref: '#/components/schemas/BetaResponseOutputItemDoneEvent'
+      - $ref: '#/components/schemas/BetaResponseReasoningSummaryPartAddedEvent'
+      - $ref: '#/components/schemas/BetaResponseReasoningSummaryPartDoneEvent'
+      - $ref: '#/components/schemas/BetaResponseReasoningSummaryTextDeltaEvent'
+      - $ref: '#/components/schemas/BetaResponseReasoningSummaryTextDoneEvent'
+      - $ref: '#/components/schemas/BetaResponseReasoningTextDeltaEvent'
+      - $ref: '#/components/schemas/BetaResponseReasoningTextDoneEvent'
+      - $ref: '#/components/schemas/BetaResponseRefusalDeltaEvent'
+      - $ref: '#/components/schemas/BetaResponseRefusalDoneEvent'
+      - $ref: '#/components/schemas/BetaResponseTextDeltaEvent'
+      - $ref: '#/components/schemas/BetaResponseTextDoneEvent'
+      - $ref: '#/components/schemas/BetaResponseWebSearchCallCompletedEvent'
+      - $ref: '#/components/schemas/BetaResponseWebSearchCallInProgressEvent'
+      - $ref: '#/components/schemas/BetaResponseWebSearchCallSearchingEvent'
+      - $ref: '#/components/schemas/BetaResponseImageGenCallCompletedEvent'
+      - $ref: '#/components/schemas/BetaResponseImageGenCallGeneratingEvent'
+      - $ref: '#/components/schemas/BetaResponseImageGenCallInProgressEvent'
+      - $ref: '#/components/schemas/BetaResponseImageGenCallPartialImageEvent'
+      - $ref: '#/components/schemas/BetaResponseMCPCallArgumentsDeltaEvent'
+      - $ref: '#/components/schemas/BetaResponseMCPCallArgumentsDoneEvent'
+      - $ref: '#/components/schemas/BetaResponseMCPCallCompletedEvent'
+      - $ref: '#/components/schemas/BetaResponseMCPCallFailedEvent'
+      - $ref: '#/components/schemas/BetaResponseMCPCallInProgressEvent'
+      - $ref: '#/components/schemas/BetaResponseMCPListToolsCompletedEvent'
+      - $ref: '#/components/schemas/BetaResponseMCPListToolsFailedEvent'
+      - $ref: '#/components/schemas/BetaResponseMCPListToolsInProgressEvent'
+      - $ref: '#/components/schemas/BetaResponseOutputTextAnnotationAddedEvent'
+      - $ref: '#/components/schemas/BetaResponseQueuedEvent'
+      - $ref: '#/components/schemas/BetaResponseCustomToolCallInputDeltaEvent'
+      - $ref: '#/components/schemas/BetaResponseCustomToolCallInputDoneEvent'
+      discriminator:
+        propertyName: type
     OAuthErrorCode:
       anyOf:
       - enum:
@@ -77652,6 +78407,7 @@ components:
       - gpt-5.6-terra
       - gpt-5.6-luna
       - gpt-5.5
+      - gpt-5.5-2026-04-23
       - gpt-5.4
       - gpt-5.4-mini
       - gpt-5.4-nano
@@ -78057,6 +78813,19 @@ components:
       - $ref: '#/components/schemas/ScrollParam'
       - $ref: '#/components/schemas/TypeParam'
       - $ref: '#/components/schemas/WaitParam'
+  responses:
+    TooManyRequests:
+      description: The request was rejected because a rate limit was exceeded.
+      headers:
+        Retry-After:
+          description: The minimum number of seconds to wait before retrying. This header is returned when the server has computed a retry delay and may be omitted for 429 responses that require user action.
+          schema:
+            type: integer
+            minimum: 1
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
   securitySchemes:
     ApiKeyAuth:
       type: http

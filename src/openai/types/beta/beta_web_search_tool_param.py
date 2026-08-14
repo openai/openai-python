@@ -61,6 +61,13 @@ class BetaWebSearchToolParam(TypedDict, total=False):
     One of `web_search` or `web_search_2025_08_26`.
     """
 
+    external_web_access: bool
+    """Allow live internet access for web search.
+
+    Defaults to true when omitted. When false, the web search tool runs in
+    offline/cache-only mode and will not fetch new external content.
+    """
+
     filters: Optional[Filters]
     """Filters for the search."""
 
