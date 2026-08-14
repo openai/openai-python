@@ -53,7 +53,6 @@ from ._typing import (
     extract_type_var_from_base as extract_type_var_from_base,
 )
 from ._streams import (
-    drain_sync_iterator as drain_sync_iterator,
     drain_async_iterator as drain_async_iterator,
     consume_sync_iterator as consume_sync_iterator,
     consume_async_iterator as consume_async_iterator,

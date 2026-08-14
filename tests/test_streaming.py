@@ -216,10 +216,25 @@ async def test_multi_byte_character_multiple_chunks(
     assert sse.json() == {"content": "известни"}
 
 
+def test_done_closes_response_sync(client: OpenAI) -> None:
+    """Sync stream closes response after [DONE]."""
+
+    def body() -> Iterator[bytes]:
+        yield b'data: {"foo":true}\n\n'
+        yield b"data: [DONE]\n\n"
+        yield b": trailing comment after done\n\n"
+
+    response = httpx2.Response(200, content=body())
+    stream: Stream[object] | AsyncStream[object] = Stream(cast_to=object, client=client, response=response)
+    chunks = list(stream)
+
+    assert chunks == [{"foo": True}]
+    assert response.is_closed is True
+
+
 @pytest.mark.asyncio
-@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
-async def test_done_drains_remaining_body(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
-    """After [DONE], remaining body bytes must be consumed so close() can reuse the connection."""
+async def test_done_drains_remaining_body_async(async_client: AsyncOpenAI) -> None:
+    """After [DONE], async drains remaining body for connection reuse."""
     exhausted = False
 
     def body() -> Iterator[bytes]:
@@ -229,14 +244,10 @@ async def test_done_drains_remaining_body(sync: bool, client: OpenAI, async_clie
         yield b": trailing comment after done\n\n"
         exhausted = True
 
-    response = httpx2.Response(200, content=body() if sync else to_aiter(body()))
-
-    if sync:
-        stream: Stream[object] | AsyncStream[object] = Stream(cast_to=object, client=client, response=response)
-        chunks = list(stream)
-    else:
-        stream = AsyncStream(cast_to=object, client=async_client, response=response)
-        chunks = [chunk async for chunk in stream]
+    async_body = to_aiter(body())
+    response = httpx2.Response(200, content=async_body)
+    stream = AsyncStream(cast_to=object, client=async_client, response=response)
+    chunks = [chunk async for chunk in stream]
 
     assert chunks == [{"foo": True}]
     assert exhausted is True
