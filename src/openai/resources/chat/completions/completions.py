@@ -232,7 +232,7 @@ class Completions(SyncAPIResource):
                     "verbosity": verbosity,
                     "web_search_options": web_search_options,
                 },
-                completion_create_params.CompletionCreateParams,
+                completion_create_params.CompletionCreateParamsNonStreaming,
             ),
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -1843,7 +1843,7 @@ class AsyncCompletions(AsyncAPIResource):
                     "verbosity": verbosity,
                     "web_search_options": web_search_options,
                 },
-                completion_create_params.CompletionCreateParams,
+                completion_create_params.CompletionCreateParamsNonStreaming,
             ),
             options=make_request_options(
                 extra_headers=extra_headers,
