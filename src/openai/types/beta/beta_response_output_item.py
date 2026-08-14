@@ -6,6 +6,7 @@ from typing_extensions import Literal, Annotated, TypeAlias
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
 from .beta_tool import BetaTool
+from .beta_mcp_tool_call_error import BetaMcpToolCallError
 from .beta_response_input_file import BetaResponseInputFile
 from .beta_response_input_text import BetaResponseInputText
 from .beta_response_input_image import BetaResponseInputImage
@@ -463,7 +464,7 @@ class McpCall(BaseModel):
     corresponding tool call.
     """
 
-    error: Optional[str] = None
+    error: Optional[BetaMcpToolCallError] = None
     """The error from the tool call, if any."""
 
     output: Optional[str] = None

@@ -48,6 +48,7 @@ from .container_reference import ContainerReference as ContainerReference
 from .function_shell_tool import FunctionShellTool as FunctionShellTool
 from .function_tool_param import FunctionToolParam as FunctionToolParam
 from .inline_skill_source import InlineSkillSource as InlineSkillSource
+from .mcp_tool_call_error import McpToolCallError as McpToolCallError
 from .response_includable import ResponseIncludable as ResponseIncludable
 from .response_input_file import ResponseInputFile as ResponseInputFile
 from .response_input_item import ResponseInputItem as ResponseInputItem
@@ -102,6 +103,7 @@ from .computer_use_preview_tool import ComputerUsePreviewTool as ComputerUsePrev
 from .container_reference_param import ContainerReferenceParam as ContainerReferenceParam
 from .function_shell_tool_param import FunctionShellToolParam as FunctionShellToolParam
 from .inline_skill_source_param import InlineSkillSourceParam as InlineSkillSourceParam
+from .mcp_tool_call_error_param import McpToolCallErrorParam as McpToolCallErrorParam
 from .response_audio_done_event import ResponseAudioDoneEvent as ResponseAudioDoneEvent
 from .response_custom_tool_call import ResponseCustomToolCall as ResponseCustomToolCall
 from .response_incomplete_event import ResponseIncompleteEvent as ResponseIncompleteEvent
