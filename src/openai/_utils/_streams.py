@@ -1,7 +1,8 @@
-import asyncio
 import threading
 from typing import Any, Optional
 from typing_extensions import Iterator, AsyncIterator
+
+import anyio
 
 
 def consume_sync_iterator(iterator: Iterator[Any]) -> None:
@@ -49,21 +50,15 @@ async def drain_async_iterator(iterator: Optional[AsyncIterator[Any]], timeout_m
     Attempts to drain all remaining items from iterator to enable connection
     reuse, but gives up after timeout_ms to avoid indefinite blocking when
     server holds connection open after [DONE].
+
+    Uses anyio for async backend compatibility (works with asyncio and Trio).
     """
     if iterator is None:
         return
 
-    loop = asyncio.get_running_loop()
-    deadline = loop.time() + (timeout_ms / 1000.0)
-    while True:
-        remaining = deadline - loop.time()
-        if remaining <= 0:
-            break
+    with anyio.move_on_after(timeout_ms / 1000.0):
         try:
-            await asyncio.wait_for(iterator.__anext__(), timeout=remaining)
-        except StopAsyncIteration:
-            return
-        except asyncio.TimeoutError:
-            break
+            async for _ in iterator:
+                pass
         except Exception:
-            break
+            pass
