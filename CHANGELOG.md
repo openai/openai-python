@@ -1,5 +1,33 @@
 # Changelog
 
+## [3.0.0](https://github.com/openai/openai-python/compare/v2.54.0...v3.0.0) (2026-08-12)
+
+
+### ⚠ BREAKING CHANGES
+
+* **api:** HTTPX2 is now the default HTTP client, and `httpx` is no longer installed automatically. Applications using custom HTTPX clients, transports, or configuration objects must migrate to their HTTPX2 equivalents or use the temporary, runtime-only legacy HTTPX escape hatch. See the [HTTPX2 migration guide](https://github.com/openai/openai-python/blob/main/httpx2.md).
+
+### Features
+
+* **api:** migrate to HTTPX2 ([#3594](https://github.com/openai/openai-python/pull/3594))
+
+## [2.54.0](https://github.com/openai/openai-python/compare/v2.53.0...v2.54.0) (2026-08-11)
+
+
+### Features
+
+* **api:** Add new Responses model identifiers ([#3595](https://github.com/openai/openai-python/issues/3595)) ([0652787](https://github.com/openai/openai-python/commit/06527878b8759ba52f28ab53e4d95a33989700d0))
+
+
+### Bug Fixes
+
+* **api:** clarify audio upload metadata requirements ([#3596](https://github.com/openai/openai-python/issues/3596)) ([28888f9](https://github.com/openai/openai-python/commit/28888f9cc1635dc1247c400a8054c836abc2c129))
+
+
+### Chores
+
+* **api:** Update generated-file header attribution to Castiron ([#3583](https://github.com/openai/openai-python/issues/3583)) ([ea17fda](https://github.com/openai/openai-python/commit/ea17fda01d7067a6d829effa437952a09f2bb3a3))
+
 ## [2.53.0](https://github.com/openai/openai-python/compare/v2.52.1...v2.53.0) (2026-08-03)
 
 

@@ -5,7 +5,7 @@ import inspect
 from typing import Any, Union, Mapping, TypeVar, Callable, Awaitable, cast, overload
 from typing_extensions import Self, override
 
-import httpx
+import httpx2
 
 from ..auth import WorkloadIdentity
 from .._types import NOT_GIVEN, Omit, Query, Headers, Timeout, NotGiven
@@ -35,7 +35,7 @@ _deployments_endpoints = set(
 
 AzureADTokenProvider = Callable[[], str]
 AsyncAzureADTokenProvider = Callable[[], "str | Awaitable[str]"]
-_HttpxClientT = TypeVar("_HttpxClientT", bound=Union[httpx.Client, httpx.AsyncClient])
+_HttpxClientT = TypeVar("_HttpxClientT", bound=Union[httpx2.Client, httpx2.AsyncClient])
 _DefaultStreamT = TypeVar("_DefaultStreamT", bound=Union[Stream[Any], AsyncStream[Any]])
 
 
@@ -62,7 +62,7 @@ class MutuallyExclusiveAuthError(OpenAIError):
 
 
 class BaseAzureClient(BaseClient[_HttpxClientT, _DefaultStreamT]):
-    _azure_endpoint: httpx.URL | None
+    _azure_endpoint: httpx2.URL | None
     _azure_deployment: str | None
 
     @override
@@ -71,7 +71,7 @@ class BaseAzureClient(BaseClient[_HttpxClientT, _DefaultStreamT]):
         options: FinalRequestOptions,
         *,
         retries_taken: int = 0,
-    ) -> httpx.Request:
+    ) -> httpx2.Request:
         if options.url in _deployments_endpoints and is_mapping(options.json_data):
             model = options.json_data.get("model")
             if model is not None and "/deployments" not in str(self.base_url.path):
@@ -80,13 +80,13 @@ class BaseAzureClient(BaseClient[_HttpxClientT, _DefaultStreamT]):
         return super()._build_request(options, retries_taken=retries_taken)
 
     @override
-    def _prepare_url(self, url: str) -> httpx.URL:
+    def _prepare_url(self, url: str) -> httpx2.URL:
         """Adjust the URL if the client was configured with an Azure endpoint + deployment
         and the API feature being called is **not** a deployments-based endpoint
         (i.e. requires /deployments/deployment-name in the URL path).
         """
         if self._azure_deployment and self._azure_endpoint and url not in _deployments_endpoints:
-            merge_url = httpx.URL(url)
+            merge_url = httpx2.URL(url)
             if merge_url.is_relative_url:
                 merge_raw_path = (
                     self._azure_endpoint.raw_path.rstrip(b"/") + b"/openai/" + merge_url.raw_path.lstrip(b"/")
@@ -98,7 +98,7 @@ class BaseAzureClient(BaseClient[_HttpxClientT, _DefaultStreamT]):
         return super()._prepare_url(url)
 
 
-class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
+class AzureOpenAI(BaseAzureClient[httpx2.Client, Stream[Any]], OpenAI):
     @overload
     def __init__(
         self,
@@ -112,12 +112,12 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         azure_ad_token_provider: AzureADTokenProvider | None = None,
         organization: str | None = None,
         webhook_secret: str | None = None,
-        websocket_base_url: str | httpx.URL | None = None,
+        websocket_base_url: str | httpx2.URL | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
         max_retries: int = DEFAULT_MAX_RETRIES,
         default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
-        http_client: httpx.Client | None = None,
+        http_client: httpx2.Client | None = None,
         _strict_response_validation: bool = False,
         _enforce_credentials: bool = True,
     ) -> None: ...
@@ -134,12 +134,12 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         azure_ad_token_provider: AzureADTokenProvider | None = None,
         organization: str | None = None,
         webhook_secret: str | None = None,
-        websocket_base_url: str | httpx.URL | None = None,
+        websocket_base_url: str | httpx2.URL | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
         max_retries: int = DEFAULT_MAX_RETRIES,
         default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
-        http_client: httpx.Client | None = None,
+        http_client: httpx2.Client | None = None,
         _strict_response_validation: bool = False,
         _enforce_credentials: bool = True,
     ) -> None: ...
@@ -156,12 +156,12 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         azure_ad_token_provider: AzureADTokenProvider | None = None,
         organization: str | None = None,
         webhook_secret: str | None = None,
-        websocket_base_url: str | httpx.URL | None = None,
+        websocket_base_url: str | httpx2.URL | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
         max_retries: int = DEFAULT_MAX_RETRIES,
         default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
-        http_client: httpx.Client | None = None,
+        http_client: httpx2.Client | None = None,
         _strict_response_validation: bool = False,
         _enforce_credentials: bool = True,
     ) -> None: ...
@@ -181,13 +181,13 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
-        websocket_base_url: str | httpx.URL | None = None,
+        websocket_base_url: str | httpx2.URL | None = None,
         base_url: str | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
         max_retries: int = DEFAULT_MAX_RETRIES,
         default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
-        http_client: httpx.Client | None = None,
+        http_client: httpx2.Client | None = None,
         _strict_response_validation: bool = False,
         _enforce_credentials: bool = True,
     ) -> None:
@@ -276,7 +276,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         self._azure_ad_token = azure_ad_token
         self._azure_ad_token_provider = azure_ad_token_provider
         self._azure_deployment = azure_deployment if azure_endpoint else None
-        self._azure_endpoint = httpx.URL(azure_endpoint) if azure_endpoint else None
+        self._azure_endpoint = httpx2.URL(azure_endpoint) if azure_endpoint else None
 
     @override
     def copy(
@@ -289,13 +289,13 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
-        websocket_base_url: str | httpx.URL | None = None,
+        websocket_base_url: str | httpx2.URL | None = None,
         api_version: str | None = None,
         azure_ad_token: str | None = None,
         azure_ad_token_provider: AzureADTokenProvider | None = None,
-        base_url: str | httpx.URL | None = None,
+        base_url: str | httpx2.URL | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
-        http_client: httpx.Client | None = None,
+        http_client: httpx2.Client | None = None,
         max_retries: int | NotGiven = NOT_GIVEN,
         default_headers: Mapping[str, str] | None = None,
         set_default_headers: Mapping[str, str] | None = None,
@@ -393,7 +393,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
 
         return options
 
-    def _configure_realtime(self, model: str, extra_query: Query) -> tuple[httpx.URL, dict[str, str]]:
+    def _configure_realtime(self, model: str, extra_query: Query) -> tuple[httpx2.URL, dict[str, str]]:
         auth_headers = {}
         query = {
             **extra_query,
@@ -419,7 +419,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         return url, auth_headers
 
 
-class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], AsyncOpenAI):
+class AsyncAzureOpenAI(BaseAzureClient[httpx2.AsyncClient, AsyncStream[Any]], AsyncOpenAI):
     @overload
     def __init__(
         self,
@@ -434,12 +434,12 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
-        websocket_base_url: str | httpx.URL | None = None,
+        websocket_base_url: str | httpx2.URL | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
         max_retries: int = DEFAULT_MAX_RETRIES,
         default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
-        http_client: httpx.AsyncClient | None = None,
+        http_client: httpx2.AsyncClient | None = None,
         _strict_response_validation: bool = False,
         _enforce_credentials: bool = True,
     ) -> None: ...
@@ -457,12 +457,12 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
-        websocket_base_url: str | httpx.URL | None = None,
+        websocket_base_url: str | httpx2.URL | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
         max_retries: int = DEFAULT_MAX_RETRIES,
         default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
-        http_client: httpx.AsyncClient | None = None,
+        http_client: httpx2.AsyncClient | None = None,
         _strict_response_validation: bool = False,
         _enforce_credentials: bool = True,
     ) -> None: ...
@@ -480,12 +480,12 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
-        websocket_base_url: str | httpx.URL | None = None,
+        websocket_base_url: str | httpx2.URL | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
         max_retries: int = DEFAULT_MAX_RETRIES,
         default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
-        http_client: httpx.AsyncClient | None = None,
+        http_client: httpx2.AsyncClient | None = None,
         _strict_response_validation: bool = False,
         _enforce_credentials: bool = True,
     ) -> None: ...
@@ -506,12 +506,12 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         project: str | None = None,
         webhook_secret: str | None = None,
         base_url: str | None = None,
-        websocket_base_url: str | httpx.URL | None = None,
+        websocket_base_url: str | httpx2.URL | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
         max_retries: int = DEFAULT_MAX_RETRIES,
         default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
-        http_client: httpx.AsyncClient | None = None,
+        http_client: httpx2.AsyncClient | None = None,
         _strict_response_validation: bool = False,
         _enforce_credentials: bool = True,
     ) -> None:
@@ -600,7 +600,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         self._azure_ad_token = azure_ad_token
         self._azure_ad_token_provider = azure_ad_token_provider
         self._azure_deployment = azure_deployment if azure_endpoint else None
-        self._azure_endpoint = httpx.URL(azure_endpoint) if azure_endpoint else None
+        self._azure_endpoint = httpx2.URL(azure_endpoint) if azure_endpoint else None
 
     @override
     def copy(
@@ -613,13 +613,13 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
-        websocket_base_url: str | httpx.URL | None = None,
+        websocket_base_url: str | httpx2.URL | None = None,
         api_version: str | None = None,
         azure_ad_token: str | None = None,
         azure_ad_token_provider: AsyncAzureADTokenProvider | None = None,
-        base_url: str | httpx.URL | None = None,
+        base_url: str | httpx2.URL | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
-        http_client: httpx.AsyncClient | None = None,
+        http_client: httpx2.AsyncClient | None = None,
         max_retries: int | NotGiven = NOT_GIVEN,
         default_headers: Mapping[str, str] | None = None,
         set_default_headers: Mapping[str, str] | None = None,
@@ -719,7 +719,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
 
         return options
 
-    async def _configure_realtime(self, model: str, extra_query: Query) -> tuple[httpx.URL, dict[str, str]]:
+    async def _configure_realtime(self, model: str, extra_query: Query) -> tuple[httpx2.URL, dict[str, str]]:
         auth_headers = {}
         query = {
             **extra_query,

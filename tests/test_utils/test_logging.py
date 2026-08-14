@@ -4,6 +4,7 @@ from typing import Any, Dict, cast
 import pytest
 
 from openai._utils import SensitiveHeadersFilter
+from openai._utils._logs import setup_logging
 
 
 @pytest.fixture
@@ -98,3 +99,17 @@ def test_standard_debug_msg(logger_with_filter: logging.Logger, caplog: pytest.L
     with caplog.at_level(logging.DEBUG):
         logger_with_filter.debug("Sending HTTP Request: %s %s", "POST", "chat/completions")
     assert caplog.messages[0] == "Sending HTTP Request: POST chat/completions"
+
+
+@pytest.mark.parametrize(("setting", "level"), [("debug", logging.DEBUG), ("info", logging.INFO)])
+def test_httpx2_logger_follows_sdk_log_level(setting: str, level: int, monkeypatch: pytest.MonkeyPatch) -> None:
+    sdk_logger = logging.getLogger("openai")
+    transport_logger = logging.getLogger("httpx2")
+    monkeypatch.setattr(sdk_logger, "level", sdk_logger.level)
+    monkeypatch.setattr(transport_logger, "level", transport_logger.level)
+    monkeypatch.setenv("OPENAI_LOG", setting)
+
+    setup_logging()
+
+    assert sdk_logger.level == level
+    assert transport_logger.level == level

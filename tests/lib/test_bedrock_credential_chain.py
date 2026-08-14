@@ -10,7 +10,7 @@ from contextlib import contextmanager
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from typing_extensions import override
 
-import httpx
+import httpx2
 import pytest
 
 from openai import OpenAI
@@ -69,18 +69,18 @@ def _isolate_aws_environment(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) ->
     return config_path, credentials_path
 
 
-def _signed_request(**provider_options: Any) -> httpx.Request:
-    requests: list[httpx.Request] = []
+def _signed_request(**provider_options: Any) -> httpx2.Request:
+    requests: list[httpx2.Request] = []
 
-    def handler(request: httpx.Request) -> httpx.Response:
+    def handler(request: httpx2.Request) -> httpx2.Response:
         requests.append(request)
-        return httpx.Response(200, request=request, json={})
+        return httpx2.Response(200, request=request, json={})
 
     with OpenAI(
         provider=bedrock(**provider_options),
-        http_client=httpx.Client(transport=httpx.MockTransport(handler), trust_env=False),
+        http_client=httpx2.Client(transport=httpx2.MockTransport(handler), trust_env=False),
     ) as client:
-        client.get("/models", cast_to=httpx.Response)
+        client.get("/models", cast_to=httpx2.Response)
 
     assert len(requests) == 1
     return requests[0]
@@ -95,7 +95,7 @@ def _credentials_metadata(name: str, *, expiration: str = _FUTURE_EXPIRATION) ->
     }
 
 
-def _assert_signed_with(request: httpx.Request, name: str, *, region: str) -> None:
+def _assert_signed_with(request: httpx2.Request, name: str, *, region: str) -> None:
     assert request.url.host == f"bedrock-mantle.{region}.api.aws"
     assert f"Credential={name}-access-key/" in request.headers["Authorization"]
     assert request.headers["X-Amz-Security-Token"] == f"{name}-session-token"
@@ -370,18 +370,18 @@ def test_default_chain_refreshes_credentials_before_retry(monkeypatch: pytest.Mo
         return credentials
 
     monkeypatch.setattr(session_module.Session, "get_credentials", get_credentials)
-    requests: list[httpx.Request] = []
+    requests: list[httpx2.Request] = []
 
-    def handler(request: httpx.Request) -> httpx.Response:
+    def handler(request: httpx2.Request) -> httpx2.Response:
         requests.append(request)
-        return httpx.Response(500 if len(requests) == 1 else 200, request=request, json={})
+        return httpx2.Response(500 if len(requests) == 1 else 200, request=request, json={})
 
     with OpenAI(
         provider=bedrock(),
         max_retries=1,
-        http_client=httpx.Client(transport=httpx.MockTransport(handler), trust_env=False),
+        http_client=httpx2.Client(transport=httpx2.MockTransport(handler), trust_env=False),
     ) as client:
-        client.get("/models", cast_to=httpx.Response)
+        client.get("/models", cast_to=httpx2.Response)
 
     assert refreshes == 2
     assert len(requests) == 2

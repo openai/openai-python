@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import List
 from typing_extensions import Literal
 
-import httpx
+import httpx2
 
 from .... import _legacy_response
 from ...._types import Body, Omit, Query, Headers, NotGiven, SequenceNotStr, omit, not_given
@@ -123,6 +123,7 @@ class AuditLogs(SyncAPIResource):
                 "tenant.workload_identity.mapping.archived",
                 "tenant.workload_identity.binding.created",
                 "tenant.workload_identity.principal.provisioned",
+                "tenant.workload_identity.access_token.issued",
                 "tenant.admin_api_key.created",
                 "tenant.admin_api_key.updated",
                 "tenant.admin_api_key.deleted",
@@ -208,7 +209,7 @@ class AuditLogs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncConversationCursorPage[AuditLogListResponse]:
         """
         List user actions and configuration changes within this organization.
@@ -388,6 +389,7 @@ class AsyncAuditLogs(AsyncAPIResource):
                 "tenant.workload_identity.mapping.archived",
                 "tenant.workload_identity.binding.created",
                 "tenant.workload_identity.principal.provisioned",
+                "tenant.workload_identity.access_token.issued",
                 "tenant.admin_api_key.created",
                 "tenant.admin_api_key.updated",
                 "tenant.admin_api_key.deleted",
@@ -473,7 +475,7 @@ class AsyncAuditLogs(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[AuditLogListResponse, AsyncConversationCursorPage[AuditLogListResponse]]:
         """
         List user actions and configuration changes within this organization.

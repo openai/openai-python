@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Union, Iterable
 
-import httpx
+import httpx2
 
 from .. import _legacy_response
 from ..types import moderation_create_params
@@ -55,7 +55,7 @@ class Moderations(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ModerationCreateResponse:
         """Classifies if text and/or image inputs are potentially harmful.
 
@@ -133,7 +133,7 @@ class AsyncModerations(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ModerationCreateResponse:
         """Classifies if text and/or image inputs are potentially harmful.
 

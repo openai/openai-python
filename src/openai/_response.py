@@ -21,7 +21,7 @@ from typing import (
 from typing_extensions import Awaitable, ParamSpec, override, get_origin
 
 import anyio
-import httpx
+import httpx2
 import pydantic
 
 from ._types import NoneType
@@ -54,7 +54,7 @@ class BaseAPIResponse(Generic[R]):
     _stream_cls: type[Stream[Any]] | type[AsyncStream[Any]] | None
     _options: FinalRequestOptions
 
-    http_response: httpx.Response
+    http_response: httpx2.Response
 
     retries_taken: int
     """The number of retries made. If no retries happened this will be `0`"""
@@ -62,7 +62,7 @@ class BaseAPIResponse(Generic[R]):
     def __init__(
         self,
         *,
-        raw: httpx.Response,
+        raw: httpx2.Response,
         cast_to: type[R],
         client: BaseClient[Any, Any],
         stream: bool,
@@ -80,12 +80,12 @@ class BaseAPIResponse(Generic[R]):
         self.retries_taken = retries_taken
 
     @property
-    def headers(self) -> httpx.Headers:
+    def headers(self) -> httpx2.Headers:
         return self.http_response.headers
 
     @property
-    def http_request(self) -> httpx.Request:
-        """Returns the httpx Request instance associated with the current response."""
+    def http_request(self) -> httpx2.Request:
+        """Returns the HTTPX2 Request instance associated with the current response."""
         return self.http_response.request
 
     @property
@@ -93,7 +93,7 @@ class BaseAPIResponse(Generic[R]):
         return self.http_response.status_code
 
     @property
-    def url(self) -> httpx.URL:
+    def url(self) -> httpx2.URL:
         """Returns the URL for which the request was made."""
         return self.http_response.url
 
@@ -236,7 +236,7 @@ class BaseAPIResponse(Generic[R]):
             and not issubclass(origin, BaseModel)
         ):
             raise RuntimeError(
-                f"Unsupported type, expected {cast_to} to be a subclass of {BaseModel}, {dict}, {list}, {Union}, {NoneType}, {str} or {httpx.Response}."
+                f"Unsupported type, expected {cast_to} to be a subclass of {BaseModel}, {dict}, {list}, {Union}, {NoneType}, {str} or {httpx2.Response}."
             )
 
         # split is required to handle cases where additional information is included
@@ -315,7 +315,7 @@ class APIResponse(BaseAPIResponse[R]):
           - `str`
           - `int`
           - `float`
-          - `httpx.Response`
+          - `httpx2.Response`
         """
         cache_key = to if to is not None else self._cast_to
         cached = self._parsed_by_type.get(cache_key)
@@ -422,7 +422,7 @@ class AsyncAPIResponse(BaseAPIResponse[R]):
           - `list`
           - `Union`
           - `str`
-          - `httpx.Response`
+          - `httpx2.Response`
         """
         cache_key = to if to is not None else self._cast_to
         cached = self._parsed_by_type.get(cache_key)

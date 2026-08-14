@@ -1,23 +1,20 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
-
 from __future__ import annotations
 
 import os
-import sys
 import logging
 from typing import TYPE_CHECKING, Iterator, AsyncIterator
 
-import httpx
+import httpx2
 import pytest
 from pytest_asyncio import is_async_test
 
 from openai import OpenAI, AsyncOpenAI, DefaultHttpx2Client, DefaultAioHttpClient, DefaultAsyncHttpx2Client
 from openai._utils import is_dict
 
-from ._httpx2_respx import enable_httpx2_respx
-
 if TYPE_CHECKING:
     from _pytest.fixtures import FixtureRequest  # pyright: ignore[reportPrivateImportUsage]
+
+pytest_plugins = ["tests.respx2.plugin"]
 
 pytest.register_assert_rewrite("tests.utils")
 
@@ -34,7 +31,7 @@ def pytest_collection_modifyitems(items: list[pytest.Function]) -> None:
 
     # RESPX cannot mock requests made by the aiohttp adapter.
     for item in items:
-        if "respx_mock" not in item.fixturenames:
+        if "respx2_mock" not in item.fixturenames:
             continue
 
         if "async_client" not in item.fixturenames:
@@ -45,23 +42,14 @@ def pytest_collection_modifyitems(items: list[pytest.Function]) -> None:
 
         async_client_param = item.callspec.params.get("async_client")
         if is_dict(async_client_param) and async_client_param.get("http_client") == "aiohttp":
-            item.add_marker(pytest.mark.skip(reason="aiohttp client is not compatible with respx_mock"))
+            item.add_marker(pytest.mark.skip(reason="aiohttp client is not compatible with respx2_mock"))
 
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
-test_http_client = os.environ.get("OPENAI_TEST_HTTP_CLIENT", "httpx")
+test_http_client = os.environ.get("OPENAI_TEST_HTTP_CLIENT", "httpx2")
 
 api_key = "My API Key"
 admin_api_key = "My Admin API Key"
-
-
-@pytest.fixture(autouse=True)
-def patch_httpx2_respx(request: FixtureRequest, monkeypatch: pytest.MonkeyPatch) -> None:
-    if test_http_client != "httpx2" or "respx_mock" not in request.fixturenames:
-        return
-
-    router = request.getfixturevalue("respx_mock")
-    enable_httpx2_respx(router, monkeypatch, replace_sdk_defaults=request.path.name != "test_httpx2_base.py")
 
 
 @pytest.fixture(scope="session")
@@ -88,7 +76,7 @@ async def async_client(request: FixtureRequest) -> AsyncIterator[AsyncOpenAI]:
 
     # defaults
     strict = True
-    http_client: None | httpx.AsyncClient = None
+    http_client: None | httpx2.AsyncClient = None
 
     if isinstance(param, bool):
         strict = param
@@ -96,11 +84,8 @@ async def async_client(request: FixtureRequest) -> AsyncIterator[AsyncOpenAI]:
         strict = param.get("strict", True)
         assert isinstance(strict, bool)
 
-        http_client_type = param.get("http_client", "httpx")
+        http_client_type = param.get("http_client", "httpx2")
         if http_client_type == "aiohttp":
-            if sys.version_info < (3, 10):
-                pytest.skip("the aiohttp client requires Python 3.10 or later")
-
             http_client = DefaultAioHttpClient()
     else:
         raise TypeError(f"Unexpected fixture parameter type {type(param)}, expected bool or dict")

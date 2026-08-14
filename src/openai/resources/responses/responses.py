@@ -25,7 +25,7 @@ from typing import (
 from functools import partial
 from typing_extensions import Literal, overload
 
-import httpx
+import httpx2
 from pydantic import BaseModel
 
 from ... import _legacy_response
@@ -169,7 +169,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Response:
         """Creates a model response.
 
@@ -450,7 +450,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Stream[ResponseStreamEvent]:
         """Creates a model response.
 
@@ -731,7 +731,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Response | Stream[ResponseStreamEvent]:
         """Creates a model response.
 
@@ -1011,7 +1011,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Response | Stream[ResponseStreamEvent]:
         return self._post(
             "/responses",
@@ -1077,7 +1077,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> ResponseStreamManager[TextFormatT]: ...
 
     @overload
@@ -1120,7 +1120,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> ResponseStreamManager[TextFormatT]: ...
 
     def stream(
@@ -1164,7 +1164,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> ResponseStreamManager[TextFormatT]:
         new_response_args = {
             "input": input,
@@ -1328,7 +1328,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> ParsedResponse[TextFormatT]:
         if is_given(text_format):
             if not text:
@@ -1414,7 +1414,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Response: ...
 
     @overload
@@ -1430,7 +1430,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> Stream[ResponseStreamEvent]: ...
 
     @overload
@@ -1446,7 +1446,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> Response | Stream[ResponseStreamEvent]: ...
 
     @overload
@@ -1462,7 +1462,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> Response | Stream[ResponseStreamEvent]:
         """
         Retrieves a model response with the given ID.
@@ -1511,7 +1511,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Stream[ResponseStreamEvent]:
         """
         Retrieves a model response with the given ID.
@@ -1560,7 +1560,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Response | Stream[ResponseStreamEvent]:
         """
         Retrieves a model response with the given ID.
@@ -1608,7 +1608,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Response | Stream[ResponseStreamEvent]:
         if not response_id:
             raise ValueError(f"Expected a non-empty value for `response_id` but received {response_id!r}")
@@ -1644,7 +1644,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> None:
         """
         Deletes a model response with the given ID.
@@ -1682,7 +1682,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Response:
         """Cancels a model response with the given ID.
 
@@ -1833,7 +1833,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> CompactedResponse:
         """Compact a conversation.
 
@@ -2022,7 +2022,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Response:
         """Creates a model response.
 
@@ -2303,7 +2303,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncStream[ResponseStreamEvent]:
         """Creates a model response.
 
@@ -2584,7 +2584,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Response | AsyncStream[ResponseStreamEvent]:
         """Creates a model response.
 
@@ -2864,7 +2864,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Response | AsyncStream[ResponseStreamEvent]:
         return await self._post(
             "/responses",
@@ -2930,7 +2930,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AsyncResponseStreamManager[TextFormatT]: ...
 
     @overload
@@ -2973,7 +2973,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AsyncResponseStreamManager[TextFormatT]: ...
 
     def stream(
@@ -3017,7 +3017,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AsyncResponseStreamManager[TextFormatT]:
         new_response_args = {
             "input": input,
@@ -3180,7 +3180,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> ParsedResponse[TextFormatT]:
         if is_given(text_format):
             if not text:
@@ -3266,7 +3266,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Response: ...
 
     @overload
@@ -3282,7 +3282,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AsyncStream[ResponseStreamEvent]: ...
 
     @overload
@@ -3298,7 +3298,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> Response | AsyncStream[ResponseStreamEvent]: ...
 
     @overload
@@ -3314,7 +3314,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> Response | AsyncStream[ResponseStreamEvent]:
         """
         Retrieves a model response with the given ID.
@@ -3363,7 +3363,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncStream[ResponseStreamEvent]:
         """
         Retrieves a model response with the given ID.
@@ -3412,7 +3412,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Response | AsyncStream[ResponseStreamEvent]:
         """
         Retrieves a model response with the given ID.
@@ -3460,7 +3460,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Response | AsyncStream[ResponseStreamEvent]:
         if not response_id:
             raise ValueError(f"Expected a non-empty value for `response_id` but received {response_id!r}")
@@ -3496,7 +3496,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> None:
         """
         Deletes a model response with the given ID.
@@ -3534,7 +3534,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Response:
         """Cancels a model response with the given ID.
 
@@ -3685,7 +3685,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> CompactedResponse:
         """Compact a conversation.
 
@@ -4178,11 +4178,11 @@ class AsyncResponsesConnection:
 
         Can be used as a method (returns ``self`` for chaining)::
 
-            connection.on("response.audio.delta", my_handler)
+            connection.on("error", my_handler)
 
         Or as a decorator::
 
-            @connection.on("response.audio.delta")
+            @connection.on("error")
             async def my_handler(event): ...
         """
         if handler is not None:
@@ -4405,7 +4405,7 @@ class AsyncResponsesConnectionManager:
             **self.__websocket_connection_options,
         )
 
-    def _prepare_url(self) -> httpx.URL:
+    def _prepare_url(self) -> httpx2.URL:
         if self.__client.websocket_base_url is not None:
             base_url = normalize_httpx_url(self.__client.websocket_base_url)
         else:
@@ -4629,11 +4629,11 @@ class ResponsesConnection:
 
         Can be used as a method (returns ``self`` for chaining)::
 
-            connection.on("response.audio.delta", my_handler)
+            connection.on("error", my_handler)
 
         Or as a decorator::
 
-            @connection.on("response.audio.delta")
+            @connection.on("error")
             def my_handler(event): ...
         """
         if handler is not None:
@@ -4850,7 +4850,7 @@ class ResponsesConnectionManager:
             **self.__websocket_connection_options,
         )
 
-    def _prepare_url(self) -> httpx.URL:
+    def _prepare_url(self) -> httpx2.URL:
         if self.__client.websocket_base_url is not None:
             base_url = normalize_httpx_url(self.__client.websocket_base_url)
         else:
@@ -4899,6 +4899,7 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[bool] | Omit = omit,
+        stream_id: str | Omit = omit,
         stream_options: Optional[responses_client_event_param.StreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
         text: ResponseTextConfigParam | Omit = omit,
@@ -4937,6 +4938,7 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
                         "service_tier": service_tier,
                         "store": store,
                         "stream": stream,
+                        "stream_id": stream_id,
                         "stream_options": stream_options,
                         "temperature": temperature,
                         "text": text,
@@ -4983,6 +4985,7 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[bool] | Omit = omit,
+        stream_id: str | Omit = omit,
         stream_options: Optional[responses_client_event_param.StreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
         text: ResponseTextConfigParam | Omit = omit,
@@ -5021,6 +5024,7 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
                         "service_tier": service_tier,
                         "store": store,
                         "stream": stream,
+                        "stream_id": stream_id,
                         "stream_options": stream_options,
                         "temperature": temperature,
                         "text": text,

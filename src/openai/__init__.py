@@ -130,7 +130,7 @@ for __name in __all__:
 import typing as _t
 import typing_extensions as _te
 
-import httpx as _httpx
+import httpx2 as _httpx
 
 from ._base_client import DEFAULT_TIMEOUT, DEFAULT_MAX_RETRIES
 

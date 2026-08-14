@@ -13,14 +13,12 @@
 aiohappyeyeballs==2.7.1
     # via aiohttp
 aiohttp==3.14.1
-    # via httpx-aiohttp
     # via openai
 aiosignal==1.4.0
     # via aiohttp
 annotated-types==0.7.0
     # via pydantic
 anyio==4.12.1
-    # via httpx
     # via httpx2
     # via openai
 argcomplete==3.6.3
@@ -44,8 +42,6 @@ backports-asyncio-runner==1.2.0 ; python_full_version < '3.11'
 botocore==1.42.97
     # via openai
 certifi==2026.1.4
-    # via httpcore
-    # via httpx
     # via requests
 cffi==2.0.0
     # via cryptography
@@ -86,25 +82,15 @@ frozenlist==1.8.0
     # via aiosignal
 griffe==1.14.0
 h11==0.16.0
-    # via httpcore
     # via httpcore2
-httpcore==1.0.9
-    # via httpx
 httpcore2==2.7.0
     # via httpx2
-httpx==0.28.1
-    # via httpx-aiohttp
-    # via openai
-    # via respx
-httpx-aiohttp==0.1.12
-    # via openai
 httpx2==2.7.0
     # via openai
 humanize==4.13.0
     # via nox
 idna==3.18
     # via anyio
-    # via httpx
     # via httpx2
     # via requests
     # via trio
@@ -196,7 +182,6 @@ referencing==0.36.2
 requests==2.32.5
     # via azure-core
     # via msal
-respx==0.22.0
 rich==14.2.0
     # via inline-snapshot
 rpds-py==0.27.1

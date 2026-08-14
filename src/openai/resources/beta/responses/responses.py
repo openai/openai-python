@@ -10,7 +10,7 @@ from types import TracebackType
 from typing import TYPE_CHECKING, Any, Dict, List, Union, Callable, Iterable, Iterator, Optional, Awaitable, cast
 from typing_extensions import Literal, AsyncIterator, overload
 
-import httpx
+import httpx2
 from pydantic import BaseModel
 
 from .... import _legacy_response
@@ -249,7 +249,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> BetaResponse:
         """Creates a model response.
 
@@ -638,7 +638,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Stream[BetaResponseStreamEvent]:
         """Creates a model response.
 
@@ -1027,7 +1027,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> BetaResponse | Stream[BetaResponseStreamEvent]:
         """Creates a model response.
 
@@ -1415,7 +1415,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> BetaResponse | Stream[BetaResponseStreamEvent]:
         extra_headers = {
             **strip_not_given({"openai-beta": ",".join(str(e) for e in betas) if is_given(betas) else not_given}),
@@ -1489,7 +1489,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> BetaResponse:
         """
         Retrieves a model response with the given ID.
@@ -1539,7 +1539,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Stream[BetaResponseStreamEvent]:
         """
         Retrieves a model response with the given ID.
@@ -1589,7 +1589,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> BetaResponse | Stream[BetaResponseStreamEvent]:
         """
         Retrieves a model response with the given ID.
@@ -1638,7 +1638,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> BetaResponse | Stream[BetaResponseStreamEvent]:
         if not response_id:
             raise ValueError(f"Expected a non-empty value for `response_id` but received {response_id!r}")
@@ -1679,7 +1679,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> None:
         """
         Deletes a model response with the given ID.
@@ -1722,7 +1722,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> BetaResponse:
         """Cancels a model response with the given ID.
 
@@ -1878,7 +1878,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> BetaCompactedResponse:
         """Compact a conversation.
 
@@ -2177,7 +2177,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> BetaResponse:
         """Creates a model response.
 
@@ -2566,7 +2566,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncStream[BetaResponseStreamEvent]:
         """Creates a model response.
 
@@ -2955,7 +2955,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> BetaResponse | AsyncStream[BetaResponseStreamEvent]:
         """Creates a model response.
 
@@ -3343,7 +3343,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> BetaResponse | AsyncStream[BetaResponseStreamEvent]:
         extra_headers = {
             **strip_not_given({"openai-beta": ",".join(str(e) for e in betas) if is_given(betas) else not_given}),
@@ -3417,7 +3417,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> BetaResponse:
         """
         Retrieves a model response with the given ID.
@@ -3467,7 +3467,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncStream[BetaResponseStreamEvent]:
         """
         Retrieves a model response with the given ID.
@@ -3517,7 +3517,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> BetaResponse | AsyncStream[BetaResponseStreamEvent]:
         """
         Retrieves a model response with the given ID.
@@ -3566,7 +3566,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> BetaResponse | AsyncStream[BetaResponseStreamEvent]:
         if not response_id:
             raise ValueError(f"Expected a non-empty value for `response_id` but received {response_id!r}")
@@ -3607,7 +3607,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> None:
         """
         Deletes a model response with the given ID.
@@ -3650,7 +3650,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> BetaResponse:
         """Cancels a model response with the given ID.
 
@@ -3806,7 +3806,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> BetaCompactedResponse:
         """Compact a conversation.
 
@@ -4259,11 +4259,11 @@ class AsyncResponsesConnection:
 
         Can be used as a method (returns ``self`` for chaining)::
 
-            connection.on("response.audio.delta", my_handler)
+            connection.on("response.inject.created", my_handler)
 
         Or as a decorator::
 
-            @connection.on("response.audio.delta")
+            @connection.on("response.inject.created")
             async def my_handler(event): ...
         """
         if handler is not None:
@@ -4486,7 +4486,7 @@ class AsyncResponsesConnectionManager:
             **self.__websocket_connection_options,
         )
 
-    def _prepare_url(self) -> httpx.URL:
+    def _prepare_url(self) -> httpx2.URL:
         if self.__client.websocket_base_url is not None:
             base_url = normalize_httpx_url(self.__client.websocket_base_url)
         else:
@@ -4710,11 +4710,11 @@ class ResponsesConnection:
 
         Can be used as a method (returns ``self`` for chaining)::
 
-            connection.on("response.audio.delta", my_handler)
+            connection.on("response.inject.created", my_handler)
 
         Or as a decorator::
 
-            @connection.on("response.audio.delta")
+            @connection.on("response.inject.created")
             def my_handler(event): ...
         """
         if handler is not None:
@@ -4931,7 +4931,7 @@ class ResponsesConnectionManager:
             **self.__websocket_connection_options,
         )
 
-    def _prepare_url(self) -> httpx.URL:
+    def _prepare_url(self) -> httpx2.URL:
         if self.__client.websocket_base_url is not None:
             base_url = normalize_httpx_url(self.__client.websocket_base_url)
         else:
@@ -5094,6 +5094,7 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[bool] | Omit = omit,
+        stream_id: str | Omit = omit,
         stream_options: Optional[beta_responses_client_event_param.ResponseCreateStreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
         text: BetaResponseTextConfigParam | Omit = omit,
@@ -5106,11 +5107,13 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
     ) -> None:
         """
         Client event for creating a response over a persistent WebSocket connection.
-        This payload uses the same top-level fields as `POST /v1/responses`.
+        This payload uses the same top-level fields as `POST /v1/responses`, plus
+        WebSocket-only envelope metadata.
 
         Notes:
         - `stream` is implicit over WebSocket and should not be sent.
         - `background` is not supported over WebSocket.
+        - `stream_id` is WebSocket-only and is not part of `POST /v1/responses`.
         """
         self._connection.send(
             cast(
@@ -5141,6 +5144,7 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
                         "service_tier": service_tier,
                         "store": store,
                         "stream": stream,
+                        "stream_id": stream_id,
                         "stream_options": stream_options,
                         "temperature": temperature,
                         "text": text,
@@ -5301,6 +5305,7 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[bool] | Omit = omit,
+        stream_id: str | Omit = omit,
         stream_options: Optional[beta_responses_client_event_param.ResponseCreateStreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
         text: BetaResponseTextConfigParam | Omit = omit,
@@ -5313,11 +5318,13 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
     ) -> None:
         """
         Client event for creating a response over a persistent WebSocket connection.
-        This payload uses the same top-level fields as `POST /v1/responses`.
+        This payload uses the same top-level fields as `POST /v1/responses`, plus
+        WebSocket-only envelope metadata.
 
         Notes:
         - `stream` is implicit over WebSocket and should not be sent.
         - `background` is not supported over WebSocket.
+        - `stream_id` is WebSocket-only and is not part of `POST /v1/responses`.
         """
         await self._connection.send(
             cast(
@@ -5348,6 +5355,7 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
                         "service_tier": service_tier,
                         "store": store,
                         "stream": stream,
+                        "stream_id": stream_id,
                         "stream_options": stream_options,
                         "temperature": temperature,
                         "text": text,

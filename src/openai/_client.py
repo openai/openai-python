@@ -6,7 +6,7 @@ import os
 from typing import TYPE_CHECKING, Any, Mapping, Callable, Awaitable
 from typing_extensions import Self, Unpack, override
 
-import httpx
+import httpx2
 
 from . import _exceptions
 from ._qs import Querystring
@@ -117,7 +117,7 @@ class OpenAI(SyncAPIClient):
     _provider: _Provider | None
     _provider_runtime: _ProviderRuntime | None
 
-    websocket_base_url: str | httpx.URL | None
+    websocket_base_url: str | httpx2.URL | None
     """Base URL for WebSocket connections.
 
     If not specified, the default base URL will be used, with 'wss://' replacing the
@@ -135,16 +135,16 @@ class OpenAI(SyncAPIClient):
         project: str | None = None,
         webhook_secret: str | None = None,
         provider: _Provider | None = None,
-        base_url: str | httpx.URL | None = None,
-        websocket_base_url: str | httpx.URL | None = None,
+        base_url: str | httpx2.URL | None = None,
+        websocket_base_url: str | httpx2.URL | None = None,
         timeout: float | Timeout | None | NotGiven = not_given,
         max_retries: int = DEFAULT_MAX_RETRIES,
         default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
-        # Configure a custom httpx client.
+        # Configure a custom httpx2 client.
         # We provide a `DefaultHttpxClient` class that you can pass to retain the default values we use for `limits`, `timeout` & `follow_redirects`.
-        # See the [httpx documentation](https://www.python-httpx.org/api/#client) for more details.
-        http_client: httpx.Client | None = None,
+        # See the [httpx2 documentation](https://httpx2.pydantic.dev/api/#client) for more details.
+        http_client: httpx2.Client | None = None,
         # Enable or disable schema validation for data returned by the API.
         # When enabled an error APIResponseValidationError is raised
         # if the API responds with invalid data for the expected schema.
@@ -452,12 +452,12 @@ class OpenAI(SyncAPIClient):
 
     def _send_with_auth_retry(
         self,
-        request: httpx.Request,
+        request: httpx2.Request,
         *,
         stream: bool,
         retried: bool = False,
         **kwargs: Unpack[HttpxSendArgs],
-    ) -> httpx.Response:
+    ) -> httpx2.Response:
         used_workload_identity_auth = False
 
         if self._workload_identity_auth is not None:
@@ -483,11 +483,11 @@ class OpenAI(SyncAPIClient):
     @override
     def _send_request(
         self,
-        request: httpx.Request,
+        request: httpx2.Request,
         *,
         stream: bool,
         **kwargs: Unpack[HttpxSendArgs],
-    ) -> httpx.Response:
+    ) -> httpx2.Response:
         response = self._send_with_auth_retry(request, stream=stream, **kwargs)
         if self._provider_runtime is not None and self._provider_runtime.normalize_response is not None:
             response = self._provider_runtime.normalize_response(response)
@@ -566,14 +566,14 @@ class OpenAI(SyncAPIClient):
         return super()._prepare_options(options)
 
     @override
-    def _prepare_request(self, request: httpx.Request) -> None:
+    def _prepare_request(self, request: httpx2.Request) -> None:
         if self._provider_runtime is not None and self._provider_runtime.prepare_request is not None:
             self._provider_runtime.prepare_request(request)
 
     @override
-    def _custom_auth(self, security: SecurityOptions) -> httpx.Auth | None:
+    def _custom_auth(self, security: SecurityOptions) -> httpx2.Auth | None:
         if self._provider_runtime is not None:
-            return httpx.Auth()
+            return httpx2.Auth()
 
         return super()._custom_auth(security)
 
@@ -593,10 +593,10 @@ class OpenAI(SyncAPIClient):
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
-        websocket_base_url: str | httpx.URL | None = None,
-        base_url: str | httpx.URL | None = None,
+        websocket_base_url: str | httpx2.URL | None = None,
+        base_url: str | httpx2.URL | None = None,
         timeout: float | Timeout | None | NotGiven = not_given,
-        http_client: httpx.Client | None = None,
+        http_client: httpx2.Client | None = None,
         max_retries: int | NotGiven = not_given,
         default_headers: Mapping[str, str] | None = None,
         set_default_headers: Mapping[str, str] | None = None,
@@ -682,7 +682,7 @@ class OpenAI(SyncAPIClient):
         err_msg: str,
         *,
         body: object,
-        response: httpx.Response,
+        response: httpx2.Response,
     ) -> APIStatusError:
         data = body.get("error", body) if is_mapping(body) else body
         if response.status_code == 400:
@@ -723,7 +723,7 @@ class AsyncOpenAI(AsyncAPIClient):
     _provider: _Provider | None
     _provider_runtime: _ProviderRuntime | None
 
-    websocket_base_url: str | httpx.URL | None
+    websocket_base_url: str | httpx2.URL | None
     """Base URL for WebSocket connections.
 
     If not specified, the default base URL will be used, with 'wss://' replacing the
@@ -741,16 +741,16 @@ class AsyncOpenAI(AsyncAPIClient):
         project: str | None = None,
         webhook_secret: str | None = None,
         provider: _Provider | None = None,
-        base_url: str | httpx.URL | None = None,
-        websocket_base_url: str | httpx.URL | None = None,
+        base_url: str | httpx2.URL | None = None,
+        websocket_base_url: str | httpx2.URL | None = None,
         timeout: float | Timeout | None | NotGiven = not_given,
         max_retries: int = DEFAULT_MAX_RETRIES,
         default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
-        # Configure a custom httpx client.
+        # Configure a custom httpx2 client.
         # We provide a `DefaultAsyncHttpxClient` class that you can pass to retain the default values we use for `limits`, `timeout` & `follow_redirects`.
-        # See the [httpx documentation](https://www.python-httpx.org/api/#asyncclient) for more details.
-        http_client: httpx.AsyncClient | None = None,
+        # See the [httpx2 documentation](https://httpx2.pydantic.dev/api/#asyncclient) for more details.
+        http_client: httpx2.AsyncClient | None = None,
         # Enable or disable schema validation for data returned by the API.
         # When enabled an error APIResponseValidationError is raised
         # if the API responds with invalid data for the expected schema.
@@ -1058,12 +1058,12 @@ class AsyncOpenAI(AsyncAPIClient):
 
     async def _send_with_auth_retry(
         self,
-        request: httpx.Request,
+        request: httpx2.Request,
         *,
         stream: bool,
         retried: bool = False,
         **kwargs: Unpack[HttpxSendArgs],
-    ) -> httpx.Response:
+    ) -> httpx2.Response:
         used_workload_identity_auth = False
 
         if self._workload_identity_auth is not None:
@@ -1089,11 +1089,11 @@ class AsyncOpenAI(AsyncAPIClient):
     @override
     async def _send_request(
         self,
-        request: httpx.Request,
+        request: httpx2.Request,
         *,
         stream: bool,
         **kwargs: Unpack[HttpxSendArgs],
-    ) -> httpx.Response:
+    ) -> httpx2.Response:
         response = await self._send_with_auth_retry(request, stream=stream, **kwargs)
         if self._provider_runtime is not None:
             if self._provider_runtime.normalize_async_response is not None:
@@ -1177,7 +1177,7 @@ class AsyncOpenAI(AsyncAPIClient):
         return await super()._prepare_options(options)
 
     @override
-    async def _prepare_request(self, request: httpx.Request) -> None:
+    async def _prepare_request(self, request: httpx2.Request) -> None:
         if self._provider_runtime is None:
             return
 
@@ -1188,9 +1188,9 @@ class AsyncOpenAI(AsyncAPIClient):
 
     @property
     @override
-    def custom_auth(self) -> httpx.Auth | None:
+    def custom_auth(self) -> httpx2.Auth | None:
         if self._provider_runtime is not None:
-            return httpx.Auth()
+            return httpx2.Auth()
 
         return super().custom_auth
 
@@ -1210,10 +1210,10 @@ class AsyncOpenAI(AsyncAPIClient):
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
-        websocket_base_url: str | httpx.URL | None = None,
-        base_url: str | httpx.URL | None = None,
+        websocket_base_url: str | httpx2.URL | None = None,
+        base_url: str | httpx2.URL | None = None,
         timeout: float | Timeout | None | NotGiven = not_given,
-        http_client: httpx.AsyncClient | None = None,
+        http_client: httpx2.AsyncClient | None = None,
         max_retries: int | NotGiven = not_given,
         default_headers: Mapping[str, str] | None = None,
         set_default_headers: Mapping[str, str] | None = None,
@@ -1298,7 +1298,7 @@ class AsyncOpenAI(AsyncAPIClient):
         err_msg: str,
         *,
         body: object,
-        response: httpx.Response,
+        response: httpx2.Response,
     ) -> APIStatusError:
         data = body.get("error", body) if is_mapping(body) else body
         if response.status_code == 400:

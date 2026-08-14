@@ -6,9 +6,9 @@ from typing import Any, Callable, TypedDict, cast
 from pathlib import Path
 from typing_extensions import Literal, NotRequired
 
-import httpx
+import httpx2
 
-from .._httpx2 import DefaultHttpx2Client
+from .._httpx2 import DefaultHttpx2Client, _loaded_legacy_httpx
 from .._exceptions import OAuthError, OpenAIError, SubjectTokenProviderError
 from .._utils._sync import to_thread
 
@@ -75,7 +75,7 @@ def azure_managed_identity_token_provider(
     msi_res_id: str | None = None,
     api_version: str = "2018-02-01",
     timeout: float = 10.0,
-    http_client: httpx.Client | None = None,
+    http_client: httpx2.Client | None = None,
 ) -> SubjectTokenProvider:
     """
     Get a subject token provider for Azure Managed Identities.
@@ -89,7 +89,7 @@ def azure_managed_identity_token_provider(
         msi_res_id: the ARM resource ID of the managed identity to use, when multiple are assigned.
         api_version: the Azure IMDS API version. Defaults to `2018-02-01`.
         timeout: the request timeout in seconds. Defaults to 10.0.
-        http_client: optional httpx.Client instance to use for requests. If not provided, a new client will be created for each request.
+        http_client: optional httpx2.Client instance to use for requests. If not provided, a new client will be created for each request.
     """
 
     def get_token() -> str:
@@ -106,7 +106,7 @@ def azure_managed_identity_token_provider(
             if http_client is not None:
                 response = http_client.get(url, params=params, headers={"Metadata": "true"}, timeout=timeout)
             else:
-                with httpx.Client() as client:
+                with httpx2.Client() as client:
                     response = client.get(url, params=params, headers={"Metadata": "true"}, timeout=timeout)
 
             if response.is_error:
@@ -131,7 +131,7 @@ def gcp_id_token_provider(
     audience: str = "https://api.openai.com/v1",
     *,
     timeout: float = 10.0,
-    http_client: httpx.Client | None = None,
+    http_client: httpx2.Client | None = None,
 ) -> SubjectTokenProvider:
     """
     Get a subject token provider for GCP VM instances using the instance metadata server.
@@ -142,7 +142,7 @@ def gcp_id_token_provider(
         audience: the unique URI agreed upon by both the instance and the system verifying
             the instance's identity. Defaults to `https://api.openai.com/v1`.
         timeout: the request timeout in seconds. Defaults to 10.0.
-        http_client: optional httpx.Client instance to use for requests. If not provided, a new client will be created for each request.
+        http_client: optional httpx2.Client instance to use for requests. If not provided, a new client will be created for each request.
     """
 
     def get_token() -> str:
@@ -153,7 +153,7 @@ def gcp_id_token_provider(
             if http_client is not None:
                 response = http_client.get(url, params=params, headers={"Metadata-Flavor": "Google"}, timeout=timeout)
             else:
-                with httpx.Client() as client:
+                with httpx2.Client() as client:
                     response = client.get(url, params=params, headers={"Metadata-Flavor": "Google"}, timeout=timeout)
 
             if response.is_error:
@@ -177,7 +177,7 @@ class WorkloadIdentityAuth:
         *,
         workload_identity: WorkloadIdentity,
         token_exchange_url: str = DEFAULT_TOKEN_EXCHANGE_URL,
-        _use_httpx2: bool = False,
+        _use_httpx2: bool = True,
     ):
         self.workload_identity = workload_identity
         self.token_exchange_url = token_exchange_url
@@ -248,7 +248,10 @@ class WorkloadIdentityAuth:
                 f"Unsupported token type: {token_type!r}. Supported types: {', '.join(SUBJECT_TOKEN_TYPES.keys())}"
             )
 
-        exchange_client = DefaultHttpx2Client(follow_redirects=False) if self._use_httpx2 else httpx.Client()
+        legacy_httpx = _loaded_legacy_httpx() if not self._use_httpx2 else None
+        exchange_client = (
+            legacy_httpx.Client() if legacy_httpx is not None else DefaultHttpx2Client(follow_redirects=False)
+        )
         with exchange_client as client:
             response = client.post(
                 self.token_exchange_url,
@@ -263,7 +266,7 @@ class WorkloadIdentityAuth:
             )
             return self._handle_token_response(response)
 
-    def _handle_token_response(self, response: httpx.Response) -> dict[str, Any]:
+    def _handle_token_response(self, response: httpx2.Response) -> dict[str, Any]:
         try:
             body = response.json() if response.content else None
         except ValueError:

@@ -14,7 +14,7 @@ import sys
 import importlib.abc
 from pathlib import Path
 
-import httpx
+import httpx2
 
 
 class BlockBotocore(importlib.abc.MetaPathFinder):
@@ -39,22 +39,22 @@ requests = []
 
 def handler(request):
     requests.append(request)
-    return httpx.Response(200, request=request, json={})
+    return httpx2.Response(200, request=request, json={})
 
 
-http_client = httpx.Client(transport=httpx.MockTransport(handler), trust_env=False)
+http_client = httpx2.Client(transport=httpx2.MockTransport(handler), trust_env=False)
 with OpenAI(
     provider=bedrock(region="us-east-1", api_key="bearer-token"),
     http_client=http_client,
 ) as client:
-    client.get("/models", cast_to=httpx.Response)
+    client.get("/models", cast_to=httpx2.Response)
 
 assert requests[0].headers["Authorization"] == "Bearer bearer-token"
 assert not any(name == "botocore" or name.startswith("botocore.") for name in sys.modules)
 
 sys.meta_path.remove(blocker)
 requests.clear()
-http_client = httpx.Client(transport=httpx.MockTransport(handler), trust_env=False)
+http_client = httpx2.Client(transport=httpx2.MockTransport(handler), trust_env=False)
 with OpenAI(
     provider=bedrock(
         region="us-east-1",
@@ -64,7 +64,7 @@ with OpenAI(
     ),
     http_client=http_client,
 ) as client:
-    client.get("/models", cast_to=httpx.Response)
+    client.get("/models", cast_to=httpx2.Response)
 
 assert "Credential=fixture-access-key/" in requests[0].headers["Authorization"]
 assert requests[0].headers["X-Amz-Security-Token"] == "fixture-session-token"

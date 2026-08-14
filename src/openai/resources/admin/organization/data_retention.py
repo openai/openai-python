@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing_extensions import Literal
 
-import httpx
+import httpx2
 
 from .... import _legacy_response
 from ...._types import Body, Query, Headers, NotGiven, not_given
@@ -47,7 +47,7 @@ class DataRetention(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> OrganizationDataRetention:
         """Retrieves organization data retention controls."""
         return self._get(
@@ -76,7 +76,7 @@ class DataRetention(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> OrganizationDataRetention:
         """
         Updates organization data retention controls.
@@ -136,7 +136,7 @@ class AsyncDataRetention(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> OrganizationDataRetention:
         """Retrieves organization data retention controls."""
         return await self._get(
@@ -165,7 +165,7 @@ class AsyncDataRetention(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> OrganizationDataRetention:
         """
         Updates organization data retention controls.

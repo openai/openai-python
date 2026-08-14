@@ -1,6 +1,6 @@
 [project]
 name = "openai"
-version = "2.53.0"
+version = "3.0.0"
 description = "The official Python library for the openai API"
 dynamic = ["readme"]
 license = "Apache-2.0"
@@ -9,10 +9,10 @@ authors = [
 ]
 
 dependencies = [
-  "httpx>=0.23.0, <1",
+  "httpx2>=2.7.0, <3",
   "pydantic>=1.9.0, <3",
   "typing-extensions>=4.14, <5",
-  "anyio>=3.5.0, <5",
+  "anyio>=4.10.0, <5",
   "distro>=1.7.0, <2",
   "sniffio",
     "tqdm > 4",
@@ -44,12 +44,6 @@ Repository = "https://github.com/openai/openai-python"
 [project.optional-dependencies]
 aiohttp = [
   "aiohttp>=3.14.1",
-  "httpx_aiohttp>=0.1.9",
-]
-httpx2 = [
-  "httpx>=0.25.1, <1",
-  "httpx2>=2.7.0, <3",
-  "anyio>=4.10.0, <5",
 ]
 realtime = ["websockets >= 13, < 16"]
 datalib = ["numpy >= 1", "pandas >= 1.2.3", "pandas-stubs >= 1.1.0.11"]
@@ -64,7 +58,6 @@ managed = true
 dev-dependencies = [
     "pyright==1.1.399",
     "mypy==1.17",
-    "respx",
     "pytest",
     "pytest-asyncio",
     "jsonschema>=4.23.0",
@@ -177,6 +170,8 @@ exclude = [
     ".venv",
     ".nox",
     ".git",
+    "tests/respx2",
+    "src/openai/_vendor",
 
     # uses inline `uv` script dependencies
     # which means it can't be type checked
@@ -205,6 +200,7 @@ show_error_codes = true
 # which means it can't be type checked
 exclude = [
   'src/openai/_files.py',
+  'src/openai/_vendor/.*',
   '_dev/.*.py',
   'tests/.*',
   'src/openai/_utils/_logs.py',
@@ -252,6 +248,7 @@ ignore_errors = true
 ignore_missing_imports = true
 
 [tool.ruff]
+extend-exclude = ["tests/respx2", "src/openai/_vendor"]
 line-length = 120
 output-format = "grouped"
 target-version = "py310"

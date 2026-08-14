@@ -17,12 +17,7 @@ elif [[ -f .castiron.stats.yml && -f api_reference/openapi.transformed.yml ]]; t
     exit 1
   fi
 else
-  URL="$(grep 'openapi_spec_url' .stats.yml | cut -d' ' -f2)"
-fi
-
-# Check if the URL is empty
-if [ -z "$URL" ]; then
-  echo "Error: No OpenAPI spec path/url provided or found in .stats.yml"
+  echo "Error: No OpenAPI spec path/url provided or found in Castiron generation metadata" >&2
   exit 1
 fi
 
