@@ -62,13 +62,6 @@ class Stream(Generic[_T]):
         try:
             for sse in iterator:
                 if sse.data.startswith("[DONE]"):
-                    # Best-effort bounded drain of raw bytes so close() can return the connection to the pool.
-                    # [DONE] is already terminal for callers; drain failures must not fail the stream.
-                    # Drain raw bytes (not decoded events) so heartbeat comments don't cause unbounded waits.
-                    try:
-                        drain_sync_iterator(byte_iterator)
-                    except (httpx2.HTTPError, UnicodeError):
-                        pass
                     break
 
                 # we have to special case the Assistants `thread.` events since we won't have an "event" key in the data
@@ -114,7 +107,14 @@ class Stream(Generic[_T]):
                         response=response,
                     )
         finally:
-            # Ensure the response is closed even if the consumer doesn't read all data
+            # Best-effort timeout-bounded drain of raw bytes to enable connection reuse.
+            # [DONE] is already terminal for callers; drain failures must not fail the stream.
+            # Drain raw bytes (not decoded events) so heartbeat comments don't cause unbounded waits.
+            # Drain in finally so [DONE] doesn't block the caller.
+            try:
+                drain_sync_iterator(byte_iterator, timeout_ms=50)
+            except (httpx2.HTTPError, UnicodeError):
+                pass
             response.close()
 
     def __enter__(self) -> Self:
@@ -180,13 +180,6 @@ class AsyncStream(Generic[_T]):
         try:
             async for sse in iterator:
                 if sse.data.startswith("[DONE]"):
-                    # Best-effort bounded drain of raw bytes so aclose() can return the connection to the pool.
-                    # [DONE] is already terminal for callers; drain failures must not fail the stream.
-                    # Drain raw bytes (not decoded events) so heartbeat comments don't cause unbounded waits.
-                    try:
-                        await drain_async_iterator(byte_iterator)
-                    except (httpx2.HTTPError, UnicodeError):
-                        pass
                     break
 
                 # we have to special case the Assistants `thread.` events since we won't have an "event" key in the data
@@ -232,7 +225,14 @@ class AsyncStream(Generic[_T]):
                         response=response,
                     )
         finally:
-            # Ensure the response is closed even if the consumer doesn't read all data
+            # Best-effort timeout-bounded drain of raw bytes to enable connection reuse.
+            # [DONE] is already terminal for callers; drain failures must not fail the stream.
+            # Drain raw bytes (not decoded events) so heartbeat comments don't cause unbounded waits.
+            # Drain in finally so [DONE] doesn't block the caller.
+            try:
+                await drain_async_iterator(byte_iterator, timeout_ms=50)
+            except (httpx2.HTTPError, UnicodeError):
+                pass
             await response.aclose()
 
     async def __aenter__(self) -> Self:

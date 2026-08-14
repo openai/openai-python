@@ -1,3 +1,4 @@
+import asyncio
 from typing import Any
 from typing_extensions import Iterator, AsyncIterator
 
@@ -12,27 +13,39 @@ async def consume_async_iterator(iterator: AsyncIterator[Any]) -> None:
         ...
 
 
-def drain_sync_iterator(iterator: Iterator[Any], max_items: int = 16) -> None:
-    """Drain a bounded number of items from an iterator without blocking indefinitely.
+def drain_sync_iterator(iterator: Iterator[Any], timeout_ms: int = 50) -> None:
+    """Drain trailing bytes from iterator with bounded timeout.
 
-    Used after stream termination signals like [DONE] to attempt connection reuse
-    without waiting for the entire response body.
+    Attempts to drain all remaining items from iterator to enable connection
+    reuse, but gives up after timeout_ms to avoid indefinite blocking when
+    server holds connection open after [DONE].
     """
-    for _ in range(max_items):
-        try:
-            next(iterator)
-        except StopIteration:
-            break
+    import time
+    deadline = time.monotonic() + (timeout_ms / 1000.0)
+    try:
+        while time.monotonic() < deadline:
+            try:
+                next(iterator)
+            except StopIteration:
+                return
+    except Exception:
+        pass
 
 
-async def drain_async_iterator(iterator: AsyncIterator[Any], max_items: int = 16) -> None:
-    """Drain a bounded number of items from an async iterator without blocking indefinitely.
+async def drain_async_iterator(iterator: AsyncIterator[Any], timeout_ms: int = 50) -> None:
+    """Drain trailing bytes from async iterator with bounded timeout.
 
-    Used after stream termination signals like [DONE] to attempt connection reuse
-    without waiting for the entire response body.
+    Attempts to drain all remaining items from iterator to enable connection
+    reuse, but gives up after timeout_ms to avoid indefinite blocking when
+    server holds connection open after [DONE].
     """
-    for _ in range(max_items):
-        try:
-            await iterator.__anext__()
-        except StopAsyncIteration:
-            break
+    try:
+        while True:
+            try:
+                await asyncio.wait_for(iterator.__anext__(), timeout=timeout_ms / 1000.0)
+            except StopAsyncIteration:
+                return
+    except asyncio.TimeoutError:
+        pass
+    except Exception:
+        pass
