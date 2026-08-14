@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from collections.abc import AsyncIterator, Iterator
+from collections.abc import Iterator, AsyncIterator
 
 import httpx2
 import pytest
 
-from openai import AsyncOpenAI, OpenAI
-from openai._streaming import AsyncStream, ServerSentEvent, Stream
+from openai import OpenAI, AsyncOpenAI
+from openai._streaming import Stream, AsyncStream, ServerSentEvent
 
 
 @pytest.mark.asyncio
@@ -229,7 +229,7 @@ async def test_done_drains_remaining_body(sync: bool, client: OpenAI, async_clie
         yield b": trailing comment after done\n\n"
         exhausted = True
 
-    response = httpx.Response(200, content=body() if sync else to_aiter(body()))
+    response = httpx2.Response(200, content=body() if sync else to_aiter(body()))
 
     if sync:
         stream: Stream[object] | AsyncStream[object] = Stream(cast_to=object, client=client, response=response)
@@ -245,17 +245,15 @@ async def test_done_drains_remaining_body(sync: bool, client: OpenAI, async_clie
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
-async def test_drain_failure_after_done_preserves_result(
-    sync: bool, client: OpenAI, async_client: AsyncOpenAI
-) -> None:
+async def test_drain_failure_after_done_preserves_result(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
     """Transport errors while draining after [DONE] must not fail an already-complete stream."""
 
     def body() -> Iterator[bytes]:
         yield b'data: {"foo":true}\n\n'
         yield b"data: [DONE]\n\n"
-        raise httpx.RemoteProtocolError("peer closed connection")
+        raise httpx2.RemoteProtocolError("peer closed connection")
 
-    response = httpx.Response(200, content=body() if sync else to_aiter(body()))
+    response = httpx2.Response(200, content=body() if sync else to_aiter(body()))
 
     if sync:
         stream: Stream[object] | AsyncStream[object] = Stream(cast_to=object, client=client, response=response)
@@ -281,7 +279,7 @@ async def test_drain_decode_error_after_done_preserves_result(
         # Truncated multi-byte UTF-8 sequence that the SSE decoder will reject.
         yield b"data: \xff\n\n"
 
-    response = httpx.Response(200, content=body() if sync else to_aiter(body()))
+    response = httpx2.Response(200, content=body() if sync else to_aiter(body()))
 
     if sync:
         stream: Stream[object] | AsyncStream[object] = Stream(cast_to=object, client=client, response=response)
@@ -290,6 +288,81 @@ async def test_drain_decode_error_after_done_preserves_result(
         stream = AsyncStream(cast_to=object, client=async_client, response=response)
         chunks = [chunk async for chunk in stream]
 
+    assert chunks == [{"foo": True}]
+    assert response.is_closed is True
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+async def test_drain_is_bounded_and_doesnt_block_indefinitely(
+    sync: bool, client: OpenAI, async_client: AsyncOpenAI
+) -> None:
+    """Drain after [DONE] must be bounded; trailing iterator that never closes must not block completion."""
+
+    class SyncInfiniteIterator:
+        """Sync iterator that yields indefinitely after content; simulates unbounded heartbeats."""
+
+        def __init__(self, content: Iterator[bytes]) -> None:
+            self._content = content
+            self._content_exhausted = False
+            self._yield_count = 0
+
+        def __iter__(self) -> Iterator[bytes]:
+            return self
+
+        def __next__(self) -> bytes:
+            if not self._content_exhausted:
+                try:
+                    return next(self._content)
+                except StopIteration:
+                    self._content_exhausted = True
+            # After content is exhausted, yield indefinitely (simulating held-open connection)
+            if self._yield_count > 1000:  # Safety limit to prevent infinite test loops
+                raise StopIteration
+            self._yield_count += 1
+            return b": heartbeat\n\n"
+
+    class AsyncInfiniteIterator:
+        """Async iterator that yields indefinitely after content; simulates unbounded heartbeats."""
+
+        def __init__(self, content: AsyncIterator[bytes]) -> None:
+            self._content = content
+            self._content_exhausted = False
+            self._yield_count = 0
+
+        def __aiter__(self) -> AsyncIterator[bytes]:
+            return self
+
+        async def __anext__(self) -> bytes:
+            if not self._content_exhausted:
+                try:
+                    return await self._content.__anext__()
+                except StopAsyncIteration:
+                    self._content_exhausted = True
+            # After content is exhausted, yield indefinitely (simulating held-open connection)
+            if self._yield_count > 1000:  # Safety limit to prevent infinite test loops
+                raise StopAsyncIteration
+            self._yield_count += 1
+            return b": heartbeat\n\n"
+
+    def body() -> Iterator[bytes]:
+        yield b'data: {"foo":true}\n\n'
+        yield b"data: [DONE]\n\n"
+        # More events after [DONE] that should not block completion
+
+    if sync:
+        infinite_iter = SyncInfiniteIterator(body())
+        response = httpx2.Response(200, content=infinite_iter)
+        stream: Stream[object] | AsyncStream[object] = Stream(cast_to=object, client=client, response=response)
+        chunks = list(stream)
+    else:
+        async_body = to_aiter(body())
+        infinite_iter = AsyncInfiniteIterator(async_body)
+        response = httpx2.Response(200, content=infinite_iter)
+        stream = AsyncStream(cast_to=object, client=async_client, response=response)
+        chunks = [chunk async for chunk in stream]
+
+    # Stream should complete with just the first item, not block waiting for the infinite iterator
     assert chunks == [{"foo": True}]
     assert response.is_closed is True
 
