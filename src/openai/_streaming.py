@@ -40,6 +40,7 @@ class Stream(Generic[_T]):
         self._client = client
         self._options = options
         self._decoder = client._make_sse_decoder()
+        self._byte_iterator: Iterator[bytes] | None = None
         self._iterator = self.__stream__()
 
     def __next__(self) -> _T:
@@ -50,14 +51,16 @@ class Stream(Generic[_T]):
             yield item
 
     def _iter_events(self) -> Iterator[ServerSentEvent]:
-        yield from self._decoder.iter_bytes(self.response.iter_bytes())
+        if self._byte_iterator is None:
+            self._byte_iterator = self.response.iter_bytes()
+        yield from self._decoder.iter_bytes(self._byte_iterator)
 
     def __stream__(self) -> Iterator[_T]:
         cast_to = cast(Any, self._cast_to)
         response = self.response
         process_data = self._client._process_response_data
-        byte_iterator = response.iter_bytes()
-        iterator = self._decoder.iter_bytes(byte_iterator)
+        self._byte_iterator = response.iter_bytes()
+        iterator = self._iter_events()
 
         try:
             for sse in iterator:
@@ -112,7 +115,7 @@ class Stream(Generic[_T]):
             # Drain raw bytes (not decoded events) so heartbeat comments don't cause unbounded waits.
             # Drain in finally so [DONE] doesn't block the caller.
             try:
-                drain_sync_iterator(byte_iterator, timeout_ms=50)
+                drain_sync_iterator(self._byte_iterator, timeout_ms=50)
             except (httpx2.HTTPError, UnicodeError):
                 pass
             response.close()
@@ -157,6 +160,7 @@ class AsyncStream(Generic[_T]):
         self._client = client
         self._options = options
         self._decoder = client._make_sse_decoder()
+        self._byte_iterator: AsyncIterator[bytes] | None = None
         self._iterator = self.__stream__()
 
     async def __anext__(self) -> _T:
@@ -167,15 +171,17 @@ class AsyncStream(Generic[_T]):
             yield item
 
     async def _iter_events(self) -> AsyncIterator[ServerSentEvent]:
-        async for sse in self._decoder.aiter_bytes(self.response.aiter_bytes()):
+        if self._byte_iterator is None:
+            self._byte_iterator = self.response.aiter_bytes()
+        async for sse in self._decoder.aiter_bytes(self._byte_iterator):
             yield sse
 
     async def __stream__(self) -> AsyncIterator[_T]:
         cast_to = cast(Any, self._cast_to)
         response = self.response
         process_data = self._client._process_response_data
-        byte_iterator = response.aiter_bytes()
-        iterator = self._decoder.aiter_bytes(byte_iterator)
+        self._byte_iterator = response.aiter_bytes()
+        iterator = self._iter_events()
 
         try:
             async for sse in iterator:
@@ -230,7 +236,7 @@ class AsyncStream(Generic[_T]):
             # Drain raw bytes (not decoded events) so heartbeat comments don't cause unbounded waits.
             # Drain in finally so [DONE] doesn't block the caller.
             try:
-                await drain_async_iterator(byte_iterator, timeout_ms=50)
+                await drain_async_iterator(self._byte_iterator, timeout_ms=50)
             except (httpx2.HTTPError, UnicodeError):
                 pass
             await response.aclose()
