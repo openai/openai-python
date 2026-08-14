@@ -437,15 +437,15 @@ class ResponseStreamState(Generic[TextFormatT]):
             # `AttributeError` before the fallback can run.
             if not hasattr(response, "output"):
                 response = construct_type_unchecked(type_=Response, value=response)
-            # `response.output` is typed as non-nullable `list[...]` but the wire
-            # value can be `null` (a `response.completed` payload from the Codex
-            # backend can carry `response.output: null` even when valid
-            # `output_item.done` events were streamed earlier).  Pyright flags
-            # the None check as unreachable because the model annotation says
-            # non-nullable.  Check `.output` directly on the response without
-            # assigning to a local variable so Pyright sees the raw attribute
-            # type rather than narrowing via assignment.
-            if response.output is None and snapshot.output:  # pyright: ignore[reportUnnecessaryComparison]
+            # `response.output` is typed as non-nullable but the wire value can
+            # be `null` (the Codex backend sends `response.output: null` in the
+            # consolidated `response.completed` event even when valid
+            # `output_item.done` events were streamed earlier).  Use `getattr`
+            # so Pyright sees `Any` instead of the non-nullable list type,
+            # avoiding the unreachable-comparison diagnostic entirely.  The
+            # actual value comes from the wire at runtime, not from the
+            # model annotation.
+            if getattr(response, "output", None) is None and snapshot.output:
                 # Build a copy of the response with the accumulated output
                 # items injected.  Use warnings=False on Pydantic v2 to suppress
                 # the serializer warning from dumping the invalid null output
