@@ -56,15 +56,17 @@ class Stream(Generic[_T]):
         cast_to = cast(Any, self._cast_to)
         response = self.response
         process_data = self._client._process_response_data
-        iterator = self._iter_events()
+        byte_iterator = response.iter_bytes()
+        iterator = self._decoder.iter_bytes(byte_iterator)
 
         try:
             for sse in iterator:
                 if sse.data.startswith("[DONE]"):
-                    # Best-effort bounded drain so close() can return the connection to the pool.
+                    # Best-effort bounded drain of raw bytes so close() can return the connection to the pool.
                     # [DONE] is already terminal for callers; drain failures must not fail the stream.
+                    # Drain raw bytes (not decoded events) so heartbeat comments don't cause unbounded waits.
                     try:
-                        drain_sync_iterator(iterator)
+                        drain_sync_iterator(byte_iterator)
                     except (httpx2.HTTPError, UnicodeError):
                         pass
                     break
@@ -172,15 +174,17 @@ class AsyncStream(Generic[_T]):
         cast_to = cast(Any, self._cast_to)
         response = self.response
         process_data = self._client._process_response_data
-        iterator = self._iter_events()
+        byte_iterator = response.aiter_bytes()
+        iterator = self._decoder.aiter_bytes(byte_iterator)
 
         try:
             async for sse in iterator:
                 if sse.data.startswith("[DONE]"):
-                    # Best-effort bounded drain so aclose() can return the connection to the pool.
+                    # Best-effort bounded drain of raw bytes so aclose() can return the connection to the pool.
                     # [DONE] is already terminal for callers; drain failures must not fail the stream.
+                    # Drain raw bytes (not decoded events) so heartbeat comments don't cause unbounded waits.
                     try:
-                        await drain_async_iterator(iterator)
+                        await drain_async_iterator(byte_iterator)
                     except (httpx2.HTTPError, UnicodeError):
                         pass
                     break
