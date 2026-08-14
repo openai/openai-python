@@ -110,10 +110,7 @@ class Stream(Generic[_T]):
                         response=response,
                     )
         finally:
-            # Best-effort timeout-bounded drain of raw bytes to enable connection reuse.
-            # [DONE] is already terminal for callers; drain failures must not fail the stream.
-            # Drain raw bytes (not decoded events) so heartbeat comments don't cause unbounded waits.
-            # Drain in finally so [DONE] doesn't block the caller.
+            # Drain remaining body to enable connection reuse; best-effort with 50ms timeout.
             drain_sync_iterator(self._byte_iterator, timeout_ms=50)
             response.close()
 
@@ -228,10 +225,7 @@ class AsyncStream(Generic[_T]):
                         response=response,
                     )
         finally:
-            # Best-effort timeout-bounded drain of raw bytes to enable connection reuse.
-            # [DONE] is already terminal for callers; drain failures must not fail the stream.
-            # Drain raw bytes (not decoded events) so heartbeat comments don't cause unbounded waits.
-            # Drain in finally so [DONE] doesn't block the caller.
+            # Drain remaining body to enable connection reuse; best-effort with 50ms timeout.
             await drain_async_iterator(self._byte_iterator, timeout_ms=50)
             await response.aclose()
 

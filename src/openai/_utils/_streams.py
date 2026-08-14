@@ -39,9 +39,10 @@ async def drain_async_iterator(iterator: AsyncIterator[Any], timeout_ms: int = 5
     reuse, but gives up after timeout_ms to avoid indefinite blocking when
     server holds connection open after [DONE].
     """
-    deadline = asyncio.get_event_loop().time() + (timeout_ms / 1000.0)
+    loop = asyncio.get_running_loop()
+    deadline = loop.time() + (timeout_ms / 1000.0)
     while True:
-        remaining = deadline - asyncio.get_event_loop().time()
+        remaining = deadline - loop.time()
         if remaining <= 0:
             break
         try:
