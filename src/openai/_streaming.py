@@ -114,10 +114,7 @@ class Stream(Generic[_T]):
             # [DONE] is already terminal for callers; drain failures must not fail the stream.
             # Drain raw bytes (not decoded events) so heartbeat comments don't cause unbounded waits.
             # Drain in finally so [DONE] doesn't block the caller.
-            try:
-                drain_sync_iterator(self._byte_iterator, timeout_ms=50)
-            except (httpx2.HTTPError, UnicodeError):
-                pass
+            drain_sync_iterator(self._byte_iterator, timeout_ms=50)
             response.close()
 
     def __enter__(self) -> Self:
@@ -235,10 +232,7 @@ class AsyncStream(Generic[_T]):
             # [DONE] is already terminal for callers; drain failures must not fail the stream.
             # Drain raw bytes (not decoded events) so heartbeat comments don't cause unbounded waits.
             # Drain in finally so [DONE] doesn't block the caller.
-            try:
-                await drain_async_iterator(self._byte_iterator, timeout_ms=50)
-            except (httpx2.HTTPError, UnicodeError):
-                pass
+            await drain_async_iterator(self._byte_iterator, timeout_ms=50)
             await response.aclose()
 
     async def __aenter__(self) -> Self:

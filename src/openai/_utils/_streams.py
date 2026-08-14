@@ -23,14 +23,13 @@ def drain_sync_iterator(iterator: Iterator[Any], timeout_ms: int = 50) -> None:
     import time
 
     deadline = time.monotonic() + (timeout_ms / 1000.0)
-    try:
-        while time.monotonic() < deadline:
-            try:
-                next(iterator)
-            except StopIteration:
-                return
-    except Exception:
-        pass
+    while time.monotonic() < deadline:
+        try:
+            next(iterator)
+        except StopIteration:
+            return
+        except Exception:
+            break
 
 
 async def drain_async_iterator(iterator: AsyncIterator[Any], timeout_ms: int = 50) -> None:
@@ -40,13 +39,16 @@ async def drain_async_iterator(iterator: AsyncIterator[Any], timeout_ms: int = 5
     reuse, but gives up after timeout_ms to avoid indefinite blocking when
     server holds connection open after [DONE].
     """
-    try:
-        while True:
-            try:
-                await asyncio.wait_for(iterator.__anext__(), timeout=timeout_ms / 1000.0)
-            except StopAsyncIteration:
-                return
-    except asyncio.TimeoutError:
-        pass
-    except Exception:
-        pass
+    deadline = asyncio.get_event_loop().time() + (timeout_ms / 1000.0)
+    while True:
+        remaining = deadline - asyncio.get_event_loop().time()
+        if remaining <= 0:
+            break
+        try:
+            await asyncio.wait_for(iterator.__anext__(), timeout=remaining)
+        except StopAsyncIteration:
+            return
+        except asyncio.TimeoutError:
+            break
+        except Exception:
+            break
