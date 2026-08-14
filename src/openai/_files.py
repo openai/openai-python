@@ -27,16 +27,48 @@ def is_base64_file_input(obj: object) -> TypeGuard[Base64FileInput]:
 
 
 def is_file_content(obj: object) -> TypeGuard[FileContent]:
-    return (
-        isinstance(obj, bytes) or isinstance(obj, tuple) or isinstance(obj, io.IOBase) or isinstance(obj, os.PathLike)
-    )
+    return isinstance(obj, bytes) or isinstance(obj, io.IOBase) or isinstance(obj, os.PathLike)
+
+
+def _is_file_tuple(obj: object) -> bool:
+    if not isinstance(obj, tuple):
+        return False
+
+    obj = cast(tuple[object, ...], obj)
+
+    if len(obj) == 2:
+        filename, file = obj
+        return (filename is None or isinstance(filename, str)) and is_file_content(file)
+
+    if len(obj) == 3:
+        filename, file, content_type = obj
+        return (
+            (filename is None or isinstance(filename, str))
+            and is_file_content(file)
+            and (content_type is None or isinstance(content_type, str))
+        )
+
+    if len(obj) == 4:
+        filename, file, content_type, headers = obj
+        return (
+            (filename is None or isinstance(filename, str))
+            and is_file_content(file)
+            and (content_type is None or isinstance(content_type, str))
+            and is_mapping(headers)
+        )
+
+    return False
+
+
+def _is_file_types(obj: object) -> TypeGuard[FileTypes]:
+    return is_file_content(obj) or _is_file_tuple(obj)
 
 
 def assert_is_file_content(obj: object, *, key: str | None = None) -> None:
-    if not is_file_content(obj):
+    if not _is_file_types(obj):
         prefix = f"Expected entry at `{key}`" if key is not None else f"Expected file input `{obj!r}`"
         raise RuntimeError(
-            f"{prefix} to be bytes, an io.IOBase instance, PathLike or a tuple but received {type(obj)} instead. See https://github.com/openai/openai-python/tree/main#file-uploads"
+            f"{prefix} to be bytes, an io.IOBase instance, PathLike or a supported file tuple but received {type(obj)} instead. See https://github.com/openai/openai-python/tree/main#file-uploads"
         ) from None
 
 
@@ -63,15 +95,15 @@ def to_httpx_files(files: RequestFiles | None) -> HttpxRequestFiles | None:
 
 
 def _transform_file(file: FileTypes) -> HttpxFileTypes:
+    if is_tuple_t(file):
+        return (file[0], read_file_content(file[1]), *file[2:])
+
     if is_file_content(file):
         if isinstance(file, os.PathLike):
             path = pathlib.Path(file)
             return (path.name, path.read_bytes())
 
         return file
-
-    if is_tuple_t(file):
-        return (file[0], read_file_content(file[1]), *file[2:])
 
     raise TypeError(f"Expected file types input to be a FileContent type or to be a tuple")
 
@@ -105,15 +137,15 @@ async def async_to_httpx_files(files: RequestFiles | None) -> HttpxRequestFiles 
 
 
 async def _async_transform_file(file: FileTypes) -> HttpxFileTypes:
+    if is_tuple_t(file):
+        return (file[0], await async_read_file_content(file[1]), *file[2:])
+
     if is_file_content(file):
         if isinstance(file, os.PathLike):
             path = anyio.Path(file)
             return (path.name, await path.read_bytes())
 
         return file
-
-    if is_tuple_t(file):
-        return (file[0], await async_read_file_content(file[1]), *file[2:])
 
     raise TypeError(f"Expected file types input to be a FileContent type or to be a tuple")
 

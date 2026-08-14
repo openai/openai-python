@@ -35,6 +35,12 @@ def test_multiple_files() -> None:
     assert query == {"documents": [{}, {}]}
 
 
+def test_invalid_file_tuple_is_rejected() -> None:
+    query = {"file": ("upload.md", "not-a-file")}
+    with pytest.raises(RuntimeError, match="Expected entry at `file`"):
+        extract_files(query, paths=[["file"]])
+
+
 def test_top_level_file_array() -> None:
     query = {"files": [b"file one", b"file two"], "title": "hello"}
     assert extract_files(query, paths=[["files", "<array>"]]) == [("files[]", b"file one"), ("files[]", b"file two")]

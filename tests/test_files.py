@@ -22,6 +22,12 @@ def test_tuple_input() -> None:
     assert result == IsList(IsTuple("file", IsTuple("README.md", IsBytes())))
 
 
+def test_pathlib_inside_file_tuple_content_is_read() -> None:
+    result = to_httpx_files({"file": ("upload.md", readme_path, "text/markdown")})
+    print(result)
+    assert result == IsDict({"file": IsTuple("upload.md", IsBytes(), "text/markdown")})
+
+
 @pytest.mark.asyncio
 async def test_async_pathlib_includes_file_name() -> None:
     result = await async_to_httpx_files({"file": readme_path})
@@ -41,6 +47,13 @@ async def test_async_tuple_input() -> None:
     result = await async_to_httpx_files([("file", readme_path)])
     print(result)
     assert result == IsList(IsTuple("file", IsTuple("README.md", IsBytes())))
+
+
+@pytest.mark.asyncio
+async def test_async_pathlib_inside_file_tuple_content_is_read() -> None:
+    result = await async_to_httpx_files({"file": ("upload.md", readme_path, "text/markdown")})
+    print(result)
+    assert result == IsDict({"file": IsTuple("upload.md", IsBytes(), "text/markdown")})
 
 
 def test_string_not_allowed() -> None:
