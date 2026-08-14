@@ -15,9 +15,7 @@ async def consume_async_iterator(iterator: AsyncIterator[Any]) -> None:
         ...
 
 
-def drain_sync_iterator(
-    iterator: Optional[Iterator[Any]], response: Any = None, timeout_ms: int = 50
-) -> None:
+def drain_sync_iterator(iterator: Optional[Iterator[Any]], response: Any = None, timeout_ms: int = 50) -> None:
     """Drain trailing bytes from iterator with bounded timeout.
 
     Attempts to drain all remaining items from iterator to enable connection
