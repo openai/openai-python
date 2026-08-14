@@ -111,8 +111,12 @@ class Stream(Generic[_T]):
                     )
         finally:
             # Drain remaining body to enable connection reuse; best-effort with 50ms timeout.
-            drain_sync_iterator(self._byte_iterator, timeout_ms=50)
-            response.close()
+            # If drain times out, response is closed to interrupt any blocked reads.
+            drain_sync_iterator(self._byte_iterator, response=response, timeout_ms=50)
+            try:
+                response.close()
+            except Exception:
+                pass
 
     def __enter__(self) -> Self:
         return self
@@ -226,8 +230,12 @@ class AsyncStream(Generic[_T]):
                     )
         finally:
             # Drain remaining body to enable connection reuse; best-effort with 50ms timeout.
-            await drain_async_iterator(self._byte_iterator, timeout_ms=50)
-            await response.aclose()
+            # If drain times out, response is closed to interrupt any blocked reads.
+            await drain_async_iterator(self._byte_iterator, response=response, timeout_ms=50)
+            try:
+                await response.aclose()
+            except Exception:
+                pass
 
     async def __aenter__(self) -> Self:
         return self

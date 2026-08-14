@@ -317,6 +317,7 @@ async def test_drain_is_bounded_and_doesnt_block_indefinitely(
                     self._content_exhausted = True
             # After content is exhausted, yield slowly to force timeout during drain
             import time
+
             time.sleep(0.1)  # 100ms per item; 50ms drain timeout will hit after <1 item
             return b": heartbeat\n\n"
 
@@ -338,6 +339,7 @@ async def test_drain_is_bounded_and_doesnt_block_indefinitely(
                     self._content_exhausted = True
             # After content is exhausted, yield slowly to force timeout during drain
             import asyncio
+
             await asyncio.sleep(0.1)  # 100ms per item; 50ms drain timeout will hit after <1 item
             return b": heartbeat\n\n"
 
