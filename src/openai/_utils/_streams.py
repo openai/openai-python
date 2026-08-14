@@ -50,6 +50,8 @@ def drain_sync_iterator(iterator: Optional[Iterator[Any]], response: Any = None,
             response.close()
         except Exception:
             pass
+        # Rejoin to give thread time to exit after interrupt
+        thread.join(timeout=timeout_ms / 1000.0)
 
 
 async def drain_async_iterator(
