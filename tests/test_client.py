@@ -24,6 +24,15 @@ from openai._utils import asyncify
 from openai._models import BaseModel, FinalRequestOptions
 from openai._streaming import Stream, AsyncStream
 from openai._exceptions import APIStatusError, APITimeoutError, APIResponseValidationError
+from openai.types import ServiceTier
+
+
+def test_service_tier_export() -> None:
+    tier: ServiceTier = "auto"
+    assert tier == "auto"
+    assert "priority" in ServiceTier.__args__  # type: ignore
+
+
 from openai._base_client import (
     DEFAULT_TIMEOUT,
     HTTPX_DEFAULT_TIMEOUT,
