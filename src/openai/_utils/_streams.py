@@ -21,6 +21,7 @@ def drain_sync_iterator(iterator: Iterator[Any], timeout_ms: int = 50) -> None:
     server holds connection open after [DONE].
     """
     import time
+
     deadline = time.monotonic() + (timeout_ms / 1000.0)
     try:
         while time.monotonic() < deadline:
