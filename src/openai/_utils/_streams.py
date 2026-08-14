@@ -1,5 +1,6 @@
+import time
 import asyncio
-from typing import Any
+from typing import Any, Optional
 from typing_extensions import Iterator, AsyncIterator
 
 
@@ -13,14 +14,15 @@ async def consume_async_iterator(iterator: AsyncIterator[Any]) -> None:
         ...
 
 
-def drain_sync_iterator(iterator: Iterator[Any], timeout_ms: int = 50) -> None:
+def drain_sync_iterator(iterator: Optional[Iterator[Any]], timeout_ms: int = 50) -> None:
     """Drain trailing bytes from iterator with bounded timeout.
 
     Attempts to drain all remaining items from iterator to enable connection
     reuse, but gives up after timeout_ms to avoid indefinite blocking when
     server holds connection open after [DONE].
     """
-    import time
+    if iterator is None:
+        return
 
     deadline = time.monotonic() + (timeout_ms / 1000.0)
     while time.monotonic() < deadline:
@@ -32,13 +34,16 @@ def drain_sync_iterator(iterator: Iterator[Any], timeout_ms: int = 50) -> None:
             break
 
 
-async def drain_async_iterator(iterator: AsyncIterator[Any], timeout_ms: int = 50) -> None:
+async def drain_async_iterator(iterator: Optional[AsyncIterator[Any]], timeout_ms: int = 50) -> None:
     """Drain trailing bytes from async iterator with bounded timeout.
 
     Attempts to drain all remaining items from iterator to enable connection
     reuse, but gives up after timeout_ms to avoid indefinite blocking when
     server holds connection open after [DONE].
     """
+    if iterator is None:
+        return
+
     loop = asyncio.get_running_loop()
     deadline = loop.time() + (timeout_ms / 1000.0)
     while True:

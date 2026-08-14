@@ -297,15 +297,14 @@ async def test_drain_decode_error_after_done_preserves_result(
 async def test_drain_is_bounded_and_doesnt_block_indefinitely(
     sync: bool, client: OpenAI, async_client: AsyncOpenAI
 ) -> None:
-    """Drain after [DONE] must be bounded; trailing iterator that never closes must not block completion."""
+    """Drain after [DONE] must timeout rather than wait for slow/infinite iterators."""
 
-    class SyncInfiniteIterator:
-        """Sync iterator that yields indefinitely after content; simulates unbounded heartbeats."""
+    class SyncSlowIterator:
+        """Sync iterator that yields slowly after content to force timeout."""
 
         def __init__(self, content: Iterator[bytes]) -> None:
             self._content = content
             self._content_exhausted = False
-            self._yield_count = 0
 
         def __iter__(self) -> Iterator[bytes]:
             return self
@@ -316,19 +315,17 @@ async def test_drain_is_bounded_and_doesnt_block_indefinitely(
                     return next(self._content)
                 except StopIteration:
                     self._content_exhausted = True
-            # After content is exhausted, yield indefinitely (simulating held-open connection)
-            if self._yield_count > 1000:  # Safety limit to prevent infinite test loops
-                raise StopIteration
-            self._yield_count += 1
+            # After content is exhausted, yield slowly to force timeout during drain
+            import time
+            time.sleep(0.1)  # 100ms per item; 50ms drain timeout will hit after <1 item
             return b": heartbeat\n\n"
 
-    class AsyncInfiniteIterator:
-        """Async iterator that yields indefinitely after content; simulates unbounded heartbeats."""
+    class AsyncSlowIterator:
+        """Async iterator that yields slowly after content to force timeout."""
 
         def __init__(self, content: AsyncIterator[bytes]) -> None:
             self._content = content
             self._content_exhausted = False
-            self._yield_count = 0
 
         def __aiter__(self) -> AsyncIterator[bytes]:
             return self
@@ -339,30 +336,28 @@ async def test_drain_is_bounded_and_doesnt_block_indefinitely(
                     return await self._content.__anext__()
                 except StopAsyncIteration:
                     self._content_exhausted = True
-            # After content is exhausted, yield indefinitely (simulating held-open connection)
-            if self._yield_count > 1000:  # Safety limit to prevent infinite test loops
-                raise StopAsyncIteration
-            self._yield_count += 1
+            # After content is exhausted, yield slowly to force timeout during drain
+            import asyncio
+            await asyncio.sleep(0.1)  # 100ms per item; 50ms drain timeout will hit after <1 item
             return b": heartbeat\n\n"
 
     def body() -> Iterator[bytes]:
         yield b'data: {"foo":true}\n\n'
         yield b"data: [DONE]\n\n"
-        # More events after [DONE] that should not block completion
 
     if sync:
-        infinite_iter = SyncInfiniteIterator(body())
-        response = httpx2.Response(200, content=infinite_iter)
+        slow_iter = SyncSlowIterator(body())
+        response = httpx2.Response(200, content=slow_iter)
         stream: Stream[object] | AsyncStream[object] = Stream(cast_to=object, client=client, response=response)
         chunks = list(stream)
     else:
         async_body = to_aiter(body())
-        infinite_iter = AsyncInfiniteIterator(async_body)
-        response = httpx2.Response(200, content=infinite_iter)
+        slow_iter = AsyncSlowIterator(async_body)
+        response = httpx2.Response(200, content=slow_iter)
         stream = AsyncStream(cast_to=object, client=async_client, response=response)
         chunks = [chunk async for chunk in stream]
 
-    # Stream should complete with just the first item, not block waiting for the infinite iterator
+    # Stream should complete quickly with just the first item, not wait for the slow iterator
     assert chunks == [{"foo": True}]
     assert response.is_closed is True
 
