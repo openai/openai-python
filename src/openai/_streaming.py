@@ -41,6 +41,7 @@ class Stream(Generic[_T]):
         self._options = options
         self._decoder = client._make_sse_decoder()
         self._byte_iterator: Iterator[bytes] | None = None
+        self._done_seen = False
         self._iterator = self.__stream__()
 
     def __next__(self) -> _T:
@@ -65,6 +66,7 @@ class Stream(Generic[_T]):
         try:
             for sse in iterator:
                 if sse.data.startswith("[DONE]"):
+                    self._done_seen = True
                     break
 
                 # we have to special case the Assistants `thread.` events since we won't have an "event" key in the data
@@ -110,9 +112,10 @@ class Stream(Generic[_T]):
                         response=response,
                     )
         finally:
-            # Drain remaining body to enable connection reuse; best-effort with 50ms timeout.
-            # If drain times out, response is closed to interrupt any blocked reads.
-            drain_sync_iterator(self._byte_iterator, response=response, timeout_ms=50)
+            # Drain remaining body only after [DONE] to enable connection reuse.
+            # On early exit (before [DONE]), skip drain to avoid consuming abandoned data.
+            if self._done_seen:
+                drain_sync_iterator(self._byte_iterator, response=response, timeout_ms=50)
             try:
                 response.close()
             except Exception:
@@ -159,6 +162,7 @@ class AsyncStream(Generic[_T]):
         self._options = options
         self._decoder = client._make_sse_decoder()
         self._byte_iterator: AsyncIterator[bytes] | None = None
+        self._done_seen = False
         self._iterator = self.__stream__()
 
     async def __anext__(self) -> _T:
@@ -184,6 +188,7 @@ class AsyncStream(Generic[_T]):
         try:
             async for sse in iterator:
                 if sse.data.startswith("[DONE]"):
+                    self._done_seen = True
                     break
 
                 # we have to special case the Assistants `thread.` events since we won't have an "event" key in the data
@@ -229,9 +234,10 @@ class AsyncStream(Generic[_T]):
                         response=response,
                     )
         finally:
-            # Drain remaining body to enable connection reuse; best-effort with 50ms timeout.
-            # If drain times out, response is closed to interrupt any blocked reads.
-            await drain_async_iterator(self._byte_iterator, response=response, timeout_ms=50)
+            # Drain remaining body only after [DONE] to enable connection reuse.
+            # On early exit (before [DONE]), skip drain to avoid consuming abandoned data.
+            if self._done_seen:
+                await drain_async_iterator(self._byte_iterator, response=response, timeout_ms=50)
             try:
                 await response.aclose()
             except Exception:
