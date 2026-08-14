@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterator, AsyncIterator
+from typing import Any
 
 import httpx2
 import pytest
@@ -252,6 +253,52 @@ async def test_done_drains_remaining_body_async(async_client: AsyncOpenAI) -> No
     assert chunks == [{"foo": True}]
     assert exhausted is True
     assert response.is_closed is True
+
+
+@pytest.mark.asyncio
+async def test_early_exit_without_done_doesnt_drain_async(async_client: AsyncOpenAI) -> None:
+    """Early exit before [DONE] should not consume trailing body and close promptly."""
+    drained = False
+    exhausted = False
+
+    async def patched_drain(*_args: Any, **_kwargs: Any) -> None:
+        """Track if drain was called."""
+        nonlocal drained
+        drained = True
+
+    def body() -> Iterator[bytes]:
+        nonlocal exhausted
+        yield b'data: {"foo":true}\n\n'
+        # No [DONE] sent, consumer will exit early
+        yield b": trailing comment that should not be consumed\n\n"
+        exhausted = True
+
+    async_body = to_aiter(body())
+    response = httpx2.Response(200, content=async_body)
+
+    # Patch drain_async_iterator to track if it's called
+    import openai._streaming as streaming_module
+    original_drain = streaming_module.drain_async_iterator
+    streaming_module.drain_async_iterator = patched_drain
+
+    try:
+        stream = AsyncStream(cast_to=object, client=async_client, response=response)
+
+        # Only consume the first chunk, exit early before [DONE]
+        first_chunk = await stream.__anext__()
+        assert first_chunk == {"foo": True}
+
+        # Trailing body should NOT be exhausted since _done_seen is False
+        assert exhausted is False
+
+        # Delete stream to finalize the generator and trigger finally block
+        del stream
+
+        # Drain should NOT have been called since we didn't see [DONE]
+        assert drained is False
+    finally:
+        # Restore original drain function
+        streaming_module.drain_async_iterator = original_drain
 
 
 @pytest.mark.asyncio
