@@ -40,7 +40,6 @@ class Stream(Generic[_T]):
         self._client = client
         self._options = options
         self._decoder = client._make_sse_decoder()
-        self._byte_iterator: Iterator[bytes] | None = None
         self._iterator = self.__stream__()
 
     def __next__(self) -> _T:
@@ -51,15 +50,12 @@ class Stream(Generic[_T]):
             yield item
 
     def _iter_events(self) -> Iterator[ServerSentEvent]:
-        if self._byte_iterator is None:
-            self._byte_iterator = self.response.iter_bytes()
-        yield from self._decoder.iter_bytes(self._byte_iterator)
+        yield from self._decoder.iter_bytes(self.response.iter_bytes())
 
     def __stream__(self) -> Iterator[_T]:
         cast_to = cast(Any, self._cast_to)
         response = self.response
         process_data = self._client._process_response_data
-        self._byte_iterator = response.iter_bytes()
         iterator = self._iter_events()
 
         try:
@@ -110,6 +106,7 @@ class Stream(Generic[_T]):
                         response=response,
                     )
         finally:
+            # Ensure the response is closed even if the consumer doesn't read all data
             response.close()
 
     def __enter__(self) -> Self:
