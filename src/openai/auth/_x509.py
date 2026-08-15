@@ -41,7 +41,7 @@ def _validate_identity(identity: X509WorkloadIdentity) -> None:
     if set(identity) - _ALLOWED_IDENTITY_FIELDS:
         raise OpenAIError("X.509 workload identity accepts only identity IDs and an optional refresh buffer")
 
-    if not identity["identity_provider_id"] or not identity["service_account_id"]:
+    if not identity.get("identity_provider_id") or not identity.get("service_account_id"):
         raise OpenAIError("X.509 workload identity requires identity-provider and service-account IDs")
 
     refresh_buffer = cast(object, identity.get("refresh_buffer_seconds"))
@@ -188,6 +188,7 @@ class SyncX509WorkloadIdentityAuth(_X509WorkloadIdentityAuth):
                 response = self._http_client.post(
                     _X509_TOKEN_EXCHANGE_URL,
                     json=_exchange_payload(self.workload_identity),
+                    auth=lambda request: request,
                     timeout=10.0,
                     follow_redirects=False,
                 )
@@ -232,6 +233,7 @@ class AsyncX509WorkloadIdentityAuth(_X509WorkloadIdentityAuth):
                 response = await self._http_client.post(
                     _X509_TOKEN_EXCHANGE_URL,
                     json=_exchange_payload(self.workload_identity),
+                    auth=lambda request: request,
                     timeout=10.0,
                     follow_redirects=False,
                 )

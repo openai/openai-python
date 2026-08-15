@@ -255,11 +255,14 @@ class OpenAI(SyncAPIClient):
         if is_x509_workload_identity(workload_identity):
             x509_identity = workload_identity
             subject_token_identity = None
-        else:
+        elif workload_identity is None:
             x509_identity = None
-            subject_token_identity = (
-                workload_identity if workload_identity is not None and "provider" in workload_identity else None
-            )
+            subject_token_identity = None
+        elif "provider" in workload_identity:
+            x509_identity = None
+            subject_token_identity = workload_identity
+        else:
+            raise OpenAIError("Invalid `workload_identity` configuration: expected an X.509 or subject-token identity")
         if provider_runtime is not None:
             base_url = provider_runtime.base_url
         elif base_url is None:
@@ -498,7 +501,7 @@ class OpenAI(SyncAPIClient):
 
         response.close()
         self._workload_identity_auth._prepare_retry_request(request)
-        request.headers["Authorization"] = f"Bearer {self._workload_identity_auth.get_token()}"
+        request.headers["Authorization"] = f"Bearer {WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER}"
         return self._send_with_auth_retry(request, stream=stream, retried=True, **kwargs)
 
     @override
@@ -876,11 +879,14 @@ class AsyncOpenAI(AsyncAPIClient):
         if is_x509_workload_identity(workload_identity):
             x509_identity = workload_identity
             subject_token_identity = None
-        else:
+        elif workload_identity is None:
             x509_identity = None
-            subject_token_identity = (
-                workload_identity if workload_identity is not None and "provider" in workload_identity else None
-            )
+            subject_token_identity = None
+        elif "provider" in workload_identity:
+            x509_identity = None
+            subject_token_identity = workload_identity
+        else:
+            raise OpenAIError("Invalid `workload_identity` configuration: expected an X.509 or subject-token identity")
         if provider_runtime is not None:
             base_url = provider_runtime.base_url
         elif base_url is None:
@@ -1119,7 +1125,7 @@ class AsyncOpenAI(AsyncAPIClient):
 
         await response.aclose()
         self._workload_identity_auth._prepare_retry_request(request)
-        request.headers["Authorization"] = f"Bearer {await self._workload_identity_auth.get_token_async()}"
+        request.headers["Authorization"] = f"Bearer {WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER}"
         return await self._send_with_auth_retry(request, stream=stream, retried=True, **kwargs)
 
     @override

@@ -3,7 +3,7 @@ from __future__ import annotations
 import io
 import asyncio
 import threading
-from typing import get_args, get_type_hints
+from typing import cast, get_args, get_type_hints
 from typing_extensions import override
 from concurrent.futures import ThreadPoolExecutor
 
@@ -43,6 +43,33 @@ def test_x509_auth_initializes_its_typed_common_superclass(client_type: type[Ope
 def test_copy_signatures_accept_typed_x509_workload_identities(client_type: type[OpenAI] | type[AsyncOpenAI]) -> None:
     assert X509WorkloadIdentity in get_args(get_type_hints(client_type.copy)["workload_identity"])
     assert X509WorkloadIdentity in get_args(get_type_hints(client_type.with_options)["workload_identity"])
+
+
+@pytest.mark.parametrize("client_type", [OpenAI, AsyncOpenAI])
+@pytest.mark.parametrize(
+    "identity",
+    [
+        {"identity_provider_id": "idp_123", "service_account_id": "svc_acct_123"},
+        {"type": "x590", "identity_provider_id": "idp_123", "service_account_id": "svc_acct_123"},
+        {},
+    ],
+)
+def test_client_rejects_unrecognized_workload_identity_shapes(
+    client_type: type[OpenAI] | type[AsyncOpenAI], identity: dict[str, str]
+) -> None:
+    with pytest.raises(OpenAIError, match="Invalid `workload_identity` configuration"):
+        client_type(workload_identity=cast(X509WorkloadIdentity, identity))
+
+
+@pytest.mark.parametrize("client_type", [OpenAI, AsyncOpenAI])
+@pytest.mark.parametrize("missing_key", ["identity_provider_id", "service_account_id"])
+def test_client_rejects_x509_identity_missing_a_required_id(
+    client_type: type[OpenAI] | type[AsyncOpenAI], missing_key: str
+) -> None:
+    identity = {key: value for key, value in _identity().items() if key != missing_key}
+
+    with pytest.raises(OpenAIError, match="requires identity-provider and service-account IDs"):
+        client_type(workload_identity=cast(X509WorkloadIdentity, identity))
 
 
 @pytest.mark.parametrize("method", ["copy", "with_options"])
@@ -119,6 +146,46 @@ async def test_async_x509_disables_redirects_without_placeholder_authorization(a
 
     assert response.status_code == 302
     assert urls == [_API_URL]
+
+
+def test_sync_x509_exchange_does_not_inherit_caller_http_auth() -> None:
+    exchange_authorizations: list[str | None] = []
+
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        if str(request.url) == _TOKEN_URL:
+            exchange_authorizations.append(request.headers.get("Authorization"))
+            return httpx2.Response(200, request=request, json={"access_token": "safe-token", "expires_in": 3600})
+        return httpx2.Response(200, request=request, json={"object": "list", "data": []})
+
+    http_client = httpx2.Client(
+        transport=httpx2.MockTransport(handler),
+        auth=httpx2.BasicAuth("caller", "private-api-credential"),
+        trust_env=False,
+    )
+    with OpenAI(workload_identity=_identity(), http_client=http_client, max_retries=0) as client:
+        assert client.models.list().object == "list"
+
+    assert exchange_authorizations == [None]
+
+
+async def test_async_x509_exchange_does_not_inherit_caller_http_auth() -> None:
+    exchange_authorizations: list[str | None] = []
+
+    async def handler(request: httpx2.Request) -> httpx2.Response:
+        if str(request.url) == _TOKEN_URL:
+            exchange_authorizations.append(request.headers.get("Authorization"))
+            return httpx2.Response(200, request=request, json={"access_token": "safe-token", "expires_in": 3600})
+        return httpx2.Response(200, request=request, json={"object": "list", "data": []})
+
+    http_client = httpx2.AsyncClient(
+        transport=httpx2.MockTransport(handler),
+        auth=httpx2.BasicAuth("caller", "private-api-credential"),
+        trust_env=False,
+    )
+    async with AsyncOpenAI(workload_identity=_identity(), http_client=http_client, max_retries=0) as client:
+        assert (await client.models.list()).object == "list"
+
+    assert exchange_authorizations == [None]
 
 
 @pytest.mark.parametrize("response_body", [[], "not-an-object", 42, True])
@@ -206,6 +273,60 @@ async def test_async_x509_invalidates_rejected_token_without_replaying_one_shot_
     assert uploaded.id == "file_123"
     assert exchange_calls == 2
     assert api_authorizations == ["Bearer token-1", "Bearer token-2"]
+
+
+def test_sync_x509_invalidates_a_rejected_replay_token() -> None:
+    exchange_calls = 0
+    api_authorizations: list[str] = []
+
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        nonlocal exchange_calls
+        if str(request.url) == _TOKEN_URL:
+            exchange_calls += 1
+            return httpx2.Response(
+                200, request=request, json={"access_token": f"token-{exchange_calls}", "expires_in": 3600}
+            )
+
+        api_authorizations.append(request.headers["Authorization"])
+        if exchange_calls < 3:
+            return httpx2.Response(401, request=request, json={"error": {"message": "unauthorized"}})
+        return httpx2.Response(200, request=request, json={"object": "list", "data": []})
+
+    http_client = httpx2.Client(transport=httpx2.MockTransport(handler), trust_env=False)
+    with OpenAI(workload_identity=_identity(), http_client=http_client, max_retries=0) as client:
+        with pytest.raises(APIStatusError, match="401"):
+            client.models.list()
+        assert client.models.list().object == "list"
+
+    assert exchange_calls == 3
+    assert api_authorizations == ["Bearer token-1", "Bearer token-2", "Bearer token-3"]
+
+
+async def test_async_x509_invalidates_a_rejected_replay_token() -> None:
+    exchange_calls = 0
+    api_authorizations: list[str] = []
+
+    async def handler(request: httpx2.Request) -> httpx2.Response:
+        nonlocal exchange_calls
+        if str(request.url) == _TOKEN_URL:
+            exchange_calls += 1
+            return httpx2.Response(
+                200, request=request, json={"access_token": f"token-{exchange_calls}", "expires_in": 3600}
+            )
+
+        api_authorizations.append(request.headers["Authorization"])
+        if exchange_calls < 3:
+            return httpx2.Response(401, request=request, json={"error": {"message": "unauthorized"}})
+        return httpx2.Response(200, request=request, json={"object": "list", "data": []})
+
+    http_client = httpx2.AsyncClient(transport=httpx2.MockTransport(handler), trust_env=False)
+    async with AsyncOpenAI(workload_identity=_identity(), http_client=http_client, max_retries=0) as client:
+        with pytest.raises(APIStatusError, match="401"):
+            await client.models.list()
+        assert (await client.models.list()).object == "list"
+
+    assert exchange_calls == 3
+    assert api_authorizations == ["Bearer token-1", "Bearer token-2", "Bearer token-3"]
 
 
 def test_sync_x509_concurrent_stale_401_responses_share_one_replacement_token() -> None:

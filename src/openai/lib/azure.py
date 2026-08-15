@@ -16,6 +16,7 @@ from .._httpx2 import normalize_httpx_url
 from .._models import SecurityOptions, FinalRequestOptions
 from .._provider import _Provider
 from .._streaming import Stream, AsyncStream
+from ..auth._x509 import is_x509_workload_identity
 from .._exceptions import OpenAIError
 from .._base_client import DEFAULT_MAX_RETRIES, BaseClient
 
@@ -309,6 +310,8 @@ class AzureOpenAI(BaseAzureClient[httpx2.Client, Stream[Any]], OpenAI):
         """
         if not isinstance(provider, NotGiven):
             raise OpenAIError("Configure `provider` on `OpenAI`, not on `AzureOpenAI.with_options()`.")
+        if is_x509_workload_identity(workload_identity):
+            raise OpenAIError("X.509 workload identity is not supported by Azure clients")
 
         return super().copy(
             api_key=api_key,
@@ -633,6 +636,8 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx2.AsyncClient, AsyncStream[Any]], As
         """
         if not isinstance(provider, NotGiven):
             raise OpenAIError("Configure `provider` on `AsyncOpenAI`, not on `AsyncAzureOpenAI.with_options()`.")
+        if is_x509_workload_identity(workload_identity):
+            raise OpenAIError("X.509 workload identity is not supported by Azure clients")
 
         return super().copy(
             api_key=api_key,
