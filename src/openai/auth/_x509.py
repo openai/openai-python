@@ -71,9 +71,13 @@ def _exchange_payload(identity: X509WorkloadIdentity) -> dict[str, str]:
     }
 
 
-def _strip_authorization(request: httpx2.Request) -> httpx2.Request:
-    request.headers.pop("Authorization", None)
-    return request
+def _token_exchange_request(identity: X509WorkloadIdentity) -> httpx2.Request:
+    return httpx2.Request(
+        "POST",
+        _X509_TOKEN_EXCHANGE_URL,
+        json=_exchange_payload(identity),
+        extensions={"timeout": httpx2.Timeout(10.0).as_dict()},
+    )
 
 
 def _retry_delay(response: httpx2.Response | None, attempt: int) -> float | None:
@@ -213,11 +217,9 @@ class SyncX509WorkloadIdentityAuth(_X509WorkloadIdentityAuth):
     def _fetch_token_from_exchange(self) -> dict[str, Any]:
         for attempt in range(self._max_exchange_retries + 1):
             try:
-                response = self._http_client.post(
-                    _X509_TOKEN_EXCHANGE_URL,
-                    json=_exchange_payload(self.workload_identity),
-                    auth=_strip_authorization,
-                    timeout=10.0,
+                response = self._http_client.send(
+                    _token_exchange_request(self.workload_identity),
+                    auth=None,
                     follow_redirects=False,
                 )
             except _transport_errors() as error:
@@ -258,11 +260,9 @@ class AsyncX509WorkloadIdentityAuth(_X509WorkloadIdentityAuth):
     async def _fetch_token_from_exchange_async(self) -> dict[str, Any]:
         for attempt in range(self._max_exchange_retries + 1):
             try:
-                response = await self._http_client.post(
-                    _X509_TOKEN_EXCHANGE_URL,
-                    json=_exchange_payload(self.workload_identity),
-                    auth=_strip_authorization,
-                    timeout=10.0,
+                response = await self._http_client.send(
+                    _token_exchange_request(self.workload_identity),
+                    auth=None,
                     follow_redirects=False,
                 )
             except _transport_errors() as error:

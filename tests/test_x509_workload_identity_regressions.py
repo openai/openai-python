@@ -241,6 +241,48 @@ async def test_async_copy_preserves_implicit_base_url_provenance_across_chained_
     assert str(copied.base_url) == "https://mtls.api.openai.com/v1/"
 
 
+@pytest.mark.parametrize("starts_with_x509", [False, True])
+def test_sync_copy_preserves_base_url_assigned_through_setter(starts_with_x509: bool) -> None:
+    http_client = httpx2.Client(trust_env=False)
+    client = (
+        OpenAI(workload_identity=_identity(), http_client=http_client)
+        if starts_with_x509
+        else OpenAI(api_key="original-api-key", http_client=http_client)
+    )
+    with client:
+        client.base_url = "https://assigned.example/v1"
+        same_mode_copy = client.copy(timeout=1)
+        copied = (
+            same_mode_copy.copy(api_key="replacement-api-key")
+            if starts_with_x509
+            else same_mode_copy.copy(workload_identity=_identity())
+        )
+
+    assert str(same_mode_copy.base_url) == "https://assigned.example/v1/"
+    assert str(copied.base_url) == "https://assigned.example/v1/"
+
+
+@pytest.mark.parametrize("starts_with_x509", [False, True])
+async def test_async_copy_preserves_base_url_assigned_through_setter(starts_with_x509: bool) -> None:
+    http_client = httpx2.AsyncClient(trust_env=False)
+    client = (
+        AsyncOpenAI(workload_identity=_identity(), http_client=http_client)
+        if starts_with_x509
+        else AsyncOpenAI(api_key="original-api-key", http_client=http_client)
+    )
+    async with client:
+        client.base_url = "https://assigned.example/v1"
+        same_mode_copy = client.copy(timeout=1)
+        copied = (
+            same_mode_copy.copy(api_key="replacement-api-key")
+            if starts_with_x509
+            else same_mode_copy.copy(workload_identity=_identity())
+        )
+
+    assert str(same_mode_copy.base_url) == "https://assigned.example/v1/"
+    assert str(copied.base_url) == "https://assigned.example/v1/"
+
+
 @pytest.mark.parametrize("authorization", [None, "Bearer caller-override"])
 def test_sync_x509_disables_redirects_without_placeholder_authorization(authorization: str | None) -> None:
     urls: list[str] = []
@@ -323,50 +365,76 @@ async def test_async_x509_exchange_does_not_inherit_caller_http_auth() -> None:
     assert api_authorizations == ["Bearer safe-token"]
 
 
-def test_sync_x509_exchange_does_not_inherit_caller_authorization_header() -> None:
-    exchange_authorizations: list[str | None] = []
-    api_authorizations: list[str | None] = []
+def test_sync_x509_exchange_does_not_inherit_caller_request_state() -> None:
+    exchange_headers: list[httpx2.Headers] = []
+    api_headers: list[httpx2.Headers] = []
 
     def handler(request: httpx2.Request) -> httpx2.Response:
         if str(request.url) == _TOKEN_URL:
-            exchange_authorizations.append(request.headers.get("Authorization"))
+            exchange_headers.append(request.headers)
             return httpx2.Response(200, request=request, json={"access_token": "safe-token", "expires_in": 3600})
-        api_authorizations.append(request.headers.get("Authorization"))
+        api_headers.append(request.headers)
         return httpx2.Response(200, request=request, json={"object": "list", "data": []})
 
     http_client = httpx2.Client(
         transport=httpx2.MockTransport(handler),
-        headers={"Authorization": "Bearer private-api-credential"},
+        headers={
+            "Authorization": "Bearer private-api-credential",
+            "X-API-Key": "private-api-credential",
+            "Content-Type": "application/private",
+        },
+        cookies={"session": "private-cookie"},
         trust_env=False,
     )
     with OpenAI(workload_identity=_identity(), http_client=http_client, max_retries=0) as client:
         assert client.models.list().object == "list"
 
-    assert exchange_authorizations == [None]
-    assert api_authorizations == ["Bearer safe-token"]
+    assert len(exchange_headers) == 1
+    assert exchange_headers[0].get("Authorization") is None
+    assert exchange_headers[0].get("X-API-Key") is None
+    assert exchange_headers[0].get("Cookie") is None
+    assert exchange_headers[0]["Content-Type"] == "application/json"
+    assert len(api_headers) == 1
+    assert api_headers[0]["Authorization"] == "Bearer safe-token"
+    assert api_headers[0]["X-API-Key"] == "private-api-credential"
+    assert api_headers[0]["Cookie"] == "session=private-cookie"
+    assert api_headers[0]["Content-Type"] == "application/private"
 
 
-async def test_async_x509_exchange_does_not_inherit_caller_authorization_header() -> None:
-    exchange_authorizations: list[str | None] = []
-    api_authorizations: list[str | None] = []
+async def test_async_x509_exchange_does_not_inherit_caller_request_state() -> None:
+    exchange_headers: list[httpx2.Headers] = []
+    api_headers: list[httpx2.Headers] = []
 
     async def handler(request: httpx2.Request) -> httpx2.Response:
         if str(request.url) == _TOKEN_URL:
-            exchange_authorizations.append(request.headers.get("Authorization"))
+            exchange_headers.append(request.headers)
             return httpx2.Response(200, request=request, json={"access_token": "safe-token", "expires_in": 3600})
-        api_authorizations.append(request.headers.get("Authorization"))
+        api_headers.append(request.headers)
         return httpx2.Response(200, request=request, json={"object": "list", "data": []})
 
     http_client = httpx2.AsyncClient(
         transport=httpx2.MockTransport(handler),
-        headers={"Authorization": "Bearer private-api-credential"},
+        headers={
+            "Authorization": "Bearer private-api-credential",
+            "X-API-Key": "private-api-credential",
+            "Content-Type": "application/private",
+        },
+        cookies={"session": "private-cookie"},
         trust_env=False,
     )
     async with AsyncOpenAI(workload_identity=_identity(), http_client=http_client, max_retries=0) as client:
         assert (await client.models.list()).object == "list"
 
-    assert exchange_authorizations == [None]
-    assert api_authorizations == ["Bearer safe-token"]
+    assert len(exchange_headers) == 1
+    assert exchange_headers[0].get("Authorization") is None
+    assert exchange_headers[0].get("X-API-Key") is None
+    assert exchange_headers[0].get("Cookie") is None
+    assert exchange_headers[0]["Content-Type"] == "application/json"
+    assert len(api_headers) == 1
+    assert api_headers[0]["Authorization"] == "Bearer safe-token"
+    assert api_headers[0]["X-API-Key"] == "private-api-credential"
+    assert api_headers[0]["Cookie"] == "session=private-cookie"
+    assert api_headers[0]["Content-Type"] == "application/private"
 
 
 @pytest.mark.parametrize("response_body", [[], "not-an-object", 42, True])

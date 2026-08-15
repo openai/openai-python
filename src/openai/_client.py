@@ -29,7 +29,7 @@ from ._utils import (
     get_async_library,
 )
 from ._compat import cached_property
-from ._httpx2 import is_httpx2_sync_client, is_httpx2_async_client
+from ._httpx2 import normalize_httpx_url, is_httpx2_sync_client, is_httpx2_async_client
 from ._models import SecurityOptions, FinalRequestOptions
 from ._version import __version__
 from ._provider import _Provider, _provider_name, _ProviderRuntime, _configure_provider
@@ -131,6 +131,16 @@ class OpenAI(SyncAPIClient):
     'http://' or 'https://' scheme. For example: 'http://example.com' becomes
     'wss://example.com'
     """
+
+    @property
+    @override
+    def base_url(self) -> httpx2.URL:
+        return self._base_url
+
+    @base_url.setter
+    def base_url(self, url: httpx2.URL | str) -> None:
+        self._base_url = self._enforce_trailing_slash(normalize_httpx_url(url))
+        self._base_url_was_default = False
 
     def __init__(
         self,
@@ -771,6 +781,16 @@ class AsyncOpenAI(AsyncAPIClient):
     'http://' or 'https://' scheme. For example: 'http://example.com' becomes
     'wss://example.com'
     """
+
+    @property
+    @override
+    def base_url(self) -> httpx2.URL:
+        return self._base_url
+
+    @base_url.setter
+    def base_url(self, url: httpx2.URL | str) -> None:
+        self._base_url = self._enforce_trailing_slash(normalize_httpx_url(url))
+        self._base_url_was_default = False
 
     def __init__(
         self,
