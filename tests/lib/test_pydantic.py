@@ -22,6 +22,18 @@ def test_resolve_ref_decodes_json_pointer_tokens() -> None:
     assert resolve_ref(root=schema, ref="#/$defs/path~1to%20model~0v1") == {"type": "string"}
 
 
+def test_resolve_ref_decodes_fragment_before_splitting_tokens() -> None:
+    schema: dict[str, object] = {
+        "$defs": {
+            "Group": {
+                "Item": {"type": "string"},
+            },
+        }
+    }
+
+    assert resolve_ref(root=schema, ref="#/$defs%2FGroup%2FItem") == {"type": "string"}
+
+
 def test_strict_schema_inlines_escaped_ref() -> None:
     schema: dict[str, object] = {
         "$defs": {"path/to model~v1": {"type": "object", "properties": {"value": {"type": "string"}}}},

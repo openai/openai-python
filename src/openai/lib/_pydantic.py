@@ -120,7 +120,7 @@ def resolve_ref(*, root: dict[str, object], ref: str) -> object:
     if not ref.startswith("#/"):
         raise ValueError(f"Unexpected $ref format {ref!r}; Does not start with #/")
 
-    path = [unquote(key).replace("~1", "/").replace("~0", "~") for key in ref[2:].split("/")]
+    path = [key.replace("~1", "/").replace("~0", "~") for key in unquote(ref[2:]).split("/")]
     resolved = root
     for key in path:
         value = resolved[key]
