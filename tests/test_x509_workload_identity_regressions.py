@@ -114,7 +114,7 @@ async def test_async_copy_accepts_an_explicit_x509_identity(method: str) -> None
 
 
 @pytest.mark.parametrize("method", ["copy", "with_options"])
-@pytest.mark.parametrize("base_url", [None, "https://custom.example/v1"])
+@pytest.mark.parametrize("base_url", [None, "https://custom.example/v1", "https://api.openai.com/v1"])
 def test_sync_copy_can_switch_from_api_key_to_x509_identity(method: str, base_url: str | None) -> None:
     api_authorizations: list[str] = []
 
@@ -141,7 +141,7 @@ def test_sync_copy_can_switch_from_api_key_to_x509_identity(method: str, base_ur
 
 
 @pytest.mark.parametrize("method", ["copy", "with_options"])
-@pytest.mark.parametrize("base_url", [None, "https://custom.example/v1"])
+@pytest.mark.parametrize("base_url", [None, "https://custom.example/v1", "https://api.openai.com/v1"])
 async def test_async_copy_can_switch_from_api_key_to_x509_identity(method: str, base_url: str | None) -> None:
     api_authorizations: list[str] = []
 
@@ -170,7 +170,7 @@ async def test_async_copy_can_switch_from_api_key_to_x509_identity(method: str, 
 
 
 @pytest.mark.parametrize("method", ["copy", "with_options"])
-@pytest.mark.parametrize("base_url", [None, "https://custom.example/v1"])
+@pytest.mark.parametrize("base_url", [None, "https://custom.example/v1", "https://mtls.api.openai.com/v1"])
 def test_sync_copy_can_switch_from_x509_identity_to_api_key(method: str, base_url: str | None) -> None:
     requests: list[httpx2.Request] = []
 
@@ -197,7 +197,7 @@ def test_sync_copy_can_switch_from_x509_identity_to_api_key(method: str, base_ur
 
 
 @pytest.mark.parametrize("method", ["copy", "with_options"])
-@pytest.mark.parametrize("base_url", [None, "https://custom.example/v1"])
+@pytest.mark.parametrize("base_url", [None, "https://custom.example/v1", "https://mtls.api.openai.com/v1"])
 async def test_async_copy_can_switch_from_x509_identity_to_api_key(method: str, base_url: str | None) -> None:
     requests: list[httpx2.Request] = []
 
@@ -223,6 +223,22 @@ async def test_async_copy_can_switch_from_x509_identity_to_api_key(method: str, 
 
     assert len(requests) == 1
     assert requests[0].headers["Authorization"] == "Bearer replacement-api-key"
+
+
+def test_sync_copy_preserves_implicit_base_url_provenance_across_chained_copies() -> None:
+    http_client = httpx2.Client(trust_env=False)
+    with OpenAI(api_key="original-api-key", http_client=http_client) as client:
+        copied = client.copy(timeout=1).copy(workload_identity=_identity())
+
+    assert str(copied.base_url) == "https://mtls.api.openai.com/v1/"
+
+
+async def test_async_copy_preserves_implicit_base_url_provenance_across_chained_copies() -> None:
+    http_client = httpx2.AsyncClient(trust_env=False)
+    async with AsyncOpenAI(api_key="original-api-key", http_client=http_client) as client:
+        copied = client.copy(timeout=1).copy(workload_identity=_identity())
+
+    assert str(copied.base_url) == "https://mtls.api.openai.com/v1/"
 
 
 @pytest.mark.parametrize("authorization", [None, "Bearer caller-override"])

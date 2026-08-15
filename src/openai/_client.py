@@ -122,6 +122,7 @@ class OpenAI(SyncAPIClient):
     _workload_identity_auth: WorkloadIdentityAuth | SyncX509WorkloadIdentityAuth | None
     _provider: _Provider | None
     _provider_runtime: _ProviderRuntime | None
+    _base_url_was_default: bool
 
     websocket_base_url: str | httpx2.URL | None
     """Base URL for WebSocket connections.
@@ -267,6 +268,7 @@ class OpenAI(SyncAPIClient):
             base_url = provider_runtime.base_url
         elif base_url is None:
             base_url = os.environ.get("OPENAI_BASE_URL")
+        self._base_url_was_default = provider_runtime is None and base_url is None
         if base_url is None:
             base_url = MTLS_API_BASE_URL if x509_identity is not None else "https://api.openai.com/v1"
 
@@ -657,6 +659,7 @@ class OpenAI(SyncAPIClient):
         http_client = http_client or self._client
 
         next_provider = self._provider if isinstance(provider, NotGiven) else provider
+        preserve_default_base_url = False
         auth_options: dict[str, Any]
         if next_provider is not None:
             auth_options = {
@@ -679,10 +682,9 @@ class OpenAI(SyncAPIClient):
                 next_workload_identity = None
             current_x509 = is_x509_workload_identity(self.workload_identity)
             next_x509 = is_x509_workload_identity(next_workload_identity)
-            current_default_base_url = f"{MTLS_API_BASE_URL}/" if current_x509 else "https://api.openai.com/v1/"
-            inherited_base_url = (
-                None if current_x509 != next_x509 and str(self.base_url) == current_default_base_url else self.base_url
-            )
+            mode_changed = current_x509 != next_x509
+            inherited_base_url = None if mode_changed and self._base_url_was_default else self.base_url
+            preserve_default_base_url = base_url is None and not mode_changed and self._base_url_was_default
             auth_options = {
                 "api_key": api_key
                 if workload_identity is not None
@@ -692,7 +694,7 @@ class OpenAI(SyncAPIClient):
                 "base_url": base_url or inherited_base_url,
             }
 
-        return self.__class__(
+        copied = self.__class__(
             organization=organization or inherited_organization,
             project=project or inherited_project,
             webhook_secret=webhook_secret or self.webhook_secret,
@@ -706,6 +708,9 @@ class OpenAI(SyncAPIClient):
             **auth_options,
             **_extra_kwargs,
         )
+        if preserve_default_base_url:
+            copied._base_url_was_default = True
+        return copied
 
     # Alias for `copy` for nicer inline usage, e.g.
     # client.with_options(timeout=10).foo.create(...)
@@ -757,6 +762,7 @@ class AsyncOpenAI(AsyncAPIClient):
     _workload_identity_auth: WorkloadIdentityAuth | AsyncX509WorkloadIdentityAuth | None
     _provider: _Provider | None
     _provider_runtime: _ProviderRuntime | None
+    _base_url_was_default: bool
 
     websocket_base_url: str | httpx2.URL | None
     """Base URL for WebSocket connections.
@@ -902,6 +908,7 @@ class AsyncOpenAI(AsyncAPIClient):
             base_url = provider_runtime.base_url
         elif base_url is None:
             base_url = os.environ.get("OPENAI_BASE_URL")
+        self._base_url_was_default = provider_runtime is None and base_url is None
         if base_url is None:
             base_url = MTLS_API_BASE_URL if x509_identity is not None else "https://api.openai.com/v1"
 
@@ -1304,6 +1311,7 @@ class AsyncOpenAI(AsyncAPIClient):
 
         http_client = http_client or self._client
         next_provider = self._provider if isinstance(provider, NotGiven) else provider
+        preserve_default_base_url = False
         auth_options: dict[str, Any]
         if next_provider is not None:
             auth_options = {
@@ -1326,10 +1334,9 @@ class AsyncOpenAI(AsyncAPIClient):
                 next_workload_identity = None
             current_x509 = is_x509_workload_identity(self.workload_identity)
             next_x509 = is_x509_workload_identity(next_workload_identity)
-            current_default_base_url = f"{MTLS_API_BASE_URL}/" if current_x509 else "https://api.openai.com/v1/"
-            inherited_base_url = (
-                None if current_x509 != next_x509 and str(self.base_url) == current_default_base_url else self.base_url
-            )
+            mode_changed = current_x509 != next_x509
+            inherited_base_url = None if mode_changed and self._base_url_was_default else self.base_url
+            preserve_default_base_url = base_url is None and not mode_changed and self._base_url_was_default
             auth_options = {
                 "api_key": api_key
                 if workload_identity is not None
@@ -1339,7 +1346,7 @@ class AsyncOpenAI(AsyncAPIClient):
                 "base_url": base_url or inherited_base_url,
             }
 
-        return self.__class__(
+        copied = self.__class__(
             organization=organization or inherited_organization,
             project=project or inherited_project,
             webhook_secret=webhook_secret or self.webhook_secret,
@@ -1353,6 +1360,9 @@ class AsyncOpenAI(AsyncAPIClient):
             **auth_options,
             **_extra_kwargs,
         )
+        if preserve_default_base_url:
+            copied._base_url_was_default = True
+        return copied
 
     # Alias for `copy` for nicer inline usage, e.g.
     # client.with_options(timeout=10).foo.create(...)
