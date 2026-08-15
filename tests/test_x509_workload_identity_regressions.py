@@ -307,6 +307,52 @@ async def test_async_x509_exchange_does_not_inherit_caller_http_auth() -> None:
     assert api_authorizations == ["Bearer safe-token"]
 
 
+def test_sync_x509_exchange_does_not_inherit_caller_authorization_header() -> None:
+    exchange_authorizations: list[str | None] = []
+    api_authorizations: list[str | None] = []
+
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        if str(request.url) == _TOKEN_URL:
+            exchange_authorizations.append(request.headers.get("Authorization"))
+            return httpx2.Response(200, request=request, json={"access_token": "safe-token", "expires_in": 3600})
+        api_authorizations.append(request.headers.get("Authorization"))
+        return httpx2.Response(200, request=request, json={"object": "list", "data": []})
+
+    http_client = httpx2.Client(
+        transport=httpx2.MockTransport(handler),
+        headers={"Authorization": "Bearer private-api-credential"},
+        trust_env=False,
+    )
+    with OpenAI(workload_identity=_identity(), http_client=http_client, max_retries=0) as client:
+        assert client.models.list().object == "list"
+
+    assert exchange_authorizations == [None]
+    assert api_authorizations == ["Bearer safe-token"]
+
+
+async def test_async_x509_exchange_does_not_inherit_caller_authorization_header() -> None:
+    exchange_authorizations: list[str | None] = []
+    api_authorizations: list[str | None] = []
+
+    async def handler(request: httpx2.Request) -> httpx2.Response:
+        if str(request.url) == _TOKEN_URL:
+            exchange_authorizations.append(request.headers.get("Authorization"))
+            return httpx2.Response(200, request=request, json={"access_token": "safe-token", "expires_in": 3600})
+        api_authorizations.append(request.headers.get("Authorization"))
+        return httpx2.Response(200, request=request, json={"object": "list", "data": []})
+
+    http_client = httpx2.AsyncClient(
+        transport=httpx2.MockTransport(handler),
+        headers={"Authorization": "Bearer private-api-credential"},
+        trust_env=False,
+    )
+    async with AsyncOpenAI(workload_identity=_identity(), http_client=http_client, max_retries=0) as client:
+        assert (await client.models.list()).object == "list"
+
+    assert exchange_authorizations == [None]
+    assert api_authorizations == ["Bearer safe-token"]
+
+
 @pytest.mark.parametrize("response_body", [[], "not-an-object", 42, True])
 def test_sync_x509_rejects_non_object_token_responses(response_body: object) -> None:
     def handler(request: httpx2.Request) -> httpx2.Response:

@@ -64,6 +64,11 @@ def _exchange_payload(identity: X509WorkloadIdentity) -> dict[str, str]:
     }
 
 
+def _strip_authorization(request: httpx2.Request) -> httpx2.Request:
+    request.headers.pop("Authorization", None)
+    return request
+
+
 def _retry_delay(response: httpx2.Response | None, attempt: int) -> float | None:
     if response is not None:
         if response.status_code not in (408, 409, 429) and response.status_code < 500:
@@ -205,7 +210,7 @@ class SyncX509WorkloadIdentityAuth(_X509WorkloadIdentityAuth):
                 response = self._http_client.post(
                     _X509_TOKEN_EXCHANGE_URL,
                     json=_exchange_payload(self.workload_identity),
-                    auth=lambda request: request,
+                    auth=_strip_authorization,
                     timeout=10.0,
                     follow_redirects=False,
                 )
@@ -250,7 +255,7 @@ class AsyncX509WorkloadIdentityAuth(_X509WorkloadIdentityAuth):
                 response = await self._http_client.post(
                     _X509_TOKEN_EXCHANGE_URL,
                     json=_exchange_payload(self.workload_identity),
-                    auth=lambda request: request,
+                    auth=_strip_authorization,
                     timeout=10.0,
                     follow_redirects=False,
                 )
