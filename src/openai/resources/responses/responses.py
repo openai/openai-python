@@ -80,12 +80,11 @@ from ...types.responses.compacted_response import CompactedResponse
 from ...types.websocket_connection_options import WebSocketConnectionOptions
 from ...types.responses.response_includable import ResponseIncludable
 from ...types.shared_params.responses_model import ResponsesModel
-from ...types.responses.response_error_event import ResponseErrorEvent
 from ...types.responses.response_input_param import ResponseInputParam
 from ...types.responses.response_prompt_param import ResponsePromptParam
 from ...types.responses.response_stream_event import ResponseStreamEvent
 from ...types.responses.responses_client_event import ResponsesClientEvent
-from ...types.responses.responses_server_event import ResponsesServerEvent
+from ...types.responses.responses_server_event import ResponseWsError, ResponsesServerEvent
 from ...types.responses.response_input_item_param import ResponseInputItemParam
 from ...types.responses.response_text_config_param import ResponseTextConfigParam
 from ...types.responses.responses_client_event_param import ResponsesClientEventParam
@@ -152,7 +151,8 @@ class Responses(SyncAPIResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast", "ultrafast"]]
+        | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
@@ -323,6 +323,10 @@ class Responses(SyncAPIResource):
                 Responses or Chat Completions. The response will show `service_tier=priority`
                 regardless of if you specify `service_tier=fast` or `priority` in your
                 request.
+              - If set to 'ultrafast', then the request will be processed with the
+                access-controlled Ultrafast Processing service tier. This tier is currently
+                available for `gpt-5.6-sol`; a response served through it will show
+                `service_tier=ultrafast`.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -434,7 +438,8 @@ class Responses(SyncAPIResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast", "ultrafast"]]
+        | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -611,6 +616,10 @@ class Responses(SyncAPIResource):
                 Responses or Chat Completions. The response will show `service_tier=priority`
                 regardless of if you specify `service_tier=fast` or `priority` in your
                 request.
+              - If set to 'ultrafast', then the request will be processed with the
+                access-controlled Ultrafast Processing service tier. This tier is currently
+                available for `gpt-5.6-sol`; a response served through it will show
+                `service_tier=ultrafast`.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -715,7 +724,8 @@ class Responses(SyncAPIResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast", "ultrafast"]]
+        | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -892,6 +902,10 @@ class Responses(SyncAPIResource):
                 Responses or Chat Completions. The response will show `service_tier=priority`
                 regardless of if you specify `service_tier=fast` or `priority` in your
                 request.
+              - If set to 'ultrafast', then the request will be processed with the
+                access-controlled Ultrafast Processing service tier. This tier is currently
+                available for `gpt-5.6-sol`; a response served through it will show
+                `service_tier=ultrafast`.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -994,7 +1008,8 @@ class Responses(SyncAPIResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast", "ultrafast"]]
+        | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
@@ -1105,7 +1120,7 @@ class Responses(SyncAPIResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast", "ultrafast"]] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -1148,7 +1163,7 @@ class Responses(SyncAPIResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast", "ultrafast"]] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -1310,7 +1325,7 @@ class Responses(SyncAPIResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast", "ultrafast"]] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
@@ -1722,6 +1737,7 @@ class Responses(SyncAPIResource):
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",
                 "gpt-5.5",
+                "gpt-5.5-2026-04-23",
                 "gpt-5.4",
                 "gpt-5.4-mini",
                 "gpt-5.4-nano",
@@ -1810,6 +1826,8 @@ class Responses(SyncAPIResource):
                 "o4-mini-deep-research-2025-06-26",
                 "computer-use-preview",
                 "computer-use-preview-2025-03-11",
+                "gpt-5.5-pro",
+                "gpt-5.5-pro-2026-04-23",
                 "gpt-5-codex",
                 "gpt-5-pro",
                 "gpt-5-pro-2025-10-06",
@@ -2005,7 +2023,8 @@ class AsyncResponses(AsyncAPIResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast", "ultrafast"]]
+        | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
@@ -2176,6 +2195,10 @@ class AsyncResponses(AsyncAPIResource):
                 Responses or Chat Completions. The response will show `service_tier=priority`
                 regardless of if you specify `service_tier=fast` or `priority` in your
                 request.
+              - If set to 'ultrafast', then the request will be processed with the
+                access-controlled Ultrafast Processing service tier. This tier is currently
+                available for `gpt-5.6-sol`; a response served through it will show
+                `service_tier=ultrafast`.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -2287,7 +2310,8 @@ class AsyncResponses(AsyncAPIResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast", "ultrafast"]]
+        | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -2464,6 +2488,10 @@ class AsyncResponses(AsyncAPIResource):
                 Responses or Chat Completions. The response will show `service_tier=priority`
                 regardless of if you specify `service_tier=fast` or `priority` in your
                 request.
+              - If set to 'ultrafast', then the request will be processed with the
+                access-controlled Ultrafast Processing service tier. This tier is currently
+                available for `gpt-5.6-sol`; a response served through it will show
+                `service_tier=ultrafast`.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -2568,7 +2596,8 @@ class AsyncResponses(AsyncAPIResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast", "ultrafast"]]
+        | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -2745,6 +2774,10 @@ class AsyncResponses(AsyncAPIResource):
                 Responses or Chat Completions. The response will show `service_tier=priority`
                 regardless of if you specify `service_tier=fast` or `priority` in your
                 request.
+              - If set to 'ultrafast', then the request will be processed with the
+                access-controlled Ultrafast Processing service tier. This tier is currently
+                available for `gpt-5.6-sol`; a response served through it will show
+                `service_tier=ultrafast`.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -2847,7 +2880,8 @@ class AsyncResponses(AsyncAPIResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast", "ultrafast"]]
+        | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
@@ -2958,7 +2992,7 @@ class AsyncResponses(AsyncAPIResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast", "ultrafast"]] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -3001,7 +3035,7 @@ class AsyncResponses(AsyncAPIResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast", "ultrafast"]] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -3162,7 +3196,7 @@ class AsyncResponses(AsyncAPIResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast", "ultrafast"]] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
@@ -3574,6 +3608,7 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",
                 "gpt-5.5",
+                "gpt-5.5-2026-04-23",
                 "gpt-5.4",
                 "gpt-5.4-mini",
                 "gpt-5.4-nano",
@@ -3662,6 +3697,8 @@ class AsyncResponses(AsyncAPIResource):
                 "o4-mini-deep-research-2025-06-26",
                 "computer-use-preview",
                 "computer-use-preview-2025-03-11",
+                "gpt-5.5-pro",
+                "gpt-5.5-pro-2026-04-23",
                 "gpt-5-codex",
                 "gpt-5-pro",
                 "gpt-5-pro-2025-10-06",
@@ -4234,7 +4271,7 @@ class AsyncResponsesConnection:
             generic = self._event_handler_registry.get_handlers("event")
 
             if event_type == "error" and not specific and not generic:
-                if isinstance(event, ResponseErrorEvent):
+                if isinstance(event, ResponseWsError):
                     raise OpenAIError(f"WebSocket error: {event}")
 
             for handler in specific:
@@ -4683,7 +4720,7 @@ class ResponsesConnection:
             generic = self._event_handler_registry.get_handlers("event")
 
             if event_type == "error" and not specific and not generic:
-                if isinstance(event, ResponseErrorEvent):
+                if isinstance(event, ResponseWsError):
                     raise OpenAIError(f"WebSocket error: {event}")
 
             for handler in specific:
@@ -4896,7 +4933,8 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast", "ultrafast"]]
+        | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[bool] | Omit = omit,
         stream_id: str | Omit = omit,
@@ -4982,7 +5020,8 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast", "ultrafast"]]
+        | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[bool] | Omit = omit,
         stream_id: str | Omit = omit,

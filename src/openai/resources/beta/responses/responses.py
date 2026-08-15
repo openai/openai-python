@@ -54,12 +54,11 @@ from ....types.websocket_reconnection import ReconnectingEvent, ReconnectingOver
 from ....types.beta.beta_compacted_response import BetaCompactedResponse
 from ....types.websocket_connection_options import WebSocketConnectionOptions
 from ....types.beta.beta_response_includable import BetaResponseIncludable
-from ....types.beta.beta_response_error_event import BetaResponseErrorEvent
 from ....types.beta.beta_response_input_param import BetaResponseInputParam
 from ....types.beta.beta_response_prompt_param import BetaResponsePromptParam
 from ....types.beta.beta_response_stream_event import BetaResponseStreamEvent
 from ....types.beta.beta_responses_client_event import BetaResponsesClientEvent
-from ....types.beta.beta_responses_server_event import BetaResponsesServerEvent
+from ....types.beta.beta_responses_server_event import BetaResponseWsError, BetaResponsesServerEvent
 from ....types.beta.beta_response_input_item_param import BetaResponseInputItemParam
 from ....types.beta.beta_response_text_config_param import BetaResponseTextConfigParam
 from ....types.beta.beta_responses_client_event_param import BetaResponsesClientEventParam
@@ -122,6 +121,7 @@ class Responses(SyncAPIResource):
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",
                 "gpt-5.5",
+                "gpt-5.5-2026-04-23",
                 "gpt-5.4",
                 "gpt-5.4-mini",
                 "gpt-5.4-nano",
@@ -210,6 +210,8 @@ class Responses(SyncAPIResource):
                 "o4-mini-deep-research-2025-06-26",
                 "computer-use-preview",
                 "computer-use-preview-2025-03-11",
+                "gpt-5.5-pro",
+                "gpt-5.5-pro-2026-04-23",
                 "gpt-5-codex",
                 "gpt-5-pro",
                 "gpt-5-pro-2025-10-06",
@@ -231,7 +233,8 @@ class Responses(SyncAPIResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[response_create_params.Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast", "ultrafast"]]
+        | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
@@ -405,6 +408,10 @@ class Responses(SyncAPIResource):
                 Responses or Chat Completions. The response will show `service_tier=priority`
                 regardless of if you specify `service_tier=fast` or `priority` in your
                 request.
+              - If set to 'ultrafast', then the request will be processed with the
+                access-controlled Ultrafast Processing service tier. This tier is currently
+                available for `gpt-5.6-sol`; a response served through it will show
+                `service_tier=ultrafast`.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -512,6 +519,7 @@ class Responses(SyncAPIResource):
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",
                 "gpt-5.5",
+                "gpt-5.5-2026-04-23",
                 "gpt-5.4",
                 "gpt-5.4-mini",
                 "gpt-5.4-nano",
@@ -600,6 +608,8 @@ class Responses(SyncAPIResource):
                 "o4-mini-deep-research-2025-06-26",
                 "computer-use-preview",
                 "computer-use-preview-2025-03-11",
+                "gpt-5.5-pro",
+                "gpt-5.5-pro-2026-04-23",
                 "gpt-5-codex",
                 "gpt-5-pro",
                 "gpt-5-pro-2025-10-06",
@@ -621,7 +631,8 @@ class Responses(SyncAPIResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[response_create_params.Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast", "ultrafast"]]
+        | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -801,6 +812,10 @@ class Responses(SyncAPIResource):
                 Responses or Chat Completions. The response will show `service_tier=priority`
                 regardless of if you specify `service_tier=fast` or `priority` in your
                 request.
+              - If set to 'ultrafast', then the request will be processed with the
+                access-controlled Ultrafast Processing service tier. This tier is currently
+                available for `gpt-5.6-sol`; a response served through it will show
+                `service_tier=ultrafast`.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -901,6 +916,7 @@ class Responses(SyncAPIResource):
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",
                 "gpt-5.5",
+                "gpt-5.5-2026-04-23",
                 "gpt-5.4",
                 "gpt-5.4-mini",
                 "gpt-5.4-nano",
@@ -989,6 +1005,8 @@ class Responses(SyncAPIResource):
                 "o4-mini-deep-research-2025-06-26",
                 "computer-use-preview",
                 "computer-use-preview-2025-03-11",
+                "gpt-5.5-pro",
+                "gpt-5.5-pro-2026-04-23",
                 "gpt-5-codex",
                 "gpt-5-pro",
                 "gpt-5-pro-2025-10-06",
@@ -1010,7 +1028,8 @@ class Responses(SyncAPIResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[response_create_params.Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast", "ultrafast"]]
+        | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -1190,6 +1209,10 @@ class Responses(SyncAPIResource):
                 Responses or Chat Completions. The response will show `service_tier=priority`
                 regardless of if you specify `service_tier=fast` or `priority` in your
                 request.
+              - If set to 'ultrafast', then the request will be processed with the
+                access-controlled Ultrafast Processing service tier. This tier is currently
+                available for `gpt-5.6-sol`; a response served through it will show
+                `service_tier=ultrafast`.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -1288,6 +1311,7 @@ class Responses(SyncAPIResource):
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",
                 "gpt-5.5",
+                "gpt-5.5-2026-04-23",
                 "gpt-5.4",
                 "gpt-5.4-mini",
                 "gpt-5.4-nano",
@@ -1376,6 +1400,8 @@ class Responses(SyncAPIResource):
                 "o4-mini-deep-research-2025-06-26",
                 "computer-use-preview",
                 "computer-use-preview-2025-03-11",
+                "gpt-5.5-pro",
+                "gpt-5.5-pro-2026-04-23",
                 "gpt-5-codex",
                 "gpt-5-pro",
                 "gpt-5-pro-2025-10-06",
@@ -1397,7 +1423,8 @@ class Responses(SyncAPIResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[response_create_params.Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast", "ultrafast"]]
+        | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
@@ -1766,6 +1793,7 @@ class Responses(SyncAPIResource):
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",
                 "gpt-5.5",
+                "gpt-5.5-2026-04-23",
                 "gpt-5.4",
                 "gpt-5.4-mini",
                 "gpt-5.4-nano",
@@ -1854,6 +1882,8 @@ class Responses(SyncAPIResource):
                 "o4-mini-deep-research-2025-06-26",
                 "computer-use-preview",
                 "computer-use-preview-2025-03-11",
+                "gpt-5.5-pro",
+                "gpt-5.5-pro-2026-04-23",
                 "gpt-5-codex",
                 "gpt-5-pro",
                 "gpt-5-pro-2025-10-06",
@@ -2050,6 +2080,7 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",
                 "gpt-5.5",
+                "gpt-5.5-2026-04-23",
                 "gpt-5.4",
                 "gpt-5.4-mini",
                 "gpt-5.4-nano",
@@ -2138,6 +2169,8 @@ class AsyncResponses(AsyncAPIResource):
                 "o4-mini-deep-research-2025-06-26",
                 "computer-use-preview",
                 "computer-use-preview-2025-03-11",
+                "gpt-5.5-pro",
+                "gpt-5.5-pro-2026-04-23",
                 "gpt-5-codex",
                 "gpt-5-pro",
                 "gpt-5-pro-2025-10-06",
@@ -2159,7 +2192,8 @@ class AsyncResponses(AsyncAPIResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[response_create_params.Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast", "ultrafast"]]
+        | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
@@ -2333,6 +2367,10 @@ class AsyncResponses(AsyncAPIResource):
                 Responses or Chat Completions. The response will show `service_tier=priority`
                 regardless of if you specify `service_tier=fast` or `priority` in your
                 request.
+              - If set to 'ultrafast', then the request will be processed with the
+                access-controlled Ultrafast Processing service tier. This tier is currently
+                available for `gpt-5.6-sol`; a response served through it will show
+                `service_tier=ultrafast`.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -2440,6 +2478,7 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",
                 "gpt-5.5",
+                "gpt-5.5-2026-04-23",
                 "gpt-5.4",
                 "gpt-5.4-mini",
                 "gpt-5.4-nano",
@@ -2528,6 +2567,8 @@ class AsyncResponses(AsyncAPIResource):
                 "o4-mini-deep-research-2025-06-26",
                 "computer-use-preview",
                 "computer-use-preview-2025-03-11",
+                "gpt-5.5-pro",
+                "gpt-5.5-pro-2026-04-23",
                 "gpt-5-codex",
                 "gpt-5-pro",
                 "gpt-5-pro-2025-10-06",
@@ -2549,7 +2590,8 @@ class AsyncResponses(AsyncAPIResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[response_create_params.Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast", "ultrafast"]]
+        | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -2729,6 +2771,10 @@ class AsyncResponses(AsyncAPIResource):
                 Responses or Chat Completions. The response will show `service_tier=priority`
                 regardless of if you specify `service_tier=fast` or `priority` in your
                 request.
+              - If set to 'ultrafast', then the request will be processed with the
+                access-controlled Ultrafast Processing service tier. This tier is currently
+                available for `gpt-5.6-sol`; a response served through it will show
+                `service_tier=ultrafast`.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -2829,6 +2875,7 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",
                 "gpt-5.5",
+                "gpt-5.5-2026-04-23",
                 "gpt-5.4",
                 "gpt-5.4-mini",
                 "gpt-5.4-nano",
@@ -2917,6 +2964,8 @@ class AsyncResponses(AsyncAPIResource):
                 "o4-mini-deep-research-2025-06-26",
                 "computer-use-preview",
                 "computer-use-preview-2025-03-11",
+                "gpt-5.5-pro",
+                "gpt-5.5-pro-2026-04-23",
                 "gpt-5-codex",
                 "gpt-5-pro",
                 "gpt-5-pro-2025-10-06",
@@ -2938,7 +2987,8 @@ class AsyncResponses(AsyncAPIResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[response_create_params.Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast", "ultrafast"]]
+        | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -3118,6 +3168,10 @@ class AsyncResponses(AsyncAPIResource):
                 Responses or Chat Completions. The response will show `service_tier=priority`
                 regardless of if you specify `service_tier=fast` or `priority` in your
                 request.
+              - If set to 'ultrafast', then the request will be processed with the
+                access-controlled Ultrafast Processing service tier. This tier is currently
+                available for `gpt-5.6-sol`; a response served through it will show
+                `service_tier=ultrafast`.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -3216,6 +3270,7 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",
                 "gpt-5.5",
+                "gpt-5.5-2026-04-23",
                 "gpt-5.4",
                 "gpt-5.4-mini",
                 "gpt-5.4-nano",
@@ -3304,6 +3359,8 @@ class AsyncResponses(AsyncAPIResource):
                 "o4-mini-deep-research-2025-06-26",
                 "computer-use-preview",
                 "computer-use-preview-2025-03-11",
+                "gpt-5.5-pro",
+                "gpt-5.5-pro-2026-04-23",
                 "gpt-5-codex",
                 "gpt-5-pro",
                 "gpt-5-pro-2025-10-06",
@@ -3325,7 +3382,8 @@ class AsyncResponses(AsyncAPIResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[response_create_params.Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast", "ultrafast"]]
+        | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
@@ -3694,6 +3752,7 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",
                 "gpt-5.5",
+                "gpt-5.5-2026-04-23",
                 "gpt-5.4",
                 "gpt-5.4-mini",
                 "gpt-5.4-nano",
@@ -3782,6 +3841,8 @@ class AsyncResponses(AsyncAPIResource):
                 "o4-mini-deep-research-2025-06-26",
                 "computer-use-preview",
                 "computer-use-preview-2025-03-11",
+                "gpt-5.5-pro",
+                "gpt-5.5-pro-2026-04-23",
                 "gpt-5-codex",
                 "gpt-5-pro",
                 "gpt-5-pro-2025-10-06",
@@ -4315,7 +4376,7 @@ class AsyncResponsesConnection:
             generic = self._event_handler_registry.get_handlers("event")
 
             if event_type == "error" and not specific and not generic:
-                if isinstance(event, BetaResponseErrorEvent):
+                if isinstance(event, BetaResponseWsError):
                     raise OpenAIError(f"WebSocket error: {event}")
 
             for handler in specific:
@@ -4764,7 +4825,7 @@ class ResponsesConnection:
             generic = self._event_handler_registry.get_handlers("event")
 
             if event_type == "error" and not specific and not generic:
-                if isinstance(event, BetaResponseErrorEvent):
+                if isinstance(event, BetaResponseWsError):
                     raise OpenAIError(f"WebSocket error: {event}")
 
             for handler in specific:
@@ -4982,6 +5043,7 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",
                 "gpt-5.5",
+                "gpt-5.5-2026-04-23",
                 "gpt-5.4",
                 "gpt-5.4-mini",
                 "gpt-5.4-nano",
@@ -5070,6 +5132,8 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
                 "o4-mini-deep-research-2025-06-26",
                 "computer-use-preview",
                 "computer-use-preview-2025-03-11",
+                "gpt-5.5-pro",
+                "gpt-5.5-pro-2026-04-23",
                 "gpt-5-codex",
                 "gpt-5-pro",
                 "gpt-5-pro-2025-10-06",
@@ -5091,7 +5155,8 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[beta_responses_client_event_param.ResponseCreateReasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast", "ultrafast"]]
+        | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[bool] | Omit = omit,
         stream_id: str | Omit = omit,
@@ -5193,6 +5258,7 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",
                 "gpt-5.5",
+                "gpt-5.5-2026-04-23",
                 "gpt-5.4",
                 "gpt-5.4-mini",
                 "gpt-5.4-nano",
@@ -5281,6 +5347,8 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
                 "o4-mini-deep-research-2025-06-26",
                 "computer-use-preview",
                 "computer-use-preview-2025-03-11",
+                "gpt-5.5-pro",
+                "gpt-5.5-pro-2026-04-23",
                 "gpt-5-codex",
                 "gpt-5-pro",
                 "gpt-5-pro-2025-10-06",
@@ -5302,7 +5370,8 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[beta_responses_client_event_param.ResponseCreateReasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast", "ultrafast"]]
+        | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[bool] | Omit = omit,
         stream_id: str | Omit = omit,

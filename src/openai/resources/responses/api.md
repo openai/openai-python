@@ -24,6 +24,7 @@ from openai.types.responses import (
     InlineSkillSource,
     LocalEnvironment,
     LocalSkill,
+    McpToolCallError,
     NamespaceTool,
     Response,
     ResponseApplyPatchToolCall,

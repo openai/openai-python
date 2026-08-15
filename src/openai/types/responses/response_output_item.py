@@ -6,6 +6,7 @@ from typing_extensions import Literal, Annotated, TypeAlias
 from .tool import Tool
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
+from .mcp_tool_call_error import McpToolCallError
 from .response_output_message import ResponseOutputMessage
 from .response_reasoning_item import ResponseReasoningItem
 from .response_compaction_item import ResponseCompactionItem
@@ -188,7 +189,7 @@ class McpCall(BaseModel):
     corresponding tool call.
     """
 
-    error: Optional[str] = None
+    error: Optional[McpToolCallError] = None
     """The error from the tool call, if any."""
 
     output: Optional[str] = None
