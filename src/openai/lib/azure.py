@@ -7,7 +7,7 @@ from typing_extensions import Self, override
 
 import httpx2
 
-from ..auth import WorkloadIdentity
+from ..auth import WorkloadIdentity, X509WorkloadIdentity
 from .._types import NOT_GIVEN, Omit, Query, Headers, Timeout, NotGiven
 from .._utils import is_given, is_mapping
 from .._client import OpenAI, AsyncOpenAI
@@ -284,7 +284,7 @@ class AzureOpenAI(BaseAzureClient[httpx2.Client, Stream[Any]], OpenAI):
         *,
         api_key: str | Callable[[], str] | None = None,
         admin_api_key: str | None = None,
-        workload_identity: WorkloadIdentity | None = None,
+        workload_identity: WorkloadIdentity | X509WorkloadIdentity | None = None,
         provider: _Provider | None | NotGiven = NOT_GIVEN,
         organization: str | None = None,
         project: str | None = None,
@@ -608,7 +608,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx2.AsyncClient, AsyncStream[Any]], As
         *,
         api_key: str | Callable[[], Awaitable[str]] | None = None,
         admin_api_key: str | None = None,
-        workload_identity: WorkloadIdentity | None = None,
+        workload_identity: WorkloadIdentity | X509WorkloadIdentity | None = None,
         provider: _Provider | None | NotGiven = NOT_GIVEN,
         organization: str | None = None,
         project: str | None = None,

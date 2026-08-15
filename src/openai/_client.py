@@ -489,20 +489,17 @@ class OpenAI(SyncAPIClient):
                 request_is_replayable = self._workload_identity_auth._can_retry_request(request)
 
         response = super()._send_request(request, stream=stream, **kwargs)
-        if (
-            response.status_code == 401
-            and self._workload_identity_auth is not None
-            and used_access_token is not None
-            and not retried
-            and request_is_replayable
-        ):
-            response.close()
-            self._workload_identity_auth._prepare_retry_request(request)
-            self._workload_identity_auth.invalidate_token(used_access_token)
-            request.headers["Authorization"] = f"Bearer {self._workload_identity_auth.get_token()}"
-            return self._send_with_auth_retry(request, stream=stream, retried=True, **kwargs)
+        if response.status_code != 401 or self._workload_identity_auth is None or used_access_token is None:
+            return response
 
-        return response
+        self._workload_identity_auth.invalidate_token(used_access_token)
+        if retried or not request_is_replayable:
+            return response
+
+        response.close()
+        self._workload_identity_auth._prepare_retry_request(request)
+        request.headers["Authorization"] = f"Bearer {self._workload_identity_auth.get_token()}"
+        return self._send_with_auth_retry(request, stream=stream, retried=True, **kwargs)
 
     @override
     def _send_request(
@@ -612,7 +609,7 @@ class OpenAI(SyncAPIClient):
         *,
         api_key: str | Callable[[], str] | None = None,
         admin_api_key: str | None = None,
-        workload_identity: WorkloadIdentity | None = None,
+        workload_identity: WorkloadIdentity | X509WorkloadIdentity | None = None,
         provider: _Provider | None | NotGiven = not_given,
         organization: str | None = None,
         project: str | None = None,
@@ -1113,20 +1110,17 @@ class AsyncOpenAI(AsyncAPIClient):
                 request_is_replayable = self._workload_identity_auth._can_retry_request(request)
 
         response = await super()._send_request(request, stream=stream, **kwargs)
-        if (
-            response.status_code == 401
-            and self._workload_identity_auth is not None
-            and used_access_token is not None
-            and not retried
-            and request_is_replayable
-        ):
-            await response.aclose()
-            self._workload_identity_auth._prepare_retry_request(request)
-            self._workload_identity_auth.invalidate_token(used_access_token)
-            request.headers["Authorization"] = f"Bearer {await self._workload_identity_auth.get_token_async()}"
-            return await self._send_with_auth_retry(request, stream=stream, retried=True, **kwargs)
+        if response.status_code != 401 or self._workload_identity_auth is None or used_access_token is None:
+            return response
 
-        return response
+        self._workload_identity_auth.invalidate_token(used_access_token)
+        if retried or not request_is_replayable:
+            return response
+
+        await response.aclose()
+        self._workload_identity_auth._prepare_retry_request(request)
+        request.headers["Authorization"] = f"Bearer {await self._workload_identity_auth.get_token_async()}"
+        return await self._send_with_auth_retry(request, stream=stream, retried=True, **kwargs)
 
     @override
     async def _send_request(
@@ -1247,7 +1241,7 @@ class AsyncOpenAI(AsyncAPIClient):
         *,
         api_key: str | Callable[[], Awaitable[str]] | None = None,
         admin_api_key: str | None = None,
-        workload_identity: WorkloadIdentity | None = None,
+        workload_identity: WorkloadIdentity | X509WorkloadIdentity | None = None,
         provider: _Provider | None | NotGiven = not_given,
         organization: str | None = None,
         project: str | None = None,

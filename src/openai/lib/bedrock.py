@@ -10,7 +10,7 @@ from typing_extensions import Self, override
 
 import httpx2
 
-from ..auth import WorkloadIdentity
+from ..auth import WorkloadIdentity, X509WorkloadIdentity
 from .._types import NOT_GIVEN, Timeout, NotGiven
 from .._utils import is_given
 from .._client import OpenAI, AsyncOpenAI
@@ -513,7 +513,7 @@ class BedrockOpenAI(OpenAI):
         *,
         api_key: str | BedrockTokenProvider | None = None,
         admin_api_key: str | None = None,
-        workload_identity: WorkloadIdentity | None = None,
+        workload_identity: WorkloadIdentity | X509WorkloadIdentity | None = None,
         provider: _Provider | None | NotGiven = NOT_GIVEN,
         bedrock_token_provider: BedrockTokenProvider | None = None,
         aws_region: str | None = None,
@@ -749,7 +749,7 @@ class AsyncBedrockOpenAI(AsyncOpenAI):
         *,
         api_key: str | AsyncBedrockTokenProvider | None = None,
         admin_api_key: str | None = None,
-        workload_identity: WorkloadIdentity | None = None,
+        workload_identity: WorkloadIdentity | X509WorkloadIdentity | None = None,
         provider: _Provider | None | NotGiven = NOT_GIVEN,
         bedrock_token_provider: AsyncBedrockTokenProvider | None = None,
         aws_region: str | None = None,

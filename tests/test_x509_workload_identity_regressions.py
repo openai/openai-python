@@ -1,14 +1,17 @@
 from __future__ import annotations
 
+import io
 import asyncio
 import threading
+from typing import get_args, get_type_hints
+from typing_extensions import override
 from concurrent.futures import ThreadPoolExecutor
 
 import anyio
 import httpx2
 import pytest
 
-from openai import OpenAI, AsyncOpenAI, OpenAIError
+from openai import OpenAI, AsyncOpenAI, OpenAIError, APIStatusError
 from openai.auth import X509WorkloadIdentity, x509_workload_identity
 from openai.auth._workload import _WorkloadIdentityAuth
 
@@ -34,6 +37,52 @@ def test_x509_auth_initializes_its_typed_common_superclass(client_type: type[Ope
         client.close()
     else:
         anyio.run(client.close)
+
+
+@pytest.mark.parametrize("client_type", [OpenAI, AsyncOpenAI])
+def test_copy_signatures_accept_typed_x509_workload_identities(client_type: type[OpenAI] | type[AsyncOpenAI]) -> None:
+    assert X509WorkloadIdentity in get_args(get_type_hints(client_type.copy)["workload_identity"])
+    assert X509WorkloadIdentity in get_args(get_type_hints(client_type.with_options)["workload_identity"])
+
+
+@pytest.mark.parametrize("method", ["copy", "with_options"])
+def test_sync_copy_accepts_an_explicit_x509_identity(method: str) -> None:
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        if str(request.url) == _TOKEN_URL:
+            return httpx2.Response(200, request=request, json={"access_token": "copied-token", "expires_in": 3600})
+        return httpx2.Response(200, request=request, json={"object": "list", "data": []})
+
+    replacement = x509_workload_identity(identity_provider_id="idp_replacement", service_account_id="svc_replacement")
+    http_client = httpx2.Client(transport=httpx2.MockTransport(handler), trust_env=False)
+    with OpenAI(workload_identity=_identity(), http_client=http_client, max_retries=0) as client:
+        copied = (
+            client.copy(workload_identity=replacement)
+            if method == "copy"
+            else client.with_options(workload_identity=replacement)
+        )
+        assert copied.workload_identity == replacement
+        assert copied._client is http_client
+        assert copied.models.list().object == "list"
+
+
+@pytest.mark.parametrize("method", ["copy", "with_options"])
+async def test_async_copy_accepts_an_explicit_x509_identity(method: str) -> None:
+    async def handler(request: httpx2.Request) -> httpx2.Response:
+        if str(request.url) == _TOKEN_URL:
+            return httpx2.Response(200, request=request, json={"access_token": "copied-token", "expires_in": 3600})
+        return httpx2.Response(200, request=request, json={"object": "list", "data": []})
+
+    replacement = x509_workload_identity(identity_provider_id="idp_replacement", service_account_id="svc_replacement")
+    http_client = httpx2.AsyncClient(transport=httpx2.MockTransport(handler), trust_env=False)
+    async with AsyncOpenAI(workload_identity=_identity(), http_client=http_client, max_retries=0) as client:
+        copied = (
+            client.copy(workload_identity=replacement)
+            if method == "copy"
+            else client.with_options(workload_identity=replacement)
+        )
+        assert copied.workload_identity == replacement
+        assert copied._client is http_client
+        assert (await copied.models.list()).object == "list"
 
 
 @pytest.mark.parametrize("authorization", [None, "Bearer caller-override"])
@@ -92,6 +141,71 @@ async def test_async_x509_rejects_non_object_token_responses(response_body: obje
     async with AsyncOpenAI(workload_identity=_identity(), http_client=http_client, max_retries=0) as client:
         with pytest.raises(OpenAIError, match="response body was not a JSON object"):
             await client.models.list()
+
+
+def test_sync_x509_invalidates_rejected_token_without_replaying_one_shot_upload() -> None:
+    exchange_calls = 0
+    api_authorizations: list[str] = []
+
+    class OneShotUpload(io.BytesIO):
+        @override
+        def seekable(self) -> bool:
+            return False
+
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        nonlocal exchange_calls
+        if str(request.url) == _TOKEN_URL:
+            exchange_calls += 1
+            return httpx2.Response(
+                200, request=request, json={"access_token": f"token-{exchange_calls}", "expires_in": 3600}
+            )
+
+        api_authorizations.append(request.headers["Authorization"])
+        if exchange_calls == 1:
+            return httpx2.Response(401, request=request, json={"error": {"message": "unauthorized"}})
+        return httpx2.Response(200, request=request, json={"id": "file_123", "object": "file"})
+
+    http_client = httpx2.Client(transport=httpx2.MockTransport(handler), trust_env=False)
+    with OpenAI(workload_identity=_identity(), http_client=http_client, max_retries=0) as client:
+        with pytest.raises(APIStatusError):
+            client.files.create(file=("first.txt", OneShotUpload(b"first")), purpose="assistants")
+        assert client.files.create(file=("second.txt", OneShotUpload(b"second")), purpose="assistants").id == "file_123"
+
+    assert exchange_calls == 2
+    assert api_authorizations == ["Bearer token-1", "Bearer token-2"]
+
+
+async def test_async_x509_invalidates_rejected_token_without_replaying_one_shot_upload() -> None:
+    exchange_calls = 0
+    api_authorizations: list[str] = []
+
+    class OneShotUpload(io.BytesIO):
+        @override
+        def seekable(self) -> bool:
+            return False
+
+    async def handler(request: httpx2.Request) -> httpx2.Response:
+        nonlocal exchange_calls
+        if str(request.url) == _TOKEN_URL:
+            exchange_calls += 1
+            return httpx2.Response(
+                200, request=request, json={"access_token": f"token-{exchange_calls}", "expires_in": 3600}
+            )
+
+        api_authorizations.append(request.headers["Authorization"])
+        if exchange_calls == 1:
+            return httpx2.Response(401, request=request, json={"error": {"message": "unauthorized"}})
+        return httpx2.Response(200, request=request, json={"id": "file_123", "object": "file"})
+
+    http_client = httpx2.AsyncClient(transport=httpx2.MockTransport(handler), trust_env=False)
+    async with AsyncOpenAI(workload_identity=_identity(), http_client=http_client, max_retries=0) as client:
+        with pytest.raises(APIStatusError):
+            await client.files.create(file=("first.txt", OneShotUpload(b"first")), purpose="assistants")
+        uploaded = await client.files.create(file=("second.txt", OneShotUpload(b"second")), purpose="assistants")
+
+    assert uploaded.id == "file_123"
+    assert exchange_calls == 2
+    assert api_authorizations == ["Bearer token-1", "Bearer token-2"]
 
 
 def test_sync_x509_concurrent_stale_401_responses_share_one_replacement_token() -> None:
