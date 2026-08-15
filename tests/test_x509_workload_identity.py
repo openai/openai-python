@@ -76,7 +76,7 @@ def test_x509_rejects_certificate_and_token_material_without_leaking_it(invalid_
     assert secret not in str(error.value)
 
 
-@pytest.mark.parametrize("refresh_buffer", [-1.0, float("inf"), float("nan"), True])
+@pytest.mark.parametrize("refresh_buffer", [-1.0, float("inf"), float("nan"), True, 10**400])
 def test_x509_rejects_invalid_refresh_buffer(refresh_buffer: float) -> None:
     with pytest.raises(OpenAIError, match="finite, non-negative refresh buffer"):
         OpenAI(workload_identity=_identity(refresh_buffer_seconds=refresh_buffer))
@@ -207,7 +207,7 @@ def test_api_key_clients_keep_ordinary_api_endpoint() -> None:
         assert str(client.base_url) == "https://api.openai.com/v1/"
 
 
-@pytest.mark.parametrize("expires_in", [0, -1, True, "3600", None])
+@pytest.mark.parametrize("expires_in", [0, -1, True, "3600", None, 10**400])
 def test_x509_rejects_nonpositive_or_nonnumeric_expiration(expires_in: object) -> None:
     def handler(request: httpx2.Request) -> httpx2.Response:
         return _token_response(request, expires_in=expires_in)

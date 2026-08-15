@@ -29,6 +29,16 @@ _REPLAY_FILE_POSITIONS_EXTENSION = "openai_x509_replay_file_positions"
 _ALLOWED_IDENTITY_FIELDS = {"type", "identity_provider_id", "service_account_id", "refresh_buffer_seconds"}
 
 
+def _as_finite_float(value: object) -> float | None:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    try:
+        value = float(value)
+    except OverflowError:
+        return None
+    return value if math.isfinite(value) else None
+
+
 def is_x509_workload_identity(
     identity: WorkloadIdentity | X509WorkloadIdentity | None,
 ) -> TypeIs[X509WorkloadIdentity]:
@@ -46,13 +56,10 @@ def _validate_identity(identity: X509WorkloadIdentity) -> None:
         raise OpenAIError("X.509 workload identity requires identity-provider and service-account IDs")
 
     refresh_buffer = cast(object, identity.get("refresh_buffer_seconds"))
-    if refresh_buffer is not None and (
-        isinstance(refresh_buffer, bool)
-        or not isinstance(refresh_buffer, (int, float))
-        or not math.isfinite(refresh_buffer)
-        or refresh_buffer < 0
-    ):
-        raise OpenAIError("X.509 workload identity requires a finite, non-negative refresh buffer")
+    if refresh_buffer is not None:
+        refresh_buffer_value = _as_finite_float(refresh_buffer)
+        if refresh_buffer_value is None or refresh_buffer_value < 0:
+            raise OpenAIError("X.509 workload identity requires a finite, non-negative refresh buffer")
 
 
 def _exchange_payload(identity: X509WorkloadIdentity) -> dict[str, str]:
@@ -167,11 +174,10 @@ class _X509WorkloadIdentityAuth(_WorkloadIdentityAuth[X509WorkloadIdentity]):
 
     @override
     def _validate_expires_in(self, expires_in: object) -> float:
-        if isinstance(expires_in, bool) or not isinstance(expires_in, (int, float)):
+        expires_in_value = _as_finite_float(expires_in)
+        if expires_in_value is None or expires_in_value <= 0:
             raise OpenAIError("X.509 token exchange response did not include a positive, finite expires_in")
-        if not math.isfinite(expires_in) or expires_in <= 0:
-            raise OpenAIError("X.509 token exchange response did not include a positive, finite expires_in")
-        return float(expires_in)
+        return expires_in_value
 
     @override
     def _can_retry_request(self, request: httpx2.Request) -> bool:
