@@ -42,32 +42,41 @@ def handler(request):
     return httpx2.Response(200, request=request, json={})
 
 
-http_client = httpx2.Client(transport=httpx2.MockTransport(handler), trust_env=False)
-with OpenAI(
-    provider=bedrock(region="us-east-1", api_key="bearer-token"),
-    http_client=http_client,
-) as client:
-    client.get("/models", cast_to=httpx2.Response)
+for endpoint, hostname in (
+    ("mantle", "bedrock-mantle.us-east-1.api.aws"),
+    ("runtime", "bedrock-runtime.us-east-1.amazonaws.com"),
+):
+    requests.clear()
+    http_client = httpx2.Client(transport=httpx2.MockTransport(handler), trust_env=False)
+    with OpenAI(
+        provider=bedrock(endpoint=endpoint, region="us-east-1", api_key="bearer-token"),
+        http_client=http_client,
+    ) as client:
+        client.get("/models", cast_to=httpx2.Response)
 
-assert requests[0].headers["Authorization"] == "Bearer bearer-token"
-assert not any(name == "botocore" or name.startswith("botocore.") for name in sys.modules)
+    assert requests[0].url.host == hostname
+    assert requests[0].headers["Authorization"] == "Bearer bearer-token"
+    assert not any(name == "botocore" or name.startswith("botocore.") for name in sys.modules)
 
 sys.meta_path.remove(blocker)
-requests.clear()
-http_client = httpx2.Client(transport=httpx2.MockTransport(handler), trust_env=False)
-with OpenAI(
-    provider=bedrock(
-        region="us-east-1",
-        access_key_id="fixture-access-key",
-        secret_access_key="fixture-secret-key",
-        session_token="fixture-session-token",
-    ),
-    http_client=http_client,
-) as client:
-    client.get("/models", cast_to=httpx2.Response)
+for endpoint, signing_service in (("mantle", "bedrock-mantle"), ("runtime", "bedrock")):
+    requests.clear()
+    http_client = httpx2.Client(transport=httpx2.MockTransport(handler), trust_env=False)
+    with OpenAI(
+        provider=bedrock(
+            endpoint=endpoint,
+            region="us-east-1",
+            access_key_id="fixture-access-key",
+            secret_access_key="fixture-secret-key",
+            session_token="fixture-session-token",
+        ),
+        http_client=http_client,
+    ) as client:
+        client.get("/models", cast_to=httpx2.Response)
 
-assert "Credential=fixture-access-key/" in requests[0].headers["Authorization"]
-assert requests[0].headers["X-Amz-Security-Token"] == "fixture-session-token"
+    assert "Credential=fixture-access-key/" in requests[0].headers["Authorization"]
+    assert f"/{signing_service}/aws4_request" in requests[0].headers["Authorization"]
+    assert requests[0].headers["X-Amz-Security-Token"] == "fixture-session-token"
 """
 
 

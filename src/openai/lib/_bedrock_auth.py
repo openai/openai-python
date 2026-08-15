@@ -37,13 +37,14 @@ def _load_botocore() -> tuple[Any, Any, Any, Any]:
             "Install them with `pip install openai[bedrock]` and try again."
         ) from exc
 
-    return SigV4Auth, AWSRequest, Credentials, Session
+    return cast("tuple[Any, Any, Any, Any]", (SigV4Auth, AWSRequest, Credentials, Session))
 
 
 @dataclass(frozen=True)
 class BedrockAwsAuthConfig:
     region: str
     source: Literal["static", "profile", "provider", "default"]
+    service: Literal["bedrock-mantle", "bedrock"] = "bedrock-mantle"
     region_source: Literal["explicit", "environment", "profile"] = "explicit"
     profile: str | None = None
     access_key_id: str | None = field(default=None, repr=False)
@@ -87,6 +88,7 @@ class BedrockAwsAuth:
         secret_access_key: str | None,
         session_token: str | None,
         credentials_provider: AwsCredentialsProvider | None,
+        service: Literal["bedrock-mantle", "bedrock"] = "bedrock-mantle",
     ) -> BedrockAwsAuth:
         _, _, _, session_cls = _load_botocore()
 
@@ -114,6 +116,7 @@ class BedrockAwsAuth:
         config = BedrockAwsAuthConfig(
             region=resolved_region,
             source=source,
+            service=service,
             region_source=region_source,
             profile=profile,
             access_key_id=access_key_id,
@@ -151,7 +154,7 @@ class BedrockAwsAuth:
                 data=body,
                 headers=signed_headers,
             )
-            self._sigv4_auth_cls(credentials, "bedrock-mantle", self.config.region).add_auth(aws_request)
+            self._sigv4_auth_cls(credentials, self.config.service, self.config.region).add_auth(aws_request)
         except OpenAIError:
             raise
         except Exception as exc:
