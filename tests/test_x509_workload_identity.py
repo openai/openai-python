@@ -345,8 +345,8 @@ async def test_async_x509_cancelled_waiter_does_not_cancel_shared_refresh() -> N
         waiter = asyncio.create_task(list_models())
         await anyio.sleep(0)
         waiter.cancel()
-        with pytest.raises(asyncio.CancelledError):
-            await waiter
+        await asyncio.gather(waiter, return_exceptions=True)
+        assert waiter.cancelled()
         finish_exchange.set()
         assert await owner == "list"
         assert (await client.models.list()).object == "list"
@@ -379,8 +379,8 @@ async def test_async_x509_cancelled_refresh_owner_releases_waiters() -> None:
         waiter = asyncio.create_task(list_models())
         await anyio.sleep(0)
         owner.cancel()
-        with pytest.raises(asyncio.CancelledError):
-            await owner
+        await asyncio.gather(owner, return_exceptions=True)
+        assert owner.cancelled()
         assert await waiter == "list"
 
     assert exchange_calls == 2

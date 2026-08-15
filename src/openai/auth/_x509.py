@@ -4,7 +4,7 @@ import math
 import time
 import email.utils
 from typing import Any, NoReturn, cast
-from typing_extensions import TypeGuard, override
+from typing_extensions import TypeIs, override
 
 import anyio
 import httpx2
@@ -28,7 +28,9 @@ _REPLAY_POSITION_EXTENSION = "openai_x509_replay_position"
 _ALLOWED_IDENTITY_FIELDS = {"type", "identity_provider_id", "service_account_id", "refresh_buffer_seconds"}
 
 
-def is_x509_workload_identity(identity: WorkloadIdentity | None) -> TypeGuard[X509WorkloadIdentity]:
+def is_x509_workload_identity(
+    identity: WorkloadIdentity | X509WorkloadIdentity | None,
+) -> TypeIs[X509WorkloadIdentity]:
     return identity is not None and identity.get("type") == "x509"
 
 
@@ -131,7 +133,7 @@ def _raise_transport_error(error: Exception) -> NoReturn:
 class _X509WorkloadIdentityAuth(WorkloadIdentityAuth):
     def __init__(self, *, workload_identity: X509WorkloadIdentity, max_retries: int) -> None:
         _validate_identity(workload_identity)
-        super().__init__(workload_identity=workload_identity, token_exchange_url=_X509_TOKEN_EXCHANGE_URL)
+        self._initialize_token_cache(workload_identity=workload_identity, token_exchange_url=_X509_TOKEN_EXCHANGE_URL)
         self._max_exchange_retries = min(max(max_retries, 0), _MAX_EXCHANGE_RETRIES)
         self._follow_redirects = False
 

@@ -8,6 +8,7 @@ from typing_extensions import Literal, TypeAlias, NotRequired
 
 import httpx2
 
+from .._utils import is_dict
 from .._httpx2 import DefaultHttpx2Client, _loaded_legacy_httpx
 from .._exceptions import OAuthError, OpenAIError, SubjectTokenProviderError
 from .._utils._sync import to_thread
@@ -27,7 +28,7 @@ class SubjectTokenProvider(TypedDict):
     get_token: Callable[[], str]
 
 
-class SubjectTokenWorkloadIdentity(TypedDict):
+class WorkloadIdentity(TypedDict):
     """Identity provider resource id in WIFAPI."""
 
     identity_provider_id: str
@@ -42,6 +43,9 @@ class SubjectTokenWorkloadIdentity(TypedDict):
     refresh_buffer_seconds: NotRequired[float]
 
 
+SubjectTokenWorkloadIdentity: TypeAlias = WorkloadIdentity
+
+
 class X509WorkloadIdentity(TypedDict):
     """Authenticate with the client certificate configured on the HTTP transport."""
 
@@ -49,9 +53,6 @@ class X509WorkloadIdentity(TypedDict):
     identity_provider_id: str
     service_account_id: str
     refresh_buffer_seconds: NotRequired[float]
-
-
-WorkloadIdentity: TypeAlias = SubjectTokenWorkloadIdentity | X509WorkloadIdentity
 
 
 def x509_workload_identity(
@@ -208,9 +209,22 @@ class WorkloadIdentityAuth:
         token_exchange_url: str = DEFAULT_TOKEN_EXCHANGE_URL,
         _use_httpx2: bool = True,
     ):
+        self._initialize_token_cache(
+            workload_identity=workload_identity,
+            token_exchange_url=token_exchange_url,
+            use_httpx2=_use_httpx2,
+        )
+
+    def _initialize_token_cache(
+        self,
+        *,
+        workload_identity: WorkloadIdentity | X509WorkloadIdentity,
+        token_exchange_url: str,
+        use_httpx2: bool = True,
+    ) -> None:
         self.workload_identity = workload_identity
         self.token_exchange_url = token_exchange_url
-        self._use_httpx2 = _use_httpx2
+        self._use_httpx2 = use_httpx2
         self._follow_redirects: bool | None = None
 
         self._cached_token: str | None = None
@@ -252,8 +266,10 @@ class WorkloadIdentityAuth:
     async def get_token_async(self) -> str:
         return await to_thread(self.get_token)
 
-    def invalidate_token(self) -> None:
+    def invalidate_token(self, token: str | None = None) -> None:
         with self._lock:
+            if token is not None and self._cached_token != token:
+                return
             self._cached_token = None
             self._cached_token_expires_at_monotonic = None
             self._cached_token_refresh_at_monotonic = None
@@ -312,6 +328,8 @@ class WorkloadIdentityAuth:
         if response.is_success:
             if body is None:
                 raise OpenAIError("Token exchange succeeded but response body was empty")
+            if not is_dict(body):
+                raise OpenAIError("Token exchange succeeded but response body was not a JSON object")
             access_token = body.get("access_token")
             expires_in = body.get("expires_in")
             if not isinstance(access_token, str) or not access_token:

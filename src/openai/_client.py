@@ -10,7 +10,7 @@ import httpx2
 
 from . import _exceptions
 from ._qs import Querystring
-from .auth import WorkloadIdentity, WorkloadIdentityAuth
+from .auth import WorkloadIdentity, WorkloadIdentityAuth, X509WorkloadIdentity
 from ._types import (
     Omit,
     Headers,
@@ -115,7 +115,7 @@ class OpenAI(SyncAPIClient):
     # client options
     api_key: str
     admin_api_key: str | None
-    workload_identity: WorkloadIdentity | None
+    workload_identity: WorkloadIdentity | X509WorkloadIdentity | None
     organization: str | None
     project: str | None
     webhook_secret: str | None
@@ -136,7 +136,7 @@ class OpenAI(SyncAPIClient):
         *,
         api_key: str | Callable[[], str] | None = None,
         admin_api_key: str | None = None,
-        workload_identity: WorkloadIdentity | None = None,
+        workload_identity: WorkloadIdentity | X509WorkloadIdentity | None = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -252,7 +252,14 @@ class OpenAI(SyncAPIClient):
 
         self.websocket_base_url = websocket_base_url
 
-        x509_identity = workload_identity if is_x509_workload_identity(workload_identity) else None
+        if is_x509_workload_identity(workload_identity):
+            x509_identity = workload_identity
+            subject_token_identity = None
+        else:
+            x509_identity = None
+            subject_token_identity = (
+                workload_identity if workload_identity is not None and "provider" in workload_identity else None
+            )
         if provider_runtime is not None:
             base_url = provider_runtime.base_url
         elif base_url is None:
@@ -280,16 +287,15 @@ class OpenAI(SyncAPIClient):
             _strict_response_validation=_strict_response_validation,
         )
 
-        if workload_identity is not None:
-            if x509_identity is not None:
-                self._workload_identity_auth = SyncX509WorkloadIdentityAuth(
-                    workload_identity=x509_identity, http_client=self._client, max_retries=max_retries
-                )
-            else:
-                self._workload_identity_auth = WorkloadIdentityAuth(
-                    workload_identity=workload_identity,
-                    _use_httpx2=is_httpx2_sync_client(self._client),
-                )
+        if x509_identity is not None:
+            self._workload_identity_auth = SyncX509WorkloadIdentityAuth(
+                workload_identity=x509_identity, http_client=self._client, max_retries=max_retries
+            )
+        elif subject_token_identity is not None:
+            self._workload_identity_auth = WorkloadIdentityAuth(
+                workload_identity=subject_token_identity,
+                _use_httpx2=is_httpx2_sync_client(self._client),
+            )
 
         self._default_stream_cls = Stream
 
@@ -470,29 +476,29 @@ class OpenAI(SyncAPIClient):
         retried: bool = False,
         **kwargs: Unpack[HttpxSendArgs],
     ) -> httpx2.Response:
-        used_workload_identity_auth = False
+        used_access_token: str | None = None
         request_is_replayable = False
 
         if self._workload_identity_auth is not None:
+            if self._workload_identity_auth._follow_redirects is not None:
+                kwargs["follow_redirects"] = self._workload_identity_auth._follow_redirects
             authorization = request.headers.get("Authorization")
             if authorization == f"Bearer {WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER}":
-                request.headers["Authorization"] = f"Bearer {self._workload_identity_auth.get_token()}"
-                used_workload_identity_auth = True
+                used_access_token = self._workload_identity_auth.get_token()
+                request.headers["Authorization"] = f"Bearer {used_access_token}"
                 request_is_replayable = self._workload_identity_auth._can_retry_request(request)
-                if self._workload_identity_auth._follow_redirects is not None:
-                    kwargs["follow_redirects"] = self._workload_identity_auth._follow_redirects
 
         response = super()._send_request(request, stream=stream, **kwargs)
         if (
             response.status_code == 401
             and self._workload_identity_auth is not None
-            and used_workload_identity_auth
+            and used_access_token is not None
             and not retried
             and request_is_replayable
         ):
             response.close()
             self._workload_identity_auth._prepare_retry_request(request)
-            self._workload_identity_auth.invalidate_token()
+            self._workload_identity_auth.invalidate_token(used_access_token)
             request.headers["Authorization"] = f"Bearer {self._workload_identity_auth.get_token()}"
             return self._send_with_auth_retry(request, stream=stream, retried=True, **kwargs)
 
@@ -733,7 +739,7 @@ class AsyncOpenAI(AsyncAPIClient):
     # client options
     api_key: str
     admin_api_key: str | None
-    workload_identity: WorkloadIdentity | None
+    workload_identity: WorkloadIdentity | X509WorkloadIdentity | None
     organization: str | None
     project: str | None
     webhook_secret: str | None
@@ -754,7 +760,7 @@ class AsyncOpenAI(AsyncAPIClient):
         *,
         api_key: str | Callable[[], Awaitable[str]] | None = None,
         admin_api_key: str | None = None,
-        workload_identity: WorkloadIdentity | None = None,
+        workload_identity: WorkloadIdentity | X509WorkloadIdentity | None = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -870,7 +876,14 @@ class AsyncOpenAI(AsyncAPIClient):
 
         self.websocket_base_url = websocket_base_url
 
-        x509_identity = workload_identity if is_x509_workload_identity(workload_identity) else None
+        if is_x509_workload_identity(workload_identity):
+            x509_identity = workload_identity
+            subject_token_identity = None
+        else:
+            x509_identity = None
+            subject_token_identity = (
+                workload_identity if workload_identity is not None and "provider" in workload_identity else None
+            )
         if provider_runtime is not None:
             base_url = provider_runtime.base_url
         elif base_url is None:
@@ -898,16 +911,15 @@ class AsyncOpenAI(AsyncAPIClient):
             _strict_response_validation=_strict_response_validation,
         )
 
-        if workload_identity is not None:
-            if x509_identity is not None:
-                self._workload_identity_auth = AsyncX509WorkloadIdentityAuth(
-                    workload_identity=x509_identity, http_client=self._client, max_retries=max_retries
-                )
-            else:
-                self._workload_identity_auth = WorkloadIdentityAuth(
-                    workload_identity=workload_identity,
-                    _use_httpx2=is_httpx2_async_client(self._client),
-                )
+        if x509_identity is not None:
+            self._workload_identity_auth = AsyncX509WorkloadIdentityAuth(
+                workload_identity=x509_identity, http_client=self._client, max_retries=max_retries
+            )
+        elif subject_token_identity is not None:
+            self._workload_identity_auth = WorkloadIdentityAuth(
+                workload_identity=subject_token_identity,
+                _use_httpx2=is_httpx2_async_client(self._client),
+            )
 
         self._default_stream_cls = AsyncStream
 
@@ -1088,29 +1100,29 @@ class AsyncOpenAI(AsyncAPIClient):
         retried: bool = False,
         **kwargs: Unpack[HttpxSendArgs],
     ) -> httpx2.Response:
-        used_workload_identity_auth = False
+        used_access_token: str | None = None
         request_is_replayable = False
 
         if self._workload_identity_auth is not None:
+            if self._workload_identity_auth._follow_redirects is not None:
+                kwargs["follow_redirects"] = self._workload_identity_auth._follow_redirects
             authorization = request.headers.get("Authorization")
             if authorization == f"Bearer {WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER}":
-                request.headers["Authorization"] = f"Bearer {await self._workload_identity_auth.get_token_async()}"
-                used_workload_identity_auth = True
+                used_access_token = await self._workload_identity_auth.get_token_async()
+                request.headers["Authorization"] = f"Bearer {used_access_token}"
                 request_is_replayable = self._workload_identity_auth._can_retry_request(request)
-                if self._workload_identity_auth._follow_redirects is not None:
-                    kwargs["follow_redirects"] = self._workload_identity_auth._follow_redirects
 
         response = await super()._send_request(request, stream=stream, **kwargs)
         if (
             response.status_code == 401
             and self._workload_identity_auth is not None
-            and used_workload_identity_auth
+            and used_access_token is not None
             and not retried
             and request_is_replayable
         ):
             await response.aclose()
             self._workload_identity_auth._prepare_retry_request(request)
-            self._workload_identity_auth.invalidate_token()
+            self._workload_identity_auth.invalidate_token(used_access_token)
             request.headers["Authorization"] = f"Bearer {await self._workload_identity_auth.get_token_async()}"
             return await self._send_with_auth_retry(request, stream=stream, retried=True, **kwargs)
 
