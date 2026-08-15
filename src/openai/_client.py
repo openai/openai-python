@@ -674,17 +674,21 @@ class OpenAI(SyncAPIClient):
                 "base_url": base_url,
             }
         else:
+            next_workload_identity = workload_identity if workload_identity is not None else self.workload_identity
+            if api_key is not None and workload_identity is None:
+                next_workload_identity = None
+            current_x509 = is_x509_workload_identity(self.workload_identity)
+            next_x509 = is_x509_workload_identity(next_workload_identity)
+            current_default_base_url = f"{MTLS_API_BASE_URL}/" if current_x509 else "https://api.openai.com/v1/"
             inherited_base_url = (
-                None
-                if is_x509_workload_identity(workload_identity) and str(self.base_url) == "https://api.openai.com/v1/"
-                else self.base_url
+                None if current_x509 != next_x509 and str(self.base_url) == current_default_base_url else self.base_url
             )
             auth_options = {
                 "api_key": api_key
                 if workload_identity is not None
                 else api_key or self._api_key_provider or self.api_key,
                 "admin_api_key": admin_api_key or self.admin_api_key,
-                "workload_identity": workload_identity or self.workload_identity,
+                "workload_identity": next_workload_identity,
                 "base_url": base_url or inherited_base_url,
             }
 
@@ -1317,17 +1321,21 @@ class AsyncOpenAI(AsyncAPIClient):
                 "base_url": base_url,
             }
         else:
+            next_workload_identity = workload_identity if workload_identity is not None else self.workload_identity
+            if api_key is not None and workload_identity is None:
+                next_workload_identity = None
+            current_x509 = is_x509_workload_identity(self.workload_identity)
+            next_x509 = is_x509_workload_identity(next_workload_identity)
+            current_default_base_url = f"{MTLS_API_BASE_URL}/" if current_x509 else "https://api.openai.com/v1/"
             inherited_base_url = (
-                None
-                if is_x509_workload_identity(workload_identity) and str(self.base_url) == "https://api.openai.com/v1/"
-                else self.base_url
+                None if current_x509 != next_x509 and str(self.base_url) == current_default_base_url else self.base_url
             )
             auth_options = {
                 "api_key": api_key
                 if workload_identity is not None
                 else api_key or self._api_key_provider or self.api_key,
                 "admin_api_key": admin_api_key or self.admin_api_key,
-                "workload_identity": workload_identity or self.workload_identity,
+                "workload_identity": next_workload_identity,
                 "base_url": base_url or inherited_base_url,
             }
 

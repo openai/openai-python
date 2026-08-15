@@ -169,6 +169,62 @@ async def test_async_copy_can_switch_from_api_key_to_x509_identity(method: str, 
     assert api_authorizations == ["Bearer switched-token"]
 
 
+@pytest.mark.parametrize("method", ["copy", "with_options"])
+@pytest.mark.parametrize("base_url", [None, "https://custom.example/v1"])
+def test_sync_copy_can_switch_from_x509_identity_to_api_key(method: str, base_url: str | None) -> None:
+    requests: list[httpx2.Request] = []
+
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        requests.append(request)
+        return httpx2.Response(200, request=request, json={"object": "list", "data": []})
+
+    http_client = httpx2.Client(transport=httpx2.MockTransport(handler), trust_env=False)
+    with OpenAI(workload_identity=_identity(), base_url=base_url, http_client=http_client, max_retries=0) as client:
+        copied = (
+            client.copy(api_key="replacement-api-key")
+            if method == "copy"
+            else client.with_options(api_key="replacement-api-key")
+        )
+        assert client.workload_identity == _identity()
+        assert copied.workload_identity is None
+        assert copied.api_key == "replacement-api-key"
+        assert str(copied.base_url) == f"{base_url or 'https://api.openai.com/v1'}/"
+        assert copied._client is http_client
+        assert copied.models.list().object == "list"
+
+    assert len(requests) == 1
+    assert requests[0].headers["Authorization"] == "Bearer replacement-api-key"
+
+
+@pytest.mark.parametrize("method", ["copy", "with_options"])
+@pytest.mark.parametrize("base_url", [None, "https://custom.example/v1"])
+async def test_async_copy_can_switch_from_x509_identity_to_api_key(method: str, base_url: str | None) -> None:
+    requests: list[httpx2.Request] = []
+
+    async def handler(request: httpx2.Request) -> httpx2.Response:
+        requests.append(request)
+        return httpx2.Response(200, request=request, json={"object": "list", "data": []})
+
+    http_client = httpx2.AsyncClient(transport=httpx2.MockTransport(handler), trust_env=False)
+    async with AsyncOpenAI(
+        workload_identity=_identity(), base_url=base_url, http_client=http_client, max_retries=0
+    ) as client:
+        copied = (
+            client.copy(api_key="replacement-api-key")
+            if method == "copy"
+            else client.with_options(api_key="replacement-api-key")
+        )
+        assert client.workload_identity == _identity()
+        assert copied.workload_identity is None
+        assert copied.api_key == "replacement-api-key"
+        assert str(copied.base_url) == f"{base_url or 'https://api.openai.com/v1'}/"
+        assert copied._client is http_client
+        assert (await copied.models.list()).object == "list"
+
+    assert len(requests) == 1
+    assert requests[0].headers["Authorization"] == "Bearer replacement-api-key"
+
+
 @pytest.mark.parametrize("authorization", [None, "Bearer caller-override"])
 def test_sync_x509_disables_redirects_without_placeholder_authorization(authorization: str | None) -> None:
     urls: list[str] = []
