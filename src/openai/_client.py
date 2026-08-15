@@ -596,7 +596,7 @@ class OpenAI(SyncAPIClient):
 
     @override
     def _custom_auth(self, security: SecurityOptions) -> httpx2.Auth | None:
-        if self._provider_runtime is not None:
+        if self._provider_runtime is not None or isinstance(self._workload_identity_auth, SyncX509WorkloadIdentityAuth):
             return httpx2.Auth()
 
         return super()._custom_auth(security)
@@ -674,11 +674,18 @@ class OpenAI(SyncAPIClient):
                 "base_url": base_url,
             }
         else:
+            inherited_base_url = (
+                None
+                if is_x509_workload_identity(workload_identity) and str(self.base_url) == "https://api.openai.com/v1/"
+                else self.base_url
+            )
             auth_options = {
-                "api_key": api_key or self._api_key_provider or self.api_key,
+                "api_key": api_key
+                if workload_identity is not None
+                else api_key or self._api_key_provider or self.api_key,
                 "admin_api_key": admin_api_key or self.admin_api_key,
                 "workload_identity": workload_identity or self.workload_identity,
-                "base_url": base_url or self.base_url,
+                "base_url": base_url or inherited_base_url,
             }
 
         return self.__class__(
@@ -1231,7 +1238,9 @@ class AsyncOpenAI(AsyncAPIClient):
     @property
     @override
     def custom_auth(self) -> httpx2.Auth | None:
-        if self._provider_runtime is not None:
+        if self._provider_runtime is not None or isinstance(
+            self._workload_identity_auth, AsyncX509WorkloadIdentityAuth
+        ):
             return httpx2.Auth()
 
         return super().custom_auth
@@ -1308,11 +1317,18 @@ class AsyncOpenAI(AsyncAPIClient):
                 "base_url": base_url,
             }
         else:
+            inherited_base_url = (
+                None
+                if is_x509_workload_identity(workload_identity) and str(self.base_url) == "https://api.openai.com/v1/"
+                else self.base_url
+            )
             auth_options = {
-                "api_key": api_key or self._api_key_provider or self.api_key,
+                "api_key": api_key
+                if workload_identity is not None
+                else api_key or self._api_key_provider or self.api_key,
                 "admin_api_key": admin_api_key or self.admin_api_key,
                 "workload_identity": workload_identity or self.workload_identity,
-                "base_url": base_url or self.base_url,
+                "base_url": base_url or inherited_base_url,
             }
 
         return self.__class__(

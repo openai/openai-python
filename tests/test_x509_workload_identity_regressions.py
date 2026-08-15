@@ -13,6 +13,7 @@ import pytest
 
 from openai import OpenAI, AsyncOpenAI, OpenAIError, APIStatusError
 from openai.auth import X509WorkloadIdentity, x509_workload_identity
+from openai._client import WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER
 from openai.auth._workload import _WorkloadIdentityAuth
 
 _TOKEN_URL = "https://mtls.auth.openai.com/oauth/token"
@@ -112,6 +113,62 @@ async def test_async_copy_accepts_an_explicit_x509_identity(method: str) -> None
         assert (await copied.models.list()).object == "list"
 
 
+@pytest.mark.parametrize("method", ["copy", "with_options"])
+@pytest.mark.parametrize("base_url", [None, "https://custom.example/v1"])
+def test_sync_copy_can_switch_from_api_key_to_x509_identity(method: str, base_url: str | None) -> None:
+    api_authorizations: list[str] = []
+
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        if str(request.url) == _TOKEN_URL:
+            return httpx2.Response(200, request=request, json={"access_token": "switched-token", "expires_in": 3600})
+        api_authorizations.append(request.headers["Authorization"])
+        return httpx2.Response(200, request=request, json={"object": "list", "data": []})
+
+    http_client = httpx2.Client(transport=httpx2.MockTransport(handler), trust_env=False)
+    with OpenAI(api_key="original-api-key", base_url=base_url, http_client=http_client, max_retries=0) as client:
+        copied = (
+            client.copy(workload_identity=_identity())
+            if method == "copy"
+            else client.with_options(workload_identity=_identity())
+        )
+        assert client.api_key == "original-api-key"
+        assert copied.api_key == WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER
+        assert str(copied.base_url) == f"{base_url or 'https://mtls.api.openai.com/v1'}/"
+        assert copied._client is http_client
+        assert copied.models.list().object == "list"
+
+    assert api_authorizations == ["Bearer switched-token"]
+
+
+@pytest.mark.parametrize("method", ["copy", "with_options"])
+@pytest.mark.parametrize("base_url", [None, "https://custom.example/v1"])
+async def test_async_copy_can_switch_from_api_key_to_x509_identity(method: str, base_url: str | None) -> None:
+    api_authorizations: list[str] = []
+
+    async def handler(request: httpx2.Request) -> httpx2.Response:
+        if str(request.url) == _TOKEN_URL:
+            return httpx2.Response(200, request=request, json={"access_token": "switched-token", "expires_in": 3600})
+        api_authorizations.append(request.headers["Authorization"])
+        return httpx2.Response(200, request=request, json={"object": "list", "data": []})
+
+    http_client = httpx2.AsyncClient(transport=httpx2.MockTransport(handler), trust_env=False)
+    async with AsyncOpenAI(
+        api_key="original-api-key", base_url=base_url, http_client=http_client, max_retries=0
+    ) as client:
+        copied = (
+            client.copy(workload_identity=_identity())
+            if method == "copy"
+            else client.with_options(workload_identity=_identity())
+        )
+        assert client.api_key == "original-api-key"
+        assert copied.api_key == WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER
+        assert str(copied.base_url) == f"{base_url or 'https://mtls.api.openai.com/v1'}/"
+        assert copied._client is http_client
+        assert (await copied.models.list()).object == "list"
+
+    assert api_authorizations == ["Bearer switched-token"]
+
+
 @pytest.mark.parametrize("authorization", [None, "Bearer caller-override"])
 def test_sync_x509_disables_redirects_without_placeholder_authorization(authorization: str | None) -> None:
     urls: list[str] = []
@@ -150,11 +207,13 @@ async def test_async_x509_disables_redirects_without_placeholder_authorization(a
 
 def test_sync_x509_exchange_does_not_inherit_caller_http_auth() -> None:
     exchange_authorizations: list[str | None] = []
+    api_authorizations: list[str | None] = []
 
     def handler(request: httpx2.Request) -> httpx2.Response:
         if str(request.url) == _TOKEN_URL:
             exchange_authorizations.append(request.headers.get("Authorization"))
             return httpx2.Response(200, request=request, json={"access_token": "safe-token", "expires_in": 3600})
+        api_authorizations.append(request.headers.get("Authorization"))
         return httpx2.Response(200, request=request, json={"object": "list", "data": []})
 
     http_client = httpx2.Client(
@@ -166,15 +225,18 @@ def test_sync_x509_exchange_does_not_inherit_caller_http_auth() -> None:
         assert client.models.list().object == "list"
 
     assert exchange_authorizations == [None]
+    assert api_authorizations == ["Bearer safe-token"]
 
 
 async def test_async_x509_exchange_does_not_inherit_caller_http_auth() -> None:
     exchange_authorizations: list[str | None] = []
+    api_authorizations: list[str | None] = []
 
     async def handler(request: httpx2.Request) -> httpx2.Response:
         if str(request.url) == _TOKEN_URL:
             exchange_authorizations.append(request.headers.get("Authorization"))
             return httpx2.Response(200, request=request, json={"access_token": "safe-token", "expires_in": 3600})
+        api_authorizations.append(request.headers.get("Authorization"))
         return httpx2.Response(200, request=request, json={"object": "list", "data": []})
 
     http_client = httpx2.AsyncClient(
@@ -186,6 +248,7 @@ async def test_async_x509_exchange_does_not_inherit_caller_http_auth() -> None:
         assert (await client.models.list()).object == "list"
 
     assert exchange_authorizations == [None]
+    assert api_authorizations == ["Bearer safe-token"]
 
 
 @pytest.mark.parametrize("response_body", [[], "not-an-object", 42, True])
@@ -273,6 +336,74 @@ async def test_async_x509_invalidates_rejected_token_without_replaying_one_shot_
     assert uploaded.id == "file_123"
     assert exchange_calls == 2
     assert api_authorizations == ["Bearer token-1", "Bearer token-2"]
+
+
+def test_sync_x509_rewinds_seekable_multipart_upload_to_its_original_position() -> None:
+    upload = io.BytesIO(b"prefix-upload-payload")
+    upload.seek(len(b"prefix-"))
+    initial_position = upload.tell()
+    positions: list[int] = []
+    bodies: list[bytes] = []
+    exchange_calls = 0
+
+    class ConsumingTransport(httpx2.BaseTransport):
+        @override
+        def handle_request(self, request: httpx2.Request) -> httpx2.Response:
+            nonlocal exchange_calls
+            if str(request.url) == _TOKEN_URL:
+                exchange_calls += 1
+                return httpx2.Response(
+                    200, request=request, json={"access_token": f"token-{exchange_calls}", "expires_in": 3600}
+                )
+
+            positions.append(upload.tell())
+            bodies.append(request.read())
+            if exchange_calls == 1:
+                return httpx2.Response(401, request=request, json={"error": {"message": "unauthorized"}})
+            return httpx2.Response(200, request=request, json={"id": "file_123", "object": "file"})
+
+    http_client = httpx2.Client(transport=ConsumingTransport(), trust_env=False)
+    with OpenAI(workload_identity=_identity(), http_client=http_client, max_retries=0) as client:
+        uploaded = client.files.create(file=("upload.txt", upload), purpose="assistants")
+
+    assert uploaded.id == "file_123"
+    assert positions == [initial_position, initial_position]
+    assert len(bodies) == 2 and bodies[0] == bodies[1]
+    assert b"upload-payload" in bodies[0]
+
+
+async def test_async_x509_rewinds_seekable_multipart_upload_to_its_original_position() -> None:
+    upload = io.BytesIO(b"prefix-upload-payload")
+    upload.seek(len(b"prefix-"))
+    initial_position = upload.tell()
+    positions: list[int] = []
+    bodies: list[bytes] = []
+    exchange_calls = 0
+
+    class ConsumingTransport(httpx2.AsyncBaseTransport):
+        @override
+        async def handle_async_request(self, request: httpx2.Request) -> httpx2.Response:
+            nonlocal exchange_calls
+            if str(request.url) == _TOKEN_URL:
+                exchange_calls += 1
+                return httpx2.Response(
+                    200, request=request, json={"access_token": f"token-{exchange_calls}", "expires_in": 3600}
+                )
+
+            positions.append(upload.tell())
+            bodies.append(await request.aread())
+            if exchange_calls == 1:
+                return httpx2.Response(401, request=request, json={"error": {"message": "unauthorized"}})
+            return httpx2.Response(200, request=request, json={"id": "file_123", "object": "file"})
+
+    http_client = httpx2.AsyncClient(transport=ConsumingTransport(), trust_env=False)
+    async with AsyncOpenAI(workload_identity=_identity(), http_client=http_client, max_retries=0) as client:
+        uploaded = await client.files.create(file=("upload.txt", upload), purpose="assistants")
+
+    assert uploaded.id == "file_123"
+    assert positions == [initial_position, initial_position]
+    assert len(bodies) == 2 and bodies[0] == bodies[1]
+    assert b"upload-payload" in bodies[0]
 
 
 def test_sync_x509_invalidates_a_rejected_replay_token() -> None:

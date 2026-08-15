@@ -25,6 +25,7 @@ _X509_TOKEN_EXCHANGE_URL = "https://mtls.auth.openai.com/oauth/token"
 _X509_SUBJECT_TOKEN_TYPE = "urn:openai:params:oauth:token-type:x509"
 _MAX_EXCHANGE_RETRIES = 2
 _REPLAY_POSITION_EXTENSION = "openai_x509_replay_position"
+_REPLAY_FILE_POSITIONS_EXTENSION = "openai_x509_replay_file_positions"
 _ALLOWED_IDENTITY_FIELDS = {"type", "identity_provider_id", "service_account_id", "refresh_buffer_seconds"}
 
 
@@ -94,13 +95,21 @@ def _is_replayable_request(request: httpx2.Request) -> bool:
     stream = request.stream
     fields = getattr(stream, "fields", None)
     if isinstance(fields, list):
+        file_positions: list[tuple[object, int]] = []
         for field in cast(list[object], fields):
             file = getattr(field, "file", None)
             if file is None or isinstance(file, (str, bytes)):
                 continue
             seekable = getattr(file, "seekable", None)
-            if not callable(seekable) or not seekable():
+            seek = getattr(file, "seek", None)
+            tell = getattr(file, "tell", None)
+            if not callable(seekable) or not seekable() or not callable(seek) or not callable(tell):
                 return False
+            position = tell()
+            if not isinstance(position, int):
+                return False
+            file_positions.append((file, position))
+        request.extensions[_REPLAY_FILE_POSITIONS_EXTENSION] = file_positions
         return True
 
     source = getattr(stream, "_stream", stream)
@@ -165,6 +174,14 @@ class _X509WorkloadIdentityAuth(_WorkloadIdentityAuth[X509WorkloadIdentity]):
 
     @override
     def _prepare_retry_request(self, request: httpx2.Request) -> None:
+        file_positions = request.extensions.get(_REPLAY_FILE_POSITIONS_EXTENSION)
+        if isinstance(file_positions, list):
+            for file, file_position in cast(list[tuple[object, int]], file_positions):
+                seek = getattr(file, "seek", None)
+                if callable(seek):
+                    seek(file_position)
+            return
+
         position = request.extensions.get(_REPLAY_POSITION_EXTENSION)
         if not isinstance(position, int):
             return
