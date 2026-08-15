@@ -4,7 +4,7 @@ import time
 import threading
 from typing import Any, Callable, TypedDict, cast
 from pathlib import Path
-from typing_extensions import Literal, NotRequired
+from typing_extensions import Literal, TypeAlias, NotRequired
 
 import httpx2
 
@@ -27,7 +27,7 @@ class SubjectTokenProvider(TypedDict):
     get_token: Callable[[], str]
 
 
-class WorkloadIdentity(TypedDict):
+class SubjectTokenWorkloadIdentity(TypedDict):
     """Identity provider resource id in WIFAPI."""
 
     identity_provider_id: str
@@ -40,6 +40,35 @@ class WorkloadIdentity(TypedDict):
 
     """Optional buffer time in seconds to refresh the OpenAI token before it expires. Defaults to 1200 seconds (20 minutes)."""
     refresh_buffer_seconds: NotRequired[float]
+
+
+class X509WorkloadIdentity(TypedDict):
+    """Authenticate with the client certificate configured on the HTTP transport."""
+
+    type: Literal["x509"]
+    identity_provider_id: str
+    service_account_id: str
+    refresh_buffer_seconds: NotRequired[float]
+
+
+WorkloadIdentity: TypeAlias = SubjectTokenWorkloadIdentity | X509WorkloadIdentity
+
+
+def x509_workload_identity(
+    *,
+    identity_provider_id: str,
+    service_account_id: str,
+    refresh_buffer_seconds: float | None = None,
+) -> X509WorkloadIdentity:
+    """Configure X.509 workload identity without handling certificate material."""
+    identity: X509WorkloadIdentity = {
+        "type": "x509",
+        "identity_provider_id": identity_provider_id,
+        "service_account_id": service_account_id,
+    }
+    if refresh_buffer_seconds is not None:
+        identity["refresh_buffer_seconds"] = refresh_buffer_seconds
+    return identity
 
 
 def k8s_service_account_token_provider(
@@ -182,6 +211,7 @@ class WorkloadIdentityAuth:
         self.workload_identity = workload_identity
         self.token_exchange_url = token_exchange_url
         self._use_httpx2 = _use_httpx2
+        self._follow_redirects: bool | None = None
 
         self._cached_token: str | None = None
         self._cached_token_expires_at_monotonic: float | None = None
@@ -230,6 +260,9 @@ class WorkloadIdentityAuth:
 
     def _perform_refresh(self) -> None:
         token_data = self._fetch_token_from_exchange()
+        self._store_token(token_data)
+
+    def _store_token(self, token_data: dict[str, Any]) -> None:
         now = time.monotonic()
         expires_in = token_data["expires_in"]
 
@@ -241,7 +274,8 @@ class WorkloadIdentityAuth:
     def _fetch_token_from_exchange(self) -> dict[str, Any]:
         subject_token = self._get_subject_token()
 
-        token_type = self.workload_identity["provider"]["token_type"]
+        identity = cast(SubjectTokenWorkloadIdentity, self.workload_identity)
+        token_type = identity["provider"]["token_type"]
         subject_token_type = SUBJECT_TOKEN_TYPES.get(token_type)
         if subject_token_type is None:
             raise OpenAIError(
@@ -282,16 +316,19 @@ class WorkloadIdentityAuth:
             expires_in = body.get("expires_in")
             if not isinstance(access_token, str) or not access_token:
                 raise OpenAIError("Token exchange response did not include a valid access_token")
-            if not isinstance(expires_in, (int, float)):
-                raise OpenAIError("Token exchange response did not include a valid expires_in")
-            return {"access_token": access_token, "expires_in": float(expires_in)}
+            return {"access_token": access_token, "expires_in": self._validate_expires_in(expires_in)}
 
         raise OpenAIError(
             f"Token exchange failed with status {response.status_code}",
         )
 
+    def _validate_expires_in(self, expires_in: object) -> float:
+        if not isinstance(expires_in, (int, float)):
+            raise OpenAIError("Token exchange response did not include a valid expires_in")
+        return float(expires_in)
+
     def _get_subject_token(self) -> str:
-        provider = self.workload_identity["provider"]
+        provider = cast(SubjectTokenWorkloadIdentity, self.workload_identity)["provider"]
         subject_token = provider["get_token"]()
         if not subject_token:
             raise OpenAIError("The workload identity provider returned an empty subject token")
@@ -314,3 +351,12 @@ class WorkloadIdentityAuth:
         configured_buffer = self.workload_identity.get("refresh_buffer_seconds", DEFAULT_REFRESH_BUFFER_SECONDS)
         effective_buffer = min(configured_buffer, expires_in / 2)
         return max(expires_in - effective_buffer, 0.0)
+
+    def _can_retry_request(self, request: httpx2.Request) -> bool:
+        """Preserve the established subject-token request retry behavior."""
+        del request
+        return True
+
+    def _prepare_retry_request(self, request: httpx2.Request) -> None:
+        """Preserve the established subject-token request retry behavior."""
+        del request
