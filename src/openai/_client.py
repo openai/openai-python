@@ -119,7 +119,7 @@ class OpenAI(SyncAPIClient):
     organization: str | None
     project: str | None
     webhook_secret: str | None
-    _workload_identity_auth: WorkloadIdentityAuth | None
+    _workload_identity_auth: WorkloadIdentityAuth | SyncX509WorkloadIdentityAuth | None
     _provider: _Provider | None
     _provider_runtime: _ProviderRuntime | None
 
@@ -743,7 +743,7 @@ class AsyncOpenAI(AsyncAPIClient):
     organization: str | None
     project: str | None
     webhook_secret: str | None
-    _workload_identity_auth: WorkloadIdentityAuth | None
+    _workload_identity_auth: WorkloadIdentityAuth | AsyncX509WorkloadIdentityAuth | None
     _provider: _Provider | None
     _provider_runtime: _ProviderRuntime | None
 

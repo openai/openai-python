@@ -10,6 +10,7 @@ import pytest
 
 from openai import OpenAI, AsyncOpenAI, OpenAIError
 from openai.auth import X509WorkloadIdentity, x509_workload_identity
+from openai.auth._workload import _WorkloadIdentityAuth
 
 _TOKEN_URL = "https://mtls.auth.openai.com/oauth/token"
 _API_URL = "https://mtls.api.openai.com/v1/models"
@@ -17,6 +18,22 @@ _API_URL = "https://mtls.api.openai.com/v1/models"
 
 def _identity() -> X509WorkloadIdentity:
     return x509_workload_identity(identity_provider_id="idp_123", service_account_id="svc_acct_123")
+
+
+@pytest.mark.parametrize("client_type", [OpenAI, AsyncOpenAI])
+def test_x509_auth_initializes_its_typed_common_superclass(client_type: type[OpenAI] | type[AsyncOpenAI]) -> None:
+    client = client_type(workload_identity=_identity())
+    auth = client._workload_identity_auth
+
+    assert isinstance(auth, _WorkloadIdentityAuth)
+    assert auth.workload_identity == _identity()
+    assert auth._cached_token is None
+    assert auth._follow_redirects is False
+
+    if isinstance(client, OpenAI):
+        client.close()
+    else:
+        anyio.run(client.close)
 
 
 @pytest.mark.parametrize("authorization", [None, "Bearer caller-override"])

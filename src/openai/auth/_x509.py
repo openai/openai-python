@@ -14,8 +14,8 @@ from .._httpx2 import timeout_exceptions, _loaded_legacy_httpx
 from ._workload import (
     TOKEN_EXCHANGE_GRANT_TYPE,
     WorkloadIdentity,
-    WorkloadIdentityAuth,
     X509WorkloadIdentity,
+    _WorkloadIdentityAuth,
 )
 from .._constants import MAX_RETRY_DELAY, INITIAL_RETRY_DELAY, MAX_RETRY_AFTER_DELAY
 from .._exceptions import OAuthError, OpenAIError, APITimeoutError, APIConnectionError
@@ -130,10 +130,10 @@ def _raise_transport_error(error: Exception) -> NoReturn:
     raise APIConnectionError(request=request) from error
 
 
-class _X509WorkloadIdentityAuth(WorkloadIdentityAuth):
+class _X509WorkloadIdentityAuth(_WorkloadIdentityAuth[X509WorkloadIdentity]):
     def __init__(self, *, workload_identity: X509WorkloadIdentity, max_retries: int) -> None:
         _validate_identity(workload_identity)
-        self._initialize_token_cache(workload_identity=workload_identity, token_exchange_url=_X509_TOKEN_EXCHANGE_URL)
+        super().__init__(workload_identity=workload_identity, token_exchange_url=_X509_TOKEN_EXCHANGE_URL)
         self._max_exchange_retries = min(max(max_retries, 0), _MAX_EXCHANGE_RETRIES)
         self._follow_redirects = False
 
@@ -183,12 +183,11 @@ class SyncX509WorkloadIdentityAuth(_X509WorkloadIdentityAuth):
 
     @override
     def _fetch_token_from_exchange(self) -> dict[str, Any]:
-        identity = cast(X509WorkloadIdentity, self.workload_identity)
         for attempt in range(self._max_exchange_retries + 1):
             try:
                 response = self._http_client.post(
                     _X509_TOKEN_EXCHANGE_URL,
-                    json=_exchange_payload(identity),
+                    json=_exchange_payload(self.workload_identity),
                     timeout=10.0,
                     follow_redirects=False,
                 )
@@ -228,12 +227,11 @@ class AsyncX509WorkloadIdentityAuth(_X509WorkloadIdentityAuth):
                 return cast(str, self._cached_token)
 
     async def _fetch_token_from_exchange_async(self) -> dict[str, Any]:
-        identity = cast(X509WorkloadIdentity, self.workload_identity)
         for attempt in range(self._max_exchange_retries + 1):
             try:
                 response = await self._http_client.post(
                     _X509_TOKEN_EXCHANGE_URL,
-                    json=_exchange_payload(identity),
+                    json=_exchange_payload(self.workload_identity),
                     timeout=10.0,
                     follow_redirects=False,
                 )
