@@ -47,9 +47,9 @@ class Users(SyncAPIResource):
     @cached_property
     def with_streaming_response(self) -> UsersWithStreamingResponse:
         """
-        An alternative to `.with_raw_response` that doesn't eagerly read the response body.
+        An alternative to `.with_raw_response` that hooks into the response stream.
 
-        For more information, see https://www.github.com/openai/openai-python#with_streaming_response
+        For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
         """
         return UsersWithStreamingResponse(self)
 
@@ -194,7 +194,7 @@ class Users(SyncAPIResource):
                 query=maybe_transform(
                     {
                         "after": after,
-                        "emails": emails,
+                        "emails": emails if not isinstance(emails, (list, tuple)) else ",".join(emails),
                         "limit": limit,
                     },
                     user_list_params.UserListParams,
@@ -260,9 +260,9 @@ class AsyncUsers(AsyncAPIResource):
     @cached_property
     def with_streaming_response(self) -> AsyncUsersWithStreamingResponse:
         """
-        An alternative to `.with_raw_response` that doesn't eagerly read the response body.
+        An alternative to `.with_raw_response` that hooks into the response stream.
 
-        For more information, see https://www.github.com/openai/openai-python#with_streaming_response
+        For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
         """
         return AsyncUsersWithStreamingResponse(self)
 
@@ -373,7 +373,7 @@ class AsyncUsers(AsyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> AsyncPaginator[OrganizationUser, AsyncConversationCursorPage[OrganizationUser]]:
+    ) -> AsyncConversationCursorPage[OrganizationUser]:
         """
         Lists all of the users in the organization.
 
@@ -407,7 +407,7 @@ class AsyncUsers(AsyncAPIResource):
                 query=maybe_transform(
                     {
                         "after": after,
-                        "emails": emails,
+                        "emails": emails if not isinstance(emails, (list, tuple)) else ",".join(emails),
                         "limit": limit,
                     },
                     user_list_params.UserListParams,
@@ -481,16 +481,16 @@ class AsyncUsersWithRawResponse:
     def __init__(self, users: AsyncUsers) -> None:
         self._users = users
 
-        self.retrieve = _legacy_response.async_to_raw_response_wrapper(
+        self.retrieve = async_to_streamed_response_wrapper(
             users.retrieve,
         )
-        self.update = _legacy_response.async_to_raw_response_wrapper(
+        self.update = async_to_streamed_response_wrapper(
             users.update,
         )
-        self.list = _legacy_response.async_to_raw_response_wrapper(
+        self.list = async_to_streamed_response_wrapper(
             users.list,
         )
-        self.delete = _legacy_response.async_to_raw_response_wrapper(
+        self.delete = async_to_streamed_response_wrapper(
             users.delete,
         )
 
