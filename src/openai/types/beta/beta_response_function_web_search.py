@@ -86,10 +86,11 @@ class BetaResponseFunctionWebSearch(BaseModel):
     id: str
     """The unique ID of the web search tool call."""
 
-    action: Action
+    action: Optional[Action] = None
     """
     An object describing the specific action taken in this web search call. Includes
-    details on how the model used the web (search, open_page, find_in_page).
+    details on how the model used the web (search, open_page, find_in_page). May be
+    None when the search completed without a recorded action (e.g. cached results).
     """
 
     status: Literal["in_progress", "searching", "completed", "failed"]
