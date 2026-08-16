@@ -398,7 +398,8 @@ async def test_dictionary_items(use_async: bool) -> None:
 
 
 class BareDictParam(TypedDict):
-    metadata: dict
+    # the bare `dict` is the point of the regression: it must survive as-is
+    metadata: dict  # pyright: ignore[reportMissingTypeArgument]
 
 
 @parametrize
