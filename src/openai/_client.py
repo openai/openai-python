@@ -94,6 +94,15 @@ __all__ = ["Timeout", "Transport", "ProxiesTypes", "RequestOptions", "OpenAI", "
 
 WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER = "workload-identity-auth"
 
+_PROXY_ENV_VARS = ("HTTP_PROXY", "HTTPS_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "no_proxy")
+
+
+def _sanitize_proxy_env_vars() -> None:
+    for key in _PROXY_ENV_VARS:
+        val = os.environ.get(key)
+        if val is not None and "\n" in val:
+            os.environ[key] = ",".join(p.strip() for p in val.splitlines() if p.strip())
+
 
 def _has_header(headers: Headers, header: str) -> bool:
     header = header.lower()
@@ -262,6 +271,7 @@ class OpenAI(SyncAPIClient):
                     parsed[line[:colon].strip()] = line[colon + 1 :].strip()
             default_headers = {**parsed, **(default_headers if is_mapping_t(default_headers) else {})}
 
+        _sanitize_proxy_env_vars()
         super().__init__(
             version=__version__,
             base_url=base_url,
@@ -868,6 +878,7 @@ class AsyncOpenAI(AsyncAPIClient):
                     parsed[line[:colon].strip()] = line[colon + 1 :].strip()
             default_headers = {**parsed, **(default_headers if is_mapping_t(default_headers) else {})}
 
+        _sanitize_proxy_env_vars()
         super().__init__(
             version=__version__,
             base_url=base_url,
