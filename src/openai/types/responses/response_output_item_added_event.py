@@ -1,5 +1,6 @@
 # File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
+from typing import Optional
 from typing_extensions import Literal
 
 from ..._models import BaseModel
@@ -11,7 +12,7 @@ __all__ = ["ResponseOutputItemAddedEvent"]
 class ResponseOutputItemAddedEvent(BaseModel):
     """Emitted when a new output item is added."""
 
-    item: ResponseOutputItem
+    item: Optional[ResponseOutputItem] = None
     """The output item that was added.
 
     For reasoning items, `encrypted_content` may be incomplete while the item is in
