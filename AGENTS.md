@@ -14,8 +14,10 @@ explicitly requires it.
   `OPENAI_API_KEY`, `OPENAI_ADMIN_KEY`, `OPENAI_WEBHOOK_SECRET`, and other
   credentials from the environment; use clearly fake examples and fixtures.
 - Redact credentials, `Authorization` and `api-key` headers, customer data, and
-  request or response bodies from logs, exceptions, snapshots, and test output.
-  Preserve existing sensitive-header filtering, including debug logging.
+  sensitive request or response bodies from logs, exceptions, snapshots, and
+  test output. Clearly fake or sanitized fixtures and safe `APIError.body`
+  diagnostics may remain. Preserve existing sensitive-header filtering,
+  including debug logging.
 - Review direct and transitive dependency changes in `pyproject.toml`, optional
   extras, `requirements.lock`, `requirements-dev.lock`, and `uv.lock`. Check
   package provenance, build backends, and install scripts before accepting or
