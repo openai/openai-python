@@ -43,8 +43,8 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
-          python -c 'import pathlib, tomllib; project = tomllib.loads(pathlib.Path("pyproject.toml").read_text()); assert project["dependency-groups"]["dev"] == project["tool"]["rye"]["dev-dependencies"], "Keep uv and Rye development dependencies synchronized"'
-          python -c 'import pathlib, re, tomllib; project = tomllib.loads(pathlib.Path("pyproject.toml").read_text()); marker = re.search(r"(?m)^name = \"openai\"\nversion = \"([^\"]+)\" # x-release-please-version$", pathlib.Path("uv.lock").read_text()); assert marker and marker.group(1) == project["project"]["version"], "Preserve the uv.lock release-please marker and project version"'
+          uv run --no-project --python '>=3.11' python -c 'import pathlib, tomllib; project = tomllib.loads(pathlib.Path("pyproject.toml").read_text()); assert project["dependency-groups"]["dev"] == project["tool"]["rye"]["dev-dependencies"], "Keep uv and Rye development dependencies synchronized"'
+          uv run --no-project --python '>=3.11' python -c 'import pathlib, re, tomllib; project = tomllib.loads(pathlib.Path("pyproject.toml").read_text()); marker = re.search(r"(?m)^name = \"openai\"\nversion = \"([^\"]+)\" # x-release-please-version$", pathlib.Path("uv.lock").read_text()); assert marker and marker.group(1) == project["project"]["version"], "Preserve the uv.lock release-please marker and project version"'
           uv lock --check
           rye lock --all-features
           git diff --exit-code -- requirements.lock requirements-dev.lock
