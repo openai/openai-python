@@ -7,7 +7,7 @@ from typing_extensions import Self, override
 
 import httpx2
 
-from ..auth import WorkloadIdentity
+from ..auth import WorkloadIdentity, X509WorkloadIdentity
 from .._types import NOT_GIVEN, Omit, Query, Headers, Timeout, NotGiven
 from .._utils import is_given, is_mapping
 from .._client import OpenAI, AsyncOpenAI
@@ -16,6 +16,7 @@ from .._httpx2 import normalize_httpx_url
 from .._models import SecurityOptions, FinalRequestOptions
 from .._provider import _Provider
 from .._streaming import Stream, AsyncStream
+from ..auth._x509 import is_x509_workload_identity
 from .._exceptions import OpenAIError
 from .._base_client import DEFAULT_MAX_RETRIES, BaseClient
 
@@ -175,7 +176,7 @@ class AzureOpenAI(BaseAzureClient[httpx2.Client, Stream[Any]], OpenAI):
         api_key: str | Callable[[], str] | None = None,
         admin_api_key: str | None = None,
         # workload_identity is not functional in the Azure client
-        workload_identity: WorkloadIdentity | None = None,  # noqa: ARG002
+        workload_identity: WorkloadIdentity | X509WorkloadIdentity | None = None,
         azure_ad_token: str | None = None,
         azure_ad_token_provider: AzureADTokenProvider | None = None,
         organization: str | None = None,
@@ -211,6 +212,9 @@ class AzureOpenAI(BaseAzureClient[httpx2.Client, Stream[Any]], OpenAI):
             azure_deployment: A model deployment, if given with `azure_endpoint`, sets the base client URL to include `/deployments/{azure_deployment}`.
                 Not supported with Assistants APIs.
         """
+        if is_x509_workload_identity(workload_identity):
+            raise OpenAIError("X.509 workload identity is not supported by Azure clients")
+
         if api_key is None:
             api_key = os.environ.get("AZURE_OPENAI_API_KEY")
 
@@ -284,7 +288,7 @@ class AzureOpenAI(BaseAzureClient[httpx2.Client, Stream[Any]], OpenAI):
         *,
         api_key: str | Callable[[], str] | None = None,
         admin_api_key: str | None = None,
-        workload_identity: WorkloadIdentity | None = None,
+        workload_identity: WorkloadIdentity | X509WorkloadIdentity | None = None,
         provider: _Provider | None | NotGiven = NOT_GIVEN,
         organization: str | None = None,
         project: str | None = None,
@@ -309,6 +313,8 @@ class AzureOpenAI(BaseAzureClient[httpx2.Client, Stream[Any]], OpenAI):
         """
         if not isinstance(provider, NotGiven):
             raise OpenAIError("Configure `provider` on `OpenAI`, not on `AzureOpenAI.with_options()`.")
+        if is_x509_workload_identity(workload_identity):
+            raise OpenAIError("X.509 workload identity is not supported by Azure clients")
 
         return super().copy(
             api_key=api_key,
@@ -499,7 +505,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx2.AsyncClient, AsyncStream[Any]], As
         api_key: str | Callable[[], Awaitable[str]] | None = None,
         admin_api_key: str | None = None,
         # workload_identity is not functional in the Azure client
-        workload_identity: WorkloadIdentity | None = None,  # noqa: ARG002
+        workload_identity: WorkloadIdentity | X509WorkloadIdentity | None = None,
         azure_ad_token: str | None = None,
         azure_ad_token_provider: AsyncAzureADTokenProvider | None = None,
         organization: str | None = None,
@@ -535,6 +541,9 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx2.AsyncClient, AsyncStream[Any]], As
             azure_deployment: A model deployment, if given with `azure_endpoint`, sets the base client URL to include `/deployments/{azure_deployment}`.
                 Not supported with Assistants APIs.
         """
+        if is_x509_workload_identity(workload_identity):
+            raise OpenAIError("X.509 workload identity is not supported by Azure clients")
+
         if api_key is None:
             api_key = os.environ.get("AZURE_OPENAI_API_KEY")
 
@@ -608,7 +617,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx2.AsyncClient, AsyncStream[Any]], As
         *,
         api_key: str | Callable[[], Awaitable[str]] | None = None,
         admin_api_key: str | None = None,
-        workload_identity: WorkloadIdentity | None = None,
+        workload_identity: WorkloadIdentity | X509WorkloadIdentity | None = None,
         provider: _Provider | None | NotGiven = NOT_GIVEN,
         organization: str | None = None,
         project: str | None = None,
@@ -633,6 +642,8 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx2.AsyncClient, AsyncStream[Any]], As
         """
         if not isinstance(provider, NotGiven):
             raise OpenAIError("Configure `provider` on `AsyncOpenAI`, not on `AsyncAzureOpenAI.with_options()`.")
+        if is_x509_workload_identity(workload_identity):
+            raise OpenAIError("X.509 workload identity is not supported by Azure clients")
 
         return super().copy(
             api_key=api_key,
