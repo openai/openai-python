@@ -1,10 +1,10 @@
 # File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
-from typing import Union, Optional
-from typing_extensions import Annotated, TypeAlias
+from typing import Dict, Union, Optional
+from typing_extensions import Literal, Annotated, TypeAlias
 
 from ..._utils import PropertyInfo
-from .beta_response_error_event import BetaResponseErrorEvent
+from ..._models import BaseModel
 from .beta_response_failed_event import BetaResponseFailedEvent
 from .beta_response_queued_event import BetaResponseQueuedEvent
 from .beta_response_created_event import BetaResponseCreatedEvent
@@ -75,7 +75,6 @@ __all__ = [
     "BetaResponseContentPartWsAdded",
     "BetaResponseContentPartWsDone",
     "BetaResponseWsCreated",
-    "BetaResponseWsError",
     "BetaResponseFileSearchCallWsCompleted",
     "BetaResponseFileSearchCallInWsProgress",
     "BetaResponseFileSearchCallWsSearching",
@@ -115,6 +114,9 @@ __all__ = [
     "BetaResponseWsQueued",
     "BetaResponseCustomToolCallInputWsDelta",
     "BetaResponseCustomToolCallInputWsDone",
+    "BetaResponseWsError",
+    "BetaResponseWsErrorError",
+    "BetaResponseWsErrorAgent",
 ]
 
 
@@ -252,17 +254,6 @@ class BetaResponseContentPartWsDone(BetaResponseContentPartDoneEvent):
 
 class BetaResponseWsCreated(BetaResponseCreatedEvent):
     """An event that is emitted when a response is created."""
-
-    stream_id: Optional[str] = None
-    """The WebSocket lane that emitted this event.
-
-    This field is present when the originating `response.create` event supplied a
-    `stream_id`.
-    """
-
-
-class BetaResponseWsError(BetaResponseErrorEvent):
-    """Emitted when an error occurs."""
 
     stream_id: Optional[str] = None
     """The WebSocket lane that emitted this event.
@@ -709,6 +700,58 @@ class BetaResponseCustomToolCallInputWsDone(BetaResponseCustomToolCallInputDoneE
     """
 
 
+class BetaResponseWsErrorError(BaseModel):
+    """Details about the error."""
+
+    code: Optional[str] = None
+    """The error code that was emitted, if any."""
+
+    message: str
+    """The human-readable error message that was emitted."""
+
+    param: Optional[str] = None
+    """The parameter name that was associated with the error, if any."""
+
+    type: str
+    """The error type that was emitted."""
+
+    headers: Optional[Dict[str, str]] = None
+    """The response headers that were emitted with the error, if any."""
+
+
+class BetaResponseWsErrorAgent(BaseModel):
+    """The agent that owns this multi-agent streaming event."""
+
+    agent_name: str
+    """The canonical name of the agent that produced this item."""
+
+
+class BetaResponseWsError(BaseModel):
+    """Emitted when an error occurs while processing a Responses WebSocket request."""
+
+    error: BetaResponseWsErrorError
+    """Details about the error."""
+
+    type: Literal["error"]
+    """The type of the event. Always `error`."""
+
+    agent: Optional[BetaResponseWsErrorAgent] = None
+    """The agent that owns this multi-agent streaming event."""
+
+    sequence_number: Optional[int] = None
+    """The sequence number of an error emitted by the response stream."""
+
+    status: Optional[int] = None
+    """The HTTP status code associated with a WebSocket protocol error."""
+
+    stream_id: Optional[str] = None
+    """The WebSocket lane that emitted this event.
+
+    This field is present when the originating `response.create` event supplied a
+    `stream_id`.
+    """
+
+
 BetaResponsesServerEvent: TypeAlias = Annotated[
     Union[
         BetaResponseAudioWsDelta,
@@ -724,7 +767,6 @@ BetaResponsesServerEvent: TypeAlias = Annotated[
         BetaResponseContentPartWsAdded,
         BetaResponseContentPartWsDone,
         BetaResponseWsCreated,
-        BetaResponseWsError,
         BetaResponseFileSearchCallWsCompleted,
         BetaResponseFileSearchCallInWsProgress,
         BetaResponseFileSearchCallWsSearching,
@@ -764,6 +806,7 @@ BetaResponsesServerEvent: TypeAlias = Annotated[
         BetaResponseWsQueued,
         BetaResponseCustomToolCallInputWsDelta,
         BetaResponseCustomToolCallInputWsDone,
+        BetaResponseWsError,
         BetaResponseInjectCreatedEvent,
         BetaResponseInjectFailedEvent,
     ],

@@ -82,7 +82,8 @@ recommend checking a reliable weather website or app like the Weather Channel or
             accepted_prediction_tokens=None,
             audio_tokens=None,
             reasoning_tokens=0,
-            rejected_prediction_tokens=None
+            rejected_prediction_tokens=None,
+            text_tokens=None
         ),
         prompt_tokens=14,
         prompt_tokens_details=None,
@@ -152,7 +153,8 @@ ParsedChatCompletion(
             accepted_prediction_tokens=None,
             audio_tokens=None,
             reasoning_tokens=0,
-            rejected_prediction_tokens=None
+            rejected_prediction_tokens=None,
+            text_tokens=None
         ),
         prompt_tokens=79,
         prompt_tokens_details=None,
@@ -224,7 +226,8 @@ ParsedChatCompletion(
             accepted_prediction_tokens=None,
             audio_tokens=None,
             reasoning_tokens=0,
-            rejected_prediction_tokens=None
+            rejected_prediction_tokens=None,
+            text_tokens=None
         ),
         prompt_tokens=88,
         prompt_tokens_details=None,
@@ -431,7 +434,8 @@ ParsedChatCompletion(
             accepted_prediction_tokens=None,
             audio_tokens=None,
             reasoning_tokens=0,
-            rejected_prediction_tokens=None
+            rejected_prediction_tokens=None,
+            text_tokens=None
         ),
         prompt_tokens=92,
         prompt_tokens_details=None,
@@ -905,7 +909,8 @@ ParsedChatCompletion(
             accepted_prediction_tokens=None,
             audio_tokens=None,
             reasoning_tokens=0,
-            rejected_prediction_tokens=None
+            rejected_prediction_tokens=None,
+            text_tokens=None
         ),
         prompt_tokens=79,
         prompt_tokens_details=None,
@@ -983,7 +988,8 @@ ParsedChatCompletion(
             accepted_prediction_tokens=None,
             audio_tokens=None,
             reasoning_tokens=0,
-            rejected_prediction_tokens=None
+            rejected_prediction_tokens=None,
+            text_tokens=None
         ),
         prompt_tokens=79,
         prompt_tokens_details=None,

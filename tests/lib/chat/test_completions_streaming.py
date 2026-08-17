@@ -171,7 +171,8 @@ ParsedChatCompletion(
             accepted_prediction_tokens=None,
             audio_tokens=None,
             reasoning_tokens=0,
-            rejected_prediction_tokens=None
+            rejected_prediction_tokens=None,
+            text_tokens=None
         ),
         prompt_tokens=79,
         prompt_tokens_details=None,
