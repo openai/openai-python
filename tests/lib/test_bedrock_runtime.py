@@ -5,6 +5,7 @@ import json
 from types import SimpleNamespace
 from typing import Any, Literal
 from pathlib import Path
+from typing_extensions import override
 
 import httpx2
 import pytest
@@ -408,6 +409,7 @@ def test_legacy_bedrock_accepts_loaded_httpx_urls(
     client_cls: type[BedrockOpenAI] | type[AsyncBedrockOpenAI], base_url: str, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     class LegacyURL:
+        @override
         def __str__(self) -> str:
             return base_url
 
