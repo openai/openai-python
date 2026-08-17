@@ -1105,6 +1105,7 @@ class AuditLogListResponse(BaseModel):
         "tenant.resource_role_assignment.deleted",
         "tenant.resource_access.updated",
         "tenant.resource_access.deleted",
+        "tenant.ads_account.onboarding.redemption",
         "tenant.session_policy.created",
         "tenant.session_policy.updated",
         "tenant.session_policy.deleted",

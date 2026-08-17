@@ -50,6 +50,7 @@ from ...._base_client import _merge_mappings, make_request_options
 from ...._event_handler import EventHandlerRegistry
 from ....types.beta.beta_response import BetaResponse
 from ....types.beta.beta_tool_param import BetaToolParam
+from ....types.beta.beta_service_tier import BetaServiceTier
 from ....types.websocket_reconnection import ReconnectingEvent, ReconnectingOverrides, is_recoverable_close
 from ....types.beta.beta_compacted_response import BetaCompactedResponse
 from ....types.websocket_connection_options import WebSocketConnectionOptions
@@ -233,8 +234,7 @@ class Responses(SyncAPIResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[response_create_params.Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast", "ultrafast"]]
-        | Omit = omit,
+        service_tier: Optional[BetaServiceTier] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
@@ -631,8 +631,7 @@ class Responses(SyncAPIResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[response_create_params.Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast", "ultrafast"]]
-        | Omit = omit,
+        service_tier: Optional[BetaServiceTier] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -1028,8 +1027,7 @@ class Responses(SyncAPIResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[response_create_params.Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast", "ultrafast"]]
-        | Omit = omit,
+        service_tier: Optional[BetaServiceTier] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -1423,8 +1421,7 @@ class Responses(SyncAPIResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[response_create_params.Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast", "ultrafast"]]
-        | Omit = omit,
+        service_tier: Optional[BetaServiceTier] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
@@ -2192,8 +2189,7 @@ class AsyncResponses(AsyncAPIResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[response_create_params.Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast", "ultrafast"]]
-        | Omit = omit,
+        service_tier: Optional[BetaServiceTier] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
@@ -2590,8 +2586,7 @@ class AsyncResponses(AsyncAPIResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[response_create_params.Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast", "ultrafast"]]
-        | Omit = omit,
+        service_tier: Optional[BetaServiceTier] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -2987,8 +2982,7 @@ class AsyncResponses(AsyncAPIResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[response_create_params.Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast", "ultrafast"]]
-        | Omit = omit,
+        service_tier: Optional[BetaServiceTier] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -3382,8 +3376,7 @@ class AsyncResponses(AsyncAPIResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[response_create_params.Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast", "ultrafast"]]
-        | Omit = omit,
+        service_tier: Optional[BetaServiceTier] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
@@ -5155,8 +5148,7 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[beta_responses_client_event_param.ResponseCreateReasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast", "ultrafast"]]
-        | Omit = omit,
+        service_tier: Optional[BetaServiceTier] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[bool] | Omit = omit,
         stream_id: str | Omit = omit,
@@ -5370,8 +5362,7 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[beta_responses_client_event_param.ResponseCreateReasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast", "ultrafast"]]
-        | Omit = omit,
+        service_tier: Optional[BetaServiceTier] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[bool] | Omit = omit,
         stream_id: str | Omit = omit,

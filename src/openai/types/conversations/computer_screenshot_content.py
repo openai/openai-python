@@ -4,6 +4,7 @@ from typing import Optional
 from typing_extensions import Literal
 
 from ..._models import BaseModel
+from ..responses.image_detail import ImageDetail
 
 __all__ = ["ComputerScreenshotContent", "PromptCacheBreakpoint"]
 
@@ -21,7 +22,7 @@ class PromptCacheBreakpoint(BaseModel):
 class ComputerScreenshotContent(BaseModel):
     """A screenshot of a computer."""
 
-    detail: Literal["low", "high", "auto", "original"]
+    detail: ImageDetail
     """The detail level of the screenshot image to be sent to the model.
 
     One of `high`, `low`, `auto`, or `original`. Defaults to `auto`.

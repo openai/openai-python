@@ -28719,6 +28719,7 @@ components:
       - tenant.resource_role_assignment.deleted
       - tenant.resource_access.updated
       - tenant.resource_access.deleted
+      - tenant.ads_account.onboarding.redemption
       - tenant.session_policy.created
       - tenant.session_policy.updated
       - tenant.session_policy.deleted
@@ -31600,6 +31601,8 @@ components:
         model:
           type: string
           description: The model used for the chat completion.
+        metadata:
+          $ref: '#/components/schemas/Metadata'
         service_tier:
           $ref: '#/components/schemas/ServiceTier'
         system_fingerprint:
@@ -53430,6 +53433,18 @@ components:
         partial_image_b64:
           type: string
           description: Base64-encoded partial image data, suitable for rendering as an image.
+        size:
+          type: string
+          description: The image size that was used.
+        quality:
+          type: string
+          description: The image quality that was used.
+        background:
+          type: string
+          description: The background setting that was used.
+        output_format:
+          type: string
+          description: The output format that was used.
       required:
       - type
       - output_index
@@ -54683,6 +54698,13 @@ components:
       - $ref: '#/components/schemas/ResponseFileSearchCallSearchingEvent'
       - $ref: '#/components/schemas/ResponseFunctionCallArgumentsDeltaEvent'
       - $ref: '#/components/schemas/ResponseFunctionCallArgumentsDoneEvent'
+      - $ref: '#/components/schemas/ResponseShellCallCommandAddedStreamingEvent'
+      - $ref: '#/components/schemas/ResponseShellCallCommandDeltaStreamingEvent'
+      - $ref: '#/components/schemas/ResponseShellCallCommandDoneStreamingEvent'
+      - $ref: '#/components/schemas/ResponseShellCallOutputContentDeltaStreamingEvent'
+        x-stainless-skip:
+        - go
+      - $ref: '#/components/schemas/ResponseShellCallOutputContentDoneStreamingEvent'
       - $ref: '#/components/schemas/ResponseInProgressEvent'
       - $ref: '#/components/schemas/ResponseFailedEvent'
       - $ref: '#/components/schemas/ResponseIncompleteEvent'
@@ -55331,6 +55353,68 @@ components:
                 The WebSocket lane that emitted this event. This field is present
                 when the originating `response.create` event supplied a
                 `stream_id`.
+      - title: ResponseShellCallCommandWsAdded
+        description: A streaming event that indicated a shell command was added to a tool call.
+        allOf:
+        - $ref: '#/components/schemas/ResponseShellCallCommandAddedStreamingEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseShellCallCommandWsDelta
+        description: A streaming event that indicated a shell command was incrementally updated.
+        allOf:
+        - $ref: '#/components/schemas/ResponseShellCallCommandDeltaStreamingEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseShellCallCommandWsDone
+        description: A streaming event that indicated a shell command was completed.
+        allOf:
+        - $ref: '#/components/schemas/ResponseShellCallCommandDoneStreamingEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseShellCallOutputContentWsDelta
+        description: A streaming event that indicated shell call output was incrementally added.
+        allOf:
+        - $ref: '#/components/schemas/ResponseShellCallOutputContentDeltaStreamingEvent'
+          x-stainless-skip:
+          - go
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: ResponseShellCallOutputContentWsDone
+        description: A streaming event that indicated shell call output was completed.
+        allOf:
+        - $ref: '#/components/schemas/ResponseShellCallOutputContentDoneStreamingEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
       - title: ResponseInWsProgress
         description: Emitted when the response is in progress.
         allOf:
@@ -55779,6 +55863,13 @@ components:
         - $ref: '#/components/schemas/ResponseFileSearchCallSearchingEvent'
         - $ref: '#/components/schemas/ResponseFunctionCallArgumentsDeltaEvent'
         - $ref: '#/components/schemas/ResponseFunctionCallArgumentsDoneEvent'
+        - $ref: '#/components/schemas/ResponseShellCallCommandAddedStreamingEvent'
+        - $ref: '#/components/schemas/ResponseShellCallCommandDeltaStreamingEvent'
+        - $ref: '#/components/schemas/ResponseShellCallCommandDoneStreamingEvent'
+        - $ref: '#/components/schemas/ResponseShellCallOutputContentDeltaStreamingEvent'
+          x-stainless-skip:
+          - go
+        - $ref: '#/components/schemas/ResponseShellCallOutputContentDoneStreamingEvent'
         - $ref: '#/components/schemas/ResponseInProgressEvent'
         - $ref: '#/components/schemas/ResponseFailedEvent'
         - $ref: '#/components/schemas/ResponseIncompleteEvent'
@@ -64778,6 +64869,181 @@ components:
       - id
       title: Conversation
       description: The conversation that this response belonged to. Input items and output items from this response were automatically added to this conversation.
+    ResponseShellCallCommandAddedStreamingEvent:
+      properties:
+        type:
+          type: string
+          enum:
+          - response.shell_call_command.added
+          description: The type of the event, always `response.shell_call_command.added`.
+          default: response.shell_call_command.added
+          x-stainless-const: true
+        sequence_number:
+          type: integer
+          description: The sequence number of the event that was emitted.
+        output_index:
+          type: integer
+          description: The index of the output item that was updated.
+        command_index:
+          type: integer
+          description: The index of the shell command that was added.
+        command:
+          type: string
+          description: The shell command that was added.
+      type: object
+      required:
+      - type
+      - sequence_number
+      - output_index
+      - command_index
+      - command
+      title: Response shell command added event
+      description: A streaming event that indicated a shell command was added to a tool call.
+    ResponseShellCallCommandDeltaStreamingEvent:
+      properties:
+        type:
+          type: string
+          enum:
+          - response.shell_call_command.delta
+          description: The type of the event, always `response.shell_call_command.delta`.
+          default: response.shell_call_command.delta
+          x-stainless-const: true
+        sequence_number:
+          type: integer
+          description: The sequence number of the event that was emitted.
+        output_index:
+          type: integer
+          description: The index of the output item that was updated.
+        command_index:
+          type: integer
+          description: The index of the shell command that was updated.
+        delta:
+          type: string
+          description: The shell command delta that was appended.
+        obfuscation:
+          type: string
+          description: An obfuscation string that was added to pad the event payload.
+      type: object
+      required:
+      - type
+      - sequence_number
+      - output_index
+      - command_index
+      - delta
+      title: Response shell command delta event
+      description: A streaming event that indicated a shell command was incrementally updated.
+    ResponseShellCallCommandDoneStreamingEvent:
+      properties:
+        type:
+          type: string
+          enum:
+          - response.shell_call_command.done
+          description: The type of the event, always `response.shell_call_command.done`.
+          default: response.shell_call_command.done
+          x-stainless-const: true
+        sequence_number:
+          type: integer
+          description: The sequence number of the event that was emitted.
+        output_index:
+          type: integer
+          description: The index of the output item that was updated.
+        command_index:
+          type: integer
+          description: The index of the shell command that was completed.
+        command:
+          type: string
+          description: The final shell command that was emitted.
+      type: object
+      required:
+      - type
+      - sequence_number
+      - output_index
+      - command_index
+      - command
+      title: Response shell command done event
+      description: A streaming event that indicated a shell command was completed.
+    ShellCallOutputDelta:
+      properties:
+        stdout:
+          type: string
+          description: The stdout delta that was emitted.
+        stderr:
+          type: string
+          description: The stderr delta that was emitted.
+      type: object
+      required: []
+      title: Shell call output delta
+      description: A delta of stdout/stderr emitted while a shell call was running.
+    ResponseShellCallOutputContentDeltaStreamingEvent:
+      properties:
+        type:
+          type: string
+          enum:
+          - response.shell_call_output_content.delta
+          description: The type of the event, always `response.shell_call_output_content.delta`.
+          default: response.shell_call_output_content.delta
+          x-stainless-const: true
+        sequence_number:
+          type: integer
+          description: The sequence number of the event that was emitted.
+        item_id:
+          type: string
+          description: The ID of the output item that was updated.
+        output_index:
+          type: integer
+          description: The index of the output item that was updated.
+        command_index:
+          type: integer
+          description: The index of the shell command that produced output.
+        delta:
+          $ref: '#/components/schemas/ShellCallOutputDelta'
+          description: The stdout/stderr delta that was emitted.
+      type: object
+      required:
+      - type
+      - sequence_number
+      - item_id
+      - output_index
+      - command_index
+      - delta
+      title: Response shell call output content delta event
+      description: A streaming event that indicated shell call output was incrementally added.
+    ResponseShellCallOutputContentDoneStreamingEvent:
+      properties:
+        type:
+          type: string
+          enum:
+          - response.shell_call_output_content.done
+          description: The type of the event, always `response.shell_call_output_content.done`.
+          default: response.shell_call_output_content.done
+          x-stainless-const: true
+        sequence_number:
+          type: integer
+          description: The sequence number of the event that was emitted.
+        item_id:
+          type: string
+          description: The ID of the output item that was updated.
+        output_index:
+          type: integer
+          description: The index of the output item that was updated.
+        command_index:
+          type: integer
+          description: The index of the shell command that produced output.
+        output:
+          items:
+            $ref: '#/components/schemas/FunctionShellCallOutputContent'
+          type: array
+          description: The output contents emitted for the shell command.
+      type: object
+      required:
+      - type
+      - sequence_number
+      - item_id
+      - output_index
+      - command_index
+      - output
+      title: Response shell call output content done event
+      description: A streaming event that indicated shell call output was completed.
     CreateConversationBody:
       properties:
         metadata:
@@ -74783,6 +75049,18 @@ components:
         partial_image_b64:
           type: string
           description: Base64-encoded partial image data, suitable for rendering as an image.
+        size:
+          type: string
+          description: The image size that was used.
+        quality:
+          type: string
+          description: The image quality that was used.
+        background:
+          type: string
+          description: The background setting that was used.
+        output_format:
+          type: string
+          description: The output format that was used.
       required:
       - type
       - output_index
@@ -75728,6 +76006,196 @@ components:
             },
             "sequence_number": 1
           }
+    BetaResponseShellCallOutputContentDoneStreamingEvent:
+      properties:
+        type:
+          type: string
+          enum:
+          - response.shell_call_output_content.done
+          description: The type of the event, always `response.shell_call_output_content.done`.
+          default: response.shell_call_output_content.done
+          x-stainless-const: true
+        sequence_number:
+          type: integer
+          description: The sequence number of the event that was emitted.
+        agent:
+          $ref: '#/components/schemas/BetaAgentTag'
+          description: The agent that owns this multi-agent streaming event.
+        item_id:
+          type: string
+          description: The ID of the output item that was updated.
+        output_index:
+          type: integer
+          description: The index of the output item that was updated.
+        command_index:
+          type: integer
+          description: The index of the shell command that produced output.
+        output:
+          items:
+            $ref: '#/components/schemas/BetaFunctionShellCallOutputContent'
+          type: array
+          description: The output contents emitted for the shell command.
+      type: object
+      required:
+      - type
+      - sequence_number
+      - item_id
+      - output_index
+      - command_index
+      - output
+      title: Response shell call output content done event
+      description: A streaming event that indicated shell call output was completed.
+    BetaResponseShellCallOutputContentDeltaStreamingEvent:
+      properties:
+        type:
+          type: string
+          enum:
+          - response.shell_call_output_content.delta
+          description: The type of the event, always `response.shell_call_output_content.delta`.
+          default: response.shell_call_output_content.delta
+          x-stainless-const: true
+        sequence_number:
+          type: integer
+          description: The sequence number of the event that was emitted.
+        agent:
+          $ref: '#/components/schemas/BetaAgentTag'
+          description: The agent that owns this multi-agent streaming event.
+        item_id:
+          type: string
+          description: The ID of the output item that was updated.
+        output_index:
+          type: integer
+          description: The index of the output item that was updated.
+        command_index:
+          type: integer
+          description: The index of the shell command that produced output.
+        delta:
+          $ref: '#/components/schemas/BetaShellCallOutputDelta'
+          description: The stdout/stderr delta that was emitted.
+      type: object
+      required:
+      - type
+      - sequence_number
+      - item_id
+      - output_index
+      - command_index
+      - delta
+      title: Response shell call output content delta event
+      description: A streaming event that indicated shell call output was incrementally added.
+    BetaShellCallOutputDelta:
+      properties:
+        stdout:
+          type: string
+          description: The stdout delta that was emitted.
+        stderr:
+          type: string
+          description: The stderr delta that was emitted.
+      type: object
+      required: []
+      title: Shell call output delta
+      description: A delta of stdout/stderr emitted while a shell call was running.
+    BetaResponseShellCallCommandDoneStreamingEvent:
+      properties:
+        type:
+          type: string
+          enum:
+          - response.shell_call_command.done
+          description: The type of the event, always `response.shell_call_command.done`.
+          default: response.shell_call_command.done
+          x-stainless-const: true
+        sequence_number:
+          type: integer
+          description: The sequence number of the event that was emitted.
+        agent:
+          $ref: '#/components/schemas/BetaAgentTag'
+          description: The agent that owns this multi-agent streaming event.
+        output_index:
+          type: integer
+          description: The index of the output item that was updated.
+        command_index:
+          type: integer
+          description: The index of the shell command that was completed.
+        command:
+          type: string
+          description: The final shell command that was emitted.
+      type: object
+      required:
+      - type
+      - sequence_number
+      - output_index
+      - command_index
+      - command
+      title: Response shell command done event
+      description: A streaming event that indicated a shell command was completed.
+    BetaResponseShellCallCommandDeltaStreamingEvent:
+      properties:
+        type:
+          type: string
+          enum:
+          - response.shell_call_command.delta
+          description: The type of the event, always `response.shell_call_command.delta`.
+          default: response.shell_call_command.delta
+          x-stainless-const: true
+        sequence_number:
+          type: integer
+          description: The sequence number of the event that was emitted.
+        agent:
+          $ref: '#/components/schemas/BetaAgentTag'
+          description: The agent that owns this multi-agent streaming event.
+        output_index:
+          type: integer
+          description: The index of the output item that was updated.
+        command_index:
+          type: integer
+          description: The index of the shell command that was updated.
+        delta:
+          type: string
+          description: The shell command delta that was appended.
+        obfuscation:
+          type: string
+          description: An obfuscation string that was added to pad the event payload.
+      type: object
+      required:
+      - type
+      - sequence_number
+      - output_index
+      - command_index
+      - delta
+      title: Response shell command delta event
+      description: A streaming event that indicated a shell command was incrementally updated.
+    BetaResponseShellCallCommandAddedStreamingEvent:
+      properties:
+        type:
+          type: string
+          enum:
+          - response.shell_call_command.added
+          description: The type of the event, always `response.shell_call_command.added`.
+          default: response.shell_call_command.added
+          x-stainless-const: true
+        sequence_number:
+          type: integer
+          description: The sequence number of the event that was emitted.
+        agent:
+          $ref: '#/components/schemas/BetaAgentTag'
+          description: The agent that owns this multi-agent streaming event.
+        output_index:
+          type: integer
+          description: The index of the output item that was updated.
+        command_index:
+          type: integer
+          description: The index of the shell command that was added.
+        command:
+          type: string
+          description: The shell command that was added.
+      type: object
+      required:
+      - type
+      - sequence_number
+      - output_index
+      - command_index
+      - command
+      title: Response shell command added event
+      description: A streaming event that indicated a shell command was added to a tool call.
     BetaResponseFunctionCallArgumentsDoneEvent:
       type: object
       description: Emitted when function-call arguments are finalized.
@@ -77219,6 +77687,68 @@ components:
                 The WebSocket lane that emitted this event. This field is present
                 when the originating `response.create` event supplied a
                 `stream_id`.
+      - title: BetaResponseShellCallCommandWsAdded
+        description: A streaming event that indicated a shell command was added to a tool call.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseShellCallCommandAddedStreamingEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseShellCallCommandWsDelta
+        description: A streaming event that indicated a shell command was incrementally updated.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseShellCallCommandDeltaStreamingEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseShellCallCommandWsDone
+        description: A streaming event that indicated a shell command was completed.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseShellCallCommandDoneStreamingEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseShellCallOutputContentWsDelta
+        description: A streaming event that indicated shell call output was incrementally added.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseShellCallOutputContentDeltaStreamingEvent'
+          x-stainless-skip:
+          - go
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
+      - title: BetaResponseShellCallOutputContentWsDone
+        description: A streaming event that indicated shell call output was completed.
+        allOf:
+        - $ref: '#/components/schemas/BetaResponseShellCallOutputContentDoneStreamingEvent'
+        - type: object
+          properties:
+            stream_id:
+              type: string
+              description: |
+                The WebSocket lane that emitted this event. This field is present
+                when the originating `response.create` event supplied a
+                `stream_id`.
       - title: BetaResponseInWsProgress
         description: Emitted when the response is in progress.
         allOf:
@@ -77857,6 +78387,13 @@ components:
         - $ref: '#/components/schemas/BetaResponseFileSearchCallSearchingEvent'
         - $ref: '#/components/schemas/BetaResponseFunctionCallArgumentsDeltaEvent'
         - $ref: '#/components/schemas/BetaResponseFunctionCallArgumentsDoneEvent'
+        - $ref: '#/components/schemas/BetaResponseShellCallCommandAddedStreamingEvent'
+        - $ref: '#/components/schemas/BetaResponseShellCallCommandDeltaStreamingEvent'
+        - $ref: '#/components/schemas/BetaResponseShellCallCommandDoneStreamingEvent'
+        - $ref: '#/components/schemas/BetaResponseShellCallOutputContentDeltaStreamingEvent'
+          x-stainless-skip:
+          - go
+        - $ref: '#/components/schemas/BetaResponseShellCallOutputContentDoneStreamingEvent'
         - $ref: '#/components/schemas/BetaResponseInProgressEvent'
         - $ref: '#/components/schemas/BetaResponseFailedEvent'
         - $ref: '#/components/schemas/BetaResponseIncompleteEvent'
@@ -78232,6 +78769,13 @@ components:
       - $ref: '#/components/schemas/BetaResponseFileSearchCallSearchingEvent'
       - $ref: '#/components/schemas/BetaResponseFunctionCallArgumentsDeltaEvent'
       - $ref: '#/components/schemas/BetaResponseFunctionCallArgumentsDoneEvent'
+      - $ref: '#/components/schemas/BetaResponseShellCallCommandAddedStreamingEvent'
+      - $ref: '#/components/schemas/BetaResponseShellCallCommandDeltaStreamingEvent'
+      - $ref: '#/components/schemas/BetaResponseShellCallCommandDoneStreamingEvent'
+      - $ref: '#/components/schemas/BetaResponseShellCallOutputContentDeltaStreamingEvent'
+        x-stainless-skip:
+        - go
+      - $ref: '#/components/schemas/BetaResponseShellCallOutputContentDoneStreamingEvent'
       - $ref: '#/components/schemas/BetaResponseInProgressEvent'
       - $ref: '#/components/schemas/BetaResponseFailedEvent'
       - $ref: '#/components/schemas/BetaResponseIncompleteEvent'
