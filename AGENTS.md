@@ -7,6 +7,33 @@ changing generated files. Handwritten policy, automation, tests, and examples
 should remain small and should not alter exported SDK APIs unless the change
 explicitly requires it.
 
+## Security requirements for coding agents
+
+- Never commit real API or admin keys, bearer tokens, webhook secrets, cloud
+  credentials, X.509 private keys, release credentials, or `.env` files. Read
+  `OPENAI_API_KEY`, `OPENAI_ADMIN_KEY`, `OPENAI_WEBHOOK_SECRET`, and other
+  credentials from the environment; use clearly fake examples and fixtures.
+- Redact credentials, `Authorization` and `api-key` headers, customer data, and
+  request or response bodies from logs, exceptions, snapshots, and test output.
+  Preserve existing sensitive-header filtering, including debug logging.
+- Review direct and transitive dependency changes in `pyproject.toml`, optional
+  extras, `requirements.lock`, `requirements-dev.lock`, and `uv.lock`. Check
+  package provenance, build backends, and install scripts before accepting or
+  running them.
+- Pin third-party GitHub Actions to reviewed full commit SHAs. Minimize
+  job-level token permissions and never expose secrets or write-capable tokens
+  to untrusted pull-request code.
+- Preserve separate build and publish jobs, protected release credentials, and
+  PyPI Trusted Publishing. Grant `id-token: write` only to the trusted,
+  upload-only publishing job; do not introduce long-lived PyPI tokens.
+- Obtain SDK CODEOWNER review and add focused synchronous and asynchronous
+  security regression tests, as applicable, for changes to authentication,
+  X.509 or webhook verification, HTTP destinations, redirects, proxies, TLS,
+  cloud metadata, file uploads, serialization, dependencies, GitHub Actions,
+  or release workflows.
+- Report suspected vulnerabilities privately as described in `SECURITY.md`;
+  never disclose them in public issues, pull requests, or logs.
+
 ## Python version policy
 
 - `requires-python` in `pyproject.toml` is the authoritative technical minimum.
