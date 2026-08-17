@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import sys
 import json
+from types import SimpleNamespace
 from typing import Any, Literal
 from pathlib import Path
 
@@ -9,6 +11,7 @@ import pytest
 
 from openai import OpenAI, AsyncOpenAI, OpenAIError, NotFoundError
 from openai.providers import bedrock
+from openai.lib.bedrock import BedrockOpenAI, AsyncBedrockOpenAI
 
 _MODELS = (
     "us.openai.gpt-5.6-sol",
@@ -348,6 +351,72 @@ def test_bearer_credential_sources_ignore_conflicting_ambient_region(
         client.get("/models", cast_to=httpx2.Response)
 
     _assert_authorization(requests[0], "bearer")
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize("client_cls", [BedrockOpenAI, AsyncBedrockOpenAI], ids=["sync", "async"])
+@pytest.mark.parametrize("refresh", ["api-key-mutation", "api-key-copy", "token-provider-copy"])
+async def test_legacy_bearer_refresh_ignores_conflicting_ambient_region(
+    client_cls: type[BedrockOpenAI] | type[AsyncBedrockOpenAI],
+    refresh: str,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("AWS_REGION", "us-west-2")
+    requests: list[httpx2.Request] = []
+
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        requests.append(request)
+        return httpx2.Response(200, request=request, json={})
+
+    client: BedrockOpenAI | AsyncBedrockOpenAI
+    if client_cls is BedrockOpenAI:
+        client = BedrockOpenAI(
+            base_url=_RUNTIME_URL,
+            api_key="initial-token",
+            http_client=httpx2.Client(transport=httpx2.MockTransport(handler), trust_env=False),
+        )
+    else:
+        client = AsyncBedrockOpenAI(
+            base_url=_RUNTIME_URL,
+            api_key="initial-token",
+            http_client=httpx2.AsyncClient(transport=httpx2.MockTransport(handler), trust_env=False),
+        )
+
+    assert client.aws_region == "us-west-2"
+    assert not client._bedrock_state.region_was_explicit
+
+    if refresh == "api-key-mutation":
+        client.api_key = "refreshed-token"
+    elif refresh == "api-key-copy":
+        client = client.with_options(api_key="refreshed-token")
+    else:
+        client = client.with_options(bedrock_token_provider=lambda: "refreshed-token")
+
+    if isinstance(client, BedrockOpenAI):
+        client.get("/models", cast_to=httpx2.Response)
+        client.close()
+    else:
+        await client.get("/models", cast_to=httpx2.Response)
+        await client.close()
+
+    assert requests[0].headers["Authorization"] == "Bearer refreshed-token"
+
+
+@pytest.mark.parametrize("client_cls", [BedrockOpenAI, AsyncBedrockOpenAI], ids=["sync", "async"])
+@pytest.mark.parametrize("base_url", [_RUNTIME_URL, "https://proxy.example/openai/v1"])
+def test_legacy_bedrock_accepts_loaded_httpx_urls(
+    client_cls: type[BedrockOpenAI] | type[AsyncBedrockOpenAI], base_url: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    class LegacyURL:
+        def __str__(self) -> str:
+            return base_url
+
+    legacy_httpx = SimpleNamespace(URL=LegacyURL)
+    monkeypatch.setitem(sys.modules, "httpx", legacy_httpx)
+
+    client = client_cls(base_url=LegacyURL(), api_key="bedrock-token")  # type: ignore[arg-type]
+
+    assert client.base_url == httpx2.URL(f"{base_url}/")
 
 
 @pytest.mark.parametrize(

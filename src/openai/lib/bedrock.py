@@ -14,6 +14,7 @@ from ..auth import WorkloadIdentity
 from .._types import NOT_GIVEN, Timeout, NotGiven
 from .._utils import is_given
 from .._client import OpenAI, AsyncOpenAI
+from .._httpx2 import normalize_httpx_url
 from .._models import FinalRequestOptions
 from .._provider import _Provider, _configure_provider
 from .._exceptions import OpenAIError
@@ -80,7 +81,7 @@ def _legacy_endpoint(base_url: str | httpx2.URL | None | NotGiven) -> Literal["m
     configured = os.environ.get("AWS_BEDROCK_BASE_URL") if isinstance(base_url, NotGiven) else base_url
     if configured is None or isinstance(configured, str) and not configured.strip():
         return None
-    return None if _parse_bedrock_endpoint_hostname(httpx2.URL(configured).host) is not None else "mantle"
+    return None if _parse_bedrock_endpoint_hostname(normalize_httpx_url(configured).host) is not None else "mantle"
 
 
 def _uses_region_derived_base_url(base_url: str | httpx2.URL | None) -> bool:
@@ -280,6 +281,12 @@ def _copy_configuration(
 
     next_region = aws_region if aws_region is not None else client.aws_region
     next_region_was_explicit = aws_region is not None or state.region_was_explicit
+    if (
+        (next_api_key is not None or next_token_provider is not None)
+        and not next_region_was_explicit
+        and (base_url is not None or not state.uses_region_derived_base_url)
+    ):
+        next_region = None
     if aws_profile is not None and aws_region is None and not state.region_was_explicit:
         next_region = None
 
@@ -330,24 +337,25 @@ def _provider_for_legacy_client(
     configuration: _LegacyAuthConfiguration,
 ) -> _Provider:
     mode, credential = configuration
+    state = client._bedrock_state
+    bearer_region = client.aws_region if state.region_was_explicit else None
     if mode == "bearer":
         if not isinstance(credential, str) or not credential:
             raise OpenAIError("The Bedrock bearer credential must not be empty.")
         return bedrock(
             endpoint=_legacy_endpoint(client.base_url),
-            region=client.aws_region,
+            region=bearer_region,
             base_url=client.base_url,
             api_key=credential,
         )
     if mode == "token_provider":
         return bedrock(
             endpoint=_legacy_endpoint(client.base_url),
-            region=client.aws_region,
+            region=bearer_region,
             base_url=client.base_url,
             token_provider=cast("AsyncBedrockTokenProvider", credential),
         )
 
-    state = client._bedrock_state
     return bedrock(
         endpoint=_legacy_endpoint(client.base_url),
         region=client.aws_region,
