@@ -480,17 +480,6 @@ def bedrock(
         and bool(os.environ.get("AWS_BEARER_TOKEN_BEDROCK"))
     )
 
-    if (
-        configured_base_url is not None
-        and canonical_endpoint is None
-        and endpoint is None
-        and not explicit_bearer
-        and not use_environment_bearer
-    ):
-        raise OpenAIError(
-            "A custom Bedrock endpoint requires an explicit `endpoint` option when using AWS credential authentication."
-        )
-
     return _create_provider(
         _BedrockProviderDefinition(
             endpoint=resolved_endpoint,

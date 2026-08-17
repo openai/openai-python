@@ -1073,7 +1073,7 @@ client = OpenAI(
 
 You can also pass `access_key_id` and `secret_access_key`, with an optional `session_token`, or a refreshable `credential_provider` that returns botocore-compatible credentials. Explicit bearer and AWS credential options are mutually exclusive.
 
-Pass `base_url` to `bedrock(...)` or set `AWS_BEDROCK_BASE_URL` to override the derived `https://bedrock-mantle.<region>.api.aws/openai/v1` endpoint.
+Pass `base_url` to `bedrock(...)` or set `AWS_BEDROCK_BASE_URL` to override the derived `https://bedrock-mantle.<region>.api.aws/openai/v1` endpoint. Custom URLs retain Mantle signing by default; pass `endpoint="runtime"` to use Runtime signing.
 
 SigV4 requests require replayable, fully serialized request bodies. Standard JSON requests already meet this requirement, and response streaming is unaffected. Low-level one-shot request streams must be buffered before sending, or sent with bearer authentication and retries disabled.
 

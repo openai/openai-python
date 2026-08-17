@@ -302,14 +302,46 @@ def test_runtime_infers_environment_endpoint_and_signing_service(monkeypatch: py
     _assert_authorization(requests[0], "sigv4")
 
 
-def test_runtime_custom_signing_endpoint_requires_explicit_mode() -> None:
-    with pytest.raises(OpenAIError, match="explicit `endpoint`"):
-        _provider("sigv4", region="us-east-1", base_url="https://proxy.example/openai/v1")
+@pytest.mark.parametrize(
+    ("endpoint", "source", "service"),
+    [
+        (None, "argument", "bedrock-mantle"),
+        ("mantle", "argument", "bedrock-mantle"),
+        ("runtime", "argument", "bedrock"),
+        (None, "environment", "bedrock-mantle"),
+        ("runtime", "environment", "bedrock"),
+    ],
+)
+def test_custom_signing_endpoint_preserves_mantle_default_and_runtime_opt_in(
+    endpoint: Literal["mantle", "runtime"] | None,
+    source: Literal["argument", "environment"],
+    service: Literal["bedrock-mantle", "bedrock"],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    base_url = "https://proxy.example/openai/v1"
+    options: dict[str, Any] = {"region": "us-east-1"}
+    if endpoint is not None:
+        options["endpoint"] = endpoint
+    if source == "environment":
+        monkeypatch.setenv("AWS_BEDROCK_BASE_URL", base_url)
+    else:
+        options["base_url"] = base_url
 
-    client = OpenAI(
-        provider=_provider("sigv4", endpoint="runtime", region="us-east-1", base_url="https://proxy.example/v1")
-    )
-    assert client.base_url == httpx2.URL("https://proxy.example/v1/")
+    requests: list[httpx2.Request] = []
+
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        requests.append(request)
+        return httpx2.Response(200, request=request, json={})
+
+    with OpenAI(
+        provider=_provider("sigv4", **options),
+        http_client=httpx2.Client(transport=httpx2.MockTransport(handler), trust_env=False),
+    ) as client:
+        assert client.base_url == httpx2.URL(f"{base_url}/")
+        client.get("/models", cast_to=httpx2.Response)
+
+    assert requests[0].url == httpx2.URL(f"{base_url}/models")
+    _assert_authorization(requests[0], "sigv4", service=service)
 
 
 def test_runtime_api_key_none_ignores_stale_environment_bearer(monkeypatch: pytest.MonkeyPatch) -> None:

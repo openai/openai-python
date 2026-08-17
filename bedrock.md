@@ -23,7 +23,8 @@ Runtime hostnames use the DNS suffix for the selected AWS partition. For example
 The region comes from `region`, `AWS_REGION`, `AWS_DEFAULT_REGION`, or, for AWS authentication, the selected AWS profile.
 Pass `base_url` or set `AWS_BEDROCK_BASE_URL` to override the derived API root. When `endpoint` is omitted, canonical
 Mantle and Runtime URLs select the corresponding endpoint and signing service automatically; otherwise Mantle remains
-the default. Signing a custom or proxy URL requires an explicit `endpoint`.
+the default. Custom or proxy URLs likewise use Mantle signing by default; pass `endpoint="runtime"` when a custom host
+requires Runtime signing.
 
 ## Runtime Chat Completions
 
