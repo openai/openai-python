@@ -79,6 +79,41 @@ def test_client_copying_override_options(client: Client) -> None:
     assert copied._custom_query == {"api-version": "2022-05-01"}
 
 
+@pytest.mark.parametrize(
+    "client",
+    [
+        AzureOpenAI(
+            api_version="2024-02-01",
+            api_key="example API key",
+            azure_endpoint="https://example-resource.azure.openai.com",
+            azure_deployment="deployment-client",
+        ),
+        AsyncAzureOpenAI(
+            api_version="2024-02-01",
+            api_key="example API key",
+            azure_endpoint="https://example-resource.azure.openai.com",
+            azure_deployment="deployment-client",
+        ),
+    ],
+)
+@pytest.mark.parametrize("method", ["copy", "with_options"])
+def test_copy_preserves_deployment_routing(client: Client, method: Literal["copy", "with_options"]) -> None:
+    copied = client.copy() if method == "copy" else client.with_options()
+
+    # a non-deployment endpoint must not be nested under `/deployments/<deployment>/`
+    req = copied._build_request(FinalRequestOptions.construct(method="get", url="/models", json_data={}))
+    assert req.url == "https://example-resource.azure.openai.com/openai/models?api-version=2024-02-01"
+
+    # a deployment endpoint must keep the deployment path
+    req = copied._build_request(
+        FinalRequestOptions.construct(method="post", url="/chat/completions", json_data={"model": "ignored"})
+    )
+    assert req.url == (
+        "https://example-resource.azure.openai.com/openai/deployments/deployment-client"
+        "/chat/completions?api-version=2024-02-01"
+    )
+
+
 def test_enforce_credentials_false_sync() -> None:
     with update_env(AZURE_OPENAI_API_KEY=Omit(), AZURE_OPENAI_AD_TOKEN=Omit()):
         AzureOpenAI(
