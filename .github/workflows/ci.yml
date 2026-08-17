@@ -172,7 +172,7 @@ jobs:
     name: examples
     environment: ci
     runs-on: ubuntu-latest
-    if: github.repository == 'openai/openai-python' && github.ref != 'refs/heads/release-please--branches--main' && (github.event_name == 'push' || github.event.pull_request.head.repo.fork)
+    if: github.repository == 'openai/openai-python' && github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6

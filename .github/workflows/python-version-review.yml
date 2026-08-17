@@ -175,7 +175,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
-      contents: read
       issues: write
     steps:
       - name: Download the Codex assessment
