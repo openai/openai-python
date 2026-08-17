@@ -1,18 +1,33 @@
 # Security Policy
 
-## Reporting Security Issues
+## Reporting a vulnerability
 
-Please report potential security vulnerabilities through OpenAI's
+Please report potential security vulnerabilities privately through OpenAI's
 [coordinated vulnerability disclosure process](https://openai.com/policies/coordinated-vulnerability-disclosure-policy).
 For questions about that process, contact disclosure@openai.com.
 
-Do not report vulnerabilities through public GitHub issues, discussions, pull
-requests, or other public channels. When reporting privately, include the
-affected SDK version, impact, and reproduction steps where possible; redact API
-keys, authentication headers, private keys, and customer data from all reports.
+This policy applies to the source code in this repository and the official
+[`openai` Python package](https://pypi.org/project/openai/), including its
+published source distributions and wheels.
 
-## Responsible Disclosure
+Do not report security vulnerabilities through public GitHub issues, pull requests, or discussions.
 
-Please allow OpenAI a reasonable amount of time to investigate and address the
-issue before making information public. Thank you for helping us keep this SDK
-and the systems it interacts with secure.
+## What to include
+
+- The affected package or product and version.
+- A clear description of the security impact.
+- Sanitized steps to reproduce the issue.
+
+For the `openai` Python package, include the Python version, operating system,
+and affected source distribution or wheel when relevant.
+
+Do not include live credentials, API keys, customer data, or unredacted sensitive logs.
+
+Redact authentication headers and private keys, and replace other secrets with
+clearly fake values.
+
+## Coordinated disclosure
+
+Please give the maintainers a reasonable opportunity to investigate and address the issue before public disclosure.
+
+Thank you for helping us keep this SDK and the systems it interacts with secure.
