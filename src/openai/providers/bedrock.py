@@ -401,17 +401,9 @@ def bedrock(
     normalized_region = _normalize_optional_string(region)
     if region is not None and normalized_region is None:
         raise OpenAIError("The Bedrock AWS `region` must not be empty.")
-
-    region_source: Literal["explicit", "environment"] | None = None
-    if normalized_region is not None:
-        region_source = "explicit"
-    else:
-        normalized_region = _normalize_optional_string(
-            os.environ.get("AWS_REGION") or os.environ.get("AWS_DEFAULT_REGION")
-        )
-        if normalized_region is not None:
-            region_source = "environment"
     _validate_bedrock_region(normalized_region)
+
+    region_source: Literal["explicit", "environment"] | None = "explicit" if normalized_region is not None else None
 
     configured_base_url: httpx2.URL | None
     if isinstance(base_url, NotGiven):
@@ -430,8 +422,6 @@ def bedrock(
     resolved_endpoint: BedrockEndpoint = endpoint or (
         canonical_endpoint[0] if canonical_endpoint is not None else "mantle"
     )
-    if configured_base_url is not None:
-        _validate_canonical_bedrock_endpoint(configured_base_url, endpoint=resolved_endpoint, region=normalized_region)
 
     normalized_profile = _normalize_optional_string(profile)
     if profile is not None and normalized_profile is None:
@@ -479,6 +469,17 @@ def bedrock(
         and not skip_environment_bearer
         and bool(os.environ.get("AWS_BEARER_TOKEN_BEDROCK"))
     )
+
+    if normalized_region is None and (configured_base_url is None or not (explicit_bearer or use_environment_bearer)):
+        normalized_region = _normalize_optional_string(
+            os.environ.get("AWS_REGION") or os.environ.get("AWS_DEFAULT_REGION")
+        )
+        _validate_bedrock_region(normalized_region)
+        if normalized_region is not None:
+            region_source = "environment"
+
+    if configured_base_url is not None:
+        _validate_canonical_bedrock_endpoint(configured_base_url, endpoint=resolved_endpoint, region=normalized_region)
 
     return _create_provider(
         _BedrockProviderDefinition(

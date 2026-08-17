@@ -285,6 +285,99 @@ def test_runtime_rejects_injected_regions(region: str) -> None:
         bedrock(endpoint="runtime", region=region, api_key="bedrock-token")
 
 
+@pytest.mark.parametrize("region_environment_variable", ["AWS_REGION", "AWS_DEFAULT_REGION"])
+@pytest.mark.parametrize(
+    ("base_url", "ambient_region"),
+    [
+        pytest.param("https://proxy.example/openai/v1", "local", id="custom-url-invalid-region"),
+        pytest.param(_RUNTIME_URL, "us-west-2", id="canonical-url-conflicting-region"),
+    ],
+)
+def test_bearer_configured_url_ignores_ambient_region(
+    base_url: str,
+    ambient_region: str,
+    region_environment_variable: str,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv(region_environment_variable, ambient_region)
+
+    with OpenAI(provider=bedrock(base_url=base_url, api_key="bedrock-token")) as client:
+        assert client.base_url == httpx2.URL(f"{base_url}/")
+
+
+@pytest.mark.parametrize(
+    ("credential_source", "base_url_source"),
+    [
+        ("api_key", "environment"),
+        ("token_provider", "argument"),
+        ("environment", "argument"),
+        ("environment", "environment"),
+    ],
+)
+def test_bearer_credential_sources_ignore_conflicting_ambient_region(
+    credential_source: Literal["api_key", "token_provider", "environment"],
+    base_url_source: Literal["argument", "environment"],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("AWS_REGION", "us-west-2")
+    options: dict[str, Any] = {}
+
+    if base_url_source == "environment":
+        monkeypatch.setenv("AWS_BEDROCK_BASE_URL", _RUNTIME_URL)
+    else:
+        options["base_url"] = _RUNTIME_URL
+
+    if credential_source == "api_key":
+        options["api_key"] = "bedrock-token"
+    elif credential_source == "token_provider":
+        options["token_provider"] = lambda: "bedrock-token"
+    else:
+        monkeypatch.setenv("AWS_BEARER_TOKEN_BEDROCK", "bedrock-token")
+
+    requests: list[httpx2.Request] = []
+
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        requests.append(request)
+        return httpx2.Response(200, request=request, json={})
+
+    with OpenAI(
+        provider=bedrock(**options),
+        http_client=httpx2.Client(transport=httpx2.MockTransport(handler), trust_env=False),
+    ) as client:
+        assert client.base_url == httpx2.URL(f"{_RUNTIME_URL}/")
+        client.get("/models", cast_to=httpx2.Response)
+
+    _assert_authorization(requests[0], "bearer")
+
+
+@pytest.mark.parametrize(
+    ("region", "error"),
+    [
+        pytest.param("local", "region.*invalid", id="invalid-region"),
+        pytest.param("us-west-2", "endpoint region.*does not match", id="conflicting-region"),
+    ],
+)
+def test_bearer_configured_url_still_validates_explicit_region(region: str, error: str) -> None:
+    with pytest.raises(OpenAIError, match=error):
+        bedrock(base_url=_RUNTIME_URL, region=region, api_key="bedrock-token")
+
+
+@pytest.mark.parametrize(
+    ("base_url", "ambient_region", "error"),
+    [
+        pytest.param("https://proxy.example/openai/v1", "local", "region.*invalid", id="invalid-region"),
+        pytest.param(_RUNTIME_URL, "us-west-2", "endpoint region.*does not match", id="conflicting-region"),
+    ],
+)
+def test_sigv4_configured_url_still_validates_ambient_region(
+    base_url: str, ambient_region: str, error: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("AWS_REGION", ambient_region)
+
+    with pytest.raises(OpenAIError, match=error):
+        bedrock(base_url=base_url, access_key_id="access-key", secret_access_key="secret-key")
+
+
 def test_runtime_infers_environment_endpoint_and_signing_service(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("AWS_BEDROCK_BASE_URL", _RUNTIME_URL)
     requests: list[httpx2.Request] = []
