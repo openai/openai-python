@@ -281,9 +281,11 @@ def _copy_configuration(
 
     next_region = aws_region if aws_region is not None else client.aws_region
     next_region_was_explicit = aws_region is not None or state.region_was_explicit
+    restores_region_derived_base_url = isinstance(base_url, str) and not base_url.strip()
     if (
         (next_api_key is not None or next_token_provider is not None)
         and not next_region_was_explicit
+        and not restores_region_derived_base_url
         and (base_url is not None or not state.uses_region_derived_base_url)
     ):
         next_region = None
