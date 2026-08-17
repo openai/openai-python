@@ -380,7 +380,7 @@ def test_sync_x509_exchange_does_not_inherit_caller_request_state() -> None:
         transport=httpx2.MockTransport(handler),
         headers={
             "Authorization": "Bearer private-api-credential",
-            "X-API-Key": "private-api-credential",
+            "X-Customer-Metadata": "private-api-metadata",
             "Content-Type": "application/private",
         },
         cookies={"session": "private-cookie"},
@@ -391,12 +391,12 @@ def test_sync_x509_exchange_does_not_inherit_caller_request_state() -> None:
 
     assert len(exchange_headers) == 1
     assert exchange_headers[0].get("Authorization") is None
-    assert exchange_headers[0].get("X-API-Key") is None
+    assert exchange_headers[0].get("X-Customer-Metadata") is None
     assert exchange_headers[0].get("Cookie") is None
     assert exchange_headers[0]["Content-Type"] == "application/json"
     assert len(api_headers) == 1
     assert api_headers[0]["Authorization"] == "Bearer safe-token"
-    assert api_headers[0]["X-API-Key"] == "private-api-credential"
+    assert api_headers[0]["X-Customer-Metadata"] == "private-api-metadata"
     assert api_headers[0]["Cookie"] == "session=private-cookie"
     assert api_headers[0]["Content-Type"] == "application/private"
 
@@ -416,7 +416,7 @@ async def test_async_x509_exchange_does_not_inherit_caller_request_state() -> No
         transport=httpx2.MockTransport(handler),
         headers={
             "Authorization": "Bearer private-api-credential",
-            "X-API-Key": "private-api-credential",
+            "X-Customer-Metadata": "private-api-metadata",
             "Content-Type": "application/private",
         },
         cookies={"session": "private-cookie"},
@@ -427,12 +427,12 @@ async def test_async_x509_exchange_does_not_inherit_caller_request_state() -> No
 
     assert len(exchange_headers) == 1
     assert exchange_headers[0].get("Authorization") is None
-    assert exchange_headers[0].get("X-API-Key") is None
+    assert exchange_headers[0].get("X-Customer-Metadata") is None
     assert exchange_headers[0].get("Cookie") is None
     assert exchange_headers[0]["Content-Type"] == "application/json"
     assert len(api_headers) == 1
     assert api_headers[0]["Authorization"] == "Bearer safe-token"
-    assert api_headers[0]["X-API-Key"] == "private-api-credential"
+    assert api_headers[0]["X-Customer-Metadata"] == "private-api-metadata"
     assert api_headers[0]["Cookie"] == "session=private-cookie"
     assert api_headers[0]["Content-Type"] == "application/private"
 

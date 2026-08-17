@@ -210,6 +210,9 @@ private keys, passwords, server trust, proxies, and rotation remain application
 and transport concerns.
 
 X.509 API requests require HTTPS and must stay on the configured API origin.
+The effective HTTP Host authority must match that origin.
+Provider API-key and proxy-only headers cannot be sent to the API alongside
+X.509 authentication.
 Token exchanges do not inherit API request hooks, authentication, or cookies.
 Identity settings are captured when the client is constructed; create a new
 client to change the identity. Azure clients do not support X.509 workload

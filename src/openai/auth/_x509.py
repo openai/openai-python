@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import math
 import time
 import email.utils
@@ -27,6 +28,7 @@ _MAX_EXCHANGE_RETRIES = 2
 _REPLAY_POSITION_EXTENSION = "openai_x509_replay_position"
 _REPLAY_FILE_POSITIONS_EXTENSION = "openai_x509_replay_file_positions"
 _ALLOWED_IDENTITY_FIELDS = {"type", "identity_provider_id", "service_account_id", "refresh_buffer_seconds"}
+_BEARER_ACCESS_TOKEN = re.compile(r"[A-Za-z0-9._~+/-]+=*")
 
 
 def validate_x509_api_url(url: httpx2.URL | str, *, expected_origin: httpx2.URL | None = None) -> None:
@@ -44,6 +46,39 @@ def validate_x509_api_url(url: httpx2.URL | str, *, expected_origin: httpx2.URL 
         raise OpenAIError("X.509 workload identity requests must use the configured API origin")
 
 
+def validate_x509_api_credentials(request: httpx2.Request) -> None:
+    if any(
+        header.lower().replace("_", "-") in ("api-key", "x-api-key", "proxy-authorization")
+        for header in request.headers
+    ):
+        raise OpenAIError("X.509 workload identity requests cannot include API-key or proxy credentials")
+
+
+def validate_x509_request_authority(request: httpx2.Request) -> None:
+    host_headers = request.headers.get_list("host")
+    if (
+        len(host_headers) != 1
+        or any(delimiter in host_headers[0] for delimiter in "/?#@\\")
+        or any(header.startswith(":") for header in request.headers)
+    ):
+        raise OpenAIError("X.509 workload identity requests require exactly one valid Host authority")
+
+    try:
+        host_url = httpx2.URL(f"https://{host_headers[0]}")
+    except httpx2.InvalidURL as error:
+        raise OpenAIError("X.509 workload identity requests require a valid Host authority") from error
+
+    if (
+        host_url.username
+        or host_url.password
+        or host_url.path != "/"
+        or host_url.query
+        or host_url.fragment
+        or (host_url.host, host_url.port) != (request.url.host, request.url.port)
+    ):
+        raise OpenAIError("X.509 workload identity Host authority must match the request URL")
+
+
 def _validate_transport_request(
     request: httpx2.Request,
     *,
@@ -52,17 +87,21 @@ def _validate_transport_request(
     token_exchange: bool,
 ) -> None:
     validate_x509_api_url(request.url, expected_origin=expected_origin)
+    validate_x509_request_authority(request)
 
     if token_exchange:
         if str(request.url) != _X509_TOKEN_EXCHANGE_URL:
             raise OpenAIError("X.509 token exchange requests must use the pinned authentication URL")
         if any(
-            header in request.headers
-            for header in ("authorization", "proxy-authorization", "cookie", "x-api-key", "api-key")
+            header.lower().replace("_", "-")
+            in ("authorization", "proxy-authorization", "cookie", "x-api-key", "api-key")
+            for header in request.headers
         ):
             raise OpenAIError("X.509 token exchange requests cannot include API credentials")
-    elif expected_authorization is not None and request.headers.get("Authorization") != expected_authorization:
-        raise OpenAIError("X.509 workload identity authorization cannot be changed by HTTP request hooks")
+    else:
+        validate_x509_api_credentials(request)
+        if request.headers.get("Authorization") != expected_authorization:
+            raise OpenAIError("X.509 workload identity authorization cannot be changed by HTTP request hooks")
 
 
 class _SyncX509ForwardingTransport(httpx2.BaseTransport):
@@ -330,7 +369,14 @@ class _X509WorkloadIdentityAuth(_WorkloadIdentityAuth[X509WorkloadIdentity]):
     @override
     def _handle_token_response(self, response: httpx2.Response) -> dict[str, Any]:
         if response.status_code not in (400, 401, 403):
-            return super()._handle_token_response(response)
+            token_data = super()._handle_token_response(response)
+            response_body = response.json()
+            token_type = response_body.get("token_type")
+            if "token_type" in response_body and (not isinstance(token_type, str) or token_type.lower() != "bearer"):
+                raise OpenAIError("X.509 token exchange response must use the Bearer token type")
+            if _BEARER_ACCESS_TOKEN.fullmatch(token_data["access_token"]) is None:
+                raise OpenAIError("X.509 token exchange response did not include a valid Bearer access_token")
+            return token_data
 
         try:
             response_body = response.json() if response.content else None

@@ -40,6 +40,8 @@ from .auth._x509 import (
     AsyncX509WorkloadIdentityAuth,
     validate_x509_api_url,
     is_x509_workload_identity,
+    validate_x509_api_credentials,
+    validate_x509_request_authority,
 )
 from ._exceptions import OpenAIError, APIStatusError
 from ._base_client import (
@@ -508,6 +510,8 @@ class OpenAI(SyncAPIClient):
                 if x509_auth.workload_identity != self.workload_identity:
                     raise OpenAIError("X.509 workload identity cannot be changed after client construction")
                 validate_x509_api_url(request.url, expected_origin=self.base_url)
+                validate_x509_request_authority(request)
+                validate_x509_api_credentials(request)
             if x509_auth._follow_redirects is not None:
                 kwargs["follow_redirects"] = x509_auth._follow_redirects
             authorization = request.headers.get("Authorization")
@@ -520,7 +524,7 @@ class OpenAI(SyncAPIClient):
             response = x509_auth.send_api_request(
                 request,
                 expected_origin=self.base_url,
-                expected_authorization=f"Bearer {used_access_token}" if used_access_token is not None else None,
+                expected_authorization=request.headers.get("Authorization"),
                 stream=stream,
                 **kwargs,
             )
@@ -1179,6 +1183,8 @@ class AsyncOpenAI(AsyncAPIClient):
                 if x509_auth.workload_identity != self.workload_identity:
                     raise OpenAIError("X.509 workload identity cannot be changed after client construction")
                 validate_x509_api_url(request.url, expected_origin=self.base_url)
+                validate_x509_request_authority(request)
+                validate_x509_api_credentials(request)
             if x509_auth._follow_redirects is not None:
                 kwargs["follow_redirects"] = x509_auth._follow_redirects
             authorization = request.headers.get("Authorization")
@@ -1191,7 +1197,7 @@ class AsyncOpenAI(AsyncAPIClient):
             response = await x509_auth.send_api_request(
                 request,
                 expected_origin=self.base_url,
-                expected_authorization=f"Bearer {used_access_token}" if used_access_token is not None else None,
+                expected_authorization=request.headers.get("Authorization"),
                 stream=stream,
                 **kwargs,
             )
