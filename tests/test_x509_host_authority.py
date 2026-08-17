@@ -7,7 +7,6 @@ from openai import OpenAI, AsyncOpenAI, OpenAIError
 from openai.auth import x509_workload_identity
 
 _AUTH_HOST = "mtls.auth.openai.com"
-_API_HOST = "mtls.api.openai.com"
 
 
 def _response(request: httpx2.Request) -> httpx2.Response:
