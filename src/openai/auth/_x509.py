@@ -10,7 +10,7 @@ import anyio
 import httpx2
 
 from .._utils import is_dict
-from .._httpx2 import timeout_exceptions, _loaded_legacy_httpx
+from .._httpx2 import timeout_exceptions, normalize_httpx_url, _loaded_legacy_httpx
 from ._workload import (
     TOKEN_EXCHANGE_GRANT_TYPE,
     WorkloadIdentity,
@@ -27,6 +27,162 @@ _MAX_EXCHANGE_RETRIES = 2
 _REPLAY_POSITION_EXTENSION = "openai_x509_replay_position"
 _REPLAY_FILE_POSITIONS_EXTENSION = "openai_x509_replay_file_positions"
 _ALLOWED_IDENTITY_FIELDS = {"type", "identity_provider_id", "service_account_id", "refresh_buffer_seconds"}
+
+
+def validate_x509_api_url(url: httpx2.URL | str, *, expected_origin: httpx2.URL | None = None) -> None:
+    normalized_url = normalize_httpx_url(url)
+    if normalized_url.scheme != "https" or not normalized_url.host:
+        raise OpenAIError("X.509 workload identity requires an absolute HTTPS API URL")
+
+    if normalized_url.username or normalized_url.password:
+        raise OpenAIError("X.509 workload identity API URLs cannot contain user credentials")
+
+    if expected_origin is not None and (normalized_url.host, normalized_url.port) != (
+        expected_origin.host,
+        expected_origin.port,
+    ):
+        raise OpenAIError("X.509 workload identity requests must use the configured API origin")
+
+
+def _validate_transport_request(
+    request: httpx2.Request,
+    *,
+    expected_origin: httpx2.URL,
+    expected_authorization: str | None,
+    token_exchange: bool,
+) -> None:
+    validate_x509_api_url(request.url, expected_origin=expected_origin)
+
+    if token_exchange:
+        if str(request.url) != _X509_TOKEN_EXCHANGE_URL:
+            raise OpenAIError("X.509 token exchange requests must use the pinned authentication URL")
+        if any(
+            header in request.headers
+            for header in ("authorization", "proxy-authorization", "cookie", "x-api-key", "api-key")
+        ):
+            raise OpenAIError("X.509 token exchange requests cannot include API credentials")
+    elif expected_authorization is not None and request.headers.get("Authorization") != expected_authorization:
+        raise OpenAIError("X.509 workload identity authorization cannot be changed by HTTP request hooks")
+
+
+class _SyncX509ForwardingTransport(httpx2.BaseTransport):
+    def __init__(
+        self,
+        *,
+        http_client: httpx2.Client,
+        expected_origin: httpx2.URL,
+        expected_authorization: str | None,
+        token_exchange: bool,
+    ) -> None:
+        self._http_client = http_client
+        self._expected_origin = expected_origin
+        self._expected_authorization = expected_authorization
+        self._token_exchange = token_exchange
+
+    @override
+    def handle_request(self, request: httpx2.Request) -> httpx2.Response:
+        _validate_transport_request(
+            request,
+            expected_origin=self._expected_origin,
+            expected_authorization=self._expected_authorization,
+            token_exchange=self._token_exchange,
+        )
+        if self._http_client.is_closed:
+            raise RuntimeError("Cannot send a request, as the client has been closed.")
+        return self._http_client._transport_for_url(request.url).handle_request(request)
+
+    @override
+    def close(self) -> None:
+        # The caller owns the selected connection pool and proxy transports.
+        return None
+
+
+class _AsyncX509ForwardingTransport(httpx2.AsyncBaseTransport):
+    def __init__(
+        self,
+        *,
+        http_client: httpx2.AsyncClient,
+        expected_origin: httpx2.URL,
+        expected_authorization: str | None,
+        token_exchange: bool,
+    ) -> None:
+        self._http_client = http_client
+        self._expected_origin = expected_origin
+        self._expected_authorization = expected_authorization
+        self._token_exchange = token_exchange
+
+    @override
+    async def handle_async_request(self, request: httpx2.Request) -> httpx2.Response:
+        _validate_transport_request(
+            request,
+            expected_origin=self._expected_origin,
+            expected_authorization=self._expected_authorization,
+            token_exchange=self._token_exchange,
+        )
+        if self._http_client.is_closed:
+            raise RuntimeError("Cannot send a request, as the client has been closed.")
+        return await self._http_client._transport_for_url(request.url).handle_async_request(request)
+
+    @override
+    async def aclose(self) -> None:
+        # The caller owns the selected connection pool and proxy transports.
+        return None
+
+
+def _scoped_sync_client(
+    http_client: httpx2.Client,
+    *,
+    expected_origin: httpx2.URL,
+    expected_authorization: str | None = None,
+    token_exchange: bool = False,
+) -> httpx2.Client:
+    transport = _SyncX509ForwardingTransport(
+        http_client=http_client,
+        expected_origin=expected_origin,
+        expected_authorization=expected_authorization,
+        token_exchange=token_exchange,
+    )
+    legacy_httpx = _loaded_legacy_httpx()
+    client_type = httpx2.Client
+    if legacy_httpx is not None and not isinstance(cast(object, http_client), httpx2.Client):
+        client_type = legacy_httpx.Client
+    scoped_client = client_type(
+        transport=transport,
+        timeout=http_client.timeout,
+        event_hooks=None if token_exchange else http_client.event_hooks,
+        trust_env=False,
+    )
+    if not token_exchange:
+        scoped_client._cookies = http_client.cookies
+    return scoped_client
+
+
+def _scoped_async_client(
+    http_client: httpx2.AsyncClient,
+    *,
+    expected_origin: httpx2.URL,
+    expected_authorization: str | None = None,
+    token_exchange: bool = False,
+) -> httpx2.AsyncClient:
+    transport = _AsyncX509ForwardingTransport(
+        http_client=http_client,
+        expected_origin=expected_origin,
+        expected_authorization=expected_authorization,
+        token_exchange=token_exchange,
+    )
+    legacy_httpx = _loaded_legacy_httpx()
+    client_type = httpx2.AsyncClient
+    if legacy_httpx is not None and not isinstance(cast(object, http_client), httpx2.AsyncClient):
+        client_type = legacy_httpx.AsyncClient
+    scoped_client = client_type(
+        transport=transport,
+        timeout=http_client.timeout,
+        event_hooks=None if token_exchange else http_client.event_hooks,
+        trust_env=False,
+    )
+    if not token_exchange:
+        scoped_client._cookies = http_client.cookies
+    return scoped_client
 
 
 def _as_finite_float(value: object) -> float | None:
@@ -71,8 +227,17 @@ def _exchange_payload(identity: X509WorkloadIdentity) -> dict[str, str]:
     }
 
 
-def _token_exchange_request(identity: X509WorkloadIdentity) -> httpx2.Request:
-    return httpx2.Request(
+def _token_exchange_request(
+    identity: X509WorkloadIdentity,
+    *,
+    http_client: httpx2.Client | httpx2.AsyncClient,
+) -> httpx2.Request:
+    request_type = httpx2.Request
+    legacy_httpx = _loaded_legacy_httpx()
+    if legacy_httpx is not None and not isinstance(cast(object, http_client), (httpx2.Client, httpx2.AsyncClient)):
+        request_type = cast(type[httpx2.Request], cast(Any, legacy_httpx).Request)
+
+    return request_type(
         "POST",
         _X509_TOKEN_EXCHANGE_URL,
         json=_exchange_payload(identity),
@@ -213,15 +378,36 @@ class SyncX509WorkloadIdentityAuth(_X509WorkloadIdentityAuth):
         super().__init__(workload_identity=workload_identity, max_retries=max_retries)
         self._http_client = http_client
 
+    def send_api_request(
+        self,
+        request: httpx2.Request,
+        *,
+        expected_origin: httpx2.URL,
+        expected_authorization: str | None,
+        stream: bool,
+        **kwargs: Any,
+    ) -> httpx2.Response:
+        with _scoped_sync_client(
+            self._http_client,
+            expected_origin=expected_origin,
+            expected_authorization=expected_authorization,
+        ) as scoped_client:
+            return scoped_client.send(request, stream=stream, **kwargs)
+
     @override
     def _fetch_token_from_exchange(self) -> dict[str, Any]:
         for attempt in range(self._max_exchange_retries + 1):
             try:
-                response = self._http_client.send(
-                    _token_exchange_request(self.workload_identity),
-                    auth=None,
-                    follow_redirects=False,
-                )
+                with _scoped_sync_client(
+                    self._http_client,
+                    expected_origin=httpx2.URL(_X509_TOKEN_EXCHANGE_URL),
+                    token_exchange=True,
+                ) as scoped_client:
+                    response = scoped_client.send(
+                        _token_exchange_request(self.workload_identity, http_client=self._http_client),
+                        auth=None,
+                        follow_redirects=False,
+                    )
             except _transport_errors() as error:
                 if attempt >= self._max_exchange_retries:
                     _raise_transport_error(error)
@@ -245,6 +431,22 @@ class AsyncX509WorkloadIdentityAuth(_X509WorkloadIdentityAuth):
         self._http_client = http_client
         self._async_lock = anyio.Lock()
 
+    async def send_api_request(
+        self,
+        request: httpx2.Request,
+        *,
+        expected_origin: httpx2.URL,
+        expected_authorization: str | None,
+        stream: bool,
+        **kwargs: Any,
+    ) -> httpx2.Response:
+        async with _scoped_async_client(
+            self._http_client,
+            expected_origin=expected_origin,
+            expected_authorization=expected_authorization,
+        ) as scoped_client:
+            return await scoped_client.send(request, stream=stream, **kwargs)
+
     @override
     async def get_token_async(self) -> str:
         async with self._async_lock:
@@ -260,11 +462,16 @@ class AsyncX509WorkloadIdentityAuth(_X509WorkloadIdentityAuth):
     async def _fetch_token_from_exchange_async(self) -> dict[str, Any]:
         for attempt in range(self._max_exchange_retries + 1):
             try:
-                response = await self._http_client.send(
-                    _token_exchange_request(self.workload_identity),
-                    auth=None,
-                    follow_redirects=False,
-                )
+                async with _scoped_async_client(
+                    self._http_client,
+                    expected_origin=httpx2.URL(_X509_TOKEN_EXCHANGE_URL),
+                    token_exchange=True,
+                ) as scoped_client:
+                    response = await scoped_client.send(
+                        _token_exchange_request(self.workload_identity, http_client=self._http_client),
+                        auth=None,
+                        follow_redirects=False,
+                    )
             except _transport_errors() as error:
                 if attempt >= self._max_exchange_retries:
                     _raise_transport_error(error)

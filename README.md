@@ -209,6 +209,12 @@ are exchanged lazily, cached, and refreshed automatically. Certificate files,
 private keys, passwords, server trust, proxies, and rotation remain application
 and transport concerns.
 
+X.509 API requests require HTTPS and must stay on the configured API origin.
+Token exchanges do not inherit API request hooks, authentication, or cookies.
+Identity settings are captured when the client is constructed; create a new
+client to change the identity. Azure clients do not support X.509 workload
+identity.
+
 For asynchronous requests, use `AsyncOpenAI` with
 `DefaultAsyncHttpx2Client`. See the complete [sync rollout-toggle
 example](examples/x509_workload_identity.py) and [async rollout-toggle

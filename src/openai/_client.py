@@ -38,6 +38,7 @@ from .auth._x509 import (
     MTLS_API_BASE_URL,
     SyncX509WorkloadIdentityAuth,
     AsyncX509WorkloadIdentityAuth,
+    validate_x509_api_url,
     is_x509_workload_identity,
 )
 from ._exceptions import OpenAIError, APIStatusError
@@ -139,7 +140,10 @@ class OpenAI(SyncAPIClient):
 
     @base_url.setter
     def base_url(self, url: httpx2.URL | str) -> None:
-        self._base_url = self._enforce_trailing_slash(normalize_httpx_url(url))
+        normalized_url = normalize_httpx_url(url)
+        if is_x509_workload_identity(self.workload_identity):
+            validate_x509_api_url(normalized_url)
+        self._base_url = self._enforce_trailing_slash(normalized_url)
         self._base_url_was_default = False
 
     def __init__(
@@ -212,6 +216,8 @@ class OpenAI(SyncAPIClient):
         if api_key is not None and api_key != WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER and workload_identity is not None:
             raise OpenAIError("The `api_key` and `workload_identity` arguments are mutually exclusive")
 
+        if is_x509_workload_identity(workload_identity):
+            workload_identity = workload_identity.copy()
         self.workload_identity = workload_identity if provider_runtime is None else None
 
         if provider_runtime is not None:
@@ -281,6 +287,8 @@ class OpenAI(SyncAPIClient):
         self._base_url_was_default = provider_runtime is None and base_url is None
         if base_url is None:
             base_url = MTLS_API_BASE_URL if x509_identity is not None else "https://api.openai.com/v1"
+        if x509_identity is not None:
+            validate_x509_api_url(base_url)
 
         custom_headers_env = os.environ.get("OPENAI_CUSTOM_HEADERS") if provider_runtime is None else None
         if custom_headers_env is not None:
@@ -304,7 +312,7 @@ class OpenAI(SyncAPIClient):
 
         if x509_identity is not None:
             self._workload_identity_auth = SyncX509WorkloadIdentityAuth(
-                workload_identity=x509_identity, http_client=self._client, max_retries=max_retries
+                workload_identity=x509_identity.copy(), http_client=self._client, max_retries=max_retries
             )
         elif subject_token_identity is not None:
             self._workload_identity_auth = WorkloadIdentityAuth(
@@ -493,17 +501,31 @@ class OpenAI(SyncAPIClient):
     ) -> httpx2.Response:
         used_access_token: str | None = None
         request_is_replayable = False
+        x509_auth = self._workload_identity_auth
 
-        if self._workload_identity_auth is not None:
-            if self._workload_identity_auth._follow_redirects is not None:
-                kwargs["follow_redirects"] = self._workload_identity_auth._follow_redirects
+        if x509_auth is not None:
+            if isinstance(x509_auth, SyncX509WorkloadIdentityAuth):
+                if x509_auth.workload_identity != self.workload_identity:
+                    raise OpenAIError("X.509 workload identity cannot be changed after client construction")
+                validate_x509_api_url(request.url, expected_origin=self.base_url)
+            if x509_auth._follow_redirects is not None:
+                kwargs["follow_redirects"] = x509_auth._follow_redirects
             authorization = request.headers.get("Authorization")
             if authorization == f"Bearer {WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER}":
-                used_access_token = self._workload_identity_auth.get_token()
+                used_access_token = x509_auth.get_token()
                 request.headers["Authorization"] = f"Bearer {used_access_token}"
-                request_is_replayable = self._workload_identity_auth._can_retry_request(request)
+                request_is_replayable = x509_auth._can_retry_request(request)
 
-        response = super()._send_request(request, stream=stream, **kwargs)
+        if isinstance(x509_auth, SyncX509WorkloadIdentityAuth):
+            response = x509_auth.send_api_request(
+                request,
+                expected_origin=self.base_url,
+                expected_authorization=f"Bearer {used_access_token}" if used_access_token is not None else None,
+                stream=stream,
+                **kwargs,
+            )
+        else:
+            response = super()._send_request(request, stream=stream, **kwargs)
         if response.status_code != 401 or self._workload_identity_auth is None or used_access_token is None:
             return response
 
@@ -789,7 +811,10 @@ class AsyncOpenAI(AsyncAPIClient):
 
     @base_url.setter
     def base_url(self, url: httpx2.URL | str) -> None:
-        self._base_url = self._enforce_trailing_slash(normalize_httpx_url(url))
+        normalized_url = normalize_httpx_url(url)
+        if is_x509_workload_identity(self.workload_identity):
+            validate_x509_api_url(normalized_url)
+        self._base_url = self._enforce_trailing_slash(normalized_url)
         self._base_url_was_default = False
 
     def __init__(
@@ -862,6 +887,8 @@ class AsyncOpenAI(AsyncAPIClient):
         if api_key is not None and api_key != WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER and workload_identity is not None:
             raise OpenAIError("The `api_key` and `workload_identity` arguments are mutually exclusive")
 
+        if is_x509_workload_identity(workload_identity):
+            workload_identity = workload_identity.copy()
         self.workload_identity = workload_identity if provider_runtime is None else None
 
         if provider_runtime is not None:
@@ -931,6 +958,8 @@ class AsyncOpenAI(AsyncAPIClient):
         self._base_url_was_default = provider_runtime is None and base_url is None
         if base_url is None:
             base_url = MTLS_API_BASE_URL if x509_identity is not None else "https://api.openai.com/v1"
+        if x509_identity is not None:
+            validate_x509_api_url(base_url)
 
         custom_headers_env = os.environ.get("OPENAI_CUSTOM_HEADERS") if provider_runtime is None else None
         if custom_headers_env is not None:
@@ -954,7 +983,7 @@ class AsyncOpenAI(AsyncAPIClient):
 
         if x509_identity is not None:
             self._workload_identity_auth = AsyncX509WorkloadIdentityAuth(
-                workload_identity=x509_identity, http_client=self._client, max_retries=max_retries
+                workload_identity=x509_identity.copy(), http_client=self._client, max_retries=max_retries
             )
         elif subject_token_identity is not None:
             self._workload_identity_auth = WorkloadIdentityAuth(
@@ -1143,17 +1172,31 @@ class AsyncOpenAI(AsyncAPIClient):
     ) -> httpx2.Response:
         used_access_token: str | None = None
         request_is_replayable = False
+        x509_auth = self._workload_identity_auth
 
-        if self._workload_identity_auth is not None:
-            if self._workload_identity_auth._follow_redirects is not None:
-                kwargs["follow_redirects"] = self._workload_identity_auth._follow_redirects
+        if x509_auth is not None:
+            if isinstance(x509_auth, AsyncX509WorkloadIdentityAuth):
+                if x509_auth.workload_identity != self.workload_identity:
+                    raise OpenAIError("X.509 workload identity cannot be changed after client construction")
+                validate_x509_api_url(request.url, expected_origin=self.base_url)
+            if x509_auth._follow_redirects is not None:
+                kwargs["follow_redirects"] = x509_auth._follow_redirects
             authorization = request.headers.get("Authorization")
             if authorization == f"Bearer {WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER}":
-                used_access_token = await self._workload_identity_auth.get_token_async()
+                used_access_token = await x509_auth.get_token_async()
                 request.headers["Authorization"] = f"Bearer {used_access_token}"
-                request_is_replayable = self._workload_identity_auth._can_retry_request(request)
+                request_is_replayable = x509_auth._can_retry_request(request)
 
-        response = await super()._send_request(request, stream=stream, **kwargs)
+        if isinstance(x509_auth, AsyncX509WorkloadIdentityAuth):
+            response = await x509_auth.send_api_request(
+                request,
+                expected_origin=self.base_url,
+                expected_authorization=f"Bearer {used_access_token}" if used_access_token is not None else None,
+                stream=stream,
+                **kwargs,
+            )
+        else:
+            response = await super()._send_request(request, stream=stream, **kwargs)
         if response.status_code != 401 or self._workload_identity_auth is None or used_access_token is None:
             return response
 
