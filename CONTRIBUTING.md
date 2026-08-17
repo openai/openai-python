@@ -43,6 +43,32 @@ Most of the SDK is generated code. Modifications to code will be persisted betwe
 result in merge conflicts between manual patches and changes from the generator. The generator will never
 modify the contents of the `src/openai/lib/` and `examples/` directories.
 
+## Security requirements for contributions
+
+- Never commit API or admin keys, bearer tokens, webhook secrets, cloud
+  credentials, private keys, publishing credentials, or `.env` files. Load real
+  credentials from environment variables such as `OPENAI_API_KEY`,
+  `OPENAI_ADMIN_KEY`, and `OPENAI_WEBHOOK_SECRET`; use clearly fake values and
+  sanitized data in examples, tests, fixtures, and recorded responses.
+- Redact `Authorization` and `api-key` headers, other credentials, and customer
+  request or response data from logs, exceptions, snapshots, and debug output.
+  Prefer the mock server or mocked HTTP transport over live credentials in tests.
+- Review direct and transitive dependency changes, package provenance, build or
+  install hooks, and diffs to `pyproject.toml`, optional extras,
+  `requirements.lock`, `requirements-dev.lock`, and `uv.lock`.
+- Pin third-party GitHub Actions to reviewed full commit SHAs, minimize job
+  permissions, and keep secrets and write-capable tokens away from untrusted
+  pull-request code. Protect release-app credentials and preserve the separate
+  build and upload jobs, protected publishing environment, and PyPI Trusted
+  Publishing. Limit OIDC access to the trusted publishing job.
+- Request SDK CODEOWNER review for authentication, X.509, webhook verification,
+  network destinations, redirects, TLS, cloud metadata, file handling,
+  serialization, dependency, CI, and release changes. Add synchronous and
+  asynchronous regression tests as applicable, including credential redaction
+  and invalid signatures.
+- Report suspected vulnerabilities privately through the process in
+  [SECURITY.md](./SECURITY.md), never through public issues or pull requests.
+
 ## Adding and running examples
 
 All files in the `examples/` directory are not modified by the generator and can be freely edited or added to.
