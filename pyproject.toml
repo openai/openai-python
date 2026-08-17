@@ -52,9 +52,34 @@ bedrock = [
   "botocore>=1.40.0,<2",
 ]
 
+[dependency-groups]
+# Mirror Rye's legacy development group until the repository migrates to uv.
+dev = [
+    "pyright==1.1.399",
+    "mypy==1.17",
+    "pytest",
+    "pytest-asyncio",
+    "jsonschema>=4.23.0",
+    "ruff",
+    "time-machine",
+    "nox",
+    "dirty-equals>=0.6.0",
+    "importlib-metadata>=6.7.0",
+    "rich>=13.7.1",
+    "inline-snapshot>=0.28.0",
+    "azure-identity >=1.14.1",
+    "botocore==1.42.97",
+    "types-tqdm > 4",
+    "types-pyaudio > 0",
+    "trio >=0.22.2",
+    "nest_asyncio==1.6.0",
+    "pytest-xdist>=3.6.1",
+    "griffe>=1",
+]
+
 [tool.rye]
 managed = true
-# version pins are in requirements-dev.lock
+# Keep in sync with [dependency-groups].dev for the existing Rye toolchain.
 dev-dependencies = [
     "pyright==1.1.399",
     "mypy==1.17",

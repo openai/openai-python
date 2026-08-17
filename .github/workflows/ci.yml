@@ -19,6 +19,41 @@ permissions:
   contents: read
 
 jobs:
+  dependency-locks:
+    timeout-minutes: 10
+    name: dependency lock freshness
+    runs-on: ubuntu-latest
+    if: github.event_name != 'schedule'
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Rye
+        uses: eifinger/setup-rye@c694239a43768373e87d0103d7f547027a23f3c8
+        with:
+          version: '0.44.0'
+          enable-cache: true
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+
+      - name: Verify dependency groups and committed locks
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          python -c 'import pathlib, tomllib; project = tomllib.loads(pathlib.Path("pyproject.toml").read_text()); assert project["dependency-groups"]["dev"] == project["tool"]["rye"]["dev-dependencies"], "Keep uv and Rye development dependencies synchronized"'
+          uv lock --check
+          rye lock --all-features
+          git diff --exit-code -- requirements.lock requirements-dev.lock
+          if [ "$GITHUB_EVENT_NAME" = pull_request ] && [ "$GITHUB_ACTOR" = 'dependabot[bot]' ] &&
+             ! git diff --quiet "$BASE_SHA"...HEAD -- uv.lock &&
+             git diff --quiet "$BASE_SHA"...HEAD -- requirements.lock requirements-dev.lock; then
+            echo 'Regenerate and commit the affected Rye locks before merging this uv update.'
+            exit 1
+          fi
+
   lint:
     timeout-minutes: 10
     name: lint
