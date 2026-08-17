@@ -6,6 +6,7 @@ from typing_extensions import Literal, Annotated, TypeAlias
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
 from .beta_tool import BetaTool
+from .beta_image_detail import BetaImageDetail
 from .beta_mcp_tool_call_error import BetaMcpToolCallError
 from .beta_response_input_file import BetaResponseInputFile
 from .beta_response_input_text import BetaResponseInputText
@@ -112,7 +113,7 @@ class AgentMessageContentComputerScreenshotPromptCacheBreakpoint(BaseModel):
 class AgentMessageContentComputerScreenshot(BaseModel):
     """A screenshot of a computer."""
 
-    detail: Literal["low", "high", "auto", "original"]
+    detail: BetaImageDetail
     """The detail level of the screenshot image to be sent to the model.
 
     One of `high`, `low`, `auto`, or `original`. Defaults to `auto`.

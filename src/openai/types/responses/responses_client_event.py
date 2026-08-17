@@ -5,6 +5,7 @@ from typing_extensions import Literal, TypeAlias
 
 from .tool import Tool
 from ..._models import BaseModel
+from .service_tier import ServiceTier
 from .response_input import ResponseInput
 from .response_prompt import ResponsePrompt
 from .tool_choice_mcp import ToolChoiceMcp
@@ -315,7 +316,7 @@ class ResponsesClientEvent(BaseModel):
     [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
     """
 
-    service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast", "ultrafast"]] = None
+    service_tier: Optional[ServiceTier] = None
     """Specifies the processing type used for serving the request.
 
     - If set to 'auto', then the request will be processed with the service tier

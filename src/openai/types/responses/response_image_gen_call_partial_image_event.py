@@ -1,5 +1,6 @@
 # File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
+from typing import Optional
 from typing_extensions import Literal
 
 from ..._models import BaseModel
@@ -30,3 +31,15 @@ class ResponseImageGenCallPartialImageEvent(BaseModel):
 
     type: Literal["response.image_generation_call.partial_image"]
     """The type of the event. Always 'response.image_generation_call.partial_image'."""
+
+    background: Optional[str] = None
+    """The background setting that was used."""
+
+    output_format: Optional[str] = None
+    """The output format that was used."""
+
+    quality: Optional[str] = None
+    """The image quality that was used."""
+
+    size: Optional[str] = None
+    """The image size that was used."""
