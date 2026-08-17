@@ -41,3 +41,15 @@ class BetaResponseImageGenCallPartialImageEvent(BaseModel):
 
     agent: Optional[Agent] = None
     """The agent that owns this multi-agent streaming event."""
+
+    background: Optional[str] = None
+    """The background setting that was used."""
+
+    output_format: Optional[str] = None
+    """The output format that was used."""
+
+    quality: Optional[str] = None
+    """The image quality that was used."""
+
+    size: Optional[str] = None
+    """The image size that was used."""

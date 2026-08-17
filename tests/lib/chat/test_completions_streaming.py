@@ -160,6 +160,7 @@ ParsedChatCompletion(
     ],
     created=1727346169,
     id='chatcmpl-ABfw1e5abtU8OwGr15vOreYVb2MiF',
+    metadata=None,
     model='gpt-4o-2024-08-06',
     moderation=None,
     object='chat.completion',

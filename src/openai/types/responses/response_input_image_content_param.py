@@ -5,6 +5,8 @@ from __future__ import annotations
 from typing import Optional
 from typing_extensions import Literal, Required, TypedDict
 
+from .image_detail import ImageDetail
+
 __all__ = ["ResponseInputImageContentParam", "PromptCacheBreakpoint"]
 
 
@@ -27,7 +29,7 @@ class ResponseInputImageContentParam(TypedDict, total=False):
     type: Required[Literal["input_image"]]
     """The type of the input item. Always `input_image`."""
 
-    detail: Optional[Literal["low", "high", "auto", "original"]]
+    detail: Optional[ImageDetail]
     """The detail level of the image to be sent to the model.
 
     One of `high`, `low`, `auto`, or `original`. Defaults to `auto`.

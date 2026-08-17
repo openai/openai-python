@@ -7,6 +7,7 @@ from typing_extensions import Literal, Required, Annotated, TypeAlias, TypedDict
 
 from ..._utils import PropertyInfo
 from .beta_tool_param import BetaToolParam
+from .beta_service_tier import BetaServiceTier
 from .beta_response_includable import BetaResponseIncludable
 from .beta_tool_choice_options import BetaToolChoiceOptions
 from .beta_response_input_param import BetaResponseInputParam
@@ -321,7 +322,7 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
     """
 
-    service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast", "ultrafast"]]
+    service_tier: Optional[BetaServiceTier]
     """Specifies the processing type used for serving the request.
 
     - If set to 'auto', then the request will be processed with the service tier
