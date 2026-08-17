@@ -403,6 +403,75 @@ async def test_legacy_bearer_refresh_ignores_conflicting_ambient_region(
     assert requests[0].headers["Authorization"] == "Bearer refreshed-token"
 
 
+@pytest.mark.anyio
+@pytest.mark.parametrize("client_cls", [BedrockOpenAI, AsyncBedrockOpenAI], ids=["sync", "async"])
+@pytest.mark.parametrize(
+    ("base_url", "service"),
+    [
+        pytest.param(_RUNTIME_URL, "bedrock", id="runtime"),
+        pytest.param("https://bedrock-mantle.us-east-1.api.aws/openai/v1", "bedrock-mantle", id="mantle"),
+    ],
+)
+async def test_legacy_canonical_bearer_region_survives_aws_credential_override(
+    client_cls: type[BedrockOpenAI] | type[AsyncBedrockOpenAI], base_url: str, service: str
+) -> None:
+    requests: list[httpx2.Request] = []
+
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        requests.append(request)
+        return httpx2.Response(200, request=request, json={})
+
+    client: BedrockOpenAI | AsyncBedrockOpenAI
+    if client_cls is BedrockOpenAI:
+        client = BedrockOpenAI(
+            base_url=base_url,
+            api_key="initial-token",
+            http_client=httpx2.Client(transport=httpx2.MockTransport(handler), trust_env=False),
+        )
+    else:
+        client = AsyncBedrockOpenAI(
+            base_url=base_url,
+            api_key="initial-token",
+            http_client=httpx2.AsyncClient(transport=httpx2.MockTransport(handler), trust_env=False),
+        )
+
+    assert client.aws_region == "us-east-1"
+    assert not client._bedrock_state.region_was_explicit
+    client = client.with_options(aws_access_key_id="access-key", aws_secret_access_key="secret-key")
+
+    if isinstance(client, BedrockOpenAI):
+        client.get("/models", cast_to=httpx2.Response)
+        client.close()
+    else:
+        await client.get("/models", cast_to=httpx2.Response)
+        await client.close()
+
+    assert f"/{service}/aws4_request" in requests[0].headers["Authorization"]
+
+
+@pytest.mark.parametrize("client_cls", [BedrockOpenAI, AsyncBedrockOpenAI], ids=["sync", "async"])
+@pytest.mark.parametrize(
+    ("explicit_region", "expected_region", "region_was_explicit"),
+    [
+        pytest.param(None, "us-west-2", False, id="ambient-region"),
+        pytest.param("us-east-1", "us-east-1", True, id="explicit-region"),
+    ],
+)
+def test_legacy_canonical_region_preserves_configured_precedence(
+    client_cls: type[BedrockOpenAI] | type[AsyncBedrockOpenAI],
+    explicit_region: str | None,
+    expected_region: str,
+    region_was_explicit: bool,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("AWS_REGION", "us-west-2")
+
+    client = client_cls(base_url=_RUNTIME_URL, aws_region=explicit_region, api_key="bedrock-token")
+
+    assert client.aws_region == expected_region
+    assert client._bedrock_state.region_was_explicit is region_was_explicit
+
+
 @pytest.mark.parametrize("client_cls", [BedrockOpenAI, AsyncBedrockOpenAI], ids=["sync", "async"])
 @pytest.mark.parametrize("base_url", [_RUNTIME_URL, "https://proxy.example/openai/v1"])
 def test_legacy_bedrock_accepts_loaded_httpx_urls(

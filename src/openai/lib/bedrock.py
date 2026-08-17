@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-import re
 import hashlib
 import inspect
 from typing import Any, Literal, Mapping, Callable, Optional, Awaitable, cast
@@ -484,14 +483,12 @@ class BedrockOpenAI(OpenAI):
         self._bedrock_state = _state
         self._bedrock_token_provider = cast("BedrockTokenProvider | None", _state.token_provider)
         self._uses_region_derived_base_url = _state.uses_region_derived_base_url
-        canonical_region = re.fullmatch(r"bedrock-mantle\.([a-z0-9-]+)\.api\.aws", self.base_url.host)
+        canonical_endpoint = _parse_bedrock_endpoint_hostname(self.base_url.host)
         provider_region = (
             self._provider_runtime.region if isinstance(self._provider_runtime, _BedrockProviderRuntime) else None
         )
         self.aws_region = (
-            _state.aws_region
-            or provider_region
-            or (canonical_region.group(1) if canonical_region is not None else None)
+            _state.aws_region or provider_region or (canonical_endpoint[1] if canonical_endpoint is not None else None)
         )
         self._bedrock_state = replace(_state, aws_region=self.aws_region)
         self.api_key = public_api_key or ""
@@ -718,14 +715,12 @@ class AsyncBedrockOpenAI(AsyncOpenAI):
         self._bedrock_state = _state
         self._bedrock_token_provider = cast("AsyncBedrockTokenProvider | None", _state.token_provider)
         self._uses_region_derived_base_url = _state.uses_region_derived_base_url
-        canonical_region = re.fullmatch(r"bedrock-mantle\.([a-z0-9-]+)\.api\.aws", self.base_url.host)
+        canonical_endpoint = _parse_bedrock_endpoint_hostname(self.base_url.host)
         provider_region = (
             self._provider_runtime.region if isinstance(self._provider_runtime, _BedrockProviderRuntime) else None
         )
         self.aws_region = (
-            _state.aws_region
-            or provider_region
-            or (canonical_region.group(1) if canonical_region is not None else None)
+            _state.aws_region or provider_region or (canonical_endpoint[1] if canonical_endpoint is not None else None)
         )
         self._bedrock_state = replace(_state, aws_region=self.aws_region)
         self.api_key = public_api_key or ""
