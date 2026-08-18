@@ -111,6 +111,10 @@ def main() -> None:
         if any("python_version" in requirement for requirement in botocore_requirements):
             raise RuntimeError(f"Botocore requirements have redundant Python markers: {botocore_requirements}")
 
+        urllib3_requirements = [requirement for requirement in requirements if requirement.startswith("urllib3")]
+        if urllib3_requirements != ["urllib3<3,>=2.7.0; extra == 'bedrock'"]:
+            raise RuntimeError(f"The Bedrock extra must require a patched urllib3 release: {urllib3_requirements}")
+
         environment = os.environ.copy()
         for name in (
             "AWS_ACCESS_KEY_ID",
