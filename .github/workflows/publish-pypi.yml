@@ -45,7 +45,6 @@ jobs:
     # PyPI Trusted Publishing requires id-token: write. Keep it scoped to this
     # minimal upload-only job rather than the build job.
     permissions:
-      contents: read
       id-token: write
 
     steps:
