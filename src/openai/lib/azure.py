@@ -19,6 +19,7 @@ from .._streaming import Stream, AsyncStream
 from ..auth._x509 import is_x509_workload_identity
 from .._exceptions import OpenAIError
 from .._base_client import DEFAULT_MAX_RETRIES, BaseClient
+from .._data_residency import DataResidency
 
 _deployments_endpoints = set(
     [
@@ -297,7 +298,8 @@ class AzureOpenAI(BaseAzureClient[httpx2.Client, Stream[Any]], OpenAI):
         api_version: str | None = None,
         azure_ad_token: str | None = None,
         azure_ad_token_provider: AzureADTokenProvider | None = None,
-        base_url: str | httpx2.URL | None = None,
+        base_url: str | httpx2.URL | None | NotGiven = NOT_GIVEN,
+        data_residency: DataResidency | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
         http_client: httpx2.Client | None = None,
         max_retries: int | NotGiven = NOT_GIVEN,
@@ -311,6 +313,9 @@ class AzureOpenAI(BaseAzureClient[httpx2.Client, Stream[Any]], OpenAI):
         """
         Create a new client instance re-using the same options given to the current client with optional overriding.
         """
+        if data_residency is not None:
+            raise OpenAIError("`data_residency` is only supported by OpenAI clients")
+        base_url = None if isinstance(base_url, NotGiven) else base_url
         if not isinstance(provider, NotGiven):
             raise OpenAIError("Configure `provider` on `OpenAI`, not on `AzureOpenAI.with_options()`.")
         if is_x509_workload_identity(workload_identity):
@@ -626,7 +631,8 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx2.AsyncClient, AsyncStream[Any]], As
         api_version: str | None = None,
         azure_ad_token: str | None = None,
         azure_ad_token_provider: AsyncAzureADTokenProvider | None = None,
-        base_url: str | httpx2.URL | None = None,
+        base_url: str | httpx2.URL | None | NotGiven = NOT_GIVEN,
+        data_residency: DataResidency | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
         http_client: httpx2.AsyncClient | None = None,
         max_retries: int | NotGiven = NOT_GIVEN,
@@ -640,6 +646,9 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx2.AsyncClient, AsyncStream[Any]], As
         """
         Create a new client instance re-using the same options given to the current client with optional overriding.
         """
+        if data_residency is not None:
+            raise OpenAIError("`data_residency` is only supported by OpenAI clients")
+        base_url = None if isinstance(base_url, NotGiven) else base_url
         if not isinstance(provider, NotGiven):
             raise OpenAIError("Configure `provider` on `AsyncOpenAI`, not on `AsyncAzureOpenAI.with_options()`.")
         if is_x509_workload_identity(workload_identity):
