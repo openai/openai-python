@@ -1,0 +1,210 @@
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
+
+from __future__ import annotations
+
+from ..._compat import cached_property
+from .assistants import (
+    Assistants,
+    AsyncAssistants,
+    AssistantsWithRawResponse,
+    AsyncAssistantsWithRawResponse,
+    AssistantsWithStreamingResponse,
+    AsyncAssistantsWithStreamingResponse,
+)
+from ..._resource import SyncAPIResource, AsyncAPIResource
+from .chatkit.chatkit import (
+    ChatKit,
+    AsyncChatKit,
+    ChatKitWithRawResponse,
+    AsyncChatKitWithRawResponse,
+    ChatKitWithStreamingResponse,
+    AsyncChatKitWithStreamingResponse,
+)
+from .threads.threads import (
+    Threads,
+    AsyncThreads,
+    ThreadsWithRawResponse,
+    AsyncThreadsWithRawResponse,
+    ThreadsWithStreamingResponse,
+    AsyncThreadsWithStreamingResponse,
+)
+from .responses.responses import (
+    Responses,
+    AsyncResponses,
+    ResponsesWithRawResponse,
+    AsyncResponsesWithRawResponse,
+    ResponsesWithStreamingResponse,
+    AsyncResponsesWithStreamingResponse,
+)
+
+__all__ = ["Beta", "AsyncBeta"]
+
+
+class Beta(SyncAPIResource):
+    @cached_property
+    def responses(self) -> Responses:
+        return Responses(self._client)
+
+    @cached_property
+    def chatkit(self) -> ChatKit:
+        return ChatKit(self._client)
+
+    @cached_property
+    def assistants(self) -> Assistants:
+        """Build Assistants that can call models and use tools."""
+        return Assistants(self._client)
+
+    @cached_property
+    def threads(self) -> Threads:
+        """Build Assistants that can call models and use tools."""
+        return Threads(self._client)
+
+    @cached_property
+    def with_raw_response(self) -> BetaWithRawResponse:
+        """
+        This property can be used as a prefix for any HTTP method call to return
+        the raw response object instead of the parsed content.
+
+        For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
+        """
+        return BetaWithRawResponse(self)
+
+    @cached_property
+    def with_streaming_response(self) -> BetaWithStreamingResponse:
+        """
+        An alternative to `.with_raw_response` that doesn't eagerly read the response body.
+
+        For more information, see https://www.github.com/openai/openai-python#with_streaming_response
+        """
+        return BetaWithStreamingResponse(self)
+
+
+class AsyncBeta(AsyncAPIResource):
+    @cached_property
+    def responses(self) -> AsyncResponses:
+        return AsyncResponses(self._client)
+
+    @cached_property
+    def chatkit(self) -> AsyncChatKit:
+        return AsyncChatKit(self._client)
+
+    @cached_property
+    def assistants(self) -> AsyncAssistants:
+        """Build Assistants that can call models and use tools."""
+        return AsyncAssistants(self._client)
+
+    @cached_property
+    def threads(self) -> AsyncThreads:
+        """Build Assistants that can call models and use tools."""
+        return AsyncThreads(self._client)
+
+    @cached_property
+    def with_raw_response(self) -> AsyncBetaWithRawResponse:
+        """
+        This property can be used as a prefix for any HTTP method call to return
+        the raw response object instead of the parsed content.
+
+        For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
+        """
+        return AsyncBetaWithRawResponse(self)
+
+    @cached_property
+    def with_streaming_response(self) -> AsyncBetaWithStreamingResponse:
+        """
+        An alternative to `.with_raw_response` that doesn't eagerly read the response body.
+
+        For more information, see https://www.github.com/openai/openai-python#with_streaming_response
+        """
+        return AsyncBetaWithStreamingResponse(self)
+
+
+class BetaWithRawResponse:
+    def __init__(self, beta: Beta) -> None:
+        self._beta = beta
+
+    @cached_property
+    def responses(self) -> ResponsesWithRawResponse:
+        return ResponsesWithRawResponse(self._beta.responses)
+
+    @cached_property
+    def chatkit(self) -> ChatKitWithRawResponse:
+        return ChatKitWithRawResponse(self._beta.chatkit)
+
+    @cached_property
+    def assistants(self) -> AssistantsWithRawResponse:
+        """Build Assistants that can call models and use tools."""
+        return AssistantsWithRawResponse(self._beta.assistants)
+
+    @cached_property
+    def threads(self) -> ThreadsWithRawResponse:
+        """Build Assistants that can call models and use tools."""
+        return ThreadsWithRawResponse(self._beta.threads)
+
+
+class AsyncBetaWithRawResponse:
+    def __init__(self, beta: AsyncBeta) -> None:
+        self._beta = beta
+
+    @cached_property
+    def responses(self) -> AsyncResponsesWithRawResponse:
+        return AsyncResponsesWithRawResponse(self._beta.responses)
+
+    @cached_property
+    def chatkit(self) -> AsyncChatKitWithRawResponse:
+        return AsyncChatKitWithRawResponse(self._beta.chatkit)
+
+    @cached_property
+    def assistants(self) -> AsyncAssistantsWithRawResponse:
+        """Build Assistants that can call models and use tools."""
+        return AsyncAssistantsWithRawResponse(self._beta.assistants)
+
+    @cached_property
+    def threads(self) -> AsyncThreadsWithRawResponse:
+        """Build Assistants that can call models and use tools."""
+        return AsyncThreadsWithRawResponse(self._beta.threads)
+
+
+class BetaWithStreamingResponse:
+    def __init__(self, beta: Beta) -> None:
+        self._beta = beta
+
+    @cached_property
+    def responses(self) -> ResponsesWithStreamingResponse:
+        return ResponsesWithStreamingResponse(self._beta.responses)
+
+    @cached_property
+    def chatkit(self) -> ChatKitWithStreamingResponse:
+        return ChatKitWithStreamingResponse(self._beta.chatkit)
+
+    @cached_property
+    def assistants(self) -> AssistantsWithStreamingResponse:
+        """Build Assistants that can call models and use tools."""
+        return AssistantsWithStreamingResponse(self._beta.assistants)
+
+    @cached_property
+    def threads(self) -> ThreadsWithStreamingResponse:
+        """Build Assistants that can call models and use tools."""
+        return ThreadsWithStreamingResponse(self._beta.threads)
+
+
+class AsyncBetaWithStreamingResponse:
+    def __init__(self, beta: AsyncBeta) -> None:
+        self._beta = beta
+
+    @cached_property
+    def responses(self) -> AsyncResponsesWithStreamingResponse:
+        return AsyncResponsesWithStreamingResponse(self._beta.responses)
+
+    @cached_property
+    def chatkit(self) -> AsyncChatKitWithStreamingResponse:
+        return AsyncChatKitWithStreamingResponse(self._beta.chatkit)
+
+    @cached_property
+    def assistants(self) -> AsyncAssistantsWithStreamingResponse:
+        """Build Assistants that can call models and use tools."""
+        return AsyncAssistantsWithStreamingResponse(self._beta.assistants)
+
+    @cached_property
+    def threads(self) -> AsyncThreadsWithStreamingResponse:
+        """Build Assistants that can call models and use tools."""
+        return AsyncThreadsWithStreamingResponse(self._beta.threads)

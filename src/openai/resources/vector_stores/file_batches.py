@@ -1,0 +1,628 @@
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
+
+from __future__ import annotations
+
+from typing import Dict, Union, Iterable, Optional
+from typing_extensions import Literal
+
+import httpx2
+
+from ... import _legacy_response
+from ...types import FileChunkingStrategyParam
+from ..._types import Body, Omit, Query, Headers, NotGiven, SequenceNotStr, omit, not_given
+from ..._utils import path_template, maybe_transform, async_maybe_transform
+from ..._compat import cached_property
+from ..._resource import SyncAPIResource, AsyncAPIResource
+from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
+from ...pagination import SyncCursorPage, AsyncCursorPage
+from ..._base_client import AsyncPaginator, make_request_options
+from ...types.vector_stores import file_batch_create_params, file_batch_list_files_params
+from ...types.file_chunking_strategy_param import FileChunkingStrategyParam
+from ...types.vector_stores.vector_store_file import VectorStoreFile
+from ...types.vector_stores.vector_store_file_batch import VectorStoreFileBatch
+
+__all__ = ["FileBatches", "AsyncFileBatches"]
+
+
+class FileBatches(SyncAPIResource):
+    @cached_property
+    def with_raw_response(self) -> FileBatchesWithRawResponse:
+        """
+        This property can be used as a prefix for any HTTP method call to return
+        the raw response object instead of the parsed content.
+
+        For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
+        """
+        return FileBatchesWithRawResponse(self)
+
+    @cached_property
+    def with_streaming_response(self) -> FileBatchesWithStreamingResponse:
+        """
+        An alternative to `.with_raw_response` that doesn't eagerly read the response body.
+
+        For more information, see https://www.github.com/openai/openai-python#with_streaming_response
+        """
+        return FileBatchesWithStreamingResponse(self)
+
+    def create(
+        self,
+        vector_store_id: str,
+        *,
+        attributes: Optional[Dict[str, Union[str, float, bool]]] | Omit = omit,
+        chunking_strategy: FileChunkingStrategyParam | Omit = omit,
+        file_ids: SequenceNotStr[str] | Omit = omit,
+        files: Iterable[file_batch_create_params.File] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> VectorStoreFileBatch:
+        """
+        Create a vector store file batch.
+
+        Args:
+          attributes: Set of 16 key-value pairs that can be attached to an object. This can be useful
+              for storing additional information about the object in a structured format, and
+              querying for objects via API or the dashboard. Keys are strings with a maximum
+              length of 64 characters. Values are strings with a maximum length of 512
+              characters, booleans, or numbers.
+
+          chunking_strategy: The chunking strategy used to chunk the file(s). If not set, will use the `auto`
+              strategy. Only applicable if `file_ids` is non-empty.
+
+          file_ids: A list of [File](https://platform.openai.com/docs/api-reference/files) IDs that
+              the vector store should use. Useful for tools like `file_search` that can access
+              files. If `attributes` or `chunking_strategy` are provided, they will be applied
+              to all files in the batch. The maximum batch size is 2000 files. This endpoint
+              is recommended for multi-file ingestion and helps reduce per-vector-store write
+              request pressure. Mutually exclusive with `files`.
+
+          files: A list of objects that each include a `file_id` plus optional `attributes` or
+              `chunking_strategy`. Use this when you need to override metadata for specific
+              files. The global `attributes` or `chunking_strategy` will be ignored and must
+              be specified for each file. The maximum batch size is 2000 files. This endpoint
+              is recommended for multi-file ingestion and helps reduce per-vector-store write
+              request pressure. Mutually exclusive with `file_ids`.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not vector_store_id:
+            raise ValueError(f"Expected a non-empty value for `vector_store_id` but received {vector_store_id!r}")
+        extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
+        return self._post(
+            path_template("/vector_stores/{vector_store_id}/file_batches", vector_store_id=vector_store_id),
+            body=maybe_transform(
+                {
+                    "attributes": attributes,
+                    "chunking_strategy": chunking_strategy,
+                    "file_ids": file_ids,
+                    "files": files,
+                },
+                file_batch_create_params.FileBatchCreateParams,
+            ),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
+            ),
+            cast_to=VectorStoreFileBatch,
+        )
+
+    def retrieve(
+        self,
+        batch_id: str,
+        *,
+        vector_store_id: str,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> VectorStoreFileBatch:
+        """
+        Retrieves a vector store file batch.
+
+        Args:
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not vector_store_id:
+            raise ValueError(f"Expected a non-empty value for `vector_store_id` but received {vector_store_id!r}")
+        if not batch_id:
+            raise ValueError(f"Expected a non-empty value for `batch_id` but received {batch_id!r}")
+        extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
+        return self._get(
+            path_template(
+                "/vector_stores/{vector_store_id}/file_batches/{batch_id}",
+                vector_store_id=vector_store_id,
+                batch_id=batch_id,
+            ),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
+            ),
+            cast_to=VectorStoreFileBatch,
+        )
+
+    def cancel(
+        self,
+        batch_id: str,
+        *,
+        vector_store_id: str,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> VectorStoreFileBatch:
+        """Cancel a vector store file batch.
+
+        This attempts to cancel the processing of
+        files in this batch as soon as possible.
+
+        Args:
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not vector_store_id:
+            raise ValueError(f"Expected a non-empty value for `vector_store_id` but received {vector_store_id!r}")
+        if not batch_id:
+            raise ValueError(f"Expected a non-empty value for `batch_id` but received {batch_id!r}")
+        extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
+        return self._post(
+            path_template(
+                "/vector_stores/{vector_store_id}/file_batches/{batch_id}/cancel",
+                vector_store_id=vector_store_id,
+                batch_id=batch_id,
+            ),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
+            ),
+            cast_to=VectorStoreFileBatch,
+        )
+
+    def list_files(
+        self,
+        batch_id: str,
+        *,
+        vector_store_id: str,
+        after: str | Omit = omit,
+        before: str | Omit = omit,
+        filter: Literal["in_progress", "completed", "failed", "cancelled"] | Omit = omit,
+        limit: int | Omit = omit,
+        order: Literal["asc", "desc"] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> SyncCursorPage[VectorStoreFile]:
+        """
+        Returns a list of vector store files in a batch.
+
+        Args:
+          after: A cursor for use in pagination. `after` is an object ID that defines your place
+              in the list. For instance, if you make a list request and receive 100 objects,
+              ending with obj_foo, your subsequent call can include after=obj_foo in order to
+              fetch the next page of the list.
+
+          before: A cursor for use in pagination. `before` is an object ID that defines your place
+              in the list. For instance, if you make a list request and receive 100 objects,
+              starting with obj_foo, your subsequent call can include before=obj_foo in order
+              to fetch the previous page of the list.
+
+          filter: Filter by file status. One of `in_progress`, `completed`, `failed`, `cancelled`.
+
+          limit: A limit on the number of objects to be returned. Limit can range between 1 and
+              100, and the default is 20.
+
+          order: Sort order by the `created_at` timestamp of the objects. `asc` for ascending
+              order and `desc` for descending order.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not vector_store_id:
+            raise ValueError(f"Expected a non-empty value for `vector_store_id` but received {vector_store_id!r}")
+        if not batch_id:
+            raise ValueError(f"Expected a non-empty value for `batch_id` but received {batch_id!r}")
+        extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
+        return self._get_api_list(
+            path_template(
+                "/vector_stores/{vector_store_id}/file_batches/{batch_id}/files",
+                vector_store_id=vector_store_id,
+                batch_id=batch_id,
+            ),
+            page=SyncCursorPage[VectorStoreFile],
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                query=maybe_transform(
+                    {
+                        "after": after,
+                        "before": before,
+                        "filter": filter,
+                        "limit": limit,
+                        "order": order,
+                    },
+                    file_batch_list_files_params.FileBatchListFilesParams,
+                ),
+                security={"bearer_auth": True},
+            ),
+            model=VectorStoreFile,
+        )
+
+
+class AsyncFileBatches(AsyncAPIResource):
+    @cached_property
+    def with_raw_response(self) -> AsyncFileBatchesWithRawResponse:
+        """
+        This property can be used as a prefix for any HTTP method call to return
+        the raw response object instead of the parsed content.
+
+        For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
+        """
+        return AsyncFileBatchesWithRawResponse(self)
+
+    @cached_property
+    def with_streaming_response(self) -> AsyncFileBatchesWithStreamingResponse:
+        """
+        An alternative to `.with_raw_response` that doesn't eagerly read the response body.
+
+        For more information, see https://www.github.com/openai/openai-python#with_streaming_response
+        """
+        return AsyncFileBatchesWithStreamingResponse(self)
+
+    async def create(
+        self,
+        vector_store_id: str,
+        *,
+        attributes: Optional[Dict[str, Union[str, float, bool]]] | Omit = omit,
+        chunking_strategy: FileChunkingStrategyParam | Omit = omit,
+        file_ids: SequenceNotStr[str] | Omit = omit,
+        files: Iterable[file_batch_create_params.File] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> VectorStoreFileBatch:
+        """
+        Create a vector store file batch.
+
+        Args:
+          attributes: Set of 16 key-value pairs that can be attached to an object. This can be useful
+              for storing additional information about the object in a structured format, and
+              querying for objects via API or the dashboard. Keys are strings with a maximum
+              length of 64 characters. Values are strings with a maximum length of 512
+              characters, booleans, or numbers.
+
+          chunking_strategy: The chunking strategy used to chunk the file(s). If not set, will use the `auto`
+              strategy. Only applicable if `file_ids` is non-empty.
+
+          file_ids: A list of [File](https://platform.openai.com/docs/api-reference/files) IDs that
+              the vector store should use. Useful for tools like `file_search` that can access
+              files. If `attributes` or `chunking_strategy` are provided, they will be applied
+              to all files in the batch. The maximum batch size is 2000 files. This endpoint
+              is recommended for multi-file ingestion and helps reduce per-vector-store write
+              request pressure. Mutually exclusive with `files`.
+
+          files: A list of objects that each include a `file_id` plus optional `attributes` or
+              `chunking_strategy`. Use this when you need to override metadata for specific
+              files. The global `attributes` or `chunking_strategy` will be ignored and must
+              be specified for each file. The maximum batch size is 2000 files. This endpoint
+              is recommended for multi-file ingestion and helps reduce per-vector-store write
+              request pressure. Mutually exclusive with `file_ids`.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not vector_store_id:
+            raise ValueError(f"Expected a non-empty value for `vector_store_id` but received {vector_store_id!r}")
+        extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
+        return await self._post(
+            path_template("/vector_stores/{vector_store_id}/file_batches", vector_store_id=vector_store_id),
+            body=await async_maybe_transform(
+                {
+                    "attributes": attributes,
+                    "chunking_strategy": chunking_strategy,
+                    "file_ids": file_ids,
+                    "files": files,
+                },
+                file_batch_create_params.FileBatchCreateParams,
+            ),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
+            ),
+            cast_to=VectorStoreFileBatch,
+        )
+
+    async def retrieve(
+        self,
+        batch_id: str,
+        *,
+        vector_store_id: str,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> VectorStoreFileBatch:
+        """
+        Retrieves a vector store file batch.
+
+        Args:
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not vector_store_id:
+            raise ValueError(f"Expected a non-empty value for `vector_store_id` but received {vector_store_id!r}")
+        if not batch_id:
+            raise ValueError(f"Expected a non-empty value for `batch_id` but received {batch_id!r}")
+        extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
+        return await self._get(
+            path_template(
+                "/vector_stores/{vector_store_id}/file_batches/{batch_id}",
+                vector_store_id=vector_store_id,
+                batch_id=batch_id,
+            ),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
+            ),
+            cast_to=VectorStoreFileBatch,
+        )
+
+    async def cancel(
+        self,
+        batch_id: str,
+        *,
+        vector_store_id: str,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> VectorStoreFileBatch:
+        """Cancel a vector store file batch.
+
+        This attempts to cancel the processing of
+        files in this batch as soon as possible.
+
+        Args:
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not vector_store_id:
+            raise ValueError(f"Expected a non-empty value for `vector_store_id` but received {vector_store_id!r}")
+        if not batch_id:
+            raise ValueError(f"Expected a non-empty value for `batch_id` but received {batch_id!r}")
+        extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
+        return await self._post(
+            path_template(
+                "/vector_stores/{vector_store_id}/file_batches/{batch_id}/cancel",
+                vector_store_id=vector_store_id,
+                batch_id=batch_id,
+            ),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
+            ),
+            cast_to=VectorStoreFileBatch,
+        )
+
+    def list_files(
+        self,
+        batch_id: str,
+        *,
+        vector_store_id: str,
+        after: str | Omit = omit,
+        before: str | Omit = omit,
+        filter: Literal["in_progress", "completed", "failed", "cancelled"] | Omit = omit,
+        limit: int | Omit = omit,
+        order: Literal["asc", "desc"] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> AsyncPaginator[VectorStoreFile, AsyncCursorPage[VectorStoreFile]]:
+        """
+        Returns a list of vector store files in a batch.
+
+        Args:
+          after: A cursor for use in pagination. `after` is an object ID that defines your place
+              in the list. For instance, if you make a list request and receive 100 objects,
+              ending with obj_foo, your subsequent call can include after=obj_foo in order to
+              fetch the next page of the list.
+
+          before: A cursor for use in pagination. `before` is an object ID that defines your place
+              in the list. For instance, if you make a list request and receive 100 objects,
+              starting with obj_foo, your subsequent call can include before=obj_foo in order
+              to fetch the previous page of the list.
+
+          filter: Filter by file status. One of `in_progress`, `completed`, `failed`, `cancelled`.
+
+          limit: A limit on the number of objects to be returned. Limit can range between 1 and
+              100, and the default is 20.
+
+          order: Sort order by the `created_at` timestamp of the objects. `asc` for ascending
+              order and `desc` for descending order.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not vector_store_id:
+            raise ValueError(f"Expected a non-empty value for `vector_store_id` but received {vector_store_id!r}")
+        if not batch_id:
+            raise ValueError(f"Expected a non-empty value for `batch_id` but received {batch_id!r}")
+        extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
+        return self._get_api_list(
+            path_template(
+                "/vector_stores/{vector_store_id}/file_batches/{batch_id}/files",
+                vector_store_id=vector_store_id,
+                batch_id=batch_id,
+            ),
+            page=AsyncCursorPage[VectorStoreFile],
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                query=maybe_transform(
+                    {
+                        "after": after,
+                        "before": before,
+                        "filter": filter,
+                        "limit": limit,
+                        "order": order,
+                    },
+                    file_batch_list_files_params.FileBatchListFilesParams,
+                ),
+                security={"bearer_auth": True},
+            ),
+            model=VectorStoreFile,
+        )
+
+
+class FileBatchesWithRawResponse:
+    def __init__(self, file_batches: FileBatches) -> None:
+        self._file_batches = file_batches
+
+        self.create = _legacy_response.to_raw_response_wrapper(
+            file_batches.create,
+        )
+        self.retrieve = _legacy_response.to_raw_response_wrapper(
+            file_batches.retrieve,
+        )
+        self.cancel = _legacy_response.to_raw_response_wrapper(
+            file_batches.cancel,
+        )
+        self.list_files = _legacy_response.to_raw_response_wrapper(
+            file_batches.list_files,
+        )
+
+
+class AsyncFileBatchesWithRawResponse:
+    def __init__(self, file_batches: AsyncFileBatches) -> None:
+        self._file_batches = file_batches
+
+        self.create = _legacy_response.async_to_raw_response_wrapper(
+            file_batches.create,
+        )
+        self.retrieve = _legacy_response.async_to_raw_response_wrapper(
+            file_batches.retrieve,
+        )
+        self.cancel = _legacy_response.async_to_raw_response_wrapper(
+            file_batches.cancel,
+        )
+        self.list_files = _legacy_response.async_to_raw_response_wrapper(
+            file_batches.list_files,
+        )
+
+
+class FileBatchesWithStreamingResponse:
+    def __init__(self, file_batches: FileBatches) -> None:
+        self._file_batches = file_batches
+
+        self.create = to_streamed_response_wrapper(
+            file_batches.create,
+        )
+        self.retrieve = to_streamed_response_wrapper(
+            file_batches.retrieve,
+        )
+        self.cancel = to_streamed_response_wrapper(
+            file_batches.cancel,
+        )
+        self.list_files = to_streamed_response_wrapper(
+            file_batches.list_files,
+        )
+
+
+class AsyncFileBatchesWithStreamingResponse:
+    def __init__(self, file_batches: AsyncFileBatches) -> None:
+        self._file_batches = file_batches
+
+        self.create = async_to_streamed_response_wrapper(
+            file_batches.create,
+        )
+        self.retrieve = async_to_streamed_response_wrapper(
+            file_batches.retrieve,
+        )
+        self.cancel = async_to_streamed_response_wrapper(
+            file_batches.cancel,
+        )
+        self.list_files = async_to_streamed_response_wrapper(
+            file_batches.list_files,
+        )
