@@ -12,7 +12,7 @@
 -e file:.
 aiohappyeyeballs==2.7.1
     # via aiohttp
-aiohttp==3.14.1
+aiohttp==3.14.3
     # via openai
 aiosignal==1.4.0
     # via aiohttp
@@ -109,8 +109,9 @@ typing-inspection==0.4.2
     # via pydantic
 tzdata==2025.2
     # via pandas
-urllib3==1.26.20
+urllib3==2.7.0
     # via botocore
+    # via openai
 websockets==15.0.1
     # via openai
 yarl==1.24.2
