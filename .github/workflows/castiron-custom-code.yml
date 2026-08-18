@@ -1,0 +1,106 @@
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
+name: Castiron custom code
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+# These experimental refs are restricted to trusted SDK maintainers.
+# The workflow definition is trusted because its branch writers are trusted.
+concurrency:
+  group: castiron-custom-code-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+env:
+  REPORTER_SHA256: e2f126ee154378f2bea5b5a7588273dde67717d10bc671df8f89696d045e705f
+
+jobs:
+  report:
+    name: Castiron / baseline consistency
+    if: github.event.pull_request.head.repo.full_name == github.repository && contains(fromJSON(vars.CASTIRON_CUSTOM_CODE_BRANCHES || '[]'), github.event.pull_request.head.ref)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out the protected test branch
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Verify the reviewed reporter
+        run: printf '%s  %s\n' "$REPORTER_SHA256" scripts/castiron/custom_code_report.py | sha256sum --check --strict
+
+      - name: Test hash mismatch and snapshot isolation
+        run: python3 scripts/castiron/test_custom_code_report.py
+
+      - name: Validate the codegen hash and report custom code
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PUBLIC_REPOSITORY: ${{ !github.event.repository.private }}
+        run: |
+          git fetch --quiet --no-tags origin "$BASE_SHA" "$HEAD_SHA"
+          mode=()
+          if [[ "$PUBLIC_REPOSITORY" == true ]]; then mode=(--public); fi
+          python3 -I scripts/castiron/custom_code_report.py report \
+            --base "$BASE_SHA" --head "$HEAD_SHA" \
+            --fetch --require-head-hash --require-owned-files "${mode[@]}" \
+            --out "$RUNNER_TEMP/castiron-custom-code"
+
+      - name: Add the report to the run summary
+        if: always()
+        run: |
+          if test -f "$RUNNER_TEMP/castiron-custom-code/summary.md"; then
+            cat "$RUNNER_TEMP/castiron-custom-code/summary.md" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload report and current custom-code patch
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: castiron-custom-code-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/castiron-custom-code/
+          if-no-files-found: error
+          retention-days: 7
+
+  comment:
+    name: Update custom-code comment
+    needs: report
+    if: always() && !cancelled() && needs.report.result != 'skipped'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: write
+    steps:
+      - name: Check out the protected test branch
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Verify the reviewed publisher before execution
+        run: printf '%s  %s\n' "$REPORTER_SHA256" scripts/castiron/custom_code_report.py | sha256sum --check --strict
+
+      - name: Download this run's report
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: castiron-custom-code-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/castiron-custom-code
+
+      - name: Create or update the single report comment
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          python3 -I scripts/castiron/custom_code_report.py comment \
+            --report "$RUNNER_TEMP/castiron-custom-code/report.json" \
+            --repository "$REPOSITORY" --pr "$PR_NUMBER" --run-id "$RUN_ID" \
+            --run-attempt "$RUN_ATTEMPT"
