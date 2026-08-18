@@ -1,4 +1,5 @@
 # File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
+# DO NOT MERGE: existing-customization reporting demo; no runtime behavior change.
 
 from __future__ import annotations
 
