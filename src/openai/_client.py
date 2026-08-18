@@ -49,6 +49,7 @@ from ._base_client import (
     SyncAPIClient,
     AsyncAPIClient,
 )
+from ._data_residency import DataResidency, resolve_data_residency
 
 if TYPE_CHECKING:
     from .resources import (
@@ -158,7 +159,8 @@ class OpenAI(SyncAPIClient):
         project: str | None = None,
         webhook_secret: str | None = None,
         provider: _Provider | None = None,
-        base_url: str | httpx2.URL | None = None,
+        base_url: str | httpx2.URL | None | NotGiven = not_given,
+        data_residency: DataResidency | None = None,
         websocket_base_url: str | httpx2.URL | None = None,
         timeout: float | Timeout | None | NotGiven = not_given,
         max_retries: int = DEFAULT_MAX_RETRIES,
@@ -189,7 +191,12 @@ class OpenAI(SyncAPIClient):
         - `webhook_secret` from `OPENAI_WEBHOOK_SECRET`
 
         When `provider` is supplied, authentication and the base URL are configured by that provider instead.
+        `data_residency` selects an OpenAI regional endpoint and cannot be combined with
+        `base_url`, `websocket_base_url`, or `provider`.
         """
+        base_url = resolve_data_residency(
+            data_residency, base_url, provider=provider, websocket_base_url=websocket_base_url
+        )
         provider_runtime: _ProviderRuntime | None = None
         if provider is not None:
             provider_name = _provider_name(provider)
@@ -656,7 +663,8 @@ class OpenAI(SyncAPIClient):
         project: str | None = None,
         webhook_secret: str | None = None,
         websocket_base_url: str | httpx2.URL | None = None,
-        base_url: str | httpx2.URL | None = None,
+        base_url: str | httpx2.URL | None | NotGiven = not_given,
+        data_residency: DataResidency | None = None,
         timeout: float | Timeout | None | NotGiven = not_given,
         http_client: httpx2.Client | None = None,
         max_retries: int | NotGiven = not_given,
@@ -669,6 +677,7 @@ class OpenAI(SyncAPIClient):
     ) -> Self:
         """
         Create a new client instance re-using the same options given to the current client with optional overriding.
+        `data_residency` replaces the inherited HTTP and WebSocket endpoints, without changing this client.
         """
         if default_headers is not None and set_default_headers is not None:
             raise ValueError("The `default_headers` and `set_default_headers` arguments are mutually exclusive")
@@ -695,6 +704,9 @@ class OpenAI(SyncAPIClient):
         http_client = http_client or self._client
 
         next_provider = self._provider if isinstance(provider, NotGiven) else provider
+        base_url = resolve_data_residency(
+            data_residency, base_url, provider=next_provider, websocket_base_url=websocket_base_url
+        )
         preserve_default_base_url = False
         auth_options: dict[str, Any]
         if next_provider is not None:
@@ -734,7 +746,7 @@ class OpenAI(SyncAPIClient):
             organization=organization or inherited_organization,
             project=project or inherited_project,
             webhook_secret=webhook_secret or self.webhook_secret,
-            websocket_base_url=websocket_base_url or self.websocket_base_url,
+            websocket_base_url=None if data_residency is not None else websocket_base_url or self.websocket_base_url,
             timeout=self.timeout if isinstance(timeout, NotGiven) else timeout,
             http_client=http_client,
             max_retries=max_retries if is_given(max_retries) else self.max_retries,
@@ -831,7 +843,8 @@ class AsyncOpenAI(AsyncAPIClient):
         project: str | None = None,
         webhook_secret: str | None = None,
         provider: _Provider | None = None,
-        base_url: str | httpx2.URL | None = None,
+        base_url: str | httpx2.URL | None | NotGiven = not_given,
+        data_residency: DataResidency | None = None,
         websocket_base_url: str | httpx2.URL | None = None,
         timeout: float | Timeout | None | NotGiven = not_given,
         max_retries: int = DEFAULT_MAX_RETRIES,
@@ -862,7 +875,12 @@ class AsyncOpenAI(AsyncAPIClient):
         - `webhook_secret` from `OPENAI_WEBHOOK_SECRET`
 
         When `provider` is supplied, authentication and the base URL are configured by that provider instead.
+        `data_residency` selects an OpenAI regional endpoint and cannot be combined with
+        `base_url`, `websocket_base_url`, or `provider`.
         """
+        base_url = resolve_data_residency(
+            data_residency, base_url, provider=provider, websocket_base_url=websocket_base_url
+        )
         provider_runtime: _ProviderRuntime | None = None
         if provider is not None:
             provider_name = _provider_name(provider)
@@ -1342,7 +1360,8 @@ class AsyncOpenAI(AsyncAPIClient):
         project: str | None = None,
         webhook_secret: str | None = None,
         websocket_base_url: str | httpx2.URL | None = None,
-        base_url: str | httpx2.URL | None = None,
+        base_url: str | httpx2.URL | None | NotGiven = not_given,
+        data_residency: DataResidency | None = None,
         timeout: float | Timeout | None | NotGiven = not_given,
         http_client: httpx2.AsyncClient | None = None,
         max_retries: int | NotGiven = not_given,
@@ -1355,6 +1374,7 @@ class AsyncOpenAI(AsyncAPIClient):
     ) -> Self:
         """
         Create a new client instance re-using the same options given to the current client with optional overriding.
+        `data_residency` replaces the inherited HTTP and WebSocket endpoints, without changing this client.
         """
         if default_headers is not None and set_default_headers is not None:
             raise ValueError("The `default_headers` and `set_default_headers` arguments are mutually exclusive")
@@ -1380,6 +1400,9 @@ class AsyncOpenAI(AsyncAPIClient):
 
         http_client = http_client or self._client
         next_provider = self._provider if isinstance(provider, NotGiven) else provider
+        base_url = resolve_data_residency(
+            data_residency, base_url, provider=next_provider, websocket_base_url=websocket_base_url
+        )
         preserve_default_base_url = False
         auth_options: dict[str, Any]
         if next_provider is not None:
@@ -1419,7 +1442,7 @@ class AsyncOpenAI(AsyncAPIClient):
             organization=organization or inherited_organization,
             project=project or inherited_project,
             webhook_secret=webhook_secret or self.webhook_secret,
-            websocket_base_url=websocket_base_url or self.websocket_base_url,
+            websocket_base_url=None if data_residency is not None else websocket_base_url or self.websocket_base_url,
             timeout=self.timeout if isinstance(timeout, NotGiven) else timeout,
             http_client=http_client,
             max_retries=max_retries if is_given(max_retries) else self.max_retries,
