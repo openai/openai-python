@@ -274,7 +274,9 @@ class CustomCodeTests(unittest.TestCase):
 
     @unittest.skipUnless(shutil.which("node"), "GitHub Actions JavaScript runtime")
     def test_trusted_failure_publisher_updates_one_current_comment(self) -> None:
-        workflow = Path(__file__).resolve().parents[2] / ".github/workflows/castiron-custom-code.yml"
+        workflow = (
+            Path(__file__).resolve().parents[2] / ".github/workflows/castiron-custom-code.yml"
+        )
         section = workflow.read_text().split("- name: Publish a trusted failure status\n", 1)[1]
         script = textwrap.dedent(section.split("script: |\n", 1)[1])
         harness = r"""
@@ -312,6 +314,58 @@ async function check(stale, exists, priorRun, expected) {
             check=True,
             env={**os.environ, "GITHUB_RUN_ATTEMPT": "1"},
         )
+
+    @unittest.skipUnless(shutil.which("jq"), "GitHub Actions jq runtime")
+    def test_workflow_branch_allowlist_is_case_sensitive(self) -> None:
+        workflow = (
+            Path(__file__).resolve().parents[2] / ".github/workflows/castiron-custom-code.yml"
+        )
+        body = workflow.read_text()
+        section = body.split("- name: Check the exact protected branch name\n", 1)[1]
+        script = textwrap.dedent(section.split("run: |\n", 1)[1].split("\n      - name:", 1)[0])
+        self.assertIn("needs.report.outputs.trusted == 'true'", body)
+        for branch, expected in (("castiron/demo", True), ("Castiron/demo", False)):
+            output = self.repo / "github-output"
+            output.write_text("")
+            result = subprocess.run(
+                ["bash", "-e", "-c", script],
+                env={
+                    **os.environ,
+                    "ALLOWED_BRANCHES": '["castiron/demo"]',
+                    "PR_BRANCH": branch,
+                    "GITHUB_OUTPUT": str(output),
+                },
+                capture_output=True,
+            )
+            self.assertEqual(result.returncode == 0, expected)
+            self.assertEqual("trusted=true" in output.read_text(), expected)
+
+    def test_removals_include_changed_baselines_but_not_handwritten_only_files(self) -> None:
+        _, base = self.baseline()
+        result, _ = report.build_report(self.repo, base, base)
+        result["files"] = [
+            {
+                "path": category,
+                "category": category,
+                "custom_before": True,
+                "custom_after": False,
+                "added": "0",
+                "removed": "0",
+            }
+            for category in ("baseline_changed", "no_longer_generated")
+        ]
+        self.assertIn("1 customizations removed", report.render_report(result))
+        result["files"].append(
+            {
+                "path": "new.py",
+                "category": "newly_customized",
+                "custom_before": False,
+                "custom_after": True,
+                "added": "1",
+                "removed": "0",
+            }
+        )
+        self.assertIn("1 customizations removed", report.render_report(result))
 
     def test_public_snapshot_has_no_private_history_and_reports_without_private_remote(
         self,

@@ -621,14 +621,20 @@ def render_report(
         newly_customized = sum(
             bool(file["custom_after"]) and not file["custom_before"] for file in files
         )
+        removed = sum(
+            bool(file["custom_before"])
+            and not file["custom_after"]
+            and file["category"] != "no_longer_generated"
+            for file in files
+        )
         if newly_customized == 0:
             remaining = (
                 f"{after} mixed file{'s' if after != 1 else ''} remain{'s' if after == 1 else ''}"
             )
             changed = counts["existing_changed"]
             details = [f"{changed} existing customization{'s' if changed != 1 else ''} changed"]
-            if counts["removed"]:
-                details.append(f"{counts['removed']} customizations removed")
+            if removed:
+                details.append(f"{removed} customizations removed")
             if counts["baseline_changed"]:
                 details.append(f"{counts['baseline_changed']} generated baselines changed")
             lines.extend(
@@ -644,7 +650,7 @@ def render_report(
                     f"**Mixed files: {before} → {after}**",
                     "",
                     (
-                        f"{newly_customized} newly customized · {counts['removed']} customizations removed · "
+                        f"{newly_customized} newly customized · {removed} customizations removed · "
                         f"{counts['existing_changed']} existing customizations changed · {counts['baseline_changed']} generated baselines changed"
                     ),
                 ]
