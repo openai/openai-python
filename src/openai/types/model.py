@@ -1,4 +1,5 @@
 # File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
+# DO NOT MERGE: updated custom-code reporting demo; no runtime behavior change.
 
 from typing import Optional
 from typing_extensions import Literal
