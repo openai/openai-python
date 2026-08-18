@@ -14,7 +14,7 @@ Do not report security vulnerabilities through public GitHub issues, pull reques
 
 ## What to include
 
-- The affected package or product and version.
+- The affected package or product and version, or the relevant source commit.
 - A clear description of the security impact.
 - Sanitized steps to reproduce the issue.
 
@@ -28,6 +28,7 @@ clearly fake values.
 
 ## Coordinated disclosure
 
-Please give the maintainers a reasonable opportunity to investigate and address the issue before public disclosure.
+Follow the linked coordinated-disclosure terms, and keep vulnerability details
+confidential until their release is coordinated with or authorized by OpenAI.
 
 Thank you for helping us keep this SDK and the systems it interacts with secure.
