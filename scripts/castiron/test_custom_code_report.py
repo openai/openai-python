@@ -6,9 +6,11 @@ import base64
 import hashlib
 import json
 import os
+import shutil
 import struct
 import subprocess
 import tempfile
+import textwrap
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -113,19 +115,15 @@ class CustomCodeTests(unittest.TestCase):
             ).strip()
             self.assertEqual(rust, report.hash_codegen_commit(self.repo, commit))
 
-    def test_owned_files_check_includes_excluded_workflow(self) -> None:
-        for name in report.OWNED_PATHS:
-            self.write(name, "generated\n")
-        generated = self.commit()
-        report.verify_owned_files(self.repo, generated, generated)
-        self.write(".github/workflows/castiron-custom-code.yml", "edited\n")
-        changed = self.commit()
-        self.assertEqual(
-            report.hash_codegen_commit(self.repo, generated),
-            report.hash_codegen_commit(self.repo, changed),
-        )
-        with self.assertRaisesRegex(report.ReportError, "Castiron-owned file differs"):
-            report.verify_owned_files(self.repo, generated, changed)
+    def test_reporting_script_can_be_a_mixed_file(self) -> None:
+        path = "scripts/castiron/custom_code_report.py"
+        self.write(path, "# generated reporter\n")
+        _, base = self.baseline()
+        self.write(path, "# generated reporter\n# local customization\n")
+        head = self.commit()
+        result, _ = report.build_report(self.repo, base, head, require_head_hash=True)
+        changed = next(file for file in result["files"] if file["path"] == path)
+        self.assertEqual(changed["category"], "newly_customized")
 
     def test_hash_vector_and_exclusions(self) -> None:
         self.write("a", "hello\n")
@@ -254,6 +252,65 @@ class CustomCodeTests(unittest.TestCase):
         empty, _ = report.build_report(self.repo, clean, clean)
         self.assertIn(
             "0 mixed files remain; 0 existing customizations changed.", report.render_report(empty)
+        )
+
+    def test_new_mixed_file_headline_includes_changed_generated_baselines(self) -> None:
+        _, base = self.baseline()
+        result, _ = report.build_report(self.repo, base, base)
+        for category in ("baseline_changed", "newly_generation_owned"):
+            result["files"] = [
+                {
+                    "path": "generated.py",
+                    "category": category,
+                    "custom_before": False,
+                    "custom_after": True,
+                    "added": "1",
+                    "removed": "1",
+                }
+            ]
+            body = report.render_report(result)
+            self.assertNotIn("No new custom-code files", body)
+            self.assertIn("1 newly customized", body)
+
+    @unittest.skipUnless(shutil.which("node"), "GitHub Actions JavaScript runtime")
+    def test_trusted_failure_publisher_updates_one_current_comment(self) -> None:
+        workflow = Path(__file__).resolve().parents[2] / ".github/workflows/castiron-custom-code.yml"
+        section = workflow.read_text().split("- name: Publish a trusted failure status\n", 1)[1]
+        script = textwrap.dedent(section.split("script: |\n", 1)[1])
+        harness = r"""
+const assert = require('node:assert/strict');
+const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
+async function check(stale, exists, priorRun, expected) {
+  const writes = [];
+  const event = {number: 1, head: {sha: 'a'.repeat(40)}, base: {sha: 'b'.repeat(40)}};
+  const current = {...event, state: 'open', head: {sha: (stale ? 'c' : 'a').repeat(40)}};
+  const previous = {id: 42, user: {type: 'Bot', login: 'github-actions[bot]'},
+    body: `<!-- castiron:custom-code-report:v1 -->\n<!-- castiron:run:v1:${priorRun}:1 -->`};
+  const github = {paginate: async () => exists ? [previous] : [], rest: {
+    pulls: {get: async () => ({data: current})},
+    issues: {listComments() {}, updateComment: async x => writes.push(['update', x]),
+      createComment: async x => writes.push(['create', x])}}};
+  const context = {payload: {pull_request: event}, repo: {owner: 'openai', repo: 'example'},
+    runId: 20, serverUrl: 'https://github.com'};
+  await new AsyncFunction('github', 'context', SCRIPT)(github, context);
+  assert.equal(writes.length, expected ? 1 : 0);
+  if (expected) {
+    assert.equal(writes[0][0], expected);
+    assert.match(writes[0][1].body, /Report unavailable/);
+    assert.match(writes[0][1].body, /castiron:run:v1:20:1/);
+  }
+}
+(async () => {
+  await check(false, true, 10, 'update');
+  await check(false, false, 10, 'create');
+  await check(true, true, 10, null);
+  await check(false, true, 21, null);
+})().catch(error => { console.error(error); process.exitCode = 1; });
+"""
+        subprocess.run(
+            ["node", "-e", "const SCRIPT = " + json.dumps(script) + ";\n" + harness],
+            check=True,
+            env={**os.environ, "GITHUB_RUN_ATTEMPT": "1"},
         )
 
     def test_public_snapshot_has_no_private_history_and_reports_without_private_remote(

@@ -34,14 +34,6 @@ SHA = re.compile(r"[0-9a-f]{40}\Z")
 HASH = re.compile(r"[0-9a-f]{64}\Z")
 REPOSITORY = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+\Z")
 EXCLUDED = (b".github/actions/", b".github/workflows/")
-OWNED_PATHS = [
-    ".github/workflows/castiron-custom-code.yml",
-    "scripts/castiron/custom_code_report.py",
-    "scripts/castiron/test_custom_code_report.py",
-    "scripts/castiron/README.md",
-    "scripts/castiron/ruff.toml",
-]
-OWNED_WORKFLOW = b".github/workflows/castiron-custom-code.yml"
 PUBLIC_BLOCKED_PATHS = {
     b".castiron",
     b".github",
@@ -110,16 +102,14 @@ def included(path: bytes) -> bool:
     return not path.startswith(EXCLUDED)
 
 
-def tree_entries(
-    repo: Path, commit: str, *, include_owned_workflow: bool = False
-) -> dict[bytes, Entry]:
+def tree_entries(repo: Path, commit: str) -> dict[bytes, Entry]:
     result: dict[bytes, Entry] = {}
     for record in git(repo, "ls-tree", "-r", "-z", require_sha(commit)).split(b"\0"):
         if not record:
             continue
         metadata, path = record.split(b"\t", 1)
         mode, kind, oid = metadata.split(b" ")
-        if not included(path) and not (include_owned_workflow and path == OWNED_WORKFLOW):
+        if not included(path):
             continue
         if kind != b"blob" or mode not in {b"100644", b"100755", b"120000"}:
             raise ReportError(f"unsupported Git entry: {path!r}")
@@ -260,14 +250,12 @@ def public_snapshot_entries(
     public_base: str,
     approved_tree: str | None = None,
 ) -> dict[bytes, Entry]:
-    entries = tree_entries(source, commit, include_owned_workflow=True)
-    approved = tree_entries(destination, public_base, include_owned_workflow=True)
+    entries = tree_entries(source, commit)
+    approved = tree_entries(destination, public_base)
     if approved_tree is not None:
-        approved.update(tree_entries(destination, approved_tree, include_owned_workflow=True))
+        approved.update(tree_entries(destination, approved_tree))
     for path in entries:
-        if path != OWNED_WORKFLOW and (
-            path in PUBLIC_BLOCKED_PATHS or path.startswith((b".castiron/", b".github/"))
-        ):
+        if path in PUBLIC_BLOCKED_PATHS or path.startswith((b".castiron/", b".github/")):
             raise ReportError(f"refusing to publish private or governance snapshot path: {path!r}")
         if path not in approved:
             raise ReportError(
@@ -354,7 +342,7 @@ def prepare_public_snapshot(
     destination: Path,
     public_base: str,
     branch: str,
-) -> dict[str, str]:
+) -> dict[str, Any]:
     """Prepare public-only generated history; never push anything."""
     read_stats(source, source_base)
     after = read_stats(source, source_head)
@@ -529,16 +517,6 @@ def classify(g0: Entry | None, i0: Entry | None, g1: Entry | None, i1: Entry | N
     return "unchanged" if i0 == i1 else "existing_changed"
 
 
-def verify_owned_files(repo: Path, generated: str, integrated: str) -> None:
-    before = tree_entries(repo, generated, include_owned_workflow=True)
-    after = tree_entries(repo, integrated, include_owned_workflow=True)
-    for name in OWNED_PATHS:
-        path = name.encode()
-        expected = before.get(path)
-        if expected is None or expected.mode != b"100644" or after.get(path) != expected:
-            raise ReportError(f"Castiron-owned file differs from generated checkpoint: {name}")
-
-
 def build_report(
     repo: Path,
     base: str,
@@ -546,7 +524,6 @@ def build_report(
     *,
     fetch: bool = False,
     require_head_hash: bool = False,
-    require_owned_files: bool = False,
     public: bool = False,
 ) -> tuple[dict[str, Any], bytes]:
     base, head = require_sha(base), require_sha(head)
@@ -559,8 +536,6 @@ def build_report(
     else:
         before = resolve_baseline(repo, comparison_base, fetch=fetch, require_hash=False)
         after = resolve_baseline(repo, head, fetch=fetch, require_hash=require_head_hash)
-    if require_owned_files:
-        verify_owned_files(repo, after["commit"], head)
     g0, i0 = tree_entries(repo, before["commit"]), tree_entries(repo, comparison_base)
     g1, i1 = tree_entries(repo, after["commit"]), tree_entries(repo, head)
     stats = numstats(repo, after["commit"], head)
@@ -643,7 +618,10 @@ def render_report(
         before = sum(bool(file["custom_before"]) for file in files)
         after = sum(bool(file["custom_after"]) for file in files)
         base = require_sha(report["base_sha"])
-        if counts["newly_customized"] == 0:
+        newly_customized = sum(
+            bool(file["custom_after"]) and not file["custom_before"] for file in files
+        )
+        if newly_customized == 0:
             remaining = (
                 f"{after} mixed file{'s' if after != 1 else ''} remain{'s' if after == 1 else ''}"
             )
@@ -666,7 +644,7 @@ def render_report(
                     f"**Mixed files: {before} → {after}**",
                     "",
                     (
-                        f"{counts['newly_customized']} newly customized · {counts['removed']} customizations removed · "
+                        f"{newly_customized} newly customized · {counts['removed']} customizations removed · "
                         f"{counts['existing_changed']} existing customizations changed · {counts['baseline_changed']} generated baselines changed"
                     ),
                 ]
@@ -858,7 +836,6 @@ def main() -> int:
     reporting.add_argument("--out", type=Path, required=True)
     reporting.add_argument("--fetch", action="store_true")
     reporting.add_argument("--require-head-hash", action="store_true")
-    reporting.add_argument("--require-owned-files", action="store_true")
     reporting.add_argument("--public", action="store_true")
     preparing = commands.add_parser("prepare-public")
     preparing.add_argument("--source-repo", type=Path, required=True)
@@ -908,7 +885,6 @@ def main() -> int:
                     args.head,
                     fetch=args.fetch,
                     require_head_hash=args.require_head_hash,
-                    require_owned_files=args.require_owned_files,
                     public=args.public,
                 )
             except (ReportError, UnicodeError, KeyError, ValueError) as exc:
