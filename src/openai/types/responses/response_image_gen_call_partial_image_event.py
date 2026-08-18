@@ -1,0 +1,45 @@
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
+
+from typing import Optional
+from typing_extensions import Literal
+
+from ..._models import BaseModel
+
+__all__ = ["ResponseImageGenCallPartialImageEvent"]
+
+
+class ResponseImageGenCallPartialImageEvent(BaseModel):
+    """Emitted when a partial image is available during image generation streaming."""
+
+    item_id: str
+    """The unique identifier of the image generation item being processed."""
+
+    output_index: int
+    """The index of the output item in the response's output array."""
+
+    partial_image_b64: str
+    """Base64-encoded partial image data, suitable for rendering as an image."""
+
+    partial_image_index: int
+    """
+    0-based index for the partial image (backend is 1-based, but this is 0-based for
+    the user).
+    """
+
+    sequence_number: int
+    """The sequence number of the image generation item being processed."""
+
+    type: Literal["response.image_generation_call.partial_image"]
+    """The type of the event. Always 'response.image_generation_call.partial_image'."""
+
+    background: Optional[str] = None
+    """The background setting that was used."""
+
+    output_format: Optional[str] = None
+    """The output format that was used."""
+
+    quality: Optional[str] = None
+    """The image quality that was used."""
+
+    size: Optional[str] = None
+    """The image size that was used."""
