@@ -1,0 +1,138 @@
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
+name: Castiron custom code
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+# These experimental refs are restricted to trusted SDK maintainers.
+# The workflow definition is trusted because its branch writers are trusted.
+concurrency:
+  group: castiron-custom-code-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+env:
+  REPORTER_SHA256: 2855964a3b73aa57fd5a6b668c98b4aeb5dc54fc73a227091f832ca13a1f1f04
+
+jobs:
+  report:
+    name: Castiron / baseline consistency
+    if: github.event.pull_request.head.repo.full_name == github.repository && contains(fromJSON(vars.CASTIRON_CUSTOM_CODE_BRANCHES || '[]'), github.event.pull_request.head.ref)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      trusted: ${{ steps.trust.outputs.trusted }}
+    steps:
+      - name: Check the exact protected branch name
+        id: trust
+        env:
+          ALLOWED_BRANCHES: ${{ vars.CASTIRON_CUSTOM_CODE_BRANCHES || '[]' }}
+          PR_BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          jq -e --arg branch "$PR_BRANCH" 'type == "array" and index($branch) != null' <<< "$ALLOWED_BRANCHES" > /dev/null
+          printf 'trusted=true\n' >> "$GITHUB_OUTPUT"
+
+      - name: Check out the protected test branch
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Verify the reviewed reporter
+        run: printf '%s  %s\n' "$REPORTER_SHA256" scripts/castiron/custom_code_report.py | sha256sum --check --strict
+
+      - name: Test hash mismatch and snapshot isolation
+        run: python3 scripts/castiron/test_custom_code_report.py
+
+      - name: Validate the codegen hash and report custom code
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PUBLIC_REPOSITORY: ${{ !github.event.repository.private }}
+        run: |
+          git fetch --quiet --no-tags origin "$BASE_SHA" "$HEAD_SHA"
+          mode=()
+          if [[ "$PUBLIC_REPOSITORY" == true ]]; then mode=(--public); fi
+          python3 -I scripts/castiron/custom_code_report.py report \
+            --base "$BASE_SHA" --head "$HEAD_SHA" \
+            --fetch --require-head-hash "${mode[@]}" \
+            --out "$RUNNER_TEMP/castiron-custom-code"
+
+      - name: Add the report to the run summary
+        if: always()
+        run: |
+          if test -f "$RUNNER_TEMP/castiron-custom-code/summary.md"; then
+            cat "$RUNNER_TEMP/castiron-custom-code/summary.md" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload report and current custom-code patch
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: castiron-custom-code-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/castiron-custom-code/
+          if-no-files-found: error
+          retention-days: 7
+
+  comment:
+    name: Update custom-code comment
+    needs: report
+    if: always() && !cancelled() && needs.report.outputs.trusted == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: write
+    steps:
+      - name: Check out the protected test branch
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Verify the reviewed publisher before execution
+        run: printf '%s  %s\n' "$REPORTER_SHA256" scripts/castiron/custom_code_report.py | sha256sum --check --strict
+
+      - name: Download this run's report
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: castiron-custom-code-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/castiron-custom-code
+
+      - name: Create or update the single report comment
+        id: publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          python3 -I scripts/castiron/custom_code_report.py comment \
+            --report "$RUNNER_TEMP/castiron-custom-code/report.json" \
+            --repository "$REPOSITORY" --pr "$PR_NUMBER" --run-id "$RUN_ID" \
+            --run-attempt "$RUN_ATTEMPT"
+
+      - name: Publish a trusted failure status
+        if: always() && !cancelled() && steps.publish.outcome != 'success'
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          script: |
+            const marker = '<!-- castiron:custom-code-report:v1 -->';
+            const event = context.payload.pull_request;
+            const {data: current} = await github.rest.pulls.get({...context.repo, pull_number: event.number});
+            if (current.state !== 'open' || current.head.sha !== event.head.sha || current.base.sha !== event.base.sha) return;
+            const comments = await github.paginate(github.rest.issues.listComments, {...context.repo, issue_number: event.number});
+            const previous = comments.find(c => c.user?.type === 'Bot' && c.user?.login === 'github-actions[bot]' && c.body?.includes(marker));
+            const run = Number(context.runId);
+            const attempt = Number(process.env.GITHUB_RUN_ATTEMPT);
+            const prior = previous?.body?.match(/<!-- castiron:run:v1:(\d+):(\d+) -->/);
+            if (prior && (Number(prior[1]) > run || (Number(prior[1]) === run && Number(prior[2]) > attempt))) return;
+            const url = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${run}`;
+            const body = `${marker}\n\n## Castiron custom code\n\n⚠️ Report unavailable for \`${event.head.sha.slice(0, 12)}\`.\n\nThe report setup or validation failed. [Inspect the workflow run](${url}).\n\n<!-- castiron:run:v1:${run}:${attempt} -->`;
+            if (previous) await github.rest.issues.updateComment({...context.repo, comment_id: previous.id, body});
+            else await github.rest.issues.createComment({...context.repo, issue_number: event.number, body});
