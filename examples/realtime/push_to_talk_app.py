@@ -21,7 +21,7 @@
 # ]
 #
 # [tool.uv]
-# exclude-newer = "P7D"
+# exclude-newer = "P8D"
 #
 # [tool.uv.sources]
 # openai = { path = "../../", editable = true }
