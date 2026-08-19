@@ -281,32 +281,18 @@ class ServerSentEvent:
         return f"ServerSentEvent(event={self.event}, data={self.data}, id={self.id}, retry={self.retry})"
 
 
-# Large enough for image/audio payloads, while keeping incomplete events finite.
-_DEFAULT_MAX_SSE_SIZE = 64 * 1024 * 1024
 _SSE_LINE_END = re.compile(b"[\\r\\n]")
 
 
 class _SSELineDecoder:
     """Incrementally split CR, LF, and CRLF without copying growing prefixes."""
 
-    def __init__(self, *, max_line_size: int, max_event_size: int) -> None:
-        self._max_line_size = max_line_size
-        self._max_event_size = max_event_size
+    def __init__(self) -> None:
         self._buffer = bytearray()
-        self._event_size = 0
         self._skip_lf = False
 
     def _append(self, chunk: bytes, start: int, end: int) -> None:
-        size = end - start
-        if len(self._buffer) + size > self._max_line_size:
-            raise ValueError("SSE line exceeded maximum size")
-        self._count(size)
         self._buffer.extend(memoryview(chunk)[start:end])
-
-    def _count(self, size: int) -> None:
-        if self._event_size + size > self._max_event_size:
-            raise ValueError("SSE event exceeded maximum size")
-        self._event_size += size
 
     def feed(self, chunk: bytes) -> Iterator[bytes]:
         start = 0
@@ -318,12 +304,8 @@ class _SSELineDecoder:
                 continue
             self._skip_lf = False
             self._append(chunk, start, end)
-            # Count each logical line ending once, independently of CRLF chunking.
-            self._count(1)
             line = bytes(self._buffer)
             self._buffer.clear()
-            if not line:
-                self._event_size = 0
             self._skip_lf = chunk[end] == 13
             start = end + 1
             yield line
@@ -339,30 +321,14 @@ class _SSELineDecoder:
 
 
 class SSEDecoder:
-    """Decode SSE with bounded lines and events.
-
-    Limits are UTF-8 byte counts. Line endings count as one byte toward the
-    event limit, including the terminating blank line. Comments and ignored
-    fields count too. Larger trusted payloads can use a custom decoder from
-    ``_make_sse_decoder`` with larger positive limits. Oversized input raises
-    ``ValueError`` without including response data.
-    """
+    """Decode SSE incrementally without imposing a line or event size limit."""
 
     _data: list[str]
     _event: str | None
     _retry: int | None
     _last_event_id: str | None
 
-    def __init__(
-        self,
-        *,
-        max_line_size: int = _DEFAULT_MAX_SSE_SIZE,
-        max_event_size: int = _DEFAULT_MAX_SSE_SIZE,
-    ) -> None:
-        if max_line_size <= 0 or max_event_size <= 0:
-            raise ValueError("SSE size limits must be positive")
-        self._max_line_size = max_line_size
-        self._max_event_size = max_event_size
+    def __init__(self) -> None:
         self._reset()
 
     def _reset(self) -> None:
@@ -379,7 +345,7 @@ class SSEDecoder:
 
     def iter_bytes(self, iterator: Iterator[bytes]) -> Iterator[ServerSentEvent]:
         """Given raw binary data, yield every event encountered."""
-        decoder = _SSELineDecoder(max_line_size=self._max_line_size, max_event_size=self._max_event_size)
+        decoder = _SSELineDecoder()
         try:
             for chunk in iterator:
                 yield from self._decode_lines(decoder.feed(chunk))
@@ -389,7 +355,7 @@ class SSEDecoder:
 
     async def aiter_bytes(self, iterator: AsyncIterator[bytes]) -> AsyncIterator[ServerSentEvent]:
         """Given async raw binary data, yield every event encountered."""
-        decoder = _SSELineDecoder(max_line_size=self._max_line_size, max_event_size=self._max_event_size)
+        decoder = _SSELineDecoder()
         try:
             async for chunk in iterator:
                 for sse in self._decode_lines(decoder.feed(chunk)):
