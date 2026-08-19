@@ -157,6 +157,12 @@ $ pip install ./path-to-wheel-file.whl
 
 Most tests require you to [set up a mock server](https://github.com/dgellow/steady) against the OpenAPI spec to run the tests.
 
+`./scripts/bootstrap` installs the locked Steady package and its platform
+binary. `./scripts/test` starts it automatically when no mock server is running.
+Neither `./scripts/test` nor `./scripts/mock` downloads Node tools. If the local
+tool is missing, rerun bootstrap. `TEST_API_BASE_URL` and an already-running
+mock server remain supported. To start the server yourself:
+
 ```sh
 $ ./scripts/mock
 ```
