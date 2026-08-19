@@ -91,6 +91,7 @@ jobs:
         with:
           persist-credentials: false
           repository: openai/openai-agents-python
+          ref: 7e55afc9500d12937687988f1e91e900dcb4ad09
           path: openai-agents-python
 
       - name: Link to local SDK
@@ -110,5 +111,6 @@ jobs:
       - name: Run integration type checks
         env:
           UV_NO_BINARY_PACKAGE: 'openai openai-agents'
+          UV_NO_SYNC: '1'
         working-directory: openai-agents-python
         run: make mypy

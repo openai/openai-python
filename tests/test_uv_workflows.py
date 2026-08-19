@@ -891,6 +891,30 @@ def test_agents_sdk_build_exemption_only_covers_its_trusted_editable_project() -
     assert reviewed_aiohttp not in job[:trusted_checkout]
 
 
+def test_agents_source_allowlist_uses_its_immutable_reviewed_checkout() -> None:
+    workflow = (ROOT / ".github/workflows/detect-breaking-changes.yml").read_text()
+    job = workflow.split("\n  agents_sdk:\n", 1)[1]
+    checkout = re.search(
+        r"repository: openai/openai-agents-python\n(?P<inputs>(?:          [^\n]+\n)+)",
+        job,
+    )
+    assert checkout is not None
+    assert re.search(
+        r"^          ref: 7e55afc9500d12937687988f1e91e900dcb4ad09$", checkout.group("inputs"), re.MULTILINE
+    )
+
+
+def test_agents_type_checks_reuse_only_the_validated_preinstalled_environment() -> None:
+    workflow = (ROOT / ".github/workflows/detect-breaking-changes.yml").read_text()
+    job = workflow.split("\n  agents_sdk:\n", 1)[1]
+    checks = job.split("      - name: Run integration type checks\n", 1)[1]
+    assert "UV_NO_SYNC: '1'" in checks
+    assert "UV_NO_BINARY_PACKAGE: 'openai openai-agents'" in checks
+    assert "reviewed_sources" not in checks
+    assert checks.index("UV_NO_SYNC") < checks.index("run: make mypy")
+    assert job.index('${reviewed_sources}" make sync') < job.index("UV_NO_SYNC")
+
+
 def test_agents_link_only_relocks_before_reviewed_source_distributions(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -1210,6 +1234,19 @@ def test_breaking_change_installers_validate_provenance_first(name: str) -> None
         assert "working-directory: openai-python" in gate
 
 
+def test_security_dependency_policy_is_directly_testable_after_the_trusted_gate() -> None:
+    workflow = (ROOT / ".github/workflows/ci.yml").read_text()
+    job = dependency_workflow_jobs()["dependency-locks"]
+    gate = job.index("Verify dependency source provenance before installing tools")
+    policy = job.index("python scripts/check-dependency-security.py")
+    assert gate < policy
+    assert "python - <<'PY'" not in job
+    script = ROOT / "scripts/check-dependency-security.py"
+    assert script.is_file()
+    assert 'import_module("tomllib")' in script.read_text()
+    assert workflow.count("Use only the public PyPI registry") == 1
+
+
 def security_dependency_floor_program() -> str:
     gate = dependency_workflow_jobs()["dependency-locks"]
     match = re.search(
@@ -1226,11 +1263,14 @@ def security_dependency_floor_program() -> str:
         "contains(github.event.pull_request.head.ref, 'python-security')",
     ):
         assert condition in body
-    script = re.search(r"          python - <<'PY'\n(?P<source>.*?)(?=\n          PY)", body, re.DOTALL)
-    assert script is not None
-    program = "\n".join(line[10:] for line in script.group("source").splitlines())
+    assert "run: python scripts/check-dependency-security.py" in body
+    program = (ROOT / "scripts/check-dependency-security.py").read_text()
     if sys.version_info < (3, 11):
-        program = "import sys, tomli; sys.modules['tomllib'] = tomli\n" + program
+        program = program.replace(
+            "from __future__ import annotations",
+            "from __future__ import annotations\nimport sys, tomli; sys.modules['tomllib'] = tomli",
+            1,
+        )
     return program
 
 
@@ -2090,6 +2130,66 @@ def test_only_direct_security_updates_must_raise_published_minimums(
         base_packages=before,
         head_packages=after,
         optional=optional,
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("variant", "accepted"),
+    [
+        pytest.param("pydantic-v2", True, id="published-v1-support-survives-protected-v2-patch"),
+        pytest.param("pydantic-v1", True, id="published-v2-support-survives-protected-v1-patch"),
+        pytest.param("unchanged-protected-floor", False, id="unchanged-v2-protected-floor-rejected"),
+        pytest.param("below-patched-release", False, id="protected-v2-floor-must-reach-lock-patch"),
+        pytest.param("unbounded-branch", False, id="protected-branch-must-retain-upper-bound"),
+        pytest.param("weakened-unaffected-floor", False, id="unaffected-v1-security-floor-cannot-drop"),
+        pytest.param("removed-unaffected-group", False, id="supported-v1-protected-context-cannot-disappear"),
+        pytest.param("removed-unaffected-lock", False, id="supported-v1-locked-branch-cannot-disappear"),
+        pytest.param("new-protected-context", False, id="protected-v2-context-must-exist-in-immutable-base"),
+    ],
+)
+def test_security_updates_preserve_independent_supported_major_branches(
+    tmp_path: Path, variant: str, accepted: bool
+) -> None:
+    published = "pydantic>=1.10.13,<3"
+    base_groups = {
+        "pydantic-v1": ["pydantic>=1.10.26,<2"],
+        "pydantic-v2": ["pydantic>=2,<3"],
+    }
+    head_groups = {
+        "pydantic-v1": ["pydantic>=1.10.26,<2"],
+        "pydantic-v2": ["pydantic>=2.12.6,<3"],
+    }
+    base_packages = [("pydantic", "1.10.26"), ("pydantic", "2.12.5")]
+    head_packages = [("pydantic", "1.10.26"), ("pydantic", "2.12.6")]
+
+    if variant == "pydantic-v1":
+        head_groups["pydantic-v1"] = ["pydantic>=1.10.27,<2"]
+        head_groups["pydantic-v2"] = ["pydantic>=2,<3"]
+        head_packages = [("pydantic", "1.10.27"), ("pydantic", "2.12.5")]
+    elif variant == "unchanged-protected-floor":
+        head_groups["pydantic-v2"] = ["pydantic>=2,<3"]
+    elif variant == "below-patched-release":
+        head_groups["pydantic-v2"] = ["pydantic>=2.12.5,<3"]
+    elif variant == "unbounded-branch":
+        head_groups["pydantic-v2"] = ["pydantic>=2.12.6"]
+    elif variant == "weakened-unaffected-floor":
+        head_groups["pydantic-v1"] = ["pydantic>=1.10.13,<2"]
+    elif variant == "removed-unaffected-group":
+        head_groups.pop("pydantic-v1")
+    elif variant == "removed-unaffected-lock":
+        head_packages = [("pydantic", "2.12.6")]
+    elif variant == "new-protected-context":
+        base_groups.pop("pydantic-v2")
+
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=[published],
+        head_requirements=[published],
+        base_packages=base_packages,
+        head_packages=head_packages,
+        base_dependency_groups=base_groups,
+        head_dependency_groups=head_groups,
     )
     assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
 
