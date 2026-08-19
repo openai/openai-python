@@ -178,7 +178,7 @@ jobs:
               post = -1 if match.group(3) is None else int(match.group(3))
               return int(match.group(1) or 0), release, post
 
-          def marker_overlap(requirement, resolution):
+          def simple_marker_overlap(requirement, resolution):
               clauses = {}
               for variable, operator, value in requirement + resolution:
                   family = "python" if variable in {"python_version", "python_full_version"} else variable
@@ -250,6 +250,61 @@ jobs:
                       if equality is not None and equality in exclusions:
                           return False
               return True
+
+          def marker_options(context):
+              options = [()]
+              allowed_platforms = {
+                  "sys_platform",
+                  "os_name",
+                  "platform_system",
+                  "platform_machine",
+                  "platform_python_implementation",
+                  "implementation_name",
+                  "extra",
+              }
+              for variable, operator, value in context:
+                  if operator not in {"In", "NotIn"}:
+                      options = [option + ((variable, operator, value),) for option in options]
+                      continue
+                  if variable == "python_version":
+                      pattern = r"(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)"
+                  elif variable == "python_full_version":
+                      pattern = r"(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)"
+                  elif variable in allowed_platforms:
+                      pattern = r"[A-Za-z0-9][A-Za-z0-9_.-]*"
+                  else:
+                      raise SystemExit("Unsupported security dependency membership marker variable")
+                  values = tuple(item.strip() for item in value.split(","))
+                  if (
+                      not values
+                      or len(values) > 16
+                      or len(set(values)) != len(values)
+                      or any(not re.fullmatch(pattern, item) for item in values)
+                      or any(
+                          first in second or second in first
+                          for index, first in enumerate(values)
+                          for second in values[index + 1:]
+                      )
+                  ):
+                      raise SystemExit("Ambiguous security dependency membership marker")
+                  if operator == "In":
+                      options = [
+                          option + ((variable, "Eq", member),)
+                          for option in options
+                          for member in values
+                      ]
+                  else:
+                      exclusions = tuple((variable, "NotEq", member) for member in values)
+                      options = [option + exclusions for option in options]
+                  if len(options) > 64:
+                      raise SystemExit("Ambiguous security dependency membership marker")
+              return options
+
+          def marker_overlap(requirement, resolution):
+              requirements, resolutions = marker_options(requirement), marker_options(resolution)
+              if len(requirements) * len(resolutions) > 128:
+                  raise SystemExit("Ambiguous security dependency membership marker")
+              return any(simple_marker_overlap(left, right) for left in requirements for right in resolutions)
 
           def minimums(requirements, *, allow_missing=False, exact=False):
               result = []
@@ -350,7 +405,16 @@ jobs:
               if len(relevant) < 2:
                   return {}
               covered = set()
-              opposite = {"Eq": "NotEq", "NotEq": "Eq", "Lt": "GtE", "LtE": "Gt", "Gt": "LtE", "GtE": "Lt"}
+              opposite = {
+                  "Eq": "NotEq",
+                  "NotEq": "Eq",
+                  "Lt": "GtE",
+                  "LtE": "Gt",
+                  "Gt": "LtE",
+                  "GtE": "Lt",
+                  "In": "NotIn",
+                  "NotIn": "In",
+              }
               for domain in relevant:
                   matched = [context for context in replacements if marker_overlap(context[3], domain)]
                   if len(matched) != 1:

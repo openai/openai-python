@@ -870,11 +870,11 @@ def test_agents_sdk_build_exemption_only_covers_its_trusted_editable_project() -
     job = match.group("body")
     trusted_checkout = job.index("repository: openai/openai-agents-python")
     exception = "UV_NO_BINARY_PACKAGE: 'openai openai-agents'"
-    reviewed_aiohttp = "UV_NO_BINARY_PACKAGE: 'openai openai-agents aiohttp markupsafe pyyaml evdev'"
-    assert job.count(exception) == 2
+    reviewed_aiohttp = 'UV_NO_BINARY_PACKAGE="openai openai-agents ${reviewed_sources}" make sync'
+    assert job.count(exception) == 3
     assert job.count(reviewed_aiohttp) == 1
 
-    for command in ("uv add ../openai-python", "make sync", "make mypy"):
+    for command in ("uv add --no-sync ../openai-python", "make sync", "make mypy"):
         command_index = job.index(command)
         assert command_index > trusted_checkout
         step_start = job.rfind("\n      - ", 0, command_index)
@@ -883,10 +883,60 @@ def test_agents_sdk_build_exemption_only_covers_its_trusted_editable_project() -
             step_end = len(job)
         step = job[step_start:step_end]
         assert "working-directory: openai-agents-python" in step
-        assert (reviewed_aiohttp if command == "make sync" else exception) in step
+        assert exception in step
+        if command == "make sync":
+            assert reviewed_aiohttp in step
 
     assert exception not in job[:trusted_checkout]
     assert reviewed_aiohttp not in job[:trusted_checkout]
+
+
+def test_agents_link_only_relocks_before_reviewed_source_distributions(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    workflow = (ROOT / ".github/workflows/detect-breaking-changes.yml").read_text()
+    job = workflow.split("\n  agents_sdk:\n", 1)[1]
+    link = job.split("      - name: Link to local SDK\n", 1)[1].split("\n      - name:", 1)[0]
+    match = re.search(r"^        run: (.+)$", link, re.MULTILINE)
+    assert match is not None
+    command = match.group(1)
+    assert command == "uv add --no-sync ../openai-python"
+    assert "UV_NO_BINARY_PACKAGE: 'openai openai-agents'" in link
+    assert "aiohttp" not in link
+    assert job.index(command) < job.index("Use only the immutable reviewed Agents source distributions")
+    assert job.index("Use only the immutable reviewed Agents source distributions") < job.index("make sync")
+
+    executable = tmp_path / "uv"
+    uv = shutil.which("uv")
+    if uv is not None:
+        supported = subprocess.run([uv, "add", "--help"], capture_output=True, text=True, check=False)
+        assert supported.returncode == 0, supported.stdout + supported.stderr
+        assert "--no-sync" in supported.stdout
+        assert "Avoid syncing the virtual environment" in supported.stdout
+
+    executable.write_text(
+        f"#!{sys.executable}\n"
+        "import json, os, pathlib, sys\n"
+        "root = pathlib.Path(os.environ['UV_TEST_ROOT'])\n"
+        "if '--no-sync' not in sys.argv:\n"
+        "    (root / 'environment-synced').write_text('unreviewed install')\n"
+        "    raise SystemExit('unsafe environment sync before source validation')\n"
+        "(root / 'relocked.json').write_text(json.dumps({'args': sys.argv[1:], "
+        "'no_build': os.environ.get('UV_NO_BUILD'), "
+        "'no_binary': os.environ.get('UV_NO_BINARY_PACKAGE')}))\n"
+    )
+    executable.chmod(0o755)
+    monkeypatch.setenv("PATH", str(tmp_path) + os.pathsep + os.environ["PATH"])
+    monkeypatch.setenv("UV_TEST_ROOT", str(tmp_path))
+    monkeypatch.setenv("UV_NO_BUILD", "1")
+    monkeypatch.setenv("UV_NO_BINARY_PACKAGE", "openai openai-agents")
+    result = subprocess.run(["bash", "-e", "-c", command], cwd=tmp_path, capture_output=True, text=True, check=False)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert not (tmp_path / "environment-synced").exists()
+    relocked = cast(dict[str, object], json.loads((tmp_path / "relocked.json").read_text()))
+    assert relocked["args"] == ["add", "--no-sync", "../openai-python"]
+    assert relocked["no_build"] == "1"
+    assert relocked["no_binary"] == "openai openai-agents"
 
 
 def test_explicit_root_build_keeps_every_public_dependency_source_build_disabled(
@@ -967,6 +1017,12 @@ def test_package_scoped_root_build_policy_rejects_real_external_source_distribut
     [
         pytest.param("reviewed", True, id="trusted-agents-aiohttp-source"),
         pytest.param("version", False, id="agents-aiohttp-version-swapped"),
+        pytest.param("wheel-upgrade", True, id="changed-reviewed-name-is-wheel-only-without-source-exemption"),
+        pytest.param("wheel-url", False, id="changed-reviewed-name-rejects-nonpublic-wheel"),
+        pytest.param("wheel-hash", False, id="changed-reviewed-name-rejects-invalid-wheel-hash"),
+        pytest.param("wheel-sdist-url", False, id="changed-reviewed-name-rejects-nonpublic-source-artifact"),
+        pytest.param("wheel-sdist-hash", False, id="changed-reviewed-name-rejects-invalid-source-hash"),
+        pytest.param("removed", True, id="removed-reviewed-name-receives-no-source-exemption"),
         pytest.param("source", False, id="agents-aiohttp-private-registry"),
         pytest.param("url", False, id="agents-aiohttp-source-url-swapped"),
         pytest.param("hash", False, id="agents-aiohttp-source-hash-swapped"),
@@ -1019,10 +1075,27 @@ def test_agents_aiohttp_source_must_match_immutable_trusted_upstream(
     current_registry = "https://pypi.org/simple"
     trusted_digest = digest
     origin = "https://github.com/openai/openai-agents-python.git"
+    current_wheel_url: str | None = None
+    current_wheel_digest = "c" * 64
     if variant == "version":
         current_version = "0.0.1"
     elif variant == "source":
         current_registry = "https://private.example/simple"
+    elif variant in {"wheel-upgrade", "wheel-url", "wheel-hash", "wheel-sdist-url", "wheel-sdist-hash"}:
+        current_version = "3.14.3" if package == "aiohttp" else "9.0.0"
+        current_url = "https://files.pythonhosted.org/packages/aa/bb/" + package + "-" + current_version + ".tar.gz"
+        current_digest = "a" * 64
+        current_wheel_url = (
+            "https://files.pythonhosted.org/packages/aa/bb/" + package + "-" + current_version + "-py3-none-any.whl"
+        )
+        if variant == "wheel-url":
+            current_wheel_url = "https://private.example/packages/" + package + ".whl"
+        if variant == "wheel-hash":
+            current_wheel_digest = "invalid"
+        if variant == "wheel-sdist-url":
+            current_url = "https://private.example/packages/" + package + ".tar.gz"
+        if variant == "wheel-sdist-hash":
+            current_digest = "invalid"
     elif variant == "url":
         current_url = "https://unreviewed.example/packages/aiohttp.tar.gz"
     elif variant == "hash":
@@ -1032,7 +1105,14 @@ def test_agents_aiohttp_source_must_match_immutable_trusted_upstream(
     elif variant == "origin":
         origin = "https://github.com/unreviewed/openai-agents-python.git"
 
-    def lock(name: str, version: str, artifact_url: str, artifact_digest: str, registry: str) -> str:
+    def lock(
+        name: str,
+        version: str,
+        artifact_url: str,
+        artifact_digest: str,
+        registry: str,
+        wheel_url: str | None = None,
+    ) -> str:
         return (
             "[[package]]\nname = "
             + json.dumps(name)
@@ -1045,6 +1125,11 @@ def test_agents_aiohttp_source_must_match_immutable_trusted_upstream(
             + ', hash = "sha256:'
             + artifact_digest
             + '" }\n'
+            + (
+                "wheels = [{ url = " + json.dumps(wheel_url) + ', hash = "sha256:' + current_wheel_digest + '" }]\n'
+                if wheel_url is not None
+                else ""
+            )
         )
 
     current_packages: list[str] = []
@@ -1052,7 +1137,10 @@ def test_agents_aiohttp_source_must_match_immutable_trusted_upstream(
     for name, (reviewed_version, reviewed_path, reviewed_digest) in reviewed.items():
         reviewed_url = "https://files.pythonhosted.org/packages/" + reviewed_path
         if name == package:
-            current_packages.append(lock(name, current_version, current_url, current_digest, current_registry))
+            if variant != "removed":
+                current_packages.append(
+                    lock(name, current_version, current_url, current_digest, current_registry, current_wheel_url)
+                )
             trusted_packages.append(
                 lock(name, reviewed_version, reviewed_url, trusted_digest, "https://pypi.org/simple")
             )
@@ -1088,6 +1176,11 @@ def test_agents_aiohttp_source_must_match_immutable_trusted_upstream(
         [sys.executable, "-c", program], cwd=tmp_path, env=environment, capture_output=True, text=True, check=False
     )
     assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+    if accepted:
+        expected = set(reviewed)
+        if variant in {"wheel-upgrade", "removed"}:
+            expected.remove(package)
+        assert set(result.stdout.split()) == expected
 
 
 @pytest.mark.parametrize("name", ["detect_breaking_changes", "agents_sdk"])
@@ -2231,10 +2324,161 @@ def test_security_floors_preserve_original_optional_contexts(
 
 
 @pytest.mark.parametrize(
+    ("requirement_marker", "resolution_marker", "direct_accepted", "protected_accepted"),
+    [
+        pytest.param(
+            "python_version in '3.10, 3.11'",
+            "python_full_version == '3.10.*'",
+            True,
+            True,
+            id="python-membership-first-release",
+        ),
+        pytest.param(
+            "python_version in '3.10, 3.11'",
+            "python_full_version == '3.11.*'",
+            True,
+            True,
+            id="python-membership-second-release",
+        ),
+        pytest.param(
+            "python_version in '3.10, 3.11'",
+            "python_full_version >= '3.12'",
+            False,
+            True,
+            id="python-membership-excludes-other-release",
+        ),
+        pytest.param(
+            "python_version not in '3.10, 3.11'",
+            "python_full_version == '3.12.*'",
+            True,
+            True,
+            id="python-negative-membership-allows-other-release",
+        ),
+        pytest.param(
+            "python_version not in '3.10, 3.11'",
+            "python_full_version == '3.10.*'",
+            False,
+            True,
+            id="python-negative-membership-excludes-listed-release",
+        ),
+        pytest.param(
+            "python_full_version in '3.10.4, 3.11.2'",
+            "python_full_version == '3.10.4'",
+            True,
+            True,
+            id="full-python-version-membership",
+        ),
+        pytest.param(
+            "sys_platform in 'linux, darwin'",
+            "sys_platform == 'linux'",
+            True,
+            True,
+            id="platform-membership-matches-reviewed-linux",
+        ),
+        pytest.param(
+            "sys_platform not in 'win32, darwin'",
+            "sys_platform == 'linux'",
+            True,
+            True,
+            id="negative-platform-membership-matches-reviewed-linux",
+        ),
+        pytest.param(
+            "platform_system in 'Linux, Darwin'",
+            "platform_system == 'linux'",
+            False,
+            True,
+            id="platform-membership-preserves-quoted-case",
+        ),
+        pytest.param(
+            "python_version >= '3.10'",
+            "python_version in '3.10, 3.11'",
+            True,
+            True,
+            id="resolution-domain-membership-also-supported",
+        ),
+        pytest.param(
+            "python_version in '3.10,,3.11'",
+            "python_full_version == '3.10.*'",
+            False,
+            False,
+            id="empty-membership-token-fails-closed",
+        ),
+        pytest.param(
+            "python_version in '3.10, 3.10'",
+            "python_full_version == '3.10.*'",
+            False,
+            False,
+            id="duplicate-membership-token-fails-closed",
+        ),
+        pytest.param(
+            "python_version in '3.1, 3.10'",
+            "python_full_version == '3.10.*'",
+            False,
+            False,
+            id="substring-ambiguous-membership-token-fails-closed",
+        ),
+        pytest.param(
+            "python_version in '3.10, beta'",
+            "python_full_version == '3.10.*'",
+            False,
+            False,
+            id="noncanonical-python-membership-token-fails-closed",
+        ),
+        pytest.param(
+            "sys_platform in 'win, win32'",
+            "sys_platform == 'win32'",
+            False,
+            False,
+            id="substring-ambiguous-platform-membership-fails-closed",
+        ),
+        pytest.param(
+            "unsupported_platform in 'linux'",
+            "sys_platform == 'linux'",
+            False,
+            False,
+            id="unknown-membership-variable-fails-closed",
+        ),
+        pytest.param(
+            "python_version in '3.10' or sys_platform == 'linux'",
+            "python_full_version == '3.10.*'",
+            False,
+            False,
+            id="source-level-or-membership-fails-closed",
+        ),
+    ],
+)
+@pytest.mark.parametrize("protected", [False, True], ids=["published-direct", "protected-constraint"])
+def test_security_marker_membership_overlaps_are_safe_and_precise(
+    tmp_path: Path,
+    requirement_marker: str,
+    resolution_marker: str,
+    direct_accepted: bool,
+    protected_accepted: bool,
+    protected: bool,
+) -> None:
+    base = "danger>=1; " + requirement_marker
+    head = "danger>=2; " + requirement_marker
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=[] if protected else [base],
+        head_requirements=[] if protected else [head],
+        base_packages=[("danger", "1")],
+        head_packages=[("danger", "2")],
+        base_constraints=[base] if protected else None,
+        head_constraints=[head] if protected else None,
+        base_resolution_markers={("danger", "1"): [resolution_marker]},
+        head_resolution_markers={("danger", "2"): [resolution_marker]},
+    )
+    accepted = protected_accepted if protected else direct_accepted
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
     ("variant", "accepted"),
     [
         pytest.param("direct-both", True, id="both-actual-numpy-extra-groups-split-by-python-version"),
         pytest.param("direct-high-only", True, id="unchanged-python310-line-does-not-need-artificial-bump"),
+        pytest.param("direct-membership-split", True, id="published-split-membership-complements-cover-all-domains"),
         pytest.param("direct-low-insufficient", False, id="python310-split-floor-must-reach-its-own-patch"),
         pytest.param("direct-high-insufficient", False, id="newer-python-split-floor-must-reach-its-own-patch"),
         pytest.param("direct-gap", False, id="split-cannot-drop-python310-resolution-domain"),
@@ -2246,6 +2490,7 @@ def test_security_floors_preserve_original_optional_contexts(
         pytest.param("direct-original-lowered", False, id="split-cannot-lower-original-unchanged-branch"),
         pytest.param("protected-constraint", True, id="protected-constraint-splits-by-resolution-domain"),
         pytest.param("protected-group", True, id="protected-development-group-splits-by-resolution-domain"),
+        pytest.param("protected-membership-split", True, id="protected-split-membership-complements-cover-all-domains"),
         pytest.param("protected-insufficient", False, id="protected-split-floor-must-reach-its-own-patch"),
         pytest.param("protected-gap", False, id="protected-split-cannot-drop-python310-domain"),
         pytest.param("protected-upper-removed", False, id="protected-split-preserves-original-upper-bound"),
@@ -2287,6 +2532,16 @@ def test_security_floors_can_safely_split_original_unmarked_resolution_domains(
     head_constraints: list[str] | None = None
     base_groups: dict[str, list[str]] | None = None
     head_groups: dict[str, list[str]] | None = None
+
+    if variant in {"direct-membership-split", "protected-membership-split"}:
+        base_markers[("numpy", "2.2.6")] = ["python_full_version == '3.10.*'"]
+        head_markers[("numpy", "2.2.7")] = ["python_full_version == '3.10.*'"]
+        low = "numpy>=2.2.7,<3; python_version in '3.10'"
+        high = "numpy>=2.4.7,<3; python_version not in '3.10'"
+        head_optional = {
+            "datalib": [low, high],
+            "voice_helpers": [low, high],
+        }
 
     if variant == "direct-high-only":
         head_packages[0] = ("numpy", "2.2.6")
