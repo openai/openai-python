@@ -522,6 +522,88 @@ def allows_published_release(bounds: tuple[PublishedBound, ...], release: Stable
     return True
 
 
+def preserves_published_security_bound(previous: PublishedBound, current: tuple[PublishedBound, ...]) -> bool:
+    operator, epoch, components, post, wildcard = previous
+    if operator in {"<", "<="}:
+        limit = epoch, components, post
+        for updated, candidate_epoch, candidate, candidate_post, candidate_wildcard in current:
+            if candidate_wildcard or updated not in {"<", "<=", "=="}:
+                continue
+            bound = candidate_epoch, candidate, candidate_post
+            if bound < limit or bound == limit and (operator == "<=" or updated == "<"):
+                return True
+        return False
+    if operator == "==":
+        return any(bound == previous for bound in current)
+    if operator != "!=":
+        return True
+    if not wildcard:
+        return not allows_published_release(current, (epoch, components, post))
+
+    start_text = str(epoch) + "!" + ".".join(str(part) for part in components)
+    start = stable_version(start_text)
+    next_components = components[:-1] + (components[-1] + 1,)
+    stop = stable_version(str(epoch) + "!" + ".".join(str(part) for part in next_components))
+    for updated, candidate_epoch, candidate, candidate_post, candidate_wildcard in current:
+        if (
+            updated == "!="
+            and candidate_wildcard
+            and candidate_epoch == epoch
+            and len(candidate) <= len(components)
+            and components[: len(candidate)] == candidate
+        ):
+            return True
+        if candidate_wildcard:
+            continue
+        bound = candidate_epoch, candidate, candidate_post
+        if updated in {"<", "<="} and (bound < start or bound == start and updated == "<"):
+            return True
+        if updated in {">=", ">"} and bound >= stop:
+            return True
+        if updated == "==":
+            padded = candidate + (0,) * max(0, len(components) - len(candidate))
+            if candidate_epoch != epoch or padded[: len(components)] != components:
+                return True
+    return False
+
+
+def preserves_unchanged_published_bounds(
+    previous_contexts: ContextRequirements,
+    replacements: ContextReplacements,
+    domains: ResolutionDomains,
+) -> bool:
+    for previous_context, previous_requirements in previous_contexts.items():
+        for requirement in previous_requirements:
+            expression = requirement.split(";", 1)[0]
+            match = re.fullmatch(r"\s*([A-Za-z0-9][A-Za-z0-9_.-]*)(\[[^\]]+\])?\s*(.*)", expression)
+            if match is None:
+                raise SystemExit("Ambiguous unchanged published security dependency requirement")
+            clauses = match.group(3).split(",")
+            if not any(re.match(r"(?:!=|<=|<|==)", clause.strip()) for clause in clauses):
+                continue
+            before = published_bounds(requirement)
+            protected = tuple(bound for bound in before if bound[0] in {"<", "<=", "!=", "=="})
+            for replacement_context, candidates in replacements.get(previous_context, {}).items():
+                retained = {
+                    stable_version(version)
+                    for domain, versions in domains.items()
+                    if marker_overlap(replacement_context[3], domain)
+                    for version in versions
+                    if allows_published_release(before, stable_version(version))
+                }
+                preserved = False
+                for candidate in candidates:
+                    after = published_bounds(candidate)
+                    if all(preserves_published_security_bound(bound, after) for bound in protected) and all(
+                        allows_published_release(after, release) for release in retained
+                    ):
+                        preserved = True
+                        break
+                if not preserved:
+                    return False
+    return True
+
+
 def published_lower_bound_excludes(bounds: tuple[PublishedBound, ...], epoch: int, prefix: tuple[int, ...]) -> bool:
     for operator, bound_epoch, components, _post, wildcard in bounds:
         if wildcard or operator not in {">=", ">"}:
@@ -763,6 +845,12 @@ for name, requirements in new_direct.items():
     previous_domains = old_resolution_contexts.get(name, {})
     current_domains = new_resolution_contexts.get(name, {})
     if old_versions.get(name, set()) == new_versions.get(name, set()) and previous_domains == current_domains:
+        if (
+            previous != requirements or previous_contexts != current_contexts
+        ) and not preserves_unchanged_published_bounds(
+            previous_contexts, direct_replacements.get(name, {}), previous_domains
+        ):
+            raise SystemExit("Do not weaken an unchanged published security exclusion or upper bound for " + name)
         continue
     if previous == requirements:
         raise SystemExit("Raise the published security-fixed minimum for " + name)

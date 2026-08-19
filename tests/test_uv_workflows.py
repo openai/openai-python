@@ -1729,7 +1729,7 @@ def run_security_dependency_floor_check(
         ),
         pytest.param(
             ["other>=2,<4"],
-            ["other>=2,<5"],
+            ["other>=2,<3"],
             [("other", "2")],
             [("other", "2")],
             False,
@@ -2130,6 +2130,114 @@ def test_only_direct_security_updates_must_raise_published_minimums(
         base_packages=before,
         head_packages=after,
         optional=optional,
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("variant", "accepted"),
+    [
+        pytest.param("removed-exclusion", False, id="grouped-update-cannot-remove-runtime-wildcard-exclusion"),
+        pytest.param("narrowed-exclusion", False, id="exact-exclusion-cannot-replace-entire-vulnerable-prefix"),
+        pytest.param("removed-upper", False, id="grouped-update-cannot-remove-runtime-upper-bound"),
+        pytest.param("widened-upper", False, id="grouped-update-cannot-widen-runtime-upper-bound"),
+        pytest.param("inclusive-upper", False, id="inclusive-bound-cannot-weaken-exclusive-upper"),
+        pytest.param("strengthened-upper", True, id="narrower-upper-bound-preserves-supported-locks"),
+        pytest.param("exclusive-upper", True, id="exclusive-upper-may-strengthen-inclusive-bound"),
+        pytest.param("canonical-reordered", True, id="canonical-reordered-security-bounds-remain-equivalent"),
+        pytest.param("stronger-wildcard", True, id="broader-exclusion-prefix-may-strengthen-security"),
+        pytest.param("wildcard-drops-v2", False, id="stronger-wildcard-cannot-drop-supported-v2-lock"),
+        pytest.param("exact-to-wildcard", True, id="wildcard-may-strengthen-exact-release-exclusion"),
+        pytest.param("post-removed", False, id="unchanged-lock-must-retain-exact-stable-post-exclusion"),
+        pytest.param("post-covered", True, id="release-prefix-may-strengthen-stable-post-exclusion"),
+        pytest.param("floor-covers-exact", True, id="stronger-floor-may-imply-prior-exact-exclusion"),
+        pytest.param("upper-covers-wildcard", True, id="stronger-upper-may-imply-prior-prefix-exclusion"),
+        pytest.param("wrong-epoch", False, id="other-epoch-prefix-does-not-preserve-existing-exclusion"),
+        pytest.param("epoch-canonical", True, id="canonical-same-epoch-prefix-preserves-existing-exclusion"),
+        pytest.param("marker-preserved", True, id="unchanged-marker-retains-runtime-security-bounds"),
+        pytest.param("marker-moved", False, id="security-bounds-cannot-move-to-different-marker-context"),
+        pytest.param("optional-removed", False, id="grouped-update-cannot-remove-optional-security-exclusion"),
+        pytest.param("optional-preserved", True, id="optional-security-context-and-bounds-remain-supported"),
+        pytest.param("unaffected-v1-dropped", False, id="security-bounds-cannot-drop-supported-unchanged-v1"),
+        pytest.param("unaffected-v2-dropped", False, id="security-bounds-cannot-drop-supported-unchanged-v2"),
+        pytest.param("malformed-exclusion", False, id="ambiguous-unchanged-lock-exclusion-fails-closed"),
+        pytest.param("no-old-security-bounds", True, id="unbounded-unchanged-dependency-still-accepts-new-floor"),
+    ],
+)
+def test_grouped_security_updates_preserve_unchanged_published_bounds(
+    tmp_path: Path, variant: str, accepted: bool
+) -> None:
+    previous = "pydantic>=1,<3,!=2.12.5.*"
+    current = previous
+    v1, v2 = "1.10.26", "2.12.6"
+    optional = variant.startswith("optional-")
+
+    if variant in {"removed-exclusion", "optional-removed"}:
+        current = "pydantic>=1,<3"
+    elif variant == "narrowed-exclusion":
+        current = "pydantic>=1,<3,!=2.12.5"
+    elif variant == "removed-upper":
+        current = "pydantic>=1,!=2.12.5.*"
+    elif variant == "widened-upper":
+        current = "pydantic>=1,<4,!=2.12.5.*"
+    elif variant == "inclusive-upper":
+        current = "pydantic>=1,<=3,!=2.12.5.*"
+    elif variant == "strengthened-upper":
+        current = "pydantic>=1,<2.13,!=2.12.5.*"
+    elif variant == "exclusive-upper":
+        previous = "pydantic>=1,<=3,!=2.12.5.*"
+        current = "pydantic>=1,<3,!=2.12.5.*"
+    elif variant == "canonical-reordered":
+        current = "pydantic!=0!2.12.5.*,<3.0,>=1.0.0"
+    elif variant in {"stronger-wildcard", "wildcard-drops-v2"}:
+        current = "pydantic>=1,<3,!=2.12.*"
+        if variant == "stronger-wildcard":
+            v2 = "2.13.0"
+    elif variant == "exact-to-wildcard":
+        previous = "pydantic>=1,<3,!=2.12.5"
+    elif variant in {"post-removed", "post-covered"}:
+        previous = "pydantic>=1,<3,!=2.12.5.post1"
+        current = "pydantic>=1,<3" if variant == "post-removed" else "pydantic>=1,<3,!=2.12.5.*"
+    elif variant == "floor-covers-exact":
+        previous = "pydantic>=1,<3,!=1.10.25"
+        current = "pydantic>=1.10.26,<3"
+    elif variant == "upper-covers-wildcard":
+        current = "pydantic>=1,<2.12.5"
+        v2 = "2.11.0"
+    elif variant in {"wrong-epoch", "epoch-canonical"}:
+        previous = "pydantic>=1!1,<1!3,!=1!2.12.5.*"
+        current = (
+            "pydantic>=1!1,<1!3,!=0!2.12.5.*" if variant == "wrong-epoch" else "pydantic>=1!1,<1!3.0,!=01!02.012.005.*"
+        )
+        v1, v2 = "1!1.10.26", "1!2.12.6"
+    elif variant in {"marker-preserved", "marker-moved"}:
+        previous += "; python_version >= '3.11'"
+        current += "; python_version >= '3.12'" if variant == "marker-moved" else "; python_version >= '3.11'"
+    elif variant == "unaffected-v1-dropped":
+        current += ",!=1.10.26.*"
+    elif variant == "unaffected-v2-dropped":
+        current += ",!=2.12.6.*"
+    elif variant == "malformed-exclusion":
+        current = "pydantic>=1,<3,!=2.12.5.post1.*"
+    elif variant == "no-old-security-bounds":
+        previous, current = "pydantic", "pydantic>=1"
+
+    base_requirements = ["danger-pkg>=1"]
+    head_requirements = ["danger-pkg>=2"]
+    base_optional_groups = {"feature": [previous]} if optional else None
+    head_optional_groups = {"feature": [current]} if optional else None
+    if not optional:
+        base_requirements.append(previous)
+        head_requirements.append(current)
+    unchanged = [("pydantic", v1), ("pydantic", v2)]
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=base_requirements,
+        head_requirements=head_requirements,
+        base_packages=[("danger-pkg", "1"), *unchanged],
+        head_packages=[("danger-pkg", "2"), *unchanged],
+        base_optional_groups=base_optional_groups,
+        head_optional_groups=head_optional_groups,
     )
     assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
 
