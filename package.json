@@ -1,0 +1,12 @@
+{
+  "name": "openai-python-tooling",
+  "private": true,
+  "packageManager": "pnpm@11.19.0",
+  "engines": {
+    "node": "22.22.3"
+  },
+  "devDependencies": {
+    "@stdy/cli": "0.22.1",
+    "pyright": "1.1.399"
+  }
+}

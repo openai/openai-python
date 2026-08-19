@@ -18,6 +18,7 @@ from .._models import FinalRequestOptions
 from .._provider import _Provider, _configure_provider
 from .._exceptions import OpenAIError
 from .._base_client import DEFAULT_MAX_RETRIES
+from .._data_residency import DataResidency
 from ..providers.bedrock import (
     AwsCredentialsProvider,
     bedrock,
@@ -549,7 +550,8 @@ class BedrockOpenAI(OpenAI):
         project: str | None = None,
         webhook_secret: str | None = None,
         websocket_base_url: str | httpx2.URL | None = None,
-        base_url: str | httpx2.URL | None = None,
+        base_url: str | httpx2.URL | None | NotGiven = NOT_GIVEN,
+        data_residency: DataResidency | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
         http_client: httpx2.Client | None = None,
         max_retries: int | NotGiven = NOT_GIVEN,
@@ -560,6 +562,9 @@ class BedrockOpenAI(OpenAI):
         _enforce_credentials: bool | None = None,
         _extra_kwargs: Mapping[str, Any] = {},
     ) -> Self:
+        if data_residency is not None:
+            raise OpenAIError("`data_residency` is only supported by OpenAI clients")
+        base_url = None if isinstance(base_url, NotGiven) else base_url
         if callable(api_key):
             raise OpenAIError("Pass refreshable Bedrock credentials via `bedrock_token_provider`, not `api_key`.")
         if not isinstance(provider, NotGiven):
@@ -783,7 +788,8 @@ class AsyncBedrockOpenAI(AsyncOpenAI):
         project: str | None = None,
         webhook_secret: str | None = None,
         websocket_base_url: str | httpx2.URL | None = None,
-        base_url: str | httpx2.URL | None = None,
+        base_url: str | httpx2.URL | None | NotGiven = NOT_GIVEN,
+        data_residency: DataResidency | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
         http_client: httpx2.AsyncClient | None = None,
         max_retries: int | NotGiven = NOT_GIVEN,
@@ -794,6 +800,9 @@ class AsyncBedrockOpenAI(AsyncOpenAI):
         _enforce_credentials: bool | None = None,
         _extra_kwargs: Mapping[str, Any] = {},
     ) -> Self:
+        if data_residency is not None:
+            raise OpenAIError("`data_residency` is only supported by OpenAI clients")
+        base_url = None if isinstance(base_url, NotGiven) else base_url
         if callable(api_key):
             raise OpenAIError("Pass refreshable Bedrock credentials via `bedrock_token_provider`, not `api_key`.")
         if not isinstance(provider, NotGiven):

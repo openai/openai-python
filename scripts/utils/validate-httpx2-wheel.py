@@ -53,7 +53,7 @@ def validate_metadata(wheel: Path) -> None:
         raise RuntimeError(f"The aiohttp extra must not install the legacy adapter package: {requirements}")
     if {"httpx", "httpx2"} & extras:
         raise RuntimeError(f"HTTP client selection must not require or expose an SDK extra: {extras}")
-    if not any(value.startswith("aiohttp>=3.14.1") for value in aiohttp):
+    if not any(value.startswith("aiohttp>=3.14.3") for value in aiohttp):
         raise RuntimeError(f"Expected the aiohttp extra to require a patched aiohttp release: {aiohttp}")
 
 
@@ -103,7 +103,7 @@ def main() -> None:
     wheel = wheels[0]
     validate_metadata(wheel)
 
-    common = ["pytest==8.4.1", "pytest-asyncio==1.1.0"]
+    common = ["pytest==9.0.3", "pytest-asyncio==1.4.0", "pygments==2.20.0"]
     run_case(wheel, extra=None, tests=[BASE_TEST, HTTPX2_TEST], dependencies=common)
     run_case(wheel, extra="aiohttp", tests=[BASE_TEST], dependencies=common)
     run_case(

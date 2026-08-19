@@ -1,5 +1,7 @@
 .prism.log
 .stdy.log
+node_modules/
+.pnpm-store/
 _dev
 
 __pycache__
@@ -8,6 +10,7 @@ __pycache__
 dist
 
 .venv
+.venv-pydantic-v1
 .idea
 
 .env
