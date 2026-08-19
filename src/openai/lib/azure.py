@@ -9,7 +9,7 @@ import httpx2
 
 from ..auth import WorkloadIdentity, X509WorkloadIdentity
 from .._types import NOT_GIVEN, Omit, Query, Headers, Timeout, NotGiven
-from .._utils import is_given, is_mapping
+from .._utils import is_given, is_mapping, path_template
 from .._client import OpenAI, AsyncOpenAI
 from .._compat import model_copy
 from .._httpx2 import normalize_httpx_url
@@ -77,7 +77,7 @@ class BaseAzureClient(BaseClient[_HttpxClientT, _DefaultStreamT]):
         if options.url in _deployments_endpoints and is_mapping(options.json_data):
             model = options.json_data.get("model")
             if model is not None and "/deployments" not in str(self.base_url.path):
-                options.url = f"/deployments/{model}{options.url}"
+                options.url = path_template("/deployments/{model}", model=model) + options.url
 
         return super()._build_request(options, retries_taken=retries_taken)
 
