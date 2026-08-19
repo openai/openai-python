@@ -324,9 +324,10 @@ async def test_websocket_queue_failure_metadata(
     connection = cls(websocket)
     connection._send_queue.enqueue(FAKE_SECRET)
     with caplog.at_level(logging.DEBUG, logger="openai"):
-        result = connection._flush_send_queue()
         if asynchronous:
-            await result
+            await connection._flush_send_queue()
+        else:
+            connection._flush_send_queue()
     websocket.send.assert_called_once_with(FAKE_SECRET)
     assert assert_safe_logs(caplog) == ["Failed to flush send queue after reconnect"]
 
