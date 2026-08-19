@@ -266,6 +266,37 @@ jobs:
                   result.append(stable_version(matches[0].strip()))
               return sorted(result)
 
+          def matches_protected_release(requirements, release, *, upper_only=False):
+              for requirement in requirements:
+                  expression = requirement.split(";", 1)[0]
+                  match = re.fullmatch(
+                      r"\s*([A-Za-z0-9][A-Za-z0-9_.-]*)(\[[^\]]+\])?\s*(.*)", expression
+                  )
+                  if match is None:
+                      raise SystemExit("Ambiguous protected security dependency requirement")
+                  accepted = True
+                  for clause in match.group(3).split(","):
+                      if not clause.strip():
+                          continue
+                      bound = re.fullmatch(r"(>=|<=|==|!=|>|<)\s*(\S+)", clause.strip())
+                      if bound is None:
+                          raise SystemExit("Ambiguous protected security dependency bound")
+                      operator, value = bound.group(1), stable_version(bound.group(2))
+                      if upper_only and operator in {">=", ">"}:
+                          continue
+                      if (
+                          operator == ">=" and release < value
+                          or operator == ">" and release <= value
+                          or operator == "<=" and release > value
+                          or operator == "<" and release >= value
+                          or operator == "==" and release != value
+                          or operator == "!=" and release == value
+                      ):
+                          accepted = False
+                  if accepted:
+                      return True
+              return False
+
           old_project = read_base("pyproject.toml")
           old_lock = read_base("uv.lock")
           new_project = tomllib.loads(pathlib.Path("pyproject.toml").read_text())
@@ -280,7 +311,9 @@ jobs:
               requirements = new_protected.get(name, set())
               previous_contexts = old_protected_contexts.get(name, {})
               current_contexts = new_protected_contexts.get(name, {})
-              if previous == requirements and previous_contexts == current_contexts:
+              previous_domains = old_resolution_contexts.get(name, {})
+              current_domains = new_resolution_contexts.get(name, {})
+              if previous == requirements and previous_contexts == current_contexts and previous_domains == current_domains:
                   continue
               prior_minimums = minimums(previous, allow_missing=True, exact=True)
               if not prior_minimums:
@@ -299,6 +332,45 @@ jobs:
                       updated < previous for previous, updated in zip(context_minimums, updated_context_minimums)
                   ):
                       raise SystemExit("Do not lower a contextual protected security minimum for " + name)
+              if previous_domains == current_domains:
+                  continue
+              patched_domains = {}
+              for domain in previous_domains.keys() | current_domains.keys():
+                  prior_versions = previous_domains.get(domain, set())
+                  updated_versions = current_domains.get(domain, set())
+                  if prior_versions == updated_versions:
+                      continue
+                  introduced = sorted(stable_version(version) for version in updated_versions - prior_versions)
+                  removed = sorted(stable_version(version) for version in prior_versions - updated_versions)
+                  if not introduced or len(introduced) != len(removed) or any(
+                      updated <= previous for previous, updated in zip(removed, introduced)
+                  ):
+                      raise SystemExit("Missing contextual upgraded protected security dependency release for " + name)
+                  patched_domains[domain] = list(zip(removed, introduced))
+              for context, prior_requirements in previous_contexts.items():
+                  prior_context_minimums = minimums(prior_requirements, allow_missing=True, exact=True)
+                  if not prior_context_minimums:
+                      continue
+                  patched = [
+                      introduced
+                      for domain, upgrades in patched_domains.items()
+                      if marker_overlap(context[3], domain)
+                      for removed, introduced in upgrades
+                      if matches_protected_release(prior_requirements, removed)
+                  ]
+                  if not patched:
+                      continue
+                  context_requirements = current_contexts.get(context, set())
+                  updated_context_minimums = minimums(context_requirements, exact=True)
+                  if (
+                      not updated_context_minimums
+                      or any(updated < max(patched) for updated in updated_context_minimums)
+                      or any(
+                          not matches_protected_release(context_requirements, release, upper_only=True)
+                          for release in patched
+                      )
+                  ):
+                      raise SystemExit("Raise the contextual protected security minimum to the patched release for " + name)
           for name, previous_contexts in old_contexts.items():
               current_contexts = new_contexts.get(name, {})
               if any(

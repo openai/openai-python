@@ -2299,6 +2299,155 @@ def test_security_updates_preserve_uv_and_dependency_group_floors(tmp_path: Path
     assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
 
 
+@pytest.mark.parametrize(
+    ("variant", "accepted"),
+    [
+        pytest.param("constraint-lock-only", False, id="protected-transitive-lock-only-security-update"),
+        pytest.param("constraint-insufficient", False, id="protected-transitive-floor-below-patched-release"),
+        pytest.param("constraint-patched", True, id="protected-transitive-floor-reaches-patched-release"),
+        pytest.param("constraint-higher", True, id="protected-transitive-floor-exceeds-patched-release"),
+        pytest.param("constraint-upper-blocks", False, id="protected-transitive-upper-bound-excludes-patch"),
+        pytest.param("constraint-unchanged-lock", True, id="protected-transitive-unchanged-lock-preserved"),
+        pytest.param("unrelated-transitive", True, id="unrelated-transitive-lock-only-update-preserved"),
+        pytest.param("unbounded-group", True, id="unbounded-development-group-lock-update-preserved"),
+        pytest.param("group-lock-only", False, id="development-group-floor-must-reach-patched-release"),
+        pytest.param("group-patched", True, id="development-group-floor-reaches-patched-release"),
+        pytest.param("build-pin-lock-only", False, id="build-constraint-pin-must-reach-patched-release"),
+        pytest.param("build-pin-patched", True, id="build-constraint-pin-reaches-patched-release"),
+        pytest.param("post-lock-only", False, id="protected-floor-must-reach-stable-post-release"),
+        pytest.param("post-patched", True, id="protected-floor-reaches-stable-post-release"),
+        pytest.param("epoch-lock-only", False, id="protected-floor-must-reach-new-epoch-release"),
+        pytest.param("epoch-patched", True, id="protected-floor-reaches-new-epoch-release"),
+        pytest.param("downgrade", False, id="protected-locked-release-cannot-downgrade"),
+        pytest.param("added-release", False, id="protected-added-release-without-prior-line-fails-closed"),
+        pytest.param("removed-release", False, id="protected-removed-release-without-patch-fails-closed"),
+        pytest.param("prerelease", False, id="protected-prerelease-patch-fails-closed"),
+        pytest.param("marker-low-unaffected", True, id="protected-unrelated-marker-line-remains-unchanged"),
+        pytest.param("marker-high-lock-only", False, id="protected-marker-context-floor-must-reach-patch"),
+        pytest.param("marker-high-patched", True, id="protected-marker-context-floor-reaches-patch"),
+        pytest.param("pydantic-v1-lock-only", False, id="protected-pydantic-v1-floor-must-reach-patch"),
+        pytest.param("pydantic-v1-patched", True, id="protected-pydantic-v1-patch-preserves-v2-line"),
+        pytest.param("pydantic-v2-patched", True, id="protected-pydantic-v2-patch-preserves-v1-line"),
+    ],
+)
+def test_protected_security_floors_must_reach_their_patched_release(
+    tmp_path: Path, variant: str, accepted: bool
+) -> None:
+    base_constraints: list[str] | None = ["cryptography>=50"]
+    head_constraints: list[str] | None = ["cryptography>=50"]
+    base_build_constraints: list[str] | None = None
+    head_build_constraints: list[str] | None = None
+    base_groups: dict[str, list[str]] | None = None
+    head_groups: dict[str, list[str]] | None = None
+    base_packages = [("cryptography", "50")]
+    head_packages = [("cryptography", "51")]
+    base_markers: dict[tuple[str, str], list[str]] | None = None
+    head_markers: dict[tuple[str, str], list[str]] | None = None
+
+    if variant == "constraint-insufficient":
+        head_constraints = ["cryptography>=50.1"]
+    elif variant == "constraint-patched":
+        head_constraints = ["cryptography>=51"]
+    elif variant == "constraint-higher":
+        head_constraints = ["cryptography>=52"]
+    elif variant == "constraint-upper-blocks":
+        base_constraints = ["cryptography>=50,<52"]
+        head_constraints = ["cryptography>=51,<51"]
+    elif variant == "constraint-unchanged-lock":
+        head_packages = list(base_packages)
+    elif variant == "unrelated-transitive":
+        base_packages.append(("unrelated", "1"))
+        head_packages = [("cryptography", "50"), ("unrelated", "2")]
+    elif variant == "unbounded-group":
+        base_constraints = head_constraints = None
+        base_groups = head_groups = {"dev": ["ruff"]}
+        base_packages, head_packages = [("ruff", "1")], [("ruff", "2")]
+    elif variant in {"group-lock-only", "group-patched"}:
+        base_constraints = head_constraints = None
+        base_groups = {"dev": ["pytest>=9"]}
+        head_groups = {"dev": ["pytest>=10" if variant == "group-patched" else "pytest>=9"]}
+        base_packages, head_packages = [("pytest", "9")], [("pytest", "10")]
+    elif variant in {"build-pin-lock-only", "build-pin-patched"}:
+        base_constraints = head_constraints = None
+        base_build_constraints = ["hatchling==1.27"]
+        head_build_constraints = ["hatchling==1.28" if variant == "build-pin-patched" else "hatchling==1.27"]
+        base_packages, head_packages = [("hatchling", "1.27")], [("hatchling", "1.28")]
+    elif variant in {"post-lock-only", "post-patched"}:
+        base_constraints = ["cryptography>=50"]
+        head_constraints = ["cryptography>=50.post1" if variant == "post-patched" else "cryptography>=50"]
+        base_packages, head_packages = [("cryptography", "50")], [("cryptography", "50.post1")]
+    elif variant in {"epoch-lock-only", "epoch-patched"}:
+        base_constraints = ["cryptography>=0!50"]
+        head_constraints = ["cryptography>=1!1" if variant == "epoch-patched" else "cryptography>=0!50"]
+        base_packages, head_packages = [("cryptography", "50")], [("cryptography", "1!1")]
+    elif variant == "downgrade":
+        base_constraints, head_constraints = ["cryptography>=50"], ["cryptography>=51"]
+        base_packages, head_packages = [("cryptography", "52")], [("cryptography", "51")]
+    elif variant == "added-release":
+        head_constraints = ["cryptography>=51"]
+        head_packages = [("cryptography", "50"), ("cryptography", "51")]
+    elif variant == "removed-release":
+        head_constraints = ["cryptography>=51"]
+        base_packages = [("cryptography", "50"), ("cryptography", "51")]
+        head_packages = [("cryptography", "51")]
+    elif variant == "prerelease":
+        head_constraints = ["cryptography>=51"]
+        head_packages = [("cryptography", "51rc1")]
+    elif variant.startswith("marker-"):
+        old_requirement = "cryptography>=50; python_version < '3.11'"
+        new_requirement = "cryptography>=60; python_version >= '3.11'"
+        base_constraints = [old_requirement]
+        head_constraints = [old_requirement]
+        if variant != "marker-low-unaffected":
+            base_constraints.append(new_requirement)
+            head_constraints.append(
+                "cryptography>=61; python_version >= '3.11'" if variant == "marker-high-patched" else new_requirement
+            )
+        base_packages = [("cryptography", "50"), ("cryptography", "60")]
+        head_packages = [("cryptography", "50"), ("cryptography", "61")]
+        base_markers = {
+            ("cryptography", "50"): ["python_full_version < '3.11'"],
+            ("cryptography", "60"): ["python_full_version >= '3.11'"],
+        }
+        head_markers = {
+            ("cryptography", "50"): ["python_full_version < '3.11'"],
+            ("cryptography", "61"): ["python_full_version >= '3.11'"],
+        }
+    elif variant.startswith("pydantic-"):
+        base_constraints = head_constraints = None
+        base_groups = {
+            "pydantic-v1": ["pydantic>=1.10,<2"],
+            "pydantic-v2": ["pydantic>=2,<3"],
+        }
+        head_groups = {
+            "pydantic-v1": ["pydantic>=1.11,<2" if variant == "pydantic-v1-patched" else "pydantic>=1.10,<2"],
+            "pydantic-v2": ["pydantic>=2.13,<3" if variant == "pydantic-v2-patched" else "pydantic>=2,<3"],
+        }
+        base_packages = [("pydantic", "1.10"), ("pydantic", "2.12")]
+        head_packages = (
+            [("pydantic", "1.10"), ("pydantic", "2.13")]
+            if variant == "pydantic-v2-patched"
+            else [("pydantic", "1.11"), ("pydantic", "2.12")]
+        )
+
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=[],
+        head_requirements=[],
+        base_packages=base_packages,
+        head_packages=head_packages,
+        base_constraints=base_constraints,
+        head_constraints=head_constraints,
+        base_build_constraints=base_build_constraints,
+        head_build_constraints=head_build_constraints,
+        base_dependency_groups=base_groups,
+        head_dependency_groups=head_groups,
+        base_resolution_markers=base_markers,
+        head_resolution_markers=head_markers,
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
 def test_security_floor_parser_strips_requirement_whitespace() -> None:
     assert "stable_version(matches[0].strip())" in security_dependency_floor_program()
 
