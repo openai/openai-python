@@ -70,7 +70,7 @@ pydantic-v1 = ["pydantic>=1.10.26,<2"]
 pydantic-v2 = ["pydantic>=2,<3"]
 # Isolated build requirements are exported with hashes by scripts/build.
 build = [
-    "hatchling==1.27.0",
+    "hatchling==1.32.0",
     "packaging==26.3",
     "pathspec==1.1.1",
     "pluggy==1.6.0",
@@ -96,7 +96,7 @@ constraint-dependencies = [
 ]
 # Also constrain editable/source builds performed by uv sync.
 build-constraint-dependencies = [
-    "hatchling==1.27.0",
+    "hatchling==1.32.0",
     "packaging==26.3",
     "pathspec==1.1.1",
     "pluggy==1.6.0",
@@ -106,7 +106,7 @@ build-constraint-dependencies = [
 
 
 [build-system]
-requires = ["hatchling==1.27.0"]
+requires = ["hatchling==1.32.0"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build]
