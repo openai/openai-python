@@ -18,6 +18,9 @@ on:
 permissions:
   contents: read
 
+env:
+  UV_NO_BUILD: '1'
+
 jobs:
   dependency-locks:
     timeout-minutes: 10
@@ -30,7 +33,7 @@ jobs:
 
       - name: Verify dependency source provenance before installing tools
         run: |
-          python -c 'import ast, pathlib, re, tomllib; config = tomllib.loads(pathlib.Path("pyproject.toml").read_text()); project = config["project"]; lock = tomllib.loads(pathlib.Path("uv.lock").read_text()); roots = [package for package in lock["package"] if package.get("name") == project["name"] and package.get("version") == project["version"] and package.get("source") == {"editable": "."}]; build = config.get("build-system", {}); uv = config.get("tool", {}).get("uv", {}); requires = build.get("requires", []); constraints = uv.get("build-constraint-dependencies", []); reviewed = config.get("dependency-groups", {}).get("build", []); canonical = lambda value: re.sub(r"[-_.]+", "-", value).lower(); normalize = lambda value: re.sub(r"\s+", "", value); assert len(roots) == 1 and all(package is roots[0] or package.get("source") == {"registry": "https://pypi.org/simple"} and isinstance(package.get("wheels", []), list) and (artifacts := ([package["sdist"]] if "sdist" in package else []) + package.get("wheels", [])) and all(isinstance(artifact, dict) and re.fullmatch(r"https://files\.pythonhosted\.org/packages/[^\s?#]+", artifact.get("url", "")) and re.fullmatch(r"sha256:[0-9a-f]{64}", artifact.get("hash", "")) for artifact in artifacts) for package in lock["package"]) and build.get("build-backend") == "hatchling.build" and "backend-path" not in build and isinstance(requires, list) and bool(requires) and isinstance(constraints, list) and bool(constraints) and isinstance(reviewed, list) and bool(reviewed) and not any(uv.get(key) for key in ("sources", "index", "indexes", "index-url", "extra-index-url", "default-index", "find-links", "index_url", "extra_index_url", "default_index", "find_links")) and all(isinstance(requirement, str) and (match := re.fullmatch(r"([A-Za-z0-9][A-Za-z0-9_.-]*)\s*==\s*([0-9]+(?:\.[0-9]+)*)(?:\s*;\s*(.+))?", requirement)) is not None and (match.group(3) is None or isinstance(marker := ast.parse(match.group(3), mode="eval").body, ast.Compare) and isinstance(marker.left, ast.Name) and len(marker.ops) == 1 and type(marker.ops[0]) in {ast.Eq, ast.NotEq, ast.Lt, ast.LtE, ast.Gt, ast.GtE, ast.In, ast.NotIn} and len(marker.comparators) == 1 and isinstance(marker.comparators[0], ast.Constant) and isinstance(marker.comparators[0].value, str)) and any(canonical(package.get("name", "")) == canonical(match.group(1)) and package.get("version") == match.group(2) and package.get("source") == {"registry": "https://pypi.org/simple"} for package in lock["package"]) for requirement in requires + constraints + reviewed) and {normalize(requirement) for requirement in constraints} == {normalize(requirement) for requirement in reviewed} and {normalize(requirement) for requirement in requires}.issubset({normalize(requirement) for requirement in constraints}) and any(canonical(requirement.split("==", 1)[0].strip()) == "hatchling" for requirement in requires), "Use only the public PyPI registry, reviewed artifacts, the exact editable root project, and locked reviewed build requirements in uv.lock"'
+          python -c 'import ast, pathlib, re, tomllib; config = tomllib.loads(pathlib.Path("pyproject.toml").read_text()); project = config["project"]; lock = tomllib.loads(pathlib.Path("uv.lock").read_text()); roots = [package for package in lock["package"] if package.get("name") == project["name"] and package.get("version") == project["version"] and package.get("source") == {"editable": "."}]; build = config.get("build-system", {}); uv = config.get("tool", {}).get("uv", {}); requires = build.get("requires", []); constraints = uv.get("build-constraint-dependencies", []); reviewed = config.get("dependency-groups", {}).get("build", []); canonical = lambda value: re.sub(r"[-_.]+", "-", value).lower(); normalize = lambda value: re.sub(r"\s+", "", value); assert len(roots) == 1 and all(package is roots[0] or package.get("source") == {"registry": "https://pypi.org/simple"} and isinstance(package.get("wheels"), list) and bool(package.get("wheels")) and (artifacts := ([package["sdist"]] if "sdist" in package else []) + package.get("wheels", [])) and all(isinstance(artifact, dict) and re.fullmatch(r"https://files\.pythonhosted\.org/packages/[^\s?#]+", artifact.get("url", "")) and re.fullmatch(r"sha256:[0-9a-f]{64}", artifact.get("hash", "")) for artifact in artifacts) for package in lock["package"]) and build.get("build-backend") == "hatchling.build" and "backend-path" not in build and isinstance(requires, list) and bool(requires) and isinstance(constraints, list) and bool(constraints) and isinstance(reviewed, list) and bool(reviewed) and not any(uv.get(key) for key in ("sources", "index", "indexes", "index-url", "extra-index-url", "default-index", "find-links", "index_url", "extra_index_url", "default_index", "find_links", "no-binary", "no-binary-package", "no_binary", "no_binary_package")) and not any(pathlib.Path(path).exists() for path in ("uv.toml", ".uv.toml")) and all(isinstance(requirement, str) and (match := re.fullmatch(r"([A-Za-z0-9][A-Za-z0-9_.-]*)\s*==\s*([0-9]+(?:\.[0-9]+)*(?:\.post[0-9]+)?)(?:\s*;\s*(.+))?", requirement)) is not None and (match.group(3) is None or isinstance(marker := ast.parse(match.group(3), mode="eval").body, ast.Compare) and isinstance(marker.left, ast.Name) and len(marker.ops) == 1 and type(marker.ops[0]) in {ast.Eq, ast.NotEq, ast.Lt, ast.LtE, ast.Gt, ast.GtE, ast.In, ast.NotIn} and len(marker.comparators) == 1 and isinstance(marker.comparators[0], ast.Constant) and isinstance(marker.comparators[0].value, str)) and any(canonical(package.get("name", "")) == canonical(match.group(1)) and package.get("version") == match.group(2) and package.get("source") == {"registry": "https://pypi.org/simple"} for package in lock["package"]) for requirement in requires + constraints + reviewed) and {normalize(requirement) for requirement in constraints} == {normalize(requirement) for requirement in reviewed} and {normalize(requirement) for requirement in requires}.issubset({normalize(requirement) for requirement in constraints}) and any(canonical(requirement.split("==", 1)[0].strip()) == "hatchling" for requirement in requires), "Use only the public PyPI registry, reviewed artifacts, the exact editable root project, and locked reviewed build requirements in uv.lock"'
 
       - name: Require published minimums for direct security updates
         if: >-
@@ -144,19 +147,106 @@ jobs:
               return result, contexts
 
           def versions(lock):
-              result = {}
+              result, contexts = {}, {}
               for package in lock["package"]:
-                  result.setdefault(canonical(package["name"]), set()).add(package["version"])
-              return result
+                  name = canonical(package["name"])
+                  version = package["version"]
+                  result.setdefault(name, set()).add(version)
+                  markers = package.get("resolution-markers")
+                  if markers is None:
+                      domains = [()]
+                  else:
+                      if not isinstance(markers, list) or not markers or any(
+                          not isinstance(marker, str) for marker in markers
+                      ):
+                          raise SystemExit("Ambiguous locked security dependency resolution marker")
+                      domains = [marker_context(marker) for marker in markers]
+                  for domain in domains:
+                      contexts.setdefault(name, {}).setdefault(domain, set()).add(version)
+              return result, contexts
 
           def stable_version(value):
-              match = re.fullmatch(r"(?:(\d+)!)?(\d+(?:\.\d+)*)", value)
+              match = re.fullmatch(r"(?:(\d+)!)?(\d+(?:\.\d+)*)(?:\.post(\d+))?", value)
               if match is None:
                   raise SystemExit("Unsupported direct security dependency minimum")
               release = tuple(int(part) for part in match.group(2).split("."))
               while release and release[-1] == 0:
                   release = release[:-1]
-              return int(match.group(1) or 0), release
+              post = -1 if match.group(3) is None else int(match.group(3))
+              return int(match.group(1) or 0), release, post
+
+          def marker_overlap(requirement, resolution):
+              clauses = {}
+              for variable, operator, value in requirement + resolution:
+                  family = "python" if variable in {"python_version", "python_full_version"} else variable
+                  clauses.setdefault(family, []).append((variable, operator, value))
+              for family, constraints in clauses.items():
+                  if family == "python":
+                      lower, upper, excluded = (0, 0, 0), None, []
+                      for variable, operator, value in constraints:
+                          match = re.fullmatch(r"(\d+)\.(\d+)(?:\.(\d+))?(\.\*)?", value)
+                          if match is None or (
+                              variable == "python_version" and match.group(3) is not None
+                          ):
+                              raise SystemExit("Ambiguous Python security dependency marker")
+                          major, minor = int(match.group(1)), int(match.group(2))
+                          patch = int(match.group(3) or 0)
+                          wildcard = match.group(4) is not None
+                          if wildcard and operator not in {"Eq", "NotEq"}:
+                              raise SystemExit("Ambiguous wildcard security dependency marker")
+                          start = (major, minor, patch)
+                          stop = (
+                              (major, minor + 1, 0)
+                              if variable == "python_version" or wildcard
+                              else (major, minor, patch + 1)
+                          )
+                          if operator == "Eq":
+                              lower = max(lower, start)
+                              upper = stop if upper is None else min(upper, stop)
+                          elif operator == "NotEq":
+                              excluded.append((start, stop))
+                          elif operator == "Lt":
+                              upper = start if upper is None else min(upper, start)
+                          elif operator == "LtE":
+                              upper = stop if upper is None else min(upper, stop)
+                          elif operator == "Gt":
+                              lower = max(lower, stop)
+                          elif operator == "GtE":
+                              lower = max(lower, start)
+                          else:
+                              raise SystemExit("Ambiguous Python security dependency marker")
+                      if upper is not None and lower >= upper:
+                          return False
+                      candidate = lower
+                      for start, stop in sorted(excluded):
+                          if start <= candidate < stop:
+                              candidate = stop
+                      if upper is not None and candidate >= upper:
+                          return False
+                  else:
+                      if family not in {
+                          "sys_platform",
+                          "os_name",
+                          "platform_system",
+                          "platform_machine",
+                          "platform_python_implementation",
+                          "implementation_name",
+                          "extra",
+                      }:
+                          raise SystemExit("Unsupported security dependency marker variable")
+                      equality, exclusions = None, set()
+                      for _, operator, value in constraints:
+                          if operator == "Eq":
+                              if equality is not None and equality != value:
+                                  return False
+                              equality = value
+                          elif operator == "NotEq":
+                              exclusions.add(value)
+                          else:
+                              raise SystemExit("Ambiguous platform security dependency marker")
+                      if equality is not None and equality in exclusions:
+                          return False
+              return True
 
           def minimums(requirements, *, allow_missing=False, exact=False):
               result = []
@@ -179,7 +269,8 @@ jobs:
           new_lock = tomllib.loads(pathlib.Path("uv.lock").read_text())
           old_direct, old_contexts = direct(old_project)
           new_direct, new_contexts = direct(new_project)
-          old_versions, new_versions = versions(old_lock), versions(new_lock)
+          old_versions, old_resolution_contexts = versions(old_lock)
+          new_versions, new_resolution_contexts = versions(new_lock)
           old_protected, old_protected_contexts = direct(old_project, protected=True)
           new_protected, new_protected_contexts = direct(new_project, protected=True)
           for name, previous in old_protected.items():
@@ -226,29 +317,54 @@ jobs:
                               updated < previous for previous, updated in zip(prior_minimums, context_minimums)
                           ):
                               raise SystemExit("Do not lower a contextual security-fixed minimum for " + name)
-              if old_versions.get(name, set()) == new_versions.get(name, set()):
+              previous_domains = old_resolution_contexts.get(name, {})
+              current_domains = new_resolution_contexts.get(name, {})
+              if (
+                  old_versions.get(name, set()) == new_versions.get(name, set())
+                  and previous_domains == current_domains
+              ):
                   continue
               if previous == requirements:
                   raise SystemExit("Raise the published security-fixed minimum for " + name)
-              patched_versions = new_versions.get(name, set()) - old_versions.get(name, set())
-              removed_versions = old_versions.get(name, set()) - new_versions.get(name, set())
-              patched_releases = sorted(stable_version(version) for version in patched_versions)
-              removed_releases = sorted(stable_version(version) for version in removed_versions)
-              if not patched_releases or len(patched_releases) != len(removed_releases) or any(
-                  updated <= previous for previous, updated in zip(removed_releases, patched_releases)
-              ):
+              patched_domains = {}
+              for domain in previous_domains.keys() | current_domains.keys():
+                  prior_versions = previous_domains.get(domain, set())
+                  updated_versions = current_domains.get(domain, set())
+                  if prior_versions == updated_versions:
+                      continue
+                  introduced = sorted(stable_version(version) for version in updated_versions - prior_versions)
+                  removed = sorted(stable_version(version) for version in prior_versions - updated_versions)
+                  if not introduced or len(introduced) != len(removed) or any(
+                      updated <= previous for previous, updated in zip(removed, introduced)
+                  ):
+                      raise SystemExit("Missing contextual upgraded security dependency release for " + name)
+                  patched_domains[domain] = introduced[-1]
+              if not patched_domains:
                   raise SystemExit("Missing upgraded direct security dependency release for " + name)
-              patched_minimum = patched_releases[-1]
-              updated_minimums = minimums(requirements)
-              previous_minimums = minimums(previous, allow_missing=True)
-              if not updated_minimums or any(updated < patched_minimum for updated in updated_minimums) or (
-                  previous_minimums
-                  and (
-                      len(updated_minimums) != len(previous_minimums)
-                      or any(updated < previous for previous, updated in zip(previous_minimums, updated_minimums))
-                      or updated_minimums[0] <= previous_minimums[0]
-                  )
-              ):
+              covered = set()
+              for context, context_requirements in current_contexts.items():
+                  domains = {
+                      domain
+                      for domain in patched_domains
+                      if marker_overlap(context[3], domain)
+                  }
+                  if not domains:
+                      continue
+                  covered.update(domains)
+                  patched_minimum = max(patched_domains[domain] for domain in domains)
+                  updated_minimums = minimums(context_requirements)
+                  previous_minimums = minimums(previous_contexts.get(context, set()), allow_missing=True)
+                  if (
+                      not updated_minimums
+                      or any(updated < patched_minimum for updated in updated_minimums)
+                      or previous_minimums
+                      and (
+                          len(updated_minimums) != len(previous_minimums)
+                          or updated_minimums[0] <= previous_minimums[0]
+                      )
+                  ):
+                      raise SystemExit("Raise the contextual security-fixed minimum for " + name)
+              if covered != set(patched_domains):
                   raise SystemExit("Raise the published security-fixed minimum for " + name)
           PY
 
@@ -462,6 +578,8 @@ jobs:
     needs: dependency-locks
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     continue-on-error: ${{ matrix.experimental }}
+    env:
+      UV_NO_BUILD: ${{ matrix.experimental && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && '0' || '1' }}
     strategy:
       fail-fast: false
       matrix:

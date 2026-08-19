@@ -98,6 +98,8 @@ def run_dependency_lock_source_check(
     backend_path: list[str] | None = None,
     uv_sources: dict[str, dict[str, str]] | None = None,
     uv_index_url: str | None = None,
+    uv_overrides: dict[str, object] | None = None,
+    extra_uv_config: str | None = None,
 ) -> subprocess.CompletedProcess[str]:
     project = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]
     requires = ["hatchling==1.27.0"] if build_requires is None else build_requires
@@ -118,12 +120,17 @@ def run_dependency_lock_source_check(
     )
     if uv_index_url is not None:
         configuration += "index-url = " + json.dumps(uv_index_url) + "\n"
+    if uv_overrides is not None:
+        for name, value in uv_overrides.items():
+            configuration += name + " = " + json.dumps(value) + "\n"
     if uv_sources is not None:
         configuration += "[tool.uv.sources]\n"
         for name, source in uv_sources.items():
             values = ", ".join(key + " = " + json.dumps(value) for key, value in source.items())
             configuration += name + " = { " + values + " }\n"
     (tmp_path / "pyproject.toml").write_text(configuration)
+    if extra_uv_config is not None:
+        (tmp_path / extra_uv_config).write_text('no-binary-package = ["reviewed-dependency"]\n')
 
     lines: list[str] = []
     reviewed: dict[str, object] = {
@@ -157,8 +164,19 @@ def run_dependency_lock_source_check(
             artifact_values = cast(dict[str, object], artifact)
             values = ", ".join(f"{key} = {json.dumps(value)}" for key, value in artifact_values.items())
             lines.append("sdist = { " + values + " }")
-        if "wheels" in package:
-            wheels = package["wheels"]
+        wheels = package.get("wheels")
+        if "wheels" not in package and source == {"registry": "https://pypi.org/simple"}:
+            wheels = (
+                []
+                if package.get("sdist_only") or "sdist" in package and package["sdist"] is None
+                else [
+                    {
+                        "url": "https://files.pythonhosted.org/packages/reviewed-1.0.0-py3-none-any.whl",
+                        "hash": "sha256:" + "b" * 64,
+                    }
+                ]
+            )
+        if wheels is not None:
             assert isinstance(wheels, list)
             typed_wheels = cast(list[dict[str, object]], wheels)
             wheel_values = [
@@ -423,6 +441,55 @@ def test_root_build_requirements_must_be_public_locked_and_reviewed(
     assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
 
 
+@pytest.mark.parametrize(
+    ("variant", "accepted"),
+    [
+        pytest.param("reviewed-wheel", True, id="reviewed-public-wheel"),
+        pytest.param("sdist-only", False, id="unreviewed-source-distribution-backend"),
+        pytest.param("empty-wheels", False, id="empty-wheel-list"),
+        pytest.param("no-binary", False, id="force-all-source-builds"),
+        pytest.param("no-binary-package", False, id="force-package-source-build"),
+        pytest.param("no_binary", False, id="force-all-source-builds-alias"),
+        pytest.param("no_binary_package", False, id="force-package-source-build-alias"),
+        pytest.param("uv.toml", False, id="standalone-uv-config-source-override"),
+        pytest.param(".uv.toml", False, id="hidden-uv-config-source-override"),
+    ],
+)
+def test_public_dependencies_require_reviewed_wheels_without_build_overrides(
+    tmp_path: Path, variant: str, accepted: bool
+) -> None:
+    project = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]
+    root: dict[str, object] = {
+        "name": project["name"],
+        "version": project["version"],
+        "source": {"editable": "."},
+    }
+    dependency: dict[str, object] = {
+        "name": "reviewed-dependency",
+        "version": "1.0.0",
+        "source": {"registry": "https://pypi.org/simple"},
+    }
+    overrides: dict[str, object] | None = None
+    config: str | None = None
+    if variant == "sdist-only":
+        dependency["sdist_only"] = True
+    elif variant == "empty-wheels":
+        dependency["wheels"] = []
+    elif variant in {"no-binary", "no_binary"}:
+        overrides = {variant: True}
+    elif variant in {"no-binary-package", "no_binary_package"}:
+        overrides = {variant: ["reviewed-dependency"]}
+    elif variant in {"uv.toml", ".uv.toml"}:
+        config = variant
+    result = run_dependency_lock_source_check(
+        tmp_path,
+        [root, dependency],
+        uv_overrides=overrides,
+        extra_uv_config=config,
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
 def dependency_workflow_jobs() -> dict[str, str]:
     path = ROOT / ".github/workflows/ci.yml"
     if not path.exists():
@@ -521,6 +588,33 @@ def test_scheduled_compatibility_keeps_dependency_provenance_gate() -> None:
     assert re.search(r"^    needs:\s*dependency-locks\s*$", jobs["compatibility"], re.MULTILINE)
     assert "github.event_name == 'schedule'" in jobs["compatibility"]
     assert "github.event_name == 'workflow_dispatch'" in jobs["compatibility"]
+
+
+@pytest.mark.parametrize(
+    ("event", "experimental", "allowed"),
+    [
+        pytest.param("pull_request", False, False, id="fork-pr-supported-python"),
+        pytest.param("pull_request", True, False, id="fork-pr-never-gets-prerelease-exception"),
+        pytest.param("push", True, False, id="push-never-gets-prerelease-exception"),
+        pytest.param("merge_group", True, False, id="merge-queue-never-gets-prerelease-exception"),
+        pytest.param("schedule", False, False, id="scheduled-supported-python-wheels-only"),
+        pytest.param("schedule", True, True, id="trusted-scheduled-prerelease-preserved"),
+        pytest.param("workflow_dispatch", True, True, id="trusted-manual-prerelease-preserved"),
+    ],
+)
+def test_source_builds_only_allowed_in_trusted_experimental_compatibility(
+    event: str, experimental: bool, allowed: bool
+) -> None:
+    for name in ("ci.yml", "detect-breaking-changes.yml"):
+        workflow = (ROOT / ".github/workflows" / name).read_text()
+        assert re.search(r"^env:\n  UV_NO_BUILD: ['\"]?1['\"]?\s*$", workflow, re.MULTILINE)
+    compatibility = dependency_workflow_jobs()["compatibility"]
+    assert "matrix.experimental" in compatibility
+    assert "(github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')" in compatibility
+    assert "&& '0' || '1'" in compatibility
+    assert "environment:" not in compatibility
+    assert "id-token:" not in compatibility
+    assert (experimental and event in {"schedule", "workflow_dispatch"}) is allowed
 
 
 @pytest.mark.parametrize("name", ["detect_breaking_changes", "agents_sdk"])
@@ -653,6 +747,8 @@ def run_security_dependency_floor_check(
     head_build_constraints: list[str] | None = None,
     base_dependency_groups: dict[str, list[str]] | None = None,
     head_dependency_groups: dict[str, list[str]] | None = None,
+    base_resolution_markers: dict[tuple[str, str], list[str]] | None = None,
+    head_resolution_markers: dict[tuple[str, str], list[str]] | None = None,
     origin: str = "https://github.com/openai/openai-python",
 ) -> subprocess.CompletedProcess[str]:
     def project(
@@ -682,23 +778,27 @@ def run_security_dependency_floor_check(
                 result += "build-constraint-dependencies = " + json.dumps(build_constraints) + "\n"
         return result
 
-    def lock(packages: list[tuple[str, str]]) -> str:
-        return "\n".join(
-            f"[[package]]\nname = {json.dumps(name)}\nversion = {json.dumps(version)}\n" for name, version in packages
-        )
+    def lock(packages: list[tuple[str, str]], resolutions: dict[tuple[str, str], list[str]] | None) -> str:
+        result: list[str] = []
+        for name, version in packages:
+            entry = f"[[package]]\nname = {json.dumps(name)}\nversion = {json.dumps(version)}\n"
+            if resolutions is not None and (name, version) in resolutions:
+                entry += "resolution-markers = " + json.dumps(resolutions[(name, version)]) + "\n"
+            result.append(entry)
+        return "\n".join(result)
 
     (tmp_path / "pyproject.toml").write_text(
         project(
             head_requirements, head_optional_groups, head_constraints, head_build_constraints, head_dependency_groups
         )
     )
-    (tmp_path / "uv.lock").write_text(lock(head_packages))
+    (tmp_path / "uv.lock").write_text(lock(head_packages, head_resolution_markers))
     (tmp_path / "base-project.toml").write_text(
         project(
             base_requirements, base_optional_groups, base_constraints, base_build_constraints, base_dependency_groups
         )
     )
-    (tmp_path / "base-lock.toml").write_text(lock(base_packages))
+    (tmp_path / "base-lock.toml").write_text(lock(base_packages, base_resolution_markers))
     fake_git = tmp_path / "git"
     fake_git.write_text(
         f"#!{sys.executable}\n"
@@ -1283,6 +1383,78 @@ def run_security_dependency_floor_check(
             id="prerelease-removed-lock-fails-closed",
         ),
         pytest.param(
+            ["danger-pkg>=1.0"],
+            ["danger-pkg>=1.0.post1"],
+            [("danger-pkg", "1.0")],
+            [("danger-pkg", "1.0.post1")],
+            False,
+            True,
+            id="stable-post-release-security-fix",
+        ),
+        pytest.param(
+            ["danger-pkg>=1.0"],
+            ["danger-pkg>=1.0.post0"],
+            [("danger-pkg", "1.0")],
+            [("danger-pkg", "1.0.post0")],
+            False,
+            True,
+            id="stable-post-zero-above-base-release",
+        ),
+        pytest.param(
+            ["danger-pkg>=1.0.post0"],
+            ["danger-pkg>=1.0.post1"],
+            [("danger-pkg", "1.0.post0")],
+            [("danger-pkg", "1.0.post1")],
+            False,
+            True,
+            id="stable-post-release-increases-monotonically",
+        ),
+        pytest.param(
+            ["danger-pkg>=1.0.post9"],
+            ["danger-pkg>=1.1"],
+            [("danger-pkg", "1.0.post9")],
+            [("danger-pkg", "1.1")],
+            False,
+            True,
+            id="stable-next-release-above-post-release",
+        ),
+        pytest.param(
+            ["danger-pkg>=1.0"],
+            ["danger-pkg>=1.0"],
+            [("danger-pkg", "1.0")],
+            [("danger-pkg", "1.0.post1")],
+            False,
+            False,
+            id="base-floor-does-not-cover-post-security-fix",
+        ),
+        pytest.param(
+            ["danger-pkg>=1.0"],
+            ["danger-pkg>=1.0.post9"],
+            [("danger-pkg", "1.1")],
+            [("danger-pkg", "1.0.post9")],
+            False,
+            False,
+            id="post-release-cannot-downgrade-next-release",
+        ),
+        pytest.param(
+            ["danger-pkg>=0!9.0"],
+            ["danger-pkg>=1!1.0.post1"],
+            [("danger-pkg", "9.0")],
+            [("danger-pkg", "1!1.0.post1")],
+            False,
+            True,
+            id="epoch-stable-post-security-fix",
+        ),
+        pytest.param(
+            ["danger-pkg>=1.0"],
+            ["danger-pkg>=1.0.0.post1"],
+            [("danger-pkg", "1.0")],
+            [("danger-pkg", "1.post1")],
+            False,
+            True,
+            id="post-release-normalizes-trailing-zeroes",
+        ),
+        pytest.param(
             ["safe-direct>=1.0"],
             ["safe-direct>=1.0"],
             [("safe-direct", "1.0"), ("transitive", "1.0")],
@@ -1321,7 +1493,6 @@ def run_security_dependency_floor_check(
             )
             for label, version in (
                 ("prerelease", "1.1rc1"),
-                ("postrelease", "1.1.post1"),
                 ("development", "1.1.dev1"),
                 ("local", "1.1+local"),
             )
@@ -1353,6 +1524,93 @@ def test_only_direct_security_updates_must_raise_published_minimums(
         base_packages=before,
         head_packages=after,
         optional=optional,
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("variant", "accepted"),
+    [
+        pytest.param("independent-upgrades", True, id="numpy-python-marker-lines-upgrade-independently"),
+        pytest.param("reordered-marker", True, id="resolution-marker-conjunction-order-preserved"),
+        pytest.param("high-line-only", True, id="unchanged-old-python-floor-does-not-require-new-line"),
+        pytest.param("old-line-only", True, id="unchanged-new-python-floor-does-not-require-old-line"),
+        pytest.param("swapped-lines", False, id="marker-domains-cannot-swap-locked-versions"),
+        pytest.param("dropped-domain", False, id="resolution-marker-domain-cannot-disappear"),
+        pytest.param("unmarked-low-floor", False, id="unmarked-floor-must-cover-every-patched-domain"),
+        pytest.param("ambiguous-or", False, id="ambiguous-resolution-marker-fails-closed"),
+    ],
+)
+def test_security_patches_follow_their_original_resolution_marker_domains(
+    tmp_path: Path, variant: str, accepted: bool
+) -> None:
+    old_requirement = "numpy>=2.2.6; python_version < '3.11'"
+    new_requirement = "numpy>=2.4.6; python_version >= '3.11'"
+    old_marker = "python_full_version < '3.11'"
+    new_markers = [
+        "python_full_version >= '3.11' and sys_platform == 'linux'",
+        "python_full_version >= '3.11' and sys_platform != 'linux'",
+    ]
+    base_requirements = [old_requirement, new_requirement]
+    head_requirements = [
+        "numpy>=2.2.7; python_version < '3.11'",
+        "numpy>=2.4.7; python_version >= '3.11'",
+    ]
+    base_packages = [("numpy", "2.2.6"), ("numpy", "2.4.6")]
+    head_packages = [("numpy", "2.2.7"), ("numpy", "2.4.7")]
+    base_markers = {
+        ("numpy", "2.2.6"): [old_marker],
+        ("numpy", "2.4.6"): new_markers,
+    }
+    head_markers = {
+        ("numpy", "2.2.7"): [old_marker],
+        ("numpy", "2.4.7"): list(new_markers),
+    }
+    if variant == "reordered-marker":
+        head_markers[("numpy", "2.4.7")] = [
+            "sys_platform == 'linux' and python_full_version >= '3.11'",
+            "sys_platform != 'linux' and python_full_version >= '3.11'",
+        ]
+    elif variant == "high-line-only":
+        head_requirements[0] = old_requirement
+        head_packages[0] = ("numpy", "2.2.6")
+        head_markers.pop(("numpy", "2.2.7"))
+        head_markers[("numpy", "2.2.6")] = [old_marker]
+    elif variant == "old-line-only":
+        head_requirements[1] = new_requirement
+        head_packages[1] = ("numpy", "2.4.6")
+        head_markers.pop(("numpy", "2.4.7"))
+        head_markers[("numpy", "2.4.6")] = list(new_markers)
+    elif variant == "swapped-lines":
+        head_requirements = [
+            "numpy>=2.4.7; python_version < '3.11'",
+            "numpy>=2.4.7; python_version >= '3.11'",
+        ]
+        head_markers = {
+            ("numpy", "2.2.7"): list(new_markers),
+            ("numpy", "2.4.7"): [old_marker],
+        }
+    elif variant == "dropped-domain":
+        head_requirements = [
+            "numpy>=2.4.7; python_version < '3.11'",
+            "numpy>=2.4.7; python_version >= '3.11'",
+        ]
+        head_markers[("numpy", "2.4.7")] = []
+    elif variant == "unmarked-low-floor":
+        base_requirements = ["numpy>=2.2.6"]
+        head_requirements = ["numpy>=2.2.7"]
+    elif variant == "ambiguous-or":
+        head_markers[("numpy", "2.4.7")] = [
+            "python_full_version >= '3.11' or sys_platform == 'linux'",
+        ]
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=base_requirements,
+        head_requirements=head_requirements,
+        base_packages=base_packages,
+        head_packages=head_packages,
+        base_resolution_markers=base_markers,
+        head_resolution_markers=head_markers,
     )
     assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
 
@@ -1674,3 +1932,16 @@ def test_build_uses_hashed_locked_build_group(tmp_path: Path, monkeypatch: pytes
             "--out-dir",
             str(tmp_path / "dist"),
         ]
+
+
+def test_reviewed_root_build_still_runs_with_source_distribution_builds_disabled(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    log = fake_uv(tmp_path, monkeypatch)
+    monkeypatch.setenv("UV_NO_BUILD", "1")
+    result = subprocess.run([str(ROOT / "scripts/build"), "--out-dir", str(tmp_path / "dist")], check=False)
+    calls = [json.loads(line)["args"] for line in log.read_text().splitlines()]
+    assert result.returncode == 0
+    assert calls[0][0] == "export"
+    assert calls[1][0] == "build"
+    assert "--no-sources" in calls[1]
