@@ -12,4 +12,4 @@ runs:
     - shell: bash
       run: ./scripts/bootstrap-node
     - shell: bash
-      run: node --test tests/node-tooling.test.cjs
+      run: node --test tests/node-tooling.test.cjs tests/node-release-age.test.cjs

@@ -29,7 +29,9 @@ for tools that need one.
 For Node tooling updates, edit `package.json`, run
 `pnpm install --lockfile-only --ignore-scripts`, review the dependency and
 integrity changes, and commit `pnpm-lock.yaml`. Normal bootstrap uses a frozen
-lockfile. Pyright runs the local Microsoft package and never invokes npm or
+lockfile. pnpm rejects releases that have not cleared the eight-day cooldown,
+including packages whose registry metadata omits their publication date.
+Pyright runs the local Microsoft package and never invokes npm or
 downloads a runtime. Do not use `npx`, `pnpm dlx`, or Corepack auto-downloads.
 
 The default environment uses Pydantic v2. `./scripts/test` also runs the

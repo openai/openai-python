@@ -79,3 +79,21 @@ test('bootstrap refuses a wrong pnpm without attempting an install', (t) => {
   assert.equal(result.status, 1);
   assert.match(result.stderr, /Expected pnpm/);
 });
+
+test('Node dependency policy stays fail-closed', () => {
+  const policy = fs.readFileSync(path.join(repository, 'pnpm-workspace.yaml'), 'utf8');
+  for (const setting of [
+    'minimumReleaseAge: 11520',
+    'minimumReleaseAgeStrict: true',
+    'minimumReleaseAgeIgnoreMissingTime: false',
+    'trustPolicy: no-downgrade',
+    'trustLockfile: false',
+    'blockExoticSubdeps: true',
+    'pmOnFail: error',
+    'runtimeOnFail: error',
+    'verifyDepsBeforeRun: error',
+    'ignoreScripts: true',
+    'strictDepBuilds: true',
+    'allowBuilds: {}',
+  ]) assert.ok(policy.split(/\r?\n/).includes(setting), `Missing policy: ${setting}`);
+});
