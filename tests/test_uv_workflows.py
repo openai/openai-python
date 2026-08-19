@@ -43,6 +43,142 @@ def test_dependabot_delays_only_ordinary_version_updates() -> None:
         assert "open-pull-requests-limit: 0" not in entry
 
 
+def dependency_lock_source_command() -> str:
+    path = ROOT / ".github/workflows/ci.yml"
+    if not path.exists():
+        pytest.skip("GitHub workflows are not included in source distributions")
+
+    line = next(
+        entry
+        for entry in path.read_text().splitlines()
+        if "python -c '" in entry and "Use only the public PyPI registry" in entry
+    )
+    command = line.split("python -c '", 1)[1].rsplit("'", 1)[0]
+    if sys.version_info < (3, 11):
+        command = "import sys, tomli; sys.modules['tomllib'] = tomli; " + command
+    return command
+
+
+def run_dependency_lock_source_check(
+    tmp_path: Path, packages: list[dict[str, object]]
+) -> subprocess.CompletedProcess[str]:
+    project = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]
+    (tmp_path / "pyproject.toml").write_text(
+        f"[project]\nname = {json.dumps(project['name'])}\nversion = {json.dumps(project['version'])}\n"
+    )
+
+    lines: list[str] = []
+    for package in packages:
+        lines.extend(
+            [
+                "[[package]]",
+                f"name = {json.dumps(package['name'])}",
+                f"version = {json.dumps(package['version'])}",
+            ]
+        )
+        source = package.get("source")
+        if source is not None:
+            assert isinstance(source, dict)
+            values = ", ".join(f"{key} = {json.dumps(value)}" for key, value in source.items())
+            lines.append("source = { " + values + " }")
+        lines.append("")
+
+    (tmp_path / "uv.lock").write_text("\n".join(lines))
+    return subprocess.run(
+        [sys.executable, "-c", dependency_lock_source_command()],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+
+@pytest.mark.parametrize(
+    ("source", "accepted"),
+    [
+        pytest.param({"registry": "https://pypi.org/simple"}, True, id="public-pypi"),
+        pytest.param({"git": "https://github.com/unreviewed/package"}, False, id="git"),
+        pytest.param({"url": "https://unreviewed.example/package.whl"}, False, id="url"),
+        pytest.param({"path": "../unreviewed"}, False, id="path"),
+        pytest.param({"directory": "../unreviewed"}, False, id="directory"),
+        pytest.param({"editable": "."}, False, id="third-party-editable-root"),
+        pytest.param({"registry": "https://private.example/simple"}, False, id="private-registry"),
+        pytest.param({}, False, id="empty-source"),
+        pytest.param(None, False, id="missing-source"),
+        pytest.param({"unknown": "unreviewed"}, False, id="unknown-source"),
+        pytest.param(
+            {"registry": "https://pypi.org/simple", "git": "https://github.com/unreviewed/package"},
+            False,
+            id="hybrid-registry-source",
+        ),
+    ],
+)
+def test_dependency_lock_accepts_only_public_registry_dependencies(
+    tmp_path: Path, source: dict[str, str] | None, accepted: bool
+) -> None:
+    project = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]
+    root: dict[str, object] = {
+        "name": project["name"],
+        "version": project["version"],
+        "source": {"editable": "."},
+    }
+    dependency: dict[str, object] = {"name": "reviewed-dependency", "version": "1.0.0"}
+    if source is not None:
+        dependency["source"] = source
+
+    result = run_dependency_lock_source_check(tmp_path, [root, dependency])
+
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+    if not accepted:
+        assert "Use only the public PyPI registry" in result.stderr
+
+
+@pytest.mark.parametrize(
+    "variant", ["missing", "duplicate", "wrong-name", "wrong-version", "wrong-path", "hybrid-root"]
+)
+def test_dependency_lock_requires_one_exact_editable_root(tmp_path: Path, variant: str) -> None:
+    project = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]
+    root: dict[str, object] = {
+        "name": project["name"],
+        "version": project["version"],
+        "source": {"editable": "."},
+    }
+    dependency: dict[str, object] = {
+        "name": "reviewed-dependency",
+        "version": "1.0.0",
+        "source": {"registry": "https://pypi.org/simple"},
+    }
+    if variant == "wrong-name":
+        root["name"] = "unreviewed-root"
+    elif variant == "wrong-version":
+        root["version"] = "0.0.0"
+    elif variant == "wrong-path":
+        root["source"] = {"editable": "../unreviewed"}
+    elif variant == "hybrid-root":
+        root["source"] = {"editable": ".", "registry": "https://pypi.org/simple"}
+
+    packages = [dependency] if variant == "missing" else [root, dependency]
+    if variant == "duplicate":
+        packages.append(dict(root))
+
+    result = run_dependency_lock_source_check(tmp_path, packages)
+
+    assert result.returncode == 1, result.stdout + result.stderr
+    assert "Use only the public PyPI registry" in result.stderr
+
+
+def test_dependency_lock_source_check_accepts_the_committed_lock() -> None:
+    result = subprocess.run(
+        [sys.executable, "-c", dependency_lock_source_command()],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
 def test_agents_integration_selects_its_typechecking_runtime() -> None:
     path = ROOT / ".github/workflows/detect-breaking-changes.yml"
     if not path.exists():
