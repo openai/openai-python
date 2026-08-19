@@ -29,6 +29,7 @@ jobs:
 
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
+          persist-credentials: false
           # Ensure the comparison base is available to the scripts below.
           fetch-depth: ${{ env.FETCH_DEPTH }}
 
@@ -57,6 +58,7 @@ jobs:
       # Setup this sdk
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
+          persist-credentials: false
           path: openai-python
 
       - name: Set up uv
@@ -76,6 +78,7 @@ jobs:
       # Setup the agents lib
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
+          persist-credentials: false
           repository: openai/openai-agents-python
           path: openai-agents-python
 
