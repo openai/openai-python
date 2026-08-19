@@ -104,7 +104,7 @@ jobs:
                       if allow_missing and not matches:
                           continue
                       raise SystemExit("Missing or ambiguous direct security dependency minimum")
-                  result.append(stable_version(matches[0]))
+                  result.append(stable_version(matches[0].strip()))
               return sorted(result)
 
           old_project = read_base("pyproject.toml")
@@ -119,9 +119,13 @@ jobs:
               previous = old_direct.get(name, set())
               if previous == requirements:
                   raise SystemExit("Raise the published security-fixed minimum for " + name)
+              patched_versions = new_versions.get(name, set()) - old_versions.get(name, set())
+              if not patched_versions:
+                  raise SystemExit("Missing patched direct security dependency release for " + name)
+              patched_minimum = max(stable_version(version) for version in patched_versions)
               updated_minimums = minimums(requirements)
               previous_minimums = minimums(previous, allow_missing=True)
-              if not updated_minimums or (
+              if not updated_minimums or any(updated < patched_minimum for updated in updated_minimums) or (
                   previous_minimums
                   and (
                       len(updated_minimums) != len(previous_minimums)
