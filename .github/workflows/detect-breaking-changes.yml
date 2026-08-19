@@ -65,6 +65,8 @@ jobs:
           version: '0.12.5'
           enable-cache: true
           working-directory: openai-python
+          # Match the Agents SDK's type-checking runtime, not our minimum.
+          python-version: '3.14'
 
       - name: Install dependencies
         working-directory: openai-python

@@ -43,6 +43,16 @@ def test_dependabot_delays_only_ordinary_version_updates() -> None:
         assert "open-pull-requests-limit: 0" not in entry
 
 
+def test_agents_integration_selects_its_typechecking_runtime() -> None:
+    path = ROOT / ".github/workflows/detect-breaking-changes.yml"
+    if not path.exists():
+        pytest.skip("GitHub workflows are not included in source distributions")
+    integration = path.read_text().split("\n  agents_sdk:\n", 1)[1]
+    setup = integration.split("      - name: Set up uv\n", 1)[1].split("\n      - name:", 1)[0]
+    assert "working-directory: openai-python" in setup
+    assert "python-version: '3.14'" in setup
+
+
 @pytest.mark.parametrize("name", ["create-releases.yml", "publish-pypi.yml"])
 def test_release_build_remains_separate_from_oidc_publish(name: str) -> None:
     path = ROOT / ".github/workflows" / name
