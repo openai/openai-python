@@ -88,15 +88,51 @@ def dependency_lock_source_command() -> str:
 
 
 def run_dependency_lock_source_check(
-    tmp_path: Path, packages: list[dict[str, object]]
+    tmp_path: Path,
+    packages: list[dict[str, object]],
+    *,
+    build_requires: list[str] | None = None,
+    build_group: list[str] | None = None,
+    build_constraints: list[str] | None = None,
+    backend: str = "hatchling.build",
+    backend_path: list[str] | None = None,
+    uv_sources: dict[str, dict[str, str]] | None = None,
+    uv_index_url: str | None = None,
 ) -> subprocess.CompletedProcess[str]:
     project = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]
-    (tmp_path / "pyproject.toml").write_text(
+    requires = ["hatchling==1.27.0"] if build_requires is None else build_requires
+    group = ["hatchling==1.27.0"] if build_group is None else build_group
+    constraints = ["hatchling==1.27.0"] if build_constraints is None else build_constraints
+    configuration = (
         f"[project]\nname = {json.dumps(project['name'])}\nversion = {json.dumps(project['version'])}\n"
+        + f"[build-system]\nrequires = {json.dumps(requires)}\nbuild-backend = {json.dumps(backend)}\n"
     )
+    if backend_path is not None:
+        configuration += "backend-path = " + json.dumps(backend_path) + "\n"
+    configuration += (
+        "[dependency-groups]\nbuild = "
+        + json.dumps(group)
+        + "\n[tool.uv]\nbuild-constraint-dependencies = "
+        + json.dumps(constraints)
+        + "\n"
+    )
+    if uv_index_url is not None:
+        configuration += "index-url = " + json.dumps(uv_index_url) + "\n"
+    if uv_sources is not None:
+        configuration += "[tool.uv.sources]\n"
+        for name, source in uv_sources.items():
+            values = ", ".join(key + " = " + json.dumps(value) for key, value in source.items())
+            configuration += name + " = { " + values + " }\n"
+    (tmp_path / "pyproject.toml").write_text(configuration)
 
     lines: list[str] = []
-    for package in packages:
+    reviewed: dict[str, object] = {
+        "name": "hatchling",
+        "version": "1.27.0",
+        "source": {"registry": "https://pypi.org/simple"},
+    }
+    fixtures = packages if any(package.get("name") == "hatchling" for package in packages) else [*packages, reviewed]
+    for package in fixtures:
         lines.extend(
             [
                 "[[package]]",
@@ -295,6 +331,96 @@ def test_dependency_lock_source_check_accepts_the_committed_lock() -> None:
     )
 
     assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("variant", "accepted"),
+    [
+        pytest.param("reviewed-pinned-backend", True, id="reviewed-pinned-backend"),
+        pytest.param("safe-python-marker", True, id="reviewed-pinned-python-marker"),
+        pytest.param("empty-sources", True, id="benign-empty-source-overrides"),
+        pytest.param("direct-url", False, id="root-build-direct-url"),
+        pytest.param("git", False, id="root-build-git-source"),
+        pytest.param("path", False, id="root-build-local-path"),
+        pytest.param("private-index", False, id="root-build-private-index"),
+        pytest.param("unpinned", False, id="root-build-unpinned-requirement"),
+        pytest.param("missing-pin", False, id="root-build-missing-reviewed-pin"),
+        pytest.param("unlocked-version", False, id="root-build-version-missing-from-lock"),
+        pytest.param("constraint-url", False, id="build-constraint-direct-url"),
+        pytest.param("group-mismatch", False, id="reviewed-build-group-mismatch"),
+        pytest.param("unlocked-group", False, id="reviewed-build-group-unlocked-dependency"),
+        pytest.param("backend", False, id="unreviewed-build-backend"),
+        pytest.param("backend-path", False, id="local-build-backend-path"),
+        pytest.param("source-git", False, id="pinned-hatchling-git-override"),
+        pytest.param("source-path", False, id="pinned-hatchling-path-override"),
+        pytest.param("index-override", False, id="pinned-hatchling-private-index-override"),
+        pytest.param("marker-code", False, id="untrusted-build-marker-expression"),
+    ],
+)
+def test_root_build_requirements_must_be_public_locked_and_reviewed(
+    tmp_path: Path, variant: str, accepted: bool
+) -> None:
+    project = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]
+    root: dict[str, object] = {
+        "name": project["name"],
+        "version": project["version"],
+        "source": {"editable": "."},
+    }
+    requires = ["hatchling==1.27.0"]
+    group = ["hatchling==1.27.0"]
+    constraints = ["hatchling==1.27.0"]
+    backend = "hatchling.build"
+    backend_path: list[str] | None = None
+    sources: dict[str, dict[str, str]] | None = None
+    index: str | None = None
+    if variant == "safe-python-marker":
+        requires = group = constraints = ["hatchling==1.27.0; python_version < '3.11'"]
+    elif variant == "empty-sources":
+        sources = {}
+    elif variant == "direct-url":
+        requires = ["hatchling @ https://unreviewed.example/hatchling.whl"]
+    elif variant == "git":
+        requires = ["hatchling @ git+https://github.com/unreviewed/hatchling"]
+    elif variant == "path":
+        requires = ["hatchling @ file:///tmp/unreviewed"]
+    elif variant == "private-index":
+        requires = ["hatchling==1.27.0 --index-url https://private.example/simple"]
+    elif variant == "unpinned":
+        requires = ["hatchling>=1.27.0"]
+    elif variant == "missing-pin":
+        requires = []
+    elif variant == "unlocked-version":
+        requires = group = constraints = ["hatchling==9.9.9"]
+    elif variant == "constraint-url":
+        group = constraints = ["hatchling @ https://unreviewed.example/hatchling.whl"]
+    elif variant == "group-mismatch":
+        group = ["hatchling==1.26.0"]
+    elif variant == "unlocked-group":
+        group = constraints = ["hatchling==1.27.0", "packaging==26.3"]
+    elif variant == "backend":
+        backend = "unreviewed.build"
+    elif variant == "backend-path":
+        backend_path = ["."]
+    elif variant == "source-git":
+        sources = {"hatchling": {"git": "https://github.com/unreviewed/hatchling"}}
+    elif variant == "source-path":
+        sources = {"hatchling": {"path": "../unreviewed"}}
+    elif variant == "index-override":
+        index = "https://private.example/simple"
+    elif variant == "marker-code":
+        requires = group = constraints = ['hatchling==1.27.0; __import__("os")']
+    result = run_dependency_lock_source_check(
+        tmp_path,
+        [root],
+        build_requires=requires,
+        build_group=group,
+        build_constraints=constraints,
+        backend=backend,
+        backend_path=backend_path,
+        uv_sources=sources,
+        uv_index_url=index,
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
 
 
 def dependency_workflow_jobs() -> dict[str, str]:
@@ -521,9 +647,21 @@ def run_security_dependency_floor_check(
     base_optional_groups: dict[str, list[str]] | None = None,
     head_optional_groups: dict[str, list[str]] | None = None,
     sha: str = "a" * 40,
+    base_constraints: list[str] | None = None,
+    head_constraints: list[str] | None = None,
+    base_build_constraints: list[str] | None = None,
+    head_build_constraints: list[str] | None = None,
+    base_dependency_groups: dict[str, list[str]] | None = None,
+    head_dependency_groups: dict[str, list[str]] | None = None,
     origin: str = "https://github.com/openai/openai-python",
 ) -> subprocess.CompletedProcess[str]:
-    def project(requirements: list[str], groups: dict[str, list[str]] | None) -> str:
+    def project(
+        requirements: list[str],
+        groups: dict[str, list[str]] | None,
+        constraints: list[str] | None,
+        build_constraints: list[str] | None,
+        dependency_groups: dict[str, list[str]] | None,
+    ) -> str:
         if optional:
             groups = {"feature": requirements}
             requirements = []
@@ -532,6 +670,16 @@ def run_security_dependency_floor_check(
             result += "[project.optional-dependencies]\n"
             for group, dependencies in groups.items():
                 result += group + " = " + json.dumps(dependencies) + "\n"
+        if dependency_groups:
+            result += "[dependency-groups]\n"
+            for group, dependencies in dependency_groups.items():
+                result += group + " = " + json.dumps(dependencies) + "\n"
+        if constraints is not None or build_constraints is not None:
+            result += "[tool.uv]\n"
+            if constraints is not None:
+                result += "constraint-dependencies = " + json.dumps(constraints) + "\n"
+            if build_constraints is not None:
+                result += "build-constraint-dependencies = " + json.dumps(build_constraints) + "\n"
         return result
 
     def lock(packages: list[tuple[str, str]]) -> str:
@@ -539,9 +687,17 @@ def run_security_dependency_floor_check(
             f"[[package]]\nname = {json.dumps(name)}\nversion = {json.dumps(version)}\n" for name, version in packages
         )
 
-    (tmp_path / "pyproject.toml").write_text(project(head_requirements, head_optional_groups))
+    (tmp_path / "pyproject.toml").write_text(
+        project(
+            head_requirements, head_optional_groups, head_constraints, head_build_constraints, head_dependency_groups
+        )
+    )
     (tmp_path / "uv.lock").write_text(lock(head_packages))
-    (tmp_path / "base-project.toml").write_text(project(base_requirements, base_optional_groups))
+    (tmp_path / "base-project.toml").write_text(
+        project(
+            base_requirements, base_optional_groups, base_constraints, base_build_constraints, base_dependency_groups
+        )
+    )
     (tmp_path / "base-lock.toml").write_text(lock(base_packages))
     fake_git = tmp_path / "git"
     fake_git.write_text(
@@ -1262,6 +1418,109 @@ def test_security_floors_preserve_original_optional_contexts(
         head_packages=[("numpy", "2")],
         base_optional_groups=base_groups,
         head_optional_groups=head_groups,
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("variant", "accepted"),
+    [
+        pytest.param("constraint-equal", True, id="uv-security-constraint-preserved"),
+        pytest.param("constraint-higher", True, id="uv-security-constraint-raised"),
+        pytest.param("constraint-reordered", True, id="uv-security-constraints-reordered"),
+        pytest.param("constraint-lowered", False, id="uv-security-constraint-lowered"),
+        pytest.param("constraint-removed", False, id="uv-security-constraint-removed"),
+        pytest.param("constraint-section-removed", False, id="uv-security-constraint-section-removed"),
+        pytest.param("constraint-marker-swap", False, id="uv-security-constraint-markers-swapped"),
+        pytest.param("build-pin-preserved", True, id="uv-build-security-pin-preserved"),
+        pytest.param("build-pin-lowered", False, id="uv-build-security-pin-lowered"),
+        pytest.param("build-pin-removed", False, id="uv-build-security-pin-removed"),
+        pytest.param("group-floor-raised", True, id="dependency-group-security-floor-raised"),
+        pytest.param("group-floor-lowered", False, id="dependency-group-security-floor-lowered"),
+        pytest.param("group-floor-removed", False, id="dependency-group-security-floor-removed"),
+        pytest.param("group-pin-lowered", False, id="dependency-group-exact-security-pin-lowered"),
+        pytest.param("group-context-swap", False, id="pydantic-dependency-group-contexts-swapped"),
+        pytest.param("unbounded-group-preserved", True, id="unbounded-dependency-group-preserved"),
+    ],
+)
+def test_security_updates_preserve_uv_and_dependency_group_floors(tmp_path: Path, variant: str, accepted: bool) -> None:
+    base_constraints: list[str] | None = None
+    head_constraints: list[str] | None = None
+    base_build_constraints: list[str] | None = None
+    head_build_constraints: list[str] | None = None
+    base_groups: dict[str, list[str]] | None = None
+    head_groups: dict[str, list[str]] | None = None
+    if variant == "constraint-equal":
+        base_constraints = head_constraints = ["cryptography>=50.0.0"]
+    elif variant == "constraint-higher":
+        base_constraints, head_constraints = ["cryptography>=50.0.0"], ["cryptography>=51.0.0"]
+    elif variant == "constraint-reordered":
+        base_constraints = ["cryptography>=50.0.0", "requests>=2.33.0"]
+        head_constraints = ["requests>=2.33.0", "cryptography>=50.0.0"]
+    elif variant == "constraint-lowered":
+        base_constraints, head_constraints = ["cryptography>=50.0.0"], ["cryptography>=49.0.0"]
+    elif variant == "constraint-removed":
+        base_constraints = ["cryptography>=50.0.0", "requests>=2.33.0"]
+        head_constraints = ["requests>=2.33.0"]
+    elif variant == "constraint-section-removed":
+        base_constraints = ["cryptography>=50.0.0"]
+    elif variant == "constraint-marker-swap":
+        base_constraints = [
+            "cryptography>=50; python_version < '3.11'",
+            "cryptography>=49; python_version >= '3.11'",
+        ]
+        head_constraints = [
+            "cryptography>=49; python_version < '3.11'",
+            "cryptography>=50; python_version >= '3.11'",
+        ]
+    elif variant == "build-pin-preserved":
+        base_build_constraints = head_build_constraints = ["hatchling==1.27.0"]
+    elif variant == "build-pin-lowered":
+        base_build_constraints, head_build_constraints = ["hatchling==1.27.0"], ["hatchling==1.26.0"]
+    elif variant == "build-pin-removed":
+        base_build_constraints, head_build_constraints = ["hatchling==1.27.0"], []
+    elif variant == "group-floor-raised":
+        base_groups, head_groups = {"dev": ["pytest>=9.0.3"]}, {"dev": ["pytest>=9.0.4"]}
+    elif variant == "group-floor-lowered":
+        base_groups, head_groups = {"dev": ["pytest>=9.0.3"]}, {"dev": ["pytest>=9.0.2"]}
+    elif variant == "group-floor-removed":
+        base_groups = {"dev": ["pytest>=9.0.3"]}
+        head_groups = {"dev": []}
+    elif variant == "group-pin-lowered":
+        base_groups, head_groups = {"build": ["hatchling==1.27.0"]}, {"build": ["hatchling==1.26.0"]}
+    elif variant == "group-context-swap":
+        base_groups = {"pydantic-v1": ["pydantic>=1.10"], "pydantic-v2": ["pydantic>=2"]}
+        head_groups = {"pydantic-v1": ["pydantic>=2"], "pydantic-v2": ["pydantic>=1.10"]}
+    elif variant == "unbounded-group-preserved":
+        base_groups = head_groups = {"dev": ["ruff"]}
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=[],
+        head_requirements=[],
+        base_packages=[
+            ("cryptography", "50.0.0"),
+            ("requests", "2.33.0"),
+            ("hatchling", "1.27.0"),
+            ("pytest", "9.0.3"),
+            ("pydantic", "1.10"),
+            ("pydantic", "2"),
+            ("ruff", "1"),
+        ],
+        head_packages=[
+            ("cryptography", "50.0.0"),
+            ("requests", "2.33.0"),
+            ("hatchling", "1.27.0"),
+            ("pytest", "9.0.3"),
+            ("pydantic", "1.10"),
+            ("pydantic", "2"),
+            ("ruff", "1"),
+        ],
+        base_constraints=base_constraints,
+        head_constraints=head_constraints,
+        base_build_constraints=base_build_constraints,
+        head_build_constraints=head_build_constraints,
+        base_dependency_groups=base_groups,
+        head_dependency_groups=head_groups,
     )
     assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
 

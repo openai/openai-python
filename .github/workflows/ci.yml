@@ -30,7 +30,7 @@ jobs:
 
       - name: Verify dependency source provenance before installing tools
         run: |
-          python -c 'import pathlib, re, tomllib; project = tomllib.loads(pathlib.Path("pyproject.toml").read_text())["project"]; lock = tomllib.loads(pathlib.Path("uv.lock").read_text()); roots = [package for package in lock["package"] if package.get("name") == project["name"] and package.get("version") == project["version"] and package.get("source") == {"editable": "."}]; assert len(roots) == 1 and all(package is roots[0] or package.get("source") == {"registry": "https://pypi.org/simple"} and isinstance(package.get("wheels", []), list) and (artifacts := ([package["sdist"]] if "sdist" in package else []) + package.get("wheels", [])) and all(isinstance(artifact, dict) and re.fullmatch(r"https://files\.pythonhosted\.org/packages/[^\s?#]+", artifact.get("url", "")) and re.fullmatch(r"sha256:[0-9a-f]{64}", artifact.get("hash", "")) for artifact in artifacts) for package in lock["package"]), "Use only the public PyPI registry, reviewed artifacts, and the exact editable root project in uv.lock"'
+          python -c 'import ast, pathlib, re, tomllib; config = tomllib.loads(pathlib.Path("pyproject.toml").read_text()); project = config["project"]; lock = tomllib.loads(pathlib.Path("uv.lock").read_text()); roots = [package for package in lock["package"] if package.get("name") == project["name"] and package.get("version") == project["version"] and package.get("source") == {"editable": "."}]; build = config.get("build-system", {}); uv = config.get("tool", {}).get("uv", {}); requires = build.get("requires", []); constraints = uv.get("build-constraint-dependencies", []); reviewed = config.get("dependency-groups", {}).get("build", []); canonical = lambda value: re.sub(r"[-_.]+", "-", value).lower(); normalize = lambda value: re.sub(r"\s+", "", value); assert len(roots) == 1 and all(package is roots[0] or package.get("source") == {"registry": "https://pypi.org/simple"} and isinstance(package.get("wheels", []), list) and (artifacts := ([package["sdist"]] if "sdist" in package else []) + package.get("wheels", [])) and all(isinstance(artifact, dict) and re.fullmatch(r"https://files\.pythonhosted\.org/packages/[^\s?#]+", artifact.get("url", "")) and re.fullmatch(r"sha256:[0-9a-f]{64}", artifact.get("hash", "")) for artifact in artifacts) for package in lock["package"]) and build.get("build-backend") == "hatchling.build" and "backend-path" not in build and isinstance(requires, list) and bool(requires) and isinstance(constraints, list) and bool(constraints) and isinstance(reviewed, list) and bool(reviewed) and not any(uv.get(key) for key in ("sources", "index", "indexes", "index-url", "extra-index-url", "default-index", "find-links", "index_url", "extra_index_url", "default_index", "find_links")) and all(isinstance(requirement, str) and (match := re.fullmatch(r"([A-Za-z0-9][A-Za-z0-9_.-]*)\s*==\s*([0-9]+(?:\.[0-9]+)*)(?:\s*;\s*(.+))?", requirement)) is not None and (match.group(3) is None or isinstance(marker := ast.parse(match.group(3), mode="eval").body, ast.Compare) and isinstance(marker.left, ast.Name) and len(marker.ops) == 1 and type(marker.ops[0]) in {ast.Eq, ast.NotEq, ast.Lt, ast.LtE, ast.Gt, ast.GtE, ast.In, ast.NotIn} and len(marker.comparators) == 1 and isinstance(marker.comparators[0], ast.Constant) and isinstance(marker.comparators[0].value, str)) and any(canonical(package.get("name", "")) == canonical(match.group(1)) and package.get("version") == match.group(2) and package.get("source") == {"registry": "https://pypi.org/simple"} for package in lock["package"]) for requirement in requires + constraints + reviewed) and {normalize(requirement) for requirement in constraints} == {normalize(requirement) for requirement in reviewed} and {normalize(requirement) for requirement in requires}.issubset({normalize(requirement) for requirement in constraints}) and any(canonical(requirement.split("==", 1)[0].strip()) == "hatchling" for requirement in requires), "Use only the public PyPI registry, reviewed artifacts, the exact editable root project, and locked reviewed build requirements in uv.lock"'
 
       - name: Require published minimums for direct security updates
         if: >-
@@ -103,12 +103,23 @@ jobs:
                   result.append((part.left.id.lower(), type(part.ops[0]).__name__, part.comparators[0].value))
               return tuple(sorted(result))
 
-          def direct(project):
-              groups = [("runtime", "", project["project"].get("dependencies", []))]
-              groups.extend(
-                  ("optional", canonical(group), requirements)
-                  for group, requirements in project["project"].get("optional-dependencies", {}).items()
-              )
+          def direct(project, *, protected=False):
+              if protected:
+                  uv = project.get("tool", {}).get("uv", {})
+                  groups = [
+                      ("uv-constraint", "", uv.get("constraint-dependencies", [])),
+                      ("uv-build-constraint", "", uv.get("build-constraint-dependencies", [])),
+                  ]
+                  groups.extend(
+                      ("dependency-group", canonical(group), requirements)
+                      for group, requirements in project.get("dependency-groups", {}).items()
+                  )
+              else:
+                  groups = [("runtime", "", project["project"].get("dependencies", []))]
+                  groups.extend(
+                      ("optional", canonical(group), requirements)
+                      for group, requirements in project["project"].get("optional-dependencies", {}).items()
+                  )
               result, contexts = {}, {}
               for scope, group, requirements in groups:
                   for requirement in requirements:
@@ -147,11 +158,14 @@ jobs:
                   release = release[:-1]
               return int(match.group(1) or 0), release
 
-          def minimums(requirements, *, allow_missing=False):
+          def minimums(requirements, *, allow_missing=False, exact=False):
               result = []
               for requirement in requirements:
                   specifier = requirement.split(";", 1)[0]
-                  matches = re.findall(r"(?<![<>=!~])>=([^,;]+)", specifier)
+                  pattern = (
+                      r"(?<![<>=!~])(?:>=|==)([^,;]+)" if exact else r"(?<![<>=!~])>=([^,;]+)"
+                  )
+                  matches = re.findall(pattern, specifier)
                   if len(matches) != 1:
                       if allow_missing and not matches:
                           continue
@@ -166,6 +180,31 @@ jobs:
           old_direct, old_contexts = direct(old_project)
           new_direct, new_contexts = direct(new_project)
           old_versions, new_versions = versions(old_lock), versions(new_lock)
+          old_protected, old_protected_contexts = direct(old_project, protected=True)
+          new_protected, new_protected_contexts = direct(new_project, protected=True)
+          for name, previous in old_protected.items():
+              requirements = new_protected.get(name, set())
+              previous_contexts = old_protected_contexts.get(name, {})
+              current_contexts = new_protected_contexts.get(name, {})
+              if previous == requirements and previous_contexts == current_contexts:
+                  continue
+              prior_minimums = minimums(previous, allow_missing=True, exact=True)
+              if not prior_minimums:
+                  continue
+              updated_minimums = minimums(requirements, exact=True)
+              if len(updated_minimums) != len(prior_minimums) or any(
+                  updated < previous for previous, updated in zip(prior_minimums, updated_minimums)
+              ):
+                  raise SystemExit("Do not lower a protected dependency security minimum for " + name)
+              for context, prior_requirements in previous_contexts.items():
+                  context_minimums = minimums(prior_requirements, allow_missing=True, exact=True)
+                  if not context_minimums:
+                      continue
+                  updated_context_minimums = minimums(current_contexts.get(context, set()), exact=True)
+                  if len(updated_context_minimums) != len(context_minimums) or any(
+                      updated < previous for previous, updated in zip(context_minimums, updated_context_minimums)
+                  ):
+                      raise SystemExit("Do not lower a contextual protected security minimum for " + name)
           for name, requirements in new_direct.items():
               previous = old_direct.get(name, set())
               previous_contexts = old_contexts.get(name, {})
