@@ -11,7 +11,7 @@ const repository = path.resolve(__dirname, '..');
 function fixture(t) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'openai-node-tooling-'));
   t.after(() => fs.rmSync(root, { recursive: true, force: true }));
-  for (const file of ['package.json', 'scripts/bootstrap-node', 'scripts/run-pyright', 'scripts/utils/node-tooling.cjs']) {
+  for (const file of ['package.json', 'scripts/bootstrap-node', 'scripts/run-pyright', 'scripts/run-steady', 'scripts/test', 'scripts/utils/node-tooling.cjs']) {
     fs.mkdirSync(path.dirname(path.join(root, file)), { recursive: true });
     fs.copyFileSync(path.join(repository, file), path.join(root, file));
   }
@@ -79,6 +79,51 @@ test('bootstrap refuses a wrong pnpm without attempting an install', (t) => {
   assert.equal(result.status, 1);
   assert.match(result.stderr, /Expected pnpm/);
 });
+
+test('Steady is local-only and receives the original arguments', (t) => {
+  const root = fixture(t);
+  const missing = run(root, ['steady', '--version']);
+  assert.equal(missing.status, 1);
+  assert.match(missing.stderr, /Missing local steady/);
+  const directory = path.join(root, 'node_modules/@stdy/cli');
+  fs.mkdirSync(directory, { recursive: true });
+  fs.writeFileSync(path.join(directory, 'package.json'), JSON.stringify({ version: '0.22.1' }));
+  fs.writeFileSync(path.join(directory, 'steady.js'), 'console.log(JSON.stringify(process.argv.slice(2)));');
+  const result = run(root, ['steady', 'spec with spaces.yml', '--version']);
+  assert.equal(result.status, 0);
+  assert.deepEqual(JSON.parse(result.stdout), ['spec with spaces.yml', '--version']);
+});
+
+function executable(root, file, content) {
+  const target = path.join(root, file);
+  fs.mkdirSync(path.dirname(target), { recursive: true });
+  fs.writeFileSync(target, '#!/bin/sh\nset -e\n' + content + '\n', { mode: 0o755 });
+}
+
+for (const mode of ['start', 'running', 'override']) {
+  test(`scripts/test preserves ${mode} mock-server behavior and both Python lanes`, (t) => {
+    const root = fixture(t);
+    const log = path.join(root, 'calls');
+    const ready = path.join(root, 'ready');
+    if (mode === 'running') fs.writeFileSync(ready, '');
+    executable(root, 'bin/curl', '[ -f "$READY" ]');
+    executable(root, 'bin/lsof', 'exit 0');
+    executable(root, 'bin/uv', 'printf "uv %s\\n" "$*" >> "$CALLS"');
+    executable(root, 'scripts/mock', 'printf "mock %s\\n" "$*" >> "$CALLS"\n: > "$READY"');
+    executable(root, 'scripts/test-pydantic-v1', 'printf "v1 %s\\n" "$*" >> "$CALLS"');
+    const result = spawnSync('/bin/bash', ['scripts/test', '-q', 'tests/test_client.py'], {
+      cwd: root, encoding: 'utf8', env: {
+        ...process.env, PATH: path.join(root, 'bin') + ':/usr/bin:/bin', CALLS: log, READY: ready,
+        TEST_API_BASE_URL: mode === 'override' ? 'http://example.invalid' : '',
+      },
+    });
+    assert.equal(result.status, 0, result.stderr);
+    const calls = fs.readFileSync(log, 'utf8');
+    assert.equal(calls.includes('mock --daemon'), mode === 'start');
+    assert.match(calls, /uv run --locked --all-extras pytest -q tests\/test_client.py/);
+    assert.match(calls, /v1 -q tests\/test_client.py/);
+  });
+}
 
 test('Node dependency policy stays fail-closed', () => {
   const policy = fs.readFileSync(path.join(repository, 'pnpm-workspace.yaml'), 'utf8');

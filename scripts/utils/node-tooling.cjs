@@ -18,21 +18,33 @@ if (process.versions.node !== manifest.engines.node) {
 
 const [tool, ...args] = process.argv.slice(2);
 if (tool === '--check-node') process.exit(0);
-if (tool !== 'pyright') fail(`Unknown repository tool: ${tool}`);
+const tools = {
+  pyright: { package: 'pyright', entry: 'index.js' },
+  steady: { package: '@stdy/cli', entry: 'steady.js' },
+};
+if (!Object.hasOwn(tools, tool)) fail(`Unknown repository tool: ${tool}`);
+const selected = tools[tool];
 
-const directory = path.join(root, 'node_modules', tool);
+const directory = path.join(root, 'node_modules', selected.package);
 let installed;
 try {
   installed = JSON.parse(fs.readFileSync(path.join(directory, 'package.json'), 'utf8'));
 } catch {
   fail(`Missing local ${tool}.`);
 }
-if (installed.version !== manifest.devDependencies[tool]) {
-  fail(`Expected ${tool} ${manifest.devDependencies[tool]}, found ${installed.version}.`);
+if (installed.version !== manifest.devDependencies[selected.package]) {
+  fail(`Expected ${tool} ${manifest.devDependencies[selected.package]}, found ${installed.version}.`);
 }
-const entry = path.join(directory, 'index.js');
+const entry = path.join(directory, selected.entry);
 if (!fs.existsSync(entry)) fail(`Missing local ${tool} executable.`);
-// Calling Node explicitly also avoids upstream 1.1.399's CRLF shebang issue.
-const result = spawnSync(process.execPath, [entry, ...args], { stdio: 'inherit' });
-if (result.error) fail(`Could not start ${tool}: ${result.error.message}`);
-process.exit(result.status ?? 1);
+if (tool === 'steady') {
+  // The upstream wrapper owns its native child and forwards termination signals.
+  // Run it in this process so mock-server cleanup reaches that child.
+  process.argv = [process.execPath, entry, ...args];
+  require(entry);
+} else {
+  // Calling Node explicitly also avoids upstream 1.1.399's CRLF shebang issue.
+  const result = spawnSync(process.execPath, [entry, ...args], { stdio: 'inherit' });
+  if (result.error) fail(`Could not start ${tool}: ${result.error.message}`);
+  process.exit(result.status ?? 1);
+}
