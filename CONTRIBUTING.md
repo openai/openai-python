@@ -162,11 +162,6 @@ $ ./scripts/mock
 $ ./scripts/test
 ```
 
-A future Steady fork can be pinned to a reviewed full Git commit without
-publishing it to npm. Review its build inputs as well as the source commit:
-if it needs a build, use an explicit frozen setup step rather than a `prepare`
-hook that resolves or downloads additional dependencies during tests.
-
 ## Linting and formatting
 
 This repository uses [Ruff](https://github.com/astral-sh/ruff) to lint and format Python code.
