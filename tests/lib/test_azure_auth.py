@@ -200,3 +200,72 @@ async def test_internal_sentinel_is_not_a_conflicting_credential(asynchronous: b
         assert auth(requests[0].headers) == expected_auth("azure_ad_token")
     finally:
         await resolve(client.close())
+
+
+@pytest.mark.parametrize("asynchronous", [False, True])
+async def test_callable_api_key_refresh_and_copy(asynchronous: bool, monkeypatch: pytest.MonkeyPatch) -> None:
+    requests: list[httpx2.Request] = []
+    calls = 0
+
+    def key() -> str:
+        nonlocal calls
+        calls += 1
+        return f"fake-key-{calls}"
+
+    async def async_key() -> str:
+        return key()
+
+    def send(request: httpx2.Request) -> httpx2.Response:
+        requests.append(request)
+        return httpx2.Response(
+            500 if len(requests) == 1 else 200,
+            json={"data": []},
+            headers={"retry-after-ms": "1"},
+        )
+
+    cls: Any = AsyncAzureOpenAI if asynchronous else AzureOpenAI
+    transport = httpx2.MockTransport(send)
+    http_client = httpx2.AsyncClient(transport=transport) if asynchronous else httpx2.Client(transport=transport)
+    provider = async_key if asynchronous else key
+    client = cls(
+        azure_endpoint="https://azure.test",
+        api_version="2024-02-01",
+        http_client=http_client,
+        api_key=provider,
+        max_retries=1,
+    )
+    try:
+        # Retry, a copy after refresh, and a realtime connection all refresh.
+        await resolve(client.models.list())
+        copied = client.copy()
+        await resolve(copied.models.list())
+        websocket_headers: list[dict[str, str]] = []
+
+        def connect(*_args: Any, **kwargs: Any) -> Any:
+            websocket_headers.append(auth(kwargs["additional_headers"]))
+            return None
+
+        async def async_connect(*args: Any, **kwargs: Any) -> Any:
+            return connect(*args, **kwargs)
+
+        monkeypatch.setattr("websockets.sync.client.connect", connect)
+        monkeypatch.setattr("websockets.asyncio.client.connect", async_connect)
+        for resource in (copied.realtime, copied.beta.realtime):
+            await resolve(resource.connect(model="test-model").enter())
+        assert websocket_headers == [expected_auth("api_key", f"fake-key-{i}") for i in (4, 5)]
+        assert [auth(request.headers) for request in requests] == [
+            expected_auth("api_key", f"fake-key-{i}") for i in (1, 2, 3)
+        ]
+        assert calls == 5
+
+        # Replacing a refreshed callable key must discard both its cached value
+        # and provider. Switching back must retain the callable, not that cache.
+        ad_client = copied.with_options(azure_ad_token="fake-selected")
+        await resolve(ad_client.models.list())
+        assert auth(requests[-1].headers) == expected_auth("azure_ad_token")
+        assert calls == 5
+        restored = ad_client.with_options(api_key=provider)
+        await resolve(restored.models.list())
+        assert auth(requests[-1].headers) == expected_auth("api_key", "fake-key-6")
+    finally:
+        await resolve(client.close())
