@@ -24,7 +24,6 @@ exclude-newer-span = "P8D"
 
 [manifest]
 build-constraints = [
-    { name = "hatch-fancy-pypi-readme", specifier = "==25.1.0" },
     { name = "hatchling", specifier = "==1.26.3" },
     { name = "packaging", specifier = "==26.3" },
     { name = "pathspec", specifier = "==1.1.1" },
@@ -730,19 +729,6 @@ wheels = [
 ]
 
 [[package]]
-name = "hatch-fancy-pypi-readme"
-version = "25.1.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "hatchling" },
-    { name = "tomli", marker = "python_full_version < '3.11' or (extra == 'group-6-openai-pydantic-v1' and extra == 'group-6-openai-pydantic-v2')" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/f3/0f/aed57c301f339936eb91cb4d8c1e5088a101081854bd3ec18a889df32365/hatch_fancy_pypi_readme-25.1.0.tar.gz", hash = "sha256:9c58ed3dff90d51f43414ce37009ad1d5b0f08ffc9fc216998a06380f01c0045", size = 29701, upload-time = "2025-05-01T10:34:42.989Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/58/b4/ad71e051b34f1935783de37beffee16e343ff2514b204dc515f9e939d4af/hatch_fancy_pypi_readme-25.1.0-py3-none-any.whl", hash = "sha256:ce0134c40d63d874ac48f48ccc678b8f3b62b8e50e9318520d2bffc752eedaf3", size = 10046, upload-time = "2025-05-01T10:34:41.204Z" },
-]
-
-[[package]]
 name = "hatchling"
 version = "1.26.3"
 source = { registry = "https://pypi.org/simple" }
@@ -1363,7 +1349,6 @@ voice-helpers = [
 
 [package.dev-dependencies]
 build = [
-    { name = "hatch-fancy-pypi-readme" },
     { name = "hatchling" },
     { name = "packaging" },
     { name = "pathspec" },
@@ -1415,7 +1400,6 @@ provides-extras = ["aiohttp", "realtime", "datalib", "voice-helpers", "bedrock"]
 
 [package.metadata.requires-dev]
 build = [
-    { name = "hatch-fancy-pypi-readme", specifier = "==25.1.0" },
     { name = "hatchling", specifier = "==1.26.3" },
     { name = "packaging", specifier = "==26.3" },
     { name = "pathspec", specifier = "==1.1.1" },
