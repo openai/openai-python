@@ -52,6 +52,9 @@ bedrock = [
   "urllib3>=2.7.0,<3",
 ]
 
+[project.scripts]
+openai = "openai.cli:main"
+
 [tool.rye]
 managed = true
 # version pins are in requirements-dev.lock
