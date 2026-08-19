@@ -45,6 +45,15 @@ excludes Python distribution artifacts uploaded within the last eight days.
 Dependabot security updates remain enabled and are exempt from Dependabot's
 version-update cooldown.
 
+The committed `uv.lock` must remain usable outside a contributor's environment:
+registry sources use `https://pypi.org/simple`, and distribution artifacts use
+hashed `https://files.pythonhosted.org/packages/` URLs. If a managed registry
+rewrites those locations, keep its required local security checks enabled. Use
+dependency-update automation or an approved public-lockfile repair that matches
+each exact filename and SHA-256 against upstream metadata; do not substitute
+hosts blindly or commit private registry URLs. The public-source regression test
+in `tests/test_uv_workflows.py` checks this without making network requests.
+
 Do not lower a security-fixed minimum or downgrade a patched lock entry to make
 the cooldown pass. If an urgent fix is too new for uv, request SDK CODEOWNER
 review of the advisory, exact fixed version, upstream provenance, artifact

@@ -5,7 +5,7 @@ import re
 import sys
 import json
 import subprocess
-from typing import cast
+from typing import Any, cast
 from pathlib import Path
 
 import pytest
@@ -16,6 +16,33 @@ else:
     import tomli as tomllib
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_lockfile_uses_public_package_sources() -> None:
+    lock = tomllib.loads((ROOT / "uv.lock").read_text())
+    for package in lock["package"]:
+        name = package["name"]
+        expected_source = {"editable": "."} if name == "openai" else {"registry": "https://pypi.org/simple"}
+        public_source = package["source"] == expected_source
+        # Do not print an unexpected URL: a local registry URL may contain credentials.
+        assert public_source, f"{name}: unexpected package source in the public lockfile"
+
+    pending: list[Any] = [lock]
+    while pending:
+        value = pending.pop()
+        if isinstance(value, dict):
+            mapping = cast("dict[str, Any]", value)
+            if "registry" in mapping:
+                public_registry = mapping["registry"] == "https://pypi.org/simple"
+                assert public_registry, "Unexpected registry reference in the public lockfile"
+            if "url" in mapping and "hash" in mapping:
+                public_artifact = (
+                    re.fullmatch(r"https://files\.pythonhosted\.org/packages/[^?#\s]+", mapping["url"]) is not None
+                )
+                assert public_artifact, "Unexpected artifact URL in the public lockfile"
+            pending.extend(mapping.values())
+        elif isinstance(value, list):
+            pending.extend(cast("list[Any]", value))
 
 
 def test_dependency_update_age_policy() -> None:

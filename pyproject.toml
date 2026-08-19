@@ -1,6 +1,6 @@
 [project]
 name = "openai"
-version = "3.3.0"
+version = "3.3.1"
 description = "The official Python library for the openai API"
 dynamic = ["readme"]
 license = "Apache-2.0"
@@ -10,11 +10,11 @@ authors = [
 
 dependencies = [
   "httpx2>=2.7.0, <3",
-  "pydantic>=1.9.0, <3",
+  "pydantic>=1.10.13, <3, !=2.0.*, !=2.1.*, !=2.2.*, !=2.3.*",
   "typing-extensions>=4.14, <5",
   "anyio>=4.10.0, <5",
   "sniffio",
-  "jiter>=0.10.0, <1",
+  "jiter>=0.16.0, <1",
 ]
 
 requires-python = ">= 3.10"
@@ -54,8 +54,8 @@ bedrock = [
 [dependency-groups]
 dev = [
     "mypy==1.17",
-    "pytest",
-    "pytest-asyncio",
+    "pytest>=9.0.3",
+    "pytest-asyncio>=1.4.0",
     "ruff",
     "rich>=13.7.1",
     "inline-snapshot>=0.28.0",
@@ -70,7 +70,7 @@ pydantic-v1 = ["pydantic>=1.10.26,<2"]
 pydantic-v2 = ["pydantic>=2,<3"]
 # Isolated build requirements are exported with hashes by scripts/build.
 build = [
-    "hatchling==1.26.3",
+    "hatchling==1.27.0",
     "packaging==26.3",
     "pathspec==1.1.1",
     "pluggy==1.6.0",
@@ -84,9 +84,19 @@ required-version = ">=0.12.1"
 exclude-newer = "8 days"
 default-groups = ["dev", "pydantic-v2"]
 conflicts = [[{ group = "pydantic-v1" }, { group = "pydantic-v2" }]]
+# Security floors for transitive development dependencies. Constraints do not
+# install these packages into the SDK's runtime environment.
+constraint-dependencies = [
+    "azure-core>=1.38.0",
+    "cryptography>=50.0.0",
+    "msal>=1.37.0",
+    "pygments>=2.20.0",
+    "pyjwt>=2.13.0",
+    "requests>=2.33.0",
+]
 # Also constrain editable/source builds performed by uv sync.
 build-constraint-dependencies = [
-    "hatchling==1.26.3",
+    "hatchling==1.27.0",
     "packaging==26.3",
     "pathspec==1.1.1",
     "pluggy==1.6.0",
@@ -96,7 +106,7 @@ build-constraint-dependencies = [
 
 
 [build-system]
-requires = ["hatchling==1.26.3"]
+requires = ["hatchling==1.27.0"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build]
