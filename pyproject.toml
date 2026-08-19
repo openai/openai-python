@@ -58,7 +58,6 @@ dev = [
     "mypy==1.17",
     "pytest",
     "pytest-asyncio",
-    "jsonschema>=4.23.0",
     "ruff",
     "rich>=13.7.1",
     "inline-snapshot>=0.28.0",
