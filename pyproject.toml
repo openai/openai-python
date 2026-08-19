@@ -54,7 +54,6 @@ bedrock = [
 
 [dependency-groups]
 dev = [
-    "pyright==1.1.399",
     "mypy==1.17",
     "pytest",
     "pytest-asyncio",
@@ -116,6 +115,9 @@ include = [
   "/*.json",
   "/*.lock",
   "/*.md",
+  "/.node-version",
+  "/pnpm-lock.yaml",
+  "/pnpm-workspace.yaml",
   "/mypy.ini",
   "bin/*",
   "examples/*",
@@ -149,6 +151,8 @@ pythonVersion = "3.10"
 
 exclude = [
     "_dev",
+    "node_modules",
+    ".pnpm-store",
     ".venv",
     ".venv-pydantic-v1",
     # Contributors may still have an environment from before the uv migration.
@@ -186,6 +190,8 @@ show_error_codes = true
 # which means it can't be type checked
 exclude = [
   'src/openai/_files.py',
+  'node_modules/.*',
+  '\.pnpm-store/.*',
   'src/openai/_vendor/.*',
   'scripts/hatch_metadata.py',
   '_dev/.*.py',

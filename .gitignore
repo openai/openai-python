@@ -1,5 +1,7 @@
 .prism.log
 .stdy.log
+node_modules/
+.pnpm-store/
 _dev
 
 __pycache__

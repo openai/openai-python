@@ -1,5 +1,11 @@
 version: 2
 updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 8
   - package-ecosystem: uv
     directory: /
     schedule:
