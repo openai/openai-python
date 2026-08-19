@@ -314,7 +314,7 @@ class LegacyAPIResponse(Generic[R]):
                 try:
                     data = response.json()
                 except Exception as exc:
-                    log.debug("Could not read JSON from response data due to %s - %s", type(exc), exc)
+                    log.debug("Could not read JSON from response data due to %s", type(exc).__name__)
                 else:
                     return self._client._process_response_data(
                         data=data,
