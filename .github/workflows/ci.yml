@@ -41,11 +41,14 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
           python - <<'PY'
+          import ast
+          import io
           import os
           import pathlib
           import re
           import subprocess
           import tomllib
+          import tokenize
 
           base = os.environ.get("BASE_SHA", "")
           if not re.fullmatch(r"[0-9a-f]{40}", base):
@@ -66,19 +69,68 @@ jobs:
           def canonical(name):
               return re.sub(r"[-_.]+", "-", name).lower()
 
+          def marker_context(marker):
+              if not marker.strip():
+                  return ()
+              try:
+                  if any(
+                      token.type == tokenize.OP and token.string in {"(", ")"}
+                      for token in tokenize.generate_tokens(io.StringIO(marker).readline)
+                  ):
+                      raise ValueError("Parenthesized security dependency marker")
+                  expression = ast.parse(marker.strip(), mode="eval").body
+              except (SyntaxError, tokenize.TokenError, ValueError):
+                  raise SystemExit("Ambiguous direct security dependency marker")
+              if isinstance(expression, ast.BoolOp):
+                  if not isinstance(expression.op, ast.And):
+                      raise SystemExit("Ambiguous direct security dependency marker")
+                  parts = expression.values
+              else:
+                  parts = [expression]
+              result = []
+              for part in parts:
+                  if (
+                      not isinstance(part, ast.Compare)
+                      or not isinstance(part.left, ast.Name)
+                      or len(part.ops) != 1
+                      or len(part.comparators) != 1
+                      or not isinstance(part.comparators[0], ast.Constant)
+                      or not isinstance(part.comparators[0].value, str)
+                      or type(part.ops[0])
+                      not in {ast.Eq, ast.NotEq, ast.Lt, ast.LtE, ast.Gt, ast.GtE, ast.In, ast.NotIn}
+                  ):
+                      raise SystemExit("Ambiguous direct security dependency marker")
+                  result.append((part.left.id.lower(), type(part.ops[0]).__name__, part.comparators[0].value))
+              return tuple(sorted(result))
+
           def direct(project):
-              requirements = list(project["project"].get("dependencies", []))
-              for group in project["project"].get("optional-dependencies", {}).values():
-                  requirements.extend(group)
-              result = {}
-              for requirement in requirements:
-                  match = re.fullmatch(r"\s*([A-Za-z0-9][A-Za-z0-9_.-]*)(\[[^\]]+\])?\s*(.*)", requirement)
-                  if match is None:
-                      raise SystemExit("Ambiguous direct security dependency requirement")
-                  name = canonical(match.group(1))
-                  normalized = name + (match.group(2) or "").lower() + re.sub(r"\s+", "", match.group(3)).lower()
-                  result.setdefault(name, set()).add(normalized)
-              return result
+              groups = [("runtime", "", project["project"].get("dependencies", []))]
+              groups.extend(
+                  ("optional", canonical(group), requirements)
+                  for group, requirements in project["project"].get("optional-dependencies", {}).items()
+              )
+              result, contexts = {}, {}
+              for scope, group, requirements in groups:
+                  for requirement in requirements:
+                      match = re.fullmatch(
+                          r"\s*([A-Za-z0-9][A-Za-z0-9_.-]*)(\[[^\]]+\])?\s*(.*)", requirement
+                      )
+                      if match is None:
+                          raise SystemExit("Ambiguous direct security dependency requirement")
+                      name = canonical(match.group(1))
+                      extra = match.group(2)
+                      requested = ()
+                      if extra:
+                          requested = tuple(sorted(canonical(value.strip()) for value in extra[1:-1].split(",")))
+                          if any(not re.fullmatch(r"[a-z0-9][a-z0-9-]*", value) for value in requested):
+                              raise SystemExit("Ambiguous direct security dependency extras")
+                      context = (scope, group, requested, marker_context(match.group(3).partition(";")[2]))
+                      normalized = (
+                          name + (match.group(2) or "").lower() + re.sub(r"\s+", "", match.group(3)).lower()
+                      )
+                      result.setdefault(name, set()).add(normalized)
+                      contexts.setdefault(name, {}).setdefault(context, set()).add(normalized)
+              return result, contexts
 
           def versions(lock):
               result = {}
@@ -111,11 +163,14 @@ jobs:
           old_lock = read_base("uv.lock")
           new_project = tomllib.loads(pathlib.Path("pyproject.toml").read_text())
           new_lock = tomllib.loads(pathlib.Path("uv.lock").read_text())
-          old_direct, new_direct = direct(old_project), direct(new_project)
+          old_direct, old_contexts = direct(old_project)
+          new_direct, new_contexts = direct(new_project)
           old_versions, new_versions = versions(old_lock), versions(new_lock)
           for name, requirements in new_direct.items():
               previous = old_direct.get(name, set())
-              if previous != requirements:
+              previous_contexts = old_contexts.get(name, {})
+              current_contexts = new_contexts.get(name, {})
+              if previous != requirements or previous_contexts != current_contexts:
                   previous_minimums = minimums(previous, allow_missing=True)
                   if previous_minimums:
                       updated_minimums = minimums(requirements)
@@ -123,14 +178,28 @@ jobs:
                           updated < previous for previous, updated in zip(previous_minimums, updated_minimums)
                       ):
                           raise SystemExit("Do not lower a published security-fixed minimum for " + name)
+                      for context, prior_requirements in previous_contexts.items():
+                          prior_minimums = minimums(prior_requirements, allow_missing=True)
+                          if not prior_minimums:
+                              continue
+                          context_minimums = minimums(current_contexts.get(context, set()))
+                          if len(context_minimums) != len(prior_minimums) or any(
+                              updated < previous for previous, updated in zip(prior_minimums, context_minimums)
+                          ):
+                              raise SystemExit("Do not lower a contextual security-fixed minimum for " + name)
               if old_versions.get(name, set()) == new_versions.get(name, set()):
                   continue
               if previous == requirements:
                   raise SystemExit("Raise the published security-fixed minimum for " + name)
               patched_versions = new_versions.get(name, set()) - old_versions.get(name, set())
-              if not patched_versions:
-                  raise SystemExit("Missing patched direct security dependency release for " + name)
-              patched_minimum = max(stable_version(version) for version in patched_versions)
+              removed_versions = old_versions.get(name, set()) - new_versions.get(name, set())
+              patched_releases = sorted(stable_version(version) for version in patched_versions)
+              removed_releases = sorted(stable_version(version) for version in removed_versions)
+              if not patched_releases or len(patched_releases) != len(removed_releases) or any(
+                  updated <= previous for previous, updated in zip(removed_releases, patched_releases)
+              ):
+                  raise SystemExit("Missing upgraded direct security dependency release for " + name)
+              patched_minimum = patched_releases[-1]
               updated_minimums = minimums(requirements)
               previous_minimums = minimums(previous, allow_missing=True)
               if not updated_minimums or any(updated < patched_minimum for updated in updated_minimums) or (

@@ -518,27 +518,30 @@ def run_security_dependency_floor_check(
     base_packages: list[tuple[str, str]],
     head_packages: list[tuple[str, str]],
     optional: bool = False,
+    base_optional_groups: dict[str, list[str]] | None = None,
+    head_optional_groups: dict[str, list[str]] | None = None,
     sha: str = "a" * 40,
     origin: str = "https://github.com/openai/openai-python",
 ) -> subprocess.CompletedProcess[str]:
-    def project(requirements: list[str]) -> str:
+    def project(requirements: list[str], groups: dict[str, list[str]] | None) -> str:
         if optional:
-            return (
-                '[project]\nname = "openai"\nversion = "1.0"\ndependencies = []\n'
-                + "[project.optional-dependencies]\nfeature = "
-                + json.dumps(requirements)
-                + "\n"
-            )
-        return '[project]\nname = "openai"\nversion = "1.0"\ndependencies = ' + json.dumps(requirements) + "\n"
+            groups = {"feature": requirements}
+            requirements = []
+        result = '[project]\nname = "openai"\nversion = "1.0"\ndependencies = ' + json.dumps(requirements) + "\n"
+        if groups:
+            result += "[project.optional-dependencies]\n"
+            for group, dependencies in groups.items():
+                result += group + " = " + json.dumps(dependencies) + "\n"
+        return result
 
     def lock(packages: list[tuple[str, str]]) -> str:
         return "\n".join(
             f"[[package]]\nname = {json.dumps(name)}\nversion = {json.dumps(version)}\n" for name, version in packages
         )
 
-    (tmp_path / "pyproject.toml").write_text(project(head_requirements))
+    (tmp_path / "pyproject.toml").write_text(project(head_requirements, head_optional_groups))
     (tmp_path / "uv.lock").write_text(lock(head_packages))
-    (tmp_path / "base-project.toml").write_text(project(base_requirements))
+    (tmp_path / "base-project.toml").write_text(project(base_requirements, base_optional_groups))
     (tmp_path / "base-lock.toml").write_text(lock(base_packages))
     fake_git = tmp_path / "git"
     fake_git.write_text(
@@ -980,6 +983,150 @@ def run_security_dependency_floor_check(
             id="unchanged-lock-previously-unbounded-floor-added",
         ),
         pytest.param(
+            ["other>=2; python_version < '3.11'", "other>=1; python_version >= '3.11'"],
+            ["other>=1; python_version < '3.11'", "other>=2; python_version >= '3.11'"],
+            [("other", "2")],
+            [("other", "2")],
+            False,
+            False,
+            id="unchanged-lock-marker-context-floors-swapped",
+        ),
+        pytest.param(
+            ["other[secure]>=2", "other[compat]>=1"],
+            ["other[secure]>=1", "other[compat]>=2"],
+            [("other", "2")],
+            [("other", "2")],
+            False,
+            False,
+            id="unchanged-lock-requested-extra-context-floors-swapped",
+        ),
+        pytest.param(
+            ["other>=2; python_version >= '3.11' and sys_platform == 'Linux'"],
+            ["other>=2,<4; sys_platform == 'Linux' and python_version >= '3.11'"],
+            [("other", "2")],
+            [("other", "2")],
+            False,
+            True,
+            id="unchanged-lock-marker-conjunction-reordered",
+        ),
+        pytest.param(
+            ["other[B,A]>=2"],
+            ["other[a,b]>=2,<4"],
+            [("other", "2")],
+            [("other", "2")],
+            False,
+            True,
+            id="unchanged-lock-requested-extras-reordered",
+        ),
+        pytest.param(
+            ["other>=2; sys_platform == 'Linux'"],
+            ["other>=2; sys_platform == 'linux'"],
+            [("other", "2")],
+            [("other", "2")],
+            False,
+            False,
+            id="unchanged-lock-marker-literal-case-preserved",
+        ),
+        pytest.param(
+            ["other>=2; python_version < '3.11' or sys_platform == 'linux'"],
+            ["other>=2; python_version < '3.11' or sys_platform == 'linux'"],
+            [("other", "2")],
+            [("other", "2")],
+            False,
+            False,
+            id="unchanged-lock-ambiguous-or-marker-fails-closed",
+        ),
+        pytest.param(
+            ["other>=2; (python_version < '3.11')"],
+            ["other>=2; (python_version < '3.11')"],
+            [("other", "2")],
+            [("other", "2")],
+            False,
+            False,
+            id="unchanged-lock-parenthesized-marker-fails-closed",
+        ),
+        pytest.param(
+            ["danger-pkg>=1.0"],
+            ["danger-pkg>=1.5"],
+            [("danger-pkg", "2.0")],
+            [("danger-pkg", "1.5")],
+            False,
+            False,
+            id="downgraded-lock-cannot-be-security-patch",
+        ),
+        pytest.param(
+            ["danger-pkg>=0!1"],
+            ["danger-pkg>=0!9"],
+            [("danger-pkg", "1!1")],
+            [("danger-pkg", "0!9")],
+            False,
+            False,
+            id="downgraded-epoch-lock-cannot-be-security-patch",
+        ),
+        pytest.param(
+            ["danger-pkg>=1.0"],
+            ["danger-pkg>=2.4"],
+            [("danger-pkg", "1.5"), ("danger-pkg", "2.5")],
+            [("danger-pkg", "1.6"), ("danger-pkg", "2.4")],
+            False,
+            False,
+            id="downgraded-alternate-lock-branch-fails-closed",
+        ),
+        pytest.param(
+            ["danger-pkg>=1"],
+            ["danger-pkg>=3"],
+            [("danger-pkg", "2")],
+            [("danger-pkg", "2"), ("danger-pkg", "3")],
+            False,
+            False,
+            id="unpaired-added-lock-release-fails-closed",
+        ),
+        pytest.param(
+            ["danger-pkg>=1"],
+            ["danger-pkg>=2"],
+            [("danger-pkg", "1"), ("danger-pkg", "2")],
+            [("danger-pkg", "2")],
+            False,
+            False,
+            id="unpaired-removed-lock-release-fails-closed",
+        ),
+        pytest.param(
+            ["danger-pkg>=1"],
+            ["danger-pkg>=2.0.0"],
+            [("danger-pkg", "2.0")],
+            [("danger-pkg", "2.0.0")],
+            False,
+            False,
+            id="equivalent-lock-release-is-not-security-upgrade",
+        ),
+        pytest.param(
+            ["danger-pkg>=1.9"],
+            ["danger-pkg>=2.0"],
+            [("danger-pkg", "1.9")],
+            [("danger-pkg", "2.0")],
+            False,
+            True,
+            id="single-lock-major-upgrade-remains-valid",
+        ),
+        pytest.param(
+            ["pydantic>=1.10.13,<3"],
+            ["pydantic>=1.10.27,<3"],
+            [("pydantic", "1.10.26"), ("pydantic", "2.12.5")],
+            [("pydantic", "1.10.27"), ("pydantic", "2.12.5")],
+            False,
+            True,
+            id="independent-pydantic-v1-lock-upgrade-preserves-v2",
+        ),
+        pytest.param(
+            ["danger-pkg>=1"],
+            ["danger-pkg>=3"],
+            [("danger-pkg", "1.5rc1")],
+            [("danger-pkg", "3")],
+            False,
+            False,
+            id="prerelease-removed-lock-fails-closed",
+        ),
+        pytest.param(
             ["safe-direct>=1.0"],
             ["safe-direct>=1.0"],
             [("safe-direct", "1.0"), ("transitive", "1.0")],
@@ -1050,6 +1197,71 @@ def test_only_direct_security_updates_must_raise_published_minimums(
         base_packages=before,
         head_packages=after,
         optional=optional,
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("base_groups", "head_groups", "accepted"),
+    [
+        pytest.param(
+            {"datalib": ["numpy>=1"], "voice_helpers": ["numpy>=2"]},
+            {"datalib": ["numpy>=2"], "voice_helpers": ["numpy>=1"]},
+            False,
+            id="actual-numpy-extra-floors-swapped",
+        ),
+        pytest.param(
+            {"datalib": ["numpy>=1"], "voice_helpers": ["numpy>=2"]},
+            {"datalib": ["numpy>=1"]},
+            False,
+            id="actual-numpy-bounded-extra-removed",
+        ),
+        pytest.param(
+            {"datalib": ["numpy>=1"], "voice_helpers": ["numpy>=2"]},
+            {"voice_helpers": ["numpy>=2"], "datalib": ["numpy>=1"]},
+            True,
+            id="actual-numpy-extra-groups-reordered",
+        ),
+        pytest.param(
+            {"voice_helpers": ["numpy>=2"]},
+            {"voice-helpers": ["numpy>=2,<4"]},
+            True,
+            id="canonical-optional-group-spelling-preserved",
+        ),
+        pytest.param(
+            {"voice_helpers": ["numpy>=2"]},
+            {"datalib": ["numpy>=2"]},
+            False,
+            id="bounded-optional-context-replaced",
+        ),
+        pytest.param(
+            {"datalib": ["numpy>=1"], "voice_helpers": ["numpy>=2"]},
+            {"datalib": ["numpy>=1.1"], "voice_helpers": ["numpy>=2"]},
+            True,
+            id="actual-numpy-extra-floor-raised-in-place",
+        ),
+        pytest.param(
+            {"datalib": ["numpy>=1"], "voice_helpers": ["numpy>=2"]},
+            {"datalib": ["numpy>=1"], "voice_helpers": ["numpy>=1.9"]},
+            False,
+            id="actual-numpy-extra-floor-lowered-in-place",
+        ),
+    ],
+)
+def test_security_floors_preserve_original_optional_contexts(
+    tmp_path: Path,
+    base_groups: dict[str, list[str]],
+    head_groups: dict[str, list[str]],
+    accepted: bool,
+) -> None:
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=[],
+        head_requirements=[],
+        base_packages=[("numpy", "2")],
+        head_packages=[("numpy", "2")],
+        base_optional_groups=base_groups,
+        head_optional_groups=head_groups,
     )
     assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
 
