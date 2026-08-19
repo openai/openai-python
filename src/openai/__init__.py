@@ -166,7 +166,8 @@ api_version: str | None = _os.environ.get("OPENAI_API_VERSION")
 
 azure_endpoint: str | None = _os.environ.get("AZURE_OPENAI_ENDPOINT")
 
-azure_ad_token: str | None = _os.environ.get("AZURE_OPENAI_AD_TOKEN")
+# Keep explicit module configuration separate from Azure's environment fallback.
+azure_ad_token: str | None = None
 
 azure_ad_token_provider: _azure.AzureADTokenProvider | None = None
 
@@ -362,13 +363,10 @@ def _load_client() -> OpenAI:  # type: ignore[reportUnusedFunction]
     global _client
 
     if _client is None:
-        global api_type, azure_endpoint, azure_ad_token, api_version
+        global api_type, azure_endpoint, api_version
 
         if azure_endpoint is None:
             azure_endpoint = _os.environ.get("AZURE_OPENAI_ENDPOINT")
-
-        if azure_ad_token is None:
-            azure_ad_token = _os.environ.get("AZURE_OPENAI_AD_TOKEN")
 
         if api_version is None:
             api_version = _os.environ.get("OPENAI_API_VERSION")
@@ -379,11 +377,6 @@ def _load_client() -> OpenAI:  # type: ignore[reportUnusedFunction]
             has_azure_ad = _has_azure_ad_credentials()
 
             if has_openai and (has_azure or has_azure_ad):
-                raise _AmbiguousModuleClientUsageError()
-
-            if (azure_ad_token is not None or azure_ad_token_provider is not None) and _os.environ.get(
-                "AZURE_OPENAI_API_KEY"
-            ) is not None:
                 raise _AmbiguousModuleClientUsageError()
 
             if has_azure or has_azure_ad:

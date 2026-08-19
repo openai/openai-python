@@ -260,10 +260,11 @@ async def test_callable_api_key_refresh_and_copy(asynchronous: bool, monkeypatch
 
         # Replacing a refreshed callable key must discard both its cached value
         # and provider. Switching back must retain the callable, not that cache.
+        calls_before_ad_request = calls
         ad_client = copied.with_options(azure_ad_token="fake-selected")
         await resolve(ad_client.models.list())
         assert auth(requests[-1].headers) == expected_auth("azure_ad_token")
-        assert calls == 5
+        assert calls == calls_before_ad_request
         restored = ad_client.with_options(api_key=provider)
         await resolve(restored.models.list())
         assert auth(requests[-1].headers) == expected_auth("api_key", "fake-key-6")
