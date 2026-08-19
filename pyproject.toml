@@ -73,7 +73,6 @@ pydantic-v2 = ["pydantic>=2,<3"]
 # Isolated build requirements are exported with hashes by scripts/build.
 build = [
     "hatchling==1.26.3",
-    "hatch-fancy-pypi-readme==25.1.0",
     "packaging==26.3",
     "pathspec==1.1.1",
     "pluggy==1.6.0",
@@ -90,7 +89,6 @@ conflicts = [[{ group = "pydantic-v1" }, { group = "pydantic-v2" }]]
 # Also constrain editable/source builds performed by uv sync.
 build-constraint-dependencies = [
     "hatchling==1.26.3",
-    "hatch-fancy-pypi-readme==25.1.0",
     "packaging==26.3",
     "pathspec==1.1.1",
     "pluggy==1.6.0",
@@ -100,7 +98,7 @@ build-constraint-dependencies = [
 
 
 [build-system]
-requires = ["hatchling==1.26.3", "hatch-fancy-pypi-readme==25.1.0"]
+requires = ["hatchling==1.26.3"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build]
@@ -126,16 +124,8 @@ include = [
   "tests/*",
 ]
 
-[tool.hatch.metadata.hooks.fancy-pypi-readme]
-content-type = "text/markdown"
-
-[[tool.hatch.metadata.hooks.fancy-pypi-readme.fragments]]
-path = "README.md"
-
-[[tool.hatch.metadata.hooks.fancy-pypi-readme.substitutions]]
-# replace relative links with absolute links
-pattern = '\[(.+?)\]\(((?!https?://)\S+?)\)'
-replacement = '[\1](https://github.com/openai/openai-python/tree/main/\g<2>)'
+[tool.hatch.metadata.hooks.custom]
+path = "scripts/hatch_metadata.py"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -166,6 +156,8 @@ exclude = [
     ".git",
     "tests/respx2",
     "src/openai/_vendor",
+    # Loaded in Hatchling's isolated build environment.
+    "scripts/hatch_metadata.py",
 
     # uses inline `uv` script dependencies
     # which means it can't be type checked
@@ -195,6 +187,7 @@ show_error_codes = true
 exclude = [
   'src/openai/_files.py',
   'src/openai/_vendor/.*',
+  'scripts/hatch_metadata.py',
   '_dev/.*.py',
   'tests/.*',
   'src/openai/_utils/_logs.py',
