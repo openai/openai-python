@@ -19,7 +19,7 @@ explicitly requires it.
   diagnostics may remain. Preserve existing sensitive-header filtering,
   including debug logging.
 - Review direct and transitive dependency changes in `pyproject.toml`, optional
-  extras, `requirements.lock`, `requirements-dev.lock`, and `uv.lock`. Check
+  extras, dependency groups, and `uv.lock`. Check
   package provenance, build backends, and install scripts before accepting or
   running them.
 - Pin third-party GitHub Actions to reviewed full commit SHAs. Minimize
@@ -85,14 +85,14 @@ does not decide whether an EOL grace period or floor increase is appropriate.
 Before publishing a Python-version change, run:
 
 ```sh
-rye lock --all-features
+uv lock
 uv lock --check
-rye build
-rye run python scripts/check-python-version-policy.py
-rye run python scripts/utils/validate-python-version-wheel.py
+./scripts/build
+uv run --locked --all-extras python scripts/check-python-version-policy.py
+uv run --locked --all-extras python scripts/utils/validate-python-version-wheel.py
 python3.9 scripts/utils/validate-python-version-wheel.py --check-python-39
-rye run python scripts/utils/validate-bedrock-wheel.py
-rye run python scripts/utils/validate-httpx2-wheel.py
+uv run --locked --all-extras python scripts/utils/validate-bedrock-wheel.py
+uv run --locked --all-extras python scripts/utils/validate-httpx2-wheel.py
 ./scripts/lint
 ./scripts/test
 ```

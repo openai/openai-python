@@ -1,7 +1,7 @@
 """Explicitly opt-in live coverage for Amazon Bedrock Mantle and Runtime.
 
 BEDROCK_LIVE_TEST=1 BEDROCK_LIVE_ENDPOINT=runtime AWS_REGION=us-west-2 \
-    rye run pytest -q -s tests/lib/bedrock_live.py
+    uv run --locked --all-extras pytest -q -s tests/lib/bedrock_live.py
 
 Runtime defaults to the three US GPT-5.6 inference profiles. Override them with
 ``BEDROCK_LIVE_MODEL`` or comma-separated ``BEDROCK_LIVE_MODELS``. Select one

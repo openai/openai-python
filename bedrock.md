@@ -180,7 +180,7 @@ The existing live harness requires explicit opt-in and valid AWS credentials:
 
 ```sh
 BEDROCK_LIVE_TEST=1 BEDROCK_LIVE_ENDPOINT=runtime AWS_REGION=us-west-2 \
-  rye run pytest -q -s tests/lib/bedrock_live.py
+  uv run --locked --all-extras pytest -q -s tests/lib/bedrock_live.py
 ```
 
 Runtime verification defaults to all three US GPT-5.6 inference profiles. Select authentication modes with
