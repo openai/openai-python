@@ -5,4 +5,12 @@ set -e
 cd "$(dirname "$0")/.."
 
 echo "==> Running formatters"
-rye run format
+uv run --locked --all-extras ruff format
+docs=(README.md api.md)
+while IFS= read -r -d '' path; do
+  docs+=("$path")
+done < <(find src -type f -name api.md -print0)
+uv run --locked --all-extras python scripts/utils/ruffen-docs.py "${docs[@]}"
+uv run --locked --all-extras ruff check --fix .
+# Run formatting again after imports have been removed.
+uv run --locked --all-extras ruff format

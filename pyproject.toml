@@ -52,17 +52,14 @@ bedrock = [
   "urllib3>=2.7.0,<3",
 ]
 
-[tool.rye]
-managed = true
-# version pins are in requirements-dev.lock
-dev-dependencies = [
+[dependency-groups]
+dev = [
     "pyright==1.1.399",
     "mypy==1.17",
     "pytest",
     "pytest-asyncio",
     "jsonschema>=4.23.0",
     "ruff",
-    "nox",
     "rich>=13.7.1",
     "inline-snapshot>=0.28.0",
     "azure-identity >=1.14.1",
@@ -72,35 +69,35 @@ dev-dependencies = [
     "pytest-xdist>=3.6.1",
     "griffe>=1",
 ]
+pydantic-v1 = ["pydantic>=1.10.26,<2"]
+pydantic-v2 = ["pydantic>=2,<3"]
+# Isolated build requirements are exported with hashes by scripts/build.
+build = [
+    "hatchling==1.26.3",
+    "hatch-fancy-pypi-readme==25.1.0",
+    "packaging==26.3",
+    "pathspec==1.1.1",
+    "pluggy==1.6.0",
+    "tomli==2.4.1; python_version < '3.11'",
+    "trove-classifiers==2026.6.1.19",
+]
 
-[tool.rye.scripts]
-format = { chain = [
-  "format:ruff",
-  "format:docs",
-  "fix:ruff",
-  # run formatting again to fix any inconsistencies when imports are stripped
-  "format:ruff",
-]}
-"format:docs" = "bash -c 'python scripts/utils/ruffen-docs.py README.md $(find . -type f -name api.md)'"
-"format:ruff" = "ruff format"
+[tool.uv]
+required-version = ">=0.12.5"
+exclude-newer = "8 days"
+default-groups = ["dev", "pydantic-v2"]
+conflicts = [[{ group = "pydantic-v1" }, { group = "pydantic-v2" }]]
+# Also constrain editable/source builds performed by uv sync.
+build-constraint-dependencies = [
+    "hatchling==1.26.3",
+    "hatch-fancy-pypi-readme==25.1.0",
+    "packaging==26.3",
+    "pathspec==1.1.1",
+    "pluggy==1.6.0",
+    "tomli==2.4.1; python_version < '3.11'",
+    "trove-classifiers==2026.6.1.19",
+]
 
-"lint" = { chain = [
-  "check:ruff",
-  "typecheck",
-  "check:importable",
-]}
-"check:ruff" = "ruff check ."
-"fix:ruff" = "ruff check --fix ."
-
-"check:importable" = "python -c 'import openai'"
-
-typecheck = { chain = [
-  "typecheck:pyright",
-  "typecheck:mypy"
-]}
-"typecheck:pyright" = "scripts/run-pyright"
-"typecheck:verify-types" = "pyright --verifytypes openai --ignoreexternal"
-"typecheck:mypy" = "mypy ."
 
 [build-system]
 requires = ["hatchling==1.26.3", "hatch-fancy-pypi-readme==25.1.0"]
@@ -122,9 +119,9 @@ include = [
   "/*.lock",
   "/*.md",
   "/mypy.ini",
-  "/noxfile.py",
   "bin/*",
   "examples/*",
+  "scripts/*",
   "src/*",
   "tests/*",
 ]
@@ -163,6 +160,8 @@ pythonVersion = "3.10"
 exclude = [
     "_dev",
     ".venv",
+    ".venv-pydantic-v1",
+    # Contributors may still have an environment from before the uv migration.
     ".nox",
     ".git",
     "tests/respx2",
