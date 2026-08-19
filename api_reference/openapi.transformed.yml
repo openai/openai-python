@@ -31738,6 +31738,12 @@ components:
         model:
           type: string
           description: The model to generate the completion.
+        obfuscation:
+          type: string
+          description: |
+            An obfuscation string added to normalize the size of streamed chunks as a
+            mitigation to certain side-channel attacks. The field is included by
+            default and omitted when `stream_options.include_obfuscation` is `false`.
         service_tier:
           $ref: '#/components/schemas/ServiceTier'
         system_fingerprint:
@@ -31781,13 +31787,13 @@ components:
         name: The chat completion chunk object
         group: chat
         example: |
-          {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1694268190,"model":"gpt-4o-mini", "system_fingerprint": "fp_44709d6fcb", "choices":[{"index":0,"delta":{"role":"assistant","content":""},"logprobs":null,"finish_reason":null}]}
+          {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1694268190,"model":"gpt-4o-mini", "system_fingerprint": "fp_44709d6fcb", "choices":[{"index":0,"delta":{"role":"assistant","content":""},"logprobs":null,"finish_reason":null}],"obfuscation":"r4N7vQ2m"}
 
-          {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1694268190,"model":"gpt-4o-mini", "system_fingerprint": "fp_44709d6fcb", "choices":[{"index":0,"delta":{"content":"Hello"},"logprobs":null,"finish_reason":null}]}
+          {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1694268190,"model":"gpt-4o-mini", "system_fingerprint": "fp_44709d6fcb", "choices":[{"index":0,"delta":{"content":"Hello"},"logprobs":null,"finish_reason":null}],"obfuscation":"p9K3xT6w"}
 
           ....
 
-          {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1694268190,"model":"gpt-4o-mini", "system_fingerprint": "fp_44709d6fcb", "choices":[{"index":0,"delta":{},"logprobs":null,"finish_reason":"stop"}]}
+          {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1694268190,"model":"gpt-4o-mini", "system_fingerprint": "fp_44709d6fcb", "choices":[{"index":0,"delta":{},"logprobs":null,"finish_reason":"stop"}],"obfuscation":""}
     CreateCompletionRequest:
       type: object
       properties:
@@ -64185,7 +64191,7 @@ components:
           x-stainless-const: true
         encrypted_content:
           type: string
-          maxLength: 10485760
+          maxLength: 20971520
           description: The encrypted content of the compaction summary.
       type: object
       required:
@@ -70602,7 +70608,7 @@ components:
           x-stainless-const: true
         encrypted_content:
           type: string
-          maxLength: 10485760
+          maxLength: 20971520
           description: The encrypted content of the compaction summary.
       type: object
       required:

@@ -1,0 +1,84 @@
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
+name: Castiron custom code
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: castiron-custom-code-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+env:
+  REPORTER_SHA256: 73ecd6290e9803b0d0a93af4ca4dccdbf8648cbd5c0cce51ea65fce28c7da79f
+
+jobs:
+  report:
+    name: Castiron / baseline consistency
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Record the pull request
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPOSITORY: ${{ github.repository }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/castiron-custom-code"
+          jq -n --argjson pr "$PR_NUMBER" --arg repository "$REPOSITORY" \
+            --argjson run "$RUN_ID" --argjson attempt "$RUN_ATTEMPT" \
+            '{pr: $pr, repository: $repository, run: $run, attempt: $attempt}' \
+            > "$RUNNER_TEMP/castiron-custom-code/context.json"
+
+      - name: Check out the pull request
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify the reporter matches its generated workflow
+        run: printf '%s  %s\n' "$REPORTER_SHA256" scripts/castiron/custom_code_report.py | sha256sum --check --strict
+
+      - name: Test hash mismatch and snapshot isolation
+        run: python3 -m unittest discover -s scripts/castiron -p test_custom_code_report.py
+
+      - name: Validate the codegen hash and report custom code
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GIT_CONFIG_COUNT: '2'
+          GIT_CONFIG_KEY_0: credential.helper
+          GIT_CONFIG_VALUE_0: ''
+          GIT_CONFIG_KEY_1: credential.https://github.com.helper
+          GIT_CONFIG_VALUE_1: '!gh auth git-credential'
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PUBLIC_REPOSITORY: ${{ !github.event.repository.private }}
+        run: |
+          git fetch --quiet --no-tags origin "$BASE_SHA" "$HEAD_SHA"
+          mode=()
+          if [[ "$PUBLIC_REPOSITORY" == true ]]; then mode=(--public); fi
+          python3 -I scripts/castiron/custom_code_report.py report \
+            --base "$BASE_SHA" --head "$HEAD_SHA" \
+            --fetch --require-head-hash "${mode[@]}" \
+            --out "$RUNNER_TEMP/castiron-custom-code"
+
+      - name: Add the report to the run summary
+        if: always()
+        run: |
+          if test -f "$RUNNER_TEMP/castiron-custom-code/summary.md"; then
+            cat "$RUNNER_TEMP/castiron-custom-code/summary.md" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload report and current custom-code patch
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: castiron-custom-code-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/castiron-custom-code/
+          if-no-files-found: error
+          retention-days: 7
