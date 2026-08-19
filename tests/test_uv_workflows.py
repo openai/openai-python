@@ -5,9 +5,12 @@ import re
 import sys
 import json
 import subprocess
+from typing import cast
 from pathlib import Path
+from urllib.parse import urlsplit
 
 import pytest
+from packaging.requirements import Requirement
 
 if sys.version_info >= (3, 11):
     import tomllib
@@ -15,6 +18,71 @@ else:
     import tomli as tomllib
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def is_public_pypi_artifact(url: str) -> bool:
+    try:
+        parsed = urlsplit(url)
+    except ValueError:
+        return False
+    return (
+        parsed.scheme == "https"
+        and parsed.netloc == "files.pythonhosted.org"
+        and parsed.path.startswith("/packages/")
+        and not parsed.query
+        and not parsed.fragment
+    )
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "http://files.pythonhosted.org/packages/example.whl",
+        "https://files.pythonhosted.org.example.com/packages/example.whl",
+        "https://user:password@files.pythonhosted.org/packages/example.whl",
+        "https://files.pythonhosted.org:443/packages/example.whl",
+        "https://files.pythonhosted.org/other/example.whl",
+        "https://files.pythonhosted.org/packages/example.whl?token=fake",
+        "https://files.pythonhosted.org/packages/example.whl#fragment",
+    ],
+)
+def test_public_artifact_check_rejects_unexpected_locations(url: str) -> None:
+    assert not is_public_pypi_artifact(url)
+
+
+def assert_public_registry_references(value: object) -> None:
+    if isinstance(value, dict):
+        mapping = cast("dict[str, object]", value)
+        if "registry" in mapping:
+            public_registry = mapping["registry"] == "https://pypi.org/simple"
+            assert public_registry, "Unexpected registry reference in the public lockfile"
+        for child in mapping.values():
+            assert_public_registry_references(child)
+    elif isinstance(value, list):
+        for child in cast("list[object]", value):
+            assert_public_registry_references(child)
+
+
+def test_lockfile_uses_public_package_sources() -> None:
+    lock = tomllib.loads((ROOT / "uv.lock").read_text())
+    assert_public_registry_references(lock)
+    for package in lock["package"]:
+        name = package["name"]
+        expected_source = {"editable": "."} if name == "openai" else {"registry": "https://pypi.org/simple"}
+        public_source = package["source"] == expected_source
+        # Do not print an unexpected URL: a local registry URL may contain credentials.
+        assert public_source, f"{name}: unexpected package source in the public lockfile"
+        if name == "openai":
+            continue
+        artifacts = [*package.get("wheels", [])]
+        if "sdist" in package:
+            artifacts.append(package["sdist"])
+        assert artifacts, f"{name}: no hashed distribution artifacts"
+        for artifact in artifacts:
+            public_artifact = is_public_pypi_artifact(artifact["url"])
+            valid_hash = re.fullmatch(r"sha256:[0-9a-f]{64}", artifact["hash"]) is not None
+            assert public_artifact, f"{name}: unexpected artifact host in the public lockfile"
+            assert valid_hash, f"{name}: missing SHA-256 artifact hash"
 
 
 def test_dependency_update_age_policy() -> None:
@@ -26,6 +94,30 @@ def test_dependency_update_age_policy() -> None:
         # permanent exemption or a rolling zero-day window.
         assert isinstance(cutoff, str)
         assert re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z", cutoff)
+
+
+@pytest.mark.parametrize(
+    ("name", "affected", "patched"),
+    [
+        ("azure-core", "1.36.0", "1.38.0"),
+        ("cryptography", "46.0.3", "50.0.0"),
+        ("msal", "1.36.0", "1.37.0"),
+        ("pygments", "2.19.2", "2.20.0"),
+        ("pyjwt", "2.10.1", "2.13.0"),
+        ("requests", "2.32.5", "2.33.0"),
+        ("pytest", "8.4.2", "9.0.3"),
+        ("pytest-asyncio", "1.2.0", "1.4.0"),
+    ],
+)
+def test_development_dependency_security_floors(name: str, affected: str, patched: str) -> None:
+    project = tomllib.loads((ROOT / "pyproject.toml").read_text())
+    values = project["dependency-groups"]["dev"] + project["tool"]["uv"]["constraint-dependencies"]
+    requirements = [Requirement(value) for value in values]
+    matches = [requirement for requirement in requirements if requirement.name == name]
+    assert len(matches) == 1
+    assert affected not in matches[0].specifier
+    assert patched in matches[0].specifier
+    assert name not in {Requirement(value).name for value in project["project"]["dependencies"]}
 
 
 def test_dependabot_delays_only_ordinary_version_updates() -> None:

@@ -103,7 +103,7 @@ def main() -> None:
     wheel = wheels[0]
     validate_metadata(wheel)
 
-    common = ["pytest==8.4.1", "pytest-asyncio==1.1.0"]
+    common = ["pytest==9.0.3", "pytest-asyncio==1.4.0", "pygments==2.20.0"]
     run_case(wheel, extra=None, tests=[BASE_TEST, HTTPX2_TEST], dependencies=common)
     run_case(wheel, extra="aiohttp", tests=[BASE_TEST], dependencies=common)
     run_case(
