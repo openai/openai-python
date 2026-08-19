@@ -548,15 +548,6 @@ wheels = [
 ]
 
 [[package]]
-name = "distro"
-version = "1.9.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/fc/f8/98eea607f65de6527f8a2e8885fc8015d3e6f5775df186e443e0964a11c3/distro-1.9.0.tar.gz", hash = "sha256:2fa77c6fd8940f116ee1d6b94a2f90b13b5ea8d019b98bc8bafdcabcdd9bdbed", size = 60722, upload-time = "2023-12-24T09:54:32.31Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/12/b3/231ffd4ab1fc9d679809f356cebee130ac7daa00d6d6f3206dd4fd137e9e/distro-1.9.0-py3-none-any.whl", hash = "sha256:7bffd925d65168f85027d8da9af6bddab658135b840670a223589bc0c8ef02b2", size = 20277, upload-time = "2023-12-24T09:54:30.421Z" },
-]
-
-[[package]]
 name = "exceptiongroup"
 version = "1.3.1"
 source = { registry = "https://pypi.org/simple" }
@@ -1316,7 +1307,6 @@ version = "3.3.0" # x-release-please-version
 source = { editable = "." }
 dependencies = [
     { name = "anyio" },
-    { name = "distro" },
     { name = "httpx2" },
     { name = "jiter" },
     { name = "pydantic", version = "1.10.26", source = { registry = "https://pypi.org/simple" }, marker = "extra == 'group-6-openai-pydantic-v1'" },
@@ -1383,7 +1373,6 @@ requires-dist = [
     { name = "aiohttp", marker = "extra == 'aiohttp'", specifier = ">=3.14.3" },
     { name = "anyio", specifier = ">=4.10.0,<5" },
     { name = "botocore", marker = "extra == 'bedrock'", specifier = ">=1.40.0,<2" },
-    { name = "distro", specifier = ">=1.7.0,<2" },
     { name = "httpx2", specifier = ">=2.7.0,<3" },
     { name = "jiter", specifier = ">=0.10.0,<1" },
     { name = "numpy", marker = "extra == 'datalib'", specifier = ">=1" },

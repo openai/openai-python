@@ -13,7 +13,6 @@ dependencies = [
   "pydantic>=1.9.0, <3",
   "typing-extensions>=4.14, <5",
   "anyio>=4.10.0, <5",
-  "distro>=1.7.0, <2",
   "sniffio",
   "jiter>=0.10.0, <1",
 ]
