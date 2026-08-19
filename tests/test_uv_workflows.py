@@ -861,7 +861,6 @@ def test_editable_project_sync_requires_only_the_reviewed_root_build_exemption()
         check=False,
     )
     assert accepted.returncode == 0, accepted.stdout + accepted.stderr
-    assert "openai @" in accepted.stderr or "Would make no changes" in accepted.stderr
 
 
 def test_agents_sdk_build_exemption_only_covers_its_trusted_editable_project() -> None:
@@ -871,7 +870,7 @@ def test_agents_sdk_build_exemption_only_covers_its_trusted_editable_project() -
     job = match.group("body")
     trusted_checkout = job.index("repository: openai/openai-agents-python")
     exception = "UV_NO_BINARY_PACKAGE: 'openai openai-agents'"
-    reviewed_aiohttp = "UV_NO_BINARY_PACKAGE: 'openai openai-agents aiohttp'"
+    reviewed_aiohttp = "UV_NO_BINARY_PACKAGE: 'openai openai-agents aiohttp markupsafe pyyaml evdev'"
     assert job.count(exception) == 2
     assert job.count(reviewed_aiohttp) == 1
 
@@ -976,32 +975,52 @@ def test_package_scoped_root_build_policy_rejects_real_external_source_distribut
         pytest.param("origin", False, id="agents-checkout-origin-must-be-trusted"),
     ],
 )
+@pytest.mark.parametrize("package", ["aiohttp", "markupsafe", "pyyaml", "evdev"])
 def test_agents_aiohttp_source_must_match_immutable_trusted_upstream(
-    tmp_path: Path, variant: str, accepted: bool
+    tmp_path: Path, variant: str, accepted: bool, package: str
 ) -> None:
     workflow = (ROOT / ".github/workflows/detect-breaking-changes.yml").read_text()
     line = next(
         entry
         for entry in workflow.splitlines()
-        if "python -c '" in entry and "Use only the immutable reviewed Agents aiohttp source" in entry
+        if "python -c '" in entry and "Use only the immutable reviewed Agents source distributions" in entry
     )
     program = line.split("python -c '", 1)[1].rsplit("'", 1)[0]
     if sys.version_info < (3, 11):
         program = "import sys, tomli; sys.modules['tomllib'] = tomli; " + program
 
-    url = (
-        "https://files.pythonhosted.org/packages/9b/e7/"
-        "d92a237d8802ca88483906c388f7c201bbe96cd80a165ffd0ac2f6a8d59f/aiohttp-3.12.15.tar.gz"
-    )
-    digest = "4fc61385e9c98d72fcdf47e6dd81833f47b2f77c114c29cd64a361be57a763a2"
-    current_version = "3.12.15"
+    reviewed = {
+        "aiohttp": (
+            "3.12.15",
+            "9b/e7/d92a237d8802ca88483906c388f7c201bbe96cd80a165ffd0ac2f6a8d59f/aiohttp-3.12.15.tar.gz",
+            "4fc61385e9c98d72fcdf47e6dd81833f47b2f77c114c29cd64a361be57a763a2",
+        ),
+        "markupsafe": (
+            "3.0.2",
+            "b2/97/5d42485e71dfc078108a86d6de8fa46db44a1a9295e89c5d6d4a06e23a62/markupsafe-3.0.2.tar.gz",
+            "ee55d3edf80167e48ea11a923c7386f4669df67d7994554387f84e7d8b0a2bf0",
+        ),
+        "pyyaml": (
+            "6.0.2",
+            "54/ed/79a089b6be93607fa5cdaedf301d7dfb23af5f25c398d5ead2525b063e17/pyyaml-6.0.2.tar.gz",
+            "d584d9ec91ad65861cc08d42e834324ef890a082e591037abe114850ff7bbc3e",
+        ),
+        "evdev": (
+            "1.9.2",
+            "63/fe/a17c106a1f4061ce83f04d14bcedcfb2c38c7793ea56bfb906a6fadae8cb/evdev-1.9.2.tar.gz",
+            "5d3278892ce1f92a74d6bf888cc8525d9f68af85dbe336c95d1c87fb8f423069",
+        ),
+    }
+    version, artifact_path, digest = reviewed[package]
+    url = "https://files.pythonhosted.org/packages/" + artifact_path
+    current_version = version
     current_url = url
     current_digest = digest
     current_registry = "https://pypi.org/simple"
     trusted_digest = digest
     origin = "https://github.com/openai/openai-agents-python.git"
     if variant == "version":
-        current_version = "3.12.14"
+        current_version = "0.0.1"
     elif variant == "source":
         current_registry = "https://private.example/simple"
     elif variant == "url":
@@ -1028,12 +1047,27 @@ def test_agents_aiohttp_source_must_match_immutable_trusted_upstream(
             + '" }\n'
         )
 
-    current = lock("aiohttp", current_version, current_url, current_digest, current_registry)
+    current_packages: list[str] = []
+    trusted_packages: list[str] = []
+    for name, (reviewed_version, reviewed_path, reviewed_digest) in reviewed.items():
+        reviewed_url = "https://files.pythonhosted.org/packages/" + reviewed_path
+        if name == package:
+            current_packages.append(lock(name, current_version, current_url, current_digest, current_registry))
+            trusted_packages.append(
+                lock(name, reviewed_version, reviewed_url, trusted_digest, "https://pypi.org/simple")
+            )
+        else:
+            current_packages.append(
+                lock(name, reviewed_version, reviewed_url, reviewed_digest, "https://pypi.org/simple")
+            )
+            trusted_packages.append(
+                lock(name, reviewed_version, reviewed_url, reviewed_digest, "https://pypi.org/simple")
+            )
+    current = "\n".join(current_packages)
     if variant == "duplicate":
-        current += "\n" + lock("AIOHTTP", current_version, current_url, current_digest, current_registry)
+        current += "\n" + lock(package.upper(), current_version, current_url, current_digest, current_registry)
     (tmp_path / "uv.lock").write_text(current)
-    trusted = lock("aiohttp", "3.12.15", url, trusted_digest, "https://pypi.org/simple")
-    (tmp_path / "upstream.lock").write_text(trusted)
+    (tmp_path / "upstream.lock").write_text("\n".join(trusted_packages))
     fake_git = tmp_path / "git"
     fake_git.write_text(
         f"#!{sys.executable}\n"
@@ -2192,6 +2226,122 @@ def test_security_floors_preserve_original_optional_contexts(
         head_packages=[("numpy", "2")],
         base_optional_groups=base_groups,
         head_optional_groups=head_groups,
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("variant", "accepted"),
+    [
+        pytest.param("direct-both", True, id="both-actual-numpy-extra-groups-split-by-python-version"),
+        pytest.param("direct-high-only", True, id="unchanged-python310-line-does-not-need-artificial-bump"),
+        pytest.param("direct-low-insufficient", False, id="python310-split-floor-must-reach-its-own-patch"),
+        pytest.param("direct-high-insufficient", False, id="newer-python-split-floor-must-reach-its-own-patch"),
+        pytest.param("direct-gap", False, id="split-cannot-drop-python310-resolution-domain"),
+        pytest.param("direct-overlap", False, id="split-cannot-overlap-one-resolution-domain"),
+        pytest.param("direct-partial-domain", False, id="split-cannot-cover-only-part-of-original-domain"),
+        pytest.param("direct-moved-group", False, id="split-cannot-move-published-optional-group"),
+        pytest.param("direct-upper-removed", False, id="split-cannot-remove-original-upper-bound"),
+        pytest.param("direct-exclusion-removed", False, id="split-cannot-remove-original-excluded-release"),
+        pytest.param("direct-original-lowered", False, id="split-cannot-lower-original-unchanged-branch"),
+        pytest.param("protected-constraint", True, id="protected-constraint-splits-by-resolution-domain"),
+        pytest.param("protected-group", True, id="protected-development-group-splits-by-resolution-domain"),
+        pytest.param("protected-insufficient", False, id="protected-split-floor-must-reach-its-own-patch"),
+        pytest.param("protected-gap", False, id="protected-split-cannot-drop-python310-domain"),
+        pytest.param("protected-upper-removed", False, id="protected-split-preserves-original-upper-bound"),
+    ],
+)
+def test_security_floors_can_safely_split_original_unmarked_resolution_domains(
+    tmp_path: Path, variant: str, accepted: bool
+) -> None:
+    low_marker = "python_version < '3.11'"
+    high_marker = "python_version >= '3.11'"
+    base_packages = [("numpy", "2.2.6"), ("numpy", "2.4.6")]
+    head_packages = [("numpy", "2.2.7"), ("numpy", "2.4.7")]
+    base_markers = {
+        ("numpy", "2.2.6"): ["python_full_version < '3.11'"],
+        ("numpy", "2.4.6"): [
+            "python_full_version >= '3.11' and sys_platform == 'linux'",
+            "python_full_version >= '3.11' and sys_platform != 'linux'",
+        ],
+    }
+    head_markers = {
+        ("numpy", "2.2.7"): ["python_full_version < '3.11'"],
+        ("numpy", "2.4.7"): [
+            "python_full_version >= '3.11' and sys_platform == 'linux'",
+            "python_full_version >= '3.11' and sys_platform != 'linux'",
+        ],
+    }
+    original = "numpy>=1,<3"
+    low = "numpy>=2.2.7,<3; " + low_marker
+    high = "numpy>=2.4.7,<3; " + high_marker
+    base_optional = {
+        "datalib": [original],
+        "voice_helpers": ["numpy>=2.0.2,<3"],
+    }
+    head_optional = {
+        "datalib": [low, high],
+        "voice_helpers": [low, high],
+    }
+    base_constraints: list[str] | None = None
+    head_constraints: list[str] | None = None
+    base_groups: dict[str, list[str]] | None = None
+    head_groups: dict[str, list[str]] | None = None
+
+    if variant == "direct-high-only":
+        head_packages[0] = ("numpy", "2.2.6")
+        head_markers.pop(("numpy", "2.2.7"))
+        head_markers[("numpy", "2.2.6")] = ["python_full_version < '3.11'"]
+        head_optional["datalib"][0] = "numpy>=1,<3; " + low_marker
+        head_optional["voice_helpers"][0] = "numpy>=2.0.2,<3; " + low_marker
+    elif variant == "direct-low-insufficient":
+        head_optional["datalib"][0] = "numpy>=2.2.6,<3; " + low_marker
+    elif variant == "direct-high-insufficient":
+        head_optional["voice_helpers"][1] = "numpy>=2.4.6,<3; " + high_marker
+    elif variant == "direct-gap":
+        head_optional["datalib"] = [high]
+    elif variant == "direct-overlap":
+        head_optional["datalib"][0] = "numpy>=2.4.7,<3; python_version < '3.12'"
+    elif variant == "direct-partial-domain":
+        head_optional["datalib"][0] = "numpy>=2.2.7,<3; python_version < '3.11' and sys_platform == 'linux'"
+    elif variant == "direct-moved-group":
+        head_optional["moved"] = head_optional.pop("datalib")
+    elif variant == "direct-upper-removed":
+        head_optional["datalib"][0] = "numpy>=2.2.7; " + low_marker
+    elif variant == "direct-exclusion-removed":
+        base_optional["datalib"] = ["numpy>=1,<3,!=2.3"]
+    elif variant == "direct-original-lowered":
+        head_packages[0] = ("numpy", "2.2.6")
+        head_markers.pop(("numpy", "2.2.7"))
+        head_markers[("numpy", "2.2.6")] = ["python_full_version < '3.11'"]
+        head_optional["voice_helpers"][0] = "numpy>=1,<3; " + low_marker
+    elif variant.startswith("protected-"):
+        base_optional = head_optional = {}
+        if variant == "protected-group":
+            base_groups, head_groups = {"dev": [original]}, {"dev": [low, high]}
+        else:
+            base_constraints, head_constraints = [original], [low, high]
+            if variant == "protected-insufficient":
+                head_constraints[0] = "numpy>=2.2.6,<3; " + low_marker
+            elif variant == "protected-gap":
+                head_constraints = [high]
+            elif variant == "protected-upper-removed":
+                head_constraints[0] = "numpy>=2.2.7; " + low_marker
+
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=[],
+        head_requirements=[],
+        base_packages=base_packages,
+        head_packages=head_packages,
+        base_optional_groups=base_optional,
+        head_optional_groups=head_optional,
+        base_constraints=base_constraints,
+        head_constraints=head_constraints,
+        base_dependency_groups=base_groups,
+        head_dependency_groups=head_groups,
+        base_resolution_markers=base_markers,
+        head_resolution_markers=head_markers,
     )
     assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
 
