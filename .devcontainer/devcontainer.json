@@ -7,7 +7,7 @@
     "context": ".."
   },
 
-  "postStartCommand": "uv sync --locked --all-extras",
+  "postStartCommand": "./scripts/bootstrap",
 
   "customizations": {
     "vscode": {
@@ -26,7 +26,10 @@
     }
   },
   "features": {
-    "ghcr.io/devcontainers/features/node:1": {}
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "22.22.3",
+      "pnpmVersion": "11.19.0"
+    }
   }
 
   // Features to add to the dev container. More info: https://containers.dev/features.

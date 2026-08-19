@@ -97,3 +97,20 @@ test('Node dependency policy stays fail-closed', () => {
     'allowBuilds: {}',
   ]) assert.ok(policy.split(/\r?\n/).includes(setting), `Missing policy: ${setting}`);
 });
+
+test('devcontainer installs the pinned toolchain and bootstraps local tools', (t) => {
+  const file = path.join(repository, '.devcontainer/devcontainer.json');
+  if (!fs.existsSync(file)) {
+    t.skip('Devcontainer configuration is not included in source distributions');
+    return;
+  }
+  // This checked-in JSONC file uses only whole-line comments.
+  const config = JSON.parse(fs.readFileSync(file, 'utf8').split(/\r?\n/)
+    .filter((line) => !line.trimStart().startsWith('//')).join('\n'));
+  const manifest = JSON.parse(fs.readFileSync(path.join(repository, 'package.json')));
+  const feature = config.features['ghcr.io/devcontainers/features/node:1'];
+  assert.equal(feature.version, manifest.engines.node);
+  assert.equal(feature.version, fs.readFileSync(path.join(repository, '.node-version'), 'utf8').trim());
+  assert.equal(`pnpm@${feature.pnpmVersion}`, manifest.packageManager);
+  assert.equal(config.postStartCommand, './scripts/bootstrap');
+});
