@@ -8,7 +8,7 @@ must include a release note naming the final compatible SDK release.
 ### With uv
 
 We use [uv](https://docs.astral.sh/uv/) to manage Python, dependencies, and builds.
-Install uv 0.12.5 or newer, then run:
+Install uv 0.12.1 or newer, then run:
 
 ```sh
 $ ./scripts/bootstrap

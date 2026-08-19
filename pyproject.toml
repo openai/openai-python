@@ -83,7 +83,8 @@ build = [
 ]
 
 [tool.uv]
-required-version = ">=0.12.5"
+# Keep the minimum compatible with Dependabot's uv updater; CI pins its version.
+required-version = ">=0.12.1"
 exclude-newer = "8 days"
 default-groups = ["dev", "pydantic-v2"]
 conflicts = [[{ group = "pydantic-v1" }, { group = "pydantic-v2" }]]
