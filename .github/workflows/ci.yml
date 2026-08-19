@@ -114,9 +114,17 @@ jobs:
           old_direct, new_direct = direct(old_project), direct(new_project)
           old_versions, new_versions = versions(old_lock), versions(new_lock)
           for name, requirements in new_direct.items():
+              previous = old_direct.get(name, set())
+              if previous != requirements:
+                  previous_minimums = minimums(previous, allow_missing=True)
+                  if previous_minimums:
+                      updated_minimums = minimums(requirements)
+                      if len(updated_minimums) != len(previous_minimums) or any(
+                          updated < previous for previous, updated in zip(previous_minimums, updated_minimums)
+                      ):
+                          raise SystemExit("Do not lower a published security-fixed minimum for " + name)
               if old_versions.get(name, set()) == new_versions.get(name, set()):
                   continue
-              previous = old_direct.get(name, set())
               if previous == requirements:
                   raise SystemExit("Raise the published security-fixed minimum for " + name)
               patched_versions = new_versions.get(name, set()) - old_versions.get(name, set())
