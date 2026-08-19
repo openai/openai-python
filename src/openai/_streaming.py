@@ -1,6 +1,7 @@
 # Note: initially copied from https://github.com/florimondmanca/httpx-sse/blob/master/src/httpx_sse/_decoders.py
 from __future__ import annotations
 
+import re
 import json
 import inspect
 from types import TracebackType
@@ -280,61 +281,123 @@ class ServerSentEvent:
         return f"ServerSentEvent(event={self.event}, data={self.data}, id={self.id}, retry={self.retry})"
 
 
+# Large enough for image/audio payloads, while keeping incomplete events finite.
+_DEFAULT_MAX_SSE_SIZE = 64 * 1024 * 1024
+_SSE_LINE_END = re.compile(b"[\\r\\n]")
+
+
+class _SSELineDecoder:
+    """Incrementally split CR, LF, and CRLF without copying growing prefixes."""
+
+    def __init__(self, *, max_line_size: int, max_event_size: int) -> None:
+        self._max_line_size = max_line_size
+        self._max_event_size = max_event_size
+        self._buffer = bytearray()
+        self._event_size = 0
+        self._skip_lf = False
+
+    def _append(self, chunk: bytes, start: int, end: int) -> None:
+        size = end - start
+        if len(self._buffer) + size > self._max_line_size:
+            raise ValueError("SSE line exceeded maximum size")
+        self._count(size)
+        self._buffer.extend(memoryview(chunk)[start:end])
+
+    def _count(self, size: int) -> None:
+        if self._event_size + size > self._max_event_size:
+            raise ValueError("SSE event exceeded maximum size")
+        self._event_size += size
+
+    def feed(self, chunk: bytes) -> Iterator[bytes]:
+        start = 0
+        for match in _SSE_LINE_END.finditer(chunk):
+            end = match.start()
+            if self._skip_lf and end == start and chunk[end] == 10:
+                self._skip_lf = False
+                start = end + 1
+                continue
+            self._skip_lf = False
+            self._append(chunk, start, end)
+            # Count each logical line ending once, independently of CRLF chunking.
+            self._count(1)
+            line = bytes(self._buffer)
+            self._buffer.clear()
+            if not line:
+                self._event_size = 0
+            self._skip_lf = chunk[end] == 13
+            start = end + 1
+            yield line
+        if start < len(chunk):
+            self._skip_lf = False
+            self._append(chunk, start, len(chunk))
+
+    def finish(self) -> Iterator[bytes]:
+        if self._buffer:
+            line = bytes(self._buffer)
+            self._buffer.clear()
+            yield line
+
+
 class SSEDecoder:
+    """Decode SSE with bounded lines and events.
+
+    Limits are UTF-8 byte counts. Line endings count as one byte toward the
+    event limit, including the terminating blank line. Comments and ignored
+    fields count too. Larger trusted payloads can use a custom decoder from
+    ``_make_sse_decoder`` with larger positive limits. Oversized input raises
+    ``ValueError`` without including response data.
+    """
+
     _data: list[str]
     _event: str | None
     _retry: int | None
     _last_event_id: str | None
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        *,
+        max_line_size: int = _DEFAULT_MAX_SSE_SIZE,
+        max_event_size: int = _DEFAULT_MAX_SSE_SIZE,
+    ) -> None:
+        if max_line_size <= 0 or max_event_size <= 0:
+            raise ValueError("SSE size limits must be positive")
+        self._max_line_size = max_line_size
+        self._max_event_size = max_event_size
+        self._reset()
+
+    def _reset(self) -> None:
         self._event = None
         self._data = []
         self._last_event_id = None
         self._retry = None
 
-    def iter_bytes(self, iterator: Iterator[bytes]) -> Iterator[ServerSentEvent]:
-        """Given an iterator that yields raw binary data, iterate over it & yield every event encountered"""
-        for chunk in self._iter_chunks(iterator):
-            # Split before decoding so splitlines() only uses \r and \n
-            for raw_line in chunk.splitlines():
-                line = raw_line.decode("utf-8")
-                sse = self.decode(line)
-                if sse:
-                    yield sse
+    def _decode_lines(self, lines: Iterator[bytes]) -> Iterator[ServerSentEvent]:
+        for raw_line in lines:
+            sse = self.decode(raw_line.decode("utf-8"))
+            if sse:
+                yield sse
 
-    def _iter_chunks(self, iterator: Iterator[bytes]) -> Iterator[bytes]:
-        """Given an iterator that yields raw binary data, iterate over it and yield individual SSE chunks"""
-        data = b""
-        for chunk in iterator:
-            for line in chunk.splitlines(keepends=True):
-                data += line
-                if data.endswith((b"\r\r", b"\n\n", b"\r\n\r\n")):
-                    yield data
-                    data = b""
-        if data:
-            yield data
+    def iter_bytes(self, iterator: Iterator[bytes]) -> Iterator[ServerSentEvent]:
+        """Given raw binary data, yield every event encountered."""
+        decoder = _SSELineDecoder(max_line_size=self._max_line_size, max_event_size=self._max_event_size)
+        try:
+            for chunk in iterator:
+                yield from self._decode_lines(decoder.feed(chunk))
+            yield from self._decode_lines(decoder.finish())
+        finally:
+            self._reset()
 
     async def aiter_bytes(self, iterator: AsyncIterator[bytes]) -> AsyncIterator[ServerSentEvent]:
-        """Given an iterator that yields raw binary data, iterate over it & yield every event encountered"""
-        async for chunk in self._aiter_chunks(iterator):
-            # Split before decoding so splitlines() only uses \r and \n
-            for raw_line in chunk.splitlines():
-                line = raw_line.decode("utf-8")
-                sse = self.decode(line)
-                if sse:
+        """Given async raw binary data, yield every event encountered."""
+        decoder = _SSELineDecoder(max_line_size=self._max_line_size, max_event_size=self._max_event_size)
+        try:
+            async for chunk in iterator:
+                for sse in self._decode_lines(decoder.feed(chunk)):
                     yield sse
-
-    async def _aiter_chunks(self, iterator: AsyncIterator[bytes]) -> AsyncIterator[bytes]:
-        """Given an iterator that yields raw binary data, iterate over it and yield individual SSE chunks"""
-        data = b""
-        async for chunk in iterator:
-            for line in chunk.splitlines(keepends=True):
-                data += line
-                if data.endswith((b"\r\r", b"\n\n", b"\r\n\r\n")):
-                    yield data
-                    data = b""
-        if data:
-            yield data
+            for sse in self._decode_lines(decoder.finish()):
+                yield sse
+        finally:
+            self._reset()
 
     def decode(self, line: str) -> ServerSentEvent | None:
         # See: https://html.spec.whatwg.org/multipage/server-sent-events.html#event-stream-interpretation  # noqa: E501
