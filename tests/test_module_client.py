@@ -236,7 +236,7 @@ def test_azure_module_rejects_conflicting_explicit_auth(forced: bool) -> None:
         openai.api_key = "fake-explicit-key"
         openai.azure_ad_token_provider = lambda: "fake-explicit-token"
         with pytest.raises(MutuallyExclusiveAuthError):
-            openai.models._client  # noqa: B018
+            _ = openai.models._client
 
 
 def test_azure_module_import_does_not_make_ambient_token_explicit() -> None:
@@ -271,7 +271,7 @@ def test_azure_module_preserves_provider_ambiguity() -> None:
         _os.environ["OPENAI_API_KEY"] = "fake-openai-key"
         _os.environ["AZURE_OPENAI_AD_TOKEN"] = "fake-azure-token"
         with pytest.raises(openai.OpenAIError, match="Ambiguous use of module client"):
-            openai.models._client  # noqa: B018
+            _ = openai.models._client
 
 
 def test_bedrock_token_and_region_env() -> None:
