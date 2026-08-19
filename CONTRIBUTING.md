@@ -8,17 +8,31 @@ must include a release note naming the final compatible SDK release.
 ### With uv
 
 We use [uv](https://docs.astral.sh/uv/) to manage Python, dependencies, and builds.
-Install uv 0.12.1 or newer, then run:
+Install uv 0.12.1 or newer, Node.js at the version in `.node-version`, and
+the exact pnpm version in `package.json` (`npm install --global pnpm@11.19.0`).
+The Node toolchain is for repository development only, not SDK users or builds.
+Then run:
 
 ```sh
 $ ./scripts/bootstrap
 ```
 
-This installs all SDK extras and the development tools from `uv.lock`. Run a
+This installs all SDK extras and Python development tools from `uv.lock`, plus
+the contributor tools from `pnpm-lock.yaml`. Bootstrap requires an already
+installed Node.js and pnpm; it does not download or switch those tools for you.
+Run a
 command with `uv run --locked --all-extras`, or activate `.venv` in your shell.
 Use `uv lock` after changing dependencies, and commit the updated `uv.lock`.
 It is the authoritative lockfile; `uv export` can produce a requirements file
 for tools that need one.
+
+For Node tooling updates, edit `package.json`, run
+`pnpm install --lockfile-only --ignore-scripts`, review the dependency and
+integrity changes, and commit `pnpm-lock.yaml`. Normal bootstrap uses a frozen
+lockfile. pnpm rejects releases that have not cleared the eight-day cooldown,
+including packages whose registry metadata omits their publication date.
+Pyright runs the local Microsoft package and never invokes npm or
+downloads a runtime. Do not use `npx`, `pnpm dlx`, or Corepack auto-downloads.
 
 The default environment uses Pydantic v2. `./scripts/test` also runs the
 Pydantic-v1 suite in a separate, locked environment. To run that lane alone,
@@ -26,7 +40,7 @@ use `./scripts/test-pydantic-v1`.
 
 ### Dependency update policy
 
-Routine Python and GitHub Actions updates have an eight-day cooldown. uv also
+Routine Python, Node-tooling, and GitHub Actions updates have an eight-day cooldown. uv also
 excludes Python distribution artifacts uploaded within the last eight days.
 Dependabot security updates remain enabled and are exempt from Dependabot's
 version-update cooldown.
@@ -42,6 +56,12 @@ retain the security floor in published metadata where applicable, and review
 the resulting lock diff. Record the advisory and an expiry/removal date in the
 PR and remove the exception once those artifacts are eight days old. Do not
 disable the global cutoff or exempt unrelated packages.
+
+For an urgent Node-tooling security fix, obtain the same CODEOWNER review and
+use a temporary, exact `package@version` entry in pnpm's
+`minimumReleaseAgeExclude`. Record the public advisory, integrity/provenance,
+and removal date in the PR. Do not lower an existing security-fixed version,
+disable the global age policy, or enable lifecycle scripts globally.
 
 See [uv's package-specific cutoff documentation](https://docs.astral.sh/uv/reference/settings/#exclude-newer-package)
 and [Dependabot's cooldown policy](https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-options-reference#cooldown).
