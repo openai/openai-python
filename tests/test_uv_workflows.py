@@ -62,7 +62,7 @@ def test_dependabot_delays_only_ordinary_version_updates() -> None:
         pytest.skip("GitHub configuration is not included in source distributions")
     config = path.read_text()
     entries = re.findall(r"^  - package-ecosystem: ([\w-]+)\n(.*?)(?=^  - |\Z)", config, re.M | re.S)
-    assert {name for name, _ in entries} == {"uv", "github-actions"}
+    assert {name for name, _ in entries} == {"uv", "github-actions", "npm"}
     for _, entry in entries:
         assert re.search(r"^    cooldown:\n      default-days: 8$", entry, re.M)
         assert re.search(r"^    directory: /$", entry, re.M)
