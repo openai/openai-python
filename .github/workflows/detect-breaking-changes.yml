@@ -18,20 +18,14 @@ jobs:
     if: github.repository == 'openai/openai-python' && (github.event_name == 'pull_request' || github.event_name == 'merge_group')
     env:
       BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
-      FETCH_DEPTH: 0
     steps:
-      - name: Calculate fetch-depth
-        if: github.event_name == 'pull_request'
-        env:
-          PR_COMMITS: ${{ github.event.pull_request.commits }}
-        run: |
-          echo "FETCH_DEPTH=$((PR_COMMITS + 1))" >> "$GITHUB_ENV"
-
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           persist-credentials: false
-          # Ensure the comparison base is available to the scripts below.
-          fetch-depth: ${{ env.FETCH_DEPTH }}
+          fetch-depth: 1
+
+      - name: Fetch comparison base
+        run: git fetch --no-tags --depth=1 origin "$BASE_SHA"
 
       - name: Set up uv
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
