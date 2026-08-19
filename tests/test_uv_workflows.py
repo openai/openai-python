@@ -102,6 +102,13 @@ def run_dependency_lock_source_check(
     uv_overrides: dict[str, object] | None = None,
     extra_uv_config: str | None = None,
     project_name: str | None = None,
+    trusted_fork: bool = False,
+    trusted_base_requires: list[str] | None = None,
+    trusted_base_group: list[str] | None = None,
+    trusted_base_constraints: list[str] | None = None,
+    trusted_base_backend: str = "hatchling.build",
+    trusted_base_sha: str = "a" * 40,
+    trusted_origin: str = "https://github.com/openai/openai-python.git",
 ) -> subprocess.CompletedProcess[str]:
     project = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]
     requires = ["hatchling==1.27.0"] if build_requires is None else build_requires
@@ -191,9 +198,50 @@ def run_dependency_lock_source_check(
         lines.append("")
 
     (tmp_path / "uv.lock").write_text("\n".join(lines))
+    environment = dict(
+        os.environ,
+        UNTRUSTED_BUILD_FORK="1" if trusted_fork else "0",
+        TRUSTED_BUILD_BASE_SHA=trusted_base_sha,
+    )
+    if trusted_fork:
+        reviewed_requires = ["hatchling==1.27.0"] if trusted_base_requires is None else trusted_base_requires
+        reviewed_group = ["hatchling==1.27.0"] if trusted_base_group is None else trusted_base_group
+        reviewed_constraints = ["hatchling==1.27.0"] if trusted_base_constraints is None else trusted_base_constraints
+        trusted_configuration = (
+            "[build-system]\nrequires = "
+            + json.dumps(reviewed_requires)
+            + "\nbuild-backend = "
+            + json.dumps(trusted_base_backend)
+            + "\n[dependency-groups]\nbuild = "
+            + json.dumps(reviewed_group)
+            + "\n[tool.uv]\nbuild-constraint-dependencies = "
+            + json.dumps(reviewed_constraints)
+            + "\n"
+        )
+        (tmp_path / "trusted-base.toml").write_text(trusted_configuration)
+        fake_git = tmp_path / "git"
+        fake_git.write_text(
+            f"#!{sys.executable}\n"
+            "import pathlib, sys\n"
+            f"root = pathlib.Path({str(tmp_path)!r})\n"
+            f"origin = {trusted_origin!r}\n"
+            f"sha = {trusted_base_sha!r}\n"
+            "arguments = sys.argv[1:]\n"
+            "if arguments == ['remote', 'get-url', 'origin']:\n"
+            "    print(origin)\n"
+            "elif arguments == ['fetch', '--no-tags', '--depth=1', 'origin', sha]:\n"
+            "    pass\n"
+            "elif arguments == ['show', sha + ':pyproject.toml']:\n"
+            "    print((root / 'trusted-base.toml').read_text(), end='')\n"
+            "else:\n"
+            "    raise SystemExit('Unexpected or unsafe git operation')\n"
+        )
+        fake_git.chmod(0o755)
+        environment["PATH"] = str(tmp_path) + os.pathsep + environment["PATH"]
     return subprocess.run(
         [sys.executable, "-c", dependency_lock_source_command()],
         cwd=tmp_path,
+        env=environment,
         capture_output=True,
         text=True,
         check=False,
@@ -481,6 +529,130 @@ def test_root_build_requirements_must_be_public_locked_and_reviewed(
 @pytest.mark.parametrize(
     ("variant", "accepted"),
     [
+        pytest.param("reviewed-fork", True, id="fork-keeps-trusted-base-build-pins"),
+        pytest.param("fork-hatchling-downgrade", False, id="fork-cannot-downgrade-public-hatchling"),
+        pytest.param("fork-hatchling-upgrade", False, id="fork-cannot-swap-public-hatchling-release"),
+        pytest.param("fork-build-pin-downgrade", False, id="fork-cannot-change-transitive-backend-pin"),
+        pytest.param("fork-extra-build-pin", False, id="fork-cannot-add-unreviewed-backend-package"),
+        pytest.param("fork-marker-change", False, id="fork-cannot-change-reviewed-build-marker"),
+        pytest.param("fork-marker-literal-case", False, id="fork-cannot-change-case-sensitive-marker"),
+        pytest.param("fork-backend-change", False, id="fork-backend-must-match-trusted-base"),
+        pytest.param("fork-invalid-base-sha", False, id="fork-rejects-untrusted-base-sha"),
+        pytest.param("fork-foreign-origin", False, id="fork-rejects-untrusted-git-origin"),
+        pytest.param("fork-credential-origin", False, id="fork-rejects-credential-bearing-origin"),
+        pytest.param("fork-canonical-reorder", True, id="fork-allows-canonical-pins-and-reordering"),
+        pytest.param("fork-reviewed-base-update", True, id="fork-allows-already-reviewed-base-update"),
+        pytest.param("trusted-maintainer-update", True, id="same-repo-maintainer-can-update-build-pins"),
+        pytest.param("trusted-dependabot-update", True, id="same-repo-security-bot-can-update-build-pins"),
+    ],
+)
+def test_fork_build_backend_must_match_immutable_reviewed_base(tmp_path: Path, variant: str, accepted: bool) -> None:
+    project = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]
+    root: dict[str, object] = {
+        "name": project["name"],
+        "version": project["version"],
+        "source": {"editable": "."},
+    }
+    hatchling: dict[str, object] = {
+        "name": "hatchling",
+        "version": "1.27.0",
+        "source": {"registry": "https://pypi.org/simple"},
+    }
+    packages: list[dict[str, object]] = [root, hatchling]
+    requires = ["hatchling==1.27.0"]
+    group = ["hatchling==1.27.0"]
+    constraints = ["hatchling==1.27.0"]
+    base_requires = ["hatchling==1.27.0"]
+    base_group = ["hatchling==1.27.0"]
+    base_constraints = ["hatchling==1.27.0"]
+    base_backend = "hatchling.build"
+    base_sha = "a" * 40
+    origin = "https://github.com/openai/openai-python.git"
+    fork = not variant.startswith("trusted-")
+
+    if variant in {"fork-hatchling-downgrade", "fork-hatchling-upgrade"}:
+        version = "1.26.0" if variant == "fork-hatchling-downgrade" else "1.28.0"
+        hatchling["version"] = version
+        requires = group = constraints = ["hatchling==" + version]
+    elif variant in {"fork-build-pin-downgrade", "fork-extra-build-pin", "fork-canonical-reorder"}:
+        version = "25.0" if variant == "fork-build-pin-downgrade" else "26.3"
+        packages.append(
+            {
+                "name": "packaging",
+                "version": version,
+                "source": {"registry": "https://pypi.org/simple"},
+            }
+        )
+        if variant == "fork-canonical-reorder":
+            group = constraints = ["PACKAGING == 26.3", "hatchling==1.27.0"]
+        else:
+            group = constraints = ["hatchling==1.27.0", "packaging==" + version]
+        if variant != "fork-extra-build-pin":
+            base_group = base_constraints = ["hatchling==1.27.0", "packaging==26.3"]
+    elif variant in {"fork-marker-change", "fork-marker-literal-case"}:
+        packages.append(
+            {
+                "name": "tomli",
+                "version": "2.4.1",
+                "source": {"registry": "https://pypi.org/simple"},
+            }
+        )
+        if variant == "fork-marker-change":
+            head_marker = "python_version < '3.12'"
+            base_marker = "python_version < '3.11'"
+        else:
+            head_marker = "sys_platform == 'linux'"
+            base_marker = "sys_platform == 'Linux'"
+        group = constraints = ["hatchling==1.27.0", "tomli==2.4.1; " + head_marker]
+        base_group = base_constraints = ["hatchling==1.27.0", "tomli==2.4.1; " + base_marker]
+    elif variant == "fork-backend-change":
+        base_backend = "reviewed.backend"
+    elif variant == "fork-invalid-base-sha":
+        base_sha = "a" * 39 + "Z"
+    elif variant == "fork-foreign-origin":
+        origin = "https://github.com/unreviewed/openai-python.git"
+    elif variant == "fork-credential-origin":
+        origin = "https://token@github.com/openai/openai-python.git"
+    elif variant in {"fork-reviewed-base-update", "trusted-maintainer-update", "trusted-dependabot-update"}:
+        hatchling["version"] = "1.28.0"
+        requires = group = constraints = ["hatchling==1.28.0"]
+        if variant == "fork-reviewed-base-update":
+            base_requires = base_group = base_constraints = ["hatchling==1.28.0"]
+
+    result = run_dependency_lock_source_check(
+        tmp_path,
+        packages,
+        build_requires=requires,
+        build_group=group,
+        build_constraints=constraints,
+        trusted_fork=fork,
+        trusted_base_requires=base_requires,
+        trusted_base_group=base_group,
+        trusted_base_constraints=base_constraints,
+        trusted_base_backend=base_backend,
+        trusted_base_sha=base_sha,
+        trusted_origin=origin,
+    )
+
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+def test_fork_build_provenance_uses_immutable_pull_request_identity() -> None:
+    for name in ("ci.yml", "detect-breaking-changes.yml"):
+        workflow = (ROOT / ".github/workflows" / name).read_text()
+        environment = workflow.split("\njobs:\n", 1)[0].rsplit("\nenv:\n", 1)[1]
+        fork = next(line for line in environment.splitlines() if "UNTRUSTED_BUILD_FORK:" in line)
+        base = next(line for line in environment.splitlines() if "TRUSTED_BUILD_BASE_SHA:" in line)
+        assert "github.event_name == 'pull_request'" in fork
+        assert "github.event.pull_request.head.repo.id != github.event.pull_request.base.repo.id" in fork
+        assert "github.event_name == 'pull_request'" in base
+        assert "github.event.pull_request.base.sha" in base
+        assert "github.sha" not in base
+
+
+@pytest.mark.parametrize(
+    ("variant", "accepted"),
+    [
         pytest.param("reviewed-wheel", True, id="reviewed-public-wheel"),
         pytest.param("sdist-only", False, id="unreviewed-source-distribution-backend"),
         pytest.param("empty-wheels", False, id="empty-wheel-list"),
@@ -689,7 +861,7 @@ def test_editable_project_sync_requires_only_the_reviewed_root_build_exemption()
         check=False,
     )
     assert accepted.returncode == 0, accepted.stdout + accepted.stderr
-    assert "openai @" in accepted.stderr
+    assert "openai @" in accepted.stderr or "Would make no changes" in accepted.stderr
 
 
 def test_agents_sdk_build_exemption_only_covers_its_trusted_editable_project() -> None:
@@ -699,7 +871,9 @@ def test_agents_sdk_build_exemption_only_covers_its_trusted_editable_project() -
     job = match.group("body")
     trusted_checkout = job.index("repository: openai/openai-agents-python")
     exception = "UV_NO_BINARY_PACKAGE: 'openai openai-agents'"
-    assert job.count(exception) == 3
+    reviewed_aiohttp = "UV_NO_BINARY_PACKAGE: 'openai openai-agents aiohttp'"
+    assert job.count(exception) == 2
+    assert job.count(reviewed_aiohttp) == 1
 
     for command in ("uv add ../openai-python", "make sync", "make mypy"):
         command_index = job.index(command)
@@ -710,9 +884,176 @@ def test_agents_sdk_build_exemption_only_covers_its_trusted_editable_project() -
             step_end = len(job)
         step = job[step_start:step_end]
         assert "working-directory: openai-agents-python" in step
-        assert exception in step
+        assert (reviewed_aiohttp if command == "make sync" else exception) in step
 
     assert exception not in job[:trusted_checkout]
+    assert reviewed_aiohttp not in job[:trusted_checkout]
+
+
+def test_explicit_root_build_keeps_every_public_dependency_source_build_disabled(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    build = dependency_workflow_jobs()["build"]
+    match = re.search(
+        r"      - name: Run build\n        run: \|\n(?P<body>(?:          [^\n]*\n)+)",
+        build,
+    )
+    assert match is not None
+    script = "\n".join(line[10:] for line in match.group("body").splitlines())
+    assert "env -u UV_NO_BUILD UV_NO_BUILD_PACKAGE=" in script
+    assert "UV_NO_BUILD=0" not in script
+
+    log = tmp_path / "calls.jsonl"
+    executable = tmp_path / "uv"
+    executable.write_text(
+        f"#!{sys.executable}\n"
+        "import json, os, pathlib, sys\n"
+        "entry = {'args': sys.argv[1:], 'no_build': os.environ.get('UV_NO_BUILD'), "
+        "'no_build_packages': os.environ.get('UV_NO_BUILD_PACKAGE')}\n"
+        "with open(os.environ['UV_TEST_LOG'], 'a') as output:\n"
+        "    output.write(json.dumps(entry) + '\\n')\n"
+        "if sys.argv[1] == 'export':\n"
+        "    pathlib.Path(sys.argv[sys.argv.index('--output-file') + 1]).write_text('reviewed\\n')\n"
+        "if sys.argv[1] == 'build':\n"
+        "    assert '--no-sources' in sys.argv and '--require-hashes' in sys.argv\n"
+        "    assert pathlib.Path(sys.argv[sys.argv.index('--build-constraints') + 1]).read_text() == 'reviewed\\n'\n"
+    )
+    executable.chmod(0o755)
+    monkeypatch.setenv("PATH", str(tmp_path) + os.pathsep + os.environ["PATH"])
+    monkeypatch.setenv("UV_TEST_LOG", str(log))
+    monkeypatch.setenv("UV_NO_BUILD", "1")
+
+    result = subprocess.run(["bash", "-e", "-c", script], cwd=ROOT, capture_output=True, text=True, check=False)
+    assert result.returncode == 0, result.stdout + result.stderr
+    calls: list[dict[str, Any]] = [json.loads(line) for line in log.read_text().splitlines()]
+    assert [call["args"][0] for call in calls] == ["export", "build"]
+    lock = tomllib.loads((ROOT / "uv.lock").read_text())
+    expected = {
+        re.sub(r"[-_.]+", "-", cast(str, package["name"])).lower()
+        for package in cast(list[dict[str, object]], lock["package"])
+        if package["source"] == {"registry": "https://pypi.org/simple"}
+    }
+    assert expected
+    assert "openai" not in expected
+    for call in calls:
+        assert call["no_build"] is None
+        assert set(cast(str, call["no_build_packages"]).split()) == expected
+
+
+def test_package_scoped_root_build_policy_rejects_real_external_source_distribution(tmp_path: Path) -> None:
+    uv = shutil.which("uv")
+    if uv is None:
+        pytest.skip("uv is not installed")
+
+    environment = dict(os.environ)
+    environment.pop("UV_NO_BUILD", None)
+    environment["UV_NO_BUILD_PACKAGE"] = "aiohttp"
+    environment["UV_NO_BINARY_PACKAGE"] = "openai aiohttp"
+    environment["UV_PROJECT_ENVIRONMENT"] = str(tmp_path / "isolated")
+    result = subprocess.run(
+        [uv, "--no-config", "sync", "--frozen", "--all-extras", "--offline", "--dry-run"],
+        cwd=ROOT,
+        env=environment,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode != 0
+    assert "aiohttp" in result.stderr
+    assert "--no-build" in result.stderr
+
+
+@pytest.mark.parametrize(
+    ("variant", "accepted"),
+    [
+        pytest.param("reviewed", True, id="trusted-agents-aiohttp-source"),
+        pytest.param("version", False, id="agents-aiohttp-version-swapped"),
+        pytest.param("source", False, id="agents-aiohttp-private-registry"),
+        pytest.param("url", False, id="agents-aiohttp-source-url-swapped"),
+        pytest.param("hash", False, id="agents-aiohttp-source-hash-swapped"),
+        pytest.param("duplicate", False, id="agents-aiohttp-canonical-name-collision"),
+        pytest.param("trusted-hash", False, id="upstream-aiohttp-source-must-be-reviewed"),
+        pytest.param("origin", False, id="agents-checkout-origin-must-be-trusted"),
+    ],
+)
+def test_agents_aiohttp_source_must_match_immutable_trusted_upstream(
+    tmp_path: Path, variant: str, accepted: bool
+) -> None:
+    workflow = (ROOT / ".github/workflows/detect-breaking-changes.yml").read_text()
+    line = next(
+        entry
+        for entry in workflow.splitlines()
+        if "python -c '" in entry and "Use only the immutable reviewed Agents aiohttp source" in entry
+    )
+    program = line.split("python -c '", 1)[1].rsplit("'", 1)[0]
+    if sys.version_info < (3, 11):
+        program = "import sys, tomli; sys.modules['tomllib'] = tomli; " + program
+
+    url = (
+        "https://files.pythonhosted.org/packages/9b/e7/"
+        "d92a237d8802ca88483906c388f7c201bbe96cd80a165ffd0ac2f6a8d59f/aiohttp-3.12.15.tar.gz"
+    )
+    digest = "4fc61385e9c98d72fcdf47e6dd81833f47b2f77c114c29cd64a361be57a763a2"
+    current_version = "3.12.15"
+    current_url = url
+    current_digest = digest
+    current_registry = "https://pypi.org/simple"
+    trusted_digest = digest
+    origin = "https://github.com/openai/openai-agents-python.git"
+    if variant == "version":
+        current_version = "3.12.14"
+    elif variant == "source":
+        current_registry = "https://private.example/simple"
+    elif variant == "url":
+        current_url = "https://unreviewed.example/packages/aiohttp.tar.gz"
+    elif variant == "hash":
+        current_digest = "b" * 64
+    elif variant == "trusted-hash":
+        current_digest = trusted_digest = "b" * 64
+    elif variant == "origin":
+        origin = "https://github.com/unreviewed/openai-agents-python.git"
+
+    def lock(name: str, version: str, artifact_url: str, artifact_digest: str, registry: str) -> str:
+        return (
+            "[[package]]\nname = "
+            + json.dumps(name)
+            + "\nversion = "
+            + json.dumps(version)
+            + "\nsource = { registry = "
+            + json.dumps(registry)
+            + " }\nsdist = { url = "
+            + json.dumps(artifact_url)
+            + ', hash = "sha256:'
+            + artifact_digest
+            + '" }\n'
+        )
+
+    current = lock("aiohttp", current_version, current_url, current_digest, current_registry)
+    if variant == "duplicate":
+        current += "\n" + lock("AIOHTTP", current_version, current_url, current_digest, current_registry)
+    (tmp_path / "uv.lock").write_text(current)
+    trusted = lock("aiohttp", "3.12.15", url, trusted_digest, "https://pypi.org/simple")
+    (tmp_path / "upstream.lock").write_text(trusted)
+    fake_git = tmp_path / "git"
+    fake_git.write_text(
+        f"#!{sys.executable}\n"
+        "import pathlib, sys\n"
+        f"root = pathlib.Path({str(tmp_path)!r})\n"
+        f"origin = {origin!r}\n"
+        "arguments = sys.argv[1:]\n"
+        "if arguments == ['remote', 'get-url', 'origin']:\n"
+        "    print(origin)\n"
+        "elif arguments == ['show', 'HEAD:uv.lock']:\n"
+        "    print((root / 'upstream.lock').read_text(), end='')\n"
+        "else:\n"
+        "    raise SystemExit('Unexpected Agents checkout operation')\n"
+    )
+    fake_git.chmod(0o755)
+    environment = dict(os.environ, PATH=str(tmp_path) + os.pathsep + os.environ["PATH"])
+    result = subprocess.run(
+        [sys.executable, "-c", program], cwd=tmp_path, env=environment, capture_output=True, text=True, check=False
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
 
 
 @pytest.mark.parametrize("name", ["detect_breaking_changes", "agents_sdk"])
