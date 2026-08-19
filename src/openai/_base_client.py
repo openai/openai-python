@@ -34,7 +34,6 @@ from typing import (
 from typing_extensions import Unpack, Literal, override, get_origin
 
 import anyio
-import distro
 import httpx2
 import pydantic
 from httpx2 import URL
@@ -2186,9 +2185,18 @@ def get_platform() -> Platform:
         # system is Linux and platform_name is a string like 'Linux-5.10.81-android12-9-00001-geba40aecb3b7-ab8534902-aarch64-with-libc'
         return "Android"
 
+    if system == "freebsd":
+        return "FreeBSD"
+
+    if system == "openbsd":
+        return "OpenBSD"
+
     if system == "linux":
-        # https://distro.readthedocs.io/en/latest/#distro.id
-        distro_id = distro.id()
+        try:
+            distro_id = platform.freedesktop_os_release().get("ID", "").lower()
+        except OSError:
+            # This diagnostic header does not require an os-release file.
+            distro_id = ""
         if distro_id == "freebsd":
             return "FreeBSD"
 
