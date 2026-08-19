@@ -4,6 +4,7 @@ import os
 import re
 import sys
 import json
+import shutil
 import subprocess
 from typing import Any, cast
 from pathlib import Path
@@ -100,13 +101,16 @@ def run_dependency_lock_source_check(
     uv_index_url: str | None = None,
     uv_overrides: dict[str, object] | None = None,
     extra_uv_config: str | None = None,
+    project_name: str | None = None,
 ) -> subprocess.CompletedProcess[str]:
     project = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]
     requires = ["hatchling==1.27.0"] if build_requires is None else build_requires
     group = ["hatchling==1.27.0"] if build_group is None else build_group
     constraints = ["hatchling==1.27.0"] if build_constraints is None else build_constraints
+    if project_name is None:
+        project_name = project["name"]
     configuration = (
-        f"[project]\nname = {json.dumps(project['name'])}\nversion = {json.dumps(project['version'])}\n"
+        f"[project]\nname = {json.dumps(project_name)}\nversion = {json.dumps(project['version'])}\n"
         + f"[build-system]\nrequires = {json.dumps(requires)}\nbuild-backend = {json.dumps(backend)}\n"
     )
     if backend_path is not None:
@@ -337,6 +341,39 @@ def test_dependency_lock_requires_one_exact_editable_root(tmp_path: Path, varian
 
     assert result.returncode == 1, result.stdout + result.stderr
     assert "Use only the public PyPI registry" in result.stderr
+
+
+@pytest.mark.parametrize(
+    ("project_name", "registry_name", "accepted"),
+    [
+        pytest.param("openai", "reviewed-dependency", True, id="only-reviewed-editable-root"),
+        pytest.param("openai", "openai", False, id="public-registry-root-name-collision"),
+        pytest.param("openai", "OpenAI", False, id="public-registry-root-case-alias"),
+        pytest.param("openai", "OPENAI", False, id="public-registry-root-uppercase-alias"),
+        pytest.param("renamed-root", "openai", False, id="renamed-root-exempts-public-openai"),
+        pytest.param("open_ai", "openai", False, id="root-normalization-cannot-change-exemption"),
+    ],
+)
+def test_source_build_exemption_only_covers_the_unique_reviewed_editable_root(
+    tmp_path: Path, project_name: str, registry_name: str, accepted: bool
+) -> None:
+    project = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]
+    root: dict[str, object] = {
+        "name": project_name,
+        "version": project["version"],
+        "source": {"editable": "."},
+    }
+    dependency: dict[str, object] = {
+        "name": registry_name,
+        "version": "1.0.0",
+        "source": {"registry": "https://pypi.org/simple"},
+    }
+
+    result = run_dependency_lock_source_check(tmp_path, [root, dependency], project_name=project_name)
+
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+    if not accepted:
+        assert "Use only the public PyPI registry" in result.stderr
 
 
 def test_dependency_lock_source_check_accepts_the_committed_lock() -> None:
@@ -607,7 +644,10 @@ def test_source_builds_only_allowed_in_trusted_experimental_compatibility(
 ) -> None:
     for name in ("ci.yml", "detect-breaking-changes.yml"):
         workflow = (ROOT / ".github/workflows" / name).read_text()
-        assert re.search(r"^env:\n  UV_NO_BUILD: ['\"]?1['\"]?\s*$", workflow, re.MULTILINE)
+        global_environment = workflow.split("\njobs:\n", 1)[0].rsplit("\nenv:\n", 1)[1]
+        assert re.search(r"^  UV_NO_BUILD: ['\"]?1['\"]?\s*$", global_environment, re.MULTILINE)
+        assert re.search(r"^  UV_NO_BINARY_PACKAGE: ['\"]?openai['\"]?\s*$", global_environment, re.MULTILINE)
+        assert "openai-agents" not in global_environment
     compatibility = dependency_workflow_jobs()["compatibility"]
     assert "matrix.experimental" in compatibility
     assert "(github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')" in compatibility
@@ -615,6 +655,64 @@ def test_source_builds_only_allowed_in_trusted_experimental_compatibility(
     assert "environment:" not in compatibility
     assert "id-token:" not in compatibility
     assert (experimental and event in {"schedule", "workflow_dispatch"}) is allowed
+
+
+def test_editable_project_sync_requires_only_the_reviewed_root_build_exemption() -> None:
+    uv = shutil.which("uv")
+    if uv is None:
+        pytest.skip("uv is not installed")
+
+    command = [uv, "--no-config", "sync", "--frozen", "--all-extras", "--offline", "--dry-run"]
+    environment = dict(os.environ)
+    environment["UV_NO_BUILD"] = "1"
+    environment.pop("UV_NO_BINARY_PACKAGE", None)
+
+    rejected = subprocess.run(
+        command,
+        cwd=ROOT,
+        env=environment,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert rejected.returncode != 0
+    assert "openai" in rejected.stderr
+    assert "--no-build" in rejected.stderr
+
+    environment["UV_NO_BINARY_PACKAGE"] = "openai"
+    accepted = subprocess.run(
+        command,
+        cwd=ROOT,
+        env=environment,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert accepted.returncode == 0, accepted.stdout + accepted.stderr
+    assert "openai @" in accepted.stderr
+
+
+def test_agents_sdk_build_exemption_only_covers_its_trusted_editable_project() -> None:
+    workflow = (ROOT / ".github/workflows/detect-breaking-changes.yml").read_text()
+    match = re.search(r"^  agents_sdk:\n(?P<body>.*?)(?=^  [\w-]+:\n|\Z)", workflow, re.MULTILINE | re.DOTALL)
+    assert match is not None
+    job = match.group("body")
+    trusted_checkout = job.index("repository: openai/openai-agents-python")
+    exception = "UV_NO_BINARY_PACKAGE: 'openai openai-agents'"
+    assert job.count(exception) == 3
+
+    for command in ("uv add ../openai-python", "make sync", "make mypy"):
+        command_index = job.index(command)
+        assert command_index > trusted_checkout
+        step_start = job.rfind("\n      - ", 0, command_index)
+        step_end = job.find("\n      - ", command_index)
+        if step_end < 0:
+            step_end = len(job)
+        step = job[step_start:step_end]
+        assert "working-directory: openai-agents-python" in step
+        assert exception in step
+
+    assert exception not in job[:trusted_checkout]
 
 
 @pytest.mark.parametrize("name", ["detect_breaking_changes", "agents_sdk"])
