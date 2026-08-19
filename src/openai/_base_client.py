@@ -104,6 +104,7 @@ from ._exceptions import (
     APIResponseValidationError,
 )
 from ._utils._json import openapi_dumps
+from ._utils._logs import get_http_method_for_logging
 from ._legacy_response import LegacyAPIResponse
 
 log: logging.Logger = logging.getLogger(__name__)
@@ -520,7 +521,11 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         retries_taken: int = 0,
     ) -> httpx2.Request:
         # Request bodies, files, URLs, and custom options can contain private data.
-        log.debug("Building HTTP request: method=%s retries_taken=%i", options.method, retries_taken)
+        log.debug(
+            "Building HTTP request: method=%s retries_taken=%i",
+            get_http_method_for_logging(options.method),
+            retries_taken,
+        )
         kwargs: dict[str, Any] = {}
 
         json_data = options.json_data
@@ -1067,7 +1072,7 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
             if options.follow_redirects is not None:
                 kwargs["follow_redirects"] = options.follow_redirects
 
-            log.debug("Sending HTTP Request: %s", request.method)
+            log.debug("Sending HTTP Request: %s", get_http_method_for_logging(request.method))
 
             response = None
             try:
@@ -1110,7 +1115,7 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
 
             log.debug(
                 "HTTP Response: %s %i",
-                request.method,
+                get_http_method_for_logging(request.method),
                 response.status_code,
             )
             log.debug("request_id: %s", response.headers.get("x-request-id"))
@@ -1690,7 +1695,7 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
             if options.follow_redirects is not None:
                 kwargs["follow_redirects"] = options.follow_redirects
 
-            log.debug("Sending HTTP Request: %s", request.method)
+            log.debug("Sending HTTP Request: %s", get_http_method_for_logging(request.method))
 
             response = None
             try:
@@ -1733,7 +1738,7 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
 
             log.debug(
                 "HTTP Response: %s %i",
-                request.method,
+                get_http_method_for_logging(request.method),
                 response.status_code,
             )
             log.debug("request_id: %s", response.headers.get("x-request-id"))

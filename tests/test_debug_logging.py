@@ -18,7 +18,7 @@ BASE_URL = "https://example.test/v1"
 
 
 def assert_safe_logs(caplog: pytest.LogCaptureFixture) -> list[str]:
-    records = [record for record in caplog.records if record.name.startswith("openai.")]
+    records = [record for record in caplog.records if record.name.startswith("openai.") or record.name == "httpx2"]
     assert records
     # Handlers may retain the unformatted arguments or exception, not just text.
     for record in records:
@@ -78,7 +78,7 @@ def test_sync_request_metadata(kind: str, caplog: pytest.LogCaptureFixture) -> N
             result = client.request(object, request_options(kind))
     assert result == {"result": FAKE_SECRET}
     messages = assert_safe_logs(caplog)
-    assert "Building HTTP request: method=post retries_taken=0" in messages
+    assert "Building HTTP request: method=POST retries_taken=0" in messages
     assert "HTTP Response: POST 200" in messages
     assert "request_id: req_fake_logging" in messages
 
@@ -101,7 +101,7 @@ async def test_async_request_metadata(kind: str, caplog: pytest.LogCaptureFixtur
             result = await client.request(object, options)
     assert result == {"result": FAKE_SECRET}
     messages = assert_safe_logs(caplog)
-    assert "Building HTTP request: method=post retries_taken=0" in messages
+    assert "Building HTTP request: method=POST retries_taken=0" in messages
     assert "HTTP Response: POST 200" in messages
     assert "request_id: req_fake_logging" in messages
 
@@ -329,3 +329,71 @@ async def test_websocket_queue_failure_metadata(
             await result
     websocket.send.assert_called_once_with(FAKE_SECRET)
     assert assert_safe_logs(caplog) == ["Failed to flush send queue after reconnect"]
+
+
+@pytest.mark.parametrize("asynchronous", [False, True])
+@pytest.mark.parametrize("method", ["post", FAKE_SECRET])
+async def test_custom_method_metadata(method: str, asynchronous: bool, caplog: pytest.LogCaptureFixture) -> None:
+    received: list[str] = []
+
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        received.append(request.method)
+        return httpx2.Response(200, json={"ok": True})
+
+    options = FinalRequestOptions.construct(method=method, url="/logging-test")
+    with caplog.at_level(logging.DEBUG, logger="openai"):
+        if asynchronous:
+            async with AsyncOpenAI(
+                api_key="fake-api-key",
+                base_url=BASE_URL,
+                http_client=httpx2.AsyncClient(transport=httpx2.MockTransport(handler)),
+            ) as async_client:
+                assert await async_client.request(object, options) == {"ok": True}
+        else:
+            with OpenAI(
+                api_key="fake-api-key",
+                base_url=BASE_URL,
+                http_client=httpx2.Client(transport=httpx2.MockTransport(handler)),
+            ) as client:
+                assert client.request(object, options) == {"ok": True}
+    assert received == [method.upper()]
+    expected = "POST" if method == "post" else "<custom>"
+    messages = assert_safe_logs(caplog)
+    assert f"Building HTTP request: method={expected} retries_taken=0" in messages
+    assert f"Sending HTTP Request: {expected}" in messages
+    assert f"HTTP Response: {expected} 200" in messages
+    assert FAKE_SECRET.upper() not in "\n".join(messages)
+
+
+@pytest.mark.parametrize("setting", ["debug", "info"])
+@pytest.mark.parametrize("asynchronous", [False, True])
+async def test_sdk_log_switch_does_not_enable_transport_payloads(
+    setting: str, asynchronous: bool, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    from openai._utils._logs import setup_logging
+
+    # Exercise the documented switch with normal application logging defaults.
+    with (
+        caplog.at_level(logging.WARNING),
+        caplog.at_level(logging.NOTSET, logger="httpx2"),
+        caplog.at_level(logging.WARNING, logger="openai"),
+    ):
+        monkeypatch.setattr(caplog.handler, "level", logging.NOTSET)
+        monkeypatch.setenv("OPENAI_LOG", setting)
+        setup_logging()
+        if asynchronous:
+            async with AsyncOpenAI(
+                api_key="fake-api-key",
+                base_url=BASE_URL,
+                http_client=httpx2.AsyncClient(transport=httpx2.MockTransport(echo_request)),
+            ) as async_client:
+                assert await async_client.request(object, request_options("json")) == {"result": FAKE_SECRET}
+        else:
+            with OpenAI(
+                api_key="fake-api-key",
+                base_url=BASE_URL,
+                http_client=httpx2.Client(transport=httpx2.MockTransport(echo_request)),
+            ) as client:
+                assert client.request(object, request_options("json")) == {"result": FAKE_SECRET}
+        assert logging.getLogger("httpx2").level == logging.NOTSET
+    assert not any(FAKE_SECRET in record.getMessage() or FAKE_SECRET in repr(record.args) for record in caplog.records)
