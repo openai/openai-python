@@ -1629,6 +1629,83 @@ def test_only_direct_security_updates_must_raise_published_minimums(
 @pytest.mark.parametrize(
     ("variant", "accepted"),
     [
+        pytest.param("runtime-removed", False, id="runtime-dependency-and-lock-removed"),
+        pytest.param("runtime-unbounded-removed", False, id="unbounded-runtime-dependency-removed"),
+        pytest.param("optional-group-removed", False, id="optional-dependency-group-and-lock-removed"),
+        pytest.param("optional-unbounded-removed", False, id="unbounded-optional-dependency-removed"),
+        pytest.param("marker-context-removed", False, id="unbounded-marker-context-removed"),
+        pytest.param("requested-extra-context-removed", False, id="requested-extra-context-removed"),
+        pytest.param("declaration-removed", False, id="unbounded-same-context-declaration-removed"),
+        pytest.param("unchanged", True, id="runtime-and-optional-dependencies-preserved"),
+        pytest.param("transitive-only", True, id="transitive-only-security-update-preserved"),
+        pytest.param("canonical-group", True, id="canonical-optional-group-spelling-preserved"),
+    ],
+)
+def test_security_updates_cannot_remove_published_direct_dependencies(
+    tmp_path: Path, variant: str, accepted: bool
+) -> None:
+    base_requirements = ["safe-direct>=1", "danger-pkg>=1"]
+    head_requirements = ["safe-direct>=1"]
+    base_packages = [("safe-direct", "1"), ("danger-pkg", "1")]
+    head_packages = [("safe-direct", "1")]
+    base_groups: dict[str, list[str]] | None = None
+    head_groups: dict[str, list[str]] | None = None
+
+    if variant == "runtime-unbounded-removed":
+        base_requirements = ["safe-direct>=1", "danger-pkg"]
+    elif variant in {"optional-group-removed", "optional-unbounded-removed"}:
+        base_requirements = head_requirements = ["safe-direct>=1"]
+        requirement = "danger-pkg" if variant == "optional-unbounded-removed" else "danger-pkg>=1"
+        base_groups = {"feature": [requirement]}
+        head_groups = {}
+    elif variant == "marker-context-removed":
+        base_requirements = [
+            "safe-direct>=1",
+            "danger-pkg; python_version < '3.11'",
+            "danger-pkg; python_version >= '3.11'",
+        ]
+        head_requirements = ["safe-direct>=1", "danger-pkg; python_version >= '3.11'"]
+        head_packages = list(base_packages)
+    elif variant == "requested-extra-context-removed":
+        base_requirements = ["safe-direct>=1", "danger-pkg[first]", "danger-pkg[second]"]
+        head_requirements = ["safe-direct>=1", "danger-pkg[first]"]
+        head_packages = list(base_packages)
+    elif variant == "declaration-removed":
+        base_requirements = ["safe-direct>=1", "danger-pkg", "danger-pkg<3"]
+        head_requirements = ["safe-direct>=1", "danger-pkg<3"]
+        head_packages = list(base_packages)
+    elif variant == "unchanged":
+        head_requirements = list(base_requirements)
+        head_packages = list(base_packages)
+        base_groups = head_groups = {"feature": ["danger-pkg>=1"]}
+    elif variant == "transitive-only":
+        head_requirements = list(base_requirements)
+        base_packages = [*base_packages, ("transitive", "1")]
+        head_packages = [("safe-direct", "1"), ("danger-pkg", "1"), ("transitive", "1.1")]
+    elif variant == "canonical-group":
+        base_requirements = head_requirements = ["safe-direct>=1"]
+        head_packages = list(base_packages)
+        base_groups = {"voice_helpers": ["danger-pkg>=1"]}
+        head_groups = {"voice-helpers": ["danger-pkg>=1"]}
+
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=base_requirements,
+        head_requirements=head_requirements,
+        base_packages=base_packages,
+        head_packages=head_packages,
+        base_optional_groups=base_groups,
+        head_optional_groups=head_groups,
+    )
+
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+    if not accepted:
+        assert "Do not remove a published direct dependency" in result.stderr
+
+
+@pytest.mark.parametrize(
+    ("variant", "accepted"),
+    [
         pytest.param("independent-upgrades", True, id="numpy-python-marker-lines-upgrade-independently"),
         pytest.param("reordered-marker", True, id="resolution-marker-conjunction-order-preserved"),
         pytest.param("high-line-only", True, id="unchanged-old-python-floor-does-not-require-new-line"),

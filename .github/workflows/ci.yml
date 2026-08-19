@@ -297,6 +297,13 @@ jobs:
                       updated < previous for previous, updated in zip(context_minimums, updated_context_minimums)
                   ):
                       raise SystemExit("Do not lower a contextual protected security minimum for " + name)
+          for name, previous_contexts in old_contexts.items():
+              current_contexts = new_contexts.get(name, {})
+              if any(
+                  len(current_contexts.get(context, set())) < len(previous)
+                  for context, previous in previous_contexts.items()
+              ):
+                  raise SystemExit("Do not remove a published direct dependency or its original context for " + name)
           for name, requirements in new_direct.items():
               previous = old_direct.get(name, set())
               previous_contexts = old_contexts.get(name, {})
