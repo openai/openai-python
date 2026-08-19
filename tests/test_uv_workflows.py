@@ -179,6 +179,106 @@ def test_dependency_lock_source_check_accepts_the_committed_lock() -> None:
     assert result.returncode == 0, result.stdout + result.stderr
 
 
+def dependency_workflow_jobs() -> dict[str, str]:
+    path = ROOT / ".github/workflows/ci.yml"
+    if not path.exists():
+        pytest.skip("GitHub workflows are not included in source distributions")
+
+    workflow = path.read_text().split("\njobs:\n", 1)[1]
+    return {
+        match.group("name"): match.group("body")
+        for match in re.finditer(
+            r"^  (?P<name>[\w-]+):\n(?P<body>.*?)(?=^  [\w-]+:\n|\Z)",
+            workflow,
+            re.MULTILINE | re.DOTALL,
+        )
+    }
+
+
+def dependency_installer_jobs(jobs: dict[str, str]) -> set[str]:
+    return {
+        name
+        for name, job in jobs.items()
+        if name != "dependency-locks"
+        and (
+            "astral-sh/setup-uv@" in job
+            or "./.github/actions/setup-node-tooling" in job
+            or re.search(
+                r"\b(?:uv\s+(?:sync|run)|pip\s+install|(?:npm|pnpm)\s+(?:ci|install|add))\b",
+                job,
+            )
+            or re.search(r"run:\s*\./scripts/(?:bootstrap|build)\b", job)
+        )
+    }
+
+
+def test_dependency_provenance_runs_before_tool_setup() -> None:
+    gate = dependency_workflow_jobs()["dependency-locks"]
+    source = next(line for line in gate.splitlines() if "Use only the public PyPI registry" in line)
+    assert source.strip().startswith("python -c '")
+
+    before = gate.split(source, 1)[0]
+    actions = re.findall(r"^      - uses:\s*(\S+)", before, re.MULTILINE)
+    assert len(actions) == 1
+    assert re.fullmatch(r"actions/checkout@[0-9a-f]{40}", actions[0])
+    assert "persist-credentials: false" in before
+    assert not re.search(
+        r"^\s*(?:- )?(?:run:|uses:).*(?:setup-uv|setup-node|uv\s|pip\s|npm\s|pnpm\s|scripts/)",
+        before,
+        re.MULTILINE,
+    )
+
+
+@pytest.mark.parametrize(
+    "source",
+    [
+        pytest.param({"git": "https://github.com/unreviewed/package"}, id="git"),
+        pytest.param({"path": "../unreviewed"}, id="path"),
+        pytest.param({"url": "https://unreviewed.example/package.whl"}, id="url"),
+    ],
+)
+def test_untrusted_provenance_leaves_no_dependency_install_reachable(tmp_path: Path, source: dict[str, str]) -> None:
+    jobs = dependency_workflow_jobs()
+    installers = dependency_installer_jobs(jobs)
+    assert installers == {"lint", "build", "test", "test-httpx2", "examples", "compatibility"}
+
+    needs = {name: re.findall(r"^    needs:\s*([^\s#]+)", jobs[name], re.MULTILINE) for name in installers}
+    project = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]
+    root: dict[str, object] = {
+        "name": project["name"],
+        "version": project["version"],
+        "source": {"editable": "."},
+    }
+    dependency: dict[str, object] = {
+        "name": "reviewed-dependency",
+        "version": "1.0.0",
+        "source": source,
+    }
+    rejected = run_dependency_lock_source_check(tmp_path, [root, dependency])
+    assert rejected.returncode != 0
+    reachable = {
+        name
+        for name in installers
+        if not needs[name] or (needs[name] == ["dependency-locks"] and rejected.returncode == 0)
+    }
+    assert not reachable
+
+    dependency["source"] = {"registry": "https://pypi.org/simple"}
+    accepted = run_dependency_lock_source_check(tmp_path, [root, dependency])
+    assert accepted.returncode == 0
+    assert {
+        name for name in installers if needs[name] == ["dependency-locks"] and accepted.returncode == 0
+    } == installers
+
+
+def test_scheduled_compatibility_keeps_dependency_provenance_gate() -> None:
+    jobs = dependency_workflow_jobs()
+    assert not re.search(r"^    if:.*schedule", jobs["dependency-locks"], re.MULTILINE)
+    assert re.search(r"^    needs:\s*dependency-locks\s*$", jobs["compatibility"], re.MULTILINE)
+    assert "github.event_name == 'schedule'" in jobs["compatibility"]
+    assert "github.event_name == 'workflow_dispatch'" in jobs["compatibility"]
+
+
 def test_agents_integration_selects_its_typechecking_runtime() -> None:
     path = ROOT / ".github/workflows/detect-breaking-changes.yml"
     if not path.exists():
