@@ -433,9 +433,9 @@ def security_dependency_floor_program() -> str:
     )
     assert match is not None, "Direct Dependabot security updates must validate published dependency floors"
     body = match.group("body")
+    assert "github.actor" not in body, "Maintainer updates must not disable an authored Dependabot security guard"
     for condition in (
         "github.event_name == 'pull_request'",
-        "github.actor == 'dependabot[bot]'",
         "github.event.pull_request.user.login == 'dependabot[bot]'",
         "contains(github.event.pull_request.head.ref, 'python-security')",
     ):
@@ -446,6 +446,68 @@ def security_dependency_floor_program() -> str:
     if sys.version_info < (3, 11):
         program = "import sys, tomli; sys.modules['tomllib'] = tomli\n" + program
     return program
+
+
+@pytest.mark.parametrize(
+    ("actor", "author", "reference", "event", "accepted"),
+    [
+        pytest.param(
+            "maintainer",
+            "dependabot[bot]",
+            "dependabot/uv/python-security-123",
+            "pull_request",
+            True,
+            id="maintainer-updated-security-pr",
+        ),
+        pytest.param(
+            "dependabot[bot]",
+            "dependabot[bot]",
+            "dependabot/uv/python-security-123",
+            "pull_request",
+            True,
+            id="dependabot-updated-security-pr",
+        ),
+        pytest.param(
+            "dependabot[bot]",
+            "untrusted-maintainer",
+            "dependabot/uv/python-security-123",
+            "pull_request",
+            False,
+            id="spoofed-security-pr-author",
+        ),
+        pytest.param(
+            "maintainer",
+            "dependabot[bot]",
+            "dependabot/uv/python-maintenance-123",
+            "pull_request",
+            False,
+            id="routine-dependency-pr",
+        ),
+        pytest.param(
+            "dependabot[bot]",
+            "dependabot[bot]",
+            "dependabot/uv/python-security-123",
+            "push",
+            False,
+            id="non-pull-request-event",
+        ),
+    ],
+)
+def test_security_floor_guard_uses_immutable_pr_identity(
+    actor: str, author: str, reference: str, event: str, accepted: bool
+) -> None:
+    gate = dependency_workflow_jobs()["dependency-locks"]
+    step = gate.split("      - name: Require published minimums for direct security updates\n", 1)[1]
+    condition = step.split("        if: >-\n", 1)[1].split("        env:\n", 1)[0]
+    values = {
+        "github.event_name == 'pull_request'": event == "pull_request",
+        "github.actor == 'dependabot[bot]'": actor == "dependabot[bot]",
+        "github.event.pull_request.user.login == 'dependabot[bot]'": author == "dependabot[bot]",
+        "contains(github.event.pull_request.head.ref, 'python-security')": "python-security" in reference,
+    }
+    clauses = [line.strip().removeprefix("&& ").strip() for line in condition.splitlines() if line.strip()]
+    assert all(clause in values for clause in clauses), clauses
+    assert all(values[clause] for clause in clauses) is accepted
 
 
 def run_security_dependency_floor_check(
@@ -531,6 +593,78 @@ def run_security_dependency_floor_check(
             id="direct-floor-raised",
         ),
         pytest.param(
+            ["danger-pkg>=2.0"],
+            ["danger-pkg>=1.0"],
+            [("danger-pkg", "2.0")],
+            [("danger-pkg", "2.1")],
+            False,
+            False,
+            id="direct-floor-lowered",
+        ),
+        pytest.param(
+            ["danger-pkg>=1.10"],
+            ["danger-pkg>=1.9"],
+            [("danger-pkg", "1.10")],
+            [("danger-pkg", "1.11")],
+            False,
+            False,
+            id="numeric-release-floor-lowered",
+        ),
+        pytest.param(
+            ["danger-pkg>=1.9"],
+            ["danger-pkg>=1.10"],
+            [("danger-pkg", "1.9")],
+            [("danger-pkg", "1.10")],
+            False,
+            True,
+            id="numeric-release-floor-raised",
+        ),
+        pytest.param(
+            ["danger-pkg>=1.0"],
+            ["danger-pkg>=1.0.0"],
+            [("danger-pkg", "1.0")],
+            [("danger-pkg", "1.1")],
+            False,
+            False,
+            id="trailing-zero-equivalent-floor",
+        ),
+        pytest.param(
+            ["danger-pkg>=0!9.0"],
+            ["danger-pkg>=1!1.0"],
+            [("danger-pkg", "9.0")],
+            [("danger-pkg", "1!1.0")],
+            False,
+            True,
+            id="epoch-floor-raised",
+        ),
+        pytest.param(
+            ["danger-pkg>=1!1.0"],
+            ["danger-pkg>=0!9.0"],
+            [("danger-pkg", "1!1.0")],
+            [("danger-pkg", "1!1.1")],
+            False,
+            False,
+            id="epoch-floor-lowered",
+        ),
+        pytest.param(
+            ["danger-pkg>=1.0; python_version >= '3.11'"],
+            ["danger-pkg>=1.1; python_version >= '3.11'"],
+            [("danger-pkg", "1.0")],
+            [("danger-pkg", "1.1")],
+            False,
+            True,
+            id="python-version-marker-floor-raised",
+        ),
+        pytest.param(
+            ["Danger_Pkg[extra]>=1.0,<3; python_version >= '3.11'"],
+            ["danger-pkg[extra]>=1.1,<3; python_version >= '3.11'"],
+            [("danger-pkg", "1.0")],
+            [("danger_pkg", "1.1")],
+            True,
+            True,
+            id="optional-alias-extra-and-marker-floor-raised",
+        ),
+        pytest.param(
             ["danger-pkg>=1.0"],
             ["danger-pkg>=1.0,<3"],
             [("danger-pkg", "1.0")],
@@ -558,6 +692,42 @@ def run_security_dependency_floor_check(
             id="optional-floor-raised",
         ),
         pytest.param(
+            ["numpy>=1", "numpy>=2.0.2"],
+            ["numpy>=1.1", "numpy>=2.0.2"],
+            [("numpy", "2.0.2")],
+            [("numpy", "2.1.0")],
+            True,
+            True,
+            id="optional-multiple-floors-weakest-raised",
+        ),
+        pytest.param(
+            ["numpy>=1", "numpy>=2.0.2"],
+            ["numpy>=1.1", "numpy>=2.0.1"],
+            [("numpy", "2.0.2")],
+            [("numpy", "2.1.0")],
+            True,
+            False,
+            id="optional-multiple-floors-one-lowered",
+        ),
+        pytest.param(
+            ["numpy>=1", "numpy>=2.0.2"],
+            ["numpy>=1", "numpy>=2.0.3"],
+            [("numpy", "2.0.2")],
+            [("numpy", "2.1.0")],
+            True,
+            False,
+            id="optional-multiple-floors-weakest-unchanged",
+        ),
+        pytest.param(
+            ["numpy>=1", "numpy>=2.0.2"],
+            ["numpy>=1.1"],
+            [("numpy", "2.0.2")],
+            [("numpy", "2.1.0")],
+            True,
+            False,
+            id="optional-floor-branch-removed",
+        ),
+        pytest.param(
             ["safe-direct>=1.0"],
             ["safe-direct>=1.0"],
             [("safe-direct", "1.0"), ("transitive", "1.0")],
@@ -583,6 +753,32 @@ def run_security_dependency_floor_check(
             False,
             True,
             id="previously-unbounded",
+        ),
+        *[
+            pytest.param(
+                ["danger-pkg>=1.0"],
+                ["danger-pkg>=" + version],
+                [("danger-pkg", "1.0")],
+                [("danger-pkg", "1.1")],
+                False,
+                False,
+                id="unsupported-floor-" + label,
+            )
+            for label, version in (
+                ("prerelease", "1.1rc1"),
+                ("postrelease", "1.1.post1"),
+                ("development", "1.1.dev1"),
+                ("local", "1.1+local"),
+            )
+        ],
+        pytest.param(
+            ["danger-pkg>=1.0rc1"],
+            ["danger-pkg>=1.1"],
+            [("danger-pkg", "1.0rc1")],
+            [("danger-pkg", "1.1")],
+            False,
+            False,
+            id="unsupported-previous-floor",
         ),
     ],
 )

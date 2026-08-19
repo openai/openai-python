@@ -35,7 +35,6 @@ jobs:
       - name: Require published minimums for direct security updates
         if: >-
           github.event_name == 'pull_request'
-          && github.actor == 'dependabot[bot]'
           && github.event.pull_request.user.login == 'dependabot[bot]'
           && contains(github.event.pull_request.head.ref, 'python-security')
         env:
@@ -87,14 +86,26 @@ jobs:
                   result.setdefault(canonical(package["name"]), set()).add(package["version"])
               return result
 
-          def minimums(requirements):
-              result = set()
+          def stable_version(value):
+              match = re.fullmatch(r"(?:(\d+)!)?(\d+(?:\.\d+)*)", value)
+              if match is None:
+                  raise SystemExit("Unsupported direct security dependency minimum")
+              release = tuple(int(part) for part in match.group(2).split("."))
+              while release and release[-1] == 0:
+                  release = release[:-1]
+              return int(match.group(1) or 0), release
+
+          def minimums(requirements, *, allow_missing=False):
+              result = []
               for requirement in requirements:
-                  matches = re.findall(r"(?<![<>=!~])>=([^,;]+)", requirement)
+                  specifier = requirement.split(";", 1)[0]
+                  matches = re.findall(r"(?<![<>=!~])>=([^,;]+)", specifier)
                   if len(matches) != 1:
+                      if allow_missing and not matches:
+                          continue
                       raise SystemExit("Missing or ambiguous direct security dependency minimum")
-                  result.add(matches[0])
-              return result
+                  result.append(stable_version(matches[0]))
+              return sorted(result)
 
           old_project = read_base("pyproject.toml")
           old_lock = read_base("uv.lock")
@@ -109,13 +120,15 @@ jobs:
               if previous == requirements:
                   raise SystemExit("Raise the published security-fixed minimum for " + name)
               updated_minimums = minimums(requirements)
-              previous_minimums = {
-                  match.group(1)
-                  for requirement in previous
-                  for match in [re.search(r"(?<![<>=!~])>=([^,;]+)", requirement)]
-                  if match is not None
-              }
-              if not updated_minimums or updated_minimums == previous_minimums:
+              previous_minimums = minimums(previous, allow_missing=True)
+              if not updated_minimums or (
+                  previous_minimums
+                  and (
+                      len(updated_minimums) != len(previous_minimums)
+                      or any(updated < previous for previous, updated in zip(previous_minimums, updated_minimums))
+                      or updated_minimums[0] <= previous_minimums[0]
+                  )
+              ):
                   raise SystemExit("Raise the published security-fixed minimum for " + name)
           PY
 
