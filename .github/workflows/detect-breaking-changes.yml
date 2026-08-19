@@ -24,6 +24,10 @@ jobs:
           persist-credentials: false
           fetch-depth: 1
 
+      - name: Verify dependency source provenance before installing tools
+        run: |
+          python -c 'import pathlib, re, tomllib; project = tomllib.loads(pathlib.Path("pyproject.toml").read_text())["project"]; lock = tomllib.loads(pathlib.Path("uv.lock").read_text()); roots = [package for package in lock["package"] if package.get("name") == project["name"] and package.get("version") == project["version"] and package.get("source") == {"editable": "."}]; assert len(roots) == 1 and all(package is roots[0] or package.get("source") == {"registry": "https://pypi.org/simple"} and isinstance(package.get("wheels", []), list) and (artifacts := ([package["sdist"]] if "sdist" in package else []) + package.get("wheels", [])) and all(isinstance(artifact, dict) and re.fullmatch(r"https://files\.pythonhosted\.org/packages/[^\s?#]+", artifact.get("url", "")) and re.fullmatch(r"sha256:[0-9a-f]{64}", artifact.get("hash", "")) for artifact in artifacts) for package in lock["package"]), "Use only the public PyPI registry, reviewed artifacts, and the exact editable root project in uv.lock"'
+
       - name: Fetch comparison base
         run: git fetch --no-tags --depth=1 origin "$BASE_SHA"
 
@@ -56,6 +60,11 @@ jobs:
         with:
           persist-credentials: false
           path: openai-python
+
+      - name: Verify dependency source provenance before installing tools
+        working-directory: openai-python
+        run: |
+          python -c 'import pathlib, re, tomllib; project = tomllib.loads(pathlib.Path("pyproject.toml").read_text())["project"]; lock = tomllib.loads(pathlib.Path("uv.lock").read_text()); roots = [package for package in lock["package"] if package.get("name") == project["name"] and package.get("version") == project["version"] and package.get("source") == {"editable": "."}]; assert len(roots) == 1 and all(package is roots[0] or package.get("source") == {"registry": "https://pypi.org/simple"} and isinstance(package.get("wheels", []), list) and (artifacts := ([package["sdist"]] if "sdist" in package else []) + package.get("wheels", [])) and all(isinstance(artifact, dict) and re.fullmatch(r"https://files\.pythonhosted\.org/packages/[^\s?#]+", artifact.get("url", "")) and re.fullmatch(r"sha256:[0-9a-f]{64}", artifact.get("hash", "")) for artifact in artifacts) for package in lock["package"]), "Use only the public PyPI registry, reviewed artifacts, and the exact editable root project in uv.lock"'
 
       - name: Set up uv
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1

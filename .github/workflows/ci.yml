@@ -30,7 +30,94 @@ jobs:
 
       - name: Verify dependency source provenance before installing tools
         run: |
-          python -c 'import pathlib, tomllib; project = tomllib.loads(pathlib.Path("pyproject.toml").read_text())["project"]; lock = tomllib.loads(pathlib.Path("uv.lock").read_text()); roots = [package for package in lock["package"] if package.get("name") == project["name"] and package.get("version") == project["version"] and package.get("source") == {"editable": "."}]; assert len(roots) == 1 and all(package.get("source") == {"registry": "https://pypi.org/simple"} or package is roots[0] for package in lock["package"]), "Use only the public PyPI registry and the exact editable root project in uv.lock"'
+          python -c 'import pathlib, re, tomllib; project = tomllib.loads(pathlib.Path("pyproject.toml").read_text())["project"]; lock = tomllib.loads(pathlib.Path("uv.lock").read_text()); roots = [package for package in lock["package"] if package.get("name") == project["name"] and package.get("version") == project["version"] and package.get("source") == {"editable": "."}]; assert len(roots) == 1 and all(package is roots[0] or package.get("source") == {"registry": "https://pypi.org/simple"} and isinstance(package.get("wheels", []), list) and (artifacts := ([package["sdist"]] if "sdist" in package else []) + package.get("wheels", [])) and all(isinstance(artifact, dict) and re.fullmatch(r"https://files\.pythonhosted\.org/packages/[^\s?#]+", artifact.get("url", "")) and re.fullmatch(r"sha256:[0-9a-f]{64}", artifact.get("hash", "")) for artifact in artifacts) for package in lock["package"]), "Use only the public PyPI registry, reviewed artifacts, and the exact editable root project in uv.lock"'
+
+      - name: Require published minimums for direct security updates
+        if: >-
+          github.event_name == 'pull_request'
+          && github.actor == 'dependabot[bot]'
+          && github.event.pull_request.user.login == 'dependabot[bot]'
+          && contains(github.event.pull_request.head.ref, 'python-security')
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          python - <<'PY'
+          import os
+          import pathlib
+          import re
+          import subprocess
+          import tomllib
+
+          base = os.environ.get("BASE_SHA", "")
+          if not re.fullmatch(r"[0-9a-f]{40}", base):
+              raise SystemExit("Untrusted security-update base commit")
+          origin = subprocess.check_output(["git", "remote", "get-url", "origin"], text=True).strip()
+          if origin not in {
+              "https://github.com/openai/openai-python",
+              "https://github.com/openai/openai-python.git",
+              "git@github.com:openai/openai-python.git",
+              "ssh://git@github.com/openai/openai-python.git",
+          }:
+              raise SystemExit("Untrusted security-update comparison origin")
+          subprocess.run(["git", "fetch", "--no-tags", "--depth=1", "origin", base], check=True)
+
+          def read_base(path):
+              return tomllib.loads(subprocess.check_output(["git", "show", base + ":" + path], text=True))
+
+          def canonical(name):
+              return re.sub(r"[-_.]+", "-", name).lower()
+
+          def direct(project):
+              requirements = list(project["project"].get("dependencies", []))
+              for group in project["project"].get("optional-dependencies", {}).values():
+                  requirements.extend(group)
+              result = {}
+              for requirement in requirements:
+                  match = re.fullmatch(r"\s*([A-Za-z0-9][A-Za-z0-9_.-]*)(\[[^\]]+\])?\s*(.*)", requirement)
+                  if match is None:
+                      raise SystemExit("Ambiguous direct security dependency requirement")
+                  name = canonical(match.group(1))
+                  normalized = name + (match.group(2) or "").lower() + re.sub(r"\s+", "", match.group(3)).lower()
+                  result.setdefault(name, set()).add(normalized)
+              return result
+
+          def versions(lock):
+              result = {}
+              for package in lock["package"]:
+                  result.setdefault(canonical(package["name"]), set()).add(package["version"])
+              return result
+
+          def minimums(requirements):
+              result = set()
+              for requirement in requirements:
+                  matches = re.findall(r"(?<![<>=!~])>=([^,;]+)", requirement)
+                  if len(matches) != 1:
+                      raise SystemExit("Missing or ambiguous direct security dependency minimum")
+                  result.add(matches[0])
+              return result
+
+          old_project = read_base("pyproject.toml")
+          old_lock = read_base("uv.lock")
+          new_project = tomllib.loads(pathlib.Path("pyproject.toml").read_text())
+          new_lock = tomllib.loads(pathlib.Path("uv.lock").read_text())
+          old_direct, new_direct = direct(old_project), direct(new_project)
+          old_versions, new_versions = versions(old_lock), versions(new_lock)
+          for name, requirements in new_direct.items():
+              if old_versions.get(name, set()) == new_versions.get(name, set()):
+                  continue
+              previous = old_direct.get(name, set())
+              if previous == requirements:
+                  raise SystemExit("Raise the published security-fixed minimum for " + name)
+              updated_minimums = minimums(requirements)
+              previous_minimums = {
+                  match.group(1)
+                  for requirement in previous
+                  for match in [re.search(r"(?<![<>=!~])>=([^,;]+)", requirement)]
+                  if match is not None
+              }
+              if not updated_minimums or updated_minimums == previous_minimums:
+                  raise SystemExit("Raise the published security-fixed minimum for " + name)
+          PY
 
       - name: Set up uv
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1

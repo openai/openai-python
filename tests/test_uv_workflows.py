@@ -5,6 +5,7 @@ import re
 import sys
 import json
 import subprocess
+from typing import cast
 from pathlib import Path
 
 import pytest
@@ -79,8 +80,29 @@ def run_dependency_lock_source_check(
         source = package.get("source")
         if source is not None:
             assert isinstance(source, dict)
-            values = ", ".join(f"{key} = {json.dumps(value)}" for key, value in source.items())
+            source_values = cast(dict[str, object], source)
+            values = ", ".join(f"{key} = {json.dumps(value)}" for key, value in source_values.items())
             lines.append("source = { " + values + " }")
+        artifact = package.get("sdist")
+        if "sdist" not in package and source == {"registry": "https://pypi.org/simple"}:
+            artifact = {
+                "url": "https://files.pythonhosted.org/packages/reviewed-1.0.0.tar.gz",
+                "hash": "sha256:" + "a" * 64,
+            }
+        if artifact is not None:
+            assert isinstance(artifact, dict)
+            artifact_values = cast(dict[str, object], artifact)
+            values = ", ".join(f"{key} = {json.dumps(value)}" for key, value in artifact_values.items())
+            lines.append("sdist = { " + values + " }")
+        if "wheels" in package:
+            wheels = package["wheels"]
+            assert isinstance(wheels, list)
+            typed_wheels = cast(list[dict[str, object]], wheels)
+            wheel_values = [
+                "{ " + ", ".join(f"{key} = {json.dumps(value)}" for key, value in wheel.items()) + " }"
+                for wheel in typed_wheels
+            ]
+            lines.append("wheels = [" + ", ".join(wheel_values) + "]")
         lines.append("")
 
     (tmp_path / "uv.lock").write_text("\n".join(lines))
@@ -131,6 +153,75 @@ def test_dependency_lock_accepts_only_public_registry_dependencies(
     assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
     if not accepted:
         assert "Use only the public PyPI registry" in result.stderr
+
+
+@pytest.mark.parametrize("kind", ["sdist", "wheel"])
+@pytest.mark.parametrize(
+    ("url", "digest", "accepted"),
+    [
+        pytest.param("https://files.pythonhosted.org/packages/reviewed.whl", "a" * 64, True, id="public-pypi"),
+        pytest.param("https://unreviewed.example/packages/reviewed.whl", "a" * 64, False, id="foreign-host"),
+        pytest.param("http://files.pythonhosted.org/packages/reviewed.whl", "a" * 64, False, id="insecure-http"),
+        pytest.param(
+            "https://user:pass@files.pythonhosted.org/packages/reviewed.whl",
+            "a" * 64,
+            False,
+            id="credentials",
+        ),
+        pytest.param("https://files.pythonhosted.org:443/packages/reviewed.whl", "a" * 64, False, id="port"),
+        pytest.param("https://files.pythonhosted.org/packages/reviewed.whl?redirect=1", "a" * 64, False, id="query"),
+        pytest.param("https://files.pythonhosted.org/packages/reviewed.whl#redirect", "a" * 64, False, id="fragment"),
+        pytest.param("https://files.pythonhosted.org/redirect/reviewed.whl", "a" * 64, False, id="path"),
+        pytest.param(
+            "https://files.pythonhosted.org.attacker.test/packages/reviewed.whl", "a" * 64, False, id="suffix"
+        ),
+        pytest.param("https://files.pythonhosted.org/packages/reviewed.whl", "invalid", False, id="hash"),
+    ],
+)
+def test_dependency_lock_rejects_untrusted_distribution_artifacts(
+    tmp_path: Path, kind: str, url: str, digest: str, accepted: bool
+) -> None:
+    project = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]
+    root: dict[str, object] = {
+        "name": project["name"],
+        "version": project["version"],
+        "source": {"editable": "."},
+    }
+    artifact = {"url": url, "hash": "sha256:" + digest}
+    dependency: dict[str, object] = {
+        "name": "reviewed-dependency",
+        "version": "1.0.0",
+        "source": {"registry": "https://pypi.org/simple"},
+    }
+    if kind == "sdist":
+        dependency["sdist"] = artifact
+    else:
+        dependency["sdist"] = None
+        dependency["wheels"] = [artifact]
+
+    result = run_dependency_lock_source_check(tmp_path, [root, dependency])
+
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize("artifact", [None, {}, {"url": "https://files.pythonhosted.org/packages/reviewed.whl"}])
+def test_dependency_lock_rejects_missing_distribution_artifacts(
+    tmp_path: Path, artifact: dict[str, str] | None
+) -> None:
+    project = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]
+    root: dict[str, object] = {
+        "name": project["name"],
+        "version": project["version"],
+        "source": {"editable": "."},
+    }
+    dependency: dict[str, object] = {
+        "name": "reviewed-dependency",
+        "version": "1.0.0",
+        "source": {"registry": "https://pypi.org/simple"},
+        "sdist": artifact,
+    }
+    result = run_dependency_lock_source_check(tmp_path, [root, dependency])
+    assert result.returncode != 0, result.stdout + result.stderr
 
 
 @pytest.mark.parametrize(
@@ -277,6 +368,242 @@ def test_scheduled_compatibility_keeps_dependency_provenance_gate() -> None:
     assert re.search(r"^    needs:\s*dependency-locks\s*$", jobs["compatibility"], re.MULTILINE)
     assert "github.event_name == 'schedule'" in jobs["compatibility"]
     assert "github.event_name == 'workflow_dispatch'" in jobs["compatibility"]
+
+
+@pytest.mark.parametrize("name", ["detect_breaking_changes", "agents_sdk"])
+def test_breaking_change_installers_validate_provenance_first(name: str) -> None:
+    path = ROOT / ".github/workflows/detect-breaking-changes.yml"
+    if not path.exists():
+        pytest.skip("GitHub workflows are not included in source distributions")
+
+    match = re.search(
+        rf"^  {name}:\n(?P<body>.*?)(?=^  [\w-]+:\n|\Z)",
+        path.read_text(),
+        re.MULTILINE | re.DOTALL,
+    )
+    assert match is not None
+    job = match.group("body")
+    steps = re.findall(r"^      - (?:name|uses):\s*(.+)$", job, re.MULTILINE)
+    assert re.fullmatch(r"actions/checkout@[0-9a-f]{40}.*", steps[0])
+    assert steps[1] == "Verify dependency source provenance before installing tools"
+    source = next(line for line in job.splitlines() if "Use only the public PyPI registry" in line)
+    command = source.split("python -c '", 1)[1].rsplit("'", 1)[0]
+    workflow = (ROOT / ".github/workflows/ci.yml").read_text()
+    expected = next(line for line in workflow.splitlines() if "Use only the public PyPI registry" in line)
+    assert command == expected.split("python -c '", 1)[1].rsplit("'", 1)[0]
+    if name == "agents_sdk":
+        gate = job.split("      - name: Verify dependency source provenance before installing tools\n", 1)[1]
+        gate = gate.split("\n      - name:", 1)[0]
+        assert "working-directory: openai-python" in gate
+
+
+def security_dependency_floor_program() -> str:
+    gate = dependency_workflow_jobs()["dependency-locks"]
+    match = re.search(
+        r"      - name: Require published minimums for direct security updates\n(?P<body>.*?)(?=\n      - name:|\Z)",
+        gate,
+        re.DOTALL,
+    )
+    assert match is not None, "Direct Dependabot security updates must validate published dependency floors"
+    body = match.group("body")
+    for condition in (
+        "github.event_name == 'pull_request'",
+        "github.actor == 'dependabot[bot]'",
+        "github.event.pull_request.user.login == 'dependabot[bot]'",
+        "contains(github.event.pull_request.head.ref, 'python-security')",
+    ):
+        assert condition in body
+    script = re.search(r"          python - <<'PY'\n(?P<source>.*?)(?=\n          PY)", body, re.DOTALL)
+    assert script is not None
+    program = "\n".join(line[10:] for line in script.group("source").splitlines())
+    if sys.version_info < (3, 11):
+        program = "import sys, tomli; sys.modules['tomllib'] = tomli\n" + program
+    return program
+
+
+def run_security_dependency_floor_check(
+    tmp_path: Path,
+    *,
+    base_requirements: list[str],
+    head_requirements: list[str],
+    base_packages: list[tuple[str, str]],
+    head_packages: list[tuple[str, str]],
+    optional: bool = False,
+    sha: str = "a" * 40,
+    origin: str = "https://github.com/openai/openai-python",
+) -> subprocess.CompletedProcess[str]:
+    def project(requirements: list[str]) -> str:
+        if optional:
+            return (
+                '[project]\nname = "openai"\nversion = "1.0"\ndependencies = []\n'
+                + "[project.optional-dependencies]\nfeature = "
+                + json.dumps(requirements)
+                + "\n"
+            )
+        return '[project]\nname = "openai"\nversion = "1.0"\ndependencies = ' + json.dumps(requirements) + "\n"
+
+    def lock(packages: list[tuple[str, str]]) -> str:
+        return "\n".join(
+            f"[[package]]\nname = {json.dumps(name)}\nversion = {json.dumps(version)}\n" for name, version in packages
+        )
+
+    (tmp_path / "pyproject.toml").write_text(project(head_requirements))
+    (tmp_path / "uv.lock").write_text(lock(head_packages))
+    (tmp_path / "base-project.toml").write_text(project(base_requirements))
+    (tmp_path / "base-lock.toml").write_text(lock(base_packages))
+    fake_git = tmp_path / "git"
+    fake_git.write_text(
+        f"#!{sys.executable}\n"
+        "import pathlib, sys\n"
+        f"root = pathlib.Path({str(tmp_path)!r})\n"
+        f"origin = {origin!r}\n"
+        f"sha = {sha!r}\n"
+        "arguments = sys.argv[1:]\n"
+        "if arguments == ['remote', 'get-url', 'origin']:\n"
+        "    print(origin)\n"
+        "elif arguments == ['fetch', '--no-tags', '--depth=1', 'origin', sha]:\n"
+        "    pass\n"
+        "elif arguments == ['show', sha + ':pyproject.toml']:\n"
+        "    print((root / 'base-project.toml').read_text(), end='')\n"
+        "elif arguments == ['show', sha + ':uv.lock']:\n"
+        "    print((root / 'base-lock.toml').read_text(), end='')\n"
+        "else:\n"
+        "    raise SystemExit('Unexpected or unsafe git operation')\n"
+    )
+    fake_git.chmod(0o755)
+    environment = dict(os.environ, BASE_SHA=sha, PATH=str(tmp_path) + os.pathsep + os.environ["PATH"])
+    return subprocess.run(
+        [sys.executable, "-c", security_dependency_floor_program()],
+        cwd=tmp_path,
+        env=environment,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+
+@pytest.mark.parametrize(
+    ("base", "head", "before", "after", "optional", "accepted"),
+    [
+        pytest.param(
+            ["Danger_Pkg>=1.0"],
+            ["danger-pkg>=1.0"],
+            [("danger-pkg", "1.0")],
+            [("danger_pkg", "1.1")],
+            False,
+            False,
+            id="direct-lock-only",
+        ),
+        pytest.param(
+            ["danger-pkg>=1.0"],
+            ["danger-pkg>=1.1"],
+            [("danger-pkg", "1.0")],
+            [("danger-pkg", "1.1")],
+            False,
+            True,
+            id="direct-floor-raised",
+        ),
+        pytest.param(
+            ["danger-pkg>=1.0"],
+            ["danger-pkg>=1.0,<3"],
+            [("danger-pkg", "1.0")],
+            [("danger-pkg", "1.1")],
+            False,
+            False,
+            id="unchanged-lower-bound",
+        ),
+        pytest.param(
+            ["danger-pkg>=1.0"],
+            ["danger-pkg>=1.0"],
+            [("danger-pkg", "1.0")],
+            [("danger-pkg", "1.1")],
+            True,
+            False,
+            id="optional-lock-only",
+        ),
+        pytest.param(
+            ["danger-pkg>=1.0"],
+            ["danger-pkg>=1.1"],
+            [("danger-pkg", "1.0")],
+            [("danger-pkg", "1.1")],
+            True,
+            True,
+            id="optional-floor-raised",
+        ),
+        pytest.param(
+            ["safe-direct>=1.0"],
+            ["safe-direct>=1.0"],
+            [("safe-direct", "1.0"), ("transitive", "1.0")],
+            [("safe-direct", "1.0"), ("transitive", "1.1")],
+            False,
+            True,
+            id="transitive-only",
+        ),
+        pytest.param(
+            ["danger-pkg>=1.0"],
+            ["danger-pkg>=1.0"],
+            [("danger-pkg", "1.0"), ("danger-pkg", "2.0")],
+            [("danger-pkg", "1.0"), ("danger-pkg", "2.1")],
+            False,
+            False,
+            id="multiple-locked-versions",
+        ),
+        pytest.param(
+            ["danger-pkg"],
+            ["danger-pkg>=1.1"],
+            [("danger-pkg", "1.0")],
+            [("danger-pkg", "1.1")],
+            False,
+            True,
+            id="previously-unbounded",
+        ),
+    ],
+)
+def test_only_direct_security_updates_must_raise_published_minimums(
+    tmp_path: Path,
+    base: list[str],
+    head: list[str],
+    before: list[tuple[str, str]],
+    after: list[tuple[str, str]],
+    optional: bool,
+    accepted: bool,
+) -> None:
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=base,
+        head_requirements=head,
+        base_packages=before,
+        head_packages=after,
+        optional=optional,
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("sha", "origin"),
+    [
+        pytest.param("invalid", "https://github.com/openai/openai-python", id="untrusted-base"),
+        pytest.param("a" * 40, "https://github.com/attacker/openai-python", id="untrusted-origin"),
+    ],
+)
+def test_security_floor_guard_rejects_untrusted_base(tmp_path: Path, sha: str, origin: str) -> None:
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=["danger-pkg>=1.0"],
+        head_requirements=["danger-pkg>=1.1"],
+        base_packages=[("danger-pkg", "1.0")],
+        head_packages=[("danger-pkg", "1.1")],
+        sha=sha,
+        origin=origin,
+    )
+    assert result.returncode != 0
+
+
+def test_routine_dependency_updates_preserve_lock_only_strategy() -> None:
+    config = (ROOT / ".github/dependabot.yml").read_text()
+    assert "versioning-strategy: increase-if-necessary" in config
+    assert re.search(r"python-security:\n\s+applies-to: security-updates", config)
+    security_dependency_floor_program()
 
 
 def test_agents_integration_selects_its_typechecking_runtime() -> None:
