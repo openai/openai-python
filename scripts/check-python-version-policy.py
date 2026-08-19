@@ -121,7 +121,7 @@ def main() -> None:
         "Policy current-compatibility text does not match the supported matrix",
     )
 
-    project_metadata = pyproject.split("[tool.rye]", 1)[0]
+    project_metadata = pyproject.split("[dependency-groups]", 1)[0]
     for requirement in UNMARKED_DEPENDENCIES:
         require(
             f'"{requirement}"' in project_metadata,

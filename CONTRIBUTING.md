@@ -5,37 +5,46 @@ rules are documented in [PYTHON_VERSION_POLICY.md](./PYTHON_VERSION_POLICY.md).
 Changes to the minimum Python version must keep those surfaces synchronized and
 must include a release note naming the final compatible SDK release.
 
-### With Rye
+### With uv
 
-We use [Rye](https://rye.astral.sh/) to manage dependencies because it will automatically provision a Python environment with the expected Python version. To set it up, run:
+We use [uv](https://docs.astral.sh/uv/) to manage Python, dependencies, and builds.
+Install uv 0.12.1 or newer, then run:
 
 ```sh
 $ ./scripts/bootstrap
 ```
 
-Or [install Rye manually](https://rye.astral.sh/guide/installation/) and run:
+This installs all SDK extras and the development tools from `uv.lock`. Run a
+command with `uv run --locked --all-extras`, or activate `.venv` in your shell.
+Use `uv lock` after changing dependencies, and commit the updated `uv.lock`.
+It is the authoritative lockfile; `uv export` can produce a requirements file
+for tools that need one.
 
-```sh
-$ rye sync --all-features
-```
+The default environment uses Pydantic v2. `./scripts/test` also runs the
+Pydantic-v1 suite in a separate, locked environment. To run that lane alone,
+use `./scripts/test-pydantic-v1`.
 
-You can then run scripts using `rye run python script.py` or by activating the virtual environment:
+### Dependency update policy
 
-```sh
-# Activate the virtual environment - https://docs.python.org/3/library/venv.html#how-venvs-work
-$ source .venv/bin/activate
+Routine Python and GitHub Actions updates have an eight-day cooldown. uv also
+excludes Python distribution artifacts uploaded within the last eight days.
+Dependabot security updates remain enabled and are exempt from Dependabot's
+version-update cooldown.
 
-# now you can omit the `rye run` prefix
-$ python script.py
-```
+Do not lower a security-fixed minimum or downgrade a patched lock entry to make
+the cooldown pass. If an urgent fix is too new for uv, request SDK CODEOWNER
+review of the advisory, exact fixed version, upstream provenance, artifact
+hashes, and affected dependency paths. The reviewed PR may add a temporary,
+package-specific `tool.uv.exclude-newer-package` cutoff using a fixed UTC
+timestamp just after the approved artifacts were uploaded. Update only the
+approved package (for example, `uv lock --upgrade-package 'package==version'`),
+retain the security floor in published metadata where applicable, and review
+the resulting lock diff. Record the advisory and an expiry/removal date in the
+PR and remove the exception once those artifacts are eight days old. Do not
+disable the global cutoff or exempt unrelated packages.
 
-### Without Rye
-
-Alternatively if you don't want to install `Rye`, you can stick with the standard `pip` setup by ensuring you have the Python version specified in `.python-version`, create a virtual environment however you desire and then install dependencies using this command:
-
-```sh
-$ pip install -r requirements-dev.lock
-```
+See [uv's package-specific cutoff documentation](https://docs.astral.sh/uv/reference/settings/#exclude-newer-package)
+and [Dependabot's cooldown policy](https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-options-reference#cooldown).
 
 ## Modifying/Adding code
 
@@ -55,7 +64,7 @@ modify the contents of the `src/openai/lib/` and `examples/` directories.
   Prefer the mock server or mocked HTTP transport over live credentials in tests.
 - Review direct and transitive dependency changes, package provenance, build or
   install hooks, and diffs to `pyproject.toml`, optional extras,
-  `requirements.lock`, `requirements-dev.lock`, and `uv.lock`.
+  `uv.lock`, and the build dependency group.
 - Pin third-party GitHub Actions to reviewed full commit SHAs, minimize job
   permissions, and keep secrets and write-capable tokens away from untrusted
   pull-request code. Protect release-app credentials and preserve the separate
@@ -76,7 +85,7 @@ All files in the `examples/` directory are not modified by the generator and can
 ```py
 # add an example to examples/<your-example>.py
 
-#!/usr/bin/env -S rye run python
+#!/usr/bin/env -S uv run python
 …
 ```
 
@@ -103,10 +112,11 @@ Building this package will create two files in the `dist/` directory, a `.tar.gz
 To create a distributable version of the library, all you have to do is run this command:
 
 ```sh
-$ rye build
-# or
-$ python -m build
+$ ./scripts/build
 ```
+
+The build script exports hash-checked build requirements from `uv.lock` before
+building the sdist and wheel. It does not install the development toolchain.
 
 Then to install:
 
@@ -128,8 +138,7 @@ $ ./scripts/test
 
 ## Linting and formatting
 
-This repository uses [ruff](https://github.com/astral-sh/ruff) and
-[black](https://github.com/psf/black) to format the code in the repository.
+This repository uses [Ruff](https://github.com/astral-sh/ruff) to lint and format Python code.
 
 To lint:
 

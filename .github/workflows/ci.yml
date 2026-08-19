@@ -27,14 +27,14 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-      - name: Set up Rye
-        uses: eifinger/setup-rye@c694239a43768373e87d0103d7f547027a23f3c8
+      - name: Set up uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
-          version: '0.44.0'
+          version: '0.12.5'
           enable-cache: true
 
       - name: Install dependencies
-        run: rye sync --all-features
+        run: uv sync --locked --all-extras
 
       - name: Run lints
         run: ./scripts/lint
@@ -51,26 +51,26 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Set up Rye
-        uses: eifinger/setup-rye@c694239a43768373e87d0103d7f547027a23f3c8
+      - name: Set up uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
-          version: '0.44.0'
+          version: '0.12.5'
           enable-cache: true
 
       - name: Install dependencies
-        run: rye sync --all-features
+        run: uv sync --locked --all-extras
 
       - name: Run build
-        run: rye build
+        run: ./scripts/build
 
       - name: Validate Python version metadata
-        run: rye run python scripts/utils/validate-python-version-wheel.py
+        run: uv run --locked --all-extras python scripts/utils/validate-python-version-wheel.py
 
       - name: Validate Bedrock wheel
-        run: rye run python scripts/utils/validate-bedrock-wheel.py
+        run: uv run --locked --all-extras python scripts/utils/validate-bedrock-wheel.py
 
       - name: Validate HTTPX2 wheel on Python 3.10
-        run: rye run python scripts/utils/validate-httpx2-wheel.py
+        run: uv run --locked --all-extras python scripts/utils/validate-httpx2-wheel.py
 
       - name: Set up Python 3.9 for resolver rejection
         uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
@@ -107,22 +107,12 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Set up Rye
-        uses: eifinger/setup-rye@c694239a43768373e87d0103d7f547027a23f3c8
+      - name: Set up uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
-          version: '0.44.0'
-          enable-cache: false
-
-      - name: Cache Rye virtual environment
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: .venv
-          key: rye-${{ runner.os }}-${{ runner.arch }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('requirements.lock', 'requirements-dev.lock') }}
-
-      - name: Select Python ${{ matrix.python-version }}
-        run: |
-          rye toolchain register "${{ steps.setup-python.outputs.python-path }}"
-          rye pin --relaxed --no-update-requires-python "${{ matrix.python-version }}"
+          version: '0.12.5'
+          python-version: ${{ matrix.python-version }}
+          enable-cache: true
 
       - name: Bootstrap
         run: ./scripts/bootstrap
@@ -144,23 +134,16 @@ jobs:
         with:
           python-version: '3.14'
 
-      - name: Set up Rye
-        uses: eifinger/setup-rye@c694239a43768373e87d0103d7f547027a23f3c8
+      - name: Set up uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
-          version: '0.44.0'
-          enable-cache: false
-
-      - name: Cache Rye virtual environment
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: .venv
-          key: rye-${{ runner.os }}-${{ runner.arch }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('requirements.lock', 'requirements-dev.lock') }}
+          version: '0.12.5'
+          python-version: '3.14'
+          enable-cache: true
 
       - name: Install HTTPX2 test dependencies
         run: |
-          rye toolchain register "${{ steps.setup-python.outputs.python-path }}"
-          rye pin --relaxed --no-update-requires-python 3.14
-          rye sync --all-features
+          uv sync --locked --all-extras
 
       - name: Run tests with HTTPX2
         env:
@@ -177,23 +160,23 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
-      - name: Set up Rye
-        uses: eifinger/setup-rye@c694239a43768373e87d0103d7f547027a23f3c8
+      - name: Set up uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
-          version: '0.44.0'
+          version: '0.12.5'
           enable-cache: true
       - name: Install dependencies
         run: |
-          rye sync --all-features
+          uv sync --locked --all-extras
 
       - env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
-            rye run python examples/demo.py
+            uv run --locked --all-extras python examples/demo.py
       - env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
-            rye run python examples/async_demo.py
+            uv run --locked --all-extras python examples/async_demo.py
 
   python-policy:
     timeout-minutes: 5
@@ -242,30 +225,20 @@ jobs:
           python-version: ${{ matrix.python-version }}
           allow-prereleases: ${{ matrix.experimental }}
 
-      - name: Set up Rye
-        uses: eifinger/setup-rye@c694239a43768373e87d0103d7f547027a23f3c8
+      - name: Set up uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
-          version: '0.44.0'
-          enable-cache: false
-
-      - name: Cache Rye virtual environment
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: .venv
-          key: rye-${{ runner.os }}-${{ runner.arch }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('requirements.lock', 'requirements-dev.lock') }}
-
-      - name: Select Python ${{ matrix.python-version }}
-        run: |
-          rye toolchain register "${{ steps.setup-python.outputs.python-path }}"
-          rye pin --relaxed --no-update-requires-python "${{ matrix.python-version }}"
+          version: '0.12.5'
+          python-version: ${{ matrix.python-version }}
+          enable-cache: true
 
       - name: Install dependencies
-        run: rye sync --all-features
+        run: uv sync --locked --all-extras
 
       - name: Smoke-test the supported runtime
         run: |
-          rye run python -c 'import openai; from openai import AsyncOpenAI, OpenAI'
-          rye run pytest -o addopts= --quiet \
+          uv run --locked --all-extras python -c 'import openai; from openai import AsyncOpenAI, OpenAI'
+          uv run --locked --all-extras pytest -o addopts= --quiet \
             tests/test_client.py \
             tests/test_streaming.py \
             tests/lib/test_pydantic.py

@@ -8,6 +8,7 @@ __pycache__
 dist
 
 .venv
+.venv-pydantic-v1
 .idea
 
 .env
