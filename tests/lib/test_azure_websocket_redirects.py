@@ -101,7 +101,7 @@ def test_sync_azure_websocket_does_not_follow_redirects(beta: bool, bearer: bool
             self.end_headers()
 
         @override
-        def log_message(self, format: str, *args: object) -> None:  # noqa: A002
+        def log_message(self, *_args: object, **_kwargs: object) -> None:
             pass
 
     server = ThreadingHTTPServer(("127.0.0.1", 0), RedirectHandler)
