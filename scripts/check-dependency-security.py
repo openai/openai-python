@@ -13,6 +13,7 @@ from typing import Any, TypeAlias, cast
 MarkerClause: TypeAlias = tuple[str, str, str]
 MarkerContext: TypeAlias = tuple[MarkerClause, ...]
 StableRelease: TypeAlias = tuple[int, tuple[int, ...], int]
+PublishedBound: TypeAlias = tuple[str, int, tuple[int, ...], int, bool]
 DependencyContext: TypeAlias = tuple[str, str, tuple[str, ...], MarkerContext]
 RequirementMap: TypeAlias = dict[str, set[str]]
 ContextRequirements: TypeAlias = dict[DependencyContext, set[str]]
@@ -104,7 +105,7 @@ def direct(project: dict[str, Any], *, protected: bool = False) -> tuple[Require
                 raise SystemExit("Ambiguous direct security dependency requirement")
             name = canonical(match.group(1))
             extra = match.group(2)
-            requested = ()
+            requested: tuple[str, ...] = ()
             if extra:
                 requested = tuple(sorted(canonical(value.strip()) for value in extra[1:-1].split(",")))
                 if any(not re.fullmatch(r"[a-z0-9][a-z0-9-]*", value) for value in requested):
@@ -124,6 +125,7 @@ def versions(lock: dict[str, Any]) -> tuple[RequirementMap, ResolutionsByName]:
         version = package["version"]
         result.setdefault(name, set()).add(version)
         markers = package.get("resolution-markers")
+        domains: list[MarkerContext]
         if markers is None:
             domains = [()]
         else:
@@ -464,6 +466,170 @@ def preserves_supported_security_branches(
     return observed
 
 
+def published_bounds(requirement: str) -> tuple[PublishedBound, ...]:
+    expression = requirement.split(";", 1)[0]
+    match = re.fullmatch(r"\s*([A-Za-z0-9][A-Za-z0-9_.-]*)(\[[^\]]+\])?\s*(.*)", expression)
+    if match is None:
+        raise SystemExit("Ambiguous published security dependency requirement")
+    clauses = match.group(3).split(",")
+    if len(clauses) > 256:
+        raise SystemExit("Unbounded published security dependency exclusions")
+    result: list[PublishedBound] = []
+    for clause in clauses:
+        match = re.fullmatch(
+            r"(>=|<=|==|!=|>|<)\s*((?:(\d+)!)?(\d+(?:\.\d+)*)(?:\.post(\d+))?)(\.\*)?",
+            clause.strip(),
+        )
+        if match is None or len(match.group(2)) > 128:
+            raise SystemExit("Ambiguous published security dependency bound")
+        components = match.group(4).split(".")
+        if len(components) > 16 or any(len(component) > 9 for component in components):
+            raise SystemExit("Unbounded published security dependency release")
+        wildcard = match.group(6) is not None
+        if wildcard and (match.group(1) != "!=" or match.group(5) is not None):
+            raise SystemExit("Ambiguous published security dependency wildcard")
+        epoch, release, post = stable_version(match.group(2))
+        prefix = tuple(int(component) for component in components)
+        result.append((match.group(1), epoch, prefix if wildcard else release, post, wildcard))
+    if len(set(result)) != len(result):
+        raise SystemExit("Ambiguous duplicate published security dependency bound")
+    return tuple(result)
+
+
+def allows_published_release(bounds: tuple[PublishedBound, ...], release: StableRelease) -> bool:
+    for operator, epoch, components, post, wildcard in bounds:
+        if wildcard:
+            candidate = release[1] + (0,) * max(0, len(components) - len(release[1]))
+            if release[0] == epoch and candidate[: len(components)] == components:
+                return False
+            continue
+        bound = epoch, components, post
+        if (
+            operator == ">="
+            and release < bound
+            or operator == ">"
+            and release <= bound
+            or operator == "<="
+            and release > bound
+            or operator == "<"
+            and release >= bound
+            or operator == "=="
+            and release != bound
+            or operator == "!="
+            and release == bound
+        ):
+            return False
+    return True
+
+
+def published_lower_bound_excludes(bounds: tuple[PublishedBound, ...], epoch: int, prefix: tuple[int, ...]) -> bool:
+    for operator, bound_epoch, components, _post, wildcard in bounds:
+        if wildcard or operator not in {">=", ">"}:
+            continue
+        if epoch < bound_epoch:
+            return True
+        if epoch > bound_epoch:
+            continue
+        boundary = components + (0,) * max(0, len(prefix) - len(components))
+        if prefix < boundary[: len(prefix)]:
+            return True
+    return False
+
+
+def excludes_affected_published_branch(
+    previous_bounds: tuple[PublishedBound, ...],
+    current_bounds: tuple[PublishedBound, ...],
+    removed: StableRelease,
+    patched: StableRelease,
+    preserved: set[StableRelease],
+) -> bool:
+    if (
+        removed[0] != patched[0]
+        or not removed[1]
+        or not patched[1]
+        or removed[1][0] != patched[1][0]
+        or not set(previous_bounds).issubset(current_bounds)
+        or any(bound[0] != "!=" for bound in set(current_bounds) - set(previous_bounds))
+        or not allows_published_release(previous_bounds, removed)
+        or allows_published_release(current_bounds, removed)
+        or not allows_published_release(current_bounds, patched)
+    ):
+        return False
+    retained = {release for release in preserved if allows_published_release(previous_bounds, release)}
+    if not retained or any(not allows_published_release(current_bounds, release) for release in retained):
+        return False
+    epoch, components, post = patched
+    work = 0
+    exclusions = {
+        value
+        for operator, bound_epoch, value, _, wildcard in current_bounds
+        if operator == "!=" and wildcard and bound_epoch == epoch
+    }
+    for index in range(1, len(components)):
+        if components[index] > 256 - work:
+            return False
+        for component in range(components[index]):
+            work += 1
+            prefix = components[:index] + (component,)
+            if published_lower_bound_excludes(previous_bounds, epoch, prefix):
+                continue
+            if not any(
+                len(exclusion) <= len(prefix) and prefix[: len(exclusion)] == exclusion for exclusion in exclusions
+            ):
+                return False
+    if post >= 0:
+        if post + 1 > 256 - work:
+            return False
+        if allows_published_release(current_bounds, (epoch, components, -1)):
+            return False
+        for earlier in range(post):
+            if allows_published_release(current_bounds, (epoch, components, earlier)):
+                return False
+    return True
+
+
+def secures_supported_published_branches(
+    previous_domains: ResolutionDomains,
+    current_domains: ResolutionDomains,
+    previous_published: ContextRequirements,
+    current_published: ContextRequirements,
+    previous_protected: ContextRequirements,
+    current_protected: ContextRequirements,
+) -> bool:
+    if not preserves_supported_security_branches(
+        previous_domains, current_domains, previous_protected, current_protected
+    ):
+        return False
+    observed = False
+    for domain in previous_domains.keys() | current_domains.keys():
+        prior_versions = previous_domains.get(domain, set())
+        updated_versions = current_domains.get(domain, set())
+        if prior_versions == updated_versions:
+            continue
+        removed = sorted(stable_version(value) for value in prior_versions - updated_versions)
+        patched = sorted(stable_version(value) for value in updated_versions - prior_versions)
+        retained = {stable_version(value) for value in prior_versions & updated_versions}
+        if not retained or len(removed) != len(patched):
+            return False
+        for old, new in zip(removed, patched, strict=True):
+            covered = False
+            for context, previous in previous_published.items():
+                current = current_published.get(context, set())
+                if len(previous) != 1 or len(current) != 1 or not marker_overlap(context[3], domain):
+                    continue
+                before = published_bounds(next(iter(previous)))
+                if not allows_published_release(before, old):
+                    continue
+                after = published_bounds(next(iter(current)))
+                if not excludes_affected_published_branch(before, after, old, new, retained):
+                    return False
+                covered = True
+            if not covered:
+                return False
+            observed = True
+    return observed
+
+
 old_project = read_base("pyproject.toml")
 old_lock = read_base("uv.lock")
 new_project = cast(dict[str, Any], tomllib.loads(pathlib.Path("pyproject.toml").read_text()))
@@ -599,14 +765,16 @@ for name, requirements in new_direct.items():
     if old_versions.get(name, set()) == new_versions.get(name, set()) and previous_domains == current_domains:
         continue
     if previous == requirements:
-        if preserves_supported_security_branches(
-            previous_domains,
-            current_domains,
-            old_protected_contexts.get(name, {}),
-            new_protected_contexts.get(name, {}),
-        ):
-            continue
         raise SystemExit("Raise the published security-fixed minimum for " + name)
+    if secures_supported_published_branches(
+        previous_domains,
+        current_domains,
+        previous_contexts,
+        current_contexts,
+        old_protected_contexts.get(name, {}),
+        new_protected_contexts.get(name, {}),
+    ):
+        continue
     patched_domains: dict[MarkerContext, StableRelease] = {}
     for domain in previous_domains.keys() | current_domains.keys():
         prior_versions = previous_domains.get(domain, set())

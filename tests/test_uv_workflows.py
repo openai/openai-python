@@ -2139,6 +2139,24 @@ def test_only_direct_security_updates_must_raise_published_minimums(
     [
         pytest.param("pydantic-v2", True, id="published-v1-support-survives-protected-v2-patch"),
         pytest.param("pydantic-v1", True, id="published-v2-support-survives-protected-v1-patch"),
+        pytest.param("unchanged-published", False, id="private-v2-floor-cannot-leave-published-range-vulnerable"),
+        pytest.param("unchanged-published-v1", False, id="private-v1-floor-cannot-leave-published-range-vulnerable"),
+        pytest.param("missing-earlier-minor", False, id="published-range-must-exclude-entire-affected-major"),
+        pytest.param("missing-earlier-patch", False, id="published-range-must-exclude-earlier-minor-patches"),
+        pytest.param("exact-old-only", False, id="excluding-only-old-lock-does-not-protect-whole-branch"),
+        pytest.param("removed-still-accepted", False, id="published-range-must-exclude-removed-lock"),
+        pytest.param("patched-excluded", False, id="published-range-must-accept-patched-lock"),
+        pytest.param("unaffected-excluded", False, id="published-range-must-preserve-unaffected-major"),
+        pytest.param("dropped-original-exclusion", False, id="published-original-exclusions-cannot-be-weakened"),
+        pytest.param("marked-published", True, id="published-exclusions-preserve-original-marker"),
+        pytest.param("moved-published-marker", False, id="published-exclusions-cannot-move-original-marker"),
+        pytest.param("epoch-patched", True, id="published-exclusions-match-security-release-epoch"),
+        pytest.param("wrong-epoch", False, id="other-epoch-exclusions-do-not-secure-published-branch"),
+        pytest.param("post-patched", True, id="published-exclusions-cover-earlier-stable-post-releases"),
+        pytest.param("post-missing-intermediate", False, id="published-exclusions-cannot-skip-earlier-post"),
+        pytest.param("post-wildcard", False, id="published-post-wildcard-cannot-exclude-patched-release"),
+        pytest.param("unsupported-wildcard", False, id="ambiguous-published-exclusions-fail-closed"),
+        pytest.param("unbounded-expansion", False, id="published-branch-proof-has-bounded-expansion"),
         pytest.param("unchanged-protected-floor", False, id="unchanged-v2-protected-floor-rejected"),
         pytest.param("below-patched-release", False, id="protected-v2-floor-must-reach-lock-patch"),
         pytest.param("unbounded-branch", False, id="protected-branch-must-retain-upper-bound"),
@@ -2151,7 +2169,10 @@ def test_only_direct_security_updates_must_raise_published_minimums(
 def test_security_updates_preserve_independent_supported_major_branches(
     tmp_path: Path, variant: str, accepted: bool
 ) -> None:
-    published = "pydantic>=1.10.13,<3"
+    old_exclusions = [f"!=2.{minor}.*" for minor in range(4)]
+    published = "pydantic>=1.10.13,<3," + ",".join(old_exclusions)
+    v2_exclusions = [f"!=2.{minor}.*" for minor in range(4, 12)] + [f"!=2.12.{patch}.*" for patch in range(6)]
+    head_published = published + "," + ",".join(v2_exclusions)
     base_groups = {
         "pydantic-v1": ["pydantic>=1.10.26,<2"],
         "pydantic-v2": ["pydantic>=2,<3"],
@@ -2163,10 +2184,69 @@ def test_security_updates_preserve_independent_supported_major_branches(
     base_packages = [("pydantic", "1.10.26"), ("pydantic", "2.12.5")]
     head_packages = [("pydantic", "1.10.26"), ("pydantic", "2.12.6")]
 
-    if variant == "pydantic-v1":
+    if variant in {"pydantic-v1", "unchanged-published-v1"}:
         head_groups["pydantic-v1"] = ["pydantic>=1.10.27,<2"]
         head_groups["pydantic-v2"] = ["pydantic>=2,<3"]
         head_packages = [("pydantic", "1.10.27"), ("pydantic", "2.12.5")]
+        head_published = published + "," + ",".join(f"!=1.10.{patch}.*" for patch in range(13, 27))
+        if variant == "unchanged-published-v1":
+            head_published = published
+    elif variant == "unchanged-published":
+        head_published = published
+    elif variant == "missing-earlier-minor":
+        head_published = head_published.replace(",!=2.11.*", "")
+    elif variant == "missing-earlier-patch":
+        head_published = head_published.replace(",!=2.12.4.*", "")
+    elif variant == "exact-old-only":
+        head_published = published + ",!=2.12.5"
+    elif variant == "removed-still-accepted":
+        head_published = head_published.replace(",!=2.12.5.*", "")
+    elif variant == "patched-excluded":
+        head_published += ",!=2.12.6.*"
+    elif variant == "unaffected-excluded":
+        head_published += ",!=1.10.26.*"
+    elif variant == "dropped-original-exclusion":
+        head_published = head_published.replace(",!=2.0.*", "")
+    elif variant in {"marked-published", "moved-published-marker"}:
+        published += "; python_version >= '3.10'"
+        head_published += (
+            "; python_version >= '3.11'" if variant == "moved-published-marker" else "; python_version >= '3.10'"
+        )
+    elif variant in {"epoch-patched", "wrong-epoch"}:
+        existing = [f"!=1!2.{minor}.*" for minor in range(4)]
+        remaining = [f"!=1!2.{minor}.*" for minor in range(4, 12)] + [f"!=1!2.12.{patch}.*" for patch in range(6)]
+        published = "pydantic>=1!1.10.13,<1!3," + ",".join(existing)
+        head_published = published + "," + ",".join(remaining)
+        if variant == "wrong-epoch":
+            head_published = published + "," + ",".join(value.replace("1!", "0!") for value in remaining)
+        base_groups = {
+            "pydantic-v1": ["pydantic>=1!1.10.26,<1!2"],
+            "pydantic-v2": ["pydantic>=1!2,<1!3"],
+        }
+        head_groups = {
+            "pydantic-v1": ["pydantic>=1!1.10.26,<1!2"],
+            "pydantic-v2": ["pydantic>=1!2.12.6,<1!3"],
+        }
+        base_packages = [("pydantic", "1!1.10.26"), ("pydantic", "1!2.12.5")]
+        head_packages = [("pydantic", "1!1.10.26"), ("pydantic", "1!2.12.6")]
+    elif variant in {"post-patched", "post-missing-intermediate", "post-wildcard"}:
+        head_groups["pydantic-v2"] = ["pydantic>=2.12.5.post3,<3"]
+        base_packages = [("pydantic", "1.10.26"), ("pydantic", "2.12.5.post1")]
+        head_packages = [("pydantic", "1.10.26"), ("pydantic", "2.12.5.post3")]
+        lower = [f"!=2.{minor}.*" for minor in range(4, 12)]
+        lower += [f"!=2.12.{patch}.*" for patch in range(5)]
+        lower += ["!=2.12.5", "!=2.12.5.post0", "!=2.12.5.post1", "!=2.12.5.post2"]
+        head_published = published + "," + ",".join(lower)
+        if variant == "post-missing-intermediate":
+            head_published = head_published.replace(",!=2.12.5.post2", "")
+        elif variant == "post-wildcard":
+            head_published += ",!=2.12.5.*"
+    elif variant == "unsupported-wildcard":
+        head_published += ",!=2.12.5.post1.*"
+    elif variant == "unbounded-expansion":
+        head_groups["pydantic-v2"] = ["pydantic>=2.513.1,<3"]
+        base_packages = [("pydantic", "1.10.26"), ("pydantic", "2.513.0")]
+        head_packages = [("pydantic", "1.10.26"), ("pydantic", "2.513.1")]
     elif variant == "unchanged-protected-floor":
         head_groups["pydantic-v2"] = ["pydantic>=2,<3"]
     elif variant == "below-patched-release":
@@ -2185,7 +2265,7 @@ def test_security_updates_preserve_independent_supported_major_branches(
     result = run_security_dependency_floor_check(
         tmp_path,
         base_requirements=[published],
-        head_requirements=[published],
+        head_requirements=[head_published],
         base_packages=base_packages,
         head_packages=head_packages,
         base_dependency_groups=base_groups,
