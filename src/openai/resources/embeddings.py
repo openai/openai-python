@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-import array
-import base64
-from typing import Union, Iterable, cast
+from typing import Union, Iterable
+from functools import partial
 from typing_extensions import Literal
 
 import httpx2
@@ -14,11 +13,11 @@ from ..types import embedding_create_params
 from .._types import Body, Omit, Query, Headers, NotGiven, SequenceNotStr, omit, not_given
 from .._utils import is_given, maybe_transform
 from .._compat import cached_property
-from .._extras import numpy as np, has_numpy
 from .._resource import SyncAPIResource, AsyncAPIResource
 from .._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from .._base_client import make_request_options
 from ..types.embedding_model import EmbeddingModel
+from ..lib._parsing._embeddings import parse_embedding_response as _parse_embedding_response
 from ..types.create_embedding_response import CreateEmbeddingResponse
 
 __all__ = ["Embeddings", "AsyncEmbeddings"]
@@ -111,28 +110,6 @@ class Embeddings(SyncAPIResource):
         if not is_given(encoding_format):
             params["encoding_format"] = "base64"
 
-        def parser(obj: CreateEmbeddingResponse) -> CreateEmbeddingResponse:
-            if is_given(encoding_format):
-                # don't modify the response object if a user explicitly asked for a format
-                return obj
-
-            if not obj.data:
-                raise ValueError("No embedding data received")
-
-            for embedding in obj.data:
-                data = cast(object, embedding.embedding)
-                if not isinstance(data, str):
-                    continue
-                if not has_numpy():
-                    # use array for base64 optimisation
-                    embedding.embedding = array.array("f", base64.b64decode(data)).tolist()
-                else:
-                    embedding.embedding = np.frombuffer(  # type: ignore[no-untyped-call]
-                        base64.b64decode(data), dtype="float32"
-                    ).tolist()
-
-            return obj
-
         return self._post(
             "/embeddings",
             body=maybe_transform(params, embedding_create_params.EmbeddingCreateParams),
@@ -141,7 +118,7 @@ class Embeddings(SyncAPIResource):
                 extra_query=extra_query,
                 extra_body=extra_body,
                 timeout=timeout,
-                post_parser=parser,
+                post_parser=partial(_parse_embedding_response, encoding_format=encoding_format),
                 security={"bearer_auth": True},
             ),
             cast_to=CreateEmbeddingResponse,
@@ -235,28 +212,6 @@ class AsyncEmbeddings(AsyncAPIResource):
         if not is_given(encoding_format):
             params["encoding_format"] = "base64"
 
-        def parser(obj: CreateEmbeddingResponse) -> CreateEmbeddingResponse:
-            if is_given(encoding_format):
-                # don't modify the response object if a user explicitly asked for a format
-                return obj
-
-            if not obj.data:
-                raise ValueError("No embedding data received")
-
-            for embedding in obj.data:
-                data = cast(object, embedding.embedding)
-                if not isinstance(data, str):
-                    continue
-                if not has_numpy():
-                    # use array for base64 optimisation
-                    embedding.embedding = array.array("f", base64.b64decode(data)).tolist()
-                else:
-                    embedding.embedding = np.frombuffer(  # type: ignore[no-untyped-call]
-                        base64.b64decode(data), dtype="float32"
-                    ).tolist()
-
-            return obj
-
         return await self._post(
             "/embeddings",
             body=maybe_transform(params, embedding_create_params.EmbeddingCreateParams),
@@ -265,7 +220,7 @@ class AsyncEmbeddings(AsyncAPIResource):
                 extra_query=extra_query,
                 extra_body=extra_body,
                 timeout=timeout,
-                post_parser=parser,
+                post_parser=partial(_parse_embedding_response, encoding_format=encoding_format),
                 security={"bearer_auth": True},
             ),
             cast_to=CreateEmbeddingResponse,
