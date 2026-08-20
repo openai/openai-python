@@ -31,8 +31,12 @@ def azure_options(base_url: str, bearer: bool) -> dict[str, Any]:
 
 @pytest.fixture(autouse=True)
 def no_proxies(monkeypatch: pytest.MonkeyPatch) -> None:
-    for name in ("ALL_PROXY", "HTTP_PROXY", "HTTPS_PROXY", "all_proxy", "http_proxy", "https_proxy"):
-        monkeypatch.delenv(name, raising=False)
+    for scheme in ("all", "http", "https", "ws", "wss", "socks"):
+        monkeypatch.delenv(f"{scheme}_proxy", raising=False)
+        monkeypatch.delenv(f"{scheme.upper()}_PROXY", raising=False)
+    # Also bypass proxies discovered from platform settings, not just the env.
+    monkeypatch.setenv("no_proxy", "*")
+    monkeypatch.setenv("NO_PROXY", "*")
 
 
 @pytest.mark.parametrize("beta", [False, True], ids=["stable", "beta"])
