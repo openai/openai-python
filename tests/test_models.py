@@ -1015,3 +1015,10 @@ def test_iterable_construction_str_falls_back_to_list() -> None:
     # falls back to list of chars rather than calling str(["h", "e", "l", "l", "o"])
     assert m.data["items"] == ["h", "e", "l", "l", "o"]
     assert m.model_dump()["data"]["items"] == ["h", "e", "l", "l", "o"]
+
+
+def test_construct_type_bare_dict_no_unpack_error() -> None:
+    # bare `dict` (no type parameters) must not raise ValueError when unpacking get_args()
+    value = {"key": "value"}
+    result = construct_type(type_=dict, value=value)
+    assert result == value
