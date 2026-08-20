@@ -352,7 +352,7 @@ class AsyncRealtimeConnectionManager:
         ```
         """
         try:
-            from websockets.asyncio.client import connect
+            from ....lib._websocket import _WebSocketConnect as connect
         except ImportError as exc:
             raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
 
