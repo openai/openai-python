@@ -1,0 +1,24 @@
+# dogecoin.conf template for staging & production node deployments
+server=1
+txindex=1
+# For security in staging & production, do not hardcode rpcuser and rpcpassword here.
+# Instead, pass them as command-line arguments when starting the container, e.g.:
+#   dogecoind -rpcuser=YOUR_RPC_USER -rpcpassword=YOUR_RPC_PASSWORD
+# Or configure rpcauth=user:salt$hashedpassword.
+# Local CLI commands will automatically authenticate using cookie auth.
+
+# Allow connections from Docker networks and localhost
+rpcallowip=127.0.0.1
+rpcallowip=10.0.0.0/8
+rpcallowip=172.16.0.0/12
+rpcallowip=192.168.0.0/16
+
+# Mainnet Settings (standard Dogecoin ports)
+[main]
+rpcport=22555
+port=22556
+
+# Testnet Settings (standard Dogecoin ports)
+[test]
+rpcport=44555
+port=44556
