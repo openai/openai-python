@@ -229,6 +229,7 @@ class OpenAI(SyncAPIClient):
             workload_identity = workload_identity.copy()
         self.workload_identity = workload_identity if provider_runtime is None else None
 
+        _api_key_provided = api_key is not None
         if provider_runtime is not None:
             self.api_key = ""
             self._api_key_provider = None
@@ -256,6 +257,7 @@ class OpenAI(SyncAPIClient):
             provider_runtime is None
             and _enforce_credentials
             and not self.api_key
+            and not _api_key_provided
             and self._api_key_provider is None
             and workload_identity is None
             and self.admin_api_key is None
@@ -913,6 +915,7 @@ class AsyncOpenAI(AsyncAPIClient):
             workload_identity = workload_identity.copy()
         self.workload_identity = workload_identity if provider_runtime is None else None
 
+        _api_key_provided = api_key is not None
         if provider_runtime is not None:
             self.api_key = ""
             self._api_key_provider = None
@@ -940,6 +943,7 @@ class AsyncOpenAI(AsyncAPIClient):
             provider_runtime is None
             and _enforce_credentials
             and not self.api_key
+            and not _api_key_provided
             and self._api_key_provider is None
             and workload_identity is None
             and self.admin_api_key is None
