@@ -983,12 +983,44 @@ def accumulate_event(
 def accumulate_delta(acc: dict[object, object], delta: dict[object, object]) -> dict[object, object]:
     for key, delta_value in delta.items():
         if key not in acc:
-            acc[key] = delta_value
+            # Normalize lists of dicts with index fields before storing
+            # to handle cases like tool_calls with duplicate indexes
+            # in the first chunk
+            if is_list(delta_value) and all(is_dict(x) for x in delta_value):
+                normalized: list[object] = []
+                index_map: dict[int, int] = {}
+                for entry in delta_value:
+                    idx = entry.get("index")
+                    if idx is not None and isinstance(idx, int) and idx in index_map:
+                        existing_pos = index_map[idx]
+                        normalized[existing_pos] = accumulate_delta(normalized[existing_pos], entry)
+                    else:
+                        if idx is not None and isinstance(idx, int):
+                            index_map[idx] = len(normalized)
+                        normalized.append(entry)
+                acc[key] = normalized
+            else:
+                acc[key] = delta_value
             continue
 
         acc_value = acc[key]
         if acc_value is None:
-            acc[key] = delta_value
+            # Normalize lists of dicts with index fields before storing
+            if is_list(delta_value) and all(is_dict(x) for x in delta_value):
+                normalized = []
+                index_map = {}
+                for entry in delta_value:
+                    idx = entry.get("index")
+                    if idx is not None and isinstance(idx, int) and idx in index_map:
+                        existing_pos = index_map[idx]
+                        normalized[existing_pos] = accumulate_delta(normalized[existing_pos], entry)
+                    else:
+                        if idx is not None and isinstance(idx, int):
+                            index_map[idx] = len(normalized)
+                        normalized.append(entry)
+                acc[key] = normalized
+            else:
+                acc[key] = delta_value
             continue
 
         # the `index` property is used in arrays of objects so it should
@@ -1014,7 +1046,33 @@ def accumulate_delta(acc: dict[object, object], delta: dict[object, object]) -> 
                 acc_value.extend(delta_value)
                 continue
 
-            for delta_entry in delta_value:
+            # Normalize delta entries by index before merging.
+            # When multiple entries share the same index (e.g., tool_calls
+            # with duplicate indexes in the first chunk), they must be merged
+            # together first so that subsequent chunks merge into the correct
+            # logical position rather than stranding entries at duplicate indexes.
+            normalized_delta: list[object] = []
+            index_map: dict[int, int] = {}
+            for entry in delta_value:
+                if not is_dict(entry):
+                    raise TypeError(f"Unexpected list delta entry is not a dictionary: {entry}")
+
+                try:
+                    idx = entry["index"]
+                except KeyError as exc:
+                    raise RuntimeError(f"Expected list delta entry to have an `index` key; {entry}") from exc
+
+                if not isinstance(idx, int):
+                    raise TypeError(f"Unexpected, list delta entry `index` value is not an integer; {idx}")
+
+                if idx in index_map:
+                    existing_pos = index_map[idx]
+                    normalized_delta[existing_pos] = accumulate_delta(normalized_delta[existing_pos], entry)
+                else:
+                    index_map[idx] = len(normalized_delta)
+                    normalized_delta.append(entry)
+
+            for delta_entry in normalized_delta:
                 if not is_dict(delta_entry):
                     raise TypeError(f"Unexpected list delta entry is not a dictionary: {delta_entry}")
 
