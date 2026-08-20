@@ -35398,6 +35398,8 @@ components:
           - type: string
             enum:
             - gpt-image-1.5
+            - gpt-image-2
+            - gpt-image-2-2026-04-21
             - gpt-image-1
             - gpt-image-1-mini
             - chatgpt-image-latest
@@ -35405,7 +35407,7 @@ components:
           x-oaiTypeLabel: string
           default: gpt-image-1.5
           example: gpt-image-1.5
-          description: The model to use for image editing.
+          description: The GPT image model to use for image editing, including `gpt-image-2` and its dated snapshot `gpt-image-2-2026-04-21`.
         images:
           type: array
           minItems: 1
@@ -39136,7 +39138,10 @@ components:
             - gpt-image-1.5
             - chatgpt-image-latest
             description: |
-              The image generation model to use. Default: `gpt-image-1`.
+              The image generation model to use. One of `gpt-image-1`,
+              `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+              `gpt-image-2-2026-04-21`, or `chatgpt-image-latest`. Default:
+              `gpt-image-1`.
             default: gpt-image-1
         quality:
           type: string
@@ -68512,7 +68517,10 @@ components:
             - gpt-image-1.5
             - chatgpt-image-latest
             description: |
-              The image generation model to use. Default: `gpt-image-1`.
+              The image generation model to use. One of `gpt-image-1`,
+              `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+              `gpt-image-2-2026-04-21`, or `chatgpt-image-latest`. Default:
+              `gpt-image-1`.
             default: gpt-image-1
         quality:
           type: string
