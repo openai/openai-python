@@ -1,0 +1,65 @@
+name: Staging Deployment
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Staging Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          load: true
+          tags: openai-python-staging:latest
+          target: runner
+
+      - name: Start Staging Container
+        run: |
+          docker run -d --name staging-app -p 8080:8080 openai-python-staging:latest
+
+      - name: Wait for Staging Health Check
+        run: |
+          echo "Waiting for container to become healthy..."
+          for i in {1..15}; do
+            if docker inspect --format='{{json .State.Health.Status}}' staging-app | grep -q "healthy"; then
+              echo "Container is healthy!"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Container health check timed out."
+          docker logs staging-app
+          exit 1
+
+      - name: Run Smoke Tests
+        run: |
+          echo "Running staging environment smoke tests..."
+          RESPONSE=$(curl -s http://localhost:8080/smoke-test)
+          echo "Response: $RESPONSE"
+          if echo "$RESPONSE" | grep -q '"status": "passed"'; then
+            echo "Smoke tests passed successfully!"
+          else
+            echo "Smoke tests failed!"
+            exit 1
+          fi
+
+      - name: Simulate Staging Infrastructure Deployment
+        run: |
+          echo "Deploying to Kubernetes staging namespace..."
+          echo "Autodeploy complete."
+
+      - name: Container Cleanup
+        if: always()
+        run: |
+          docker stop staging-app || true
+          docker rm staging-app || true
