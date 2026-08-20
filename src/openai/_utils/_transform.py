@@ -180,8 +180,12 @@ def _transform_recursive(
         return _transform_typeddict(data, stripped_type)
 
     if origin == dict and is_mapping(data):
-        items_type = get_args(stripped_type)[1]
-        return {key: _transform_recursive(value, annotation=items_type) for key, value in data.items()}
+        args = get_args(stripped_type)
+        if len(args) >= 2:
+            items_type = args[1]
+            return {key: _transform_recursive(value, annotation=items_type) for key, value in data.items()}
+        # bare dict without type args - return data as-is
+        return data
 
     if (
         # List[T]
@@ -195,6 +199,14 @@ def _transform_recursive(
         # intended as an iterable, so we don't transform it.
         if isinstance(data, dict):
             return cast(object, data)
+
+        # Handle bare list/iterable/sequence without type arguments
+        list_args = get_args(stripped_type)
+        if not list_args:
+            # bare list without type args - just ensure it's a list for JSON serialization
+            if is_list(data):
+                return data
+            return list(data)
 
         inner_type = extract_type_arg(stripped_type, 0)
         if _no_transform_needed(inner_type):
@@ -346,8 +358,12 @@ async def _async_transform_recursive(
         return await _async_transform_typeddict(data, stripped_type)
 
     if origin == dict and is_mapping(data):
-        items_type = get_args(stripped_type)[1]
-        return {key: _transform_recursive(value, annotation=items_type) for key, value in data.items()}
+        args = get_args(stripped_type)
+        if len(args) >= 2:
+            items_type = args[1]
+            return {key: _transform_recursive(value, annotation=items_type) for key, value in data.items()}
+        # bare dict without type args - return data as-is
+        return data
 
     if (
         # List[T]
@@ -361,6 +377,14 @@ async def _async_transform_recursive(
         # intended as an iterable, so we don't transform it.
         if isinstance(data, dict):
             return cast(object, data)
+
+        # Handle bare list/iterable/sequence without type arguments
+        list_args = get_args(stripped_type)
+        if not list_args:
+            # bare list without type args - just ensure it's a list for JSON serialization
+            if is_list(data):
+                return data
+            return list(data)
 
         inner_type = extract_type_arg(stripped_type, 0)
         if _no_transform_needed(inner_type):
