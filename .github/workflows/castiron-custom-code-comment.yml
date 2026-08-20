@@ -25,6 +25,7 @@ jobs:
     outputs:
       number: ${{ steps.report.outputs.number }}
       artifact-id: ${{ steps.artifact.outputs.artifact-id }}
+      artifact-run-attempt: ${{ github.run_attempt }}
     steps:
       - name: Check out the trusted reporter
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -100,7 +101,7 @@ jobs:
           RUN_ID: ${{ github.event.workflow_run.id }}
           RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
           ARTIFACT_RUN_ID: ${{ github.run_id }}
-          ARTIFACT_RUN_ATTEMPT: ${{ github.run_attempt }}
+          ARTIFACT_RUN_ATTEMPT: ${{ needs.compute.outputs.artifact-run-attempt }}
         run: |
           python3 -I scripts/castiron/custom_code_report.py comment \
             --report "$RUNNER_TEMP/castiron-custom-code/report.json" \

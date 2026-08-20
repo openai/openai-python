@@ -345,6 +345,71 @@ async function check(stale, exists, priorRun, expected) {
         ).hexdigest()
         self.assertIn(f"REPORTER_SHA256: {digest}", producer)
 
+    def test_comment_only_rerun_links_to_the_compute_artifact_attempt(self) -> None:
+        workflow = (
+            Path(__file__).resolve().parents[2]
+            / ".github/workflows/castiron-custom-code-comment.yml"
+        ).read_text()
+        compute, comment = workflow.split("\n  comment:\n", 1)
+
+        def field(section: str, prefix: str) -> str:
+            return next(
+                line.removeprefix(prefix)
+                for line in section.splitlines()
+                if line.startswith(prefix)
+            )
+
+        def resolve(value: str, context: dict[str, str]) -> str:
+            for key, replacement in context.items():
+                value = value.replace("${{ " + key + " }}", replacement)
+            self.assertNotIn("${{", value)
+            return value
+
+        # A successful compute job's outputs survive a comment-only rerun.
+        compute_context = {"github.run_id": "9", "github.run_attempt": "3"}
+        uploaded_name = resolve(field(compute, "          name: "), compute_context)
+        saved_attempt = resolve(field(compute, "      artifact-run-attempt: "), compute_context)
+        comment_context = {
+            "github.run_id": "9",
+            "github.run_attempt": "4",
+            "needs.compute.outputs.artifact-run-attempt": saved_attempt,
+        }
+        artifact_attempt = resolve(
+            field(comment, "          ARTIFACT_RUN_ATTEMPT: "), comment_context
+        )
+        self.assertEqual(uploaded_name, "castiron-custom-code-9-3")
+        self.assertEqual(artifact_attempt, "3")
+
+        _, base = self.baseline()
+        result, _ = report.build_report(self.repo, base, base)
+        pull = {"state": "open", "head": {"sha": base}, "base": {"sha": base}}
+        run = {
+            "event": "pull_request",
+            "path": ".github/workflows/castiron-custom-code.yml",
+            "head_sha": base,
+            "run_attempt": 1,
+            "pull_requests": [{"number": 1}],
+        }
+        with mock.patch.object(
+            report, "api", side_effect=[pull, run, [], pull, {"html_url": "published"}]
+        ) as api:
+            self.assertEqual(
+                report.publish_comment(
+                    result,
+                    "openai/example",
+                    1,
+                    2,
+                    1,
+                    artifact_run_id=9,
+                    artifact_run_attempt=int(artifact_attempt),
+                ),
+                "published",
+            )
+        body = api.call_args.args[2]["body"]
+        self.assertIn(f"--name {uploaded_name}", body)
+        self.assertNotIn("--name castiron-custom-code-9-4", body)
+        self.assertIn("castiron:run:v1:2:1", body)
+
     def test_trusted_report_recomputes_pr_output_in_a_bare_repository(self) -> None:
         generated, _ = self.baseline()
         content_hash = report.hash_codegen_commit(self.repo, generated)
