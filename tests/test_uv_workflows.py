@@ -2245,6 +2245,163 @@ def test_grouped_security_updates_preserve_unchanged_published_bounds(
 @pytest.mark.parametrize(
     ("variant", "accepted"),
     [
+        pytest.param("constraint-exclusion", False, id="unchanged-uv-constraint-cannot-lose-exact-exclusion"),
+        pytest.param("constraint-wildcard", False, id="unchanged-uv-constraint-cannot-lose-prefix-exclusion"),
+        pytest.param("constraint-upper", False, id="unchanged-uv-constraint-cannot-widen-upper-bound"),
+        pytest.param("build-exclusion", False, id="unchanged-build-constraint-cannot-lose-security-exclusion"),
+        pytest.param("build-wildcard", False, id="unchanged-build-constraint-cannot-lose-prefix-exclusion"),
+        pytest.param("group-exclusion", False, id="unchanged-dependency-group-cannot-lose-security-exclusion"),
+        pytest.param("group-wildcard", False, id="unchanged-dependency-group-cannot-lose-prefix-exclusion"),
+        pytest.param("group-no-floor", False, id="protected-exclusion-is-checked-before-no-minimum-skip"),
+        pytest.param("changed-lock-exclusion", False, id="protected-patch-cannot-erase-other-security-exclusion"),
+        pytest.param("post-removed", False, id="protected-stable-post-exclusion-remains-immutable"),
+        pytest.param("wrong-epoch", False, id="protected-exclusion-cannot-move-to-different-epoch"),
+        pytest.param("marker-exclusion", False, id="protected-marker-context-retains-existing-exclusion"),
+        pytest.param("marker-moved", False, id="protected-exclusion-cannot-move-marker-context"),
+        pytest.param("drops-supported-lock", False, id="stronger-protected-bound-cannot-drop-current-locked-line"),
+        pytest.param("stronger-exclusion", True, id="protected-prefix-may-strengthen-exact-exclusion"),
+        pytest.param("stronger-upper", True, id="protected-upper-may-strengthen-without-dropping-lock"),
+        pytest.param("canonical-order", True, id="canonical-reordered-protected-bounds-remain-equivalent"),
+        pytest.param("build-pin-upgrade", True, id="immutable-exact-build-pins-may-take-reviewed-security-patch"),
+        pytest.param("unbounded-group", True, id="unchanged-unbounded-development-group-remains-supported"),
+    ],
+)
+def test_grouped_security_updates_preserve_all_protected_dependency_bounds(
+    tmp_path: Path, variant: str, accepted: bool
+) -> None:
+    previous = "danger>=1,<3,!=1.5"
+    current = "danger>=1,<3"
+    before, after = "2", "2"
+    scope = "constraint"
+
+    if variant in {"constraint-wildcard", "build-wildcard", "group-wildcard"}:
+        previous = "danger>=1,<3,!=1.5.*"
+    elif variant == "constraint-upper":
+        current = "danger>=1,<4,!=1.5"
+    elif variant == "group-no-floor":
+        previous, current = "danger<3,!=1.5", "danger<3"
+    elif variant == "changed-lock-exclusion":
+        previous = "danger>=1,<3,!=2.5"
+        current = "danger>=1.6,<3"
+        before, after = "1.4", "1.6"
+    elif variant == "post-removed":
+        previous = "danger>=1,<3,!=1.5.post2"
+    elif variant == "wrong-epoch":
+        previous = "danger>=1!1,<1!3,!=1!1.5.*"
+        current = "danger>=1!1,<1!3,!=0!1.5.*"
+        before = after = "1!2"
+    elif variant in {"marker-exclusion", "marker-moved"}:
+        previous += "; python_version >= '3.11'"
+        current += "; python_version >= '3.12'" if variant == "marker-moved" else "; python_version >= '3.11'"
+    elif variant == "drops-supported-lock":
+        current = "danger>=1,<2,!=1.5"
+    elif variant == "stronger-exclusion":
+        current = "danger>=1,<3,!=1.5.*"
+    elif variant == "stronger-upper":
+        current = "danger>=1,<2.5,!=1.5"
+    elif variant == "canonical-order":
+        current = "danger!=0!1.5,<3.0,>=1.0"
+    elif variant == "build-pin-upgrade":
+        previous, current = "danger==1.5", "danger==1.6"
+        before, after = "1.5", "1.6"
+    elif variant == "unbounded-group":
+        previous = current = "danger"
+
+    if variant.startswith("build-"):
+        scope = "build"
+    elif variant.startswith("group-") or variant == "unbounded-group":
+        scope = "group"
+
+    base_constraints = [previous] if scope == "constraint" else None
+    head_constraints = [current] if scope == "constraint" else None
+    base_build = [previous] if scope == "build" else None
+    head_build = [current] if scope == "build" else None
+    base_groups = {"reviewed": [previous]} if scope == "group" else None
+    head_groups = {"reviewed": [current]} if scope == "group" else None
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=["patch-me>=1"],
+        head_requirements=["patch-me>=1.1"],
+        base_packages=[("patch-me", "1"), ("danger", before)],
+        head_packages=[("patch-me", "1.1"), ("danger", after)],
+        base_constraints=base_constraints,
+        head_constraints=head_constraints,
+        base_build_constraints=base_build,
+        head_build_constraints=head_build,
+        base_dependency_groups=base_groups,
+        head_dependency_groups=head_groups,
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("variant", "accepted"),
+    [
+        pytest.param("runtime-wildcard", False, id="patched-runtime-lock-cannot-remove-prior-prefix-exclusion"),
+        pytest.param("runtime-exact", False, id="patched-runtime-lock-cannot-remove-prior-exact-exclusion"),
+        pytest.param("runtime-post", False, id="patched-runtime-lock-cannot-remove-stable-post-exclusion"),
+        pytest.param("runtime-upper", False, id="patched-runtime-lock-cannot-widen-existing-upper-bound"),
+        pytest.param("optional-wildcard", False, id="patched-optional-lock-cannot-remove-prior-prefix-exclusion"),
+        pytest.param("optional-upper", False, id="patched-optional-lock-cannot-remove-existing-upper-bound"),
+        pytest.param("epoch-wrong", False, id="patched-lock-cannot-move-exclusion-into-another-epoch"),
+        pytest.param("marker-exclusion", False, id="patched-marker-context-cannot-drop-security-exclusion"),
+        pytest.param("marker-moved", False, id="patched-security-exclusion-cannot-move-marker-context"),
+        pytest.param("malformed-exclusion", False, id="patched-lock-security-exclusion-must-remain-unambiguous"),
+        pytest.param("preserved-wildcard", True, id="patched-lock-preserves-existing-prefix-exclusion"),
+        pytest.param("stronger-wildcard", True, id="patched-lock-may-strengthen-exact-into-prefix-exclusion"),
+        pytest.param("stronger-upper", True, id="patched-lock-may-strengthen-upper-without-dropping-support"),
+        pytest.param("canonical-order", True, id="patched-lock-preserves-canonical-reordered-security-bounds"),
+        pytest.param("floor-implies-exclusion", True, id="patched-floor-may-safely-imply-prior-exact-exclusion"),
+        pytest.param("optional-preserved", True, id="patched-optional-context-preserves-existing-security-bounds"),
+    ],
+)
+def test_patched_locks_preserve_existing_published_security_bounds(
+    tmp_path: Path, variant: str, accepted: bool
+) -> None:
+    previous = "danger>=1,<3,!=2.0.*"
+    current = "danger>=1.1,<3"
+    before, after = "1", "1.1"
+    optional = variant.startswith("optional-")
+
+    if variant in {"runtime-exact", "runtime-post"}:
+        previous = "danger>=1,<3,!=2.0.post1" if variant == "runtime-post" else "danger>=1,<3,!=2.0"
+    elif variant in {"runtime-upper", "optional-upper"}:
+        current = "danger>=1.1,<4,!=2.0.*"
+    elif variant == "epoch-wrong":
+        previous = "danger>=1!1,<1!3,!=1!2.0.*"
+        current = "danger>=1!1.1,<1!3,!=0!2.0.*"
+        before, after = "1!1", "1!1.1"
+    elif variant in {"marker-exclusion", "marker-moved"}:
+        previous += "; python_version >= '3.11'"
+        current += "; python_version >= '3.12'" if variant == "marker-moved" else "; python_version >= '3.11'"
+    elif variant == "malformed-exclusion":
+        current += ",!=2.0.post1.*"
+    elif variant in {"preserved-wildcard", "optional-preserved"}:
+        current += ",!=2.0.*"
+    elif variant == "stronger-wildcard":
+        previous = "danger>=1,<3,!=2.0"
+        current += ",!=2.0.*"
+    elif variant == "stronger-upper":
+        current = "danger>=1.1,<2,!=2.0.*"
+    elif variant == "canonical-order":
+        current = "danger!=0!2.0.*,<3.0,>=1.1.0"
+    elif variant == "floor-implies-exclusion":
+        previous = "danger>=0,<3,!=0.5"
+
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=[previous],
+        head_requirements=[current],
+        base_packages=[("danger", before)],
+        head_packages=[("danger", after)],
+        optional=optional,
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("variant", "accepted"),
+    [
         pytest.param("pydantic-v2", True, id="published-v1-support-survives-protected-v2-patch"),
         pytest.param("pydantic-v1", True, id="published-v2-support-survives-protected-v1-patch"),
         pytest.param("unchanged-published", False, id="private-v2-floor-cannot-leave-published-range-vulnerable"),

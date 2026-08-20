@@ -567,7 +567,7 @@ def preserves_published_security_bound(previous: PublishedBound, current: tuple[
     return False
 
 
-def preserves_unchanged_published_bounds(
+def preserves_dependency_security_bounds(
     previous_contexts: ContextRequirements,
     replacements: ContextReplacements,
     domains: ResolutionDomains,
@@ -579,11 +579,14 @@ def preserves_unchanged_published_bounds(
             if match is None:
                 raise SystemExit("Ambiguous unchanged published security dependency requirement")
             clauses = match.group(3).split(",")
-            if not any(re.match(r"(?:!=|<=|<|==)", clause.strip()) for clause in clauses):
+            if not any(re.match(r"(?:!=|<=|<)", clause.strip()) for clause in clauses):
                 continue
             before = published_bounds(requirement)
-            protected = tuple(bound for bound in before if bound[0] in {"<", "<=", "!=", "=="})
-            for replacement_context, candidates in replacements.get(previous_context, {}).items():
+            protected = tuple(bound for bound in before if bound[0] in {"<", "<=", "!="})
+            context_replacements = replacements.get(previous_context, {})
+            if not context_replacements:
+                return False
+            for replacement_context, candidates in context_replacements.items():
                 retained = {
                     stable_version(version)
                     for domain, versions in domains.items()
@@ -730,6 +733,13 @@ for name, previous in old_protected.items():
     current_domains = new_resolution_contexts.get(name, {})
     if previous == requirements and previous_contexts == current_contexts and previous_domains == current_domains:
         continue
+    if previous != requirements or previous_contexts != current_contexts:
+        security_replacements: ContextReplacements = {
+            context: replacement_contexts(context, prior_requirements, current_contexts, previous_domains, exact=True)
+            for context, prior_requirements in previous_contexts.items()
+        }
+        if not preserves_dependency_security_bounds(previous_contexts, security_replacements, current_domains):
+            raise SystemExit("Do not weaken a protected dependency security exclusion or upper bound for " + name)
     prior_minimums = minimums(previous, allow_missing=True, exact=True)
     if not prior_minimums:
         continue
@@ -844,13 +854,11 @@ for name, requirements in new_direct.items():
                         raise SystemExit("Do not lower a contextual security-fixed minimum for " + name)
     previous_domains = old_resolution_contexts.get(name, {})
     current_domains = new_resolution_contexts.get(name, {})
+    if (previous != requirements or previous_contexts != current_contexts) and not preserves_dependency_security_bounds(
+        previous_contexts, direct_replacements.get(name, {}), current_domains
+    ):
+        raise SystemExit("Do not weaken a published security exclusion or upper bound for " + name)
     if old_versions.get(name, set()) == new_versions.get(name, set()) and previous_domains == current_domains:
-        if (
-            previous != requirements or previous_contexts != current_contexts
-        ) and not preserves_unchanged_published_bounds(
-            previous_contexts, direct_replacements.get(name, {}), previous_domains
-        ):
-            raise SystemExit("Do not weaken an unchanged published security exclusion or upper bound for " + name)
         continue
     if previous == requirements:
         raise SystemExit("Raise the published security-fixed minimum for " + name)
