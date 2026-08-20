@@ -12,6 +12,7 @@ import tempfile
 import textwrap
 import unittest
 from pathlib import Path
+from typing import Any
 from unittest import mock
 
 import custom_code_report as report
@@ -328,6 +329,260 @@ async function check(stale, exists, priorRun, expected) {
         self.assertNotIn("ref: ${{ github.event.pull_request.head.sha }}", publisher)
         self.assertIn("persist-credentials: false", publisher)
         self.assertIn("--report", publisher)
+        compute, comment = publisher.split("\n  comment:\n", 1)
+        self.assertNotIn("pull-requests: write", compute)
+        self.assertIn("pull-requests: read", compute)
+        self.assertIn(" trusted-report ", compute)
+        self.assertNotIn("download-artifact@", compute)
+        self.assertNotIn("unittest", compute)
+        self.assertIn("needs: compute", comment)
+        self.assertIn("artifact-ids: ${{ needs.compute.outputs.artifact-id }}", comment)
+        self.assertNotIn("run-id: ${{ github.event.workflow_run.id }}", comment)
+        self.assertNotIn("git fetch", comment)
+        self.assertIn("--artifact-run-id", comment)
+        digest = hashlib.sha256(
+            (workflows.parents[1] / "scripts/castiron/custom_code_report.py").read_bytes()
+        ).hexdigest()
+        self.assertIn(f"REPORTER_SHA256: {digest}", producer)
+
+    def test_comment_only_rerun_links_to_the_compute_artifact_attempt(self) -> None:
+        workflow = (
+            Path(__file__).resolve().parents[2]
+            / ".github/workflows/castiron-custom-code-comment.yml"
+        ).read_text()
+        compute, comment = workflow.split("\n  comment:\n", 1)
+
+        def field(section: str, prefix: str) -> str:
+            return next(
+                line.removeprefix(prefix)
+                for line in section.splitlines()
+                if line.startswith(prefix)
+            )
+
+        def resolve(value: str, context: dict[str, str]) -> str:
+            for key, replacement in context.items():
+                value = value.replace("${{ " + key + " }}", replacement)
+            self.assertNotIn("${{", value)
+            return value
+
+        # A successful compute job's outputs survive a comment-only rerun.
+        compute_context = {"github.run_id": "9", "github.run_attempt": "3"}
+        uploaded_name = resolve(field(compute, "          name: "), compute_context)
+        saved_attempt = resolve(field(compute, "      artifact-run-attempt: "), compute_context)
+        comment_context = {
+            "github.run_id": "9",
+            "github.run_attempt": "4",
+            "needs.compute.outputs.artifact-run-attempt": saved_attempt,
+        }
+        artifact_attempt = resolve(
+            field(comment, "          ARTIFACT_RUN_ATTEMPT: "), comment_context
+        )
+        self.assertEqual(uploaded_name, "castiron-custom-code-9-3")
+        self.assertEqual(artifact_attempt, "3")
+
+        _, base = self.baseline()
+        result, _ = report.build_report(self.repo, base, base)
+        pull = {"state": "open", "head": {"sha": base}, "base": {"sha": base}}
+        run = {
+            "event": "pull_request",
+            "path": ".github/workflows/castiron-custom-code.yml",
+            "head_sha": base,
+            "run_attempt": 1,
+            "pull_requests": [{"number": 1}],
+        }
+        with mock.patch.object(
+            report, "api", side_effect=[pull, run, [], pull, {"html_url": "published"}]
+        ) as api:
+            self.assertEqual(
+                report.publish_comment(
+                    result,
+                    "openai/example",
+                    1,
+                    2,
+                    1,
+                    artifact_run_id=9,
+                    artifact_run_attempt=int(artifact_attempt),
+                ),
+                "published",
+            )
+        body = api.call_args.args[2]["body"]
+        self.assertIn(f"--name {uploaded_name}", body)
+        self.assertNotIn("--name castiron-custom-code-9-4", body)
+        self.assertIn("castiron:run:v1:2:1", body)
+
+    def test_trusted_report_recomputes_pr_output_in_a_bare_repository(self) -> None:
+        generated, _ = self.baseline()
+        content_hash = report.hash_codegen_commit(self.repo, generated)
+        snapshot = report.create_public_snapshot(
+            self.repo,
+            self.git("rev-parse", f"{generated}^{{tree}}"),
+            GENERATION,
+            content_hash,
+            "codegen/public-test",
+            None,
+        )
+        self.git("branch", "codegen/public-test", snapshot)
+        stats = (self.repo / ".castiron.stats.yml").read_text()
+        self.write(".castiron.stats.yml", stats + f"public_codegen_sha: {snapshot}\n")
+        base = self.commit()
+        legitimate, _ = report.build_report(self.repo, base, base, require_head_hash=True)
+        self.write("generated.py", "generated\n# custom\n")
+        # Neither a replacement reporter nor its claimed result may be executed
+        # or read by the trusted job.
+        self.write(
+            "scripts/castiron/custom_code_report.py", "raise RuntimeError('PR code ran')\n"
+        )
+        self.write("report.json", json.dumps(legitimate))
+        head = self.commit()
+        broken_stats = (
+            (self.repo / ".castiron.stats.yml").read_text().replace(content_hash, "0" * 64)
+        )
+        self.write(".castiron.stats.yml", broken_stats)
+        broken = self.commit()
+        remote = self.repo / "public.git"
+        self.git("clone", "--bare", str(self.repo), str(remote))
+        real_git = report.git
+
+        def local_git(repo: Path, *args: str, input_bytes: bytes | None = None) -> bytes:
+            if args[:3] == ("remote", "add", "origin"):
+                self.assertEqual(args[3], "https://github.com/openai/example.git")
+                args = (*args[:3], str(remote))
+            self.assertNotIn("checkout", args)
+            return real_git(repo, *args, input_bytes=input_bytes)
+
+        for label, revision in (("genuine", base), ("custom", head), ("broken", broken)):
+            with self.subTest(label=label):
+                calls: list[tuple[str, str]] = []
+                bodies: list[str] = []
+                pull = {
+                    "state": "open",
+                    "head": {"sha": revision},
+                    "base": {"sha": base, "repo": {"full_name": "openai/example"}},
+                }
+                run: dict[str, Any] = {
+                    "event": "pull_request",
+                    "status": "completed",
+                    "path": ".github/workflows/castiron-custom-code.yml",
+                    "head_sha": revision,
+                    "run_attempt": 1,
+                    "pull_requests": [],
+                }
+                forged: dict[str, Any] = {**legitimate, "head_sha": revision, "files": []}
+                self.assertIn("Generated baselines verified", report.render_report(forged))
+                producer = self.repo / f"producer-{label}"
+                producer.mkdir()
+                (producer / "report.json").write_text(json.dumps(forged))
+
+                def fake_api(
+                    method: str, path: str, payload: dict[str, Any] | None = None
+                ) -> Any:
+                    calls.append((method, path))
+                    if method == "GET":
+                        responses: dict[str, Any] = {
+                            "repos/openai/example": {"private": False},
+                            "repos/openai/example/actions/runs/2": run,
+                            f"repos/openai/example/commits/{revision}/pulls?per_page=100": [
+                                {"number": 1}
+                            ],
+                            "repos/openai/example/pulls/1": pull,
+                            "repos/openai/example/issues/1/comments?per_page=100&page=1": [],
+                        }
+                        if path in responses:
+                            return responses[path]
+                    if (
+                        method == "POST"
+                        and path == "repos/openai/example/issues/1/comments"
+                        and payload
+                    ):
+                        bodies.append(payload["body"])
+                        return {
+                            "html_url": "https://github.com/openai/example/pull/1#issuecomment-1"
+                        }
+                    raise AssertionError(f"unexpected API call: {method} {path}")
+
+                objects = self.repo / f"objects-{label}.git"
+                out = self.repo / f"trusted-{label}"
+                with (
+                    mock.patch.object(report, "api", side_effect=fake_api),
+                    mock.patch.object(report, "git", side_effect=local_git),
+                ):
+                    report.trusted_report(objects, "openai/example", 2, 1, out)
+                    self.assertTrue(all(method == "GET" for method, _ in calls))
+                    self.assertEqual(
+                        real_git(objects, "rev-parse", "--is-bare-repository"), b"true\n"
+                    )
+                    self.assertFalse((objects / "scripts").exists())
+                    actual = json.loads((out / "report.json").read_text())
+                    report.publish_comment(
+                        actual,
+                        "openai/example",
+                        1,
+                        2,
+                        1,
+                        artifact_run_id=9,
+                        artifact_run_attempt=3,
+                    )
+                self.assertEqual(len(bodies), 1)
+                body = bodies[0]
+                self.assertIn("castiron:run:v1:2:1", body)
+                self.assertIn("/actions/runs/9", body)
+                if label == "broken":
+                    self.assertIn("Report unavailable", body)
+                    self.assertNotIn("Generated baselines verified", body)
+                elif label == "custom":
+                    self.assertIn("1 newly customized", body)
+                    self.assertIn("generated.py", body)
+                    self.assertIn(b"+# custom", (out / "custom-code.patch").read_bytes())
+                    self.assertNotIn("No new custom-code files detected", body)
+                else:
+                    self.assertIn("No new custom-code files detected", body)
+                    self.assertIn("Generated baselines verified", body)
+                    self.assertIn("--name castiron-custom-code-9-3", body)
+
+    def test_trusted_report_rejects_invalid_or_stale_association_before_fetch(self) -> None:
+        run = {
+            "event": "pull_request",
+            "status": "completed",
+            "path": ".github/workflows/castiron-custom-code.yml",
+            "head_sha": "a" * 40,
+            "run_attempt": 1,
+            "pull_requests": [{"number": 1}],
+        }
+        pull = {
+            "state": "open",
+            "head": {"sha": "a" * 40},
+            "base": {"sha": "b" * 40, "repo": {"full_name": "openai/example"}},
+        }
+        cases: list[tuple[list[Any], bool]] = [
+            ([{**run, "path": "other.yml"}], True),
+            ([{**run, "status": "in_progress"}], True),
+            ([{**run, "run_attempt": 2}], False),
+            ([run, {**pull, "state": "closed"}], False),
+            ([run, {**pull, "head": {"sha": "c" * 40}}], False),
+            (
+                [run, {**pull, "base": {"sha": "b" * 40, "repo": {"full_name": "other/repo"}}}],
+                False,
+            ),
+            ([{**run, "pull_requests": []}, []], False),
+            ([{**run, "pull_requests": [{"number": 1}, {"number": 2}]}, pull, pull], True),
+        ]
+        for responses, raises in cases:
+            with (
+                self.subTest(responses=responses),
+                mock.patch.object(report, "api", side_effect=responses),
+                mock.patch.object(report, "git") as git,
+            ):
+                if raises:
+                    with self.assertRaises(report.ReportError):
+                        report.trusted_report(
+                            self.repo / "objects", "openai/example", 2, 1, self.repo / "out"
+                        )
+                else:
+                    report.trusted_report(
+                        self.repo / "objects", "openai/example", 2, 1, self.repo / "out"
+                    )
+                git.assert_not_called()
+                self.assertFalse((self.repo / "out").exists())
 
     def test_removals_include_changed_baselines_but_not_handwritten_only_files(self) -> None:
         _, base = self.baseline()
