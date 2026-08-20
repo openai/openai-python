@@ -769,6 +769,34 @@ def secures_supported_published_branches(
     return observed
 
 
+def covers_transitive_security_release(
+    requirements: ContextRequirements,
+    domain: MarkerContext,
+    removed: StableRelease,
+    patched: StableRelease,
+    current_domains: ResolutionDomains,
+) -> bool:
+    for context, declarations in requirements.items():
+        if not marker_overlap(context[3], domain):
+            continue
+        for requirement in declarations:
+            floors = minimums({requirement}, allow_missing=True, exact=True)
+            if len(floors) != 1 or floors[0] < patched:
+                continue
+            bounds = published_bounds(requirement)
+            if not allows_published_release(bounds, patched) or allows_published_release(bounds, removed):
+                continue
+            if any(
+                other != domain
+                and marker_overlap(context[3], other)
+                and any(not allows_published_release(bounds, stable_version(version)) for version in versions)
+                for other, versions in current_domains.items()
+            ):
+                continue
+            return True
+    return False
+
+
 old_project = read_base("pyproject.toml")
 old_lock = read_base("uv.lock")
 new_project = cast(dict[str, Any], tomllib.loads(pathlib.Path("pyproject.toml").read_text()))
@@ -865,6 +893,36 @@ for name, previous in old_protected.items():
                 )
             ):
                 raise SystemExit("Raise the contextual protected security minimum to the patched release for " + name)
+
+for name in old_versions.keys() & new_versions.keys():
+    if name in old_direct or name in new_direct:
+        continue
+    previous_contexts = old_protected_contexts.get(name, {})
+    if any(minimums(requirements, allow_missing=True, exact=True) for requirements in previous_contexts.values()):
+        continue
+    previous_domains = old_resolution_contexts.get(name, {})
+    current_domains = new_resolution_contexts.get(name, {})
+    for domain in previous_domains.keys() | current_domains.keys():
+        prior_versions = previous_domains.get(domain, set())
+        updated_versions = current_domains.get(domain, set())
+        if prior_versions == updated_versions or not updated_versions:
+            continue
+        removed = sorted(stable_version(version) for version in prior_versions - updated_versions)
+        introduced = sorted(stable_version(version) for version in updated_versions - prior_versions)
+        if not introduced:
+            continue
+        if (
+            not removed
+            or len(introduced) != len(removed)
+            or any(updated <= previous for previous, updated in zip(removed, introduced, strict=True))
+        ):
+            raise SystemExit("Missing contextual upgraded transitive security dependency release for " + name)
+        for removed_release, patched_release in zip(removed, introduced, strict=True):
+            if not covers_transitive_security_release(
+                new_protected_contexts.get(name, {}), domain, removed_release, patched_release, current_domains
+            ):
+                raise SystemExit("Add a reviewed contextual transitive security dependency boundary for " + name)
+
 direct_replacements: dict[str, ContextReplacements] = {}
 for name, previous_contexts in old_contexts.items():
     current_contexts = new_contexts.get(name, {})

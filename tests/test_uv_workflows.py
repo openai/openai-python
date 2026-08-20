@@ -2261,8 +2261,8 @@ def run_security_dependency_floor_check(
             [("safe-direct", "1.0"), ("transitive", "1.0")],
             [("safe-direct", "1.0"), ("transitive", "1.1")],
             False,
-            True,
-            id="transitive-only",
+            False,
+            id="unbounded-transitive-security-update-rejected",
         ),
         pytest.param(
             ["danger-pkg>=1.0"],
@@ -2955,6 +2955,7 @@ def test_security_updates_cannot_remove_published_direct_dependencies(
     head_packages = [("safe-direct", "1")]
     base_groups: dict[str, list[str]] | None = None
     head_groups: dict[str, list[str]] | None = None
+    head_constraints: list[str] | None = None
 
     if variant == "runtime-unbounded-removed":
         base_requirements = ["safe-direct>=1", "danger-pkg"]
@@ -2987,6 +2988,7 @@ def test_security_updates_cannot_remove_published_direct_dependencies(
         head_requirements = list(base_requirements)
         base_packages = [*base_packages, ("transitive", "1")]
         head_packages = [("safe-direct", "1"), ("danger-pkg", "1"), ("transitive", "1.1")]
+        head_constraints = ["transitive>=1.1"]
     elif variant == "canonical-group":
         base_requirements = head_requirements = ["safe-direct>=1"]
         head_packages = list(base_packages)
@@ -3001,6 +3003,7 @@ def test_security_updates_cannot_remove_published_direct_dependencies(
         head_packages=head_packages,
         base_optional_groups=base_groups,
         head_optional_groups=head_groups,
+        head_constraints=head_constraints,
     )
 
     assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
@@ -3600,9 +3603,11 @@ def test_protected_security_floors_must_reach_their_patched_release(
     elif variant == "unrelated-transitive":
         base_packages.append(("unrelated", "1"))
         head_packages = [("cryptography", "50"), ("unrelated", "2")]
+        head_constraints = ["cryptography>=50", "unrelated>=2"]
     elif variant == "unbounded-group":
         base_constraints = head_constraints = None
-        base_groups = head_groups = {"dev": ["ruff"]}
+        base_groups = {"dev": ["ruff"]}
+        head_groups = {"dev": ["ruff>=2"]}
         base_packages, head_packages = [("ruff", "1")], [("ruff", "2")]
     elif variant in {"group-lock-only", "group-patched"}:
         base_constraints = head_constraints = None
@@ -3682,6 +3687,142 @@ def test_protected_security_floors_must_reach_their_patched_release(
         head_constraints=head_constraints,
         base_build_constraints=base_build_constraints,
         head_build_constraints=head_build_constraints,
+        base_dependency_groups=base_groups,
+        head_dependency_groups=head_groups,
+        base_resolution_markers=base_markers,
+        head_resolution_markers=head_markers,
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("variant", "accepted"),
+    [
+        pytest.param("lock-only", False, id="newly-patched-transitive-lock-needs-security-boundary"),
+        pytest.param("grouped-lock-only", False, id="grouped-direct-patch-cannot-hide-transitive-lock-only"),
+        pytest.param("unbounded-group", False, id="unbounded-development-entry-is-not-a-security-boundary"),
+        pytest.param("constraint-missing-floor", False, id="new-uv-constraint-without-floor-does-not-protect"),
+        pytest.param("constraint-too-low", False, id="new-uv-constraint-must-reach-patched-release"),
+        pytest.param("constraint-old-inclusive", False, id="new-boundary-must-exclude-vulnerable-old-release"),
+        pytest.param("constraint-excludes-patch", False, id="new-boundary-must-admit-actual-patched-release"),
+        pytest.param("strict-excludes-patch", False, id="strict-boundary-cannot-exclude-patched-release"),
+        pytest.param("wrong-marker", False, id="transitive-security-floor-cannot-move-marker-domain"),
+        pytest.param("widened-marker", False, id="transitive-security-floor-cannot-widen-over-supported-line"),
+        pytest.param("added-without-removal", False, id="shared-transitive-upgrade-cannot-retain-vulnerable-release"),
+        pytest.param("ambiguous-upgrade", False, id="shared-transitive-upgrade-must-pair-one-for-one"),
+        pytest.param("downgrade", False, id="shared-transitive-security-release-cannot-downgrade"),
+        pytest.param("uv-floor", True, id="new-reviewed-uv-security-floor-covers-transitive-patch"),
+        pytest.param("uv-exact", True, id="new-reviewed-exact-uv-pin-covers-transitive-patch"),
+        pytest.param("build-exact", True, id="new-reviewed-build-pin-covers-transitive-patch"),
+        pytest.param("group-floor", True, id="new-reviewed-development-floor-covers-transitive-patch"),
+        pytest.param("published-floor", True, id="new-published-floor-covers-former-transitive-patch"),
+        pytest.param("unchanged", True, id="unchanged-unprotected-transitive-release-remains-supported"),
+        pytest.param("new-package", True, id="genuinely-new-package-introduction-remains-supported"),
+        pytest.param("removed-package", True, id="fully-removed-transitive-package-remains-supported"),
+        pytest.param("canonical-name", True, id="canonical-equivalent-transitive-name-remains-supported"),
+        pytest.param("marker-floor", True, id="matching-marker-security-floor-preserves-unaffected-line"),
+        pytest.param("epoch-floor", True, id="matching-epoch-security-floor-covers-transitive-patch"),
+        pytest.param("post-floor", True, id="matching-stable-post-floor-covers-transitive-patch"),
+        pytest.param("independent-majors", True, id="new-reviewed-v2-floor-preserves-independent-v1-lock"),
+    ],
+)
+def test_newly_patched_transitive_dependencies_require_security_boundaries(
+    tmp_path: Path, variant: str, accepted: bool
+) -> None:
+    name, old, patched = "transitive", "1", "2"
+    base_requirements, head_requirements = ["patch-me>=1"], ["patch-me>=1.1"]
+    before: list[tuple[str, str]] = [(name, old)]
+    after: list[tuple[str, str]] = [(name, patched)]
+    base_constraints: list[str] | None = None
+    head_constraints: list[str] | None = None
+    base_build: list[str] | None = None
+    head_build: list[str] | None = None
+    base_groups: dict[str, list[str]] | None = None
+    head_groups: dict[str, list[str]] | None = None
+    base_markers: dict[tuple[str, str], list[str]] | None = None
+    head_markers: dict[tuple[str, str], list[str]] | None = None
+
+    if variant == "lock-only":
+        head_requirements = list(base_requirements)
+    elif variant == "unbounded-group":
+        base_groups = head_groups = {"dev": [name]}
+    elif variant == "constraint-missing-floor":
+        head_constraints = [name]
+    elif variant == "constraint-too-low":
+        head_constraints = [name + ">=1.5"]
+    elif variant == "constraint-old-inclusive":
+        head_constraints = [name + ">=1"]
+    elif variant == "constraint-excludes-patch":
+        head_constraints = [name + ">=2,<2"]
+    elif variant == "strict-excludes-patch":
+        head_constraints = [name + ">2"]
+    elif variant in {"wrong-marker", "widened-marker", "marker-floor"}:
+        before = [(name, "1"), (name, "2")]
+        after = [(name, "1"), (name, "3")]
+        base_markers = {
+            (name, "1"): ["python_full_version < '3.11'"],
+            (name, "2"): ["python_full_version >= '3.11'"],
+        }
+        head_markers = {
+            (name, "1"): ["python_full_version < '3.11'"],
+            (name, "3"): ["python_full_version >= '3.11'"],
+        }
+        if variant == "wrong-marker":
+            head_constraints = [name + ">=3; python_version < '3.11'"]
+        elif variant == "widened-marker":
+            head_constraints = [name + ">=3"]
+        else:
+            head_constraints = [name + ">=3; python_version >= '3.11'"]
+    elif variant == "added-without-removal":
+        after = [(name, old), (name, patched)]
+        head_constraints = [name + ">=2"]
+    elif variant == "ambiguous-upgrade":
+        after = [(name, "2"), (name, "3")]
+        head_constraints = [name + ">=2"]
+    elif variant == "downgrade":
+        before, after = [(name, "2")], [(name, "1")]
+        head_constraints = [name + ">=1"]
+    elif variant == "uv-floor":
+        head_constraints = [name + ">=2"]
+    elif variant == "uv-exact":
+        head_constraints = [name + "==2"]
+    elif variant == "build-exact":
+        head_build = [name + "==2"]
+    elif variant == "group-floor":
+        head_groups = {"reviewed": [name + ">=2"]}
+    elif variant == "published-floor":
+        head_requirements.append(name + ">=2")
+    elif variant == "unchanged":
+        after = list(before)
+    elif variant == "new-package":
+        before = []
+    elif variant == "removed-package":
+        after = []
+    elif variant == "canonical-name":
+        before = [("Transitive_Pkg", old)]
+        after = [("transitive-pkg", patched)]
+        head_constraints = ["transitive.pkg>=2"]
+    elif variant == "epoch-floor":
+        before, after = [(name, "1!1")], [(name, "1!2")]
+        head_constraints = [name + ">=1!2"]
+    elif variant == "post-floor":
+        before, after = [(name, "1.post1")], [(name, "1.post2")]
+        head_constraints = [name + ">=1.post2"]
+    elif variant == "independent-majors":
+        name = "pydantic"
+        before, after = [(name, "1.10"), (name, "2.12")], [(name, "1.10"), (name, "2.13")]
+        head_groups = {"pydantic-v2": [name + ">=2.13,<3"]}
+
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=base_requirements,
+        head_requirements=head_requirements,
+        base_packages=[("patch-me", "1"), *before],
+        head_packages=[("patch-me", "1" if variant == "lock-only" else "1.1"), *after],
+        base_constraints=base_constraints,
+        head_constraints=head_constraints,
+        base_build_constraints=base_build,
+        head_build_constraints=head_build,
         base_dependency_groups=base_groups,
         head_dependency_groups=head_groups,
         base_resolution_markers=base_markers,
