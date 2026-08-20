@@ -360,6 +360,8 @@ class AsyncRealtimeConnectionManager:
         await self.__client._refresh_api_key()
         auth_headers = self.__client.auth_headers
         if is_async_azure_client(self.__client):
+            from ....lib._azure_websocket import _AzureWebSocketConnect as connect
+
             url, auth_headers = await self.__client._configure_realtime(self.__model, extra_query)
         else:
             url = self._prepare_url().copy_with(

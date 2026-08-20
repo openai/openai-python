@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import inspect
-from typing import Any
+from typing import Any, NoReturn
 
 import httpx2
 import pytest
@@ -204,6 +204,11 @@ async def test_internal_sentinel_is_not_a_conflicting_credential(asynchronous: b
 
 @pytest.mark.parametrize("asynchronous", [False, True])
 async def test_callable_api_key_refresh_and_copy(asynchronous: bool, monkeypatch: pytest.MonkeyPatch) -> None:
+    def unexpected_connection(*_args: Any, **_kwargs: Any) -> NoReturn:
+        pytest.fail("The callable API-key test must not open a network connection")
+
+    monkeypatch.setattr("socket.socket.connect", unexpected_connection)
+    monkeypatch.setattr("socket.socket.connect_ex", unexpected_connection)
     requests: list[httpx2.Request] = []
     calls = 0
 
@@ -249,7 +254,9 @@ async def test_callable_api_key_refresh_and_copy(asynchronous: bool, monkeypatch
             return connect(*args, **kwargs)
 
         monkeypatch.setattr("websockets.sync.client.connect", connect)
-        monkeypatch.setattr("websockets.asyncio.client.connect", async_connect)
+        # Azure uses its own async connector. Patching its base class misses
+        # already-imported subclasses and makes the test depend on import order.
+        monkeypatch.setattr("openai.lib._azure_websocket._AzureWebSocketConnect", async_connect)
         for resource in (copied.realtime, copied.beta.realtime):
             await resolve(resource.connect(model="test-model").enter())
         assert websocket_headers == [expected_auth("api_key", f"fake-key-{i}") for i in (4, 5)]
