@@ -141,6 +141,191 @@ def versions(lock: dict[str, Any]) -> tuple[RequirementMap, ResolutionsByName]:
     return result, contexts
 
 
+def dependency_marker_options(marker: object, extras: tuple[str, ...]) -> list[MarkerContext]:
+    if marker is None:
+        return [()]
+    if not isinstance(marker, str) or not marker.strip() or len(marker) > 1024:
+        raise SystemExit("Ambiguous locked security dependency edge marker")
+    try:
+        expression = ast.parse(marker, mode="eval").body
+    except SyntaxError:
+        raise SystemExit("Ambiguous locked security dependency edge marker") from None
+
+    def options(node: ast.expr) -> list[MarkerContext]:
+        if isinstance(node, ast.BoolOp):
+            values: list[MarkerContext]
+            if isinstance(node.op, ast.Or):
+                values = [context for child in node.values for context in options(child)]
+            elif isinstance(node.op, ast.And):
+                values = [()]
+                for child in node.values:
+                    current = options(child)
+                    if len(values) * len(current) > 128:
+                        raise SystemExit("Unbounded locked security dependency edge marker")
+                    values = [tuple(sorted(set(left + right))) for left in values for right in current]
+            else:
+                raise SystemExit("Ambiguous locked security dependency edge marker")
+            if len(values) > 128:
+                raise SystemExit("Unbounded locked security dependency edge marker")
+            return values
+        context = marker_context(ast.unparse(node))
+        if len(context) != 1:
+            raise SystemExit("Ambiguous locked security dependency edge marker")
+        variable, operator, value = context[0]
+        if variable != "extra":
+            return [context]
+        selected = extras or ("",)
+        normalized = canonical(value)
+        if operator == "Eq":
+            accepted = any(extra == normalized for extra in selected)
+        elif operator == "NotEq":
+            accepted = any(extra != normalized for extra in selected)
+        elif operator in {"In", "NotIn"}:
+            members = tuple(canonical(part.strip()) for part in value.split(","))
+            if len(members) > 16 or any(not member for member in members):
+                raise SystemExit("Ambiguous locked security dependency edge extra")
+            accepted = any((extra in members) == (operator == "In") for extra in selected)
+        else:
+            raise SystemExit("Ambiguous locked security dependency edge extra")
+        return [()] if accepted else []
+
+    return options(expression)
+
+
+def published_reachability(
+    lock: dict[str, Any], contexts: ContextsByName
+) -> dict[str, set[tuple[str, str, MarkerContext]]]:
+    packages: dict[str, list[dict[str, Any]]] = {}
+    for item in lock["package"]:
+        if not isinstance(item, dict):
+            raise SystemExit("Ambiguous locked security dependency identity")
+        package = cast(dict[str, Any], item)
+        if not isinstance(package.get("name"), str):
+            raise SystemExit("Ambiguous locked security dependency identity")
+        packages.setdefault(canonical(package["name"]), []).append(package)
+
+    pending: list[tuple[str, tuple[str, ...], str, str, MarkerContext, str | None, tuple[str, ...]]] = [
+        (name, context[2], context[0], context[1], context[3], None, ())
+        for name, requirements in contexts.items()
+        for context in requirements
+    ]
+    visited: set[tuple[str, tuple[str, ...], str, str, MarkerContext, str | None]] = set()
+    reachable: dict[str, set[tuple[str, str, MarkerContext]]] = {}
+    while pending:
+        if len(pending) > 4096 or len(visited) > 8192:
+            raise SystemExit("Unbounded published security dependency graph")
+        name, extras, scope, group, context, selected_version, ancestors = pending.pop()
+        if name in ancestors:
+            raise SystemExit("Cyclic published security dependency graph")
+        state = name, extras, scope, group, context, selected_version
+        if state in visited:
+            continue
+        visited.add(state)
+        candidates = packages.get(name, [])
+        if not candidates:
+            raise SystemExit("Missing locked published security dependency identity for " + name)
+        matched = False
+        for package in candidates:
+            version = package.get("version")
+            if not isinstance(version, str):
+                raise SystemExit("Ambiguous locked published security dependency version")
+            if selected_version is not None and version != selected_version:
+                continue
+            resolutions = package.get("resolution-markers")
+            if resolutions is None:
+                domains: list[MarkerContext] = [()]
+            elif isinstance(resolutions, list) and resolutions:
+                values = cast(list[object], resolutions)
+                if not all(isinstance(value, str) for value in values):
+                    raise SystemExit("Ambiguous locked published security dependency resolution")
+                domains = [marker_context(value) for value in cast(list[str], resolutions)]
+            else:
+                raise SystemExit("Ambiguous locked published security dependency resolution")
+            for domain in domains:
+                if not marker_overlap(context, domain):
+                    continue
+                matched = True
+                combined = tuple(sorted(set(context + domain)))
+                reachable.setdefault(name, set()).add((scope, group, combined))
+                direct_edges = package.get("dependencies", [])
+                optional_edges = package.get("optional-dependencies", {})
+                if not isinstance(direct_edges, list) or not isinstance(optional_edges, dict):
+                    raise SystemExit("Ambiguous locked published security dependency edges")
+                groups: dict[str, object] = {}
+                for optional, edges in cast(dict[object, object], optional_edges).items():
+                    if not isinstance(optional, str):
+                        raise SystemExit("Ambiguous locked published security dependency extra")
+                    key = canonical(optional)
+                    if key in groups:
+                        raise SystemExit("Ambiguous locked published security dependency extra")
+                    groups[key] = edges
+                edges_to_follow: list[object] = list(cast(list[object], direct_edges))
+                for extra in extras:
+                    requested = groups.get(extra, [])
+                    if not isinstance(requested, list):
+                        raise SystemExit("Ambiguous locked published security dependency extra")
+                    edges_to_follow.extend(cast(list[object], requested))
+                for item in edges_to_follow:
+                    if not isinstance(item, dict):
+                        raise SystemExit("Ambiguous locked published security dependency edge")
+                    edge = cast(dict[str, Any], item)
+                    if not isinstance(edge.get("name"), str):
+                        raise SystemExit("Ambiguous locked published security dependency edge")
+                    edge_name = canonical(edge["name"])
+                    if not re.fullmatch(r"[a-z0-9][a-z0-9-]*", edge_name):
+                        raise SystemExit("Ambiguous locked published security dependency edge")
+                    requested_extras = edge.get("extra", [])
+                    if not isinstance(requested_extras, list) or any(
+                        not isinstance(extra, str) for extra in cast(list[object], requested_extras)
+                    ):
+                        raise SystemExit("Ambiguous locked published security dependency edge extra")
+                    normalized_extras = tuple(sorted(canonical(extra) for extra in cast(list[str], requested_extras)))
+                    if len(normalized_extras) != len(set(normalized_extras)) or any(
+                        not re.fullmatch(r"[a-z0-9][a-z0-9-]*", extra) for extra in normalized_extras
+                    ):
+                        raise SystemExit("Ambiguous locked published security dependency edge extra")
+                    edge_version = edge.get("version")
+                    if edge_version is not None and not isinstance(edge_version, str):
+                        raise SystemExit("Ambiguous locked published security dependency edge version")
+                    for edge_context in dependency_marker_options(edge.get("marker"), extras):
+                        next_context = tuple(sorted(set(combined + edge_context)))
+                        if not marker_overlap(next_context, ()):
+                            continue
+                        pending.append(
+                            (
+                                edge_name,
+                                normalized_extras,
+                                scope,
+                                group,
+                                next_context,
+                                edge_version,
+                                ancestors + (name,),
+                            )
+                        )
+        if not matched and selected_version is not None:
+            raise SystemExit("Missing selected locked published security dependency version for " + name)
+    return reachable
+
+
+def audience_covers(previous: tuple[str, str, MarkerContext], current: tuple[str, str, MarkerContext]) -> bool:
+    if previous[0] != "runtime" and previous[:2] != current[:2]:
+        return False
+    inverse = {
+        "Eq": "NotEq",
+        "NotEq": "Eq",
+        "Lt": "GtE",
+        "LtE": "Gt",
+        "Gt": "LtE",
+        "GtE": "Lt",
+        "In": "NotIn",
+        "NotIn": "In",
+    }
+    return all(
+        not marker_overlap(current[2], ((variable, inverse[operator], value),))
+        for variable, operator, value in previous[2]
+    )
+
+
 def stable_version(value: str) -> StableRelease:
     match = re.fullmatch(r"(?:(\d+)!)?(\d+(?:\.\d+)*)(?:\.post(\d+))?", value)
     if match is None:
@@ -280,7 +465,7 @@ def minimums(requirements: set[str], *, allow_missing: bool = False, exact: bool
     result: list[StableRelease] = []
     for requirement in requirements:
         specifier = requirement.split(";", 1)[0]
-        pattern = r"(?<![<>=!~])(?:>=|>|==)([^,;]+)" if exact else r"(?<![<>=!~])(?:>=|>)([^,;]+)"
+        pattern = r"(?<![<>=!~])(?:>=|>|==|~=)([^,;]+)" if exact else r"(?<![<>=!~])(?:>=|>|~=)([^,;]+)"
         matches = re.findall(pattern, specifier)
         if len(matches) != 1:
             if allow_missing and not matches:
@@ -443,7 +628,7 @@ def published_bounds(requirement: str) -> tuple[PublishedBound, ...]:
     result: list[PublishedBound] = []
     for clause in clauses:
         match = re.fullmatch(
-            r"(>=|<=|==|!=|>|<)\s*((?:(\d+)!)?(\d+(?:\.\d+)*)(?:\.post(\d+))?)(\.\*)?",
+            r"(~=|>=|<=|==|!=|>|<)\s*((?:(\d+)!)?(\d+(?:\.\d+)*)(?:\.post(\d+))?)(\.\*)?",
             clause.strip(),
         )
         if match is None or len(match.group(2)) > 128:
@@ -456,7 +641,14 @@ def published_bounds(requirement: str) -> tuple[PublishedBound, ...]:
             raise SystemExit("Ambiguous published security dependency wildcard")
         epoch, release, post = stable_version(match.group(2))
         prefix = tuple(int(component) for component in components)
-        result.append((match.group(1), epoch, prefix if wildcard else release, post, wildcard))
+        if match.group(1) == "~=":
+            if len(prefix) < 2 or wildcard:
+                raise SystemExit("Ambiguous compatible published security dependency bound")
+            ceiling = prefix[:-2] + (prefix[-2] + 1,)
+            upper = stable_version(str(epoch) + "!" + ".".join(str(part) for part in ceiling))
+            result.extend(((">=", epoch, release, post, False), ("<", upper[0], upper[1], upper[2], False)))
+        else:
+            result.append((match.group(1), epoch, prefix if wildcard else release, post, wildcard))
     if len(set(result)) != len(result):
         raise SystemExit("Ambiguous duplicate published security dependency bound")
     return tuple(result)
@@ -593,7 +785,7 @@ def preserves_dependency_security_bounds(
             if match is None:
                 raise SystemExit("Ambiguous unchanged published security dependency requirement")
             clauses = match.group(3).split(",")
-            if not any(re.match(r"(?:!=|<=|<|>=|>|==)", clause.strip()) for clause in clauses):
+            if not any(re.match(r"(?:~=|!=|<=|<|>=|>|==)", clause.strip()) for clause in clauses):
                 continue
             before = published_bounds(requirement)
             protected = tuple(bound for bound in before if bound[0] in {"<", "<=", "!=", ">", ">=", "=="})
@@ -898,7 +1090,7 @@ for name in old_versions.keys() & new_versions.keys():
             ):
                 raise SystemExit("Add a reviewed contextual transitive security dependency boundary for " + name)
 
-new_requested_extra_contexts: list[DependencyContext] = []
+new_requested_extra_contexts: list[tuple[str, DependencyContext]] = []
 for name, contexts in new_contexts.items():
     previous_contexts = old_contexts.get(name, {})
     for context in contexts:
@@ -906,12 +1098,35 @@ for name, contexts in new_contexts.items():
             previous[:2] == context[:2] and set(context[2]).issubset(previous[2]) and previous[3] == context[3]
             for previous in previous_contexts
         ):
-            new_requested_extra_contexts.append(context)
+            new_requested_extra_contexts.append((name, context))
 if new_requested_extra_contexts:
-    for name in new_versions.keys() - old_versions.keys():
+    previous_reachable = published_reachability(old_lock, old_contexts)
+    current_reachable = published_reachability(new_lock, new_contexts)
+    newly_exposed = {
+        name
+        for name, audiences in current_reachable.items()
+        for audience in audiences
+        if name not in new_direct
+        and any(
+            audience[:2] == requested[:2] and marker_overlap(audience[2], requested[3])
+            for _, requested in new_requested_extra_contexts
+        )
+        and not any(audience_covers(previous, audience) for previous in previous_reachable.get(name, set()))
+    }
+    for name in (new_versions.keys() - old_versions.keys()) | newly_exposed:
         reviewed_contexts = new_protected_contexts.get(name, {}) | new_contexts.get(name, {})
         for domain, domain_versions in new_resolution_contexts.get(name, {}).items():
-            if not any(marker_overlap(context[3], domain) for context in new_requested_extra_contexts):
+            if not any(marker_overlap(context[3], domain) for _, context in new_requested_extra_contexts):
+                continue
+            if name in old_versions and not any(
+                marker_overlap(audience[2], domain)
+                and any(
+                    audience[:2] == requested[:2] and marker_overlap(audience[2], requested[3])
+                    for _, requested in new_requested_extra_contexts
+                )
+                and not any(audience_covers(previous, audience) for previous in previous_reachable.get(name, set()))
+                for audience in current_reachable.get(name, set())
+            ):
                 continue
             for version in domain_versions:
                 release = stable_version(version)

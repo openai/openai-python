@@ -110,6 +110,11 @@ def run_dependency_lock_source_check(
     trusted_base_sha: str = "a" * 40,
     trusted_base_lock: str | None = None,
     trusted_origin: str = "https://github.com/openai/openai-python.git",
+    hatch_configuration: str = "",
+    trusted_hatch_configuration: str = "",
+    hatch_files: dict[str, str] | None = None,
+    trusted_hatch_files: dict[str, str] | None = None,
+    hatch_symlinks: dict[str, str] | None = None,
 ) -> subprocess.CompletedProcess[str]:
     project = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]
     requires = ["hatchling==1.27.0"] if build_requires is None else build_requires
@@ -140,7 +145,16 @@ def run_dependency_lock_source_check(
         for name, source in uv_sources.items():
             values = ", ".join(key + " = " + json.dumps(value) for key, value in source.items())
             configuration += name + " = { " + values + " }\n"
+    configuration += hatch_configuration
     (tmp_path / "pyproject.toml").write_text(configuration)
+    for name, contents in (hatch_files or {}).items():
+        destination = tmp_path / name
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_text(contents)
+    for name, target in (hatch_symlinks or {}).items():
+        destination = tmp_path / name
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.symlink_to(target)
     if extra_uv_config is not None:
         (tmp_path / extra_uv_config).write_text('no-binary-package = ["reviewed-dependency"]\n')
 
@@ -219,7 +233,12 @@ def run_dependency_lock_source_check(
             + json.dumps(reviewed_constraints)
             + "\n"
         )
+        trusted_configuration += trusted_hatch_configuration
         (tmp_path / "trusted-base.toml").write_text(trusted_configuration)
+        for name, contents in (trusted_hatch_files or {}).items():
+            destination = tmp_path / ".trusted-hooks" / name
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            destination.write_text(contents)
         (tmp_path / "trusted-base.lock").write_text(
             (tmp_path / "uv.lock").read_text() if trusted_base_lock is None else trusted_base_lock
         )
@@ -239,6 +258,9 @@ def run_dependency_lock_source_check(
             "    print((root / 'trusted-base.toml').read_text(), end='')\n"
             "elif arguments == ['show', sha + ':uv.lock']:\n"
             "    print((root / 'trusted-base.lock').read_text(), end='')\n"
+            "elif len(arguments) == 2 and arguments[0] == 'show' and arguments[1].startswith(sha + ':'):\n"
+            "    path = root / '.trusted-hooks' / arguments[1].split(':', 1)[1]\n"
+            "    sys.stdout.buffer.write(path.read_bytes())\n"
             "else:\n"
             "    raise SystemExit('Unexpected or unsafe git operation')\n"
         )
@@ -640,6 +662,83 @@ def test_fork_build_backend_must_match_immutable_reviewed_base(tmp_path: Path, v
         trusted_origin=origin,
     )
 
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("variant", "accepted"),
+    [
+        pytest.param("fork-added-global", False, id="fork-cannot-add-executable-global-hatch-hook"),
+        pytest.param("fork-added-target", False, id="fork-cannot-add-executable-target-hatch-hook"),
+        pytest.param("fork-added-metadata", False, id="fork-cannot-add-executable-metadata-hatch-hook"),
+        pytest.param("fork-changed-path", False, id="fork-cannot-redirect-reviewed-custom-hook"),
+        pytest.param("fork-modified-source", False, id="fork-cannot-modify-reviewed-custom-hook-source"),
+        pytest.param("fork-missing-source", False, id="fork-cannot-remove-reviewed-custom-hook-source"),
+        pytest.param("fork-symlink-source", False, id="fork-cannot-use-symlinked-custom-hook-source"),
+        pytest.param("fork-traversal", False, id="fork-cannot-escape-checkout-through-custom-hook-path"),
+        pytest.param("fork-reviewed-metadata", True, id="fork-preserves-immutable-reviewed-metadata-hook"),
+        pytest.param("fork-reviewed-default", True, id="fork-preserves-immutable-reviewed-default-hook"),
+        pytest.param("fork-packaging-change", True, id="fork-can-change-nonexecutable-hatch-build-metadata"),
+        pytest.param("same-repo-maintainer", True, id="trusted-maintainer-can-change-hatch-hooks"),
+        pytest.param("same-repo-dependabot", True, id="trusted-dependabot-can-change-hatch-hooks"),
+    ],
+)
+def test_fork_hatch_hooks_and_sources_must_match_immutable_reviewed_base(
+    tmp_path: Path, variant: str, accepted: bool
+) -> None:
+    project = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]
+    packages: list[dict[str, object]] = [
+        {"name": project["name"], "version": project["version"], "source": {"editable": "."}}
+    ]
+    reviewed = '[tool.hatch.metadata.hooks.custom]\npath = "scripts/hatch_metadata.py"\n'
+    head = reviewed
+    base = reviewed
+    files = {"scripts/hatch_metadata.py": "reviewed = True\n"}
+    trusted_files = dict(files)
+    symlinks: dict[str, str] = {}
+
+    if variant == "fork-added-global":
+        head += '[tool.hatch.build.hooks.custom]\npath = "attacker.py"\n'
+        files["attacker.py"] = "raise RuntimeError('unreviewed global hook')\n"
+    elif variant == "fork-added-target":
+        head += '[tool.hatch.build.targets.wheel.hooks.custom]\npath = "attacker.py"\n'
+        files["attacker.py"] = "raise RuntimeError('unreviewed target hook')\n"
+    elif variant == "fork-added-metadata":
+        base = ""
+    elif variant == "fork-changed-path":
+        head = '[tool.hatch.metadata.hooks.custom]\npath = "attacker.py"\n'
+        files["attacker.py"] = "raise RuntimeError('unreviewed metadata hook')\n"
+    elif variant == "fork-modified-source":
+        files["scripts/hatch_metadata.py"] = "raise RuntimeError('modified reviewed hook')\n"
+    elif variant == "fork-missing-source":
+        files.clear()
+    elif variant == "fork-symlink-source":
+        files = {"reviewed.py": "reviewed = True\n"}
+        symlinks = {"scripts/hatch_metadata.py": "../reviewed.py"}
+    elif variant == "fork-traversal":
+        head = base = '[tool.hatch.metadata.hooks.custom]\npath = "../outside.py"\n'
+        files.clear()
+        trusted_files.clear()
+    elif variant == "fork-reviewed-default":
+        head = base = "[tool.hatch.build.hooks.custom]\n"
+        files = trusted_files = {"hatch_build.py": "reviewed = True\n"}
+    elif variant == "fork-packaging-change":
+        head += '[tool.hatch.build]\ninclude = ["different/*"]\n'
+        base += '[tool.hatch.build]\ninclude = ["src/*"]\n'
+    elif variant.startswith("same-repo-"):
+        head += '[tool.hatch.build.hooks.custom]\npath = "new-maintainer-hook.py"\n'
+        files["new-maintainer-hook.py"] = "reviewed_maintainer_update = True\n"
+
+    result = run_dependency_lock_source_check(
+        tmp_path,
+        packages,
+        trusted_fork=not variant.startswith("same-repo-"),
+        hatch_configuration=head,
+        trusted_hatch_configuration=base,
+        hatch_files=files,
+        trusted_hatch_files=trusted_files,
+        hatch_symlinks=symlinks,
+    )
     assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
 
 
@@ -1550,6 +1649,10 @@ def run_security_dependency_floor_check(
     head_dependency_groups: dict[str, list[str]] | None = None,
     base_resolution_markers: dict[tuple[str, str], list[str]] | None = None,
     head_resolution_markers: dict[tuple[str, str], list[str]] | None = None,
+    base_lock_dependencies: dict[tuple[str, str], list[dict[str, object]]] | None = None,
+    head_lock_dependencies: dict[tuple[str, str], list[dict[str, object]]] | None = None,
+    base_lock_optional_dependencies: dict[tuple[str, str], dict[str, list[dict[str, object]]]] | None = None,
+    head_lock_optional_dependencies: dict[tuple[str, str], dict[str, list[dict[str, object]]]] | None = None,
     origin: str = "https://github.com/openai/openai-python",
 ) -> subprocess.CompletedProcess[str]:
     def project(
@@ -1579,12 +1682,34 @@ def run_security_dependency_floor_check(
                 result += "build-constraint-dependencies = " + json.dumps(build_constraints) + "\n"
         return result
 
-    def lock(packages: list[tuple[str, str]], resolutions: dict[tuple[str, str], list[str]] | None) -> str:
+    def lock(
+        packages: list[tuple[str, str]],
+        resolutions: dict[tuple[str, str], list[str]] | None,
+        dependencies: dict[tuple[str, str], list[dict[str, object]]] | None,
+        optional_dependencies: dict[tuple[str, str], dict[str, list[dict[str, object]]]] | None,
+    ) -> str:
+        def edges(values: list[dict[str, object]]) -> str:
+            return (
+                "["
+                + ", ".join(
+                    "{ " + ", ".join(key + " = " + json.dumps(value) for key, value in item.items()) + " }"
+                    for item in values
+                )
+                + "]"
+            )
+
         result: list[str] = []
         for name, version in packages:
+            identity = name, version
             entry = f"[[package]]\nname = {json.dumps(name)}\nversion = {json.dumps(version)}\n"
-            if resolutions is not None and (name, version) in resolutions:
-                entry += "resolution-markers = " + json.dumps(resolutions[(name, version)]) + "\n"
+            if resolutions is not None and identity in resolutions:
+                entry += "resolution-markers = " + json.dumps(resolutions[identity]) + "\n"
+            if dependencies is not None and identity in dependencies:
+                entry += "dependencies = " + edges(dependencies[identity]) + "\n"
+            if optional_dependencies is not None and identity in optional_dependencies:
+                entry += "[package.optional-dependencies]\n"
+                for extra, values in optional_dependencies[identity].items():
+                    entry += json.dumps(extra) + " = " + edges(values) + "\n"
             result.append(entry)
         return "\n".join(result)
 
@@ -1593,13 +1718,17 @@ def run_security_dependency_floor_check(
             head_requirements, head_optional_groups, head_constraints, head_build_constraints, head_dependency_groups
         )
     )
-    (tmp_path / "uv.lock").write_text(lock(head_packages, head_resolution_markers))
+    (tmp_path / "uv.lock").write_text(
+        lock(head_packages, head_resolution_markers, head_lock_dependencies, head_lock_optional_dependencies)
+    )
     (tmp_path / "base-project.toml").write_text(
         project(
             base_requirements, base_optional_groups, base_constraints, base_build_constraints, base_dependency_groups
         )
     )
-    (tmp_path / "base-lock.toml").write_text(lock(base_packages, base_resolution_markers))
+    (tmp_path / "base-lock.toml").write_text(
+        lock(base_packages, base_resolution_markers, base_lock_dependencies, base_lock_optional_dependencies)
+    )
     fake_git = tmp_path / "git"
     fake_git.write_text(
         f"#!{sys.executable}\n"
@@ -3985,6 +4114,90 @@ def test_new_requested_extras_cannot_introduce_unreviewed_dependency_identities(
 @pytest.mark.parametrize(
     ("variant", "accepted"),
     [
+        pytest.param("existing-dev", False, id="new-extra-cannot-publish-previously-dev-locked-package"),
+        pytest.param("reviewed-existing-dev", True, id="reviewed-floor-allows-previously-dev-locked-package"),
+        pytest.param("already-runtime", True, id="already-published-runtime-package-needs-no-extra-review"),
+        pytest.param("transitive-existing", False, id="new-extra-cannot-publish-transitive-dev-locked-package"),
+        pytest.param("reviewed-transitive", True, id="reviewed-contextual-floors-allow-transitive-existing-packages"),
+        pytest.param("selected-nested-extra", False, id="nested-selected-extra-cannot-publish-dev-locked-package"),
+        pytest.param("wrong-marker", False, id="reviewed-existing-package-bound-must-cover-extra-domain"),
+        pytest.param("matching-marker", True, id="reviewed-existing-package-marker-can-cover-extra-domain"),
+        pytest.param("unchanged-extra", True, id="unchanged-requested-extra-keeps-prior-published-reachability"),
+        pytest.param("cyclic-extra", False, id="cyclic-extra-dependency-graph-fails-closed"),
+        pytest.param("ambiguous-edge", False, id="ambiguous-extra-dependency-edge-fails-closed"),
+    ],
+)
+def test_new_extras_cannot_publish_previously_locked_transitive_packages(
+    tmp_path: Path, variant: str, accepted: bool
+) -> None:
+    base_requirements = ["patch-me>=1", "parent"]
+    head_requirements = ["patch-me>=1.1", "parent", "parent[new-extra]"]
+    packages = [("parent", "1"), ("existing-plugin", "1")]
+    base_groups = {"dev": ["existing-plugin"]}
+    head_groups = {"dev": ["existing-plugin"]}
+    base_edges: dict[tuple[str, str], list[dict[str, object]]] = {}
+    head_edges: dict[tuple[str, str], list[dict[str, object]]] = {}
+    parent_optional: dict[str, list[dict[str, object]]] = {"new-extra": [{"name": "existing-plugin"}]}
+    base_optional = {("parent", "1"): dict(parent_optional)}
+    head_optional = {("parent", "1"): dict(parent_optional)}
+    constraints: list[str] | None = None
+    markers: dict[tuple[str, str], list[str]] | None = None
+
+    if variant == "reviewed-existing-dev":
+        constraints = ["existing-plugin>=1"]
+    elif variant == "already-runtime":
+        base_requirements.append("existing-plugin>=1")
+        head_requirements.append("existing-plugin>=1")
+    elif variant in {"transitive-existing", "reviewed-transitive", "selected-nested-extra", "cyclic-extra"}:
+        packages.append(("bridge", "1"))
+        parent_optional["new-extra"] = [{"name": "bridge"}]
+        if variant == "selected-nested-extra":
+            parent_optional["new-extra"] = [{"name": "bridge", "extra": ["nested"]}]
+            head_optional[("bridge", "1")] = {"nested": [{"name": "existing-plugin"}]}
+            base_optional[("bridge", "1")] = {"nested": [{"name": "existing-plugin"}]}
+        elif variant == "cyclic-extra":
+            head_edges[("bridge", "1")] = [{"name": "parent", "extra": ["new-extra"]}]
+            base_edges[("bridge", "1")] = list(head_edges[("bridge", "1")])
+        else:
+            head_edges[("bridge", "1")] = [{"name": "existing-plugin"}]
+            base_edges[("bridge", "1")] = [{"name": "existing-plugin"}]
+        if variant == "reviewed-transitive":
+            constraints = ["bridge>=1", "existing-plugin>=1"]
+        elif variant in {"transitive-existing", "selected-nested-extra"}:
+            constraints = ["bridge>=1"]
+    elif variant in {"wrong-marker", "matching-marker"}:
+        head_requirements[-1] += "; python_version >= '3.11'"
+        markers = {("existing-plugin", "1"): ["python_full_version >= '3.11'"]}
+        suffix = "< '3.11'" if variant == "wrong-marker" else ">= '3.11'"
+        constraints = ["existing-plugin>=1; python_version " + suffix]
+    elif variant == "unchanged-extra":
+        base_requirements[-1] = "parent[new-extra]"
+        head_requirements = ["patch-me>=1.1", "parent[new-extra]"]
+    elif variant == "ambiguous-edge":
+        parent_optional["new-extra"] = [{"name": "existing-plugin", "extra": "not-a-list"}]
+
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=base_requirements,
+        head_requirements=head_requirements,
+        base_packages=[("patch-me", "1"), *packages],
+        head_packages=[("patch-me", "1.1"), *packages],
+        base_dependency_groups=base_groups,
+        head_dependency_groups=head_groups,
+        head_constraints=constraints,
+        base_resolution_markers=markers,
+        head_resolution_markers=markers,
+        base_lock_dependencies=base_edges,
+        head_lock_dependencies=head_edges,
+        base_lock_optional_dependencies=base_optional,
+        head_lock_optional_dependencies=head_optional,
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("variant", "accepted"),
+    [
         pytest.param("published-wildcard", True, id="published-marker-split-preserves-existing-vulnerable-series"),
         pytest.param("protected-wildcard", True, id="protected-marker-split-preserves-existing-vulnerable-series"),
         pytest.param("canonical-wildcard", True, id="split-accepts-canonical-equivalent-wildcard-prefix"),
@@ -4040,6 +4253,63 @@ def test_marker_context_splits_preserve_canonical_wildcard_security_exclusions(
             ("danger", "1.6"): ["python_full_version < '3.11'"],
             ("danger", "2.6"): ["python_full_version >= '3.11'"],
         },
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("variant", "accepted"),
+    [
+        pytest.param("published-lower-dropped", False, id="published-compatible-release-cannot-drop-lower-floor"),
+        pytest.param("published-upper-dropped", False, id="published-compatible-release-cannot-drop-series-ceiling"),
+        pytest.param("protected-upper-dropped", False, id="protected-compatible-release-cannot-drop-series-ceiling"),
+        pytest.param("equivalent-expanded", True, id="compatible-release-can-expand-to-equivalent-explicit-bounds"),
+        pytest.param("tighter-series", True, id="compatible-release-can-tighten-without-dropping-locked-release"),
+        pytest.param("zero-precision", False, id="compatible-release-trailing-zero-preserves-precision-ceiling"),
+        pytest.param("epoch-ceiling", False, id="compatible-release-preserves-epoch-aware-series-ceiling"),
+        pytest.param("post-floor", False, id="compatible-release-preserves-post-release-lower-floor"),
+        pytest.param("single-component", False, id="single-component-compatible-release-fails-closed"),
+        pytest.param("wildcard", False, id="wildcard-compatible-release-fails-closed"),
+    ],
+)
+def test_compatible_release_requirements_preserve_reviewed_security_bounds(
+    tmp_path: Path, variant: str, accepted: bool
+) -> None:
+    original = "safe~=1.4"
+    replacement = "safe>=1.4,<2"
+    locked = "1.5"
+    protected = variant.startswith("protected-")
+
+    if variant == "published-lower-dropped":
+        replacement = "safe>=1,<2"
+    elif variant in {"published-upper-dropped", "protected-upper-dropped"}:
+        replacement = "safe>=1.4"
+    elif variant == "tighter-series":
+        replacement = "safe~=1.5"
+    elif variant == "zero-precision":
+        original = "safe~=1.4.0"
+        replacement = "safe>=1.4,<2"
+        locked = "1.4.5"
+    elif variant == "epoch-ceiling":
+        original = "safe~=1!1.4"
+        replacement = "safe>=1!1.4"
+        locked = "1!1.5"
+    elif variant == "post-floor":
+        original = "safe~=1.4.post1"
+        replacement = "safe>=1.4,<2"
+    elif variant == "single-component":
+        original = "safe~=1"
+    elif variant == "wildcard":
+        original = "safe~=1.4.*"
+
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=["patch-me>=1"] + ([] if protected else [original]),
+        head_requirements=["patch-me>=1.1"] + ([] if protected else [replacement]),
+        base_packages=[("patch-me", "1"), ("safe", locked)],
+        head_packages=[("patch-me", "1.1"), ("safe", locked)],
+        base_constraints=[original] if protected else None,
+        head_constraints=[replacement] if protected else None,
     )
     assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
 
