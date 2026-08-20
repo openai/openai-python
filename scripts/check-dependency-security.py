@@ -280,7 +280,7 @@ def minimums(requirements: set[str], *, allow_missing: bool = False, exact: bool
     result: list[StableRelease] = []
     for requirement in requirements:
         specifier = requirement.split(";", 1)[0]
-        pattern = r"(?<![<>=!~])(?:>=|==)([^,;]+)" if exact else r"(?<![<>=!~])>=([^,;]+)"
+        pattern = r"(?<![<>=!~])(?:>=|>|==)([^,;]+)" if exact else r"(?<![<>=!~])(?:>=|>)([^,;]+)"
         matches = re.findall(pattern, specifier)
         if len(matches) != 1:
             if allow_missing and not matches:
@@ -339,7 +339,7 @@ def unchanged_nonfloor_bounds(requirement: str) -> tuple[tuple[str, StableReleas
         if bound is None:
             raise SystemExit("Ambiguous split security dependency bound")
         operator, value = bound.group(1), stable_version(bound.group(2))
-        if operator not in {">=", "=="}:
+        if operator not in {">=", ">", "=="}:
             bounds.append((operator, value))
     return tuple(sorted(bounds))
 
@@ -524,6 +524,15 @@ def allows_published_release(bounds: tuple[PublishedBound, ...], release: Stable
 
 def preserves_published_security_bound(previous: PublishedBound, current: tuple[PublishedBound, ...]) -> bool:
     operator, epoch, components, post, wildcard = previous
+    if operator in {">", ">="}:
+        limit = epoch, components, post
+        for updated, candidate_epoch, candidate, candidate_post, candidate_wildcard in current:
+            if candidate_wildcard or updated not in {">", ">=", "=="}:
+                continue
+            bound = candidate_epoch, candidate, candidate_post
+            if bound > limit or bound == limit and (operator == ">=" or updated == ">"):
+                return True
+        return False
     if operator in {"<", "<="}:
         limit = epoch, components, post
         for updated, candidate_epoch, candidate, candidate_post, candidate_wildcard in current:
@@ -579,10 +588,11 @@ def preserves_dependency_security_bounds(
             if match is None:
                 raise SystemExit("Ambiguous unchanged published security dependency requirement")
             clauses = match.group(3).split(",")
-            if not any(re.match(r"(?:!=|<=|<)", clause.strip()) for clause in clauses):
+            if not any(re.match(r"(?:!=|<=|<|>=|>)", clause.strip()) for clause in clauses):
                 continue
             before = published_bounds(requirement)
-            protected = tuple(bound for bound in before if bound[0] in {"<", "<=", "!="})
+            protected = tuple(bound for bound in before if bound[0] in {"<", "<=", "!=", ">", ">="})
+            preserve_releases = any(bound[0] in {"<", "<=", "!="} for bound in protected)
             context_replacements = replacements.get(previous_context, {})
             if not context_replacements:
                 return False
@@ -597,8 +607,8 @@ def preserves_dependency_security_bounds(
                 preserved = False
                 for candidate in candidates:
                     after = published_bounds(candidate)
-                    if all(preserves_published_security_bound(bound, after) for bound in protected) and all(
-                        allows_published_release(after, release) for release in retained
+                    if all(preserves_published_security_bound(bound, after) for bound in protected) and (
+                        not preserve_releases or all(allows_published_release(after, release) for release in retained)
                     ):
                         preserved = True
                         break

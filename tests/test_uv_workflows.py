@@ -80,9 +80,9 @@ def dependency_lock_source_command() -> str:
     line = next(
         entry
         for entry in path.read_text().splitlines()
-        if "python -c '" in entry and "Use only the public PyPI registry" in entry
+        if "python -I -c '" in entry and "Use only the public PyPI registry" in entry
     )
-    command = line.split("python -c '", 1)[1].rsplit("'", 1)[0]
+    command = line.split("python -I -c '", 1)[1].rsplit("'", 1)[0]
     if sys.version_info < (3, 11):
         command = "import sys, tomli; sys.modules['tomllib'] = tomli; " + command
     return command
@@ -108,6 +108,7 @@ def run_dependency_lock_source_check(
     trusted_base_constraints: list[str] | None = None,
     trusted_base_backend: str = "hatchling.build",
     trusted_base_sha: str = "a" * 40,
+    trusted_base_lock: str | None = None,
     trusted_origin: str = "https://github.com/openai/openai-python.git",
 ) -> subprocess.CompletedProcess[str]:
     project = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]
@@ -219,6 +220,9 @@ def run_dependency_lock_source_check(
             + "\n"
         )
         (tmp_path / "trusted-base.toml").write_text(trusted_configuration)
+        (tmp_path / "trusted-base.lock").write_text(
+            (tmp_path / "uv.lock").read_text() if trusted_base_lock is None else trusted_base_lock
+        )
         fake_git = tmp_path / "git"
         fake_git.write_text(
             f"#!{sys.executable}\n"
@@ -233,6 +237,8 @@ def run_dependency_lock_source_check(
             "    pass\n"
             "elif arguments == ['show', sha + ':pyproject.toml']:\n"
             "    print((root / 'trusted-base.toml').read_text(), end='')\n"
+            "elif arguments == ['show', sha + ':uv.lock']:\n"
+            "    print((root / 'trusted-base.lock').read_text(), end='')\n"
             "else:\n"
             "    raise SystemExit('Unexpected or unsafe git operation')\n"
         )
@@ -637,6 +643,112 @@ def test_fork_build_backend_must_match_immutable_reviewed_base(tmp_path: Path, v
     assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
 
 
+@pytest.mark.parametrize(
+    ("variant", "accepted"),
+    [
+        pytest.param("added-default", False, id="fork-cannot-add-unreviewed-default-wheel"),
+        pytest.param("added-optional", False, id="fork-cannot-add-unreviewed-optional-wheel"),
+        pytest.param("removed-package", False, id="fork-cannot-remove-immutable-reviewed-identity"),
+        pytest.param("replaced-name", False, id="fork-cannot-swap-reviewed-package-name"),
+        pytest.param("replaced-version", False, id="fork-cannot-swap-reviewed-package-version"),
+        pytest.param("replaced-wheel-url", False, id="fork-cannot-swap-reviewed-wheel-url"),
+        pytest.param("replaced-wheel-hash", False, id="fork-cannot-swap-reviewed-wheel-hash"),
+        pytest.param("replaced-sdist-url", False, id="fork-cannot-swap-reviewed-source-url"),
+        pytest.param("replaced-sdist-hash", False, id="fork-cannot-swap-reviewed-source-hash"),
+        pytest.param("added-wheel", False, id="fork-cannot-add-an-unreviewed-wheel"),
+        pytest.param("removed-wheel", False, id="fork-cannot-drop-an-immutable-reviewed-wheel"),
+        pytest.param("duplicate-package", False, id="fork-cannot-hide-an-extra-identity-in-a-set"),
+        pytest.param("reordered-wheels", True, id="fork-may-reorder-identical-reviewed-artifacts"),
+        pytest.param("canonical-name", True, id="fork-may-canonicalize-identical-reviewed-name"),
+        pytest.param("same-repo-maintainer", True, id="same-repo-maintainer-may-update-wheel"),
+        pytest.param("same-repo-dependabot", True, id="same-repo-security-bot-may-add-wheel"),
+    ],
+)
+def test_fork_dependency_identities_must_match_immutable_reviewed_lock(
+    tmp_path: Path, variant: str, accepted: bool
+) -> None:
+    project = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]
+    root: dict[str, object] = {
+        "name": project["name"],
+        "version": project["version"],
+        "source": {"editable": "."},
+    }
+    reviewed: dict[str, object] = {
+        "name": "reviewed_dependency",
+        "version": "2.0",
+        "source": {"registry": "https://pypi.org/simple"},
+        "sdist": {
+            "url": "https://files.pythonhosted.org/packages/reviewed-2.0.tar.gz",
+            "hash": "sha256:" + "a" * 64,
+        },
+        "wheels": [
+            {
+                "url": "https://files.pythonhosted.org/packages/reviewed-2.0-py3-none-any.whl",
+                "hash": "sha256:" + "b" * 64,
+            },
+            {
+                "url": "https://files.pythonhosted.org/packages/reviewed-2.0-linux.whl",
+                "hash": "sha256:" + "c" * 64,
+            },
+        ],
+    }
+    baseline = run_dependency_lock_source_check(tmp_path, [root, reviewed], trusted_fork=True)
+    assert baseline.returncode == 0, baseline.stdout + baseline.stderr
+    trusted_lock = (tmp_path / "uv.lock").read_text()
+    packages = cast(list[dict[str, object]], json.loads(json.dumps([root, reviewed])))
+    package = packages[1]
+    wheels = cast(list[dict[str, str]], package["wheels"])
+    sdist = cast(dict[str, str], package["sdist"])
+    fork = not variant.startswith("same-repo-")
+
+    if variant in {"added-default", "added-optional", "same-repo-dependabot"}:
+        packages.append(
+            {
+                "name": "attacker-owned-plugin",
+                "version": "1.0",
+                "source": {"registry": "https://pypi.org/simple"},
+            }
+        )
+    elif variant == "removed-package":
+        packages.pop()
+    elif variant == "replaced-name":
+        package["name"] = "attacker-owned-plugin"
+    elif variant in {"replaced-version", "same-repo-maintainer"}:
+        package["version"] = "2.1"
+    elif variant == "replaced-wheel-url":
+        wheels[0]["url"] = "https://files.pythonhosted.org/packages/attacker-2.0-py3-none-any.whl"
+    elif variant == "replaced-wheel-hash":
+        wheels[0]["hash"] = "sha256:" + "d" * 64
+    elif variant == "replaced-sdist-url":
+        sdist["url"] = "https://files.pythonhosted.org/packages/attacker-2.0.tar.gz"
+    elif variant == "replaced-sdist-hash":
+        sdist["hash"] = "sha256:" + "d" * 64
+    elif variant == "added-wheel":
+        wheels.append(
+            {
+                "url": "https://files.pythonhosted.org/packages/attacker-2.0-linux.whl",
+                "hash": "sha256:" + "d" * 64,
+            }
+        )
+    elif variant == "removed-wheel":
+        wheels.pop()
+    elif variant == "duplicate-package":
+        packages.append(cast(dict[str, object], json.loads(json.dumps(package))))
+    elif variant == "reordered-wheels":
+        wheels.reverse()
+        packages.reverse()
+    elif variant == "canonical-name":
+        package["name"] = "Reviewed.Dependency"
+
+    result = run_dependency_lock_source_check(
+        tmp_path,
+        packages,
+        trusted_fork=fork,
+        trusted_base_lock=trusted_lock,
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
 def test_fork_build_provenance_uses_immutable_pull_request_identity() -> None:
     for name in ("ci.yml", "detect-breaking-changes.yml"):
         workflow = (ROOT / ".github/workflows" / name).read_text()
@@ -735,7 +847,7 @@ def dependency_installer_jobs(jobs: dict[str, str]) -> set[str]:
 def test_dependency_provenance_runs_before_tool_setup() -> None:
     gate = dependency_workflow_jobs()["dependency-locks"]
     source = next(line for line in gate.splitlines() if "Use only the public PyPI registry" in line)
-    assert source.strip().startswith("python -c '")
+    assert source.strip().startswith("python -I -c '")
 
     before = gate.split(source, 1)[0]
     actions = re.findall(r"^      - uses:\s*(\S+)", before, re.MULTILINE)
@@ -1224,10 +1336,10 @@ def test_breaking_change_installers_validate_provenance_first(name: str) -> None
     assert re.fullmatch(r"actions/checkout@[0-9a-f]{40}.*", steps[0])
     assert steps[1] == "Verify dependency source provenance before installing tools"
     source = next(line for line in job.splitlines() if "Use only the public PyPI registry" in line)
-    command = source.split("python -c '", 1)[1].rsplit("'", 1)[0]
+    command = source.split("python -I -c '", 1)[1].rsplit("'", 1)[0]
     workflow = (ROOT / ".github/workflows/ci.yml").read_text()
     expected = next(line for line in workflow.splitlines() if "Use only the public PyPI registry" in line)
-    assert command == expected.split("python -c '", 1)[1].rsplit("'", 1)[0]
+    assert command == expected.split("python -I -c '", 1)[1].rsplit("'", 1)[0]
     if name == "agents_sdk":
         gate = job.split("      - name: Verify dependency source provenance before installing tools\n", 1)[1]
         gate = gate.split("\n      - name:", 1)[0]
@@ -1238,7 +1350,7 @@ def test_security_dependency_policy_is_directly_testable_after_the_trusted_gate(
     workflow = (ROOT / ".github/workflows/ci.yml").read_text()
     job = dependency_workflow_jobs()["dependency-locks"]
     gate = job.index("Verify dependency source provenance before installing tools")
-    policy = job.index("python scripts/check-dependency-security.py")
+    policy = job.index('git show "$BASE_SHA:scripts/check-dependency-security.py" | python -I -')
     assert gate < policy
     assert "python - <<'PY'" not in job
     script = ROOT / "scripts/check-dependency-security.py"
@@ -1263,7 +1375,9 @@ def security_dependency_floor_program() -> str:
         "contains(github.event.pull_request.head.ref, 'python-security')",
     ):
         assert condition in body
-    assert "run: python scripts/check-dependency-security.py" in body
+    assert "set -euo pipefail" in body
+    assert 'git fetch --no-tags --depth=1 origin "$BASE_SHA"' in body
+    assert 'git show "$BASE_SHA:scripts/check-dependency-security.py" | python -I -' in body
     program = (ROOT / "scripts/check-dependency-security.py").read_text()
     if sys.version_info < (3, 11):
         program = program.replace(
@@ -1272,6 +1386,87 @@ def security_dependency_floor_program() -> str:
             1,
         )
     return program
+
+
+@pytest.mark.parametrize(
+    ("variant", "accepted"),
+    [
+        pytest.param("trusted-base", True, id="security-checker-runs-only-immutable-base-script"),
+        pytest.param("tampered-head", True, id="submitted-no-op-cannot-replace-trusted-checker"),
+        pytest.param("missing-base-script", False, id="missing-trusted-checker-never-falls-back-to-head"),
+        pytest.param("invalid-base", False, id="checker-rejects-noncanonical-event-base-sha"),
+        pytest.param("foreign-origin", False, id="checker-rejects-an-attacker-controlled-origin"),
+        pytest.param("credential-origin", False, id="checker-rejects-credential-bearing-origin"),
+        pytest.param("stdlib-shadow", True, id="isolated-trusted-checker-ignores-checkout-module-shadow"),
+    ],
+)
+def test_security_floor_checker_executes_only_authenticated_base(tmp_path: Path, variant: str, accepted: bool) -> None:
+    gate = dependency_workflow_jobs()["dependency-locks"]
+    step = gate.split("      - name: Require published minimums for direct security updates\n", 1)[1]
+    step = step.split("\n      - name:", 1)[0]
+    match = re.search(
+        r"        run: (?:(?P<inline>[^|\n][^\n]*)|\|\n(?P<block>(?:          [^\n]*(?:\n|$))+))",
+        step,
+    )
+    assert match is not None
+    program = (
+        match.group("inline")
+        if match.group("inline") is not None
+        else "\n".join(line[10:] for line in match.group("block").splitlines())
+    )
+    sha = "a" * 40 if variant != "invalid-base" else "a" * 39 + "Z"
+    origin = "https://github.com/openai/openai-python.git"
+    if variant == "foreign-origin":
+        origin = "https://github.com/attacker/openai-python.git"
+    elif variant == "credential-origin":
+        origin = "https://token@github.com/openai/openai-python.git"
+
+    scripts = tmp_path / "scripts"
+    scripts.mkdir()
+    (scripts / "check-dependency-security.py").write_text(
+        "import pathlib; pathlib.Path('executed-head').write_text('attacker')\n"
+    )
+    if variant == "stdlib-shadow":
+        (tmp_path / "subprocess.py").write_text(
+            "import pathlib; pathlib.Path('shadow-imported').write_text('attacker')\n"
+        )
+    trusted_program = (
+        "import subprocess, pathlib\n"
+        "assert pathlib.Path(subprocess.__file__).resolve().parent != pathlib.Path.cwd()\n"
+        "pathlib.Path('executed-base').write_text('trusted')\n"
+    )
+    fake_git = tmp_path / "git"
+    fake_git.write_text(
+        f"#!{sys.executable}\n"
+        "import sys\n"
+        f"sha = {sha!r}\n"
+        f"origin = {origin!r}\n"
+        f"missing = {variant == 'missing-base-script'!r}\n"
+        f"source = {trusted_program!r}\n"
+        "arguments = sys.argv[1:]\n"
+        "if arguments == ['remote', 'get-url', 'origin']:\n"
+        "    print(origin)\n"
+        "elif arguments == ['fetch', '--no-tags', '--depth=1', 'origin', sha]:\n"
+        "    pass\n"
+        "elif arguments == ['show', sha + ':scripts/check-dependency-security.py'] and not missing:\n"
+        "    print(source, end='')\n"
+        "else:\n"
+        "    raise SystemExit('Unexpected or unsafe git operation')\n"
+    )
+    fake_git.chmod(0o755)
+    environment = dict(os.environ, BASE_SHA=sha, PATH=str(tmp_path) + os.pathsep + os.environ["PATH"])
+    result = subprocess.run(
+        ["/bin/bash", "-euo", "pipefail", "-c", program],
+        cwd=tmp_path,
+        env=environment,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+    assert (tmp_path / "executed-base").exists() is accepted
+    assert not (tmp_path / "executed-head").exists()
+    assert not (tmp_path / "shadow-imported").exists()
 
 
 @pytest.mark.parametrize(
@@ -2395,6 +2590,84 @@ def test_patched_locks_preserve_existing_published_security_bounds(
         base_packages=[("danger", before)],
         head_packages=[("danger", after)],
         optional=optional,
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("variant", "accepted"),
+    [
+        pytest.param("runtime-inclusive", False, id="strict-published-runtime-floor-cannot-become-inclusive"),
+        pytest.param("optional-inclusive", False, id="strict-optional-floor-cannot-become-inclusive"),
+        pytest.param("constraint-inclusive", False, id="strict-uv-constraint-cannot-become-inclusive"),
+        pytest.param("build-inclusive", False, id="strict-build-constraint-cannot-become-inclusive"),
+        pytest.param("group-inclusive", False, id="strict-development-floor-cannot-become-inclusive"),
+        pytest.param("strict-lowered", False, id="strict-lower-version-cannot-weaken"),
+        pytest.param("strict-dropped", False, id="strict-floor-cannot-disappear"),
+        pytest.param("epoch-inclusive", False, id="strict-epoch-floor-cannot-become-inclusive"),
+        pytest.param("post-inclusive", False, id="strict-post-release-floor-cannot-become-inclusive"),
+        pytest.param("marker-inclusive", False, id="strict-contextual-floor-cannot-become-inclusive"),
+        pytest.param("strict-preserved", True, id="unchanged-strict-floor-remains-supported"),
+        pytest.param("strict-raised", True, id="strict-floor-may-increase"),
+        pytest.param("inclusive-higher", True, id="higher-inclusive-floor-may-replace-strict-floor"),
+        pytest.param("inclusive-to-strict", True, id="inclusive-floor-may-strengthen-to-strict"),
+        pytest.param("canonical-strict", True, id="canonical-equivalent-strict-floor-remains-supported"),
+    ],
+)
+def test_grouped_security_updates_preserve_strict_dependency_floors(
+    tmp_path: Path, variant: str, accepted: bool
+) -> None:
+    previous, current = "danger>1", "danger>=1"
+    locked = "2"
+    optional = variant == "optional-inclusive"
+    constraints: tuple[list[str], list[str]] | None = None
+    build: tuple[list[str], list[str]] | None = None
+    groups: tuple[dict[str, list[str]], dict[str, list[str]]] | None = None
+
+    if variant == "constraint-inclusive":
+        constraints = ([previous], [current])
+    elif variant == "build-inclusive":
+        build = ([previous], [current])
+    elif variant == "group-inclusive":
+        groups = ({"reviewed": [previous]}, {"reviewed": [current]})
+    elif variant == "strict-lowered":
+        previous, current, locked = "danger>2", "danger>1", "3"
+    elif variant == "strict-dropped":
+        current = "danger"
+    elif variant == "epoch-inclusive":
+        previous, current, locked = "danger>1!1", "danger>=1!1", "1!2"
+    elif variant == "post-inclusive":
+        previous, current, locked = "danger>1.post2", "danger>=1.post2", "1.post3"
+    elif variant == "marker-inclusive":
+        previous += "; python_version >= '3.11'"
+        current += "; python_version >= '3.11'"
+    elif variant == "strict-preserved":
+        current = previous
+    elif variant == "strict-raised":
+        current = "danger>1.5"
+    elif variant == "inclusive-higher":
+        current = "danger>=1.5"
+    elif variant == "inclusive-to-strict":
+        previous, current = "danger>=1", "danger>1"
+    elif variant == "canonical-strict":
+        previous, current = "danger>1.0", "danger>1"
+
+    protected = constraints is not None or build is not None or groups is not None
+    base_requirements = ["patch-me>=1"] + ([] if protected else [previous])
+    head_requirements = ["patch-me>=1.1"] + ([] if protected else [current])
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=base_requirements,
+        head_requirements=head_requirements,
+        base_packages=[("patch-me", "1"), ("danger", locked)],
+        head_packages=[("patch-me", "1.1"), ("danger", locked)],
+        optional=optional,
+        base_constraints=None if constraints is None else constraints[0],
+        head_constraints=None if constraints is None else constraints[1],
+        base_build_constraints=None if build is None else build[0],
+        head_build_constraints=None if build is None else build[1],
+        base_dependency_groups=None if groups is None else groups[0],
+        head_dependency_groups=None if groups is None else groups[1],
     )
     assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
 
