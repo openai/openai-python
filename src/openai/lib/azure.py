@@ -391,7 +391,7 @@ class AzureOpenAI(BaseAzureClient[httpx2.Client, Stream[Any]], OpenAI):
         _extra_kwargs: Mapping[str, Any] = {},
     ) -> Self:
         """
-        Create a new client instance re-using the same options given to the current client with optional overriding.
+        Create a new client instance reusing the same options given to the current client with optional overriding.
         """
         if data_residency is not None:
             raise OpenAIError("`data_residency` is only supported by OpenAI clients")
@@ -742,7 +742,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx2.AsyncClient, AsyncStream[Any]], As
         _extra_kwargs: Mapping[str, Any] = {},
     ) -> Self:
         """
-        Create a new client instance re-using the same options given to the current client with optional overriding.
+        Create a new client instance reusing the same options given to the current client with optional overriding.
         """
         if data_residency is not None:
             raise OpenAIError("`data_residency` is only supported by OpenAI clients")
