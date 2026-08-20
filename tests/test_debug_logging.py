@@ -246,7 +246,7 @@ async def test_websocket_connection_metadata(
         kwargs["model"] = "fake-model"
     with (
         caplog.at_level(logging.DEBUG, logger="openai"),
-        patch("websockets." + ("asyncio" if asynchronous else "sync") + ".client.connect", connect),
+        patch("openai.lib._websocket._WebSocketConnect" if asynchronous else "websockets.sync.client.connect", connect),
     ):
         if asynchronous:
             async with AsyncOpenAI(

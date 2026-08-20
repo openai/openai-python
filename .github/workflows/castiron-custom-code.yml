@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  REPORTER_SHA256: 73ecd6290e9803b0d0a93af4ca4dccdbf8648cbd5c0cce51ea65fce28c7da79f
+  REPORTER_SHA256: ac48ca88e9f7ad57195038157e99f055c0cd3dac8de856e4d102dca807766d4a
 
 jobs:
   report:
