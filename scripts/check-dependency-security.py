@@ -296,52 +296,18 @@ def matches_protected_release(requirements: set[str], release: StableRelease, *,
         match = re.fullmatch(r"\s*([A-Za-z0-9][A-Za-z0-9_.-]*)(\[[^\]]+\])?\s*(.*)", expression)
         if match is None:
             raise SystemExit("Ambiguous protected security dependency requirement")
-        accepted = True
-        for clause in match.group(3).split(","):
-            if not clause.strip():
-                continue
-            bound = re.fullmatch(r"(>=|<=|==|!=|>|<)\s*(\S+)", clause.strip())
-            if bound is None:
-                raise SystemExit("Ambiguous protected security dependency bound")
-            operator, value = bound.group(1), stable_version(bound.group(2))
-            if upper_only and operator in {">=", ">"}:
-                continue
-            if (
-                operator == ">="
-                and release < value
-                or operator == ">"
-                and release <= value
-                or operator == "<="
-                and release > value
-                or operator == "<"
-                and release >= value
-                or operator == "=="
-                and release != value
-                or operator == "!="
-                and release == value
-            ):
-                accepted = False
-        if accepted:
+        if not match.group(3).strip():
+            return True
+        bounds = published_bounds(requirement)
+        if upper_only:
+            bounds = tuple(bound for bound in bounds if bound[0] not in {">=", ">"})
+        if allows_published_release(bounds, release):
             return True
     return False
 
 
-def unchanged_nonfloor_bounds(requirement: str) -> tuple[tuple[str, StableRelease], ...]:
-    expression = requirement.split(";", 1)[0]
-    match = re.fullmatch(r"\s*([A-Za-z0-9][A-Za-z0-9_.-]*)(\[[^\]]+\])?\s*(.*)", expression)
-    if match is None:
-        raise SystemExit("Ambiguous split security dependency requirement")
-    bounds: list[tuple[str, StableRelease]] = []
-    for clause in match.group(3).split(","):
-        if not clause.strip():
-            continue
-        bound = re.fullmatch(r"(>=|<=|==|!=|>|<)\s*(\S+)", clause.strip())
-        if bound is None:
-            raise SystemExit("Ambiguous split security dependency bound")
-        operator, value = bound.group(1), stable_version(bound.group(2))
-        if operator not in {">=", ">", "=="}:
-            bounds.append((operator, value))
-    return tuple(sorted(bounds))
+def unchanged_nonfloor_bounds(requirement: str) -> tuple[PublishedBound, ...]:
+    return tuple(sorted(bound for bound in published_bounds(requirement) if bound[0] not in {">=", ">", "=="}))
 
 
 def replacement_contexts(
@@ -436,7 +402,7 @@ def preserves_supported_security_branches(
                 replacement = next(iter(requirements))
                 bounds = unchanged_nonfloor_bounds(original)
                 if (
-                    not any(operator in {"<", "<="} for operator, _ in bounds)
+                    not any(bound[0] in {"<", "<="} for bound in bounds)
                     or unchanged_nonfloor_bounds(replacement) != bounds
                     or not matches_protected_release(previous_requirements, previous_release)
                     or not matches_protected_release(requirements, patched_release)
@@ -780,14 +746,23 @@ def covers_transitive_security_release(
         if not marker_overlap(context[3], domain):
             continue
         for requirement in declarations:
-            floors = minimums({requirement}, allow_missing=True, exact=True)
-            if len(floors) != 1 or floors[0] < patched:
-                continue
             bounds = published_bounds(requirement)
+            floors = minimums({requirement}, allow_missing=True, exact=True)
+            reviewed_floor = len(floors) == 1 and floors[0] >= patched
+            reviewed_series = any(
+                operator == "!="
+                and wildcard
+                and epoch == removed[0]
+                and len(prefix) <= len(removed[1])
+                and removed[1][: len(prefix)] == prefix
+                for operator, epoch, prefix, _, wildcard in bounds
+            )
+            if not reviewed_floor and not reviewed_series:
+                continue
             if not allows_published_release(bounds, patched) or allows_published_release(bounds, removed):
                 continue
             if any(
-                other != domain
+                (other != domain or not reviewed_floor)
                 and marker_overlap(context[3], other)
                 and any(not allows_published_release(bounds, stable_version(version)) for version in versions)
                 for other, versions in current_domains.items()
@@ -922,6 +897,40 @@ for name in old_versions.keys() & new_versions.keys():
                 new_protected_contexts.get(name, {}), domain, removed_release, patched_release, current_domains
             ):
                 raise SystemExit("Add a reviewed contextual transitive security dependency boundary for " + name)
+
+new_requested_extra_contexts: list[DependencyContext] = []
+for name, contexts in new_contexts.items():
+    previous_contexts = old_contexts.get(name, {})
+    for context in contexts:
+        if context[2] and not any(
+            previous[:2] == context[:2] and set(context[2]).issubset(previous[2]) and previous[3] == context[3]
+            for previous in previous_contexts
+        ):
+            new_requested_extra_contexts.append(context)
+if new_requested_extra_contexts:
+    for name in new_versions.keys() - old_versions.keys():
+        reviewed_contexts = new_protected_contexts.get(name, {}) | new_contexts.get(name, {})
+        for domain, domain_versions in new_resolution_contexts.get(name, {}).items():
+            if not any(marker_overlap(context[3], domain) for context in new_requested_extra_contexts):
+                continue
+            for version in domain_versions:
+                release = stable_version(version)
+                reviewed = False
+                for context, requirements in reviewed_contexts.items():
+                    if not marker_overlap(context[3], domain):
+                        continue
+                    for requirement in requirements:
+                        floors = minimums({requirement}, allow_missing=True, exact=True)
+                        if len(floors) == 1 and floors[0] >= release:
+                            reviewed = allows_published_release(published_bounds(requirement), release)
+                            if reviewed:
+                                break
+                    if reviewed:
+                        break
+                if not reviewed:
+                    raise SystemExit(
+                        "Review the contextual dependency introduced by a newly requested extra for " + name
+                    )
 
 direct_replacements: dict[str, ContextReplacements] = {}
 for name, previous_contexts in old_contexts.items():

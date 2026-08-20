@@ -3831,6 +3831,219 @@ def test_newly_patched_transitive_dependencies_require_security_boundaries(
     assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
 
 
+@pytest.mark.parametrize(
+    ("variant", "accepted"),
+    [
+        pytest.param("wildcard", True, id="transitive-vulnerable-series-exclusion-preserves-independent-major"),
+        pytest.param("canonical-wildcard", True, id="canonical-series-exclusion-preserves-independent-major"),
+        pytest.param("no-global-floor", True, id="series-exclusion-does-not-require-destructive-global-floor"),
+        pytest.param("group-wildcard", True, id="reviewed-development-series-exclusion-protects-transitive-patch"),
+        pytest.param("post-wildcard", True, id="wildcard-excludes-old-stable-post-release-series"),
+        pytest.param("extra-exclusion", True, id="independent-reviewed-series-exclusions-remain-supported"),
+        pytest.param("exact-only", False, id="single-exact-exclusion-cannot-protect-whole-vulnerable-series"),
+        pytest.param("narrow-wildcard", False, id="narrow-wildcard-must-cover-actual-removed-release"),
+        pytest.param("narrow-zero-wildcard", False, id="zero-padded-wildcard-must-cover-whole-vulnerable-series"),
+        pytest.param("missing-exclusion", False, id="low-global-floor-without-series-exclusion-is-unsafe"),
+        pytest.param("wrong-epoch", False, id="series-exclusion-must-match-removed-release-epoch"),
+        pytest.param("drops-retained", False, id="series-boundary-must-preserve-independent-supported-major"),
+        pytest.param("drops-patched", False, id="series-boundary-must-admit-actual-patched-release"),
+        pytest.param("overbroad-wildcard", False, id="series-exclusion-cannot-cover-actual-patched-release"),
+    ],
+)
+def test_transitive_security_boundaries_accept_reviewed_vulnerable_series_exclusions(
+    tmp_path: Path, variant: str, accepted: bool
+) -> None:
+    old, patched = "2.5", "2.6"
+    requirement = "danger>=1,<3,!=2.5.*"
+    groups: dict[str, list[str]] | None = None
+
+    if variant == "canonical-wildcard":
+        requirement = "danger>=1,<3,!=02.05.*"
+    elif variant == "no-global-floor":
+        requirement = "danger<3,!=2.5.*"
+    elif variant == "group-wildcard":
+        groups = {"pydantic-v2": [requirement]}
+    elif variant == "post-wildcard":
+        old = "2.5.post1"
+    elif variant == "extra-exclusion":
+        requirement += ",!=2.4.*"
+    elif variant == "exact-only":
+        requirement = "danger>=1,<3,!=2.5"
+    elif variant == "narrow-wildcard":
+        requirement = "danger>=1,<3,!=2.5.1.*"
+    elif variant == "narrow-zero-wildcard":
+        requirement = "danger>=1,<3,!=2.5.0.*"
+    elif variant == "missing-exclusion":
+        requirement = "danger>=1,<3"
+    elif variant == "wrong-epoch":
+        requirement = "danger>=1,<3,!=1!2.5.*"
+    elif variant == "drops-retained":
+        requirement = "danger>=2,<3,!=2.5.*"
+    elif variant == "drops-patched":
+        requirement = "danger>=1,<2.6,!=2.5.*"
+    elif variant == "overbroad-wildcard":
+        requirement = "danger>=1,<3,!=2.*"
+
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=["patch-me>=1"],
+        head_requirements=["patch-me>=1.1"],
+        base_packages=[("patch-me", "1"), ("danger", "1.5"), ("danger", old)],
+        head_packages=[("patch-me", "1.1"), ("danger", "1.5"), ("danger", patched)],
+        head_constraints=None if groups is not None else [requirement],
+        head_dependency_groups=groups,
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("variant", "accepted"),
+    [
+        pytest.param("runtime-extra", False, id="new-runtime-extra-cannot-introduce-unreviewed-wheel"),
+        pytest.param("optional-extra", False, id="new-optional-extra-cannot-introduce-unreviewed-wheel"),
+        pytest.param("two-new-packages", False, id="every-new-extra-dependency-identity-must-be-reviewed"),
+        pytest.param("unbounded-review", False, id="unbounded-new-extra-dependency-is-not-review-boundary"),
+        pytest.param("low-review", False, id="reviewed-new-extra-floor-must-reach-actual-release"),
+        pytest.param("wrong-marker", False, id="new-extra-package-review-must-cover-actual-marker-domain"),
+        pytest.param("reviewed-floor", True, id="reviewed-floor-can-approve-new-extra-package-identity"),
+        pytest.param("reviewed-pin", True, id="reviewed-exact-pin-can-approve-new-extra-package-identity"),
+        pytest.param("reviewed-group", True, id="reviewed-development-bound-can-approve-new-extra-package"),
+        pytest.param("reviewed-marker", True, id="reviewed-matching-marker-can-approve-new-extra-package"),
+        pytest.param("no-new-package", True, id="new-extra-without-new-package-identity-remains-supported"),
+        pytest.param("unchanged-extra", True, id="unchanged-existing-extra-does-not-block-unrelated-new-package"),
+        pytest.param("widened-extra", False, id="widened-existing-extra-cannot-introduce-unreviewed-package"),
+        pytest.param("reviewed-widened-extra", True, id="reviewed-boundary-can-approve-widened-existing-extra"),
+        pytest.param("no-extra-change", True, id="ordinary-unrelated-new-package-remains-supported"),
+        pytest.param("canonical-extra", True, id="canonical-existing-extra-name-is-not-a-new-context"),
+    ],
+)
+def test_new_requested_extras_cannot_introduce_unreviewed_dependency_identities(
+    tmp_path: Path, variant: str, accepted: bool
+) -> None:
+    base_requirements = ["patch-me>=1", "parent"]
+    head_requirements = ["patch-me>=1.1", "parent", "parent[new-extra]"]
+    base_optional: dict[str, list[str]] | None = None
+    head_optional: dict[str, list[str]] | None = None
+    constraints: list[str] | None = None
+    groups: dict[str, list[str]] | None = None
+    new_packages: list[tuple[str, str]] = [("unreviewed-plugin", "1")]
+    head_markers: dict[tuple[str, str], list[str]] | None = None
+
+    if variant == "optional-extra":
+        base_requirements, head_requirements = ["patch-me>=1"], ["patch-me>=1.1"]
+        base_optional = {"feature": ["parent"]}
+        head_optional = {"feature": ["parent", "parent[new-extra]"]}
+    elif variant == "two-new-packages":
+        new_packages.append(("second-unreviewed-plugin", "1"))
+        constraints = ["unreviewed-plugin>=1"]
+    elif variant == "unbounded-review":
+        constraints = ["unreviewed-plugin"]
+    elif variant == "low-review":
+        constraints = ["unreviewed-plugin>=0"]
+    elif variant in {"wrong-marker", "reviewed-marker"}:
+        head_requirements[-1] += "; python_version >= '3.11'"
+        head_markers = {("unreviewed-plugin", "1"): ["python_full_version >= '3.11'"]}
+        suffix = "< '3.11'" if variant == "wrong-marker" else ">= '3.11'"
+        constraints = ["unreviewed-plugin>=1; python_version " + suffix]
+    elif variant == "reviewed-floor":
+        constraints = ["unreviewed-plugin>=1"]
+    elif variant == "reviewed-pin":
+        constraints = ["unreviewed-plugin==1"]
+    elif variant == "reviewed-group":
+        groups = {"reviewed": ["unreviewed-plugin>=1"]}
+    elif variant == "no-new-package":
+        new_packages = []
+    elif variant == "unchanged-extra":
+        base_requirements[-1] = "parent[new-extra]"
+        head_requirements = ["patch-me>=1.1", "parent[new-extra]"]
+    elif variant in {"widened-extra", "reviewed-widened-extra"}:
+        base_requirements[-1] = "parent[new-extra]; python_version < '3.11'"
+        head_requirements = ["patch-me>=1.1", base_requirements[-1], "parent[new-extra]"]
+        if variant == "reviewed-widened-extra":
+            constraints = ["unreviewed-plugin>=1"]
+    elif variant == "no-extra-change":
+        head_requirements = ["patch-me>=1.1", "parent"]
+    elif variant == "canonical-extra":
+        base_requirements[-1] = "parent[New_Extra]"
+        head_requirements = ["patch-me>=1.1", "parent[new-extra]"]
+
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=base_requirements,
+        head_requirements=head_requirements,
+        base_packages=[("patch-me", "1"), ("parent", "1")],
+        head_packages=[("patch-me", "1.1"), ("parent", "1"), *new_packages],
+        base_optional_groups=base_optional,
+        head_optional_groups=head_optional,
+        head_constraints=constraints,
+        head_dependency_groups=groups,
+        head_resolution_markers=head_markers,
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("variant", "accepted"),
+    [
+        pytest.param("published-wildcard", True, id="published-marker-split-preserves-existing-vulnerable-series"),
+        pytest.param("protected-wildcard", True, id="protected-marker-split-preserves-existing-vulnerable-series"),
+        pytest.param("canonical-wildcard", True, id="split-accepts-canonical-equivalent-wildcard-prefix"),
+        pytest.param("reordered-wildcard", True, id="split-accepts-reordered-identical-wildcard-exclusions"),
+        pytest.param("published-removed", False, id="published-split-cannot-drop-vulnerable-series-exclusion"),
+        pytest.param("protected-removed", False, id="protected-split-cannot-drop-vulnerable-series-exclusion"),
+        pytest.param("narrowed-wildcard", False, id="split-cannot-narrow-existing-vulnerable-series-exclusion"),
+        pytest.param("wrong-epoch", False, id="split-cannot-move-wildcard-exclusion-to-another-epoch"),
+        pytest.param("upper-removed", False, id="wildcard-marker-split-still-preserves-existing-upper-bound"),
+        pytest.param("post-wildcard", False, id="split-rejects-ambiguous-post-release-wildcard"),
+    ],
+)
+def test_marker_context_splits_preserve_canonical_wildcard_security_exclusions(
+    tmp_path: Path, variant: str, accepted: bool
+) -> None:
+    old = "danger>=1,<3,!=2.0.*"
+    low = "danger>=1.6,<3,!=2.0.*; python_version < '3.11'"
+    high = "danger>=2.6,<3,!=2.0.*; python_version >= '3.11'"
+    protected = variant.startswith("protected-")
+
+    if variant == "canonical-wildcard":
+        low = "danger>=1.6,<3,!=02.00.*; python_version < '3.11'"
+    elif variant == "reordered-wildcard":
+        low = "danger!=2.0.*,<3,>=1.6; python_version < '3.11'"
+    elif variant in {"published-removed", "protected-removed"}:
+        low = "danger>=1.6,<3; python_version < '3.11'"
+    elif variant == "narrowed-wildcard":
+        low = "danger>=1.6,<3,!=2.0.1.*; python_version < '3.11'"
+    elif variant == "wrong-epoch":
+        low = "danger>=1.6,<3,!=1!2.0.*; python_version < '3.11'"
+    elif variant == "upper-removed":
+        low = "danger>=1.6,!=2.0.*; python_version < '3.11'"
+    elif variant == "post-wildcard":
+        low = "danger>=1.6,<3,!=2.0.post1.*; python_version < '3.11'"
+
+    base_optional = None if protected else {"feature": [old]}
+    head_optional = None if protected else {"feature": [low, high]}
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=[],
+        head_requirements=[],
+        base_packages=[("danger", "1.5"), ("danger", "2.5")],
+        head_packages=[("danger", "1.6"), ("danger", "2.6")],
+        base_optional_groups=base_optional,
+        head_optional_groups=head_optional,
+        base_constraints=[old] if protected else None,
+        head_constraints=[low, high] if protected else None,
+        base_resolution_markers={
+            ("danger", "1.5"): ["python_full_version < '3.11'"],
+            ("danger", "2.5"): ["python_full_version >= '3.11'"],
+        },
+        head_resolution_markers={
+            ("danger", "1.6"): ["python_full_version < '3.11'"],
+            ("danger", "2.6"): ["python_full_version >= '3.11'"],
+        },
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
 def test_security_floor_parser_strips_requirement_whitespace() -> None:
     assert "stable_version(matches[0].strip())" in security_dependency_floor_program()
 
