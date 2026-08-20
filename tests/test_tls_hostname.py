@@ -159,7 +159,7 @@ def tls_server(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[tupl
             self.wfile.write(body)
 
         @override
-        def log_message(self, format: str, *args: object) -> None:  # noqa: A002
+        def log_message(self, *_args: object, **_kwargs: object) -> None:
             pass
 
     server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
