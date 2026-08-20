@@ -29,5 +29,5 @@ class ResponseAudioDoneEvent(BaseModel):
     response_id: str
     """The ID of the response."""
 
-    type: Literal["response.output_audio.done"]
-    """The event type, must be `response.output_audio.done`."""
+    type: Literal["response.audio.done"]
+    """The event type, must be `response.audio.done`."""
