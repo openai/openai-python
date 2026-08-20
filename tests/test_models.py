@@ -655,6 +655,12 @@ def test_annotated_types() -> None:
     assert m.value == "foo"
 
 
+def test_construct_type_bare_dict_annotation() -> None:
+    # bare `dict` (no type args) must not raise ValueError on unpack
+    result = construct_type(value={"key": "value"}, type_=dict)
+    assert result == {"key": "value"}
+
+
 def test_discriminated_unions_invalid_data() -> None:
     class A(BaseModel):
         type: Literal["a"]
