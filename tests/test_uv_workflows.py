@@ -2597,6 +2597,125 @@ def test_patched_locks_preserve_existing_published_security_bounds(
 @pytest.mark.parametrize(
     ("variant", "accepted"),
     [
+        pytest.param("runtime-lower", False, id="unchanged-runtime-exact-pin-cannot-widen-to-floor"),
+        pytest.param("runtime-upper", False, id="unchanged-runtime-exact-pin-cannot-widen-to-ceiling"),
+        pytest.param("runtime-range", False, id="unchanged-runtime-exact-pin-cannot-widen-to-range"),
+        pytest.param("runtime-removed", False, id="unchanged-runtime-exact-pin-cannot-be-removed"),
+        pytest.param("runtime-replaced", False, id="unchanged-runtime-lock-cannot-swap-exact-pin"),
+        pytest.param("optional-lower", False, id="unchanged-optional-exact-pin-cannot-widen"),
+        pytest.param("constraint-lower", False, id="unchanged-uv-exact-pin-cannot-widen"),
+        pytest.param("build-lower", False, id="unchanged-build-exact-pin-cannot-widen"),
+        pytest.param("group-lower", False, id="unchanged-development-exact-pin-cannot-widen"),
+        pytest.param("marker-lower", False, id="unchanged-marker-scoped-exact-pin-cannot-widen"),
+        pytest.param("epoch-lower", False, id="unchanged-epoch-exact-pin-cannot-widen"),
+        pytest.param("post-lower", False, id="unchanged-stable-post-exact-pin-cannot-widen"),
+        pytest.param("upgrade-widen", False, id="patched-release-cannot-replace-exact-pin-with-range"),
+        pytest.param("upgrade-wrong-pin", False, id="patched-release-must-match-replacement-exact-pin"),
+        pytest.param("upgrade-retained-old", False, id="replacement-pin-cannot-leave-original-release-live"),
+        pytest.param("upgrade-ambiguous", False, id="replacement-pin-requires-one-for-one-locked-upgrade"),
+        pytest.param("upgrade-downgrade", False, id="replacement-pin-cannot-follow-a-downgraded-release"),
+        pytest.param("exact-preserved", True, id="unchanged-original-exact-pin-remains-supported"),
+        pytest.param("canonical-preserved", True, id="canonical-equivalent-exact-pin-remains-supported"),
+        pytest.param("redundant-preserved", True, id="exact-pin-with-redundant-safe-bounds-remains-supported"),
+        pytest.param("runtime-upgrade", True, id="published-exact-pin-may-track-real-security-upgrade"),
+        pytest.param("optional-upgrade", True, id="optional-exact-pin-may-track-real-security-upgrade"),
+        pytest.param("constraint-upgrade", True, id="uv-exact-pin-may-track-real-security-upgrade"),
+        pytest.param("build-upgrade", True, id="reviewed-build-exact-pin-may-track-real-security-upgrade"),
+        pytest.param("group-upgrade", True, id="development-exact-pin-may-track-real-security-upgrade"),
+        pytest.param("epoch-upgrade", True, id="epoch-exact-pin-may-track-matching-security-upgrade"),
+        pytest.param("post-upgrade", True, id="stable-post-exact-pin-may-track-matching-security-upgrade"),
+        pytest.param("marker-upgrade", True, id="contextual-exact-pin-may-track-matching-security-upgrade"),
+    ],
+)
+def test_grouped_security_updates_preserve_exact_dependency_pins(tmp_path: Path, variant: str, accepted: bool) -> None:
+    previous, current = "danger==1", "danger>=1"
+    before, after = ["1"], ["1"]
+    optional = variant.startswith("optional-")
+    constraints: tuple[list[str], list[str]] | None = None
+    build: tuple[list[str], list[str]] | None = None
+    groups: tuple[dict[str, list[str]], dict[str, list[str]]] | None = None
+
+    if variant == "runtime-upper":
+        current = "danger<=1"
+    elif variant == "runtime-range":
+        current = "danger>=1,<2"
+    elif variant == "runtime-removed":
+        current = "danger"
+    elif variant == "runtime-replaced":
+        current = "danger==2"
+    elif variant == "constraint-lower":
+        constraints = ([previous], [current])
+    elif variant == "build-lower":
+        build = ([previous], [current])
+    elif variant == "group-lower":
+        groups = ({"reviewed": [previous]}, {"reviewed": [current]})
+    elif variant in {"marker-lower", "marker-upgrade"}:
+        previous += "; python_version >= '3.11'"
+        if variant == "marker-upgrade":
+            current = "danger==2; python_version >= '3.11'"
+            after = ["2"]
+        else:
+            current += "; python_version >= '3.11'"
+    elif variant in {"epoch-lower", "epoch-upgrade"}:
+        previous = "danger==1!1"
+        before = ["1!1"]
+        if variant == "epoch-upgrade":
+            current, after = "danger==1!2", ["1!2"]
+        else:
+            current, after = "danger>=1!1", ["1!1"]
+    elif variant in {"post-lower", "post-upgrade"}:
+        previous = "danger==1.post1"
+        before = ["1.post1"]
+        if variant == "post-upgrade":
+            current, after = "danger==1.post2", ["1.post2"]
+        else:
+            current, after = "danger>=1.post1", ["1.post1"]
+    elif variant == "upgrade-widen":
+        current, after = "danger>=2", ["2"]
+    elif variant == "upgrade-wrong-pin":
+        current, after = "danger==3", ["2"]
+    elif variant == "upgrade-retained-old":
+        current, after = "danger==2", ["1", "2"]
+    elif variant == "upgrade-ambiguous":
+        current, after = "danger==2", ["2", "3"]
+    elif variant == "upgrade-downgrade":
+        previous, current, before, after = "danger==2", "danger==1", ["2"], ["1"]
+    elif variant == "exact-preserved":
+        current = previous
+    elif variant == "canonical-preserved":
+        previous, current = "danger==1.0", "danger==1"
+    elif variant == "redundant-preserved":
+        current = "danger==1,>=1"
+    elif variant.endswith("-upgrade"):
+        current, after = "danger==2", ["2"]
+        if variant == "constraint-upgrade":
+            constraints = ([previous], [current])
+        elif variant == "build-upgrade":
+            build = ([previous], [current])
+        elif variant == "group-upgrade":
+            groups = ({"reviewed": [previous]}, {"reviewed": [current]})
+
+    protected = constraints is not None or build is not None or groups is not None
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=["patch-me>=1"] + ([] if protected else [previous]),
+        head_requirements=["patch-me>=1.1"] + ([] if protected else [current]),
+        base_packages=[("patch-me", "1"), *[("danger", version) for version in before]],
+        head_packages=[("patch-me", "1.1"), *[("danger", version) for version in after]],
+        optional=optional,
+        base_constraints=None if constraints is None else constraints[0],
+        head_constraints=None if constraints is None else constraints[1],
+        base_build_constraints=None if build is None else build[0],
+        head_build_constraints=None if build is None else build[1],
+        base_dependency_groups=None if groups is None else groups[0],
+        head_dependency_groups=None if groups is None else groups[1],
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("variant", "accepted"),
+    [
         pytest.param("runtime-inclusive", False, id="strict-published-runtime-floor-cannot-become-inclusive"),
         pytest.param("optional-inclusive", False, id="strict-optional-floor-cannot-become-inclusive"),
         pytest.param("constraint-inclusive", False, id="strict-uv-constraint-cannot-become-inclusive"),

@@ -576,9 +576,48 @@ def preserves_published_security_bound(previous: PublishedBound, current: tuple[
     return False
 
 
+def preserves_exact_pinned_release(
+    previous: PublishedBound,
+    current: tuple[PublishedBound, ...],
+    context: MarkerContext,
+    previous_domains: ResolutionDomains,
+    current_domains: ResolutionDomains,
+) -> bool:
+    if preserves_published_security_bound(previous, current):
+        return True
+    operator, epoch, components, post, wildcard = previous
+    if operator != "==" or wildcard:
+        return False
+    pinned = epoch, components, post
+    replacements: list[StableRelease] = []
+    for domain, versions in previous_domains.items():
+        if not marker_overlap(context, domain):
+            continue
+        prior = {stable_version(version) for version in versions}
+        if pinned not in prior:
+            continue
+        updated = {stable_version(version) for version in current_domains.get(domain, set())}
+        removed = prior - updated
+        introduced = updated - prior
+        if removed != {pinned} or len(introduced) != 1:
+            return False
+        patched = next(iter(introduced))
+        if patched <= pinned:
+            return False
+        replacements.append(patched)
+    if len(set(replacements)) != 1:
+        return False
+    patched = replacements[0]
+    return any(
+        operator == "==" and not wildcard and (epoch, components, post) == patched
+        for operator, epoch, components, post, wildcard in current
+    )
+
+
 def preserves_dependency_security_bounds(
     previous_contexts: ContextRequirements,
     replacements: ContextReplacements,
+    previous_domains: ResolutionDomains,
     domains: ResolutionDomains,
 ) -> bool:
     for previous_context, previous_requirements in previous_contexts.items():
@@ -588,11 +627,11 @@ def preserves_dependency_security_bounds(
             if match is None:
                 raise SystemExit("Ambiguous unchanged published security dependency requirement")
             clauses = match.group(3).split(",")
-            if not any(re.match(r"(?:!=|<=|<|>=|>)", clause.strip()) for clause in clauses):
+            if not any(re.match(r"(?:!=|<=|<|>=|>|==)", clause.strip()) for clause in clauses):
                 continue
             before = published_bounds(requirement)
-            protected = tuple(bound for bound in before if bound[0] in {"<", "<=", "!=", ">", ">="})
-            preserve_releases = any(bound[0] in {"<", "<=", "!="} for bound in protected)
+            protected = tuple(bound for bound in before if bound[0] in {"<", "<=", "!=", ">", ">=", "=="})
+            preserve_releases = any(bound[0] in {"<", "<=", "!=", "=="} for bound in protected)
             context_replacements = replacements.get(previous_context, {})
             if not context_replacements:
                 return False
@@ -607,7 +646,12 @@ def preserves_dependency_security_bounds(
                 preserved = False
                 for candidate in candidates:
                     after = published_bounds(candidate)
-                    if all(preserves_published_security_bound(bound, after) for bound in protected) and (
+                    if all(
+                        preserves_exact_pinned_release(bound, after, replacement_context[3], previous_domains, domains)
+                        if bound[0] == "=="
+                        else preserves_published_security_bound(bound, after)
+                        for bound in protected
+                    ) and (
                         not preserve_releases or all(allows_published_release(after, release) for release in retained)
                     ):
                         preserved = True
@@ -748,7 +792,9 @@ for name, previous in old_protected.items():
             context: replacement_contexts(context, prior_requirements, current_contexts, previous_domains, exact=True)
             for context, prior_requirements in previous_contexts.items()
         }
-        if not preserves_dependency_security_bounds(previous_contexts, security_replacements, current_domains):
+        if not preserves_dependency_security_bounds(
+            previous_contexts, security_replacements, previous_domains, current_domains
+        ):
             raise SystemExit("Do not weaken a protected dependency security exclusion or upper bound for " + name)
     prior_minimums = minimums(previous, allow_missing=True, exact=True)
     if not prior_minimums:
@@ -865,7 +911,7 @@ for name, requirements in new_direct.items():
     previous_domains = old_resolution_contexts.get(name, {})
     current_domains = new_resolution_contexts.get(name, {})
     if (previous != requirements or previous_contexts != current_contexts) and not preserves_dependency_security_bounds(
-        previous_contexts, direct_replacements.get(name, {}), current_domains
+        previous_contexts, direct_replacements.get(name, {}), previous_domains, current_domains
     ):
         raise SystemExit("Do not weaken a published security exclusion or upper bound for " + name)
     if old_versions.get(name, set()) == new_versions.get(name, set()) and previous_domains == current_domains:
@@ -905,7 +951,7 @@ for name, requirements in new_direct.items():
             continue
         covered.update(domains)
         patched_minimum = max(patched_domains[domain] for domain in domains)
-        updated_minimums = minimums(context_requirements)
+        updated_minimums = minimums(context_requirements, exact=True)
         original_context = next(
             (
                 original
@@ -914,7 +960,7 @@ for name, requirements in new_direct.items():
             ),
             context,
         )
-        previous_minimums = minimums(previous_contexts.get(original_context, set()), allow_missing=True)
+        previous_minimums = minimums(previous_contexts.get(original_context, set()), allow_missing=True, exact=True)
         if (
             not updated_minimums
             or any(updated < patched_minimum for updated in updated_minimums)
