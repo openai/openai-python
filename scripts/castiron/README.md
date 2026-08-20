@@ -16,8 +16,12 @@ Its hash format is documented in the reporter. Only `.github/actions/` and
 `.github/workflows/` are excluded from the content hash.
 
 The read-only pull-request workflow runs on every branch, including drafts and
-forks. A separate `workflow_run` publisher reads its report as untrusted data and
-uses only code from the trusted default branch to update the PR comment. The
+forks. A separate read-only `workflow_run` job computes the authoritative report from
+current, GitHub-associated base/head Git objects using the trusted workflow
+revision. It fetches those objects into a new bare repository and never checks
+out or executes PR code. The comment-writing job consumes only the artifact
+from that trusted job, rechecks freshness, and links to its report and patch.
+PR-produced reports are advisory run output, not the published assessment. The
 publisher becomes active once its workflow is on the default branch. No branch
 allowlist or repository variable is needed. Never execute PR-controlled code with
 write credentials. Changing either workflow may require one-time AM permission.

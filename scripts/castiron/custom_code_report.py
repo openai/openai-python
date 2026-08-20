@@ -767,7 +767,14 @@ def api(method: str, path: str, payload: dict[str, Any] | None = None) -> Any:
 
 
 def publish_comment(
-    report: dict[str, Any], repository: str, number: int, run_id: int, run_attempt: int
+    report: dict[str, Any],
+    repository: str,
+    number: int,
+    run_id: int,
+    run_attempt: int,
+    *,
+    artifact_run_id: int = 0,
+    artifact_run_attempt: int = 0,
 ) -> str:
     if not REPOSITORY.fullmatch(repository) or min(number, run_id, run_attempt) <= 0:
         raise ReportError("invalid GitHub publication target")
@@ -794,12 +801,14 @@ def publish_comment(
         raise ReportError("workflow run does not match report PR/head")
     if run["run_attempt"] != run_attempt:
         return "Skipped stale report"
+    artifact_run_id = artifact_run_id or run_id
+    artifact_run_attempt = artifact_run_attempt or run_attempt
     body = render_report(
         report,
-        f"https://github.com/{repository}/actions/runs/{run_id}",
+        f"https://github.com/{repository}/actions/runs/{artifact_run_id}",
         repository=repository,
-        run_id=run_id,
-        run_attempt=run_attempt,
+        run_id=artifact_run_id,
+        run_attempt=artifact_run_attempt,
     )
     body += f"\n<!-- castiron:run:v1:{run_id}:{run_attempt} -->\n"
     found = None
@@ -834,6 +843,88 @@ def publish_comment(
     return str(result["html_url"])
 
 
+def write_report(
+    repo: Path,
+    base: str,
+    head: str,
+    out: Path,
+    *,
+    fetch: bool,
+    require_head_hash: bool,
+    public: bool,
+) -> dict[str, Any]:
+    out.mkdir(parents=True, exist_ok=True)
+    try:
+        report, patch = build_report(
+            repo, base, head, fetch=fetch, require_head_hash=require_head_hash, public=public
+        )
+    except (ReportError, UnicodeError, KeyError, ValueError) as exc:
+        report = {
+            "schema_version": 1,
+            "status": "error",
+            "target_base_sha": require_sha(base),
+            "head_sha": require_sha(head),
+            "error": str(exc),
+        }
+        patch = b""
+    (out / "report.json").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")
+    (out / "custom-code.patch").write_bytes(patch)
+    summary = render_report(report)
+    (out / "summary.md").write_text(summary)
+    sys.stdout.write(summary)
+    return report
+
+
+def trusted_report(
+    repo: Path, repository: str, run_id: int, run_attempt: int, out: Path
+) -> None:
+    """Recompute from GitHub-associated Git objects, never from PR-produced artifacts."""
+    if not REPOSITORY.fullmatch(repository) or min(run_id, run_attempt) <= 0:
+        raise ReportError("invalid GitHub report target")
+    root = f"repos/{repository}"
+    run = api("GET", f"{root}/actions/runs/{run_id}")
+    if (
+        run["event"] != "pull_request"
+        or run.get("path", "").split("@", 1)[0] != ".github/workflows/castiron-custom-code.yml"
+        or run["status"] != "completed"
+    ):
+        raise ReportError("unexpected source workflow run")
+    if run["run_attempt"] != run_attempt:
+        return
+    head = require_sha(run["head_sha"])
+    associated = run["pull_requests"] or api("GET", f"{root}/commits/{head}/pulls?per_page=100")
+    current: list[tuple[int, str]] = []
+    for number in sorted({int(pr["number"]) for pr in associated}):
+        if number <= 0:
+            raise ReportError("invalid associated pull request")
+        pull = api("GET", f"{root}/pulls/{number}")
+        if (
+            pull["state"] == "open"
+            and pull["head"]["sha"] == head
+            and pull["base"]["repo"]["full_name"] == repository
+        ):
+            current.append((number, require_sha(pull["base"]["sha"])))
+    if not current:
+        return
+    if len(current) != 1:
+        raise ReportError("workflow run has multiple current pull requests")
+    number, base = current[0]
+    public = not api("GET", root)["private"]
+    # This must be a new, bare repository: no PR worktree, hooks, configuration,
+    # submodules, or Python imports can affect the trusted reporter.
+    repo.mkdir()
+    git(repo, "init", "--quiet", "--bare")
+    git(repo, "remote", "add", "origin", f"https://github.com/{repository}.git")
+    git(repo, "fetch", "--quiet", "--no-tags", "origin", base, head)
+    write_report(repo, base, head, out, fetch=True, require_head_hash=True, public=public)
+    (out / "context.json").write_text(
+        json.dumps(
+            {"pr": number, "repository": repository, "run": run_id, "attempt": run_attempt}
+        )
+        + "\n"
+    )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
@@ -848,6 +939,12 @@ def main() -> int:
     reporting.add_argument("--fetch", action="store_true")
     reporting.add_argument("--require-head-hash", action="store_true")
     reporting.add_argument("--public", action="store_true")
+    trusted = commands.add_parser("trusted-report")
+    trusted.add_argument("--repo", type=Path, required=True)
+    trusted.add_argument("--repository", required=True)
+    trusted.add_argument("--run-id", type=int, required=True)
+    trusted.add_argument("--run-attempt", type=int, required=True)
+    trusted.add_argument("--out", type=Path, required=True)
     preparing = commands.add_parser("prepare-public")
     preparing.add_argument("--source-repo", type=Path, required=True)
     preparing.add_argument("--source-base", required=True)
@@ -861,6 +958,8 @@ def main() -> int:
     commenting.add_argument("--pr", type=int, required=True)
     commenting.add_argument("--run-id", type=int, required=True)
     commenting.add_argument("--run-attempt", type=int, required=True)
+    commenting.add_argument("--artifact-run-id", type=int, default=0)
+    commenting.add_argument("--artifact-run-attempt", type=int, default=0)
     args = parser.parse_args()
     try:
         if args.command == "hash":
@@ -879,41 +978,34 @@ def main() -> int:
                 )
                 + "\n"
             )
+        elif args.command == "trusted-report":
+            trusted_report(args.repo, args.repository, args.run_id, args.run_attempt, args.out)
         elif args.command == "comment":
             if args.report.stat().st_size > 5_000_000:
                 raise ReportError("report artifact is too large")
             report = json.loads(args.report.read_text())
             sys.stdout.write(
-                publish_comment(report, args.repository, args.pr, args.run_id, args.run_attempt)
+                publish_comment(
+                    report,
+                    args.repository,
+                    args.pr,
+                    args.run_id,
+                    args.run_attempt,
+                    artifact_run_id=args.artifact_run_id,
+                    artifact_run_attempt=args.artifact_run_attempt,
+                )
                 + "\n"
             )
         else:
-            args.out.mkdir(parents=True, exist_ok=True)
-            try:
-                report, patch = build_report(
-                    args.repo,
-                    args.base,
-                    args.head,
-                    fetch=args.fetch,
-                    require_head_hash=args.require_head_hash,
-                    public=args.public,
-                )
-            except (ReportError, UnicodeError, KeyError, ValueError) as exc:
-                report = {
-                    "schema_version": 1,
-                    "status": "error",
-                    "target_base_sha": require_sha(args.base),
-                    "head_sha": require_sha(args.head),
-                    "error": str(exc),
-                }
-                patch = b""
-            (args.out / "report.json").write_text(
-                json.dumps(report, indent=2, sort_keys=True) + "\n"
+            report = write_report(
+                args.repo,
+                args.base,
+                args.head,
+                args.out,
+                fetch=args.fetch,
+                require_head_hash=args.require_head_hash,
+                public=args.public,
             )
-            (args.out / "custom-code.patch").write_bytes(patch)
-            summary = render_report(report)
-            (args.out / "summary.md").write_text(summary)
-            sys.stdout.write(summary)
             return 0 if report["status"] == "ok" else 1
     except (ReportError, OSError, subprocess.TimeoutExpired) as exc:
         sys.stderr.write(f"Castiron custom-code report: {exc}\n")

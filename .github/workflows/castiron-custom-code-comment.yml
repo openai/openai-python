@@ -13,9 +13,62 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  compute:
+    name: Compute trusted custom-code report
+    if: github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.path == '.github/workflows/castiron-custom-code.yml'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: read
+    outputs:
+      number: ${{ steps.report.outputs.number }}
+      artifact-id: ${{ steps.artifact.outputs.artifact-id }}
+    steps:
+      - name: Check out the trusted reporter
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ github.workflow_sha }}
+          persist-credentials: false
+
+      - name: Compute from the current pull request Git objects
+        id: report
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GIT_CONFIG_COUNT: '2'
+          GIT_CONFIG_KEY_0: credential.helper
+          GIT_CONFIG_VALUE_0: ''
+          GIT_CONFIG_KEY_1: credential.https://github.com.helper
+          GIT_CONFIG_VALUE_1: '!gh auth git-credential'
+          REPOSITORY: ${{ github.repository }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+        run: |
+          python3 -I scripts/castiron/custom_code_report.py trusted-report \
+            --repo "$RUNNER_TEMP/castiron-objects.git" \
+            --repository "$REPOSITORY" --run-id "$RUN_ID" --run-attempt "$RUN_ATTEMPT" \
+            --out "$RUNNER_TEMP/castiron-custom-code"
+          if test -f "$RUNNER_TEMP/castiron-custom-code/context.json"; then
+            number=$(jq -er '.pr' "$RUNNER_TEMP/castiron-custom-code/context.json")
+            printf 'number=%s\n' "$number" >> "$GITHUB_OUTPUT"
+            cat "$RUNNER_TEMP/castiron-custom-code/summary.md" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload the trusted report and patch
+        id: artifact
+        if: steps.report.outputs.number != ''
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: castiron-custom-code-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/castiron-custom-code/
+          if-no-files-found: error
+          retention-days: 7
+
   comment:
     name: Update custom-code comment
-    if: github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.path == '.github/workflows/castiron-custom-code.yml'
+    needs: compute
+    if: always() && !cancelled() && (needs.compute.result == 'failure' || needs.compute.outputs.number != '')
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -29,40 +82,31 @@ jobs:
           ref: ${{ github.workflow_sha }}
           persist-credentials: false
 
-      - name: Download the completed run's report
+      - name: Download this workflow's trusted report
+        if: needs.compute.result == 'success'
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          github-token: ${{ github.token }}
-          run-id: ${{ github.event.workflow_run.id }}
-          name: castiron-custom-code-${{ github.event.workflow_run.id }}-${{ github.event.workflow_run.run_attempt }}
+          artifact-ids: ${{ needs.compute.outputs.artifact-id }}
+          merge-multiple: true
           path: ${{ runner.temp }}/castiron-custom-code
-
-      - name: Validate report context
-        id: context
-        env:
-          REPOSITORY: ${{ github.repository }}
-          RUN_ID: ${{ github.event.workflow_run.id }}
-          RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
-        run: |
-          number=$(jq -er --arg repository "$REPOSITORY" --argjson run "$RUN_ID" \
-            --argjson attempt "$RUN_ATTEMPT" \
-            'select(.repository == $repository and .run == $run and .attempt == $attempt) | .pr | select(type == "number" and . > 0 and . == floor)' \
-            "$RUNNER_TEMP/castiron-custom-code/context.json")
-          printf 'number=%s\n' "$number" >> "$GITHUB_OUTPUT"
 
       - name: Create or update the single report comment
         id: publish
+        if: needs.compute.result == 'success'
         env:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
-          PR_NUMBER: ${{ steps.context.outputs.number }}
+          PR_NUMBER: ${{ needs.compute.outputs.number }}
           RUN_ID: ${{ github.event.workflow_run.id }}
           RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+          ARTIFACT_RUN_ID: ${{ github.run_id }}
+          ARTIFACT_RUN_ATTEMPT: ${{ github.run_attempt }}
         run: |
           python3 -I scripts/castiron/custom_code_report.py comment \
             --report "$RUNNER_TEMP/castiron-custom-code/report.json" \
             --repository "$REPOSITORY" --pr "$PR_NUMBER" --run-id "$RUN_ID" \
-            --run-attempt "$RUN_ATTEMPT"
+            --run-attempt "$RUN_ATTEMPT" \
+            --artifact-run-id "$ARTIFACT_RUN_ID" --artifact-run-attempt "$ARTIFACT_RUN_ATTEMPT"
 
       - name: Publish a trusted failure status
         if: always() && !cancelled() && steps.publish.outcome != 'success'
