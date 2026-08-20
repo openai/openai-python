@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[2]
 BASE_TEST = ROOT / "tests/test_httpx2_base.py"
 HTTPX2_TEST = ROOT / "tests/test_httpx2.py"
 LEGACY_TEST = ROOT / "tests/test_httpx_compat.py"
+TLS_TEST = ROOT / "tests/test_tls_hostname.py"
 
 
 def venv_python(environment_path: Path) -> Path:
@@ -109,8 +110,8 @@ def main() -> None:
     run_case(
         wheel,
         extra=None,
-        tests=[LEGACY_TEST],
-        dependencies=[*common, "httpx-aiohttp>=0.2.0,<0.3"],
+        tests=[LEGACY_TEST, TLS_TEST],
+        dependencies=[*common, "httpx-aiohttp>=0.2.0,<0.3", "cryptography>=50.0.0"],
         legacy=True,
     )
     print("Validated HTTPX2-only base and aiohttp installs plus isolated legacy HTTPX/aiohttp compatibility")
