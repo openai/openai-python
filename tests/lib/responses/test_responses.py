@@ -84,6 +84,17 @@ def test_stream_method_definition_in_sync(sync: bool, client: OpenAI, async_clie
 
 
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+def test_parse_method_in_sync(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
+    checking_client: OpenAI | AsyncOpenAI = client if sync else async_client
+
+    assert_signatures_in_sync(
+        checking_client.responses.create,
+        checking_client.responses.parse,
+        exclude_params={"stream", "tools"},
+    )
+
+
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
 def test_parse_method_definition_in_sync(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
     checking_client: OpenAI | AsyncOpenAI = client if sync else async_client
 
