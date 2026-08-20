@@ -23,7 +23,7 @@ class FakeAccessToken(NamedTuple):
 
 class UninspectableToken:
     def __bool__(self) -> NoReturn:
-        raise AssertionError(FAKE_TOKEN)
+        raise TypeError(FAKE_TOKEN)
 
     @override
     def __str__(self) -> NoReturn:
@@ -32,6 +32,39 @@ class UninspectableToken:
     @override
     def __repr__(self) -> NoReturn:
         raise AssertionError(FAKE_TOKEN)
+
+
+class OrdinaryToken(str):
+    pass
+
+
+class ReformattedToken(str):
+    @override
+    def __format__(self, format_spec: str) -> str:
+        return "fake-altered-token"
+
+
+class UnformattableToken(str):
+    @override
+    def __format__(self, format_spec: str) -> NoReturn:
+        raise TypeError(FAKE_TOKEN)
+
+
+class UninspectableString(UnformattableToken):
+    def __bool__(self) -> NoReturn:
+        raise TypeError(FAKE_TOKEN)
+
+    @override
+    def __len__(self) -> NoReturn:
+        raise TypeError(FAKE_TOKEN)
+
+    @override
+    def __str__(self) -> NoReturn:
+        raise TypeError(FAKE_TOKEN)
+
+
+class WebSocketConnectReached(Exception):
+    pass
 
 
 @pytest.fixture(autouse=True)
@@ -92,6 +125,7 @@ async def resolve(value: Any) -> Any:
         pytest.param(FakeAccessToken(FAKE_TOKEN, 0), id="access-token"),
         pytest.param(UninspectableToken(), id="uninspectable-object"),
         pytest.param("", id="empty-string"),
+        pytest.param(UninspectableString(""), id="empty-string-subclass"),
         pytest.param(None, id="none"),
     ],
 )
@@ -120,14 +154,39 @@ async def test_invalid_provider_result_is_value_free(mode: str, entrypoint: str,
 
 
 @pytest.mark.parametrize("mode", PROVIDER_MODES)
-async def test_nonempty_provider_result_remains_usable(mode: str) -> None:
+@pytest.mark.parametrize(
+    "value",
+    [
+        pytest.param(FAKE_TOKEN, id="string"),
+        pytest.param(OrdinaryToken(FAKE_TOKEN), id="ordinary-subclass"),
+        pytest.param(ReformattedToken(FAKE_TOKEN), id="reformatted-subclass"),
+        pytest.param(UnformattableToken(FAKE_TOKEN), id="unformattable-subclass"),
+        pytest.param(UninspectableString(FAKE_TOKEN), id="uninspectable-subclass"),
+    ],
+)
+async def test_nonempty_provider_result_remains_usable(mode: str, value: str, monkeypatch: pytest.MonkeyPatch) -> None:
+    websocket_headers: list[dict[str, str]] = []
+
+    def connect(_url: str, **kwargs: Any) -> NoReturn:
+        websocket_headers.append(kwargs["additional_headers"])
+        raise WebSocketConnectReached
+
+    monkeypatch.setattr("websockets.sync.client.connect", connect)
+    monkeypatch.setattr("openai.lib._azure_websocket._AzureWebSocketConnect", connect)
     requests: list[httpx2.Request] = []
-    client = make_client(mode, FAKE_TOKEN, requests)
+    client = make_client(mode, value, requests)
     try:
         await resolve(client.models.list())
         assert len(requests) == 1
         assert requests[0].headers["Authorization"] == f"Bearer {FAKE_TOKEN}"
         _, headers = await resolve(client._configure_realtime("test-model", {}))
         assert headers == {"Authorization": f"Bearer {FAKE_TOKEN}"}
+        token = await resolve(client._get_azure_ad_token())
+        assert type(token) is str
+        assert token == FAKE_TOKEN
+        for resource in (client.realtime, client.beta.realtime):
+            with pytest.raises(WebSocketConnectReached):
+                await resolve(resource.connect(model="test-model").enter())
+        assert [headers["Authorization"] for headers in websocket_headers] == [f"Bearer {FAKE_TOKEN}"] * 2
     finally:
         await resolve(client.close())

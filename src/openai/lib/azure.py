@@ -444,6 +444,9 @@ class AzureOpenAI(BaseAzureClient[httpx2.Client, Stream[Any]], OpenAI):
         provider = self._azure_ad_token_provider
         if provider is not None:
             token = cast(object, provider())
+            if isinstance(token, str):
+                # Bypass subclass methods before validating or interpolating credentials.
+                token = str.__str__(token)
             if not isinstance(token, str) or not token:
                 raise ValueError("Expected `azure_ad_token_provider` argument to return a non-empty string.")
             return token
@@ -795,6 +798,9 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx2.AsyncClient, AsyncStream[Any]], As
             token = cast(object, provider())
             if inspect.isawaitable(token):
                 token = await token
+            if isinstance(token, str):
+                # Bypass subclass methods before validating or interpolating credentials.
+                token = str.__str__(token)
             if not isinstance(token, str) or not token:
                 raise ValueError("Expected `azure_ad_token_provider` argument to return a non-empty string.")
             return token
