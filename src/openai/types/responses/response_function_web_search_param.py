@@ -79,7 +79,7 @@ class ResponseFunctionWebSearchParam(TypedDict, total=False):
     id: Required[str]
     """The unique ID of the web search tool call."""
 
-    action: Required[Action]
+    action: Optional[Action]
     """
     An object describing the specific action taken in this web search call. Includes
     details on how the model used the web (search, open_page, find_in_page).
