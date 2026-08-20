@@ -443,11 +443,9 @@ class AzureOpenAI(BaseAzureClient[httpx2.Client, Stream[Any]], OpenAI):
 
         provider = self._azure_ad_token_provider
         if provider is not None:
-            token = provider()
-            if not token or not isinstance(token, str):  # pyright: ignore[reportUnnecessaryIsInstance]
-                raise ValueError(
-                    f"Expected `azure_ad_token_provider` argument to return a string but it returned {token}",
-                )
+            token = cast(object, provider())
+            if not isinstance(token, str) or not token:
+                raise ValueError("Expected `azure_ad_token_provider` argument to return a non-empty string.")
             return token
 
         return None
@@ -794,14 +792,12 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx2.AsyncClient, AsyncStream[Any]], As
 
         provider = self._azure_ad_token_provider
         if provider is not None:
-            token = provider()
+            token = cast(object, provider())
             if inspect.isawaitable(token):
                 token = await token
-            if not token or not isinstance(cast(Any, token), str):
-                raise ValueError(
-                    f"Expected `azure_ad_token_provider` argument to return a string but it returned {token}",
-                )
-            return str(token)
+            if not isinstance(token, str) or not token:
+                raise ValueError("Expected `azure_ad_token_provider` argument to return a non-empty string.")
+            return token
 
         return None
 
