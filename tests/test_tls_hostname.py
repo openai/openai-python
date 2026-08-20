@@ -143,6 +143,7 @@ def tls_server(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[tupl
         key.private_bytes(serialization.Encoding.PEM, serialization.PrivateFormat.PKCS8, serialization.NoEncryption())
     )
     server_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    server_context.minimum_version = ssl.TLSVersion.TLSv1_2
     server_context.load_cert_chain(cert_path, key_path)
     client_context = ssl.create_default_context(cafile=str(cert_path))
     requests: list[str] = []
