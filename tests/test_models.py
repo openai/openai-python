@@ -1015,3 +1015,25 @@ def test_iterable_construction_str_falls_back_to_list() -> None:
     # falls back to list of chars rather than calling str(["h", "e", "l", "l", "o"])
     assert m.data["items"] == ["h", "e", "l", "l", "o"]
     assert m.model_dump()["data"]["items"] == ["h", "e", "l", "l", "o"]
+
+
+def test_bare_dict_annotation() -> None:
+    result = construct_type(value={"key": "value"}, type_=dict)
+    assert result == {"key": "value"}
+
+    result = construct_type(value={"a": 1, "b": 2}, type_=dict)
+    assert result == {"a": 1, "b": 2}
+
+    result = construct_type(value="not a dict", type_=dict)
+    assert result == "not a dict"
+
+
+def test_bare_list_annotation() -> None:
+    result = construct_type(value=[1, 2, 3], type_=list)
+    assert result == [1, 2, 3]
+
+    result = construct_type(value=["a", "b"], type_=list)
+    assert result == ["a", "b"]
+
+    result = construct_type(value="not a list", type_=list)
+    assert result == "not a list"
