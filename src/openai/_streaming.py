@@ -68,7 +68,10 @@ class Stream(Generic[_T]):
                 if sse.event and sse.event.startswith("thread."):
                     data = sse.json()
 
-                    if sse.event == "error" and is_mapping(data) and data.get("error"):
+                    yield process_data(data={"data": data, "event": sse.event}, cast_to=cast_to, response=response)
+                elif sse.event == "error":
+                    data = sse.json()
+                    if is_mapping(data) and data.get("error"):
                         message = None
                         error = data.get("error")
                         if is_mapping(error):
@@ -81,8 +84,6 @@ class Stream(Generic[_T]):
                             request=self.response.request,
                             body=data["error"],
                         )
-
-                    yield process_data(data={"data": data, "event": sse.event}, cast_to=cast_to, response=response)
                 else:
                     data = sse.json()
                     if is_mapping(data) and data.get("error"):
@@ -178,7 +179,10 @@ class AsyncStream(Generic[_T]):
                 if sse.event and sse.event.startswith("thread."):
                     data = sse.json()
 
-                    if sse.event == "error" and is_mapping(data) and data.get("error"):
+                    yield process_data(data={"data": data, "event": sse.event}, cast_to=cast_to, response=response)
+                elif sse.event == "error":
+                    data = sse.json()
+                    if is_mapping(data) and data.get("error"):
                         message = None
                         error = data.get("error")
                         if is_mapping(error):
@@ -191,8 +195,6 @@ class AsyncStream(Generic[_T]):
                             request=self.response.request,
                             body=data["error"],
                         )
-
-                    yield process_data(data={"data": data, "event": sse.event}, cast_to=cast_to, response=response)
                 else:
                     data = sse.json()
                     if is_mapping(data) and data.get("error"):
