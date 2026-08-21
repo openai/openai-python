@@ -7,7 +7,15 @@ from ._utils import is_dict
 logger: logging.Logger = logging.getLogger("openai")
 
 
-SENSITIVE_HEADERS = {"api-key", "authorization", "x-amz-security-token"}
+SENSITIVE_HEADERS = {
+    "api-key",
+    "authorization",
+    "cookie",
+    "proxy-authorization",
+    "set-cookie",
+    "x-amz-security-token",
+    "x-api-key",
+}
 
 
 def _basic_config() -> None:

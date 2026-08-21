@@ -95,6 +95,29 @@ def test_headers_without_sensitive_info(logger_with_filter: logging.Logger, capl
     )
 
 
+def test_proxy_credential_headers_redacted(logger_with_filter: logging.Logger, caplog: pytest.LogCaptureFixture) -> None:
+    with caplog.at_level(logging.DEBUG):
+        logger_with_filter.debug(
+            "Request options: %s",
+            {
+                "method": "post",
+                "url": "chat/completions",
+                "headers": {
+                    "x-api-key": "gateway-secret",
+                    "Proxy-Authorization": "Basic dXNlcjpwYXNz",
+                    "Cookie": "session=abc123",
+                    "Set-Cookie": "token=xyz",
+                },
+            },
+        )
+
+    log_record = cast(Dict[str, Any], caplog.records[0].args)
+    assert log_record["headers"]["x-api-key"] == "<redacted>"
+    assert log_record["headers"]["Proxy-Authorization"] == "<redacted>"
+    assert log_record["headers"]["Cookie"] == "<redacted>"
+    assert log_record["headers"]["Set-Cookie"] == "<redacted>"
+
+
 def test_standard_debug_msg(logger_with_filter: logging.Logger, caplog: pytest.LogCaptureFixture) -> None:
     with caplog.at_level(logging.DEBUG):
         logger_with_filter.debug("Sending HTTP Request: %s %s", "POST", "chat/completions")
