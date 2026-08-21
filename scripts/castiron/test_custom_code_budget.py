@@ -315,7 +315,8 @@ class StatusPublisherTests(unittest.TestCase):
             Path(__file__).resolve().parents[2]
             / ".github/workflows/castiron-custom-code-comment.yml"
         )
-        publisher = path.read_text().rsplit("          script: |\n", 1)[1]
+        section = path.read_text().split("\n  budget-status:\n", 1)[1].split("\n  comment:\n", 1)[0]
+        publisher = section.split("          script: |\n", 1)[1]
         script = "\n".join(line[12:] for line in publisher.splitlines())
         base, head = "a" * 40, "b" * 40
         payload = {
