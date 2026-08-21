@@ -33071,18 +33071,14 @@ components:
           nullable: true
           description: |
             Allows to set transparency for the background of the generated image(s).
-            This parameter is only supported for GPT image models that support
-            transparent backgrounds. Must be one of `transparent`, `opaque`, or
-            `auto` (default value). When `auto` is used, the model will
-            automatically determine the best background for the image.
+            Must be one of `transparent`, `opaque`, or `auto` (default value). When
+            `auto` is used, the model will automatically determine the best
+            background for the image.
 
-            `gpt-image-2` and `gpt-image-2-2026-04-21` do not support
-            transparent backgrounds. Requests with `background` set to
-            `transparent` will return an error for these models; use `opaque` or
-            `auto` instead.
-
-            If `transparent`, the output format needs to support transparency,
-            so it should be set to either `png` (default value) or `webp`.
+            Transparent backgrounds are available for supported GPT Image models.
+            For `gpt-image-2` and `gpt-image-2-2026-04-21`, this support is in
+            preview. When using `transparent`, set the output format to `png` or
+            `webp`.
         model:
           anyOf:
           - type: string
@@ -33310,18 +33306,14 @@ components:
           nullable: true
           description: |
             Allows to set transparency for the background of the generated image(s).
-            This parameter is only supported for GPT image models that support
-            transparent backgrounds. Must be one of `transparent`, `opaque`, or
-            `auto` (default value). When `auto` is used, the model will
-            automatically determine the best background for the image.
+            Must be one of `transparent`, `opaque`, or `auto` (default value). When
+            `auto` is used, the model will automatically determine the best
+            background for the image.
 
-            `gpt-image-2` and `gpt-image-2-2026-04-21` do not support
-            transparent backgrounds. Requests with `background` set to
-            `transparent` will return an error for these models; use `opaque` or
-            `auto` instead.
-
-            If `transparent`, the output format needs to support transparency,
-            so it should be set to either `png` (default value) or `webp`.
+            Transparent backgrounds are available for supported GPT Image models.
+            For `gpt-image-2` and `gpt-image-2-2026-04-21`, this support is in
+            preview. When using `transparent`, set the output format to `png` or
+            `webp`.
         style:
           type: string
           enum:
@@ -35512,7 +35504,7 @@ components:
           - type: 'null'
           default: auto
           example: transparent
-          description: Background behavior for generated image output.
+          description: Set the background of the generated image output. Transparent backgrounds are available for supported GPT Image models. For `gpt-image-2` and `gpt-image-2-2026-04-21`, this support is in preview. When using `transparent`, set the output format to `png` or `webp`.
         stream:
           anyOf:
           - type: boolean
@@ -39198,18 +39190,14 @@ components:
           - auto
           description: |
             Allows to set transparency for the background of the generated image(s).
-            This parameter is only supported for GPT image models that support
-            transparent backgrounds. Must be one of `transparent`, `opaque`, or
-            `auto` (default value). When `auto` is used, the model will
-            automatically determine the best background for the image.
+            Must be one of `transparent`, `opaque`, or `auto` (default value). When
+            `auto` is used, the model will automatically determine the best
+            background for the image.
 
-            `gpt-image-2` and `gpt-image-2-2026-04-21` do not support
-            transparent backgrounds. Requests with `background` set to
-            `transparent` will return an error for these models; use `opaque` or
-            `auto` instead.
-
-            If `transparent`, the output format needs to support transparency,
-            so it should be set to either `png` (default value) or `webp`.
+            Transparent backgrounds are available for supported GPT Image models.
+            For `gpt-image-2` and `gpt-image-2-2026-04-21`, this support is in
+            preview. When using `transparent`, set the output format to `png` or
+            `webp`.
           default: auto
         input_fidelity:
           anyOf:
@@ -51417,8 +51405,9 @@ components:
     RealtimeTranslationServerEventSessionOutputAudioDelta:
       type: object
       description: |
-        Returned when translated output audio is available. Output audio deltas are
-        200 ms frames of PCM16 audio.
+        Returned when translated output audio is available. The `delta` contains a
+        PCM16 audio chunk whose length can vary. Clients should decode and queue the
+        complete delta instead of assuming a fixed byte or sample count.
       properties:
         event_id:
           type: string
@@ -68577,18 +68566,14 @@ components:
           - auto
           description: |
             Allows to set transparency for the background of the generated image(s).
-            This parameter is only supported for GPT image models that support
-            transparent backgrounds. Must be one of `transparent`, `opaque`, or
-            `auto` (default value). When `auto` is used, the model will
-            automatically determine the best background for the image.
+            Must be one of `transparent`, `opaque`, or `auto` (default value). When
+            `auto` is used, the model will automatically determine the best
+            background for the image.
 
-            `gpt-image-2` and `gpt-image-2-2026-04-21` do not support
-            transparent backgrounds. Requests with `background` set to
-            `transparent` will return an error for these models; use `opaque` or
-            `auto` instead.
-
-            If `transparent`, the output format needs to support transparency,
-            so it should be set to either `png` (default value) or `webp`.
+            Transparent backgrounds are available for supported GPT Image models.
+            For `gpt-image-2` and `gpt-image-2-2026-04-21`, this support is in
+            preview. When using `transparent`, set the output format to `png` or
+            `webp`.
           default: auto
         input_fidelity:
           anyOf:
