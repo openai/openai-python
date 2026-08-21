@@ -19,7 +19,7 @@ class Agent(BaseModel):
 class BetaResponseOutputItemAddedEvent(BaseModel):
     """Emitted when a new output item is added."""
 
-    item: BetaResponseOutputItem
+    item: Optional[BetaResponseOutputItem] = None
     """The output item that was added.
 
     For reasoning items, `encrypted_content` may be incomplete while the item is in
