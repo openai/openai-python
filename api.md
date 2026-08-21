@@ -643,6 +643,56 @@ Methods:
 
 - <code title="post /responses/input_tokens?beta=true">client.beta.responses.input_tokens.<a href="./src/openai/resources/beta/responses/input_tokens.py">count</a>(\*\*<a href="src/openai/types/beta/responses/input_token_count_params.py">params</a>) -> <a href="./src/openai/types/beta/responses/input_token_count_response.py">InputTokenCountResponse</a></code>
 
+## ChatKit
+
+Types:
+
+```python
+from openai.types.beta import ChatKitWorkflow
+```
+
+### Sessions
+
+Methods:
+
+- <code title="post /chatkit/sessions">client.beta.chatkit.sessions.<a href="./src/openai/resources/beta/chatkit/sessions.py">create</a>(\*\*<a href="src/openai/types/beta/chatkit/session_create_params.py">params</a>) -> <a href="./src/openai/types/beta/chatkit/chat_session.py">ChatSession</a></code>
+- <code title="post /chatkit/sessions/{session_id}/cancel">client.beta.chatkit.sessions.<a href="./src/openai/resources/beta/chatkit/sessions.py">cancel</a>(session_id) -> <a href="./src/openai/types/beta/chatkit/chat_session.py">ChatSession</a></code>
+
+### Threads
+
+Types:
+
+```python
+from openai.types.beta.chatkit import (
+    ChatSession,
+    ChatSessionAutomaticThreadTitling,
+    ChatSessionChatKitConfiguration,
+    ChatSessionChatKitConfigurationParam,
+    ChatSessionExpiresAfterParam,
+    ChatSessionFileUpload,
+    ChatSessionHistory,
+    ChatSessionRateLimits,
+    ChatSessionRateLimitsParam,
+    ChatSessionStatus,
+    ChatSessionWorkflowParam,
+    ChatKitAttachment,
+    ChatKitResponseOutputText,
+    ChatKitThread,
+    ChatKitThreadAssistantMessageItem,
+    ChatKitThreadItemList,
+    ChatKitThreadUserMessageItem,
+    ChatKitWidgetItem,
+    ThreadDeleteResponse,
+)
+```
+
+Methods:
+
+- <code title="get /chatkit/threads/{thread_id}">client.beta.chatkit.threads.<a href="./src/openai/resources/beta/chatkit/threads.py">retrieve</a>(thread_id) -> <a href="./src/openai/types/beta/chatkit/chatkit_thread.py">ChatKitThread</a></code>
+- <code title="get /chatkit/threads">client.beta.chatkit.threads.<a href="./src/openai/resources/beta/chatkit/threads.py">list</a>(\*\*<a href="src/openai/types/beta/chatkit/thread_list_params.py">params</a>) -> <a href="./src/openai/types/beta/chatkit/chatkit_thread.py">SyncConversationCursorPage[ChatKitThread]</a></code>
+- <code title="delete /chatkit/threads/{thread_id}">client.beta.chatkit.threads.<a href="./src/openai/resources/beta/chatkit/threads.py">delete</a>(thread_id) -> <a href="./src/openai/types/beta/chatkit/thread_delete_response.py">ThreadDeleteResponse</a></code>
+- <code title="get /chatkit/threads/{thread_id}/items">client.beta.chatkit.threads.<a href="./src/openai/resources/beta/chatkit/threads.py">list_items</a>(thread_id, \*\*<a href="src/openai/types/beta/chatkit/thread_list_items_params.py">params</a>) -> SyncConversationCursorPage[Data]</code>
+
 ## Realtime
 
 Types:
