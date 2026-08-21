@@ -16,8 +16,11 @@ Content: TypeAlias = Union[ResponseOutputTextParam, ResponseOutputRefusalParam]
 class ResponseOutputMessageParam(TypedDict, total=False):
     """An output message from the model."""
 
-    id: Required[str]
-    """The unique ID of the output message."""
+    id: Optional[str]
+    """The unique ID of the output message.
+
+    Populated when this item is returned via API.
+    """
 
     content: Required[Iterable[Content]]
     """The content of the output message."""
@@ -25,7 +28,7 @@ class ResponseOutputMessageParam(TypedDict, total=False):
     role: Required[Literal["assistant"]]
     """The role of the output message. Always `assistant`."""
 
-    status: Required[Literal["in_progress", "completed", "incomplete"]]
+    status: Optional[Literal["in_progress", "completed", "incomplete"]]
     """The status of the message input.
 
     One of `in_progress`, `completed`, or `incomplete`. Populated when input items
