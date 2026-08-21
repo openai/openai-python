@@ -1,8 +1,9 @@
-# Custom-code budget
+# Custom code
 
-This is a handwritten, Python-only rollout. The checker, tests, workflow, and
-`.castiron-ratchet.json` are maintained in this SDK, not in Castiron's compiler.
-Leave existing CODEOWNERS unchanged. Normal generation must preserve these files.
+The custom-code reporter measures the SDK's remaining customization of generated
+files. The budget gate checks that measurement against the repository's policy.
+See [CONTRIBUTING.md](../../CONTRIBUTING.md#custom-code-budget) for budget changes
+and human review, and [AGENTS.md](../../AGENTS.md#custom-code-budget) for agent rules.
 
 ## What is counted
 
@@ -19,37 +20,20 @@ handwritten-only files are outside this existing report's scope. Changes in
 generation ownership remain visible in the report; do not change exclusions or
 checkpoints to hide customization. Non-text custom patches fail as uncountable.
 
-The initial Python ceiling is **10,000 lines**. The policy file contains only an
-integer `schema_version` (currently 1) and a nonnegative integer
-`max_custom_patch_lines`. Missing, deleted, renamed, executable, symlinked,
+The ceiling is defined in [`.castiron-ratchet.json`](../../.castiron-ratchet.json).
+The policy file contains only an integer `schema_version` (currently 1) and a
+nonnegative integer `max_custom_patch_lines`. Missing, deleted, renamed, executable, symlinked,
 malformed, or unsupported policy files fail closed. There is no disable flag or
 automatic budget update command.
 
-## Changing the budget
-
-Every budget-file change must be in a separate PR containing **only that file**.
-The check examines the complete PR diff, not just its latest commit. Put the
-justification in the PR description; do not add a justification file to that PR.
-
-For an increase, explain the current usage, proposed ceiling, why the additional
-customization is necessary, and why fixing generation is not appropriate. Obtain
-a **human approving review**, then merge the budget PR before relying on it in
-an SDK PR. Keep the default CODEOWNERS and ordinary human-admin override process.
-
-Agents may investigate and draft a budget-only proposal. They **must not approve
-a budget increase**, including through a human's credentials, or bypass the gate.
-They must not weaken counting, broaden exclusions, or alter generation metadata
-to make a failing change pass. A bot review or agent assertion is not a human
-approval. This approval requirement is agent policy plus normal review, not an
-automated claim that GitHub can identify who operated an account.
-
-Lower the ceiling deliberately after substantial cleanup, retaining headroom.
-A budget-only decrease must also fit the current measured usage.
+Budget-file isolation is checked against the complete PR diff, not just its latest
+commit. Increases never apply to their own PR or merge group. Decreases must also
+fit the measured usage. Human approval is contributor and agent policy plus normal
+review, not an automated claim that GitHub can identify who operated an account.
 
 ## Trusted CI
 
-The existing custom-code workflow pair handles this pilot; no additional workflow
-files are needed:
+The custom-code workflow pair separates candidate execution from trusted checks:
 
 - `castiron-custom-code.yml` runs proposed offline tests and the advisory report
   on `pull_request` with read-only permissions.
@@ -89,8 +73,8 @@ The trusted run summary reports additions, deletions, total, mixed-file count,
 headroom, largest patches, and exact policy/candidate/generated revisions. The
 existing custom-code comment remains unchanged, including when the budget fails.
 The trusted compute job reuses its own report, never the candidate's artifacts.
-This pilot does not modify the generated reporter; the workflow additions are
-handwritten SDK customizations preserved through the normal three-way merge.
+The checker, policy, and workflows are maintained in the SDK and preserved
+through the normal three-way merge during generation.
 
 ## Local verification
 
@@ -114,8 +98,8 @@ independently binds main and the candidate to live GitHub metadata.
 
 ## Activation order
 
-1. Merge the initial 10,000-line policy in its budget-only PR after human review.
-2. Merge this handwritten tooling and guidance separately. Do not enable required
+1. Merge the initial budget policy in its budget-only PR after human review.
+2. Merge the tooling and guidance separately. Do not enable required
    statuses before the policy and trusted checker exist on main. There is no
    permanent bootstrap exemption in the checker.
 3. Exercise a passing PR, over-budget PR, mixed budget/code PR, a fork PR, and a
@@ -130,4 +114,4 @@ This is an accidental-change guardrail, not an adversarial approval boundary.
 Workflow definitions and ruleset changes still have the normal repository review
 and administrator controls; GitHub Actions status names alone are not a unique
 workflow identity. Stronger organization-required workflow enforcement can be
-added later. No other language's budget is enabled by this rollout.
+added later.

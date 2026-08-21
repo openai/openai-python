@@ -9,8 +9,8 @@ explicitly requires it.
 
 ## Custom-code budget
 
-Follow [CUSTOM_CODE_BUDGET.md](CUSTOM_CODE_BUDGET.md). Budget changes belong in a
-separate PR containing only `.castiron-ratchet.json`, with an explicit justification
+Follow [the custom-code guidance](scripts/castiron/CUSTOM_CODE.md). Budget changes
+belong in a separate PR containing only `.castiron-ratchet.json`, with an explicit justification
 in the PR description. Increases require a **human approving review** before merging.
 Agents may investigate and draft proposals, but must not approve budget increases
 (including through a human's credentials) or bypass the gate. Do not weaken

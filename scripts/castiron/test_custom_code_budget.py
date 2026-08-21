@@ -1,4 +1,4 @@
-# Handwritten regression tests for the Python-only custom-code budget.
+# Regression tests for the custom-code budget.
 from __future__ import annotations
 
 import json

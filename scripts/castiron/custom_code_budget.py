@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Handwritten Python SDK budget gate. Run only from a trusted checkout, never PR code.
+"""SDK custom-code budget gate. Run only from a trusted checkout, never PR code.
 
 Reuses Castiron's vendored snapshot verifier and generated-file accounting. This
-file and its workflow are SDK-owned during the Python-only rollout.
+file and its workflow are maintained in the SDK repository.
 """
 
 from __future__ import annotations

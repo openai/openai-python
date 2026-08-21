@@ -71,7 +71,7 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-      # Handwritten Python pilot. The prior step's report was computed here from
+      # The prior step's report was computed here from
       # Git objects by main's reporter, not downloaded from the candidate run.
       - name: Evaluate main's custom-code budget
         id: budget
@@ -114,7 +114,7 @@ jobs:
           retention-days: 7
 
   budget-status:
-    name: Publish Python custom-code budget checks
+    name: Publish custom-code budget checks
     needs: compute
     if: always() && !cancelled() && needs.compute.result != 'skipped'
     runs-on: ubuntu-latest

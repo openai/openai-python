@@ -4,7 +4,7 @@ name: Castiron custom code
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review, edited]
-  # Handwritten Python budget pilot: notify the existing trusted handler.
+  # Notify the existing trusted handler for queue candidates.
   merge_group:
     types: [checks_requested]
 
@@ -56,7 +56,7 @@ jobs:
       - name: Verify the reporter matches its generated workflow
         run: printf '%s  %s\n' "$REPORTER_SHA256" scripts/castiron/custom_code_report.py | sha256sum --check --strict
 
-      - name: Test snapshot isolation and the Python custom-code budget
+      - name: Test snapshot isolation and the custom-code budget
         run: python3 -m unittest discover -s scripts/castiron -p 'test_custom_code*.py'
 
       - name: Validate the codegen hash and report custom code
