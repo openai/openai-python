@@ -180,7 +180,8 @@ def _transform_recursive(
         return _transform_typeddict(data, stripped_type)
 
     if origin == dict and is_mapping(data):
-        items_type = get_args(stripped_type)[1]
+        _type_args = get_args(stripped_type)
+        items_type = _type_args[1] if len(_type_args) >= 2 else Any  # bare dict has no type args
         return {key: _transform_recursive(value, annotation=items_type) for key, value in data.items()}
 
     if (
@@ -346,7 +347,8 @@ async def _async_transform_recursive(
         return await _async_transform_typeddict(data, stripped_type)
 
     if origin == dict and is_mapping(data):
-        items_type = get_args(stripped_type)[1]
+        _type_args = get_args(stripped_type)
+        items_type = _type_args[1] if len(_type_args) >= 2 else Any  # bare dict has no type args
         return {key: _transform_recursive(value, annotation=items_type) for key, value in data.items()}
 
     if (
