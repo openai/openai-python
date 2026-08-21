@@ -127,6 +127,7 @@ def evaluate(
     public: bool,
     fetch: bool = False,
     pull_heads: list[str] | None = None,
+    measurement: tuple[dict[str, Any], bytes] | None = None,
 ) -> tuple[dict[str, Any], bytes]:
     """In a queue, isolate each PR but budget the complete merged candidate."""
     base, head = report.require_sha(base), report.require_sha(head)
@@ -152,13 +153,17 @@ def evaluate(
     try:
         limit = read_budget(repo, base)
         result["limit"] = limit
-        measured, patch = report.build_report(
-            repo,
-            base,
-            head,
-            public=public,
-            fetch=fetch,
-            require_head_hash=True,
+        measured, patch = (
+            measurement
+            if measurement is not None
+            else report.build_report(
+                repo,
+                base,
+                head,
+                public=public,
+                fetch=fetch,
+                require_head_hash=True,
+            )
         )
         added, removed = count_custom_lines(measured)
         total = added + removed
@@ -265,9 +270,9 @@ def queued_entries(repository: str, branch: str) -> list[tuple[str, str]]:
 def github_evaluate(
     repo: Path,
     repository: str,
-    event_name: str,
     event: dict[str, Any],
     trusted_sha: str,
+    trusted_report_dir: Path | None = None,
 ) -> tuple[dict[str, Any], bytes]:
     """Fetch data into a fresh bare repo; the executable checkout remains trusted."""
     if not report.REPOSITORY.fullmatch(repository):
@@ -280,34 +285,72 @@ def github_evaluate(
     main = report.require_sha(report.api("GET", f"{root}/git/ref/heads/{branch}")["object"]["sha"])
     if report.require_sha(trusted_sha) != main:
         raise ValueError("trusted checkout is stale; rerun against current main")
-    if event_name == "pull_request_target":
-        number = event["number"]
-        if type(number) is not int or number <= 0:
-            raise ValueError("invalid PR number")
-        pull = report.api("GET", f"{root}/pulls/{number}")
-        if (
-            pull["state"] != "open"
-            or pull["head"]["sha"] != event["pull_request"]["head"]["sha"]
-            or pull["base"]["repo"]["full_name"] != repository
-            or pull["base"]["ref"] != branch
-            or pull["base"]["sha"] != main
-        ):
-            raise ValueError("PR head/base changed or does not target main; rerun the check")
-        head = report.require_sha(pull["head"]["sha"])
-    elif event_name == "merge_group":
-        group = event["merge_group"]
-        if group["base_sha"] != main or group["base_ref"] != f"refs/heads/{branch}":
-            raise ValueError("merge group no longer targets current main")
-        head = report.require_sha(group["head_sha"])
+    signal = event["workflow_run"]
+    run_id = signal["id"]
+    if type(run_id) is not int or run_id <= 0:
+        raise ValueError("invalid source run ID")
+    run = report.api("GET", f"{root}/actions/runs/{run_id}")
+    if (
+        run["head_sha"] != signal["head_sha"]
+        or run["repository"]["full_name"] != repository
+        or run["path"].split("@", 1)[0] != ".github/workflows/castiron-custom-code.yml"
+        or run["status"] != "completed"
+        or run["run_attempt"] != signal["run_attempt"]
+    ):
+        raise ValueError("unexpected or superseded source workflow run")
+    head = report.require_sha(run["head_sha"])
+    if run["event"] == "pull_request":
+        associated = run["pull_requests"] or report.api(
+            "GET", f"{root}/commits/{head}/pulls?per_page=100"
+        )
+        current: list[int] = []
+        for number in sorted({int(pr["number"]) for pr in associated}):
+            if number <= 0:
+                raise ValueError("invalid associated PR number")
+            pull = report.api("GET", f"{root}/pulls/{number}")
+            if (
+                pull["state"] == "open"
+                and pull["head"]["sha"] == head
+                and pull["base"]["repo"]["full_name"] == repository
+                and pull["base"]["ref"] == branch
+                and pull["base"]["sha"] == main
+            ):
+                current.append(number)
+        if len(current) != 1:
+            raise ValueError("source run must identify exactly one current PR targeting main")
+    elif run["event"] == "merge_group":
+        if not run["head_branch"].startswith(f"gh-readonly-queue/{branch}/"):
+            raise ValueError("queue signal does not target main")
     else:
         raise ValueError("unsupported budget event")
-    if repo.exists():
-        raise ValueError("Git object directory must be fresh")
-    subprocess.run(["git", "init", "--bare", str(repo)], check=True, capture_output=True)
-    report.git(repo, "remote", "add", "origin", f"https://github.com/{repository}.git")
-    report.git(repo, "fetch", "--quiet", "--no-tags", "origin", main, head)
+    # PR statuses can outlive their base revision. Require the queue's fresh,
+    # combined candidate check before merging rather than relying on those alone.
+    rules = report.api("GET", f"{root}/rules/branches/{branch}")
+    if not any(rule["type"] == "merge_queue" for rule in rules):
+        raise ValueError("main must require a merge queue before activating the budget gate")
+    measurement = None
+    if trusted_report_dir is not None:
+        # Only the preceding main-branch step may supply this directory. Never
+        # download a candidate artifact here. Reuse its verified report and bare
+        # object store, avoiding a second snapshot fetch/hash/diff computation.
+        if run["event"] != "pull_request":
+            raise ValueError("only PR runs can reuse the trusted report")
+        measured = json.loads((trusted_report_dir / "report.json").read_text())
+        if measured["target_base_sha"] != main or measured["head_sha"] != head:
+            raise ValueError("trusted report is stale; rerun against current main")
+        if report.git(repo, "rev-parse", "--is-bare-repository").strip() != b"true":
+            raise ValueError("trusted report must use a bare object store")
+        measurement = (measured, (trusted_report_dir / "custom-code.patch").read_bytes())
+    else:
+        if repo.exists():
+            raise ValueError("Git object directory must be fresh")
+        subprocess.run(["git", "init", "--bare", str(repo)], check=True, capture_output=True)
+        report.git(repo, "remote", "add", "origin", f"https://github.com/{repository}.git")
+        report.git(repo, "fetch", "--quiet", "--no-tags", "origin", main, head)
     pull_heads: list[str] | None = None
-    if event_name == "merge_group":
+    if run["event"] == "merge_group":
+        if report.git(repo, "merge-base", main, head).decode().strip() != main:
+            raise ValueError("merge group does not include current main; retry the current group")
         pull_heads = []
         entries = queued_entries(repository, branch)
         if not any(queue_head == head for _, queue_head in entries):
@@ -321,7 +364,13 @@ def github_evaluate(
         if not pull_heads:
             raise ValueError("cannot verify merge-group PR membership; retry the current group")
     return evaluate(
-        repo, main, head, public=not metadata["private"], fetch=True, pull_heads=pull_heads
+        repo,
+        main,
+        head,
+        public=not metadata["private"],
+        fetch=True,
+        pull_heads=pull_heads,
+        measurement=measurement,
     )
 
 
@@ -335,11 +384,9 @@ def main() -> int:
     local.add_argument("--fetch", action="store_true")
     github = commands.add_parser("github")
     github.add_argument("--repository", required=True)
-    github.add_argument(
-        "--event-name", choices=["pull_request_target", "merge_group"], required=True
-    )
     github.add_argument("--event-path", type=Path, required=True)
     github.add_argument("--trusted-sha", required=True)
+    github.add_argument("--trusted-report-dir", type=Path)
     for command in (local, github):
         command.add_argument("--repo", type=Path, required=True)
         command.add_argument("--out", type=Path, required=True)
@@ -353,9 +400,9 @@ def main() -> int:
             result, patch = github_evaluate(
                 args.repo,
                 args.repository,
-                args.event_name,
                 json.loads(args.event_path.read_text()),
                 args.trusted_sha,
+                args.trusted_report_dir,
             )
     except (
         report.ReportError,

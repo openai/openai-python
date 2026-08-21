@@ -48,16 +48,22 @@ A budget-only decrease must also fit the current measured usage.
 
 ## Trusted CI
 
-`.github/workflows/custom-code-budget.yml` has separate execution paths:
+The existing custom-code workflow pair handles this pilot; no additional workflow
+files are needed:
 
-- `pull_request` runs proposed offline tests with read-only permissions.
-- `pull_request_target` checks out current **main**, verifies it is still current,
-  and runs main's checker and reporter against candidate Git objects in a new bare
-  repository. It never checks out, imports, installs, or executes candidate code.
-- `merge_group` uses the same trusted checkout. It verifies queue membership from
-  GitHub and commit ancestry, checks isolation per constituent PR, and measures
-  the complete merged candidate against the budget on actual main. A budget PR
-  queued in the same group cannot grant the SDK PR a higher limit.
+- `castiron-custom-code.yml` runs proposed offline tests and the advisory report
+  on `pull_request` with read-only permissions.
+- `castiron-custom-code-comment.yml` handles `workflow_run` from **main**. Its
+  read-only compute job runs main's reporter against candidate Git objects in a
+  new bare repository, then reuses that verified report to check main's budget.
+  It never checks out, imports, installs, or executes candidate code.
+- An unprivileged `merge_group` job in the first workflow only signals that a candidate
+  needs checking. A `workflow_run` handler whose **workflow definition is on
+  main** then uses the same trusted checkout. It ignores the signal's conclusion
+  and artifacts, verifies the run and queue membership through GitHub and commit
+  ancestry, checks isolation per constituent PR, and measures the complete merged
+  candidate against actual main. A budget PR queued in the same group cannot
+  grant the SDK PR a higher limit.
 
 A separate publisher with no checkout attaches these statuses to the exact PR
 head or merge-group SHA, after rechecking head/base freshness:
@@ -69,12 +75,22 @@ The policy is read from the current base commit, not the PR or its merge base.
 Reporter changes in a PR cannot change the checker executing on that PR. Missing
 snapshots, invalid hashes, unavailable queue membership, and policy errors fail
 closed. If main moves during evaluation, rerun the workflow; reruns check out the
-new main. The normal merge queue rechecks combined usage before merging.
+new main. PR-head statuses are feedback at a point in time: a main update alone
+does not rerun them. The checker therefore fails unless main has an effective
+**require merge queue** rule. The queue must recheck combined usage against current
+main before merging; do not replace that protection with PR-head statuses alone.
+
+The queue signal cannot supply a passing result, and removing it leaves required
+statuses missing. No write-capable job executes from the candidate's workflow
+definition. See GitHub's [workflow_run trust model](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#workflow_run)
+and [merge-queue behavior](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue).
 
 The trusted run summary reports additions, deletions, total, mixed-file count,
 headroom, largest patches, and exact policy/candidate/generated revisions. The
-existing custom-code comment remains unchanged; this pilot does not modify the
-generated reporter or its comment publisher.
+existing custom-code comment remains unchanged, including when the budget fails.
+The trusted compute job reuses its own report, never the candidate's artifacts.
+This pilot does not modify the generated reporter; the workflow additions are
+handwritten SDK customizations preserved through the normal three-way merge.
 
 ## Local verification
 
@@ -104,8 +120,10 @@ independently binds main and the candidate to live GitHub metadata.
    permanent bootstrap exemption in the checker.
 3. Exercise a passing PR, over-budget PR, mixed budget/code PR, a fork PR, and a
    merge-queue candidate. Policy increases must still use the old limit.
-4. Have a human administrator add both exact status names above to the main
-   ruleset, bound to GitHub Actions. Retain normal review and CODEOWNERS settings.
+4. Have a human administrator retain/enable **require merge queue** and add both
+   exact status names above to the main ruleset, bound to GitHub Actions. Retain
+   normal review and CODEOWNERS settings. Exercise a main-policy decrease after
+   an unchanged PR head passed, and confirm its queued candidate uses the new limit.
    The tests job is separate from these authoritative statuses.
 
 This is an accidental-change guardrail, not an adversarial approval boundary.
