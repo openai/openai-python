@@ -5,8 +5,8 @@ import re
 import json
 import inspect
 from types import TracebackType
-from typing import TYPE_CHECKING, Any, Generic, TypeVar, Iterator, Optional, AsyncIterator, cast
-from typing_extensions import Self, Protocol, TypeGuard, override, get_origin, runtime_checkable
+from typing import TYPE_CHECKING, Any, Generic, TypeVar, Callable, Iterator, Optional, AsyncIterator, cast
+from typing_extensions import Self, Protocol, TypeGuard, get_args, override, get_origin, runtime_checkable
 
 import httpx2
 
@@ -57,6 +57,7 @@ class Stream(Generic[_T]):
         cast_to = cast(Any, self._cast_to)
         response = self.response
         process_data = self._client._process_response_data
+        normalize_stream_event = _make_stream_event_normalizer(cast_to)
         iterator = self._iter_events()
 
         try:
@@ -85,6 +86,9 @@ class Stream(Generic[_T]):
                     yield process_data(data={"data": data, "event": sse.event}, cast_to=cast_to, response=response)
                 else:
                     data = sse.json()
+                    if normalize_stream_event is not None:
+                        data = normalize_stream_event(data)
+
                     if is_mapping(data) and data.get("error"):
                         message = None
                         error = data.get("error")
@@ -167,6 +171,7 @@ class AsyncStream(Generic[_T]):
         cast_to = cast(Any, self._cast_to)
         response = self.response
         process_data = self._client._process_response_data
+        normalize_stream_event = _make_stream_event_normalizer(cast_to)
         iterator = self._iter_events()
 
         try:
@@ -195,6 +200,9 @@ class AsyncStream(Generic[_T]):
                     yield process_data(data={"data": data, "event": sse.event}, cast_to=cast_to, response=response)
                 else:
                     data = sse.json()
+                    if normalize_stream_event is not None:
+                        data = normalize_stream_event(data)
+
                     if is_mapping(data) and data.get("error"):
                         message = None
                         error = data.get("error")
@@ -429,6 +437,31 @@ def is_stream_class_type(typ: type) -> TypeGuard[type[Stream[object]] | type[Asy
     """TypeGuard for determining whether or not the given type is a subclass of `Stream` / `AsyncStream`"""
     origin = get_origin(typ) or typ
     return inspect.isclass(origin) and issubclass(origin, (Stream, AsyncStream))
+
+
+def _make_stream_event_normalizer(cast_to: object) -> Callable[[object], object] | None:
+    if not _is_response_stream_event_type(cast_to):
+        return None
+
+    from .lib.streaming.responses._stream_event_normalizer import ResponseStreamEventNormalizer
+
+    return ResponseStreamEventNormalizer().normalize
+
+
+def _is_response_stream_event_type(cast_to: object) -> bool:
+    annotated_args = get_args(cast_to)
+    if not annotated_args:
+        return False
+
+    event_types = get_args(annotated_args[0])
+    return any(
+        getattr(event_type, "__module__", None)
+        in {
+            "openai.types.responses.response_function_call_arguments_done_event",
+            "openai.types.beta.beta_response_function_call_arguments_done_event",
+        }
+        for event_type in event_types
+    )
 
 
 def extract_stream_chunk_type(

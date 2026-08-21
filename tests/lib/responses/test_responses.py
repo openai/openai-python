@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+from typing import cast
 from typing_extensions import TypeVar
 
+import httpx2
 import pytest
 from inline_snapshot import snapshot
 
@@ -10,7 +12,7 @@ from tests.respx2 import MockRouter
 from openai._types import omit
 from openai._utils import assert_signatures_in_sync
 from openai._models import construct_type_unchecked
-from openai.types.responses import Response
+from openai.types.responses import Response, ResponseFunctionCallArgumentsDoneEvent
 from openai.lib._parsing._responses import parse_response
 
 from ...conftest import base_url
@@ -103,3 +105,38 @@ def test_parse_method_definition_in_sync(sync: bool, client: OpenAI, async_clien
         checking_client.responses.parse,
         exclude_params={"tools"},
     )
+
+
+@pytest.mark.respx2(base_url=base_url)
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+async def test_streamed_function_call_arguments_done_uses_output_item_name(
+    sync: bool,
+    client: OpenAI,
+    async_client: AsyncOpenAI,
+    respx2_mock: MockRouter,
+) -> None:
+    respx2_mock.post("/responses").mock(
+        return_value=httpx2.Response(
+            200,
+            headers={"content-type": "text/event-stream"},
+            content=(
+                b'data: {"type":"response.output_item.added","item":{"id":"fc_test","type":"function_call",'
+                b'"call_id":"call_test","name":"get_weather","arguments":""},"output_index":0,'
+                b'"sequence_number":1}\n\n'
+                b'data: {"type":"response.function_call_arguments.done","arguments":"{}",'
+                b'"item_id":"fc_test","output_index":0,"sequence_number":2}\n\n'
+                b"data: [DONE]\n\n"
+            ),
+        )
+    )
+
+    if sync:
+        stream = client.responses.create(model="gpt-4o", input="call a tool", stream=True)
+        events = list(stream)
+    else:
+        stream = await async_client.responses.create(model="gpt-4o", input="call a tool", stream=True)
+        events = [event async for event in stream]
+
+    done_event = cast(ResponseFunctionCallArgumentsDoneEvent, events[1])
+    assert done_event.type == "response.function_call_arguments.done"
+    assert done_event.name == "get_weather"

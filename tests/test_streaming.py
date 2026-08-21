@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sys
 from typing import Iterator, AsyncIterator
 
 import httpx2
@@ -7,6 +8,7 @@ import pytest
 
 from openai import OpenAI, AsyncOpenAI
 from openai._streaming import Stream, AsyncStream, ServerSentEvent
+from openai.types.chat.chat_completion_chunk import ChatCompletionChunk
 
 
 @pytest.mark.asyncio
@@ -214,6 +216,33 @@ async def test_multi_byte_character_multiple_chunks(
     sse = await iter_next(iterator)
     assert sse.event is None
     assert sse.json() == {"content": "известни"}
+
+
+def test_unrelated_stream_does_not_import_responses_normalizer(
+    monkeypatch: pytest.MonkeyPatch,
+    client: OpenAI,
+) -> None:
+    for module_name in list(sys.modules):
+        if module_name.startswith("openai.lib.streaming.responses"):
+            monkeypatch.delitem(sys.modules, module_name)
+
+    stream = Stream(
+        cast_to=ChatCompletionChunk,
+        client=client,
+        response=httpx2.Response(
+            200,
+            content=(
+                b'data: {"id":"chatcmpl_test","object":"chat.completion.chunk","created":1,'
+                b'"model":"gpt-4o","choices":[]}\n\n'
+                b"data: [DONE]\n\n"
+            ),
+        ),
+    )
+
+    chunks = list(stream)
+
+    assert chunks[0].id == "chatcmpl_test"
+    assert "openai.lib.streaming.responses._stream_event_normalizer" not in sys.modules
 
 
 async def to_aiter(iter: Iterator[bytes]) -> AsyncIterator[bytes]:
