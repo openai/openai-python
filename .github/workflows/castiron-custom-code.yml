@@ -3,20 +3,32 @@ name: Castiron custom code
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize, reopened, ready_for_review, edited]
+  # Notify the existing trusted handler for queue candidates.
+  merge_group:
+    types: [checks_requested]
 
 permissions:
   contents: read
 
 concurrency:
-  group: castiron-custom-code-${{ github.event.pull_request.number }}
+  group: castiron-custom-code-${{ github.event.pull_request.number || github.event.merge_group.head_ref }}
   cancel-in-progress: false
 
 env:
   REPORTER_SHA256: ac48ca88e9f7ad57195038157e99f055c0cd3dac8de856e4d102dca807766d4a
 
 jobs:
+  queue-signal:
+    if: github.event_name == 'merge_group'
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    permissions: {}
+    steps:
+      - run: echo 'The workflow_run handler on main evaluates this candidate independently.'
+
   report:
+    if: github.event_name == 'pull_request'
     name: Castiron / baseline consistency
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -44,8 +56,8 @@ jobs:
       - name: Verify the reporter matches its generated workflow
         run: printf '%s  %s\n' "$REPORTER_SHA256" scripts/castiron/custom_code_report.py | sha256sum --check --strict
 
-      - name: Test hash mismatch and snapshot isolation
-        run: python3 -m unittest discover -s scripts/castiron -p test_custom_code_report.py
+      - name: Test snapshot isolation and the custom-code budget
+        run: python3 -m unittest discover -s scripts/castiron -p 'test_custom_code*.py'
 
       - name: Validate the codegen hash and report custom code
         env:
