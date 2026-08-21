@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sys
 import array
 import base64
 from typing import cast
@@ -24,12 +25,16 @@ def parse_embedding_response(
         data = cast(object, embedding.embedding)
         if not isinstance(data, str):
             continue
+        decoded = base64.b64decode(data)
         if not has_numpy():
             # use array for base64 optimisation
-            embedding.embedding = array.array("f", base64.b64decode(data)).tolist()
+            floats = array.array("f", decoded)
+            if sys.byteorder == "big":
+                floats.byteswap()
+            embedding.embedding = floats.tolist()
         else:
             embedding.embedding = np.frombuffer(  # type: ignore[no-untyped-call]
-                base64.b64decode(data), dtype="float32"
+                decoded, dtype="<f4"
             ).tolist()
 
     return obj

@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import json
-import array
 import base64
+import struct
 import binascii
+from types import SimpleNamespace
 from typing import Any, cast
 from typing_extensions import Literal
 
@@ -18,7 +19,7 @@ from openai.lib._parsing import _embeddings as embeddings_parser
 from openai.types.create_embedding_response import CreateEmbeddingResponse
 
 VALUES = [0.125, -2.5, 3.75]
-ENCODED = base64.b64encode(array.array("f", VALUES).tobytes()).decode("ascii")
+ENCODED = base64.b64encode(struct.pack("<3f", *VALUES)).decode("ascii")
 EncodingFormat = Literal["float", "base64"] | Omit
 ResponseMode = Literal["normal", "raw", "streaming"]
 
@@ -61,6 +62,36 @@ def test_decode_preserves_response_and_non_string_vectors(encoding_format: Omit 
     assert parsed.data[2].embedding == VALUES
     assert parsed.usage is usage
     assert parsed.model == "text-embedding-3-small"
+
+
+def test_stdlib_decoder_swaps_big_endian_values(monkeypatch: pytest.MonkeyPatch) -> None:
+    response = make_response(ENCODED)
+    decoded = base64.b64decode(ENCODED)
+
+    class Floats:
+        swapped = False
+
+        def byteswap(self) -> None:
+            self.swapped = True
+
+        def tolist(self) -> list[float]:
+            assert self.swapped
+            return VALUES
+
+    floats = Floats()
+
+    def make_array(typecode: str, initializer: bytes) -> Floats:
+        assert typecode == "f"
+        assert initializer == decoded
+        return floats
+
+    monkeypatch.setattr(embeddings_parser, "has_numpy", lambda: False)
+    monkeypatch.setattr(embeddings_parser, "sys", SimpleNamespace(byteorder="big"))
+    monkeypatch.setattr(embeddings_parser.array, "array", make_array)
+
+    parsed = embeddings_parser.parse_embedding_response(response, encoding_format=omit)
+
+    assert parsed.data[0].embedding == VALUES
 
 
 @pytest.mark.parametrize("encoding_format", ["float", "base64", None])
