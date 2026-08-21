@@ -81,6 +81,14 @@ Most of the SDK is generated code. Modifications to code will be persisted betwe
 result in merge conflicts between manual patches and changes from the generator. The generator will never
 modify the contents of the `src/openai/lib/` and `examples/` directories.
 
+## Custom-code budget
+
+The Python-only handwritten budget gate limits remaining custom additions plus
+deletions against verified generated output. See [CUSTOM_CODE_BUDGET.md](CUSTOM_CODE_BUDGET.md)
+for the metric, local checks, trusted CI, and rollout instructions. Budget changes
+must be separate, budget-only PRs with justification in the description; increases
+require a human approving review. Agents may not approve increases or bypass the gate.
+
 ## Security requirements for contributions
 
 - Never commit API or admin keys, bearer tokens, webhook secrets, cloud
