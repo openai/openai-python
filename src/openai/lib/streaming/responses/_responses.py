@@ -340,6 +340,17 @@ class ResponseStreamState(Generic[TextFormatT]):
                 )
             else:
                 snapshot.output.append(event.item)
+        elif event.type == "response.output_item.done":
+            if event.item.type == "function_call":
+                snapshot.output[event.output_index] = construct_type_unchecked(
+                    type_=cast(Any, ParsedResponseFunctionToolCall), value=event.item.to_dict()
+                )
+            elif event.item.type == "message":
+                snapshot.output[event.output_index] = construct_type_unchecked(
+                    type_=cast(Any, ParsedResponseOutputMessage), value=event.item.to_dict()
+                )
+            else:
+                snapshot.output[event.output_index] = event.item
         elif event.type == "response.content_part.added":
             output = snapshot.output[event.output_index]
             if output.type == "message":
