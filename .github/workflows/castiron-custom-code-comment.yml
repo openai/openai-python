@@ -15,7 +15,7 @@ concurrency:
 jobs:
   compute:
     name: Compute trusted custom-code report
-    if: github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.path == '.github/workflows/castiron-custom-code.yml'
+    if: contains(fromJSON('["pull_request", "merge_group"]'), github.event.workflow_run.event) && github.event.workflow_run.path == '.github/workflows/castiron-custom-code.yml'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -26,15 +26,20 @@ jobs:
       number: ${{ steps.report.outputs.number }}
       artifact-id: ${{ steps.artifact.outputs.artifact-id }}
       artifact-run-attempt: ${{ github.run_attempt }}
+      base-sha: ${{ steps.budget.outputs.base_sha }}
+      head-sha: ${{ steps.budget.outputs.head_sha }}
+      isolation: ${{ steps.budget.outputs.isolation }}
+      budget: ${{ steps.budget.outputs.budget }}
     steps:
       - name: Check out the trusted reporter
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
-          ref: ${{ github.workflow_sha }}
+          ref: main
           persist-credentials: false
 
       - name: Compute from the current pull request Git objects
         id: report
+        if: github.event.workflow_run.event == 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
           GIT_CONFIG_COUNT: '2'
@@ -66,10 +71,110 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
+      # The prior step's report was computed here from
+      # Git objects by main's reporter, not downloaded from the candidate run.
+      - name: Evaluate main's custom-code budget
+        id: budget
+        if: always()
+        continue-on-error: true # A budget failure must not suppress the existing report comment.
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          SOURCE_EVENT: ${{ github.event.workflow_run.event }}
+          GIT_CONFIG_COUNT: '2'
+          GIT_CONFIG_KEY_0: credential.helper
+          GIT_CONFIG_VALUE_0: ''
+          GIT_CONFIG_KEY_1: credential.https://github.com.helper
+          GIT_CONFIG_VALUE_1: '!gh auth git-credential'
+        run: |
+          trusted_sha=$(git rev-parse HEAD)
+          reuse=()
+          if [[ "$SOURCE_EVENT" == pull_request ]]; then
+            reuse=(--trusted-report-dir "$RUNNER_TEMP/castiron-custom-code")
+          fi
+          python3 -I scripts/castiron/custom_code_budget.py github \
+            --repository "$REPOSITORY" --event-path "$GITHUB_EVENT_PATH" \
+            --trusted-sha "$trusted_sha" --repo "$RUNNER_TEMP/castiron-objects.git" \
+            "${reuse[@]}" --out "$RUNNER_TEMP/custom-code-budget"
+
+      - name: Add the budget to the run summary
+        if: always()
+        run: |
+          if test -f "$RUNNER_TEMP/custom-code-budget/summary.md"; then
+            cat "$RUNNER_TEMP/custom-code-budget/summary.md" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload trusted budget measurements
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: custom-code-budget-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/custom-code-budget/
+          if-no-files-found: error
+          retention-days: 7
+
+  budget-status:
+    name: Publish custom-code budget checks
+    needs: compute
+    if: always() && !cancelled() && needs.compute.result != 'skipped'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: read
+      statuses: write
+    steps:
+      # This workflow definition is from main. No candidate checkout/artifacts.
+      - name: Publish exact-head statuses after checking freshness
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        env:
+          BASE_SHA: ${{ needs.compute.outputs.base-sha }}
+          HEAD_SHA: ${{ needs.compute.outputs.head-sha }}
+          ISOLATION_RESULT: ${{ needs.compute.outputs.isolation }}
+          BUDGET_RESULT: ${{ needs.compute.outputs.budget }}
+        with:
+          script: |
+            const event = context.payload.workflow_run;
+            const {data: run} = await github.rest.actions.getWorkflowRun({...context.repo, run_id: event.id});
+            if (run.head_sha !== event.head_sha || run.run_attempt !== event.run_attempt ||
+                run.status !== 'completed' || run.path.split('@', 1)[0] !== '.github/workflows/castiron-custom-code.yml' ||
+                run.repository.full_name !== `${context.repo.owner}/${context.repo.repo}`) return;
+            const head = run.head_sha;
+            if (!/^[0-9a-f]{40}$/.test(head)) throw new Error('Invalid candidate SHA');
+            const {data: main} = await github.rest.git.getRef({...context.repo, ref: 'heads/main'});
+            const base = main.object.sha;
+            if (run.event === 'pull_request') {
+              const pulls = run.pull_requests.length ? run.pull_requests : await github.paginate(
+                github.rest.repos.listPullRequestsAssociatedWithCommit, {...context.repo, commit_sha: head});
+              const current = [];
+              for (const pull of pulls) {
+                const {data: pr} = await github.rest.pulls.get({...context.repo, pull_number: pull.number});
+                if (pr.state === 'open' && pr.head.sha === head && pr.base.sha === base &&
+                    pr.base.ref === 'main' && pr.base.repo.full_name === `${context.repo.owner}/${context.repo.repo}`) current.push(pr);
+              }
+              if (current.length !== 1) return;
+            } else if (run.event !== 'merge_group' || !run.head_branch.startsWith('gh-readonly-queue/main/')) {
+              return;
+            }
+            const fresh = base === process.env.BASE_SHA && head === process.env.HEAD_SHA;
+            const url = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            for (const [name, result] of [
+              ['Castiron / budget-only change', process.env.ISOLATION_RESULT],
+              ['Castiron / custom-code budget', process.env.BUDGET_RESULT],
+            ]) {
+              const state = fresh && result === 'success' ? 'success' : 'failure';
+              const description = !fresh ? 'Evaluation unavailable or base changed; rerun against current main.'
+                : state === 'success' ? 'Passed against main policy. See the trusted run summary.'
+                : 'Budget check failed. See the trusted run summary.';
+              await github.rest.repos.createCommitStatus({...context.repo, sha: head, context: name,
+                state, description, target_url: url});
+            }
+
   comment:
     name: Update custom-code comment
     needs: compute
-    if: always() && !cancelled() && (needs.compute.result == 'failure' || needs.compute.outputs.number != '')
+    if: always() && !cancelled() && github.event.workflow_run.event == 'pull_request' && (needs.compute.result == 'failure' || needs.compute.outputs.number != '')
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
