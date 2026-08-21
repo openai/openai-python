@@ -23,7 +23,13 @@ from openai._types import Omit
 from openai._utils import asyncify
 from openai._models import BaseModel, FinalRequestOptions
 from openai._streaming import Stream, AsyncStream
-from openai._exceptions import APIStatusError, APITimeoutError, APIResponseValidationError
+from openai._exceptions import (
+    APIStatusError,
+    RateLimitError,
+    APITimeoutError,
+    InsufficientQuotaError,
+    APIResponseValidationError,
+)
 from openai._base_client import (
     DEFAULT_TIMEOUT,
     HTTPX_DEFAULT_TIMEOUT,
@@ -1435,6 +1441,164 @@ class TestOpenAI:
         client._refresh_api_key()
         assert client.auth_headers == {"Authorization": "Bearer test_bearer_token_2"}
 
+    @pytest.mark.respx()
+    def test_429_insufficient_quota(self, respx_mock: MockRouter) -> None:
+        respx_mock.post(base_url + "/chat/completions").mock(
+            return_value=httpx.Response(
+                429,
+                json={
+                    "error": {
+                        "message": "You exceeded your current quota.",
+                        "type": "insufficient_quota",
+                        "code": "insufficient_quota",
+                    }
+                },
+            )
+        )
+
+        with OpenAI(
+            base_url=base_url,
+            api_key="test-api-key",
+            max_retries=0,
+            _strict_response_validation=True,
+        ) as client:
+            with pytest.raises(InsufficientQuotaError) as exc_info:
+                client.chat.completions.create(messages=[], model="gpt-4")
+
+            assert exc_info.value.status_code == 429
+            assert exc_info.value.code == "insufficient_quota"
+            assert isinstance(exc_info.value, RateLimitError)
+
+            calls = cast("list[MockRequestCall]", respx_mock.calls)
+            assert len(calls) == 1
+
+    @pytest.mark.respx()
+    def test_429_rate_limit_without_insufficient_quota(self, respx_mock: MockRouter) -> None:
+        respx_mock.post(base_url + "/chat/completions").mock(
+            return_value=httpx.Response(
+                429,
+                json={
+                    "error": {
+                        "message": "Rate limit reached.",
+                        "type": "rate_limit_error",
+                        "code": "rate_limit_exceeded",
+                    }
+                },
+            )
+        )
+
+        with OpenAI(
+            base_url=base_url,
+            api_key="test-api-key",
+            max_retries=0,
+            _strict_response_validation=True,
+        ) as client:
+            with pytest.raises(RateLimitError) as exc_info:
+                client.chat.completions.create(messages=[], model="gpt-4")
+
+            assert exc_info.value.status_code == 429
+            assert exc_info.value.code == "rate_limit_exceeded"
+            assert not isinstance(exc_info.value, InsufficientQuotaError)
+
+            calls = cast("list[MockRequestCall]", respx_mock.calls)
+            assert len(calls) == 1
+
+    @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @pytest.mark.respx()
+    def test_429_insufficient_quota_is_not_retried(self, respx_mock: MockRouter) -> None:
+        respx_mock.post(base_url + "/chat/completions").mock(
+            return_value=httpx.Response(
+                429,
+                json={
+                    "error": {
+                        "message": "You exceeded your current quota.",
+                        "type": "insufficient_quota",
+                        "code": "insufficient_quota",
+                    }
+                },
+            )
+        )
+
+        with OpenAI(
+            base_url=base_url,
+            api_key="test-api-key",
+            max_retries=3,
+            _strict_response_validation=True,
+        ) as client:
+            with pytest.raises(InsufficientQuotaError):
+                client.chat.completions.create(messages=[], model="gpt-4")
+
+            # insufficient_quota is a deterministic failure, so retrying is pointless;
+            # the request should not be retried even though max_retries > 0.
+            calls = cast("list[MockRequestCall]", respx_mock.calls)
+            assert len(calls) == 1
+
+    @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @pytest.mark.respx()
+    def test_429_insufficient_quota_is_not_retried_streaming(self, respx_mock: MockRouter) -> None:
+        respx_mock.post(base_url + "/chat/completions").mock(
+            return_value=httpx.Response(
+                429,
+                json={
+                    "error": {
+                        "message": "You exceeded your current quota.",
+                        "type": "insufficient_quota",
+                        "code": "insufficient_quota",
+                    }
+                },
+            )
+        )
+
+        with OpenAI(
+            base_url=base_url,
+            api_key="test-api-key",
+            max_retries=3,
+            _strict_response_validation=True,
+        ) as client:
+            with pytest.raises(InsufficientQuotaError):
+                with client.chat.completions.with_streaming_response.create(messages=[], model="gpt-4") as response:
+                    response.read()
+
+            # The error body is only available once the stream is read, but the
+            # `insufficient_quota` classification must still apply and the request
+            # should not be retried even though max_retries > 0.
+            calls = cast("list[MockRequestCall]", respx_mock.calls)
+            assert len(calls) == 1
+
+    @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @pytest.mark.respx(base_url=base_url)
+    def test_429_still_retried_if_streamed_body_read_fails(self, respx_mock: MockRouter, client: OpenAI) -> None:
+        respx_mock.post("/chat/completions").mock(return_value=httpx.Response(429))
+
+        # respx pre-reads its own canned response while resolving each mocked call
+        # (a distinct object each time), then our own retry-classification code reads
+        # the actual response object handed back — always the 2nd .read() of each pair.
+        # Fail that one to simulate the connection dropping mid-stream; that must not
+        # stop a plain 429 from being retried on status code alone.
+        original_read = httpx.Response.read
+        read_calls = [0]
+
+        def flaky_read(self: httpx.Response) -> bytes:
+            read_calls[0] += 1
+            if read_calls[0] % 2 == 0:
+                raise httpx.ReadError("mid-stream connection reset")
+            return original_read(self)
+
+        with mock.patch.object(httpx.Response, "read", flaky_read):
+            with pytest.raises(RateLimitError):
+                client.chat.completions.with_streaming_response.create(
+                    messages=[
+                        {
+                            "content": "string",
+                            "role": "developer",
+                        }
+                    ],
+                    model="gpt-5.4",
+                ).__enter__()
+
+        calls = cast("list[MockRequestCall]", respx_mock.calls)
+        assert len(calls) == client.max_retries + 1
+
 
 class TestAsyncOpenAI:
     @pytest.mark.respx2(base_url=base_url)
@@ -2742,6 +2906,168 @@ class TestAsyncOpenAI:
         client = AsyncOpenAI(base_url=base_url, api_key=token_provider_1).copy(api_key=token_provider_2)
         await client._refresh_api_key()
         assert client.auth_headers == {"Authorization": "Bearer test_bearer_token_2"}
+
+    @pytest.mark.respx()
+    async def test_429_insufficient_quota(self, respx_mock: MockRouter) -> None:
+        respx_mock.post(base_url + "/chat/completions").mock(
+            return_value=httpx.Response(
+                429,
+                json={
+                    "error": {
+                        "message": "You exceeded your current quota.",
+                        "type": "insufficient_quota",
+                        "code": "insufficient_quota",
+                    }
+                },
+            )
+        )
+
+        async with AsyncOpenAI(
+            base_url=base_url,
+            api_key="test-api-key",
+            max_retries=0,
+            _strict_response_validation=True,
+        ) as client:
+            with pytest.raises(InsufficientQuotaError) as exc_info:
+                await client.chat.completions.create(messages=[], model="gpt-4")
+
+            assert exc_info.value.status_code == 429
+            assert exc_info.value.code == "insufficient_quota"
+            assert isinstance(exc_info.value, RateLimitError)
+
+            calls = cast("list[MockRequestCall]", respx_mock.calls)
+            assert len(calls) == 1
+
+    @pytest.mark.respx()
+    async def test_429_rate_limit_without_insufficient_quota(self, respx_mock: MockRouter) -> None:
+        respx_mock.post(base_url + "/chat/completions").mock(
+            return_value=httpx.Response(
+                429,
+                json={
+                    "error": {
+                        "message": "Rate limit reached.",
+                        "type": "rate_limit_error",
+                        "code": "rate_limit_exceeded",
+                    }
+                },
+            )
+        )
+
+        async with AsyncOpenAI(
+            base_url=base_url,
+            api_key="test-api-key",
+            max_retries=0,
+            _strict_response_validation=True,
+        ) as client:
+            with pytest.raises(RateLimitError) as exc_info:
+                await client.chat.completions.create(messages=[], model="gpt-4")
+
+            assert exc_info.value.status_code == 429
+            assert exc_info.value.code == "rate_limit_exceeded"
+            assert not isinstance(exc_info.value, InsufficientQuotaError)
+
+            calls = cast("list[MockRequestCall]", respx_mock.calls)
+            assert len(calls) == 1
+
+    @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @pytest.mark.respx()
+    async def test_429_insufficient_quota_is_not_retried(self, respx_mock: MockRouter) -> None:
+        respx_mock.post(base_url + "/chat/completions").mock(
+            return_value=httpx.Response(
+                429,
+                json={
+                    "error": {
+                        "message": "You exceeded your current quota.",
+                        "type": "insufficient_quota",
+                        "code": "insufficient_quota",
+                    }
+                },
+            )
+        )
+
+        async with AsyncOpenAI(
+            base_url=base_url,
+            api_key="test-api-key",
+            max_retries=3,
+            _strict_response_validation=True,
+        ) as client:
+            with pytest.raises(InsufficientQuotaError):
+                await client.chat.completions.create(messages=[], model="gpt-4")
+
+            # insufficient_quota is a deterministic failure, so retrying is pointless;
+            # the request should not be retried even though max_retries > 0.
+            calls = cast("list[MockRequestCall]", respx_mock.calls)
+            assert len(calls) == 1
+
+    @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @pytest.mark.respx(base_url=base_url)
+    async def test_429_still_retried_if_streamed_body_read_fails(
+        self, respx_mock: MockRouter, async_client: AsyncOpenAI
+    ) -> None:
+        respx_mock.post("/chat/completions").mock(return_value=httpx.Response(429))
+
+        # respx pre-reads its own canned response while resolving each mocked call
+        # (a distinct object each time), then our own retry-classification code reads
+        # the actual response object handed back — always the 2nd .aread() of each pair.
+        # Fail that one to simulate the connection dropping mid-stream; that must not
+        # stop a plain 429 from being retried on status code alone.
+        original_aread = httpx.Response.aread
+        aread_calls = [0]
+
+        async def flaky_aread(self: httpx.Response) -> bytes:
+            aread_calls[0] += 1
+            if aread_calls[0] % 2 == 0:
+                raise httpx.ReadError("mid-stream connection reset")
+            return await original_aread(self)
+
+        with mock.patch.object(httpx.Response, "aread", flaky_aread):
+            with pytest.raises(RateLimitError):
+                await async_client.chat.completions.with_streaming_response.create(
+                    messages=[
+                        {
+                            "content": "string",
+                            "role": "developer",
+                        }
+                    ],
+                    model="gpt-5.4",
+                ).__aenter__()
+
+        calls = cast("list[MockRequestCall]", respx_mock.calls)
+        assert len(calls) == async_client.max_retries + 1
+
+    @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @pytest.mark.respx()
+    async def test_429_insufficient_quota_is_not_retried_streaming(self, respx_mock: MockRouter) -> None:
+        respx_mock.post(base_url + "/chat/completions").mock(
+            return_value=httpx.Response(
+                429,
+                json={
+                    "error": {
+                        "message": "You exceeded your current quota.",
+                        "type": "insufficient_quota",
+                        "code": "insufficient_quota",
+                    }
+                },
+            )
+        )
+
+        async with AsyncOpenAI(
+            base_url=base_url,
+            api_key="test-api-key",
+            max_retries=3,
+            _strict_response_validation=True,
+        ) as client:
+            with pytest.raises(InsufficientQuotaError):
+                async with client.chat.completions.with_streaming_response.create(
+                    messages=[], model="gpt-4"
+                ) as response:
+                    await response.read()
+
+            # The error body is only available once the stream is read, but the
+            # `insufficient_quota` classification must still apply and the request
+            # should not be retried even though max_retries > 0.
+            calls = cast("list[MockRequestCall]", respx_mock.calls)
+            assert len(calls) == 1
 
 
 class TestWorkloadIdentity401Retry:
