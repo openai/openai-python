@@ -76,6 +76,42 @@ async def _async_strip_azure_api_key_on_redirect(request: httpx2.Request) -> Non
     _strip_azure_api_key_on_redirect(request)
 
 
+def _get_served_model_from_headers(headers: httpx2.Headers) -> str | None:
+    # httpx headers are case-insensitive, but be defensive and check lowercased
+    header = headers.get("x-ms-served-model")
+    if header is not None:
+        header = header.strip()
+        if header:
+            return header
+    # Fallback: iterate case-insensitively
+    for key, value in headers.items():
+        if key.lower() == "x-ms-served-model":
+            value = value.strip()
+            if value:
+                return value
+    return None
+
+
+def _should_promote_for_url(url: str | httpx2.URL | None, headers: httpx2.Headers) -> str | None:
+    if url is None:
+        return None
+    url_str = str(url)
+    if "/responses" not in url_str:
+        return None
+    return _get_served_model_from_headers(headers)
+
+
+def _promote_model_on_response(obj: Any, header: str) -> None:
+    try:
+        if hasattr(obj, "model"):
+            # Response and similar
+            object.__setattr__(obj, "model", header)
+        elif hasattr(obj, "response") and hasattr(obj.response, "model"):
+            object.__setattr__(obj.response, "model", header)
+    except Exception:
+        pass
+
+
 class MutuallyExclusiveAuthError(OpenAIError):
     def __init__(self) -> None:
         super().__init__(
@@ -172,6 +208,60 @@ class BaseAzureClient(BaseClient[_HttpxClientT, _DefaultStreamT]):
             return merge_url
 
         return super()._prepare_url(url)
+
+    @override
+    def _process_response(  # type: ignore[override]
+        self,
+        *,
+        cast_to: type[ResponseT],
+        options: FinalRequestOptions,
+        response: httpx2.Response,
+        stream: bool,
+        stream_cls: type[Stream[Any]] | type[AsyncStream[Any]] | None,
+        retries_taken: int = 0,
+    ) -> ResponseT:
+        result = super()._process_response(  # type: ignore[misc]
+            cast_to=cast_to,
+            options=options,
+            response=response,
+            stream=stream,
+            stream_cls=stream_cls,
+            retries_taken=retries_taken,
+        )
+
+        header = _should_promote_for_url(options.url, response.headers)
+        if header is None:
+            # Also check the actual request URL in case it was rewritten
+            try:
+                header = _should_promote_for_url(str(response.request.url), response.headers)
+            except Exception:
+                header = None
+        if header is None:
+            return result
+
+        # Non-streaming: result is a Response
+        if not stream:
+            _promote_model_on_response(result, header)
+            return result
+
+        # Streaming: result is a Stream, wrap its iterator to promote each event's response.model
+        try:
+            from openai._streaming import Stream as _Stream
+
+            if isinstance(result, _Stream):
+                orig_stream = result  # type: ignore[assignment]
+                orig_iterator = orig_stream._iterator  # type: ignore[attr-defined]
+
+                def _wrapped_stream():  # type: ignore[no-untyped-def]
+                    for event in orig_iterator:
+                        _promote_model_on_response(event, header)
+                        yield event
+
+                orig_stream._iterator = _wrapped_stream()  # type: ignore[attr-defined]
+        except Exception:
+            pass
+
+        return result
 
 
 class AzureOpenAI(BaseAzureClient[httpx2.Client, Stream[Any]], OpenAI):
@@ -875,3 +965,54 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx2.AsyncClient, AsyncStream[Any]], As
 
         url = realtime_url.copy_with(params={**query})
         return url, auth_headers
+
+    @override
+    async def _process_response(  # type: ignore[override]
+        self,
+        *,
+        cast_to: type[ResponseT],
+        options: FinalRequestOptions,
+        response: httpx2.Response,
+        stream: bool,
+        stream_cls: type[Stream[Any]] | type[AsyncStream[Any]] | None,
+        retries_taken: int = 0,
+    ) -> ResponseT:
+        result = await super()._process_response(  # type: ignore[misc]
+            cast_to=cast_to,
+            options=options,
+            response=response,
+            stream=stream,
+            stream_cls=stream_cls,
+            retries_taken=retries_taken,
+        )
+
+        header = _should_promote_for_url(options.url, response.headers)
+        if header is None:
+            try:
+                header = _should_promote_for_url(str(response.request.url), response.headers)
+            except Exception:
+                header = None
+        if header is None:
+            return result
+
+        if not stream:
+            _promote_model_on_response(result, header)
+            return result
+
+        try:
+            from openai._streaming import AsyncStream as _AsyncStream
+
+            if isinstance(result, _AsyncStream):
+                orig_stream = result  # type: ignore[assignment]
+                orig_iterator = orig_stream._iterator  # type: ignore[attr-defined]
+
+                async def _wrapped_stream():  # type: ignore[no-untyped-def]
+                    async for event in orig_iterator:
+                        _promote_model_on_response(event, header)
+                        yield event
+
+                orig_stream._iterator = _wrapped_stream()  # type: ignore[attr-defined]
+        except Exception:
+            pass
+
+        return result
