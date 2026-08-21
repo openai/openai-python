@@ -30,9 +30,12 @@ from .response_audio_transcript_done_event import ResponseAudioTranscriptDoneEve
 from .response_mcp_list_tools_failed_event import ResponseMcpListToolsFailedEvent
 from .response_audio_transcript_delta_event import ResponseAudioTranscriptDeltaEvent
 from .response_mcp_call_arguments_done_event import ResponseMcpCallArgumentsDoneEvent
+from .response_shell_call_command_done_event import ResponseShellCallCommandDoneEvent
 from .response_image_gen_call_completed_event import ResponseImageGenCallCompletedEvent
 from .response_mcp_call_arguments_delta_event import ResponseMcpCallArgumentsDeltaEvent
 from .response_mcp_list_tools_completed_event import ResponseMcpListToolsCompletedEvent
+from .response_shell_call_command_added_event import ResponseShellCallCommandAddedEvent
+from .response_shell_call_command_delta_event import ResponseShellCallCommandDeltaEvent
 from .response_image_gen_call_generating_event import ResponseImageGenCallGeneratingEvent
 from .response_web_search_call_completed_event import ResponseWebSearchCallCompletedEvent
 from .response_web_search_call_searching_event import ResponseWebSearchCallSearchingEvent
@@ -52,8 +55,10 @@ from .response_output_text_annotation_added_event import ResponseOutputTextAnnot
 from .response_reasoning_summary_part_added_event import ResponseReasoningSummaryPartAddedEvent
 from .response_reasoning_summary_text_delta_event import ResponseReasoningSummaryTextDeltaEvent
 from .response_function_call_arguments_delta_event import ResponseFunctionCallArgumentsDeltaEvent
+from .response_shell_call_output_content_done_event import ResponseShellCallOutputContentDoneEvent
 from .response_code_interpreter_call_code_done_event import ResponseCodeInterpreterCallCodeDoneEvent
 from .response_code_interpreter_call_completed_event import ResponseCodeInterpreterCallCompletedEvent
+from .response_shell_call_output_content_delta_event import ResponseShellCallOutputContentDeltaEvent
 from .response_code_interpreter_call_code_delta_event import ResponseCodeInterpreterCallCodeDeltaEvent
 from .response_code_interpreter_call_in_progress_event import ResponseCodeInterpreterCallInProgressEvent
 from .response_code_interpreter_call_interpreting_event import ResponseCodeInterpreterCallInterpretingEvent
@@ -81,6 +86,11 @@ ResponseStreamEvent: TypeAlias = Annotated[
         ResponseFileSearchCallSearchingEvent,
         ResponseFunctionCallArgumentsDeltaEvent,
         ResponseFunctionCallArgumentsDoneEvent,
+        ResponseShellCallCommandAddedEvent,
+        ResponseShellCallCommandDeltaEvent,
+        ResponseShellCallCommandDoneEvent,
+        ResponseShellCallOutputContentDeltaEvent,
+        ResponseShellCallOutputContentDoneEvent,
         ResponseInProgressEvent,
         ResponseFailedEvent,
         ResponseIncompleteEvent,

@@ -340,7 +340,7 @@ class AsyncRealtimeConnection:
         then you can call `.parse_event(data)`.
         """
         message = await self._connection.recv(decode=False)
-        log.debug(f"Received WebSocket message: %s", message)
+        log.debug("Received WebSocket message: %i bytes", len(message))
         return message
 
     async def send(self, event: RealtimeClientEvent | RealtimeClientEventParam) -> None:
@@ -464,7 +464,7 @@ class AsyncRealtimeConnection:
         try:
             await self._send_queue.flush_async(_send)
         except Exception:
-            log.warning("Failed to flush send queue after reconnect", exc_info=True)
+            log.warning("Failed to flush send queue after reconnect")
 
     def on(
         self, event_type: str, handler: Callable[..., Any] | None = None
@@ -682,7 +682,7 @@ class AsyncRealtimeConnectionManager:
 
     async def _connect_ws(self, extra_query: Query, extra_headers: Headers) -> AsyncWebSocketConnection:
         try:
-            from websockets.asyncio.client import connect
+            from ...lib._websocket import _WebSocketConnect as connect
         except ImportError as exc:
             raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
 
@@ -691,6 +691,8 @@ class AsyncRealtimeConnectionManager:
         if self.__call_id is not omit:
             extra_query = {**extra_query, "call_id": self.__call_id}
         if is_async_azure_client(self.__client):
+            from ...lib._azure_websocket import _AzureWebSocketConnect as connect
+
             model = self.__model
             if not model:
                 raise OpenAIError("`model` is required for Azure Realtime API")
@@ -704,9 +706,9 @@ class AsyncRealtimeConnectionManager:
                     **extra_query,
                 },
             )
-        log.debug("Connecting to %s", url)
+        log.debug("Connecting to WebSocket API")
         if self.__websocket_connection_options:
-            log.debug("Connection options: %s", self.__websocket_connection_options)
+            log.debug("Custom WebSocket connection options provided")
 
         return await connect(
             str(url),
@@ -820,7 +822,7 @@ class RealtimeConnection:
         then you can call `.parse_event(data)`.
         """
         message = self._connection.recv(decode=False)
-        log.debug(f"Received WebSocket message: %s", message)
+        log.debug("Received WebSocket message: %i bytes", len(message))
         return message
 
     def send(self, event: RealtimeClientEvent | RealtimeClientEventParam) -> None:
@@ -938,7 +940,7 @@ class RealtimeConnection:
         try:
             self._send_queue.flush_sync(lambda data: self._connection.send(data))
         except Exception:
-            log.warning("Failed to flush send queue after reconnect", exc_info=True)
+            log.warning("Failed to flush send queue after reconnect")
 
     def on(
         self, event_type: str, handler: Callable[..., Any] | None = None
@@ -1172,9 +1174,9 @@ class RealtimeConnectionManager:
                     **extra_query,
                 },
             )
-        log.debug("Connecting to %s", url)
+        log.debug("Connecting to WebSocket API")
         if self.__websocket_connection_options:
-            log.debug("Connection options: %s", self.__websocket_connection_options)
+            log.debug("Custom WebSocket connection options provided")
 
         return connect(
             str(url),

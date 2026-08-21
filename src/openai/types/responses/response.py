@@ -6,6 +6,7 @@ from typing_extensions import Literal, Annotated, TypeAlias
 from .tool import Tool
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
+from .service_tier import ServiceTier
 from .response_error import ResponseError
 from .response_usage import ResponseUsage
 from .response_prompt import ResponsePrompt
@@ -401,7 +402,7 @@ class Response(BaseModel):
     [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
     """
 
-    service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast", "ultrafast"]] = None
+    service_tier: Optional[ServiceTier] = None
     """Specifies the processing type used for serving the request.
 
     - If set to 'auto', then the request will be processed with the service tier

@@ -4,6 +4,7 @@ from typing import Optional
 from typing_extensions import Literal
 
 from ..._models import BaseModel
+from .beta_image_detail import BetaImageDetail
 
 __all__ = ["BetaResponseInputImageContent", "PromptCacheBreakpoint"]
 
@@ -27,7 +28,7 @@ class BetaResponseInputImageContent(BaseModel):
     type: Literal["input_image"]
     """The type of the input item. Always `input_image`."""
 
-    detail: Optional[Literal["low", "high", "auto", "original"]] = None
+    detail: Optional[BetaImageDetail] = None
     """The detail level of the image to be sent to the model.
 
     One of `high`, `low`, `auto`, or `original`. Defaults to `auto`.

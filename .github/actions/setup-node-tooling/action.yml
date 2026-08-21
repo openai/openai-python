@@ -1,0 +1,15 @@
+name: Set up repository Node tooling
+description: Install the pinned contributor toolchain and frozen dependencies
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      with:
+        node-version-file: .node-version
+    - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+      with:
+        run_install: false
+    - shell: bash
+      run: ./scripts/bootstrap-node
+    - shell: bash
+      run: node --test tests/node-tooling.test.cjs tests/node-release-age.test.cjs
