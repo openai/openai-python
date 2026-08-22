@@ -1,5 +1,60 @@
 # Changelog
 
+## [3.3.1](https://github.com/openai/openai-python/compare/v3.3.0...v3.3.1) (2026-08-19)
+
+
+### Bug Fixes
+
+* **deps:** update dependencies with published security fixes ([#3680](https://github.com/openai/openai-python/issues/3680)) ([53aa4fc](https://github.com/openai/openai-python/commit/53aa4fc68b65f42456cafaaa5ff4b0d317184752))
+
+
+### Chores
+
+* **build:** migrate to uv ([#3653](https://github.com/openai/openai-python/issues/3653)) ([b37e85d](https://github.com/openai/openai-python/commit/b37e85d8fe9cd2b23862dbc62716d38e2cacaf92))
+* **deps:** remove jsonschema and unused fixture-validation dependencies ([0dfdfdd](https://github.com/openai/openai-python/commit/0dfdfdddfbeb591a1bb5b3b4aa62e4a9870fcaa6))
+* lock the repository Pyright toolchain ([#3678](https://github.com/openai/openai-python/issues/3678)) ([3079be2](https://github.com/openai/openai-python/commit/3079be224c05479b6cf8aa329480c249f66f0599))
+* run the mock server from locked local tooling ([#3679](https://github.com/openai/openai-python/issues/3679)) ([370fcc6](https://github.com/openai/openai-python/commit/370fcc60ce9006db5a75dcd0333790dfe71a907c))
+
+
+### Refactors
+
+* **deps:** use the standard library for platform detection ([d5b0065](https://github.com/openai/openai-python/commit/d5b00659d6659c5def665cb04e6563bdf683ea03))
+
+
+### Build System
+
+* replace the external README metadata hook ([e673ca8](https://github.com/openai/openai-python/commit/e673ca8ff9e5c2292615976e99bf5731d47327e8))
+
+## [3.3.0](https://github.com/openai/openai-python/compare/v3.2.0...v3.3.0) (2026-08-18)
+
+
+### Features
+
+* support named data-residency endpoints ([#3646](https://github.com/openai/openai-python/issues/3646)) ([11ee914](https://github.com/openai/openai-python/commit/11ee91475694d9cd77813763707fbadf68806d4f))
+
+
+### Bug Fixes
+
+* require patched optional networking dependencies ([#3651](https://github.com/openai/openai-python/issues/3651)) ([40e56de](https://github.com/openai/openai-python/commit/40e56de55166a55be3572fdf9750145d4458e144))
+
+
+### Chores
+
+* remove unused dependencies and pin build tooling ([#3650](https://github.com/openai/openai-python/issues/3650)) ([eee8e4a](https://github.com/openai/openai-python/commit/eee8e4a7d0e42bb0d6b9aa01c4dd8e04aaac3ff4))
+
+
+### Documentation
+
+* strengthen Python SDK security contribution guidance ([#3639](https://github.com/openai/openai-python/issues/3639)) ([6577709](https://github.com/openai/openai-python/commit/6577709190ae5e258d0270870f701432f67e6a3e))
+
+## [3.2.0](https://github.com/openai/openai-python/compare/v3.1.0...v3.2.0) (2026-08-17)
+
+
+### Features
+
+* add Bedrock Runtime endpoint support (SDK-290) ([#3623](https://github.com/openai/openai-python/issues/3623)) ([86267d2](https://github.com/openai/openai-python/commit/86267d2737e61e389e9260a18f99bcc1a634811b))
+* **api:** Add shell call streaming events and new service/image types ([#3635](https://github.com/openai/openai-python/issues/3635)) ([ff14a33](https://github.com/openai/openai-python/commit/ff14a33c1b21c36b9e43a0150a3818ee3aa3712a))
+
 ## [3.1.0](https://github.com/openai/openai-python/compare/v3.0.0...v3.1.0) (2026-08-14)
 
 

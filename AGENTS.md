@@ -7,6 +7,45 @@ changing generated files. Handwritten policy, automation, tests, and examples
 should remain small and should not alter exported SDK APIs unless the change
 explicitly requires it.
 
+## Custom-code budget
+
+Follow [the custom-code guidance](scripts/castiron/CUSTOM_CODE.md). Budget changes
+belong in a separate PR containing only `.castiron-ratchet.json`, with an explicit justification
+in the PR description. Increases require a **human approving review** before merging.
+Agents may investigate and draft proposals, but must not approve budget increases
+(including through a human's credentials) or bypass the gate. Do not weaken
+counting, broaden exclusions, or alter generation metadata to make a change pass.
+The checker and effective budget come from main, not the PR. Keep default CODEOWNERS.
+
+## Security requirements for coding agents
+
+- Never commit real API or admin keys, bearer tokens, webhook secrets, cloud
+  credentials, X.509 private keys, release credentials, or `.env` files. Read
+  `OPENAI_API_KEY`, `OPENAI_ADMIN_KEY`, `OPENAI_WEBHOOK_SECRET`, and other
+  credentials from the environment; use clearly fake examples and fixtures.
+- Redact credentials, `Authorization` and `api-key` headers, customer data, and
+  sensitive request or response bodies from logs, exceptions, snapshots, and
+  test output. Clearly fake or sanitized fixtures and safe `APIError.body`
+  diagnostics may remain. Preserve existing sensitive-header filtering,
+  including debug logging.
+- Review direct and transitive dependency changes in `pyproject.toml`, optional
+  extras, dependency groups, and `uv.lock`. Check
+  package provenance, build backends, and install scripts before accepting or
+  running them.
+- Pin third-party GitHub Actions to reviewed full commit SHAs. Minimize
+  job-level token permissions and never expose secrets or write-capable tokens
+  to untrusted pull-request code.
+- Preserve separate build and publish jobs, protected release credentials, and
+  PyPI Trusted Publishing. Grant `id-token: write` only to the trusted,
+  upload-only publishing job; do not introduce long-lived PyPI tokens.
+- Obtain SDK CODEOWNER review and add focused synchronous and asynchronous
+  security regression tests, as applicable, for changes to authentication,
+  X.509 or webhook verification, HTTP destinations, redirects, proxies, TLS,
+  cloud metadata, file uploads, serialization, dependencies, GitHub Actions,
+  or release workflows.
+- Report suspected vulnerabilities privately as described in `SECURITY.md`;
+  never disclose them in public issues, pull requests, or logs.
+
 ## Python version policy
 
 - `requires-python` in `pyproject.toml` is the authoritative technical minimum.
@@ -56,14 +95,14 @@ does not decide whether an EOL grace period or floor increase is appropriate.
 Before publishing a Python-version change, run:
 
 ```sh
-rye lock --all-features
+uv lock
 uv lock --check
-rye build
-rye run python scripts/check-python-version-policy.py
-rye run python scripts/utils/validate-python-version-wheel.py
+./scripts/build
+uv run --locked --all-extras python scripts/check-python-version-policy.py
+uv run --locked --all-extras python scripts/utils/validate-python-version-wheel.py
 python3.9 scripts/utils/validate-python-version-wheel.py --check-python-39
-rye run python scripts/utils/validate-bedrock-wheel.py
-rye run python scripts/utils/validate-httpx2-wheel.py
+uv run --locked --all-extras python scripts/utils/validate-bedrock-wheel.py
+uv run --locked --all-extras python scripts/utils/validate-httpx2-wheel.py
 ./scripts/lint
 ./scripts/test
 ```

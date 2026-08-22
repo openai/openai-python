@@ -267,18 +267,13 @@ class ImageGeneration(BaseModel):
 
     background: Optional[Literal["transparent", "opaque", "auto"]] = None
     """
-    Allows to set transparency for the background of the generated image(s). This
-    parameter is only supported for GPT image models that support transparent
-    backgrounds. Must be one of `transparent`, `opaque`, or `auto` (default value).
-    When `auto` is used, the model will automatically determine the best background
-    for the image.
+    Allows to set transparency for the background of the generated image(s). Must be
+    one of `transparent`, `opaque`, or `auto` (default value). When `auto` is used,
+    the model will automatically determine the best background for the image.
 
-    `gpt-image-2` and `gpt-image-2-2026-04-21` do not support transparent
-    backgrounds. Requests with `background` set to `transparent` will return an
-    error for these models; use `opaque` or `auto` instead.
-
-    If `transparent`, the output format needs to support transparency, so it should
-    be set to either `png` (default value) or `webp`.
+    Transparent backgrounds are available for supported GPT Image models. For
+    `gpt-image-2` and `gpt-image-2-2026-04-21`, this support is in preview. When
+    using `transparent`, set the output format to `png` or `webp`.
     """
 
     input_fidelity: Optional[Literal["high", "low"]] = None
@@ -307,7 +302,11 @@ class ImageGeneration(BaseModel):
         ],
         None,
     ] = None
-    """The image generation model to use. Default: `gpt-image-1`."""
+    """The image generation model to use.
+
+    One of `gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+    `gpt-image-2-2026-04-21`, or `chatgpt-image-latest`. Default: `gpt-image-1`.
+    """
 
     moderation: Optional[Literal["auto", "low"]] = None
     """Moderation level for the generated image. Default: `auto`."""

@@ -6,6 +6,7 @@ from typing import List, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from .tool_param import ToolParam
+from .service_tier import ServiceTier
 from .response_includable import ResponseIncludable
 from .tool_choice_options import ToolChoiceOptions
 from .response_input_param import ResponseInputParam
@@ -212,7 +213,7 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
     """
 
-    service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast", "ultrafast"]]
+    service_tier: Optional[ServiceTier]
     """Specifies the processing type used for serving the request.
 
     - If set to 'auto', then the request will be processed with the service tier

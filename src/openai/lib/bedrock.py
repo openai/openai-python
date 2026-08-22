@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-import re
 import hashlib
 import inspect
 from typing import Any, Literal, Mapping, Callable, Optional, Awaitable, cast
@@ -10,15 +9,22 @@ from typing_extensions import Self, override
 
 import httpx2
 
-from ..auth import WorkloadIdentity
+from ..auth import WorkloadIdentity, X509WorkloadIdentity
 from .._types import NOT_GIVEN, Timeout, NotGiven
 from .._utils import is_given
 from .._client import OpenAI, AsyncOpenAI
+from .._httpx2 import normalize_httpx_url
 from .._models import FinalRequestOptions
 from .._provider import _Provider, _configure_provider
 from .._exceptions import OpenAIError
 from .._base_client import DEFAULT_MAX_RETRIES
-from ..providers.bedrock import AwsCredentialsProvider, bedrock, _BedrockProviderRuntime
+from .._data_residency import DataResidency
+from ..providers.bedrock import (
+    AwsCredentialsProvider,
+    bedrock,
+    _BedrockProviderRuntime,
+    _parse_bedrock_endpoint_hostname,
+)
 
 BedrockTokenProvider = Callable[[], str]
 AsyncBedrockTokenProvider = Callable[[], "str | Awaitable[str]"]
@@ -69,6 +75,13 @@ def _constructor_accepts_keyword(constructor: Callable[..., object], name: str) 
 def _configured_region(region: str | None) -> str | None:
     configured = region or os.environ.get("AWS_REGION") or os.environ.get("AWS_DEFAULT_REGION")
     return configured.strip() if configured is not None and configured.strip() else None
+
+
+def _legacy_endpoint(base_url: str | httpx2.URL | None | NotGiven) -> Literal["mantle"] | None:
+    configured = os.environ.get("AWS_BEDROCK_BASE_URL") if isinstance(base_url, NotGiven) else base_url
+    if configured is None or isinstance(configured, str) and not configured.strip():
+        return None
+    return None if _parse_bedrock_endpoint_hostname(normalize_httpx_url(configured).host) is not None else "mantle"
 
 
 def _uses_region_derived_base_url(base_url: str | httpx2.URL | None) -> bool:
@@ -163,6 +176,7 @@ def _legacy_provider(
         provider_base_url = base_url
 
     provider = bedrock(
+        endpoint=_legacy_endpoint(provider_base_url),
         region=aws_region,
         base_url=provider_base_url,
         api_key=api_key if api_key is not None else environment_token if uses_environment_bearer else NOT_GIVEN,
@@ -267,6 +281,14 @@ def _copy_configuration(
 
     next_region = aws_region if aws_region is not None else client.aws_region
     next_region_was_explicit = aws_region is not None or state.region_was_explicit
+    restores_region_derived_base_url = isinstance(base_url, str) and not base_url.strip()
+    if (
+        (next_api_key is not None or next_token_provider is not None)
+        and not next_region_was_explicit
+        and not restores_region_derived_base_url
+        and (base_url is not None or not state.uses_region_derived_base_url)
+    ):
+        next_region = None
     if aws_profile is not None and aws_region is None and not state.region_was_explicit:
         next_region = None
 
@@ -317,23 +339,27 @@ def _provider_for_legacy_client(
     configuration: _LegacyAuthConfiguration,
 ) -> _Provider:
     mode, credential = configuration
+    state = client._bedrock_state
+    bearer_region = client.aws_region if state.region_was_explicit else None
     if mode == "bearer":
         if not isinstance(credential, str) or not credential:
             raise OpenAIError("The Bedrock bearer credential must not be empty.")
         return bedrock(
-            region=client.aws_region,
+            endpoint=_legacy_endpoint(client.base_url),
+            region=bearer_region,
             base_url=client.base_url,
             api_key=credential,
         )
     if mode == "token_provider":
         return bedrock(
-            region=client.aws_region,
+            endpoint=_legacy_endpoint(client.base_url),
+            region=bearer_region,
             base_url=client.base_url,
             token_provider=cast("AsyncBedrockTokenProvider", credential),
         )
 
-    state = client._bedrock_state
     return bedrock(
+        endpoint=_legacy_endpoint(client.base_url),
         region=client.aws_region,
         base_url=client.base_url,
         profile=state.aws_profile,
@@ -458,14 +484,12 @@ class BedrockOpenAI(OpenAI):
         self._bedrock_state = _state
         self._bedrock_token_provider = cast("BedrockTokenProvider | None", _state.token_provider)
         self._uses_region_derived_base_url = _state.uses_region_derived_base_url
-        canonical_region = re.fullmatch(r"bedrock-mantle\.([a-z0-9-]+)\.api\.aws", self.base_url.host)
+        canonical_endpoint = _parse_bedrock_endpoint_hostname(self.base_url.host)
         provider_region = (
             self._provider_runtime.region if isinstance(self._provider_runtime, _BedrockProviderRuntime) else None
         )
         self.aws_region = (
-            _state.aws_region
-            or provider_region
-            or (canonical_region.group(1) if canonical_region is not None else None)
+            _state.aws_region or provider_region or (canonical_endpoint[1] if canonical_endpoint is not None else None)
         )
         self._bedrock_state = replace(_state, aws_region=self.aws_region)
         self.api_key = public_api_key or ""
@@ -513,7 +537,7 @@ class BedrockOpenAI(OpenAI):
         *,
         api_key: str | BedrockTokenProvider | None = None,
         admin_api_key: str | None = None,
-        workload_identity: WorkloadIdentity | None = None,
+        workload_identity: WorkloadIdentity | X509WorkloadIdentity | None = None,
         provider: _Provider | None | NotGiven = NOT_GIVEN,
         bedrock_token_provider: BedrockTokenProvider | None = None,
         aws_region: str | None = None,
@@ -526,7 +550,8 @@ class BedrockOpenAI(OpenAI):
         project: str | None = None,
         webhook_secret: str | None = None,
         websocket_base_url: str | httpx2.URL | None = None,
-        base_url: str | httpx2.URL | None = None,
+        base_url: str | httpx2.URL | None | NotGiven = NOT_GIVEN,
+        data_residency: DataResidency | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
         http_client: httpx2.Client | None = None,
         max_retries: int | NotGiven = NOT_GIVEN,
@@ -537,6 +562,9 @@ class BedrockOpenAI(OpenAI):
         _enforce_credentials: bool | None = None,
         _extra_kwargs: Mapping[str, Any] = {},
     ) -> Self:
+        if data_residency is not None:
+            raise OpenAIError("`data_residency` is only supported by OpenAI clients")
+        base_url = None if isinstance(base_url, NotGiven) else base_url
         if callable(api_key):
             raise OpenAIError("Pass refreshable Bedrock credentials via `bedrock_token_provider`, not `api_key`.")
         if not isinstance(provider, NotGiven):
@@ -692,14 +720,12 @@ class AsyncBedrockOpenAI(AsyncOpenAI):
         self._bedrock_state = _state
         self._bedrock_token_provider = cast("AsyncBedrockTokenProvider | None", _state.token_provider)
         self._uses_region_derived_base_url = _state.uses_region_derived_base_url
-        canonical_region = re.fullmatch(r"bedrock-mantle\.([a-z0-9-]+)\.api\.aws", self.base_url.host)
+        canonical_endpoint = _parse_bedrock_endpoint_hostname(self.base_url.host)
         provider_region = (
             self._provider_runtime.region if isinstance(self._provider_runtime, _BedrockProviderRuntime) else None
         )
         self.aws_region = (
-            _state.aws_region
-            or provider_region
-            or (canonical_region.group(1) if canonical_region is not None else None)
+            _state.aws_region or provider_region or (canonical_endpoint[1] if canonical_endpoint is not None else None)
         )
         self._bedrock_state = replace(_state, aws_region=self.aws_region)
         self.api_key = public_api_key or ""
@@ -749,7 +775,7 @@ class AsyncBedrockOpenAI(AsyncOpenAI):
         *,
         api_key: str | AsyncBedrockTokenProvider | None = None,
         admin_api_key: str | None = None,
-        workload_identity: WorkloadIdentity | None = None,
+        workload_identity: WorkloadIdentity | X509WorkloadIdentity | None = None,
         provider: _Provider | None | NotGiven = NOT_GIVEN,
         bedrock_token_provider: AsyncBedrockTokenProvider | None = None,
         aws_region: str | None = None,
@@ -762,7 +788,8 @@ class AsyncBedrockOpenAI(AsyncOpenAI):
         project: str | None = None,
         webhook_secret: str | None = None,
         websocket_base_url: str | httpx2.URL | None = None,
-        base_url: str | httpx2.URL | None = None,
+        base_url: str | httpx2.URL | None | NotGiven = NOT_GIVEN,
+        data_residency: DataResidency | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
         http_client: httpx2.AsyncClient | None = None,
         max_retries: int | NotGiven = NOT_GIVEN,
@@ -773,6 +800,9 @@ class AsyncBedrockOpenAI(AsyncOpenAI):
         _enforce_credentials: bool | None = None,
         _extra_kwargs: Mapping[str, Any] = {},
     ) -> Self:
+        if data_residency is not None:
+            raise OpenAIError("`data_residency` is only supported by OpenAI clients")
+        base_url = None if isinstance(base_url, NotGiven) else base_url
         if callable(api_key):
             raise OpenAIError("Pass refreshable Bedrock credentials via `bedrock_token_provider`, not `api_key`.")
         if not isinstance(provider, NotGiven):

@@ -167,6 +167,65 @@ client = OpenAI(
 )
 ```
 
+#### X.509 workload identity (mutual TLS)
+
+For X.509 workload identity federation, configure the client certificate and
+server trust on an HTTPX2 client, then pass only the identity-provider and
+service-account IDs to the SDK:
+
+```python
+import os
+import ssl
+
+from openai import OpenAI, DefaultHttpx2Client
+from openai.auth import x509_workload_identity
+
+tls_context = ssl.create_default_context(
+    cafile=os.getenv("OPENAI_MTLS_CA_BUNDLE"),
+)
+tls_context.load_cert_chain(
+    certfile=os.environ["OPENAI_MTLS_CERTIFICATE_CHAIN"],
+    keyfile=os.environ["OPENAI_MTLS_PRIVATE_KEY"],
+    password=os.getenv("OPENAI_MTLS_PRIVATE_KEY_PASSWORD"),
+)
+
+client = OpenAI(
+    workload_identity=x509_workload_identity(
+        identity_provider_id=os.environ["OPENAI_IDENTITY_PROVIDER_ID"],
+        service_account_id=os.environ["OPENAI_SERVICE_ACCOUNT_ID"],
+        # refresh_buffer_seconds=120.0,
+    ),
+    http_client=DefaultHttpx2Client(
+        verify=tls_context,
+        follow_redirects=False,
+    ),
+)
+```
+
+X.509 mode defaults to `https://mtls.api.openai.com/v1` when neither `base_url`
+nor `OPENAI_BASE_URL` is set. The same configured HTTP client presents its
+certificate to the fixed mTLS token-exchange endpoint and to the API. Tokens
+are exchanged lazily, cached, and refreshed automatically. Certificate files,
+private keys, passwords, server trust, proxies, and rotation remain application
+and transport concerns.
+
+X.509 API requests require HTTPS and must stay on the configured API origin.
+The effective HTTP Host authority must match that origin.
+Provider API-key and proxy-only headers cannot be sent to the API alongside
+X.509 authentication.
+Token exchanges do not inherit API request hooks, authentication, or cookies.
+Identity settings are captured when the client is constructed; create a new
+client to change the identity. Azure clients do not support X.509 workload
+identity.
+
+For asynchronous requests, use `AsyncOpenAI` with
+`DefaultAsyncHttpx2Client`. See the complete [sync rollout-toggle
+example](examples/x509_workload_identity.py) and [async rollout-toggle
+example](examples/x509_workload_identity_async.py), which select API-key or
+X.509 authentication with the application-owned `OPENAI_AUTH_MODE`
+environment variable. X.509 workload identity currently supports HTTP APIs;
+Realtime and WebSockets are not included.
+
 ### Vision
 
 With an image URL:
@@ -950,9 +1009,11 @@ client = AsyncOpenAI(
 See the complete [sync HTTPX2](examples/mtls_httpx2.py) and
 [async HTTPX2](examples/mtls_httpx2_async.py) examples.
 
-The certificate-bearing HTTP client is transport-wide. Dedicate it to the
-selected mTLS origin; do not reuse it for other services or pass it through
-`with_options()` with a different `base_url`. If redirects are required, add an
+The certificate-bearing HTTP client is transport-wide. For API-key mTLS,
+dedicate it to the selected API origin; X.509 workload identity also uses the
+fixed OpenAI mTLS token-exchange origin. Do not reuse the client for unrelated
+services or pass it through `with_options()` with a different `base_url`.
+If redirects are required for API-key mTLS, add an
 HTTPX2 request hook that rejects requests whose scheme, host, or port differs
 from the configured mTLS origin before enabling `follow_redirects`.
 
@@ -969,9 +1030,9 @@ For certificate rotation, build a new `SSLContext`, HTTP client, and `OpenAI` or
 client after its in-flight requests finish. Do not assume existing TLS
 connections will renegotiate.
 
-This recipe applies to ordinary API-key HTTP traffic. It does not implement
-certificate-only X.509 workload identity, token exchange, or Realtime WebSocket
-mTLS.
+This recipe applies to ordinary API-key HTTP traffic. For certificate-backed
+token exchange, use the X.509 workload identity configuration described above.
+Realtime WebSocket mTLS is not included.
 
 ### Managing HTTP resources
 
@@ -1073,7 +1134,7 @@ client = OpenAI(
 
 You can also pass `access_key_id` and `secret_access_key`, with an optional `session_token`, or a refreshable `credential_provider` that returns botocore-compatible credentials. Explicit bearer and AWS credential options are mutually exclusive.
 
-Pass `base_url` to `bedrock(...)` or set `AWS_BEDROCK_BASE_URL` to override the derived `https://bedrock-mantle.<region>.api.aws/openai/v1` endpoint.
+Pass `base_url` to `bedrock(...)` or set `AWS_BEDROCK_BASE_URL` to override the derived `https://bedrock-mantle.<region>.api.aws/openai/v1` endpoint. Custom URLs retain Mantle signing by default; pass `endpoint="runtime"` to use Runtime signing.
 
 SigV4 requests require replayable, fully serialized request bodies. Standard JSON requests already meet this requirement, and response streaming is unaffected. Low-level one-shot request streams must be buffered before sending, or sent with bearer authentication and retries disabled.
 

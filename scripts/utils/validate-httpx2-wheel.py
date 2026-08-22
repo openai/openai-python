@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[2]
 BASE_TEST = ROOT / "tests/test_httpx2_base.py"
 HTTPX2_TEST = ROOT / "tests/test_httpx2.py"
 LEGACY_TEST = ROOT / "tests/test_httpx_compat.py"
+TLS_TEST = ROOT / "tests/test_tls_hostname.py"
 
 
 def venv_python(environment_path: Path) -> Path:
@@ -53,7 +54,7 @@ def validate_metadata(wheel: Path) -> None:
         raise RuntimeError(f"The aiohttp extra must not install the legacy adapter package: {requirements}")
     if {"httpx", "httpx2"} & extras:
         raise RuntimeError(f"HTTP client selection must not require or expose an SDK extra: {extras}")
-    if not any(value.startswith("aiohttp>=3.14.1") for value in aiohttp):
+    if not any(value.startswith("aiohttp>=3.14.3") for value in aiohttp):
         raise RuntimeError(f"Expected the aiohttp extra to require a patched aiohttp release: {aiohttp}")
 
 
@@ -103,14 +104,14 @@ def main() -> None:
     wheel = wheels[0]
     validate_metadata(wheel)
 
-    common = ["pytest==8.4.1", "pytest-asyncio==1.1.0"]
+    common = ["pytest==9.0.3", "pytest-asyncio==1.4.0", "pygments==2.20.0"]
     run_case(wheel, extra=None, tests=[BASE_TEST, HTTPX2_TEST], dependencies=common)
     run_case(wheel, extra="aiohttp", tests=[BASE_TEST], dependencies=common)
     run_case(
         wheel,
         extra=None,
-        tests=[LEGACY_TEST],
-        dependencies=[*common, "httpx-aiohttp>=0.2.0,<0.3"],
+        tests=[LEGACY_TEST, TLS_TEST],
+        dependencies=[*common, "httpx-aiohttp>=0.2.0,<0.3", "cryptography>=50.0.0"],
         legacy=True,
     )
     print("Validated HTTPX2-only base and aiohttp installs plus isolated legacy HTTPX/aiohttp compatibility")

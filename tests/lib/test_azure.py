@@ -8,6 +8,7 @@ import httpx2
 import pytest
 
 from openai import OpenAIError
+from openai.auth import x509_workload_identity
 from tests.utils import update_env
 from tests.respx2 import MockRouter
 from openai._types import Omit
@@ -77,6 +78,18 @@ def test_client_copying_override_options(client: Client) -> None:
         api_version="2022-05-01",
     )
     assert copied._custom_query == {"api-version": "2022-05-01"}
+
+
+@pytest.mark.parametrize("client", [sync_client, async_client])
+@pytest.mark.parametrize("method", ["copy", "with_options"])
+def test_client_copying_rejects_x509_workload_identity(client: Client, method: Literal["copy", "with_options"]) -> None:
+    identity = x509_workload_identity(identity_provider_id="idp_123", service_account_id="svc_acct_123")
+
+    with pytest.raises(OpenAIError, match="X.509 workload identity is not supported by Azure clients"):
+        if method == "copy":
+            client.copy(workload_identity=identity)
+        else:
+            client.with_options(workload_identity=identity)
 
 
 def test_enforce_credentials_false_sync() -> None:

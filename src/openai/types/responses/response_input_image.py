@@ -4,6 +4,7 @@ from typing import Optional
 from typing_extensions import Literal
 
 from ..._models import BaseModel
+from .image_detail import ImageDetail
 
 __all__ = ["ResponseInputImage", "PromptCacheBreakpoint"]
 
@@ -24,7 +25,7 @@ class ResponseInputImage(BaseModel):
     Learn about [image inputs](https://platform.openai.com/docs/guides/vision).
     """
 
-    detail: Literal["low", "high", "auto", "original"]
+    detail: ImageDetail
     """The detail level of the image to be sent to the model.
 
     One of `high`, `low`, `auto`, or `original`. Defaults to `auto`.

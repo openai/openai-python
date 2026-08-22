@@ -5,6 +5,8 @@ from __future__ import annotations
 from typing import Optional
 from typing_extensions import Literal, Required, TypedDict
 
+from .beta_image_detail import BetaImageDetail
+
 __all__ = ["BetaResponseInputImageParam", "PromptCacheBreakpoint"]
 
 
@@ -24,7 +26,7 @@ class BetaResponseInputImageParam(TypedDict, total=False):
     Learn about [image inputs](https://platform.openai.com/docs/guides/vision).
     """
 
-    detail: Required[Literal["low", "high", "auto", "original"]]
+    detail: Required[BetaImageDetail]
     """The detail level of the image to be sent to the model.
 
     One of `high`, `low`, `auto`, or `original`. Defaults to `auto`.

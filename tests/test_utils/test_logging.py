@@ -102,14 +102,17 @@ def test_standard_debug_msg(logger_with_filter: logging.Logger, caplog: pytest.L
 
 
 @pytest.mark.parametrize(("setting", "level"), [("debug", logging.DEBUG), ("info", logging.INFO)])
-def test_httpx2_logger_follows_sdk_log_level(setting: str, level: int, monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.parametrize("transport_level", [logging.WARNING, logging.DEBUG])
+def test_sdk_log_level_preserves_transport_configuration(
+    setting: str, level: int, transport_level: int, monkeypatch: pytest.MonkeyPatch
+) -> None:
     sdk_logger = logging.getLogger("openai")
     transport_logger = logging.getLogger("httpx2")
     monkeypatch.setattr(sdk_logger, "level", sdk_logger.level)
-    monkeypatch.setattr(transport_logger, "level", transport_logger.level)
+    monkeypatch.setattr(transport_logger, "level", transport_level)
     monkeypatch.setenv("OPENAI_LOG", setting)
 
     setup_logging()
 
     assert sdk_logger.level == level
-    assert transport_logger.level == level
+    assert transport_logger.level == transport_level

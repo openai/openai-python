@@ -30,9 +30,12 @@ from .response_audio_transcript_done_event import ResponseAudioTranscriptDoneEve
 from .response_mcp_list_tools_failed_event import ResponseMcpListToolsFailedEvent
 from .response_audio_transcript_delta_event import ResponseAudioTranscriptDeltaEvent
 from .response_mcp_call_arguments_done_event import ResponseMcpCallArgumentsDoneEvent
+from .response_shell_call_command_done_event import ResponseShellCallCommandDoneEvent
 from .response_image_gen_call_completed_event import ResponseImageGenCallCompletedEvent
 from .response_mcp_call_arguments_delta_event import ResponseMcpCallArgumentsDeltaEvent
 from .response_mcp_list_tools_completed_event import ResponseMcpListToolsCompletedEvent
+from .response_shell_call_command_added_event import ResponseShellCallCommandAddedEvent
+from .response_shell_call_command_delta_event import ResponseShellCallCommandDeltaEvent
 from .response_image_gen_call_generating_event import ResponseImageGenCallGeneratingEvent
 from .response_web_search_call_completed_event import ResponseWebSearchCallCompletedEvent
 from .response_web_search_call_searching_event import ResponseWebSearchCallSearchingEvent
@@ -52,8 +55,10 @@ from .response_output_text_annotation_added_event import ResponseOutputTextAnnot
 from .response_reasoning_summary_part_added_event import ResponseReasoningSummaryPartAddedEvent
 from .response_reasoning_summary_text_delta_event import ResponseReasoningSummaryTextDeltaEvent
 from .response_function_call_arguments_delta_event import ResponseFunctionCallArgumentsDeltaEvent
+from .response_shell_call_output_content_done_event import ResponseShellCallOutputContentDoneEvent
 from .response_code_interpreter_call_code_done_event import ResponseCodeInterpreterCallCodeDoneEvent
 from .response_code_interpreter_call_completed_event import ResponseCodeInterpreterCallCompletedEvent
+from .response_shell_call_output_content_delta_event import ResponseShellCallOutputContentDeltaEvent
 from .response_code_interpreter_call_code_delta_event import ResponseCodeInterpreterCallCodeDeltaEvent
 from .response_code_interpreter_call_in_progress_event import ResponseCodeInterpreterCallInProgressEvent
 from .response_code_interpreter_call_interpreting_event import ResponseCodeInterpreterCallInterpretingEvent
@@ -78,6 +83,11 @@ __all__ = [
     "ResponseFileSearchCallWsSearching",
     "ResponseFunctionCallArgumentsWsDelta",
     "ResponseFunctionCallArgumentsWsDone",
+    "ResponseShellCallCommandWsAdded",
+    "ResponseShellCallCommandWsDelta",
+    "ResponseShellCallCommandWsDone",
+    "ResponseShellCallOutputContentWsDelta",
+    "ResponseShellCallOutputContentWsDone",
     "ResponseInWsProgress",
     "ResponseWsFailed",
     "ResponseWsIncomplete",
@@ -306,6 +316,61 @@ class ResponseFunctionCallArgumentsWsDelta(ResponseFunctionCallArgumentsDeltaEve
 
 class ResponseFunctionCallArgumentsWsDone(ResponseFunctionCallArgumentsDoneEvent):
     """Emitted when function-call arguments are finalized."""
+
+    stream_id: Optional[str] = None
+    """The WebSocket lane that emitted this event.
+
+    This field is present when the originating `response.create` event supplied a
+    `stream_id`.
+    """
+
+
+class ResponseShellCallCommandWsAdded(ResponseShellCallCommandAddedEvent):
+    """A streaming event that indicated a shell command was added to a tool call."""
+
+    stream_id: Optional[str] = None
+    """The WebSocket lane that emitted this event.
+
+    This field is present when the originating `response.create` event supplied a
+    `stream_id`.
+    """
+
+
+class ResponseShellCallCommandWsDelta(ResponseShellCallCommandDeltaEvent):
+    """A streaming event that indicated a shell command was incrementally updated."""
+
+    stream_id: Optional[str] = None
+    """The WebSocket lane that emitted this event.
+
+    This field is present when the originating `response.create` event supplied a
+    `stream_id`.
+    """
+
+
+class ResponseShellCallCommandWsDone(ResponseShellCallCommandDoneEvent):
+    """A streaming event that indicated a shell command was completed."""
+
+    stream_id: Optional[str] = None
+    """The WebSocket lane that emitted this event.
+
+    This field is present when the originating `response.create` event supplied a
+    `stream_id`.
+    """
+
+
+class ResponseShellCallOutputContentWsDelta(ResponseShellCallOutputContentDeltaEvent):
+    """A streaming event that indicated shell call output was incrementally added."""
+
+    stream_id: Optional[str] = None
+    """The WebSocket lane that emitted this event.
+
+    This field is present when the originating `response.create` event supplied a
+    `stream_id`.
+    """
+
+
+class ResponseShellCallOutputContentWsDone(ResponseShellCallOutputContentDoneEvent):
+    """A streaming event that indicated shell call output was completed."""
 
     stream_id: Optional[str] = None
     """The WebSocket lane that emitted this event.
@@ -759,6 +824,11 @@ ResponsesServerEvent: TypeAlias = Annotated[
         ResponseFileSearchCallWsSearching,
         ResponseFunctionCallArgumentsWsDelta,
         ResponseFunctionCallArgumentsWsDone,
+        ResponseShellCallCommandWsAdded,
+        ResponseShellCallCommandWsDelta,
+        ResponseShellCallCommandWsDone,
+        ResponseShellCallOutputContentWsDelta,
+        ResponseShellCallOutputContentWsDone,
         ResponseInWsProgress,
         ResponseWsFailed,
         ResponseWsIncomplete,
