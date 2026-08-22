@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import sys
 import json
 import math
@@ -11,6 +12,7 @@ import inspect
 import logging
 import platform
 import warnings
+import threading
 import email.utils
 from types import TracebackType
 from random import random
@@ -860,12 +862,72 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         return f"stainless-python-retry-{uuid.uuid4()}"
 
 
+_no_proxy_lock = threading.Lock()
+
+
+def _sanitize_no_proxy_env(*, trust_env: bool) -> None:
+    """Normalize line separators in ``NO_PROXY`` / ``no_proxy`` before httpx reads them.
+
+    httpx's ``get_environment_proxies()`` splits the value on commas only, so a
+    trailing newline or carriage return (common in Docker ``.env`` files or CRLF
+    values where ``\n`` was stripped but ``\r`` remains) becomes part of the
+    hostname and httpx raises ``InvalidURL`` (issue #3303).
+
+    httpx reads the environment once during ``__init__``, so we normalize
+    in-place before calling ``super().__init__()``.  The caller is responsible
+    for saving and restoring the original value via ``_save_no_proxy_env`` /
+    ``_restore_no_proxy_env`` so the mutation is temporary.
+
+    When ``trust_env=False`` is explicitly passed, httpx will not read proxy
+    environment variables at all, so we skip the sanitization entirely.
+    """
+    if not trust_env:
+        return
+
+    for var in ("NO_PROXY", "no_proxy"):
+        raw = os.environ.get(var)
+        if raw is None:
+            continue
+        sanitized = ",".join(part.strip() for part in raw.replace("\r", "\n").split("\n") if part.strip())
+        if sanitized != raw:
+            os.environ[var] = sanitized
+
+
+def _save_no_proxy_env() -> dict[str, str | None]:
+    """Snapshot the current NO_PROXY/no_proxy env vars for later restoration."""
+    return {var: os.environ.get(var) for var in ("NO_PROXY", "no_proxy")}
+
+
+def _restore_no_proxy_env(saved: dict[str, str | None]) -> None:
+    """Restore NO_PROXY/no_proxy env vars to their pre-sanitization values."""
+    for var, value in saved.items():
+        if value is None:
+            os.environ.pop(var, None)
+        else:
+            os.environ[var] = value
+
+
 class _DefaultHttpxClient(httpx2.Client):
     def __init__(self, **kwargs: Any) -> None:
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
         kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
-        super().__init__(**kwargs)
+        # Sanitize NO_PROXY before httpx reads the environment, but only when
+        # trust_env is not explicitly disabled.  The lock ensures concurrent
+        # client constructions don't see a partially sanitized value.
+        # The original env value is restored after init so the mutation is
+        # temporary and doesn't affect other code in the same process.
+        trust_env = kwargs.get("trust_env", True)
+        if trust_env:
+            with _no_proxy_lock:
+                _saved = _save_no_proxy_env()
+                try:
+                    _sanitize_no_proxy_env(trust_env=trust_env)
+                    super().__init__(**kwargs)
+                finally:
+                    _restore_no_proxy_env(_saved)
+        else:
+            super().__init__(**kwargs)
 
 
 if TYPE_CHECKING:
@@ -1459,7 +1521,17 @@ class _DefaultAsyncHttpxClient(httpx2.AsyncClient):
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
         kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
-        super().__init__(**kwargs)
+        trust_env = kwargs.get("trust_env", True)
+        if trust_env:
+            with _no_proxy_lock:
+                _saved = _save_no_proxy_env()
+                try:
+                    _sanitize_no_proxy_env(trust_env=trust_env)
+                    super().__init__(**kwargs)
+                finally:
+                    _restore_no_proxy_env(_saved)
+        else:
+            super().__init__(**kwargs)
 
 
 _DefaultAioHttpClient: type[httpx2.AsyncClient]
