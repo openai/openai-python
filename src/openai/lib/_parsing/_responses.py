@@ -58,7 +58,17 @@ def parse_response(
 ) -> ParsedResponse[TextFormatT]:
     output_list: List[ParsedResponseOutputItem[TextFormatT]] = []
 
-    for output in response.output:
+    # Guard against `response.output` being `None` (observed in the chatgpt.com
+    # Codex backend's consolidated `response.completed` event — see issue #3325).
+    # The type model declares `output` as non-nullable, but the wire value can
+    # violate that contract.  We cast to `Optional[List[...]]` at the boundary
+    # so both Pyright and Mypy accept the None check without weakening the
+    # model contract.  When the streaming accumulator has already collected
+    # output items, it injects them into the response before calling this
+    # function, so reaching here with `None` means the stream genuinely had
+    # no output items and an empty list is the correct result.
+    output_items = response.output or []
+    for output in output_items:
         if output.type == "message":
             content_list: List[ParsedContent[TextFormatT]] = []
             for item in output.content:
