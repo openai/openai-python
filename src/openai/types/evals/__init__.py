@@ -2,6 +2,12 @@
 
 from __future__ import annotations
 
+from .openeval import (
+    OpenEvalItem as OpenEvalItem,
+    OpenEvalGrader as OpenEvalGrader,
+    to_openeval as to_openeval,
+    from_openeval as from_openeval,
+)
 from .eval_api_error import EvalAPIError as EvalAPIError
 from .run_list_params import RunListParams as RunListParams
 from .run_create_params import RunCreateParams as RunCreateParams
