@@ -86,6 +86,15 @@ class ResponseStream(Generic[TextFormatT]):
 
         return response
 
+    def get_abort_reconciliation_items(self) -> List[Dict[str, Any]]:
+        """Returns a list of synthetic function_call_output items for any pending tool calls.
+        
+        This should be used if the stream is closed before it has been read to completion
+        to ensure that the conversation state remains consistent.
+        """
+        return self._state.get_abort_reconciliation_items()
+
+
     def until_done(self) -> Self:
         """Blocks until the stream has been consumed."""
         consume_sync_iterator(self)
@@ -187,6 +196,15 @@ class AsyncResponseStream(Generic[TextFormatT]):
             raise RuntimeError("Didn't receive a `response.completed` event.")
 
         return response
+
+    def get_abort_reconciliation_items(self) -> List[Dict[str, Any]]:
+        """Returns a list of synthetic function_call_output items for any pending tool calls.
+        
+        This should be used if the stream is closed before it has been read to completion
+        to ensure that the conversation state remains consistent.
+        """
+        return self._state.get_abort_reconciliation_items()
+
 
     async def until_done(self) -> Self:
         """Blocks until the stream has been consumed."""
@@ -340,6 +358,11 @@ class ResponseStreamState(Generic[TextFormatT]):
                 )
             else:
                 snapshot.output.append(event.item)
+        elif event.type == "response.output_item.done":
+            # The JS SDK tracks this to know which tool calls are "complete" from the model's perspective.
+            # In the Python SDK, ParsedResponseFunctionToolCall is updated via deltas,
+            # but we can use this to mark it as done if needed.
+            pass
         elif event.type == "response.content_part.added":
             output = snapshot.output[event.output_index]
             if output.type == "message":
@@ -369,4 +392,35 @@ class ResponseStreamState(Generic[TextFormatT]):
         if event.type != "response.created":
             raise RuntimeError(f"Expected to have received `response.created` before `{event.type}`")
 
-        return construct_type_unchecked(type_=ParsedResponseSnapshot, value=event.response.to_dict())
+        snapshot = construct_type_unchecked(type_=ParsedResponseSnapshot, value=event.response.to_dict())
+        if snapshot.output is None:
+            snapshot.output = []
+        return snapshot
+
+
+    def get_abort_reconciliation_items(self) -> List[Dict[str, Any]]:
+        """Returns a list of synthetic function_call_output items for any pending tool calls.
+        
+        This is used to reconcile the conversation state if the stream is aborted
+        after the model has generated a tool call but before it was completed.
+        """
+        snapshot = self.__current_snapshot
+        if not snapshot:
+            return []
+
+        items: List[Dict[str, Any]] = []
+        for output in snapshot.output:
+            if output.type == "function_call":
+                # We consider it "pending" if we haven't received a corresponding result yet.
+                # In the Responses API, results are submitted in a separate turn or turn-part.
+                # If we are in the middle of a stream that generated a function_call,
+                # and the stream is aborted, we should mark it as incomplete.
+                items.append({
+                    "type": "function_call_output",
+                    "call_id": output.call_id,
+                    "name": output.name,
+                    "status": "incomplete",
+                    "output": "aborted"
+                })
+        return items
+
