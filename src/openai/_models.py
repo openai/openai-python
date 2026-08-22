@@ -127,7 +127,7 @@ class BaseModel(pydantic.BaseModel):
     else:
         model_config: ClassVar[ConfigDict] = ConfigDict(
             extra="allow",
-            defer_build=coerce_boolean(os.environ.get("OPENAI_PYDANTIC_DEFER_BUILD", os.environ.get("DEFER_PYDANTIC_BUILD", "true"))),
+            defer_build=coerce_boolean(os.environ.get("OPENAI_PYDANTIC_DEFER_BUILD", "true")),
         )
 
     if TYPE_CHECKING:
