@@ -26,7 +26,7 @@ print(completion.to_json())
 deployment_client = AzureOpenAI(
     api_version=api_version,
     # https://learn.microsoft.com/en-us/azure/cognitive-services/openai/how-to/create-resource?pivots=web-portal#create-a-resource
-    azure_endpoint="https://example-resource.azure.openai.com/",
+    azure_endpoint="https://example-resource.openai.azure.com/",
     # Navigate to the Azure OpenAI Studio to deploy a model.
     azure_deployment="deployment-name",  # e.g. gpt-35-instant
 )
