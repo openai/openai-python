@@ -495,7 +495,7 @@ class AzureOpenAI(BaseAzureClient[httpx2.Client, Stream[Any]], OpenAI):
             # should never be hit
             raise ValueError("Unable to handle auth")
 
-        return options
+        return super()._prepare_options(options)
 
     def _configure_realtime(self, model: str, extra_query: Query) -> tuple[httpx2.URL, dict[str, str]]:
         auth_headers = {}
@@ -849,7 +849,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx2.AsyncClient, AsyncStream[Any]], As
             # should never be hit
             raise ValueError("Unable to handle auth")
 
-        return options
+        return await super()._prepare_options(options)
 
     async def _configure_realtime(self, model: str, extra_query: Query) -> tuple[httpx2.URL, dict[str, str]]:
         auth_headers = {}
