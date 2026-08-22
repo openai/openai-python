@@ -246,3 +246,37 @@ def make_event_iterator(
     return AsyncStream(
         cast_to=object, client=async_client, response=httpx2.Response(200, content=to_aiter(content))
     )._iter_events()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+async def test_drain_after_done_consumes_trailing_events(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
+    """After [DONE], the stream should drain remaining events from the iterator
+    so the underlying response reaches EOF. Regression test for #3440."""
+
+    def body() -> Iterator[bytes]:
+        yield b"event: completion\n"
+        yield b'data: {"foo":true}\n'
+        yield b"\n"
+        yield b"data: [DONE]\n"
+        yield b"\n"
+        # Trailing event after [DONE] — should be consumed by the drain.
+        yield b"event: trailing\n"
+        yield b'data: {"bar":false}\n'
+        yield b"\n"
+
+    if sync:
+        response = httpx2.Response(200, content=body())
+        stream = Stream(cast_to=object, client=client, response=response)
+        results: list[object] = list(stream)
+        assert len(results) == 1
+        assert results[0] == {"foo": True}
+        # The response should be fully consumed (not just half-read).
+        assert response.is_closed
+    else:
+        response = httpx2.Response(200, content=to_aiter(body()))
+        stream = AsyncStream(cast_to=object, client=async_client, response=response)
+        results = [item async for item in stream]  # type: ignore[reportUnknownVariableType]
+        assert len(results) == 1
+        assert results[0] == {"foo": True}
+        assert response.is_closed
