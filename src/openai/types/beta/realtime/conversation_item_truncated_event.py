@@ -18,5 +18,5 @@ class ConversationItemTruncatedEvent(BaseModel):
     item_id: str
     """The ID of the assistant message item that was truncated."""
 
-    type: Literal["conversation.item.truncated"]
+    type: Literal["conversation.item.truncated"] = "conversation.item.truncated"
     """The event type, must be `conversation.item.truncated`."""
