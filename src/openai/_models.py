@@ -126,7 +126,8 @@ class BaseModel(pydantic.BaseModel):
             return [arg for arg in super().__repr_args__() if arg[0] not in {"_request_id", "__exclude_fields__"}]
     else:
         model_config: ClassVar[ConfigDict] = ConfigDict(
-            extra="allow", defer_build=coerce_boolean(os.environ.get("DEFER_PYDANTIC_BUILD", "true"))
+            extra="allow",
+            defer_build=coerce_boolean(os.environ.get("OPENAI_PYDANTIC_DEFER_BUILD", "true")),
         )
 
     if TYPE_CHECKING:
