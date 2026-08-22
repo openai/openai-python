@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import inspect
 from typing import Any, TypeVar
+from urllib.parse import unquote
 from typing_extensions import TypeGuard
 
 import pydantic
@@ -119,7 +120,7 @@ def resolve_ref(*, root: dict[str, object], ref: str) -> object:
     if not ref.startswith("#/"):
         raise ValueError(f"Unexpected $ref format {ref!r}; Does not start with #/")
 
-    path = ref[2:].split("/")
+    path = [key.replace("~1", "/").replace("~0", "~") for key in unquote(ref[2:]).split("/")]
     resolved = root
     for key in path:
         value = resolved[key]

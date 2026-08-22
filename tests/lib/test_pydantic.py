@@ -7,9 +7,54 @@ from inline_snapshot import snapshot
 
 import openai
 from openai._compat import PYDANTIC_V1
-from openai.lib._pydantic import to_strict_json_schema
+from openai.lib._pydantic import resolve_ref, to_strict_json_schema, _ensure_strict_json_schema
 
 from .schema_types.query import Query
+
+
+def test_resolve_ref_decodes_json_pointer_tokens() -> None:
+    schema: dict[str, object] = {
+        "$defs": {
+            "path/to model~v1": {"type": "string"},
+        }
+    }
+
+    assert resolve_ref(root=schema, ref="#/$defs/path~1to%20model~0v1") == {"type": "string"}
+
+
+def test_resolve_ref_decodes_fragment_before_splitting_tokens() -> None:
+    schema: dict[str, object] = {
+        "$defs": {
+            "Group": {
+                "Item": {"type": "string"},
+            },
+        }
+    }
+
+    assert resolve_ref(root=schema, ref="#/$defs%2FGroup%2FItem") == {"type": "string"}
+
+
+def test_strict_schema_inlines_escaped_ref() -> None:
+    schema: dict[str, object] = {
+        "$defs": {"path/to model~v1": {"type": "object", "properties": {"value": {"type": "string"}}}},
+        "type": "object",
+        "properties": {
+            "result": {
+                "$ref": "#/$defs/path~1to%20model~0v1",
+                "description": "A custom result",
+            }
+        },
+    }
+
+    strict_schema = _ensure_strict_json_schema(schema, path=(), root=schema)
+
+    assert strict_schema["properties"]["result"] == {
+        "type": "object",
+        "properties": {"value": {"type": "string"}},
+        "required": ["value"],
+        "description": "A custom result",
+        "additionalProperties": False,
+    }
 
 
 def test_most_types() -> None:
