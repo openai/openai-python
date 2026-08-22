@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import pytest
+
 from openai.types.evals import OpenEvalItem, OpenEvalGrader, to_openeval, from_openeval
 
 
@@ -36,10 +38,23 @@ def test_to_openeval_auto_generates_id() -> None:
     assert len(exported["id"]) > 0
 
 
-def test_to_openeval_with_inline_graders() -> None:
+def test_to_openeval_rejects_empty_messages() -> None:
+    with pytest.raises(ValueError, match="messages must contain at least one message"):
+        to_openeval([], graders=["grader-1"])
+
+
+def test_to_openeval_rejects_empty_graders() -> None:
+    with pytest.raises(ValueError, match="graders must contain at least one grader"):
+        to_openeval([{"role": "user", "content": "hi"}], graders=[])
+
+
+def test_to_openeval_with_inline_graders_and_optional_fields() -> None:
     inline_grader: OpenEvalGrader = {
         "id": "g-inline",
         "type": "exact_match",
+        "name": "Exact match grader",
+        "description": "Checks exact output string",
+        "weight": 1.5,
         "params": {"case_sensitive": True},
     }
     messages = [{"role": "user", "content": "Test"}]
@@ -51,6 +66,22 @@ def test_to_openeval_preserves_empty_expected_output() -> None:
     messages = [{"role": "user", "content": "Silence"}]
     exported = to_openeval(messages, graders=["grader-1"], expected_output="")
     assert exported.get("expected_output") == ""
+
+
+def test_to_openeval_preserves_caller_non_dict_metadata() -> None:
+    messages = [{"role": "user", "content": "Hello"}]
+    exported = to_openeval(
+        messages,
+        graders=["grader-1"],
+        metadata={"openai": "custom-string", "extra": 123},
+    )
+    assert exported["metadata"]["openai"] == "custom-string"
+    assert exported["metadata"]["extra"] == 123
+    assert "_openai_messages" in exported["metadata"]
+
+    imported = from_openeval(exported)
+    assert imported["messages"] == messages
+    assert imported["metadata"]["openai"] == "custom-string"
 
 
 def test_from_openeval_with_openai_metadata_lossless() -> None:
@@ -72,6 +103,25 @@ def test_from_openeval_with_openai_metadata_lossless() -> None:
     assert converted["messages"] == messages
     assert converted["expected_output"] == "42"
     assert converted["metadata"] == {"custom": "meta", "openai": {"messages": messages}}
+
+
+def test_from_openeval_preserves_extra_fields() -> None:
+    item: OpenEvalItem = {
+        "id": "eval-extra",
+        "input": "Question",
+        "graders": ["grader-1"],
+        "context": "Retrieved doc text",
+        "retrieval_context": ["doc1", "doc2"],
+        "tools_called": ["search"],
+        "expected_tools": ["search"],
+    }
+    converted = from_openeval(item)
+    assert converted["id"] == "eval-extra"
+    assert converted["messages"] == [{"role": "user", "content": "Question"}]
+    assert converted["context"] == "Retrieved doc text"
+    assert converted["retrieval_context"] == ["doc1", "doc2"]
+    assert converted["tools_called"] == ["search"]
+    assert converted["expected_tools"] == ["search"]
 
 
 def test_from_openeval_scalar_input_fallback() -> None:

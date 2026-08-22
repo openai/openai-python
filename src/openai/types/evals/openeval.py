@@ -20,6 +20,9 @@ class OpenEvalGrader(TypedDict, total=False):
 
     id: Required[str]
     type: Required[str]
+    name: str
+    description: str
+    weight: float
     params: Dict[str, Any]
 
 
@@ -56,12 +59,13 @@ def from_openeval(item: OpenEvalItem) -> Dict[str, Any]:
     if isinstance(raw_metadata, dict):
         metadata = {str(k): v for k, v in cast(Dict[Any, Any], raw_metadata).items()}
 
-    openai_meta: Dict[str, Any] = {}
+    raw_saved_messages: Any = None
     raw_openai_meta = metadata.get("openai")
-    if isinstance(raw_openai_meta, dict):
-        openai_meta = {str(k): v for k, v in cast(Dict[Any, Any], raw_openai_meta).items()}
+    if isinstance(raw_openai_meta, dict) and "messages" in raw_openai_meta:
+        raw_saved_messages = raw_openai_meta.get("messages")
+    elif "_openai_messages" in metadata:
+        raw_saved_messages = metadata.get("_openai_messages")
 
-    raw_saved_messages = openai_meta.get("messages")
     if isinstance(raw_saved_messages, list):
         messages: List[Dict[str, Any]] = []
         for m in cast(List[Any], raw_saved_messages):
@@ -75,6 +79,9 @@ def from_openeval(item: OpenEvalItem) -> Dict[str, Any]:
         messages = [{"role": "user", "content": s} for s in input_strings]
 
     result: Dict[str, Any] = {"messages": messages}
+    for k, v in item.items():
+        if k not in ("input", "graders", "metadata", "id", "expected_output"):
+            result[k] = v
     if "id" in item and item["id"]:
         result["id"] = item["id"]
     expected_output = item.get("expected_output")
@@ -97,10 +104,10 @@ def to_openeval(
     TestCase (spec/schemas/testcase.json).
 
     Args:
-        messages: OpenAI chat messages ({role, content} dicts).
+        messages: OpenAI chat messages ({role, content} dicts). Must be non-empty.
         graders: REQUIRED -- TestCase.graders must have >=1 entry per spec.
             Pass grader-id strings (referencing graders already defined on
-            the enclosing Suite) or inline grader objects.
+            the enclosing Suite) or inline grader objects. Must be non-empty.
         id: TestCase.id is required by spec; if omitted, a uuid4 is
             generated so the output always validates.
         expected_output: Target reference output for the test case (if any).
@@ -115,6 +122,11 @@ def to_openeval(
     convention every adapter in the EvalPort ecosystem uses ("openeval.*"
     is the only prefix EvalPort itself reserves).
     """
+    if not messages:
+        raise ValueError("messages must contain at least one message")
+    if not graders:
+        raise ValueError("graders must contain at least one grader")
+
     input_strings: List[str] = []
     for msg in messages:
         role = msg.get("role", "user")
@@ -128,13 +140,14 @@ def to_openeval(
     if metadata is not None:
         merged_metadata = {str(k): v for k, v in metadata.items()}
 
-    openai_meta: Dict[str, Any] = {}
+    formatted_messages = [{str(k): v for k, v in m.items()} for m in messages]
     raw_openai_meta = merged_metadata.get("openai")
-    if isinstance(raw_openai_meta, dict):
-        openai_meta = {str(k): v for k, v in cast(Dict[Any, Any], raw_openai_meta).items()}
-
-    openai_meta["messages"] = [{str(k): v for k, v in m.items()} for m in messages]
-    merged_metadata["openai"] = openai_meta
+    if raw_openai_meta is None or isinstance(raw_openai_meta, dict):
+        openai_dict = dict(raw_openai_meta) if isinstance(raw_openai_meta, dict) else {}
+        openai_dict["messages"] = formatted_messages
+        merged_metadata["openai"] = openai_dict
+    else:
+        merged_metadata["_openai_messages"] = formatted_messages
 
     item: OpenEvalItem = {
         "id": id or str(uuid.uuid4()),
