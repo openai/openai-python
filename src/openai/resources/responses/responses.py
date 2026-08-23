@@ -44,6 +44,7 @@ from .input_items import (
     InputItemsWithStreamingResponse,
     AsyncInputItemsWithStreamingResponse,
 )
+from ..._constants import RAW_RESPONSE_HEADER
 from ..._streaming import Stream, AsyncStream
 from ...lib._tools import PydanticFunctionTool, ResponsesPydanticFunctionTool
 from .input_tokens import (
@@ -58,6 +59,7 @@ from ..._exceptions import OpenAIError, WebSocketConnectionClosedError
 from ..._send_queue import SendQueue
 from ..._base_client import _merge_mappings, make_request_options
 from ..._event_handler import EventHandlerRegistry
+from ...lib._responses import exception_for_background_failure
 from ...types.responses import (
     response_create_params,
     response_compact_params,
@@ -1624,28 +1626,67 @@ class Responses(SyncAPIResource):
     ) -> Response | Stream[ResponseStreamEvent]:
         if not response_id:
             raise ValueError(f"Expected a non-empty value for `response_id` but received {response_id!r}")
-        return self._get(
-            path_template("/responses/{response_id}", response_id=response_id),
-            options=make_request_options(
-                extra_headers=extra_headers,
-                extra_query=extra_query,
-                extra_body=extra_body,
-                timeout=timeout,
-                query=maybe_transform(
-                    {
-                        "include": include,
-                        "include_obfuscation": include_obfuscation,
-                        "starting_after": starting_after,
-                        "stream": stream,
-                    },
-                    response_retrieve_params.ResponseRetrieveParams,
-                ),
-                security={"bearer_auth": True},
-            ),
-            cast_to=Response,
-            stream=stream or False,
-            stream_cls=Stream[ResponseStreamEvent],
+
+        path = path_template("/responses/{response_id}", response_id=response_id)
+        query = maybe_transform(
+            {
+                "include": include,
+                "include_obfuscation": include_obfuscation,
+                "starting_after": starting_after,
+                "stream": stream,
+            },
+            response_retrieve_params.ResponseRetrieveParams,
         )
+
+        if stream or (extra_headers is not None and RAW_RESPONSE_HEADER in extra_headers):
+            # Preserve the original behavior untouched for: (a) real SSE streaming
+            # requests, and (b) calls already going through one of the SDK's own
+            # raw/streamed-response wrappers (with_raw_response,
+            # with_streaming_response) -- those inject RAW_RESPONSE_HEADER
+            # themselves and need `_get` to hand back their own wrapper type, not
+            # our parsed-and-possibly-raising Response below.
+            return self._get(
+                path,
+                options=make_request_options(
+                    extra_headers=extra_headers,
+                    extra_query=extra_query,
+                    extra_body=extra_body,
+                    timeout=timeout,
+                    query=query,
+                    security={"bearer_auth": True},
+                ),
+                cast_to=Response,
+                stream=stream or False,
+                stream_cls=Stream[ResponseStreamEvent],
+            )
+
+        # Ask for the raw HTTP response (same request, no extra round trip) so a
+        # failed/incomplete background run can be turned into a typed exception
+        # below -- such a run still comes back as a plain HTTP 200.
+        raw_response = cast(
+            "_legacy_response.LegacyAPIResponse[Response]",
+            self._get(
+                path,
+                options=make_request_options(
+                    extra_headers={RAW_RESPONSE_HEADER: "true", **(extra_headers or {})},
+                    extra_query=extra_query,
+                    extra_body=extra_body,
+                    timeout=timeout,
+                    query=query,
+                    security={"bearer_auth": True},
+                ),
+                cast_to=Response,
+                stream=False,
+            ),
+        )
+        response = raw_response.parse()
+
+        if response.status not in ("queued", "in_progress", "completed"):
+            exc = exception_for_background_failure(raw_response, response)
+            if exc is not None:
+                raise exc
+
+        return response
 
     def delete(
         self,
@@ -3491,28 +3532,67 @@ class AsyncResponses(AsyncAPIResource):
     ) -> Response | AsyncStream[ResponseStreamEvent]:
         if not response_id:
             raise ValueError(f"Expected a non-empty value for `response_id` but received {response_id!r}")
-        return await self._get(
-            path_template("/responses/{response_id}", response_id=response_id),
-            options=make_request_options(
-                extra_headers=extra_headers,
-                extra_query=extra_query,
-                extra_body=extra_body,
-                timeout=timeout,
-                query=await async_maybe_transform(
-                    {
-                        "include": include,
-                        "include_obfuscation": include_obfuscation,
-                        "starting_after": starting_after,
-                        "stream": stream,
-                    },
-                    response_retrieve_params.ResponseRetrieveParams,
-                ),
-                security={"bearer_auth": True},
-            ),
-            cast_to=Response,
-            stream=stream or False,
-            stream_cls=AsyncStream[ResponseStreamEvent],
+
+        path = path_template("/responses/{response_id}", response_id=response_id)
+        query = await async_maybe_transform(
+            {
+                "include": include,
+                "include_obfuscation": include_obfuscation,
+                "starting_after": starting_after,
+                "stream": stream,
+            },
+            response_retrieve_params.ResponseRetrieveParams,
         )
+
+        if stream or (extra_headers is not None and RAW_RESPONSE_HEADER in extra_headers):
+            # Preserve the original behavior untouched for: (a) real SSE streaming
+            # requests, and (b) calls already going through one of the SDK's own
+            # raw/streamed-response wrappers (with_raw_response,
+            # with_streaming_response) -- those inject RAW_RESPONSE_HEADER
+            # themselves and need `_get` to hand back their own wrapper type, not
+            # our parsed-and-possibly-raising Response below.
+            return await self._get(
+                path,
+                options=make_request_options(
+                    extra_headers=extra_headers,
+                    extra_query=extra_query,
+                    extra_body=extra_body,
+                    timeout=timeout,
+                    query=query,
+                    security={"bearer_auth": True},
+                ),
+                cast_to=Response,
+                stream=stream or False,
+                stream_cls=AsyncStream[ResponseStreamEvent],
+            )
+
+        # Ask for the raw HTTP response (same request, no extra round trip) so a
+        # failed/incomplete background run can be turned into a typed exception
+        # below -- such a run still comes back as a plain HTTP 200.
+        raw_response = cast(
+            "_legacy_response.LegacyAPIResponse[Response]",
+            await self._get(
+                path,
+                options=make_request_options(
+                    extra_headers={RAW_RESPONSE_HEADER: "true", **(extra_headers or {})},
+                    extra_query=extra_query,
+                    extra_body=extra_body,
+                    timeout=timeout,
+                    query=query,
+                    security={"bearer_auth": True},
+                ),
+                cast_to=Response,
+                stream=False,
+            ),
+        )
+        response = raw_response.parse()
+
+        if response.status not in ("queued", "in_progress", "completed"):
+            exc = exception_for_background_failure(raw_response, response)
+            if exc is not None:
+                raise exc
+
+        return response
 
     async def delete(
         self,
