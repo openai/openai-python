@@ -89,8 +89,8 @@ class Message(TypedDict, total=False):
     types.
     """
 
-    role: Required[Literal["user", "system", "developer"]]
-    """The role of the message input. One of `user`, `system`, or `developer`."""
+    role: Required[Literal["user", "assistant", "system", "developer"]]
+    """The role of the message input. One of `user`, `assistant`, `system`, or `developer`."""
 
     status: Literal["in_progress", "completed", "incomplete"]
     """The status of item.
