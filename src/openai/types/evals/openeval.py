@@ -48,7 +48,7 @@ def from_openeval(item: OpenEvalItem) -> Dict[str, Any]:
 
     If this item carries the original chat messages this adapter itself
     exported (see to_openeval()), they're restored losslessly from
-    ``metadata["openai"]["messages"]``. Otherwise -- e.g. a hand-authored
+    ``metadata["openeval"]["openai_messages"]``. Otherwise -- e.g. a hand-authored
     TestCase, or one from a different tool -- every input string is
     reconstructed as a single "user" message, the same fallback every other
     adapter in the EvalPort ecosystem uses for a grader/tool type it doesn't
@@ -60,11 +60,15 @@ def from_openeval(item: OpenEvalItem) -> Dict[str, Any]:
         metadata = {str(k): v for k, v in cast(Dict[Any, Any], raw_metadata).items()}
 
     raw_saved_messages: Any = None
-    raw_openai_meta = metadata.get("openai")
-    if isinstance(raw_openai_meta, dict) and "messages" in raw_openai_meta:
-        raw_saved_messages = raw_openai_meta.get("messages")
-    elif "_openai_messages" in metadata:
-        raw_saved_messages = metadata.get("_openai_messages")
+    raw_openeval_meta = metadata.get("openeval")
+    if isinstance(raw_openeval_meta, dict) and "openai_messages" in raw_openeval_meta:
+        raw_saved_messages = raw_openeval_meta.get("openai_messages")
+    else:
+        raw_openai_meta = metadata.get("openai")
+        if isinstance(raw_openai_meta, dict) and "messages" in raw_openai_meta:
+            raw_saved_messages = raw_openai_meta.get("messages")
+        elif "_openai_messages" in metadata:
+            raw_saved_messages = metadata.get("_openai_messages")
 
     if isinstance(raw_saved_messages, list):
         messages: List[Dict[str, Any]] = []
@@ -116,11 +120,10 @@ def to_openeval(
     ``input`` is built as one string per message ("{role}: {content}"),
     satisfying the schema's string-or-array-of-strings requirement. The
     *original* messages are additionally preserved verbatim under
-    metadata["openai"]["messages"] so from_openeval() can reconstruct the
+    metadata["openeval"]["openai_messages"] so from_openeval() can reconstruct the
     exact role/content structure on import instead of collapsing everything
-    to "user" turns -- "openai.*" following the same reserved-namespace
-    convention every adapter in the EvalPort ecosystem uses ("openeval.*"
-    is the only prefix EvalPort itself reserves).
+    to "user" turns -- "openeval.*" being the spec-reserved namespace in the
+    EvalPort ecosystem.
     """
     if not messages:
         raise ValueError("messages must contain at least one message")
@@ -141,13 +144,10 @@ def to_openeval(
         merged_metadata = {str(k): v for k, v in metadata.items()}
 
     formatted_messages = [{str(k): v for k, v in m.items()} for m in messages]
-    raw_openai_meta = merged_metadata.get("openai")
-    if raw_openai_meta is None or isinstance(raw_openai_meta, dict):
-        openai_dict = dict(raw_openai_meta) if isinstance(raw_openai_meta, dict) else {}
-        openai_dict["messages"] = formatted_messages
-        merged_metadata["openai"] = openai_dict
-    else:
-        merged_metadata["_openai_messages"] = formatted_messages
+    raw_openeval_meta = merged_metadata.get("openeval")
+    openeval_dict = dict(raw_openeval_meta) if isinstance(raw_openeval_meta, dict) else {}
+    openeval_dict["openai_messages"] = formatted_messages
+    merged_metadata["openeval"] = openeval_dict
 
     item: OpenEvalItem = {
         "id": id or str(uuid.uuid4()),

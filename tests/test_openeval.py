@@ -14,7 +14,7 @@ def test_to_openeval_single_message() -> None:
     assert exported.get("expected_output") == "World"
     metadata = exported.get("metadata")
     assert isinstance(metadata, dict)
-    assert metadata.get("openai", {}).get("messages") == [{"role": "user", "content": "Hello"}]
+    assert metadata.get("openeval", {}).get("openai_messages") == [{"role": "user", "content": "Hello"}]
 
 
 def test_to_openeval_multiple_messages() -> None:
@@ -28,7 +28,7 @@ def test_to_openeval_multiple_messages() -> None:
     assert exported["graders"] == ["grader-1", "grader-2"]
     metadata = exported.get("metadata")
     assert isinstance(metadata, dict)
-    assert metadata.get("openai", {}).get("messages") == messages
+    assert metadata.get("openeval", {}).get("openai_messages") == messages
 
 
 def test_to_openeval_auto_generates_id() -> None:
@@ -68,23 +68,24 @@ def test_to_openeval_preserves_empty_expected_output() -> None:
     assert exported.get("expected_output") == ""
 
 
-def test_to_openeval_preserves_caller_non_dict_metadata() -> None:
+def test_to_openeval_preserves_caller_openai_metadata() -> None:
     messages = [{"role": "user", "content": "Hello"}]
+    caller_openai_meta = {"messages": ["caller-owned-marker"], "source": "nightly-job"}
     exported = to_openeval(
         messages,
         graders=["grader-1"],
-        metadata={"openai": "custom-string", "extra": 123},
+        metadata={"openai": caller_openai_meta, "extra": 123},
     )
-    assert exported["metadata"]["openai"] == "custom-string"
+    assert exported["metadata"]["openai"] == caller_openai_meta
     assert exported["metadata"]["extra"] == 123
-    assert "_openai_messages" in exported["metadata"]
+    assert exported["metadata"]["openeval"]["openai_messages"] == messages
 
     imported = from_openeval(exported)
     assert imported["messages"] == messages
-    assert imported["metadata"]["openai"] == "custom-string"
+    assert imported["metadata"]["openai"] == caller_openai_meta
 
 
-def test_from_openeval_with_openai_metadata_lossless() -> None:
+def test_from_openeval_with_openeval_metadata_lossless() -> None:
     messages = [
         {"role": "system", "content": "Act as a calculator."},
         {"role": "user", "content": [{"type": "text", "text": "Calculate this"}]},
@@ -96,13 +97,25 @@ def test_from_openeval_with_openai_metadata_lossless() -> None:
         "input": "system: Act as a calculator.",
         "graders": ["grader-1"],
         "expected_output": "42",
-        "metadata": {"custom": "meta", "openai": {"messages": messages}},
+        "metadata": {"custom": "meta", "openeval": {"openai_messages": messages}},
     }
     converted = from_openeval(item)
     assert converted["id"] == "eval-lossless"
     assert converted["messages"] == messages
     assert converted["expected_output"] == "42"
-    assert converted["metadata"] == {"custom": "meta", "openai": {"messages": messages}}
+    assert converted["metadata"] == {"custom": "meta", "openeval": {"openai_messages": messages}}
+
+
+def test_from_openeval_legacy_openai_metadata_fallback() -> None:
+    legacy_messages = [{"role": "user", "content": "Legacy message"}]
+    item: OpenEvalItem = {
+        "id": "eval-legacy",
+        "input": "user: Legacy message",
+        "graders": ["grader-1"],
+        "metadata": {"openai": {"messages": legacy_messages}},
+    }
+    converted = from_openeval(item)
+    assert converted["messages"] == legacy_messages
 
 
 def test_from_openeval_preserves_extra_fields() -> None:
@@ -168,3 +181,4 @@ def test_round_trip_conversion() -> None:
     assert imported["messages"] == original_messages
     assert imported["expected_output"] == "bonjour"
     assert imported["metadata"]["source"] == "unit-test"
+
