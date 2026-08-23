@@ -24,8 +24,15 @@ class _ErrorMapping(NamedTuple):
     """One entry in a background-failure mapping table.
 
     Bundles the SDK exception class (``None`` means "no exception should be
-    raised for this code/reason") together with whether retrying the same
-    request is expected to help, so the two facts can't drift apart.
+    raised for this code/reason") together with ``retryable``, so the two
+    facts can't drift apart.
+
+    ``retryable`` describes the *original* background run, i.e. whether
+    submitting a fresh `create(..., background=True)` call is worth trying.
+    It does NOT mean calling `retrieve()` again on this same response id will
+    help -- a response that has reached a terminal "failed"/"incomplete"
+    status is immutable, so polling it again always returns the identical
+    failure.
     """
 
     exception_class: Optional[Type[APIStatusError]]
@@ -94,7 +101,10 @@ def exception_for_background_failure(
     (not declared on the base exception classes -- read it with
     `getattr(exc, "retryable", False)`). `RESPONSE_ERROR_CODE_TO_EXCEPTION`
     and `INCOMPLETE_DETAILS_REASON_TO_EXCEPTION` are the documented source of
-    truth for this flag.
+    truth for this flag. `retryable` means "submitting a new background run
+    is worth trying" -- calling `retrieve()` again on this same response id
+    will never help, since a terminal "failed"/"incomplete" response is
+    immutable.
 
     Returns None if the response didn't fail, or "failed"/"incomplete" but
     without enough information to classify (e.g. no `error`/
@@ -120,7 +130,8 @@ def exception_for_background_failure(
     if mapping is None or mapping.exception_class is None:
         return None
 
-    body = {"error": {"code": getattr(response.error, "code", None), "message": message}}
+    body = {"code": getattr(response.error, "code", None), "message": message}
     exc = mapping.exception_class(message, response=raw_response.http_response, body=body)
+    # retryable == "resubmit as a new background run", not "call retrieve() again"
     exc.retryable = mapping.retryable  # type: ignore[attr-defined]
     return exc
