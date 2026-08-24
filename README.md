@@ -1166,6 +1166,47 @@ client = BedrockOpenAI(
 
 The legacy module client also continues to support `openai.api_type = "amazon-bedrock"` or `OPENAI_API_TYPE=amazon-bedrock`.
 
+## OrcaRouter
+
+To use this library with [OrcaRouter](https://www.orcarouter.ai), an OpenAI-compatible model routing gateway, configure the standard `OpenAI` client with the OrcaRouter provider.
+
+```py
+from openai import OpenAI
+from openai.providers import orcarouter
+
+# Reads the API key from the ORCAROUTER_API_KEY environment variable.
+client = OpenAI(
+    provider=orcarouter(),
+)
+
+response = client.chat.completions.create(
+    model="orcarouter/auto",
+    messages=[{"role": "user", "content": "Say hello!"}],
+)
+
+print(response.choices[0].message.content)
+```
+
+OrcaRouter exposes many models behind a single endpoint, including named routers such as `orcarouter/auto`. The provider configures the `https://api.orcarouter.ai/v1` endpoint and bearer authentication while retaining the normal SDK resources, retries, streaming, and error handling.
+
+You can pass `api_key` directly, provide a refresh callback, or set `ORCAROUTER_BASE_URL` to override the endpoint:
+
+```py
+client = OpenAI(
+    provider=orcarouter(
+        api_key="sk-orca-...",
+    )
+)
+```
+
+```py
+client = OpenAI(
+    provider=orcarouter(
+        token_provider=lambda: refresh_orcarouter_token(),
+    )
+)
+```
+
 ## Versioning
 
 This package generally follows [SemVer](https://semver.org/spec/v2.0.0.html) conventions, though certain backwards-incompatible changes may be released as minor versions:
