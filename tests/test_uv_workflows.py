@@ -4295,6 +4295,9 @@ def test_new_requested_extras_cannot_introduce_unreviewed_dependency_identities(
         base_requirements[-1] = "parent[New_Extra]"
         head_requirements = ["patch-me>=1.1", "parent[new-extra]"]
 
+    optional_edges: dict[tuple[str, str], dict[str, list[dict[str, object]]]] = {
+        ("parent", "1"): {"new-extra": [{"name": name} for name, _ in new_packages]}
+    }
     result = run_security_dependency_floor_check(
         tmp_path,
         base_requirements=base_requirements,
@@ -4306,6 +4309,7 @@ def test_new_requested_extras_cannot_introduce_unreviewed_dependency_identities(
         head_constraints=constraints,
         head_dependency_groups=groups,
         head_resolution_markers=head_markers,
+        head_lock_optional_dependencies=optional_edges,
     )
     assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
 
@@ -5130,6 +5134,162 @@ def test_requested_extra_source_exceptions_validate_the_exact_exposed_package(
         head_constraints=constraints,
         base_resolution_markers=domains,
         head_resolution_markers=domains,
+        base_lock_optional_dependencies=optional,
+        head_lock_optional_dependencies=optional,
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("variant", "accepted"),
+    [
+        pytest.param("transitive-refined", True, id="unchanged-transitive-broad-domain-can-refine-semantically"),
+        pytest.param("transitive-coalesced", True, id="unchanged-transitive-split-domains-can-coalesce-semantically"),
+        pytest.param("direct-refined", True, id="unchanged-direct-release-can-refine-its-lock-domain"),
+        pytest.param("protected-refined", True, id="unchanged-protected-release-can-refine-its-lock-domain"),
+        pytest.param("protected-coalesced", True, id="unchanged-protected-release-can-coalesce-lock-domains"),
+        pytest.param("platform-refined", True, id="equivalent-platform-complements-preserve-original-domain"),
+        pytest.param("membership-refined", True, id="equivalent-membership-alternatives-preserve-domain"),
+        pytest.param("independent-majors", True, id="domain-refinement-preserves-coexisting-supported-majors"),
+        pytest.param("reviewed-upgrade", True, id="refined-upgrade-remains-covered-by-reviewed-security-floor"),
+        pytest.param("complementary-upgrade", True, id="refined-upgrade-accepts-complementary-reviewed-floors"),
+        pytest.param("unreviewed-upgrade", False, id="domain-refinement-cannot-hide-unreviewed-upgraded-release"),
+        pytest.param("partial-upgrade", False, id="reviewed-floor-cannot-cover-only-one-refined-domain"),
+        pytest.param("gap", False, id="semantic-refinement-cannot-drop-an-original-resolution-region"),
+        pytest.param("widened", False, id="semantic-refinement-cannot-add-an-unreviewed-resolution-region"),
+        pytest.param("swapped", False, id="semantic-refinement-cannot-swap-releases-across-domains"),
+        pytest.param("unbounded", False, id="unbounded-common-resolution-refinement-fails-closed"),
+    ],
+)
+def test_security_resolution_domains_compare_semantic_release_coverage(
+    tmp_path: Path, variant: str, accepted: bool
+) -> None:
+    broad = "python_full_version < '3.12'"
+    low = "python_full_version < '3.11'"
+    high = "python_full_version >= '3.11' and python_full_version < '3.12'"
+    previous = [("danger", "2")]
+    current = [("danger", "2")]
+    base_markers: dict[tuple[str, str], list[str]] = {("danger", "2"): [broad]}
+    head_markers: dict[tuple[str, str], list[str]] = {("danger", "2"): [low, high]}
+    base_requirements = ["patch-me>=1"]
+    head_requirements = ["patch-me>=1.1"]
+    base_constraints: list[str] | None = None
+    head_constraints: list[str] | None = None
+
+    if variant in {"transitive-coalesced", "protected-coalesced"}:
+        base_markers, head_markers = head_markers, base_markers
+    if variant == "direct-refined":
+        base_requirements.append("danger>=2")
+        head_requirements.append("danger>=2")
+    elif variant in {"protected-refined", "protected-coalesced"}:
+        base_constraints = ["danger>=2"]
+        head_constraints = ["danger>=2"]
+    elif variant == "platform-refined":
+        head_markers = {
+            ("danger", "2"): [broad + " and sys_platform == 'linux'", broad + " and sys_platform != 'linux'"]
+        }
+    elif variant == "membership-refined":
+        base_markers = {("danger", "2"): ["python_version in '3.10, 3.11'"]}
+        head_markers = {("danger", "2"): ["python_version == '3.10'", "python_version == '3.11'"]}
+    elif variant == "independent-majors":
+        previous = current = [("danger", "1.5"), ("danger", "2.5")]
+        base_markers = {(name, release): [broad] for name, release in previous}
+        head_markers = {(name, release): [low, high] for name, release in current}
+    elif variant in {"reviewed-upgrade", "complementary-upgrade", "unreviewed-upgrade", "partial-upgrade"}:
+        current = [("danger", "3")]
+        head_markers = {("danger", "3"): [low, high]}
+        if variant == "reviewed-upgrade":
+            head_constraints = ["danger>=3"]
+        elif variant == "complementary-upgrade":
+            head_constraints = ["danger>=3; python_version < '3.11'", "danger>=3; python_version >= '3.11'"]
+        elif variant == "partial-upgrade":
+            head_constraints = ["danger>=3; python_version < '3.11'"]
+    elif variant == "gap":
+        head_markers = {("danger", "2"): [low]}
+    elif variant == "widened":
+        head_markers = {("danger", "2"): [low, high, "python_full_version >= '3.12'"]}
+    elif variant == "swapped":
+        previous = [("danger", "1"), ("danger", "2")]
+        current = [("danger", "1"), ("danger", "2")]
+        base_markers = {("danger", "1"): [low], ("danger", "2"): [high]}
+        head_markers = {("danger", "1"): [high], ("danger", "2"): [low]}
+    elif variant == "unbounded":
+        head_markers = {
+            ("danger", "2"): [broad + " and sys_platform == 'platform" + str(index) + "'" for index in range(129)]
+        }
+
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=base_requirements,
+        head_requirements=head_requirements,
+        base_packages=[("patch-me", "1"), *previous],
+        head_packages=[("patch-me", "1.1"), *current],
+        base_constraints=base_constraints,
+        head_constraints=head_constraints,
+        base_resolution_markers=base_markers,
+        head_resolution_markers=head_markers,
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("variant", "accepted"),
+    [
+        pytest.param("unrelated-root", True, id="new-extra-does-not-review-unrelated-runtime-root-transitive"),
+        pytest.param("same-parent-normal", True, id="new-extra-does-not-review-parent-normal-dependency"),
+        pytest.param("related-unreviewed", False, id="package-actually-reachable-from-new-extra-needs-review"),
+        pytest.param("related-reviewed", True, id="reviewed-extra-package-does-not-impose-unrelated-bound"),
+        pytest.param("wrong-audience", False, id="extra-review-must-intersect-actual-requested-audience"),
+        pytest.param("partial-platform", False, id="extra-review-cannot-cover-only-one-exposed-platform"),
+        pytest.param("complementary-platform", True, id="complementary-extra-reviews-cover-all-exposed-platforms"),
+        pytest.param("wrong-root", False, id="review-on-unrelated-root-cannot-secure-actual-extra-package"),
+        pytest.param("low-floor", False, id="actual-extra-review-floor-must-reach-selected-release"),
+    ],
+)
+def test_requested_extra_review_only_covers_packages_reachable_through_that_extra(
+    tmp_path: Path, variant: str, accepted: bool
+) -> None:
+    base_requirements = ["patch-me>=1", "parent"]
+    head_requirements = ["patch-me>=1.1", "parent", "parent[feature]"]
+    previous = [("patch-me", "1"), ("parent", "1")]
+    current = [("patch-me", "1.1"), ("parent", "1"), ("unrelated", "1")]
+    head_edges: dict[tuple[str, str], list[dict[str, object]]] = {("patch-me", "1.1"): [{"name": "unrelated"}]}
+    optional: dict[tuple[str, str], dict[str, list[dict[str, object]]]] = {("parent", "1"): {"feature": []}}
+    constraints: list[str] | None = None
+    markers: dict[tuple[str, str], list[str]] | None = None
+
+    if variant == "same-parent-normal":
+        head_edges = {("parent", "1"): [{"name": "unrelated"}]}
+    elif variant not in {"unrelated-root", "same-parent-normal"}:
+        current.append(("extra-package", "2"))
+        optional[("parent", "1")]["feature"].append({"name": "extra-package"})
+        markers = {("extra-package", "2"): ["python_full_version >= '3.10'"]}
+        if variant == "related-reviewed":
+            constraints = ["extra-package>=2"]
+        elif variant == "wrong-audience":
+            head_requirements[-1] += "; python_version >= '3.11'"
+            constraints = ["extra-package>=2; python_version < '3.11'"]
+        elif variant == "partial-platform":
+            constraints = ["extra-package>=2; sys_platform == 'linux'"]
+        elif variant == "complementary-platform":
+            constraints = [
+                "extra-package>=2; sys_platform == 'linux'",
+                "extra-package>=2; sys_platform != 'linux'",
+            ]
+        elif variant == "wrong-root":
+            constraints = ["unrelated>=1"]
+        elif variant == "low-floor":
+            constraints = ["extra-package>=1"]
+
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=base_requirements,
+        head_requirements=head_requirements,
+        base_packages=previous,
+        head_packages=current,
+        head_constraints=constraints,
+        head_resolution_markers=markers,
+        head_lock_dependencies=head_edges,
         base_lock_optional_dependencies=optional,
         head_lock_optional_dependencies=optional,
     )

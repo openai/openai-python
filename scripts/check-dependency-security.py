@@ -363,6 +363,41 @@ def published_reachability(
     return reachable
 
 
+def requested_extra_reachability(
+    lock: dict[str, Any],
+    previous: ContextsByName,
+    current: ContextsByName,
+    requested: list[tuple[str, DependencyContext]],
+) -> dict[str, set[tuple[str, str, MarkerContext]]]:
+    if len(requested) > 64:
+        raise SystemExit("Unbounded newly requested security dependency extras")
+    result: dict[str, set[tuple[str, str, MarkerContext]]] = {}
+    for root, context in requested:
+        selected = published_reachability(lock, {root: {context: current[root][context]}})
+        alternatives: ContextRequirements = {}
+        for original, requirements in previous.get(root, {}).items():
+            if (
+                original[:2] != context[:2]
+                or not set(original[2]).issubset(context[2])
+                or not marker_overlap(original[3], context[3])
+            ):
+                continue
+            shared = tuple(sorted(set(original[3] + context[3])))
+            counterfactual = original[0], original[1], original[2], shared
+            alternatives.setdefault(counterfactual, set()).update(requirements)
+        without = published_reachability(lock, {root: alternatives}) if alternatives else {}
+        for name, audiences in selected.items():
+            for scope, group, marker in audiences:
+                prior = [
+                    previous_marker
+                    for previous_scope, previous_group, previous_marker in without.get(name, set())
+                    if previous_scope == "runtime" or (previous_scope, previous_group) == (scope, group)
+                ]
+                for uncovered in uncovered_marker_fragments(marker, prior):
+                    result.setdefault(name, set()).add((scope, group, uncovered))
+    return result
+
+
 def audience_covers(previous: tuple[str, str, MarkerContext], current: tuple[str, str, MarkerContext]) -> bool:
     if previous[0] != "runtime" and previous[:2] != current[:2]:
         return False
@@ -557,6 +592,59 @@ def uncovered_marker_fragments(domain: MarkerContext, coverings: list[MarkerCont
             if not fragments:
                 break
     return tuple(sorted(fragments))
+
+
+def reconcile_resolution_domains(
+    previous: ResolutionDomains, current: ResolutionDomains
+) -> tuple[ResolutionDomains, ResolutionDomains]:
+    if previous == current:
+        return previous, current
+    domains = sorted(previous.keys() | current.keys())
+    if len(domains) > 128:
+        raise SystemExit("Unbounded security dependency resolution-domain refinement")
+    fragments: set[MarkerContext] = set()
+    work = 0
+    for domain in domains:
+        for option in marker_options(domain):
+            candidate = tuple(sorted(set(option)))
+            if not simple_marker_overlap(candidate, ()):
+                raise SystemExit("Ambiguous security dependency resolution-domain refinement")
+            remaining: set[MarkerContext] = {candidate}
+            refined: set[MarkerContext] = set()
+            for fragment in fragments:
+                work += 1
+                if work > 4096:
+                    raise SystemExit("Unbounded security dependency resolution-domain refinement")
+                if not simple_marker_overlap(fragment, candidate):
+                    refined.add(fragment)
+                    continue
+                intersection = tuple(sorted(set(fragment + candidate)))
+                refined.add(intersection)
+                refined.update(uncovered_marker_fragments(fragment, [candidate]))
+                remaining = {
+                    uncovered for value in remaining for uncovered in uncovered_marker_fragments(value, [fragment])
+                }
+                if len(refined) + len(remaining) > 128:
+                    raise SystemExit("Unbounded security dependency resolution-domain refinement")
+            refined.update(remaining)
+            if len(refined) > 128:
+                raise SystemExit("Unbounded security dependency resolution-domain refinement")
+            fragments = refined
+    aligned_previous: ResolutionDomains = {}
+    aligned_current: ResolutionDomains = {}
+    for fragment in fragments:
+        old = {
+            release for domain, releases in previous.items() if marker_overlap(fragment, domain) for release in releases
+        }
+        new = {
+            release for domain, releases in current.items() if marker_overlap(fragment, domain) for release in releases
+        }
+        if bool(old) != bool(new):
+            raise SystemExit("Do not remove or widen a locked security dependency resolution domain")
+        if old:
+            aligned_previous[fragment] = old
+            aligned_current[fragment] = new
+    return aligned_previous, aligned_current
 
 
 def minimums(requirements: set[str], *, allow_missing: bool = False, exact: bool = False) -> list[StableRelease]:
@@ -1349,6 +1437,10 @@ old_direct, old_contexts = direct(old_project)
 new_direct, new_contexts = direct(new_project)
 old_versions, old_resolution_contexts = versions(old_lock)
 new_versions, new_resolution_contexts = versions(new_lock)
+for name in old_resolution_contexts.keys() & new_resolution_contexts.keys():
+    old_resolution_contexts[name], new_resolution_contexts[name] = reconcile_resolution_domains(
+        old_resolution_contexts[name], new_resolution_contexts[name]
+    )
 old_protected, old_protected_contexts = direct(old_project, protected=True)
 new_protected, new_protected_contexts = direct(new_project, protected=True)
 new_requested_extra_contexts: list[tuple[str, DependencyContext]] = []
@@ -1362,23 +1454,21 @@ for name, contexts in new_contexts.items():
             new_requested_extra_contexts.append((name, context))
 previous_reachable: dict[str, set[tuple[str, str, MarkerContext]]] = {}
 current_reachable: dict[str, set[tuple[str, str, MarkerContext]]] = {}
+extra_reachable: dict[str, set[tuple[str, str, MarkerContext]]] = {}
 newly_exposed: set[str] = set()
 if new_requested_extra_contexts:
     previous_reachable = published_reachability(old_lock, old_contexts)
     current_reachable = published_reachability(new_lock, new_contexts)
+    extra_reachable = requested_extra_reachability(new_lock, old_contexts, new_contexts, new_requested_extra_contexts)
     newly_exposed = {
         name
-        for name, audiences in current_reachable.items()
+        for name, audiences in extra_reachable.items()
         for audience in audiences
         if name not in new_direct
-        and any(
-            audience[:2] == requested[:2] and marker_overlap(audience[2], requested[3])
-            for _, requested in new_requested_extra_contexts
-        )
         and not any(audience_covers(previous, audience) for previous in previous_reachable.get(name, set()))
     }
 partitioned_security_sources: set[tuple[bool, str]] = set()
-for protected, previous_by_name, current_by_name in (
+for is_protected, previous_by_name, current_by_name in (
     (False, old_contexts, new_contexts),
     (True, old_protected_contexts, new_protected_contexts),
 ):
@@ -1388,17 +1478,17 @@ for protected, previous_by_name, current_by_name in (
             current_by_name.get(name, {}),
             old_resolution_contexts.get(name, {}),
             new_resolution_contexts.get(name, {}),
-            extra_review=protected and name in newly_exposed,
+            extra_review=is_protected and name in newly_exposed,
         )
         if not preserved:
             message = (
                 "Do not widen or narrow an existing security dependency marker for "
-                if protected
+                if is_protected
                 else "Do not remove a published direct dependency or its original context for "
             )
             raise SystemExit(message + name)
         if partitioned:
-            partitioned_security_sources.add((protected, name))
+            partitioned_security_sources.add((is_protected, name))
 for name, previous in old_protected.items():
     requirements = new_protected.get(name, set())
     previous_contexts = old_protected_contexts.get(name, {})
@@ -1537,36 +1627,39 @@ for name in old_versions.keys() & new_versions.keys():
                 raise SystemExit("Add a reviewed contextual transitive security dependency boundary for " + name)
 
 if new_requested_extra_contexts:
-    for name in (new_versions.keys() - old_versions.keys()) | newly_exposed:
+    for name in newly_exposed:
         reviewed_contexts = new_protected_contexts.get(name, {}) | new_contexts.get(name, {})
         for domain, domain_versions in new_resolution_contexts.get(name, {}).items():
-            if not any(marker_overlap(context[3], domain) for _, context in new_requested_extra_contexts):
-                continue
-            if name in old_versions and not any(
-                marker_overlap(audience[2], domain)
-                and any(
-                    audience[:2] == requested[:2] and marker_overlap(audience[2], requested[3])
-                    for _, requested in new_requested_extra_contexts
-                )
-                and not any(audience_covers(previous, audience) for previous in previous_reachable.get(name, set()))
-                for audience in current_reachable.get(name, set())
-            ):
+            exposed: set[MarkerContext] = set()
+            for scope, group, marker in extra_reachable.get(name, set()):
+                if not marker_overlap(marker, domain):
+                    continue
+                shared = tuple(sorted(set(marker + domain)))
+                prior = [
+                    previous_marker
+                    for previous_scope, previous_group, previous_marker in previous_reachable.get(name, set())
+                    if previous_scope == "runtime" or (previous_scope, previous_group) == (scope, group)
+                ]
+                exposed.update(uncovered_marker_fragments(shared, prior))
+            if not exposed:
                 continue
             for version in domain_versions:
                 release = stable_version(version)
-                reviewed = False
+                extra_coverings: list[MarkerContext] = []
                 for context, requirements in reviewed_contexts.items():
-                    if not marker_overlap(context[3], domain):
+                    if not any(marker_overlap(context[3], fragment) for fragment in exposed):
                         continue
                     for requirement in requirements:
                         floors = minimums({requirement}, allow_missing=True, exact=True)
-                        if len(floors) == 1 and floors[0] >= release:
-                            reviewed = allows_published_release(published_bounds(requirement), release)
-                            if reviewed:
-                                break
-                    if reviewed:
-                        break
-                if not reviewed:
+                        if (
+                            len(floors) == 1
+                            and floors[0] >= release
+                            and allows_published_release(published_bounds(requirement), release)
+                        ):
+                            extra_coverings.append(context[3])
+                if not extra_coverings or any(
+                    uncovered_marker_fragments(fragment, extra_coverings) for fragment in exposed
+                ):
                     raise SystemExit(
                         "Review the contextual dependency introduced by a newly requested extra for " + name
                     )
