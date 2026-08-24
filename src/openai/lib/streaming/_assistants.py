@@ -10,18 +10,20 @@ from ..._compat import model_dump
 from ..._httpx2 import timeout_exceptions
 from ..._models import construct_type
 from ..._streaming import Stream, AsyncStream
-from ...types.beta import AssistantStreamEvent
-from ...types.beta.threads import (
-    Run,
-    Text,
-    Message,
-    ImageFile,
-    TextDelta,
-    MessageDelta,
-    MessageContent,
-    MessageContentDelta,
-)
-from ...types.beta.threads.runs import RunStep, ToolCall, RunStepDelta, ToolCallDelta
+
+if TYPE_CHECKING:
+    from ...types.beta import AssistantStreamEvent
+    from ...types.beta.threads import (
+        Run,
+        Text,
+        Message,
+        ImageFile,
+        TextDelta,
+        MessageDelta,
+        MessageContent,
+        MessageContentDelta,
+    )
+    from ...types.beta.threads.runs import RunStep, ToolCall, RunStepDelta, ToolCallDelta
 
 
 def _timeout_exceptions() -> tuple[type[Exception], ...]:
@@ -903,6 +905,8 @@ def accumulate_run_step(
         return
 
     if event.event == "thread.run.step.delta":
+        from ...types.beta.threads.runs import RunStep
+
         data = event.data
         snapshot = run_step_snapshots[data.id]
 
@@ -928,6 +932,8 @@ def accumulate_event(
     current_message_snapshot: Message | None,
 ) -> tuple[Message | None, list[MessageContentDelta]]:
     """Returns a tuple of message snapshot and newly created text message deltas"""
+    from ...types.beta.threads import MessageContent
+
     if event.event == "thread.message.created":
         return event.data, []
 
