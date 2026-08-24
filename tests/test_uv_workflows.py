@@ -4119,7 +4119,7 @@ def test_transitive_security_boundaries_cover_every_resolution_fragment(
         head_requirements.append("parent[feature]")
         before.insert(0, ("parent", "1"))
         after.insert(0, ("parent", "1"))
-        edges = {
+        edges: dict[tuple[str, str], dict[str, list[dict[str, object]]]] = {
             ("parent", "1"): {"feature": [{"name": name, "marker": "extra == 'feature' and sys_platform == 'win32'"}]}
         }
         base_optional_edges = edges
