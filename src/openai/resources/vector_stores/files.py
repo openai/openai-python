@@ -1,21 +1,25 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Dict, Union, Optional
-from typing_extensions import Literal, assert_never
+from typing import Dict, Union, Optional
+from typing_extensions import Literal
 
-import httpx
+import httpx2
 
 from ... import _legacy_response
 from ...types import FileChunkingStrategyParam
 from ..._types import Body, Omit, Query, Headers, NotGiven, FileTypes, omit, not_given
-from ..._utils import is_given, path_template, maybe_transform, async_maybe_transform
+from ..._utils import path_template, maybe_transform, async_maybe_transform
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from ...pagination import SyncPage, AsyncPage, SyncCursorPage, AsyncCursorPage
 from ..._base_client import AsyncPaginator, make_request_options
+from ...lib._vector_stores import (
+    poll_vector_store_file as _poll_vector_store_file,
+    async_poll_vector_store_file as _async_poll_vector_store_file,
+)
 from ...types.vector_stores import file_list_params, file_create_params, file_update_params
 from ...types.file_chunking_strategy_param import FileChunkingStrategyParam
 from ...types.vector_stores.vector_store_file import VectorStoreFile
@@ -57,7 +61,7 @@ class Files(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFile:
         """
         Create a vector store file by attaching a
@@ -121,7 +125,7 @@ class Files(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFile:
         """
         Retrieves a vector store file.
@@ -165,7 +169,7 @@ class Files(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFile:
         """
         Update attributes on a vector store file.
@@ -219,7 +223,7 @@ class Files(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncCursorPage[VectorStoreFile]:
         """
         Returns a list of vector store files.
@@ -287,7 +291,7 @@ class Files(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFileDeleted:
         """Delete a vector store file.
 
@@ -337,7 +341,7 @@ class Files(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFile:
         """Attach a file to the given vector store and wait for it to be processed."""
         self.create(
@@ -369,34 +373,12 @@ class Files(SyncAPIResource):
         Note: this will return even if the file failed to process, you need to check
         file.last_error and file.status to handle these cases
         """
-        headers: dict[str, str] = {"X-Stainless-Poll-Helper": "true"}
-        if is_given(poll_interval_ms):
-            headers["X-Stainless-Custom-Poll-Interval"] = str(poll_interval_ms)
-
-        while True:
-            response = self.with_raw_response.retrieve(
-                file_id,
-                vector_store_id=vector_store_id,
-                extra_headers=headers,
-            )
-
-            file = response.parse()
-            if file.status == "in_progress":
-                if not is_given(poll_interval_ms):
-                    from_header = response.headers.get("openai-poll-after-ms")
-                    if from_header is not None:
-                        poll_interval_ms = int(from_header)
-                    else:
-                        poll_interval_ms = 1000
-
-                self._sleep(poll_interval_ms / 1000)
-            elif file.status == "cancelled" or file.status == "completed" or file.status == "failed":
-                return file
-            else:
-                if TYPE_CHECKING:  # type: ignore[unreachable]
-                    assert_never(file.status)
-                else:
-                    return file
+        return _poll_vector_store_file(
+            self,
+            file_id,
+            vector_store_id=vector_store_id,
+            poll_interval_ms=poll_interval_ms,
+        )
 
     def upload(
         self,
@@ -442,7 +424,7 @@ class Files(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncPage[FileContentResponse]:
         """
         Retrieve the parsed contents of a vector store file.
@@ -511,7 +493,7 @@ class AsyncFiles(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFile:
         """
         Create a vector store file by attaching a
@@ -575,7 +557,7 @@ class AsyncFiles(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFile:
         """
         Retrieves a vector store file.
@@ -619,7 +601,7 @@ class AsyncFiles(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFile:
         """
         Update attributes on a vector store file.
@@ -673,7 +655,7 @@ class AsyncFiles(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[VectorStoreFile, AsyncCursorPage[VectorStoreFile]]:
         """
         Returns a list of vector store files.
@@ -741,7 +723,7 @@ class AsyncFiles(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFileDeleted:
         """Delete a vector store file.
 
@@ -791,7 +773,7 @@ class AsyncFiles(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFile:
         """Attach a file to the given vector store and wait for it to be processed."""
         await self.create(
@@ -823,34 +805,12 @@ class AsyncFiles(AsyncAPIResource):
         Note: this will return even if the file failed to process, you need to check
         file.last_error and file.status to handle these cases
         """
-        headers: dict[str, str] = {"X-Stainless-Poll-Helper": "true"}
-        if is_given(poll_interval_ms):
-            headers["X-Stainless-Custom-Poll-Interval"] = str(poll_interval_ms)
-
-        while True:
-            response = await self.with_raw_response.retrieve(
-                file_id,
-                vector_store_id=vector_store_id,
-                extra_headers=headers,
-            )
-
-            file = response.parse()
-            if file.status == "in_progress":
-                if not is_given(poll_interval_ms):
-                    from_header = response.headers.get("openai-poll-after-ms")
-                    if from_header is not None:
-                        poll_interval_ms = int(from_header)
-                    else:
-                        poll_interval_ms = 1000
-
-                await self._sleep(poll_interval_ms / 1000)
-            elif file.status == "cancelled" or file.status == "completed" or file.status == "failed":
-                return file
-            else:
-                if TYPE_CHECKING:  # type: ignore[unreachable]
-                    assert_never(file.status)
-                else:
-                    return file
+        return await _async_poll_vector_store_file(
+            self,
+            file_id,
+            vector_store_id=vector_store_id,
+            poll_interval_ms=poll_interval_ms,
+        )
 
     async def upload(
         self,
@@ -898,7 +858,7 @@ class AsyncFiles(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[FileContentResponse, AsyncPage[FileContentResponse]]:
         """
         Retrieve the parsed contents of a vector store file.

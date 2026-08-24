@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -15,7 +15,9 @@ from .beta_local_skill import BetaLocalSkill as BetaLocalSkill
 from .chatkit_workflow import ChatKitWorkflow as ChatKitWorkflow
 from .file_search_tool import FileSearchTool as FileSearchTool
 from .assistant_deleted import AssistantDeleted as AssistantDeleted
+from .beta_image_detail import BetaImageDetail as BetaImageDetail
 from .beta_inline_skill import BetaInlineSkill as BetaInlineSkill
+from .beta_service_tier import BetaServiceTier as BetaServiceTier
 from .beta_computer_tool import BetaComputerTool as BetaComputerTool
 from .beta_function_tool import BetaFunctionTool as BetaFunctionTool
 from .beta_response_item import BetaResponseItem as BetaResponseItem
@@ -60,6 +62,7 @@ from .beta_container_reference import BetaContainerReference as BetaContainerRef
 from .beta_function_shell_tool import BetaFunctionShellTool as BetaFunctionShellTool
 from .beta_function_tool_param import BetaFunctionToolParam as BetaFunctionToolParam
 from .beta_inline_skill_source import BetaInlineSkillSource as BetaInlineSkillSource
+from .beta_mcp_tool_call_error import BetaMcpToolCallError as BetaMcpToolCallError
 from .beta_response_includable import BetaResponseIncludable as BetaResponseIncludable
 from .beta_response_input_file import BetaResponseInputFile as BetaResponseInputFile
 from .beta_response_input_item import BetaResponseInputItem as BetaResponseInputItem
@@ -115,6 +118,7 @@ from .beta_computer_use_preview_tool import BetaComputerUsePreviewTool as BetaCo
 from .beta_container_reference_param import BetaContainerReferenceParam as BetaContainerReferenceParam
 from .beta_function_shell_tool_param import BetaFunctionShellToolParam as BetaFunctionShellToolParam
 from .beta_inline_skill_source_param import BetaInlineSkillSourceParam as BetaInlineSkillSourceParam
+from .beta_mcp_tool_call_error_param import BetaMcpToolCallErrorParam as BetaMcpToolCallErrorParam
 from .beta_response_audio_done_event import BetaResponseAudioDoneEvent as BetaResponseAudioDoneEvent
 from .beta_response_custom_tool_call import BetaResponseCustomToolCall as BetaResponseCustomToolCall
 from .beta_response_incomplete_event import BetaResponseIncompleteEvent as BetaResponseIncompleteEvent
@@ -260,6 +264,9 @@ from .beta_response_custom_tool_call_output_param import (
 from .beta_response_mcp_call_arguments_done_event import (
     BetaResponseMcpCallArgumentsDoneEvent as BetaResponseMcpCallArgumentsDoneEvent,
 )
+from .beta_response_shell_call_command_done_event import (
+    BetaResponseShellCallCommandDoneEvent as BetaResponseShellCallCommandDoneEvent,
+)
 from .beta_response_tool_search_output_item_param import (
     BetaResponseToolSearchOutputItemParam as BetaResponseToolSearchOutputItemParam,
 )
@@ -286,6 +293,12 @@ from .beta_response_mcp_call_arguments_delta_event import (
 )
 from .beta_response_mcp_list_tools_completed_event import (
     BetaResponseMcpListToolsCompletedEvent as BetaResponseMcpListToolsCompletedEvent,
+)
+from .beta_response_shell_call_command_added_event import (
+    BetaResponseShellCallCommandAddedEvent as BetaResponseShellCallCommandAddedEvent,
+)
+from .beta_response_shell_call_command_delta_event import (
+    BetaResponseShellCallCommandDeltaEvent as BetaResponseShellCallCommandDeltaEvent,
 )
 from .beta_container_network_policy_allowlist_param import (
     BetaContainerNetworkPolicyAllowlistParam as BetaContainerNetworkPolicyAllowlistParam,
@@ -377,11 +390,17 @@ from .beta_response_format_text_json_schema_config_param import (
 from .beta_response_function_call_output_item_list_param import (
     BetaResponseFunctionCallOutputItemListParam as BetaResponseFunctionCallOutputItemListParam,
 )
+from .beta_response_shell_call_output_content_done_event import (
+    BetaResponseShellCallOutputContentDoneEvent as BetaResponseShellCallOutputContentDoneEvent,
+)
 from .beta_response_code_interpreter_call_code_done_event import (
     BetaResponseCodeInterpreterCallCodeDoneEvent as BetaResponseCodeInterpreterCallCodeDoneEvent,
 )
 from .beta_response_code_interpreter_call_completed_event import (
     BetaResponseCodeInterpreterCallCompletedEvent as BetaResponseCodeInterpreterCallCompletedEvent,
+)
+from .beta_response_shell_call_output_content_delta_event import (
+    BetaResponseShellCallOutputContentDeltaEvent as BetaResponseShellCallOutputContentDeltaEvent,
 )
 from .beta_response_code_interpreter_call_code_delta_event import (
     BetaResponseCodeInterpreterCallCodeDeltaEvent as BetaResponseCodeInterpreterCallCodeDeltaEvent,

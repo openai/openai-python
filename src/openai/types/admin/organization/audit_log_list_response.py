@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import List, Optional
 from typing_extensions import Literal
@@ -1048,6 +1048,7 @@ class AuditLogListResponse(BaseModel):
         "tenant.workload_identity.mapping.archived",
         "tenant.workload_identity.binding.created",
         "tenant.workload_identity.principal.provisioned",
+        "tenant.workload_identity.access_token.issued",
         "tenant.admin_api_key.created",
         "tenant.admin_api_key.updated",
         "tenant.admin_api_key.deleted",
@@ -1104,6 +1105,7 @@ class AuditLogListResponse(BaseModel):
         "tenant.resource_role_assignment.deleted",
         "tenant.resource_access.updated",
         "tenant.resource_access.deleted",
+        "tenant.ads_account.onboarding.redemption",
         "tenant.session_policy.created",
         "tenant.session_policy.updated",
         "tenant.session_policy.deleted",

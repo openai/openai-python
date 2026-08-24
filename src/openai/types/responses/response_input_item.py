@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import Dict, List, Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
@@ -9,6 +9,7 @@ from ..._models import BaseModel
 from .local_environment import LocalEnvironment
 from .easy_input_message import EasyInputMessage
 from .container_reference import ContainerReference
+from .mcp_tool_call_error import McpToolCallError
 from .response_output_message import ResponseOutputMessage
 from .response_reasoning_item import ResponseReasoningItem
 from .response_custom_tool_call import ResponseCustomToolCall
@@ -658,7 +659,7 @@ class McpCall(BaseModel):
     corresponding tool call.
     """
 
-    error: Optional[str] = None
+    error: Optional[McpToolCallError] = None
     """The error from the tool call, if any."""
 
     output: Optional[str] = None

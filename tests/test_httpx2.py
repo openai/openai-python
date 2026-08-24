@@ -4,7 +4,7 @@ import base64
 from typing import Any
 from typing_extensions import override
 
-import httpx
+import httpx2
 import pytest
 
 import openai
@@ -22,25 +22,12 @@ from openai._response import StreamAlreadyConsumed
 from openai.providers import bedrock
 from openai._constants import DEFAULT_TIMEOUT
 
-httpx2 = pytest.importorskip("httpx2")
 
-
-@pytest.fixture(autouse=True)
-def forbid_httpx_execution(monkeypatch: pytest.MonkeyPatch) -> None:
-    def forbidden(*_args: object, **_kwargs: object) -> None:
-        raise AssertionError("the experimental path unexpectedly executed an HTTPX client")
-
-    monkeypatch.setattr(httpx.Client, "build_request", forbidden)
-    monkeypatch.setattr(httpx.Client, "send", forbidden)
-    monkeypatch.setattr(httpx.AsyncClient, "build_request", forbidden)
-    monkeypatch.setattr(httpx.AsyncClient, "send", forbidden)
-
-
-def model_list(request: httpx.Request) -> httpx.Response:
+def model_list(request: httpx2.Request) -> httpx2.Response:
     return httpx2.Response(200, json={"object": "list", "data": []}, request=request)
 
 
-def sse_response(request: httpx.Request) -> httpx.Response:
+def sse_response(request: httpx2.Request) -> httpx2.Response:
     return httpx2.Response(
         200,
         headers={"content-type": "text/event-stream"},
@@ -69,21 +56,21 @@ async def test_httpx2_helpers_supply_sdk_defaults_and_accept_native_proxy() -> N
 
 
 def test_sync_helper_preserves_httpx2_family_for_parsed_raw_and_sse() -> None:
-    requests: list[httpx.Request] = []
+    requests: list[httpx2.Request] = []
     hooks: list[str] = []
 
-    def handler(request: httpx.Request) -> httpx.Response:
+    def handler(request: httpx2.Request) -> httpx2.Response:
         requests.append(request)
         return sse_response(request) if request.url.path.endswith("/responses") else model_list(request)
 
-    def on_request(request: httpx.Request) -> None:
+    def on_request(request: httpx2.Request) -> None:
         hooks.append(type(request).__module__)
 
     with OpenAI(
         api_key="test",
         base_url=httpx2.URL("https://example.test/v1"),
         http_client=openai.DefaultHttpx2Client(
-            timeout=httpx.Timeout(30.0, read=10.0),
+            timeout=httpx2.Timeout(30.0, read=10.0),
             auth=httpx2.BasicAuth("fake-test-user", "fake-test-password"),
             headers=[("x-repeated", "one"), ("x-repeated", "two")],
             mounts={"https://example.test": httpx2.MockTransport(handler)},
@@ -100,7 +87,7 @@ def test_sync_helper_preserves_httpx2_family_for_parsed_raw_and_sse() -> None:
             "/multipart",
             files={"file": ("example.txt", b"body", "text/plain")},
             options={"headers": {"Content-Type": "multipart/form-data"}},
-            cast_to=httpx.Response,
+            cast_to=httpx2.Response,
         )
 
     assert parsed.object == "list"
@@ -122,21 +109,21 @@ def test_sync_helper_preserves_httpx2_family_for_parsed_raw_and_sse() -> None:
 
 
 async def test_async_helper_preserves_httpx2_family_for_parsed_raw_and_sse() -> None:
-    requests: list[httpx.Request] = []
+    requests: list[httpx2.Request] = []
     hooks: list[str] = []
 
-    async def handler(request: httpx.Request) -> httpx.Response:
+    async def handler(request: httpx2.Request) -> httpx2.Response:
         requests.append(request)
         return sse_response(request) if request.url.path.endswith("/responses") else model_list(request)
 
-    async def on_request(request: httpx.Request) -> None:
+    async def on_request(request: httpx2.Request) -> None:
         hooks.append(type(request).__module__)
 
     async with AsyncOpenAI(
         api_key="test",
         base_url=httpx2.URL("https://example.test/v1"),
         http_client=openai.DefaultAsyncHttpx2Client(
-            timeout=httpx.Timeout(30.0, read=10.0),
+            timeout=httpx2.Timeout(30.0, read=10.0),
             auth=httpx2.BasicAuth("fake-test-user", "fake-test-password"),
             headers=[("x-repeated", "one"), ("x-repeated", "two")],
             transport=httpx2.MockTransport(handler),
@@ -153,7 +140,7 @@ async def test_async_helper_preserves_httpx2_family_for_parsed_raw_and_sse() -> 
             "/multipart",
             files={"file": ("example.txt", b"body", "text/plain")},
             options={"headers": {"Content-Type": "multipart/form-data"}},
-            cast_to=httpx.Response,
+            cast_to=httpx2.Response,
         )
 
     assert parsed.object == "list"
@@ -196,7 +183,7 @@ async def test_httpx2_urls_and_response_casts() -> None:
     class ResponseSubclass(httpx2.Response):
         pass
 
-    def model(request: httpx.Request) -> httpx.Response:
+    def model(request: httpx2.Request) -> httpx2.Response:
         return httpx2.Response(
             200,
             request=request,
@@ -218,7 +205,7 @@ async def test_httpx2_urls_and_response_casts() -> None:
         with pytest.raises(ValueError, match="Subclasses of HTTP response classes"):
             client.get("/models", cast_to=ResponseSubclass)
 
-    async def handler(request: httpx.Request) -> httpx.Response:
+    async def handler(request: httpx2.Request) -> httpx2.Response:
         return model(request)
 
     async with AsyncOpenAI(
@@ -308,14 +295,14 @@ async def test_httpx2_urls_work_for_all_websocket_builders() -> None:
 
 
 async def test_httpx2_native_timeouts_set_numeric_read_timeout_header() -> None:
-    sync_requests: list[httpx.Request] = []
-    async_requests: list[httpx.Request] = []
+    sync_requests: list[httpx2.Request] = []
+    async_requests: list[httpx2.Request] = []
 
-    def sync_handler(request: httpx.Request) -> httpx.Response:
+    def sync_handler(request: httpx2.Request) -> httpx2.Response:
         sync_requests.append(request)
         return model_list(request)
 
-    async def async_handler(request: httpx.Request) -> httpx.Response:
+    async def async_handler(request: httpx2.Request) -> httpx2.Response:
         async_requests.append(request)
         return model_list(request)
 
@@ -344,7 +331,7 @@ async def test_httpx2_native_timeouts_set_numeric_read_timeout_header() -> None:
 
 
 async def test_direct_async_injection() -> None:
-    async def handler(request: httpx.Request) -> httpx.Response:
+    async def handler(request: httpx2.Request) -> httpx2.Response:
         return model_list(request)
 
     direct = httpx2.AsyncClient(transport=httpx2.MockTransport(handler), trust_env=False)
@@ -357,9 +344,9 @@ async def test_direct_async_injection() -> None:
 
 @pytest.mark.parametrize("failure", ["timeout", "connection", "status"])
 def test_sync_retries_and_failure_families(failure: str, monkeypatch: pytest.MonkeyPatch) -> None:
-    requests: list[httpx.Request] = []
+    requests: list[httpx2.Request] = []
 
-    def handler(request: httpx.Request) -> httpx.Response:
+    def handler(request: httpx2.Request) -> httpx2.Response:
         requests.append(request)
         if len(requests) > 1:
             return model_list(request)
@@ -388,7 +375,7 @@ def test_sync_retries_and_failure_families(failure: str, monkeypatch: pytest.Mon
     assert len(requests) == 2
     assert all(type(request).__module__ == "httpx2" for request in requests)
 
-    def always_fail(request: httpx.Request) -> httpx.Response:
+    def always_fail(request: httpx2.Request) -> httpx2.Response:
         if failure == "timeout":
             raise httpx2.ReadTimeout("timeout", request=request)
         if failure == "connection":
@@ -419,9 +406,9 @@ def test_sync_retries_and_failure_families(failure: str, monkeypatch: pytest.Mon
 
 @pytest.mark.parametrize("failure", ["timeout", "connection", "status"])
 async def test_async_retries_and_failure_families(failure: str, monkeypatch: pytest.MonkeyPatch) -> None:
-    requests: list[httpx.Request] = []
+    requests: list[httpx2.Request] = []
 
-    async def handler(request: httpx.Request) -> httpx.Response:
+    async def handler(request: httpx2.Request) -> httpx2.Response:
         requests.append(request)
         if len(requests) > 1:
             return model_list(request)
@@ -450,7 +437,7 @@ async def test_async_retries_and_failure_families(failure: str, monkeypatch: pyt
     assert len(requests) == 2
     assert all(type(request).__module__ == "httpx2" for request in requests)
 
-    async def always_fail(request: httpx.Request) -> httpx.Response:
+    async def always_fail(request: httpx2.Request) -> httpx2.Response:
         if failure == "timeout":
             raise httpx2.ReadTimeout("timeout", request=request)
         if failure == "connection":
@@ -480,14 +467,14 @@ async def test_async_retries_and_failure_families(failure: str, monkeypatch: pyt
 
 
 async def test_provider_auth_and_stream_consumed_families() -> None:
-    sync_requests: list[httpx.Request] = []
-    async_requests: list[httpx.Request] = []
+    sync_requests: list[httpx2.Request] = []
+    async_requests: list[httpx2.Request] = []
 
-    def sync_handler(request: httpx.Request) -> httpx.Response:
+    def sync_handler(request: httpx2.Request) -> httpx2.Response:
         sync_requests.append(request)
         return model_list(request)
 
-    async def async_handler(request: httpx.Request) -> httpx.Response:
+    async def async_handler(request: httpx2.Request) -> httpx2.Response:
         async_requests.append(request)
         return model_list(request)
 
@@ -509,35 +496,39 @@ async def test_provider_auth_and_stream_consumed_families() -> None:
     assert async_requests[0].headers["authorization"] == "Bearer bedrock-token"
 
     class SyncStream(httpx2.SyncByteStream):
+        @override
         def __iter__(self):
             yield b'{"object":"list","data":[]}'
 
     class AsyncStream(httpx2.AsyncByteStream):
+        @override
         async def __aiter__(self):
             yield b'{"object":"list","data":[]}'
 
     class FailingSyncStream(httpx2.SyncByteStream):
+        @override
         def __iter__(self):
             yield b"partial"
             raise httpx2.ReadTimeout("stream timeout")
 
     class FailingAsyncStream(httpx2.AsyncByteStream):
+        @override
         async def __aiter__(self):
             yield b"partial"
             raise httpx2.ReadTimeout("stream timeout")
 
-    def sync_stream_handler(request: httpx.Request) -> httpx.Response:
+    def sync_stream_handler(request: httpx2.Request) -> httpx2.Response:
         return httpx2.Response(200, headers={"content-type": "application/json"}, stream=SyncStream(), request=request)
 
-    async def async_stream_handler(request: httpx.Request) -> httpx.Response:
+    async def async_stream_handler(request: httpx2.Request) -> httpx2.Response:
         return httpx2.Response(200, headers={"content-type": "application/json"}, stream=AsyncStream(), request=request)
 
-    def sync_failing_stream_handler(request: httpx.Request) -> httpx.Response:
+    def sync_failing_stream_handler(request: httpx2.Request) -> httpx2.Response:
         return httpx2.Response(
             200, headers={"content-type": "application/json"}, stream=FailingSyncStream(), request=request
         )
 
-    async def async_failing_stream_handler(request: httpx.Request) -> httpx.Response:
+    async def async_failing_stream_handler(request: httpx2.Request) -> httpx2.Response:
         return httpx2.Response(
             200, headers={"content-type": "application/json"}, stream=FailingAsyncStream(), request=request
         )
@@ -616,21 +607,23 @@ async def test_assistant_stream_timeout_callbacks_preserve_httpx2_family() -> No
             self.exception = exception
 
     class FailingSyncStream(httpx2.SyncByteStream):
+        @override
         def __iter__(self):
             yield b"partial"
             raise httpx2.ReadTimeout("assistant stream timeout")
 
     class FailingAsyncStream(httpx2.AsyncByteStream):
+        @override
         async def __aiter__(self):
             yield b"partial"
             raise httpx2.ReadTimeout("assistant stream timeout")
 
-    def sync_response(request: httpx.Request) -> httpx.Response:
+    def sync_response(request: httpx2.Request) -> httpx2.Response:
         return httpx2.Response(
             200, headers={"content-type": "text/event-stream"}, stream=FailingSyncStream(), request=request
         )
 
-    async def async_response(request: httpx.Request) -> httpx.Response:
+    async def async_response(request: httpx2.Request) -> httpx2.Response:
         return httpx2.Response(
             200, headers={"content-type": "text/event-stream"}, stream=FailingAsyncStream(), request=request
         )
@@ -671,14 +664,14 @@ async def test_assistant_stream_timeout_callbacks_preserve_httpx2_family() -> No
 async def test_sigv4_provider_preserves_httpx2_family_and_rejects_one_shot_bodies() -> None:
     pytest.importorskip("botocore")
 
-    sync_requests: list[httpx.Request] = []
-    async_requests: list[httpx.Request] = []
+    sync_requests: list[httpx2.Request] = []
+    async_requests: list[httpx2.Request] = []
 
-    def sync_handler(request: httpx.Request) -> httpx.Response:
+    def sync_handler(request: httpx2.Request) -> httpx2.Response:
         sync_requests.append(request)
         return model_list(request)
 
-    async def async_handler(request: httpx.Request) -> httpx.Response:
+    async def async_handler(request: httpx2.Request) -> httpx2.Response:
         async_requests.append(request)
         return model_list(request)
 
@@ -695,9 +688,9 @@ async def test_sigv4_provider_preserves_httpx2_family_and_rejects_one_shot_bodie
         http_client=openai.DefaultHttpx2Client(transport=httpx2.MockTransport(sync_handler), trust_env=False),
         max_retries=0,
     ) as sync_client:
-        sync_client.post("/responses", content=b"body", cast_to=httpx.Response)
+        sync_client.post("/responses", content=b"body", cast_to=httpx2.Response)
         with pytest.raises(OpenAIError, match="requires a replayable request body"):
-            sync_client.post("/responses", content=iter([b"body"]), cast_to=httpx.Response)
+            sync_client.post("/responses", content=iter([b"body"]), cast_to=httpx2.Response)
 
     async def body():
         yield b"body"
@@ -707,9 +700,9 @@ async def test_sigv4_provider_preserves_httpx2_family_and_rejects_one_shot_bodie
         http_client=openai.DefaultAsyncHttpx2Client(transport=httpx2.MockTransport(async_handler), trust_env=False),
         max_retries=0,
     ) as async_client:
-        await async_client.post("/responses", content=b"body", cast_to=httpx.Response)
+        await async_client.post("/responses", content=b"body", cast_to=httpx2.Response)
         with pytest.raises(OpenAIError, match="requires a replayable request body"):
-            await async_client.post("/responses", content=body(), cast_to=httpx.Response)
+            await async_client.post("/responses", content=body(), cast_to=httpx2.Response)
 
     assert len(sync_requests) == 1
     assert len(async_requests) == 1

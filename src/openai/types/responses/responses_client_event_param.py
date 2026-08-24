@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -6,6 +6,7 @@ from typing import List, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from .tool_param import ToolParam
+from .service_tier import ServiceTier
 from .response_includable import ResponseIncludable
 from .tool_choice_options import ToolChoiceOptions
 from .response_input_param import ResponseInputParam
@@ -316,7 +317,7 @@ class ResponsesClientEventParam(TypedDict, total=False):
     [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
     """
 
-    service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]]
+    service_tier: Optional[ServiceTier]
     """Specifies the processing type used for serving the request.
 
     - If set to 'auto', then the request will be processed with the service tier
@@ -331,6 +332,10 @@ class ResponsesClientEventParam(TypedDict, total=False):
       Responses or Chat Completions. The response will show `service_tier=priority`
       regardless of if you specify `service_tier=fast` or `priority` in your
       request.
+    - If set to 'ultrafast', then the request will be processed with the
+      access-controlled Ultrafast Processing service tier. This tier is currently
+      available for `gpt-5.6-sol`; a response served through it will show
+      `service_tier=ultrafast`.
     - When not set, the default behavior is 'auto'.
 
     When the `service_tier` parameter is set, the response body will include the
@@ -350,6 +355,16 @@ class ResponsesClientEventParam(TypedDict, total=False):
     See the
     [Streaming section below](https://platform.openai.com/docs/api-reference/responses-streaming)
     for more information.
+    """
+
+    stream_id: str
+    """The WebSocket lane for this response.
+
+    Requests with the same `stream_id` are processed FIFO, and events for the
+    response echo the same `stream_id`.
+
+    `stream_id` controls routing; `previous_response_id` controls conversation
+    lineage, so a new lane can fork from a response created on another lane.
     """
 
     stream_options: Optional[StreamOptions]

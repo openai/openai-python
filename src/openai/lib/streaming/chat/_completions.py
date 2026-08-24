@@ -739,6 +739,7 @@ class ChoiceEventState:
 
 def _convert_initial_chunk_into_snapshot(chunk: ChatCompletionChunk) -> ParsedChatCompletionSnapshot:
     data = chunk.to_dict()
+    data.pop("obfuscation", None)
     choices = cast("list[object]", data["choices"])
 
     for choice in chunk.choices:

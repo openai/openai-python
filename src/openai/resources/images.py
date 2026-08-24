@@ -1,11 +1,11 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 from typing import Union, Mapping, Optional, cast
 from typing_extensions import Literal, overload
 
-import httpx
+import httpx2
 
 from .. import _legacy_response
 from ..types import image_edit_params, image_generate_params, image_create_variation_params
@@ -61,7 +61,7 @@ class Images(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse:
         """Creates a variation of a given image.
 
@@ -150,7 +150,7 @@ class Images(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse:
         """Creates an edited or extended image given one or more source images and a
         prompt.
@@ -172,18 +172,13 @@ class Images(SyncAPIResource):
           prompt: A text description of the desired image(s). The maximum length is 1000
               characters for `dall-e-2`, and 32000 characters for the GPT image models.
 
-          background: Allows to set transparency for the background of the generated image(s). This
-              parameter is only supported for GPT image models that support transparent
-              backgrounds. Must be one of `transparent`, `opaque`, or `auto` (default value).
-              When `auto` is used, the model will automatically determine the best background
-              for the image.
+          background: Allows to set transparency for the background of the generated image(s). Must be
+              one of `transparent`, `opaque`, or `auto` (default value). When `auto` is used,
+              the model will automatically determine the best background for the image.
 
-              `gpt-image-2` and `gpt-image-2-2026-04-21` do not support transparent
-              backgrounds. Requests with `background` set to `transparent` will return an
-              error for these models; use `opaque` or `auto` instead.
-
-              If `transparent`, the output format needs to support transparency, so it should
-              be set to either `png` (default value) or `webp`.
+              Transparent backgrounds are available for supported GPT Image models. For
+              `gpt-image-2` and `gpt-image-2-2026-04-21`, this support is in preview. When
+              using `transparent`, set the output format to `png` or `webp`.
 
           input_fidelity: Control how much effort the model will exert to match the style and features,
               especially facial features, of input images. This parameter is only supported
@@ -280,7 +275,7 @@ class Images(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Stream[ImageEditStreamEvent]:
         """Creates an edited or extended image given one or more source images and a
         prompt.
@@ -306,18 +301,13 @@ class Images(SyncAPIResource):
               [Image generation guide](https://platform.openai.com/docs/guides/image-generation)
               for more information.
 
-          background: Allows to set transparency for the background of the generated image(s). This
-              parameter is only supported for GPT image models that support transparent
-              backgrounds. Must be one of `transparent`, `opaque`, or `auto` (default value).
-              When `auto` is used, the model will automatically determine the best background
-              for the image.
+          background: Allows to set transparency for the background of the generated image(s). Must be
+              one of `transparent`, `opaque`, or `auto` (default value). When `auto` is used,
+              the model will automatically determine the best background for the image.
 
-              `gpt-image-2` and `gpt-image-2-2026-04-21` do not support transparent
-              backgrounds. Requests with `background` set to `transparent` will return an
-              error for these models; use `opaque` or `auto` instead.
-
-              If `transparent`, the output format needs to support transparency, so it should
-              be set to either `png` (default value) or `webp`.
+              Transparent backgrounds are available for supported GPT Image models. For
+              `gpt-image-2` and `gpt-image-2-2026-04-21`, this support is in preview. When
+              using `transparent`, set the output format to `png` or `webp`.
 
           input_fidelity: Control how much effort the model will exert to match the style and features,
               especially facial features, of input images. This parameter is only supported
@@ -410,7 +400,7 @@ class Images(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse | Stream[ImageEditStreamEvent]:
         """Creates an edited or extended image given one or more source images and a
         prompt.
@@ -436,18 +426,13 @@ class Images(SyncAPIResource):
               [Image generation guide](https://platform.openai.com/docs/guides/image-generation)
               for more information.
 
-          background: Allows to set transparency for the background of the generated image(s). This
-              parameter is only supported for GPT image models that support transparent
-              backgrounds. Must be one of `transparent`, `opaque`, or `auto` (default value).
-              When `auto` is used, the model will automatically determine the best background
-              for the image.
+          background: Allows to set transparency for the background of the generated image(s). Must be
+              one of `transparent`, `opaque`, or `auto` (default value). When `auto` is used,
+              the model will automatically determine the best background for the image.
 
-              `gpt-image-2` and `gpt-image-2-2026-04-21` do not support transparent
-              backgrounds. Requests with `background` set to `transparent` will return an
-              error for these models; use `opaque` or `auto` instead.
-
-              If `transparent`, the output format needs to support transparency, so it should
-              be set to either `png` (default value) or `webp`.
+              Transparent backgrounds are available for supported GPT Image models. For
+              `gpt-image-2` and `gpt-image-2-2026-04-21`, this support is in preview. When
+              using `transparent`, set the output format to `png` or `webp`.
 
           input_fidelity: Control how much effort the model will exert to match the style and features,
               especially facial features, of input images. This parameter is only supported
@@ -540,7 +525,7 @@ class Images(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse | Stream[ImageEditStreamEvent]:
         body = deepcopy_with_paths(
             {
@@ -614,7 +599,7 @@ class Images(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse:
         """
         Creates an image given a prompt.
@@ -625,18 +610,13 @@ class Images(SyncAPIResource):
               characters for the GPT image models, 1000 characters for `dall-e-2` and 4000
               characters for `dall-e-3`.
 
-          background: Allows to set transparency for the background of the generated image(s). This
-              parameter is only supported for GPT image models that support transparent
-              backgrounds. Must be one of `transparent`, `opaque`, or `auto` (default value).
-              When `auto` is used, the model will automatically determine the best background
-              for the image.
+          background: Allows to set transparency for the background of the generated image(s). Must be
+              one of `transparent`, `opaque`, or `auto` (default value). When `auto` is used,
+              the model will automatically determine the best background for the image.
 
-              `gpt-image-2` and `gpt-image-2-2026-04-21` do not support transparent
-              backgrounds. Requests with `background` set to `transparent` will return an
-              error for these models; use `opaque` or `auto` instead.
-
-              If `transparent`, the output format needs to support transparency, so it should
-              be set to either `png` (default value) or `webp`.
+              Transparent backgrounds are available for supported GPT Image models. For
+              `gpt-image-2` and `gpt-image-2-2026-04-21`, this support is in preview. When
+              using `transparent`, set the output format to `png` or `webp`.
 
           model: The model to use for image generation. One of `dall-e-2`, `dall-e-3`, or a GPT
               image model (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
@@ -740,7 +720,7 @@ class Images(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Stream[ImageGenStreamEvent]:
         """
         Creates an image given a prompt.
@@ -755,18 +735,13 @@ class Images(SyncAPIResource):
               [Image generation guide](https://platform.openai.com/docs/guides/image-generation)
               for more information. This parameter is only supported for the GPT image models.
 
-          background: Allows to set transparency for the background of the generated image(s). This
-              parameter is only supported for GPT image models that support transparent
-              backgrounds. Must be one of `transparent`, `opaque`, or `auto` (default value).
-              When `auto` is used, the model will automatically determine the best background
-              for the image.
+          background: Allows to set transparency for the background of the generated image(s). Must be
+              one of `transparent`, `opaque`, or `auto` (default value). When `auto` is used,
+              the model will automatically determine the best background for the image.
 
-              `gpt-image-2` and `gpt-image-2-2026-04-21` do not support transparent
-              backgrounds. Requests with `background` set to `transparent` will return an
-              error for these models; use `opaque` or `auto` instead.
-
-              If `transparent`, the output format needs to support transparency, so it should
-              be set to either `png` (default value) or `webp`.
+              Transparent backgrounds are available for supported GPT Image models. For
+              `gpt-image-2` and `gpt-image-2-2026-04-21`, this support is in preview. When
+              using `transparent`, set the output format to `png` or `webp`.
 
           model: The model to use for image generation. One of `dall-e-2`, `dall-e-3`, or a GPT
               image model (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
@@ -866,7 +841,7 @@ class Images(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse | Stream[ImageGenStreamEvent]:
         """
         Creates an image given a prompt.
@@ -881,18 +856,13 @@ class Images(SyncAPIResource):
               [Image generation guide](https://platform.openai.com/docs/guides/image-generation)
               for more information. This parameter is only supported for the GPT image models.
 
-          background: Allows to set transparency for the background of the generated image(s). This
-              parameter is only supported for GPT image models that support transparent
-              backgrounds. Must be one of `transparent`, `opaque`, or `auto` (default value).
-              When `auto` is used, the model will automatically determine the best background
-              for the image.
+          background: Allows to set transparency for the background of the generated image(s). Must be
+              one of `transparent`, `opaque`, or `auto` (default value). When `auto` is used,
+              the model will automatically determine the best background for the image.
 
-              `gpt-image-2` and `gpt-image-2-2026-04-21` do not support transparent
-              backgrounds. Requests with `background` set to `transparent` will return an
-              error for these models; use `opaque` or `auto` instead.
-
-              If `transparent`, the output format needs to support transparency, so it should
-              be set to either `png` (default value) or `webp`.
+              Transparent backgrounds are available for supported GPT Image models. For
+              `gpt-image-2` and `gpt-image-2-2026-04-21`, this support is in preview. When
+              using `transparent`, set the output format to `png` or `webp`.
 
           model: The model to use for image generation. One of `dall-e-2`, `dall-e-3`, or a GPT
               image model (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
@@ -992,7 +962,7 @@ class Images(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse | Stream[ImageGenStreamEvent]:
         return self._post(
             "/images/generations",
@@ -1066,7 +1036,7 @@ class AsyncImages(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse:
         """Creates a variation of a given image.
 
@@ -1155,7 +1125,7 @@ class AsyncImages(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse:
         """Creates an edited or extended image given one or more source images and a
         prompt.
@@ -1177,18 +1147,13 @@ class AsyncImages(AsyncAPIResource):
           prompt: A text description of the desired image(s). The maximum length is 1000
               characters for `dall-e-2`, and 32000 characters for the GPT image models.
 
-          background: Allows to set transparency for the background of the generated image(s). This
-              parameter is only supported for GPT image models that support transparent
-              backgrounds. Must be one of `transparent`, `opaque`, or `auto` (default value).
-              When `auto` is used, the model will automatically determine the best background
-              for the image.
+          background: Allows to set transparency for the background of the generated image(s). Must be
+              one of `transparent`, `opaque`, or `auto` (default value). When `auto` is used,
+              the model will automatically determine the best background for the image.
 
-              `gpt-image-2` and `gpt-image-2-2026-04-21` do not support transparent
-              backgrounds. Requests with `background` set to `transparent` will return an
-              error for these models; use `opaque` or `auto` instead.
-
-              If `transparent`, the output format needs to support transparency, so it should
-              be set to either `png` (default value) or `webp`.
+              Transparent backgrounds are available for supported GPT Image models. For
+              `gpt-image-2` and `gpt-image-2-2026-04-21`, this support is in preview. When
+              using `transparent`, set the output format to `png` or `webp`.
 
           input_fidelity: Control how much effort the model will exert to match the style and features,
               especially facial features, of input images. This parameter is only supported
@@ -1285,7 +1250,7 @@ class AsyncImages(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncStream[ImageEditStreamEvent]:
         """Creates an edited or extended image given one or more source images and a
         prompt.
@@ -1311,18 +1276,13 @@ class AsyncImages(AsyncAPIResource):
               [Image generation guide](https://platform.openai.com/docs/guides/image-generation)
               for more information.
 
-          background: Allows to set transparency for the background of the generated image(s). This
-              parameter is only supported for GPT image models that support transparent
-              backgrounds. Must be one of `transparent`, `opaque`, or `auto` (default value).
-              When `auto` is used, the model will automatically determine the best background
-              for the image.
+          background: Allows to set transparency for the background of the generated image(s). Must be
+              one of `transparent`, `opaque`, or `auto` (default value). When `auto` is used,
+              the model will automatically determine the best background for the image.
 
-              `gpt-image-2` and `gpt-image-2-2026-04-21` do not support transparent
-              backgrounds. Requests with `background` set to `transparent` will return an
-              error for these models; use `opaque` or `auto` instead.
-
-              If `transparent`, the output format needs to support transparency, so it should
-              be set to either `png` (default value) or `webp`.
+              Transparent backgrounds are available for supported GPT Image models. For
+              `gpt-image-2` and `gpt-image-2-2026-04-21`, this support is in preview. When
+              using `transparent`, set the output format to `png` or `webp`.
 
           input_fidelity: Control how much effort the model will exert to match the style and features,
               especially facial features, of input images. This parameter is only supported
@@ -1415,7 +1375,7 @@ class AsyncImages(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse | AsyncStream[ImageEditStreamEvent]:
         """Creates an edited or extended image given one or more source images and a
         prompt.
@@ -1441,18 +1401,13 @@ class AsyncImages(AsyncAPIResource):
               [Image generation guide](https://platform.openai.com/docs/guides/image-generation)
               for more information.
 
-          background: Allows to set transparency for the background of the generated image(s). This
-              parameter is only supported for GPT image models that support transparent
-              backgrounds. Must be one of `transparent`, `opaque`, or `auto` (default value).
-              When `auto` is used, the model will automatically determine the best background
-              for the image.
+          background: Allows to set transparency for the background of the generated image(s). Must be
+              one of `transparent`, `opaque`, or `auto` (default value). When `auto` is used,
+              the model will automatically determine the best background for the image.
 
-              `gpt-image-2` and `gpt-image-2-2026-04-21` do not support transparent
-              backgrounds. Requests with `background` set to `transparent` will return an
-              error for these models; use `opaque` or `auto` instead.
-
-              If `transparent`, the output format needs to support transparency, so it should
-              be set to either `png` (default value) or `webp`.
+              Transparent backgrounds are available for supported GPT Image models. For
+              `gpt-image-2` and `gpt-image-2-2026-04-21`, this support is in preview. When
+              using `transparent`, set the output format to `png` or `webp`.
 
           input_fidelity: Control how much effort the model will exert to match the style and features,
               especially facial features, of input images. This parameter is only supported
@@ -1545,7 +1500,7 @@ class AsyncImages(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse | AsyncStream[ImageEditStreamEvent]:
         body = deepcopy_with_paths(
             {
@@ -1619,7 +1574,7 @@ class AsyncImages(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse:
         """
         Creates an image given a prompt.
@@ -1630,18 +1585,13 @@ class AsyncImages(AsyncAPIResource):
               characters for the GPT image models, 1000 characters for `dall-e-2` and 4000
               characters for `dall-e-3`.
 
-          background: Allows to set transparency for the background of the generated image(s). This
-              parameter is only supported for GPT image models that support transparent
-              backgrounds. Must be one of `transparent`, `opaque`, or `auto` (default value).
-              When `auto` is used, the model will automatically determine the best background
-              for the image.
+          background: Allows to set transparency for the background of the generated image(s). Must be
+              one of `transparent`, `opaque`, or `auto` (default value). When `auto` is used,
+              the model will automatically determine the best background for the image.
 
-              `gpt-image-2` and `gpt-image-2-2026-04-21` do not support transparent
-              backgrounds. Requests with `background` set to `transparent` will return an
-              error for these models; use `opaque` or `auto` instead.
-
-              If `transparent`, the output format needs to support transparency, so it should
-              be set to either `png` (default value) or `webp`.
+              Transparent backgrounds are available for supported GPT Image models. For
+              `gpt-image-2` and `gpt-image-2-2026-04-21`, this support is in preview. When
+              using `transparent`, set the output format to `png` or `webp`.
 
           model: The model to use for image generation. One of `dall-e-2`, `dall-e-3`, or a GPT
               image model (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
@@ -1745,7 +1695,7 @@ class AsyncImages(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncStream[ImageGenStreamEvent]:
         """
         Creates an image given a prompt.
@@ -1760,18 +1710,13 @@ class AsyncImages(AsyncAPIResource):
               [Image generation guide](https://platform.openai.com/docs/guides/image-generation)
               for more information. This parameter is only supported for the GPT image models.
 
-          background: Allows to set transparency for the background of the generated image(s). This
-              parameter is only supported for GPT image models that support transparent
-              backgrounds. Must be one of `transparent`, `opaque`, or `auto` (default value).
-              When `auto` is used, the model will automatically determine the best background
-              for the image.
+          background: Allows to set transparency for the background of the generated image(s). Must be
+              one of `transparent`, `opaque`, or `auto` (default value). When `auto` is used,
+              the model will automatically determine the best background for the image.
 
-              `gpt-image-2` and `gpt-image-2-2026-04-21` do not support transparent
-              backgrounds. Requests with `background` set to `transparent` will return an
-              error for these models; use `opaque` or `auto` instead.
-
-              If `transparent`, the output format needs to support transparency, so it should
-              be set to either `png` (default value) or `webp`.
+              Transparent backgrounds are available for supported GPT Image models. For
+              `gpt-image-2` and `gpt-image-2-2026-04-21`, this support is in preview. When
+              using `transparent`, set the output format to `png` or `webp`.
 
           model: The model to use for image generation. One of `dall-e-2`, `dall-e-3`, or a GPT
               image model (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
@@ -1871,7 +1816,7 @@ class AsyncImages(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse | AsyncStream[ImageGenStreamEvent]:
         """
         Creates an image given a prompt.
@@ -1886,18 +1831,13 @@ class AsyncImages(AsyncAPIResource):
               [Image generation guide](https://platform.openai.com/docs/guides/image-generation)
               for more information. This parameter is only supported for the GPT image models.
 
-          background: Allows to set transparency for the background of the generated image(s). This
-              parameter is only supported for GPT image models that support transparent
-              backgrounds. Must be one of `transparent`, `opaque`, or `auto` (default value).
-              When `auto` is used, the model will automatically determine the best background
-              for the image.
+          background: Allows to set transparency for the background of the generated image(s). Must be
+              one of `transparent`, `opaque`, or `auto` (default value). When `auto` is used,
+              the model will automatically determine the best background for the image.
 
-              `gpt-image-2` and `gpt-image-2-2026-04-21` do not support transparent
-              backgrounds. Requests with `background` set to `transparent` will return an
-              error for these models; use `opaque` or `auto` instead.
-
-              If `transparent`, the output format needs to support transparency, so it should
-              be set to either `png` (default value) or `webp`.
+              Transparent backgrounds are available for supported GPT Image models. For
+              `gpt-image-2` and `gpt-image-2-2026-04-21`, this support is in preview. When
+              using `transparent`, set the output format to `png` or `webp`.
 
           model: The model to use for image generation. One of `dall-e-2`, `dall-e-3`, or a GPT
               image model (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
@@ -1997,7 +1937,7 @@ class AsyncImages(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse | AsyncStream[ImageGenStreamEvent]:
         return await self._post(
             "/images/generations",

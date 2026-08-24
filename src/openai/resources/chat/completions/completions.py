@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from typing import Dict, List, Type, Union, Iterable, Optional, cast
 from functools import partial
 from typing_extensions import Literal, overload
 
-import httpx
+import httpx2
 import pydantic
 
 from .... import _legacy_response
@@ -132,7 +132,7 @@ class Completions(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ParsedChatCompletion[ResponseFormatT]:
         """Wrapper over the `client.chat.completions.create()` method that provides richer integrations with Python specific types
         & returns a `ParsedChatCompletion` object, which is a subclass of the standard `ChatCompletion` class.
@@ -294,7 +294,7 @@ class Completions(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ChatCompletion:
         """
         **Starting a new project?** We recommend trying
@@ -626,7 +626,7 @@ class Completions(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Stream[ChatCompletionChunk]:
         """
         **Starting a new project?** We recommend trying
@@ -958,7 +958,7 @@ class Completions(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ChatCompletion | Stream[ChatCompletionChunk]:
         """
         **Starting a new project?** We recommend trying
@@ -1290,7 +1290,7 @@ class Completions(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ChatCompletion | Stream[ChatCompletionChunk]:
         validate_response_format(response_format)
         return self._post(
@@ -1360,7 +1360,7 @@ class Completions(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ChatCompletion:
         """Get a stored chat completion.
 
@@ -1400,7 +1400,7 @@ class Completions(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ChatCompletion:
         """Modify a stored chat completion.
 
@@ -1452,7 +1452,7 @@ class Completions(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncCursorPage[ChatCompletion]:
         """List stored Chat Completions.
 
@@ -1514,7 +1514,7 @@ class Completions(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ChatCompletionDeleted:
         """Delete a stored chat completion.
 
@@ -1588,7 +1588,7 @@ class Completions(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ChatCompletionStreamManager[ResponseFormatT]:
         """Wrapper over the `client.chat.completions.create(stream=True)` method that provides a more granular event API
         and automatic accumulation of each delta.
@@ -1743,7 +1743,7 @@ class AsyncCompletions(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ParsedChatCompletion[ResponseFormatT]:
         """Wrapper over the `client.chat.completions.create()` method that provides richer integrations with Python specific types
         & returns a `ParsedChatCompletion` object, which is a subclass of the standard `ChatCompletion` class.
@@ -1905,7 +1905,7 @@ class AsyncCompletions(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ChatCompletion:
         """
         **Starting a new project?** We recommend trying
@@ -2237,7 +2237,7 @@ class AsyncCompletions(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncStream[ChatCompletionChunk]:
         """
         **Starting a new project?** We recommend trying
@@ -2569,7 +2569,7 @@ class AsyncCompletions(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ChatCompletion | AsyncStream[ChatCompletionChunk]:
         """
         **Starting a new project?** We recommend trying
@@ -2901,7 +2901,7 @@ class AsyncCompletions(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ChatCompletion | AsyncStream[ChatCompletionChunk]:
         validate_response_format(response_format)
         return await self._post(
@@ -2971,7 +2971,7 @@ class AsyncCompletions(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ChatCompletion:
         """Get a stored chat completion.
 
@@ -3011,7 +3011,7 @@ class AsyncCompletions(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ChatCompletion:
         """Modify a stored chat completion.
 
@@ -3063,7 +3063,7 @@ class AsyncCompletions(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[ChatCompletion, AsyncCursorPage[ChatCompletion]]:
         """List stored Chat Completions.
 
@@ -3125,7 +3125,7 @@ class AsyncCompletions(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ChatCompletionDeleted:
         """Delete a stored chat completion.
 
@@ -3199,7 +3199,7 @@ class AsyncCompletions(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncChatCompletionStreamManager[ResponseFormatT]:
         """Wrapper over the `client.chat.completions.create(stream=True)` method that provides a more granular event API
         and automatic accumulation of each delta.

@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import Dict, List, Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
@@ -289,6 +289,13 @@ class ChatCompletionChunk(BaseModel):
     """Moderation results for the request input and generated output.
 
     Present on the moderation chunk when moderated completions are requested.
+    """
+
+    obfuscation: Optional[str] = None
+    """
+    An obfuscation string added to normalize the size of streamed chunks as a
+    mitigation to certain side-channel attacks. The field is included by default and
+    omitted when `stream_options.include_obfuscation` is `false`.
     """
 
     service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] = None

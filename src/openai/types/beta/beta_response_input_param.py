@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -10,6 +10,7 @@ from .beta_tool_param import BetaToolParam
 from .beta_local_environment_param import BetaLocalEnvironmentParam
 from .beta_easy_input_message_param import BetaEasyInputMessageParam
 from .beta_container_reference_param import BetaContainerReferenceParam
+from .beta_mcp_tool_call_error_param import BetaMcpToolCallErrorParam
 from .beta_response_output_message_param import BetaResponseOutputMessageParam
 from .beta_response_reasoning_item_param import BetaResponseReasoningItemParam
 from .beta_response_custom_tool_call_param import BetaResponseCustomToolCallParam
@@ -1015,7 +1016,7 @@ class McpCall(TypedDict, total=False):
     corresponding tool call.
     """
 
-    error: Optional[str]
+    error: Optional[BetaMcpToolCallErrorParam]
     """The error from the tool call, if any."""
 
     output: Optional[str]

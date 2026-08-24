@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -10,6 +10,7 @@ from .tool_param import ToolParam
 from .local_environment_param import LocalEnvironmentParam
 from .easy_input_message_param import EasyInputMessageParam
 from .container_reference_param import ContainerReferenceParam
+from .mcp_tool_call_error_param import McpToolCallErrorParam
 from .response_output_message_param import ResponseOutputMessageParam
 from .response_reasoning_item_param import ResponseReasoningItemParam
 from .response_custom_tool_call_param import ResponseCustomToolCallParam
@@ -647,7 +648,7 @@ class McpCall(TypedDict, total=False):
     corresponding tool call.
     """
 
-    error: Optional[str]
+    error: Optional[McpToolCallErrorParam]
     """The error from the tool call, if any."""
 
     output: Optional[str]

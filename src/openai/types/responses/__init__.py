@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -7,7 +7,9 @@ from .response import Response as Response
 from .tool_param import ToolParam as ToolParam
 from .custom_tool import CustomTool as CustomTool
 from .local_skill import LocalSkill as LocalSkill
+from .image_detail import ImageDetail as ImageDetail
 from .inline_skill import InlineSkill as InlineSkill
+from .service_tier import ServiceTier as ServiceTier
 from .computer_tool import ComputerTool as ComputerTool
 from .function_tool import FunctionTool as FunctionTool
 from .response_item import ResponseItem as ResponseItem
@@ -48,6 +50,7 @@ from .container_reference import ContainerReference as ContainerReference
 from .function_shell_tool import FunctionShellTool as FunctionShellTool
 from .function_tool_param import FunctionToolParam as FunctionToolParam
 from .inline_skill_source import InlineSkillSource as InlineSkillSource
+from .mcp_tool_call_error import McpToolCallError as McpToolCallError
 from .response_includable import ResponseIncludable as ResponseIncludable
 from .response_input_file import ResponseInputFile as ResponseInputFile
 from .response_input_item import ResponseInputItem as ResponseInputItem
@@ -102,6 +105,7 @@ from .computer_use_preview_tool import ComputerUsePreviewTool as ComputerUsePrev
 from .container_reference_param import ContainerReferenceParam as ContainerReferenceParam
 from .function_shell_tool_param import FunctionShellToolParam as FunctionShellToolParam
 from .inline_skill_source_param import InlineSkillSourceParam as InlineSkillSourceParam
+from .mcp_tool_call_error_param import McpToolCallErrorParam as McpToolCallErrorParam
 from .response_audio_done_event import ResponseAudioDoneEvent as ResponseAudioDoneEvent
 from .response_custom_tool_call import ResponseCustomToolCall as ResponseCustomToolCall
 from .response_incomplete_event import ResponseIncompleteEvent as ResponseIncompleteEvent
@@ -190,6 +194,9 @@ from .response_custom_tool_call_output_param import (
 from .response_mcp_call_arguments_done_event import (
     ResponseMcpCallArgumentsDoneEvent as ResponseMcpCallArgumentsDoneEvent,
 )
+from .response_shell_call_command_done_event import (
+    ResponseShellCallCommandDoneEvent as ResponseShellCallCommandDoneEvent,
+)
 from .response_tool_search_output_item_param import (
     ResponseToolSearchOutputItemParam as ResponseToolSearchOutputItemParam,
 )
@@ -216,6 +223,12 @@ from .response_mcp_call_arguments_delta_event import (
 )
 from .response_mcp_list_tools_completed_event import (
     ResponseMcpListToolsCompletedEvent as ResponseMcpListToolsCompletedEvent,
+)
+from .response_shell_call_command_added_event import (
+    ResponseShellCallCommandAddedEvent as ResponseShellCallCommandAddedEvent,
+)
+from .response_shell_call_command_delta_event import (
+    ResponseShellCallCommandDeltaEvent as ResponseShellCallCommandDeltaEvent,
 )
 from .container_network_policy_allowlist_param import (
     ContainerNetworkPolicyAllowlistParam as ContainerNetworkPolicyAllowlistParam,
@@ -307,11 +320,17 @@ from .response_format_text_json_schema_config_param import (
 from .response_function_call_output_item_list_param import (
     ResponseFunctionCallOutputItemListParam as ResponseFunctionCallOutputItemListParam,
 )
+from .response_shell_call_output_content_done_event import (
+    ResponseShellCallOutputContentDoneEvent as ResponseShellCallOutputContentDoneEvent,
+)
 from .response_code_interpreter_call_code_done_event import (
     ResponseCodeInterpreterCallCodeDoneEvent as ResponseCodeInterpreterCallCodeDoneEvent,
 )
 from .response_code_interpreter_call_completed_event import (
     ResponseCodeInterpreterCallCompletedEvent as ResponseCodeInterpreterCallCompletedEvent,
+)
+from .response_shell_call_output_content_delta_event import (
+    ResponseShellCallOutputContentDeltaEvent as ResponseShellCallOutputContentDeltaEvent,
 )
 from .response_code_interpreter_call_code_delta_event import (
     ResponseCodeInterpreterCallCodeDeltaEvent as ResponseCodeInterpreterCallCodeDeltaEvent,

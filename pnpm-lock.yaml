@@ -1,0 +1,90 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+
+  .:
+    devDependencies:
+      '@stdy/cli':
+        specifier: 0.22.1
+        version: 0.22.1
+      pyright:
+        specifier: 1.1.399
+        version: 1.1.399
+
+packages:
+
+  '@stdy/cli-darwin-arm64@0.22.1':
+    resolution: {integrity: sha512-sahxc3R9I+vO7dDr7t9aneE8aLZdZeaQU5OfhZVLny97K8K7RXqhpXHN/0DFvg3Pw5ZKisHvJysY3iu/LIZA6g==}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@stdy/cli-darwin-x64@0.22.1':
+    resolution: {integrity: sha512-/bVzcHkbX6zn5qZL73oWR5YXVc/+/IP7uWYw905B+hWRuZlJfN7hX4+68BxCBOI8wiRf82cSQjRnI/Datdwz1Q==}
+    cpu: [x64]
+    os: [darwin]
+
+  '@stdy/cli-linux-arm64@0.22.1':
+    resolution: {integrity: sha512-XGQy3ZqF5COqRgAVGxCdoW9dzxnfxxCSAHCGmhpFc+pVfpQcYHfPcnNhmWhplMCeriTUyCKLJG+/fGdyji7e2Q==}
+    cpu: [arm64]
+    os: [linux]
+
+  '@stdy/cli-linux-x64@0.22.1':
+    resolution: {integrity: sha512-u7581I3sc6R+PUwGkvEFbvD/w6YXvRk+iT0BImWKPtKYA26cPP16lgA7gquu3tAEk+3c9YGn5xhUphCc96aLSg==}
+    cpu: [x64]
+    os: [linux]
+
+  '@stdy/cli-win32-x64@0.22.1':
+    resolution: {integrity: sha512-4kkgSGCKTO/Fb+ciBANshegYIztBqynIyOveWYc3Vp7mXszg8yx6slKSzz5bg757H8Ol2jxxuL4XxHVIGMr6Rw==}
+    cpu: [x64]
+    os: [win32]
+
+  '@stdy/cli@0.22.1':
+    resolution: {integrity: sha512-VdnCoK/d0JWIhToajBxAdagTpLCX/zTd7RiuK1KdT12Q4pZn/+eS97gq94+jv6TbiMd+9SWeOdsQCoagpLmNfA==}
+    engines: {node: '>=14.0.0'}
+    hasBin: true
+
+  fsevents@2.3.3:
+    resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
+    engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
+    os: [darwin]
+
+  pyright@1.1.399:
+    resolution: {integrity: sha512-roYApcOUEraOc2gTZX052/cw/AZ5rQGkdG/2DtU1/KyhfP+C5zHDlvOT24qRgPXDDkh76AvFwq5quZ1SMahq7w==}
+    engines: {node: '>=14.0.0'}
+    hasBin: true
+
+snapshots:
+
+  '@stdy/cli-darwin-arm64@0.22.1':
+    optional: true
+
+  '@stdy/cli-darwin-x64@0.22.1':
+    optional: true
+
+  '@stdy/cli-linux-arm64@0.22.1':
+    optional: true
+
+  '@stdy/cli-linux-x64@0.22.1':
+    optional: true
+
+  '@stdy/cli-win32-x64@0.22.1':
+    optional: true
+
+  '@stdy/cli@0.22.1':
+    optionalDependencies:
+      '@stdy/cli-darwin-arm64': 0.22.1
+      '@stdy/cli-darwin-x64': 0.22.1
+      '@stdy/cli-linux-arm64': 0.22.1
+      '@stdy/cli-linux-x64': 0.22.1
+      '@stdy/cli-win32-x64': 0.22.1
+
+  fsevents@2.3.3:
+    optional: true
+
+  pyright@1.1.399:
+    optionalDependencies:
+      fsevents: 2.3.3

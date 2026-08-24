@@ -5,9 +5,9 @@
 
 The OpenAI Python library provides convenient access to the OpenAI REST API from any Python 3.10+
 application. The library includes type definitions for all request params and response fields,
-and offers both synchronous and asynchronous clients powered by [httpx](https://github.com/encode/httpx).
+and offers both synchronous and asynchronous clients powered by [HTTPX2](https://httpx2.pydantic.dev/).
 
-It is generated from our [OpenAPI specification](https://github.com/openai/openai-openapi) with [Stainless](https://stainlessapi.com/).
+It is generated from our [OpenAPI specification](https://github.com/openai/openai-openapi).
 
 ## Documentation
 
@@ -167,6 +167,65 @@ client = OpenAI(
 )
 ```
 
+#### X.509 workload identity (mutual TLS)
+
+For X.509 workload identity federation, configure the client certificate and
+server trust on an HTTPX2 client, then pass only the identity-provider and
+service-account IDs to the SDK:
+
+```python
+import os
+import ssl
+
+from openai import OpenAI, DefaultHttpx2Client
+from openai.auth import x509_workload_identity
+
+tls_context = ssl.create_default_context(
+    cafile=os.getenv("OPENAI_MTLS_CA_BUNDLE"),
+)
+tls_context.load_cert_chain(
+    certfile=os.environ["OPENAI_MTLS_CERTIFICATE_CHAIN"],
+    keyfile=os.environ["OPENAI_MTLS_PRIVATE_KEY"],
+    password=os.getenv("OPENAI_MTLS_PRIVATE_KEY_PASSWORD"),
+)
+
+client = OpenAI(
+    workload_identity=x509_workload_identity(
+        identity_provider_id=os.environ["OPENAI_IDENTITY_PROVIDER_ID"],
+        service_account_id=os.environ["OPENAI_SERVICE_ACCOUNT_ID"],
+        # refresh_buffer_seconds=120.0,
+    ),
+    http_client=DefaultHttpx2Client(
+        verify=tls_context,
+        follow_redirects=False,
+    ),
+)
+```
+
+X.509 mode defaults to `https://mtls.api.openai.com/v1` when neither `base_url`
+nor `OPENAI_BASE_URL` is set. The same configured HTTP client presents its
+certificate to the fixed mTLS token-exchange endpoint and to the API. Tokens
+are exchanged lazily, cached, and refreshed automatically. Certificate files,
+private keys, passwords, server trust, proxies, and rotation remain application
+and transport concerns.
+
+X.509 API requests require HTTPS and must stay on the configured API origin.
+The effective HTTP Host authority must match that origin.
+Provider API-key and proxy-only headers cannot be sent to the API alongside
+X.509 authentication.
+Token exchanges do not inherit API request hooks, authentication, or cookies.
+Identity settings are captured when the client is constructed; create a new
+client to change the identity. Azure clients do not support X.509 workload
+identity.
+
+For asynchronous requests, use `AsyncOpenAI` with
+`DefaultAsyncHttpx2Client`. See the complete [sync rollout-toggle
+example](examples/x509_workload_identity.py) and [async rollout-toggle
+example](examples/x509_workload_identity_async.py), which select API-key or
+X.509 authentication with the application-owned `OPENAI_AUTH_MODE`
+environment variable. X.509 workload identity currently supports HTTP APIs;
+Realtime and WebSockets are not included.
+
 ### Vision
 
 With an image URL:
@@ -244,9 +303,7 @@ Functionality between the synchronous and asynchronous clients is otherwise iden
 
 ### With aiohttp
 
-By default, the async client uses `httpx` for HTTP requests. However, for improved concurrency performance you may also use `aiohttp` as the HTTP backend.
-
-The `aiohttp` backend requires Python 3.10 or later.
+By default, the async client uses HTTPX2. For improved concurrency performance, you may also use `aiohttp` as the HTTPX2 transport.
 
 You can enable this by installing `aiohttp`:
 
@@ -283,32 +340,9 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
-### Experimental HTTPX2 support
+### HTTPX2 migration
 
-To opt in to experimental HTTPX2 support, install the optional extra on Python 3.10 or later:
-
-```sh
-pip install 'openai[httpx2]'
-```
-
-```python
-from openai import OpenAI, AsyncOpenAI, DefaultHttpx2Client, DefaultAsyncHttpx2Client
-
-client = OpenAI(http_client=DefaultHttpx2Client())
-async_client = AsyncOpenAI(http_client=DefaultAsyncHttpx2Client())
-```
-
-See [`examples/httpx2_client.py`](examples/httpx2_client.py) for a minimal runnable example.
-
-The module-level client can be configured in the same way:
-
-```python
-import openai
-
-openai.http_client = openai.DefaultHttpx2Client()
-```
-
-Parsed API models are unchanged, but requests, raw and streaming responses, and transport-level exceptions may be HTTPX2 objects at runtime. Code that catches HTTPX exceptions or relies on HTTPX-specific mocks, transports, authentication, hooks, or instrumentation may need to be updated. Transport-facing type annotations may still describe HTTPX.
+HTTPX2 is the default HTTP client. If you configure a custom HTTP client, transport, timeout, authentication handler, event hook, or request mock, see the [HTTPX2 migration guide](httpx2.md).
 
 ## Streaming responses
 
@@ -636,7 +670,7 @@ try:
     )
 except openai.APIConnectionError as e:
     print("The server could not be reached")
-    print(e.__cause__)  # an underlying Exception, likely raised within httpx.
+    print(e.__cause__)  # an underlying Exception, likely raised within HTTPX2.
 except openai.RateLimitError as e:
     print("A 429 status code was received; we should back off a bit.")
 except openai.APIStatusError as e:
@@ -723,9 +757,10 @@ client.with_options(max_retries=5).chat.completions.create(
 ## Timeouts
 
 By default requests time out after 10 minutes. You can configure this with a `timeout` option,
-which accepts a float or an [`httpx.Timeout`](https://www.python-httpx.org/advanced/timeouts/#fine-tuning-the-configuration) object:
+which accepts a float or an [`httpx2.Timeout`](https://httpx2.pydantic.dev/) object:
 
 ```python
+import httpx2
 from openai import OpenAI
 
 # Configure the default for all requests:
@@ -736,7 +771,7 @@ client = OpenAI(
 
 # More granular control:
 client = OpenAI(
-    timeout=httpx.Timeout(60.0, read=5.0, write=10.0, connect=2.0),
+    timeout=httpx2.Timeout(60.0, read=5.0, write=10.0, connect=2.0),
 )
 
 # Override per-request:
@@ -849,11 +884,11 @@ To make requests to undocumented endpoints, you can make requests using `client.
 http verbs. Options on the client will be respected (such as retries) when making this request.
 
 ```py
-import httpx
+import httpx2
 
 response = client.post(
     "/foo",
-    cast_to=httpx.Response,
+    cast_to=httpx2.Response,
     body={"my_param": True},
 )
 
@@ -873,22 +908,18 @@ can also get all the extra fields on the Pydantic model as a dict with
 
 ### Configuring the HTTP client
 
-You can directly override the [httpx client](https://www.python-httpx.org/api/#client) to customize it for your use case, including:
-
-- Support for [proxies](https://www.python-httpx.org/advanced/proxies/)
-- Custom [transports](https://www.python-httpx.org/advanced/transports/)
-- Additional [advanced](https://www.python-httpx.org/advanced/clients/) functionality
+You can override the [HTTPX2 client](https://httpx2.pydantic.dev/) to customize proxies, transports, authentication, event hooks, and other advanced HTTP behavior. See the [HTTPX2 migration guide](httpx2.md) when updating an existing custom client.
 
 ```python
-import httpx
-from openai import OpenAI, DefaultHttpxClient
+import httpx2
+from openai import OpenAI, DefaultHttpx2Client
 
 client = OpenAI(
     # Or use the `OPENAI_BASE_URL` env var
     base_url="http://my.test.server.example.com:8083/v1",
-    http_client=DefaultHttpxClient(
+    http_client=DefaultHttpx2Client(
         proxy="http://my.test.proxy.example.com",
-        transport=httpx.HTTPTransport(local_address="0.0.0.0"),
+        transport=httpx2.HTTPTransport(local_address="0.0.0.0"),
     ),
 )
 ```
@@ -896,7 +927,7 @@ client = OpenAI(
 You can also customize the client on a per-request basis by using `with_options()`:
 
 ```python
-client.with_options(http_client=DefaultHttpxClient(...))
+client.with_options(http_client=DefaultHttpx2Client(...))
 ```
 
 #### Mutual TLS
@@ -913,7 +944,7 @@ and pass it through the custom HTTP client:
 import os
 import ssl
 
-from openai import OpenAI, DefaultHttpxClient
+from openai import OpenAI, DefaultHttpx2Client
 
 # Server trust is configured independently. Without `cafile`, this uses the
 # operating system's normal trusted certificate authorities.
@@ -938,7 +969,7 @@ client = OpenAI(
     ),
     # A client certificate belongs to the HTTP client, not the base URL.
     # Disable redirects so it cannot follow a response to another origin.
-    http_client=DefaultHttpxClient(
+    http_client=DefaultHttpx2Client(
         verify=ssl_context,
         follow_redirects=False,
     ),
@@ -951,7 +982,7 @@ The async configuration is equivalent:
 import os
 import ssl
 
-from openai import AsyncOpenAI, DefaultAsyncHttpxClient
+from openai import AsyncOpenAI, DefaultAsyncHttpx2Client
 
 ssl_context = ssl.create_default_context(
     cafile=os.environ.get("OPENAI_MTLS_CA_BUNDLE"),
@@ -968,27 +999,7 @@ client = AsyncOpenAI(
         "OPENAI_BASE_URL",
         "https://mtls.api.openai.com/v1",
     ),
-    http_client=DefaultAsyncHttpxClient(
-        verify=ssl_context,
-        follow_redirects=False,
-    ),
-)
-```
-
-Experimental HTTPX2 uses the same native `SSLContext`. Install the optional
-extra with `pip install 'openai[httpx2]'`, then use `DefaultHttpx2Client` or
-`DefaultAsyncHttpx2Client` in place of the corresponding HTTPX client above:
-
-```python
-from openai import OpenAI, DefaultHttpx2Client
-
-client = OpenAI(
-    api_key=os.environ["OPENAI_API_KEY"],
-    base_url=os.environ.get(
-        "OPENAI_BASE_URL",
-        "https://mtls.api.openai.com/v1",
-    ),
-    http_client=DefaultHttpx2Client(
+    http_client=DefaultAsyncHttpx2Client(
         verify=ssl_context,
         follow_redirects=False,
     ),
@@ -998,10 +1009,12 @@ client = OpenAI(
 See the complete [sync HTTPX2](examples/mtls_httpx2.py) and
 [async HTTPX2](examples/mtls_httpx2_async.py) examples.
 
-The certificate-bearing HTTP client is transport-wide. Dedicate it to the
-selected mTLS origin; do not reuse it for other services or pass it through
-`with_options()` with a different `base_url`. If redirects are required, add an
-HTTPX request hook that rejects requests whose scheme, host, or port differs
+The certificate-bearing HTTP client is transport-wide. For API-key mTLS,
+dedicate it to the selected API origin; X.509 workload identity also uses the
+fixed OpenAI mTLS token-exchange origin. Do not reuse the client for unrelated
+services or pass it through `with_options()` with a different `base_url`.
+If redirects are required for API-key mTLS, add an
+HTTPX2 request hook that rejects requests whose scheme, host, or port differs
 from the configured mTLS origin before enabling `follow_redirects`.
 
 `SSLContext.load_cert_chain()` raises during setup for unreadable or malformed
@@ -1017,9 +1030,9 @@ For certificate rotation, build a new `SSLContext`, HTTP client, and `OpenAI` or
 client after its in-flight requests finish. Do not assume existing TLS
 connections will renegotiate.
 
-This recipe applies to ordinary API-key HTTP traffic. It does not implement
-certificate-only X.509 workload identity, token exchange, or Realtime WebSocket
-mTLS.
+This recipe applies to ordinary API-key HTTP traffic. For certificate-backed
+token exchange, use the X.509 workload identity configuration described above.
+Realtime WebSocket mTLS is not included.
 
 ### Managing HTTP resources
 
@@ -1121,7 +1134,7 @@ client = OpenAI(
 
 You can also pass `access_key_id` and `secret_access_key`, with an optional `session_token`, or a refreshable `credential_provider` that returns botocore-compatible credentials. Explicit bearer and AWS credential options are mutually exclusive.
 
-Pass `base_url` to `bedrock(...)` or set `AWS_BEDROCK_BASE_URL` to override the derived `https://bedrock-mantle.<region>.api.aws/openai/v1` endpoint.
+Pass `base_url` to `bedrock(...)` or set `AWS_BEDROCK_BASE_URL` to override the derived `https://bedrock-mantle.<region>.api.aws/openai/v1` endpoint. Custom URLs retain Mantle signing by default; pass `endpoint="runtime"` to use Runtime signing.
 
 SigV4 requests require replayable, fully serialized request bodies. Standard JSON requests already meet this requirement, and response streaming is unaffected. Low-level one-shot request streams must be buffered before sending, or sent with bearer authentication and retries disabled.
 

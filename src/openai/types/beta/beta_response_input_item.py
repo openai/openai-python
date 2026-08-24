@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import Dict, List, Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
@@ -9,6 +9,7 @@ from .beta_tool import BetaTool
 from .beta_local_environment import BetaLocalEnvironment
 from .beta_easy_input_message import BetaEasyInputMessage
 from .beta_container_reference import BetaContainerReference
+from .beta_mcp_tool_call_error import BetaMcpToolCallError
 from .beta_response_output_message import BetaResponseOutputMessage
 from .beta_response_reasoning_item import BetaResponseReasoningItem
 from .beta_response_custom_tool_call import BetaResponseCustomToolCall
@@ -1026,7 +1027,7 @@ class McpCall(BaseModel):
     corresponding tool call.
     """
 
-    error: Optional[str] = None
+    error: Optional[BetaMcpToolCallError] = None
     """The error from the tool call, if any."""
 
     output: Optional[str] = None

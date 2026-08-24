@@ -1,13 +1,12 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
-import time
 import typing_extensions
 from typing import Mapping, cast
 from typing_extensions import Literal
 
-import httpx
+import httpx2
 
 from .. import _legacy_response
 from ..types import FilePurpose, file_list_params, file_create_params
@@ -23,6 +22,10 @@ from .._response import (
     async_to_streamed_response_wrapper,
     to_custom_streamed_response_wrapper,
     async_to_custom_streamed_response_wrapper,
+)
+from ..lib._files import (
+    wait_for_file_processing as _wait_for_file_processing,
+    async_wait_for_file_processing as _async_wait_for_file_processing,
 )
 from ..pagination import SyncCursorPage, AsyncCursorPage
 from .._base_client import AsyncPaginator, make_request_options
@@ -68,7 +71,7 @@ class Files(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> FileObject:
         """Upload a file that can be used across various endpoints.
 
@@ -160,7 +163,7 @@ class Files(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> FileObject:
         """
         Returns information about a specific file.
@@ -200,7 +203,7 @@ class Files(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncCursorPage[FileObject]:
         """Returns a list of files.
 
@@ -259,7 +262,7 @@ class Files(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> FileDeleted:
         """
         Delete a file and remove it from all vector stores.
@@ -296,10 +299,10 @@ class Files(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> _legacy_response.HttpxBinaryResponseContent:
         """
-        Returns the contents of the specified file.
+        Returns a response containing the contents of the specified file.
 
         Args:
           extra_headers: Send extra headers
@@ -335,10 +338,10 @@ class Files(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> str:
         """
-        Returns the contents of the specified file.
+        Returns a response containing the contents of the specified file.
 
         Args:
           extra_headers: Send extra headers
@@ -371,20 +374,7 @@ class Files(SyncAPIResource):
         max_wait_seconds: float = 30 * 60,
     ) -> FileObject:
         """Waits for the given file to be processed, default timeout is 30 mins."""
-        TERMINAL_STATES = {"processed", "error", "deleted"}
-
-        start = time.time()
-        file = self.retrieve(id)
-        while file.status not in TERMINAL_STATES:
-            self._sleep(poll_interval)
-
-            file = self.retrieve(id)
-            if time.time() - start > max_wait_seconds:
-                raise RuntimeError(
-                    f"Giving up on waiting for file {id} to finish processing after {max_wait_seconds} seconds."
-                )
-
-        return file
+        return _wait_for_file_processing(self, id, poll_interval=poll_interval, max_wait_seconds=max_wait_seconds)
 
 
 class AsyncFiles(AsyncAPIResource):
@@ -422,7 +412,7 @@ class AsyncFiles(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> FileObject:
         """Upload a file that can be used across various endpoints.
 
@@ -514,7 +504,7 @@ class AsyncFiles(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> FileObject:
         """
         Returns information about a specific file.
@@ -554,7 +544,7 @@ class AsyncFiles(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[FileObject, AsyncCursorPage[FileObject]]:
         """Returns a list of files.
 
@@ -613,7 +603,7 @@ class AsyncFiles(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> FileDeleted:
         """
         Delete a file and remove it from all vector stores.
@@ -650,10 +640,10 @@ class AsyncFiles(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> _legacy_response.HttpxBinaryResponseContent:
         """
-        Returns the contents of the specified file.
+        Returns a response containing the contents of the specified file.
 
         Args:
           extra_headers: Send extra headers
@@ -689,10 +679,10 @@ class AsyncFiles(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> str:
         """
-        Returns the contents of the specified file.
+        Returns a response containing the contents of the specified file.
 
         Args:
           extra_headers: Send extra headers
@@ -725,20 +715,9 @@ class AsyncFiles(AsyncAPIResource):
         max_wait_seconds: float = 30 * 60,
     ) -> FileObject:
         """Waits for the given file to be processed, default timeout is 30 mins."""
-        TERMINAL_STATES = {"processed", "error", "deleted"}
-
-        start = time.time()
-        file = await self.retrieve(id)
-        while file.status not in TERMINAL_STATES:
-            await self._sleep(poll_interval)
-
-            file = await self.retrieve(id)
-            if time.time() - start > max_wait_seconds:
-                raise RuntimeError(
-                    f"Giving up on waiting for file {id} to finish processing after {max_wait_seconds} seconds."
-                )
-
-        return file
+        return await _async_wait_for_file_processing(
+            self, id, poll_interval=poll_interval, max_wait_seconds=max_wait_seconds
+        )
 
 
 class FilesWithRawResponse:

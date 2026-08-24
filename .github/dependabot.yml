@@ -1,0 +1,21 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 8
+  - package-ecosystem: uv
+    directory: /
+    schedule:
+      interval: weekly
+    # Version updates wait; Dependabot security updates are exempt.
+    cooldown:
+      default-days: 8
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 8

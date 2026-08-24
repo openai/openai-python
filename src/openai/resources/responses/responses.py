@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -25,7 +25,7 @@ from typing import (
 from functools import partial
 from typing_extensions import Literal, overload
 
-import httpx
+import httpx2
 from pydantic import BaseModel
 
 from ... import _legacy_response
@@ -71,6 +71,7 @@ from ...lib._parsing._responses import (
 )
 from ...types.responses.response import Response
 from ...types.responses.tool_param import ToolParam, ParseableToolParam
+from ...types.responses.service_tier import ServiceTier
 from ...types.shared_params.metadata import Metadata
 from ...types.websocket_reconnection import ReconnectingEvent, ReconnectingOverrides, is_recoverable_close
 from ...types.shared_params.reasoning import Reasoning
@@ -80,12 +81,11 @@ from ...types.responses.compacted_response import CompactedResponse
 from ...types.websocket_connection_options import WebSocketConnectionOptions
 from ...types.responses.response_includable import ResponseIncludable
 from ...types.shared_params.responses_model import ResponsesModel
-from ...types.responses.response_error_event import ResponseErrorEvent
 from ...types.responses.response_input_param import ResponseInputParam
 from ...types.responses.response_prompt_param import ResponsePromptParam
 from ...types.responses.response_stream_event import ResponseStreamEvent
 from ...types.responses.responses_client_event import ResponsesClientEvent
-from ...types.responses.responses_server_event import ResponsesServerEvent
+from ...types.responses.responses_server_event import ResponseWsError, ResponsesServerEvent
 from ...types.responses.response_input_item_param import ResponseInputItemParam
 from ...types.responses.response_text_config_param import ResponseTextConfigParam
 from ...types.responses.responses_client_event_param import ResponsesClientEventParam
@@ -152,7 +152,7 @@ class Responses(SyncAPIResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        service_tier: Optional[ServiceTier] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
@@ -169,7 +169,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Response:
         """Creates a model response.
 
@@ -323,6 +323,10 @@ class Responses(SyncAPIResource):
                 Responses or Chat Completions. The response will show `service_tier=priority`
                 regardless of if you specify `service_tier=fast` or `priority` in your
                 request.
+              - If set to 'ultrafast', then the request will be processed with the
+                access-controlled Ultrafast Processing service tier. This tier is currently
+                available for `gpt-5.6-sol`; a response served through it will show
+                `service_tier=ultrafast`.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -434,7 +438,7 @@ class Responses(SyncAPIResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        service_tier: Optional[ServiceTier] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -450,7 +454,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Stream[ResponseStreamEvent]:
         """Creates a model response.
 
@@ -611,6 +615,10 @@ class Responses(SyncAPIResource):
                 Responses or Chat Completions. The response will show `service_tier=priority`
                 regardless of if you specify `service_tier=fast` or `priority` in your
                 request.
+              - If set to 'ultrafast', then the request will be processed with the
+                access-controlled Ultrafast Processing service tier. This tier is currently
+                available for `gpt-5.6-sol`; a response served through it will show
+                `service_tier=ultrafast`.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -715,7 +723,7 @@ class Responses(SyncAPIResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        service_tier: Optional[ServiceTier] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -731,7 +739,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Response | Stream[ResponseStreamEvent]:
         """Creates a model response.
 
@@ -892,6 +900,10 @@ class Responses(SyncAPIResource):
                 Responses or Chat Completions. The response will show `service_tier=priority`
                 regardless of if you specify `service_tier=fast` or `priority` in your
                 request.
+              - If set to 'ultrafast', then the request will be processed with the
+                access-controlled Ultrafast Processing service tier. This tier is currently
+                available for `gpt-5.6-sol`; a response served through it will show
+                `service_tier=ultrafast`.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -994,7 +1006,7 @@ class Responses(SyncAPIResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        service_tier: Optional[ServiceTier] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
@@ -1011,7 +1023,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Response | Stream[ResponseStreamEvent]:
         return self._post(
             "/responses",
@@ -1077,7 +1089,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> ResponseStreamManager[TextFormatT]: ...
 
     @overload
@@ -1105,7 +1117,7 @@ class Responses(SyncAPIResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        service_tier: Optional[ServiceTier] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -1120,7 +1132,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> ResponseStreamManager[TextFormatT]: ...
 
     def stream(
@@ -1148,7 +1160,7 @@ class Responses(SyncAPIResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        service_tier: Optional[ServiceTier] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -1164,7 +1176,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> ResponseStreamManager[TextFormatT]:
         new_response_args = {
             "input": input,
@@ -1310,7 +1322,7 @@ class Responses(SyncAPIResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        service_tier: Optional[ServiceTier] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
@@ -1328,7 +1340,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> ParsedResponse[TextFormatT]:
         if is_given(text_format):
             if not text:
@@ -1414,7 +1426,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Response: ...
 
     @overload
@@ -1430,7 +1442,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> Stream[ResponseStreamEvent]: ...
 
     @overload
@@ -1446,7 +1458,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> Response | Stream[ResponseStreamEvent]: ...
 
     @overload
@@ -1462,7 +1474,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> Response | Stream[ResponseStreamEvent]:
         """
         Retrieves a model response with the given ID.
@@ -1511,7 +1523,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Stream[ResponseStreamEvent]:
         """
         Retrieves a model response with the given ID.
@@ -1560,7 +1572,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Response | Stream[ResponseStreamEvent]:
         """
         Retrieves a model response with the given ID.
@@ -1608,7 +1620,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Response | Stream[ResponseStreamEvent]:
         if not response_id:
             raise ValueError(f"Expected a non-empty value for `response_id` but received {response_id!r}")
@@ -1644,7 +1656,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> None:
         """
         Deletes a model response with the given ID.
@@ -1682,7 +1694,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Response:
         """Cancels a model response with the given ID.
 
@@ -1722,6 +1734,7 @@ class Responses(SyncAPIResource):
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",
                 "gpt-5.5",
+                "gpt-5.5-2026-04-23",
                 "gpt-5.4",
                 "gpt-5.4-mini",
                 "gpt-5.4-nano",
@@ -1810,10 +1823,15 @@ class Responses(SyncAPIResource):
                 "o4-mini-deep-research-2025-06-26",
                 "computer-use-preview",
                 "computer-use-preview-2025-03-11",
+                "gpt-5.5-pro",
+                "gpt-5.5-pro-2026-04-23",
                 "gpt-5-codex",
                 "gpt-5-pro",
                 "gpt-5-pro-2025-10-06",
                 "gpt-5.1-codex-max",
+                "gpt-daybreak-blue-latest",
+                "gpt-daybreak-red-latest",
+                "gpt-5.6-cyber",
             ],
             str,
             None,
@@ -1830,7 +1848,7 @@ class Responses(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> CompactedResponse:
         """Compact a conversation.
 
@@ -2002,7 +2020,7 @@ class AsyncResponses(AsyncAPIResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        service_tier: Optional[ServiceTier] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
@@ -2019,7 +2037,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Response:
         """Creates a model response.
 
@@ -2173,6 +2191,10 @@ class AsyncResponses(AsyncAPIResource):
                 Responses or Chat Completions. The response will show `service_tier=priority`
                 regardless of if you specify `service_tier=fast` or `priority` in your
                 request.
+              - If set to 'ultrafast', then the request will be processed with the
+                access-controlled Ultrafast Processing service tier. This tier is currently
+                available for `gpt-5.6-sol`; a response served through it will show
+                `service_tier=ultrafast`.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -2284,7 +2306,7 @@ class AsyncResponses(AsyncAPIResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        service_tier: Optional[ServiceTier] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -2300,7 +2322,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncStream[ResponseStreamEvent]:
         """Creates a model response.
 
@@ -2461,6 +2483,10 @@ class AsyncResponses(AsyncAPIResource):
                 Responses or Chat Completions. The response will show `service_tier=priority`
                 regardless of if you specify `service_tier=fast` or `priority` in your
                 request.
+              - If set to 'ultrafast', then the request will be processed with the
+                access-controlled Ultrafast Processing service tier. This tier is currently
+                available for `gpt-5.6-sol`; a response served through it will show
+                `service_tier=ultrafast`.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -2565,7 +2591,7 @@ class AsyncResponses(AsyncAPIResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        service_tier: Optional[ServiceTier] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -2581,7 +2607,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Response | AsyncStream[ResponseStreamEvent]:
         """Creates a model response.
 
@@ -2742,6 +2768,10 @@ class AsyncResponses(AsyncAPIResource):
                 Responses or Chat Completions. The response will show `service_tier=priority`
                 regardless of if you specify `service_tier=fast` or `priority` in your
                 request.
+              - If set to 'ultrafast', then the request will be processed with the
+                access-controlled Ultrafast Processing service tier. This tier is currently
+                available for `gpt-5.6-sol`; a response served through it will show
+                `service_tier=ultrafast`.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -2844,7 +2874,7 @@ class AsyncResponses(AsyncAPIResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        service_tier: Optional[ServiceTier] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
@@ -2861,7 +2891,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Response | AsyncStream[ResponseStreamEvent]:
         return await self._post(
             "/responses",
@@ -2927,7 +2957,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AsyncResponseStreamManager[TextFormatT]: ...
 
     @overload
@@ -2955,7 +2985,7 @@ class AsyncResponses(AsyncAPIResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        service_tier: Optional[ServiceTier] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -2970,7 +3000,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AsyncResponseStreamManager[TextFormatT]: ...
 
     def stream(
@@ -2998,7 +3028,7 @@ class AsyncResponses(AsyncAPIResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        service_tier: Optional[ServiceTier] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
@@ -3014,7 +3044,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AsyncResponseStreamManager[TextFormatT]:
         new_response_args = {
             "input": input,
@@ -3159,7 +3189,7 @@ class AsyncResponses(AsyncAPIResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        service_tier: Optional[ServiceTier] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
         stream_options: Optional[response_create_params.StreamOptions] | Omit = omit,
@@ -3177,7 +3207,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> ParsedResponse[TextFormatT]:
         if is_given(text_format):
             if not text:
@@ -3263,7 +3293,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Response: ...
 
     @overload
@@ -3279,7 +3309,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AsyncStream[ResponseStreamEvent]: ...
 
     @overload
@@ -3295,7 +3325,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> Response | AsyncStream[ResponseStreamEvent]: ...
 
     @overload
@@ -3311,7 +3341,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> Response | AsyncStream[ResponseStreamEvent]:
         """
         Retrieves a model response with the given ID.
@@ -3360,7 +3390,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncStream[ResponseStreamEvent]:
         """
         Retrieves a model response with the given ID.
@@ -3409,7 +3439,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Response | AsyncStream[ResponseStreamEvent]:
         """
         Retrieves a model response with the given ID.
@@ -3457,7 +3487,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Response | AsyncStream[ResponseStreamEvent]:
         if not response_id:
             raise ValueError(f"Expected a non-empty value for `response_id` but received {response_id!r}")
@@ -3493,7 +3523,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> None:
         """
         Deletes a model response with the given ID.
@@ -3531,7 +3561,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Response:
         """Cancels a model response with the given ID.
 
@@ -3571,6 +3601,7 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",
                 "gpt-5.5",
+                "gpt-5.5-2026-04-23",
                 "gpt-5.4",
                 "gpt-5.4-mini",
                 "gpt-5.4-nano",
@@ -3659,10 +3690,15 @@ class AsyncResponses(AsyncAPIResource):
                 "o4-mini-deep-research-2025-06-26",
                 "computer-use-preview",
                 "computer-use-preview-2025-03-11",
+                "gpt-5.5-pro",
+                "gpt-5.5-pro-2026-04-23",
                 "gpt-5-codex",
                 "gpt-5-pro",
                 "gpt-5-pro-2025-10-06",
                 "gpt-5.1-codex-max",
+                "gpt-daybreak-blue-latest",
+                "gpt-daybreak-red-latest",
+                "gpt-5.6-cyber",
             ],
             str,
             None,
@@ -3679,7 +3715,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> CompactedResponse:
         """Compact a conversation.
 
@@ -4034,7 +4070,7 @@ class AsyncResponsesConnection:
         then you can call `.parse_event(data)`.
         """
         message = await self._connection.recv(decode=False)
-        log.debug(f"Received WebSocket message: %s", message)
+        log.debug("Received WebSocket message: %i bytes", len(message))
         return message
 
     async def send(self, event: ResponsesClientEvent | ResponsesClientEventParam) -> None:
@@ -4159,7 +4195,7 @@ class AsyncResponsesConnection:
         try:
             await self._send_queue.flush_async(_send)
         except Exception:
-            log.warning("Failed to flush send queue after reconnect", exc_info=True)
+            log.warning("Failed to flush send queue after reconnect")
 
     def on(
         self, event_type: str, handler: Callable[..., Any] | None = None
@@ -4172,11 +4208,11 @@ class AsyncResponsesConnection:
 
         Can be used as a method (returns ``self`` for chaining)::
 
-            connection.on("response.audio.delta", my_handler)
+            connection.on("error", my_handler)
 
         Or as a decorator::
 
-            @connection.on("response.audio.delta")
+            @connection.on("error")
             async def my_handler(event): ...
         """
         if handler is not None:
@@ -4228,7 +4264,7 @@ class AsyncResponsesConnection:
             generic = self._event_handler_registry.get_handlers("event")
 
             if event_type == "error" and not specific and not generic:
-                if isinstance(event, ResponseErrorEvent):
+                if isinstance(event, ResponseWsError):
                     raise OpenAIError(f"WebSocket error: {event}")
 
             for handler in specific:
@@ -4373,7 +4409,7 @@ class AsyncResponsesConnectionManager:
 
     async def _connect_ws(self, extra_query: Query, extra_headers: Headers) -> AsyncWebSocketConnection:
         try:
-            from websockets.asyncio.client import connect
+            from ...lib._websocket import _WebSocketConnect as connect
         except ImportError as exc:
             raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
 
@@ -4383,9 +4419,9 @@ class AsyncResponsesConnectionManager:
                 **extra_query,
             },
         )
-        log.debug("Connecting to %s", url)
+        log.debug("Connecting to WebSocket API")
         if self.__websocket_connection_options:
-            log.debug("Connection options: %s", self.__websocket_connection_options)
+            log.debug("Custom WebSocket connection options provided")
 
         return await connect(
             str(url),
@@ -4399,7 +4435,7 @@ class AsyncResponsesConnectionManager:
             **self.__websocket_connection_options,
         )
 
-    def _prepare_url(self) -> httpx.URL:
+    def _prepare_url(self) -> httpx2.URL:
         if self.__client.websocket_base_url is not None:
             base_url = normalize_httpx_url(self.__client.websocket_base_url)
         else:
@@ -4491,7 +4527,7 @@ class ResponsesConnection:
         then you can call `.parse_event(data)`.
         """
         message = self._connection.recv(decode=False)
-        log.debug(f"Received WebSocket message: %s", message)
+        log.debug("Received WebSocket message: %i bytes", len(message))
         return message
 
     def send(self, event: ResponsesClientEvent | ResponsesClientEventParam) -> None:
@@ -4610,7 +4646,7 @@ class ResponsesConnection:
         try:
             self._send_queue.flush_sync(lambda data: self._connection.send(data))
         except Exception:
-            log.warning("Failed to flush send queue after reconnect", exc_info=True)
+            log.warning("Failed to flush send queue after reconnect")
 
     def on(
         self, event_type: str, handler: Callable[..., Any] | None = None
@@ -4623,11 +4659,11 @@ class ResponsesConnection:
 
         Can be used as a method (returns ``self`` for chaining)::
 
-            connection.on("response.audio.delta", my_handler)
+            connection.on("error", my_handler)
 
         Or as a decorator::
 
-            @connection.on("response.audio.delta")
+            @connection.on("error")
             def my_handler(event): ...
         """
         if handler is not None:
@@ -4677,7 +4713,7 @@ class ResponsesConnection:
             generic = self._event_handler_registry.get_handlers("event")
 
             if event_type == "error" and not specific and not generic:
-                if isinstance(event, ResponseErrorEvent):
+                if isinstance(event, ResponseWsError):
                     raise OpenAIError(f"WebSocket error: {event}")
 
             for handler in specific:
@@ -4828,9 +4864,9 @@ class ResponsesConnectionManager:
                 **extra_query,
             },
         )
-        log.debug("Connecting to %s", url)
+        log.debug("Connecting to WebSocket API")
         if self.__websocket_connection_options:
-            log.debug("Connection options: %s", self.__websocket_connection_options)
+            log.debug("Custom WebSocket connection options provided")
 
         return connect(
             str(url),
@@ -4844,7 +4880,7 @@ class ResponsesConnectionManager:
             **self.__websocket_connection_options,
         )
 
-    def _prepare_url(self) -> httpx.URL:
+    def _prepare_url(self) -> httpx2.URL:
         if self.__client.websocket_base_url is not None:
             base_url = normalize_httpx_url(self.__client.websocket_base_url)
         else:
@@ -4890,9 +4926,10 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        service_tier: Optional[ServiceTier] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[bool] | Omit = omit,
+        stream_id: str | Omit = omit,
         stream_options: Optional[responses_client_event_param.StreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
         text: ResponseTextConfigParam | Omit = omit,
@@ -4931,6 +4968,7 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
                         "service_tier": service_tier,
                         "store": store,
                         "stream": stream,
+                        "stream_id": stream_id,
                         "stream_options": stream_options,
                         "temperature": temperature,
                         "text": text,
@@ -4974,9 +5012,10 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        service_tier: Optional[ServiceTier] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream: Optional[bool] | Omit = omit,
+        stream_id: str | Omit = omit,
         stream_options: Optional[responses_client_event_param.StreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
         text: ResponseTextConfigParam | Omit = omit,
@@ -5015,6 +5054,7 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
                         "service_tier": service_tier,
                         "store": store,
                         "stream": stream,
+                        "stream_id": stream_id,
                         "stream_options": stream_options,
                         "temperature": temperature,
                         "text": text,

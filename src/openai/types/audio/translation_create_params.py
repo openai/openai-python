@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -15,7 +15,9 @@ class TranslationCreateParams(TypedDict, total=False):
     file: Required[FileTypes]
     """
     The audio file object (not file name) translate, in one of these formats: flac,
-    mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.
+    mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm. The request must include enough
+    format metadata for the file to be identified. We recommend an extension-bearing
+    filename and an appropriate content type.
     """
 
     model: Required[Union[str, AudioModel]]

@@ -20,6 +20,9 @@
 #     "openai[realtime]",
 # ]
 #
+# [tool.uv]
+# exclude-newer = "P8D"
+#
 # [tool.uv.sources]
 # openai = { path = "../../", editable = true }
 # ///

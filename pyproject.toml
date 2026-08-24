@@ -1,6 +1,6 @@
 [project]
 name = "openai"
-version = "2.53.0"
+version = "3.3.1"
 description = "The official Python library for the openai API"
 dynamic = ["readme"]
 license = "Apache-2.0"
@@ -9,14 +9,12 @@ authors = [
 ]
 
 dependencies = [
-  "httpx>=0.23.0, <1",
-  "pydantic>=1.9.0, <3",
+  "httpx2>=2.7.0, <3",
+  "pydantic>=1.10.13, <3, !=2.0.*, !=2.1.*, !=2.2.*, !=2.3.*",
   "typing-extensions>=4.14, <5",
-  "anyio>=3.5.0, <5",
-  "distro>=1.7.0, <2",
+  "anyio>=4.10.0, <5",
   "sniffio",
-    "tqdm > 4",
-    "jiter>=0.10.0, <1",
+  "jiter>=0.16.0, <1",
 ]
 
 requires-python = ">= 3.10"
@@ -43,79 +41,72 @@ Repository = "https://github.com/openai/openai-python"
 
 [project.optional-dependencies]
 aiohttp = [
-  "aiohttp>=3.14.1",
-  "httpx_aiohttp>=0.1.9",
-]
-httpx2 = [
-  "httpx>=0.25.1, <1",
-  "httpx2>=2.7.0, <3",
-  "anyio>=4.10.0, <5",
+  "aiohttp>=3.14.3",
 ]
 realtime = ["websockets >= 13, < 16"]
-datalib = ["numpy >= 1", "pandas >= 1.2.3", "pandas-stubs >= 1.1.0.11"]
+datalib = ["numpy >= 1", "pandas >= 1.2.3"]
 voice_helpers = ["sounddevice>=0.5.1", "numpy>=2.0.2"]
 bedrock = [
   "botocore>=1.40.0,<2",
+  "urllib3>=2.7.0,<3",
 ]
 
-[tool.rye]
-managed = true
-# version pins are in requirements-dev.lock
-dev-dependencies = [
-    "pyright==1.1.399",
+[dependency-groups]
+dev = [
     "mypy==1.17",
-    "respx",
-    "pytest",
-    "pytest-asyncio",
-    "jsonschema>=4.23.0",
+    "pytest>=9.0.3",
+    "pytest-asyncio>=1.4.0",
     "ruff",
-    "time-machine",
-    "nox",
-    "dirty-equals>=0.6.0",
-    "importlib-metadata>=6.7.0",
     "rich>=13.7.1",
     "inline-snapshot>=0.28.0",
     "azure-identity >=1.14.1",
     "botocore==1.42.97",
-    "types-tqdm > 4",
-    "types-pyaudio > 0",
+    "pandas-stubs >= 1.1.0.11",
     "trio >=0.22.2",
-    "nest_asyncio==1.6.0",
     "pytest-xdist>=3.6.1",
     "griffe>=1",
 ]
+pydantic-v1 = ["pydantic>=1.10.26,<2"]
+pydantic-v2 = ["pydantic>=2,<3"]
+# Isolated build requirements are exported with hashes by scripts/build.
+build = [
+    "hatchling==1.27.0",
+    "packaging==26.3",
+    "pathspec==1.1.1",
+    "pluggy==1.6.0",
+    "tomli==2.4.1; python_version < '3.11'",
+    "trove-classifiers==2026.6.1.19",
+]
 
-[tool.rye.scripts]
-format = { chain = [
-  "format:ruff",
-  "format:docs",
-  "fix:ruff",
-  # run formatting again to fix any inconsistencies when imports are stripped
-  "format:ruff",
-]}
-"format:docs" = "bash -c 'python scripts/utils/ruffen-docs.py README.md $(find . -type f -name api.md)'"
-"format:ruff" = "ruff format"
+[tool.uv]
+# Keep the minimum compatible with Dependabot's uv updater; CI pins its version.
+required-version = ">=0.12.1"
+exclude-newer = "8 days"
+default-groups = ["dev", "pydantic-v2"]
+conflicts = [[{ group = "pydantic-v1" }, { group = "pydantic-v2" }]]
+# Security floors for transitive development dependencies. Constraints do not
+# install these packages into the SDK's runtime environment.
+constraint-dependencies = [
+    "azure-core>=1.38.0",
+    "cryptography>=50.0.0",
+    "msal>=1.37.0",
+    "pygments>=2.20.0",
+    "pyjwt>=2.13.0",
+    "requests>=2.33.0",
+]
+# Also constrain editable/source builds performed by uv sync.
+build-constraint-dependencies = [
+    "hatchling==1.27.0",
+    "packaging==26.3",
+    "pathspec==1.1.1",
+    "pluggy==1.6.0",
+    "tomli==2.4.1; python_version < '3.11'",
+    "trove-classifiers==2026.6.1.19",
+]
 
-"lint" = { chain = [
-  "check:ruff",
-  "typecheck",
-  "check:importable",
-]}
-"check:ruff" = "ruff check ."
-"fix:ruff" = "ruff check --fix ."
-
-"check:importable" = "python -c 'import openai'"
-
-typecheck = { chain = [
-  "typecheck:pyright",
-  "typecheck:mypy"
-]}
-"typecheck:pyright" = "scripts/run-pyright"
-"typecheck:verify-types" = "pyright --verifytypes openai --ignoreexternal"
-"typecheck:mypy" = "mypy ."
 
 [build-system]
-requires = ["hatchling==1.26.3", "hatch-fancy-pypi-readme"]
+requires = ["hatchling==1.27.0"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build]
@@ -133,24 +124,19 @@ include = [
   "/*.json",
   "/*.lock",
   "/*.md",
+  "/.node-version",
+  "/pnpm-lock.yaml",
+  "/pnpm-workspace.yaml",
   "/mypy.ini",
-  "/noxfile.py",
   "bin/*",
   "examples/*",
+  "scripts/*",
   "src/*",
   "tests/*",
 ]
 
-[tool.hatch.metadata.hooks.fancy-pypi-readme]
-content-type = "text/markdown"
-
-[[tool.hatch.metadata.hooks.fancy-pypi-readme.fragments]]
-path = "README.md"
-
-[[tool.hatch.metadata.hooks.fancy-pypi-readme.substitutions]]
-# replace relative links with absolute links
-pattern = '\[(.+?)\]\(((?!https?://)\S+?)\)'
-replacement = '[\1](https://github.com/openai/openai-python/tree/main/\g<2>)'
+[tool.hatch.metadata.hooks.custom]
+path = "scripts/hatch_metadata.py"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -174,9 +160,17 @@ pythonVersion = "3.10"
 
 exclude = [
     "_dev",
+    "node_modules",
+    ".pnpm-store",
     ".venv",
+    ".venv-pydantic-v1",
+    # Contributors may still have an environment from before the uv migration.
     ".nox",
     ".git",
+    "tests/respx2",
+    "src/openai/_vendor",
+    # Loaded in Hatchling's isolated build environment.
+    "scripts/hatch_metadata.py",
 
     # uses inline `uv` script dependencies
     # which means it can't be type checked
@@ -205,6 +199,10 @@ show_error_codes = true
 # which means it can't be type checked
 exclude = [
   'src/openai/_files.py',
+  'node_modules/.*',
+  '\.pnpm-store/.*',
+  'src/openai/_vendor/.*',
+  'scripts/hatch_metadata.py',
   '_dev/.*.py',
   'tests/.*',
   'src/openai/_utils/_logs.py',
@@ -252,6 +250,7 @@ ignore_errors = true
 ignore_missing_imports = true
 
 [tool.ruff]
+extend-exclude = ["tests/respx2", "src/openai/_vendor"]
 line-length = 120
 output-format = "grouped"
 target-version = "py310"

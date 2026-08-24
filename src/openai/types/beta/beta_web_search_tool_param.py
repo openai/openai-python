@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -59,6 +59,13 @@ class BetaWebSearchToolParam(TypedDict, total=False):
     """The type of the web search tool.
 
     One of `web_search` or `web_search_2025_08_26`.
+    """
+
+    external_web_access: bool
+    """Allow live internet access for web search.
+
+    Defaults to true when omitted. When false, the web search tool runs in
+    offline/cache-only mode and will not fetch new external content.
     """
 
     filters: Optional[Filters]

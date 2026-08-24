@@ -1,12 +1,12 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Union, Mapping, cast
-from typing_extensions import Literal, overload, assert_never
+from typing import Union, Mapping, cast
+from typing_extensions import Literal, overload
 
-import httpx
+import httpx2
 
 from ... import _legacy_response
 from ..._files import deepcopy_with_paths
@@ -18,6 +18,7 @@ from ..._response import to_streamed_response_wrapper, async_to_streamed_respons
 from ...types.audio import translation_create_params
 from ..._base_client import make_request_options
 from ...types.audio_model import AudioModel
+from ...lib._parsing._audio import get_translation_response_format_type as _get_translation_response_format_type
 from ...types.audio.translation import Translation
 from ...types.audio_response_format import AudioResponseFormat
 from ...types.audio.translation_verbose import TranslationVerbose
@@ -63,7 +64,7 @@ class Translations(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Translation: ...
 
     @overload
@@ -80,7 +81,7 @@ class Translations(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> TranslationVerbose: ...
 
     @overload
@@ -97,7 +98,7 @@ class Translations(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> str: ...
 
     def create(
@@ -113,14 +114,16 @@ class Translations(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Translation | TranslationVerbose | str:
         """
         Translates audio into English.
 
         Args:
           file: The audio file object (not file name) translate, in one of these formats: flac,
-              mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.
+              mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm. The request must include enough
+              format metadata for the file to be identified. We recommend an extension-bearing
+              filename and an appropriate content type.
 
           model: ID of the model to use. Only `whisper-1` (which is powered by our open source
               Whisper V2 model) is currently available.
@@ -213,7 +216,7 @@ class AsyncTranslations(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Translation: ...
 
     @overload
@@ -230,7 +233,7 @@ class AsyncTranslations(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> TranslationVerbose: ...
 
     @overload
@@ -247,7 +250,7 @@ class AsyncTranslations(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> str: ...
 
     async def create(
@@ -263,14 +266,16 @@ class AsyncTranslations(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Translation | TranslationVerbose | str:
         """
         Translates audio into English.
 
         Args:
           file: The audio file object (not file name) translate, in one of these formats: flac,
-              mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.
+              mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm. The request must include enough
+              format metadata for the file to be identified. We recommend an extension-bearing
+              filename and an appropriate content type.
 
           model: ID of the model to use. Only `whisper-1` (which is powered by our open source
               Whisper V2 model) is currently available.
@@ -366,17 +371,4 @@ class AsyncTranslationsWithStreamingResponse:
 def _get_response_format_type(
     response_format: AudioResponseFormat | Omit,
 ) -> type[Translation | TranslationVerbose | str]:
-    if isinstance(response_format, Omit) or response_format is None:  # pyright: ignore[reportUnnecessaryComparison]
-        return Translation
-
-    if response_format == "json":
-        return Translation
-    elif response_format == "verbose_json":
-        return TranslationVerbose
-    elif response_format == "srt" or response_format == "text" or response_format == "vtt":
-        return str
-    elif TYPE_CHECKING and response_format != "diarized_json":  # type: ignore[unreachable]
-        assert_never(response_format)
-    else:
-        log.warning("Unexpected audio response format: %s", response_format)
-        return Translation
+    return _get_translation_response_format_type(response_format, log=log)
