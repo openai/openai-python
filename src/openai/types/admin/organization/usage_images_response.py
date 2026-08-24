@@ -470,6 +470,25 @@ class DataResultOrganizationCostsResult(BaseModel):
     result.
     """
 
+    quantity_unit: Union[
+        str,
+        Literal[
+            "tokens",
+            "1000_tokens",
+            "duration_seconds",
+            "duration_minutes",
+            "duration_hours",
+            "gibibyte_hours",
+            "images",
+            "characters",
+        ],
+        None,
+    ] = None
+    """The unit of the `quantity` value.
+
+    If no single supported unit applies to the result, this field is `null`.
+    """
+
 
 DataResult: TypeAlias = Annotated[
     Union[

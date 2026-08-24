@@ -29,5 +29,23 @@ class Project(BaseModel):
     name: Optional[str] = None
     """The name of the project. This appears in reporting."""
 
+    residency: Optional[
+        Literal[
+            "GLOBAL",
+            "US_STORAGE_PROCESSING",
+            "EU_STORAGE_PROCESSING",
+            "JP_STORAGE",
+            "KR_STORAGE",
+            "CA_STORAGE",
+            "SG_STORAGE",
+            "IN_STORAGE",
+            "AU_STORAGE",
+            "GB_STORAGE",
+            "AE_STORAGE",
+            "AE_STORAGE_PROCESSING",
+        ]
+    ] = None
+    """The residency configuration for the project."""
+
     status: Optional[str] = None
     """`active` or `archived`"""
