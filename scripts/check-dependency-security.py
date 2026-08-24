@@ -461,6 +461,48 @@ def marker_overlap(requirement: MarkerContext, resolution: MarkerContext) -> boo
     return any(simple_marker_overlap(left, right) for left in requirements for right in resolutions)
 
 
+def uncovered_marker_fragments(domain: MarkerContext, coverings: list[MarkerContext]) -> tuple[MarkerContext, ...]:
+    opposite = {
+        "Eq": "NotEq",
+        "NotEq": "Eq",
+        "Lt": "GtE",
+        "LtE": "Gt",
+        "Gt": "LtE",
+        "GtE": "Lt",
+        "In": "NotIn",
+        "NotIn": "In",
+    }
+    fragments = {tuple(sorted(set(option))) for option in marker_options(domain) if simple_marker_overlap(option, ())}
+    work = 0
+    for covering in coverings:
+        options = marker_options(covering)
+        if len(fragments) * len(options) > 128:
+            raise SystemExit("Ambiguous security dependency marker partition")
+        for option in options:
+            remaining: set[MarkerContext] = set()
+            for fragment in fragments:
+                work += 1
+                if work > 2048:
+                    raise SystemExit("Ambiguous security dependency marker partition")
+                if not simple_marker_overlap(fragment, option):
+                    remaining.add(fragment)
+                    continue
+                prefix = fragment
+                for variable, operator, value in option:
+                    if operator not in opposite:
+                        raise SystemExit("Ambiguous security dependency marker partition")
+                    excluded = tuple(sorted(set(prefix + ((variable, opposite[operator], value),))))
+                    if simple_marker_overlap(excluded, ()):
+                        remaining.add(excluded)
+                    prefix = tuple(sorted(set(prefix + ((variable, operator, value),))))
+                    if len(remaining) > 128 or len(prefix) > 128:
+                        raise SystemExit("Ambiguous security dependency marker partition")
+            fragments = remaining
+            if not fragments:
+                break
+    return tuple(sorted(fragments))
+
+
 def minimums(requirements: set[str], *, allow_missing: bool = False, exact: bool = False) -> list[StableRelease]:
     result: list[StableRelease] = []
     for requirement in requirements:
@@ -930,12 +972,14 @@ def secures_supported_published_branches(
 def covers_transitive_security_release(
     requirements: ContextRequirements,
     domain: MarkerContext,
+    fragments: tuple[MarkerContext, ...],
     removed: StableRelease,
     patched: StableRelease,
     current_domains: ResolutionDomains,
 ) -> bool:
+    covered: list[MarkerContext] = []
     for context, declarations in requirements.items():
-        if not marker_overlap(context[3], domain):
+        if not any(marker_overlap(context[3], fragment) for fragment in fragments):
             continue
         for requirement in declarations:
             bounds = published_bounds(requirement)
@@ -960,8 +1004,100 @@ def covers_transitive_security_release(
                 for other, versions in current_domains.items()
             ):
                 continue
-            return True
-    return False
+            covered.append(context[3])
+    return bool(covered) and all(not uncovered_marker_fragments(fragment, covered) for fragment in fragments)
+
+
+def preserves_additive_supported_releases(
+    context: DependencyContext,
+    bounds: tuple[PublishedBound, ...],
+    previous_contexts: ContextRequirements,
+    previous_domains: ResolutionDomains,
+    current_domains: ResolutionDomains,
+) -> bool:
+    global_scope = context[0] in {"uv-constraint", "uv-build-constraint"}
+    for current_domain, versions in current_domains.items():
+        if not marker_overlap(context[3], current_domain):
+            continue
+        for version in versions:
+            release = stable_version(version)
+            if allows_published_release(bounds, release):
+                continue
+            for previous_domain, previous_versions in previous_domains.items():
+                if not any(stable_version(previous) == release for previous in previous_versions):
+                    continue
+                shared = tuple(sorted(context[3] + previous_domain))
+                if not marker_overlap(shared, current_domain):
+                    continue
+                if global_scope:
+                    return False
+                for original, declarations in previous_contexts.items():
+                    if original[:2] != context[:2] or not matches_protected_release(declarations, release):
+                        continue
+                    if marker_overlap(tuple(sorted(shared + original[3])), current_domain):
+                        return False
+    return True
+
+
+def reviewed_additive_protected_contexts(
+    previous_contexts: ContextRequirements,
+    current_contexts: ContextRequirements,
+    previous_domains: ResolutionDomains,
+    current_domains: ResolutionDomains,
+) -> bool:
+    additions = set(current_contexts) - set(previous_contexts)
+    if not additions:
+        return False
+    for context in additions:
+        for requirement in current_contexts[context]:
+            floors = minimums({requirement}, allow_missing=True, exact=True)
+            if len(floors) != 1:
+                return False
+            bounds = published_bounds(requirement)
+            reviewed = False
+            for domain in previous_domains.keys() | current_domains.keys():
+                previous_versions = previous_domains.get(domain, set())
+                current_versions = current_domains.get(domain, set())
+                if previous_versions == current_versions or not marker_overlap(context[3], domain):
+                    continue
+                removed = sorted(stable_version(version) for version in previous_versions - current_versions)
+                patched = sorted(stable_version(version) for version in current_versions - previous_versions)
+                if len(removed) != len(patched):
+                    continue
+                for previous, current in zip(removed, patched, strict=True):
+                    if (
+                        current <= previous
+                        or floors[0] < current
+                        or not allows_published_release(bounds, current)
+                        or allows_published_release(bounds, previous)
+                    ):
+                        continue
+                    prior = [
+                        original[3]
+                        for original, declarations in previous_contexts.items()
+                        for declaration in declarations
+                        if minimums({declaration}, allow_missing=True, exact=True)
+                        and matches_protected_release({declaration}, previous)
+                    ]
+                    fragments = uncovered_marker_fragments(domain, prior)
+                    if not any(marker_overlap(context[3], fragment) for fragment in fragments):
+                        continue
+                    if any(
+                        other != domain
+                        and marker_overlap(context[3], other)
+                        and any(not allows_published_release(bounds, stable_version(version)) for version in versions)
+                        for other, versions in current_domains.items()
+                    ) or not preserves_additive_supported_releases(
+                        context, bounds, previous_contexts, previous_domains, current_domains
+                    ):
+                        continue
+                    reviewed = True
+                    break
+                if reviewed:
+                    break
+            if not reviewed:
+                return False
+    return True
 
 
 old_project = read_base("pyproject.toml")
@@ -1019,7 +1155,14 @@ for name, previous in old_protected.items():
     elif len(updated_minimums) != len(prior_minimums) or any(
         updated < previous for previous, updated in zip(prior_minimums, updated_minimums, strict=True)
     ):
-        raise SystemExit("Do not lower a protected dependency security minimum for " + name)
+        if (
+            name in old_direct
+            or name in new_direct
+            or not reviewed_additive_protected_contexts(
+                previous_contexts, current_contexts, previous_domains, current_domains
+            )
+        ):
+            raise SystemExit("Do not lower a protected dependency security minimum for " + name)
     if previous_domains == current_domains:
         continue
     protected_patched_domains: dict[MarkerContext, list[tuple[StableRelease, StableRelease]]] = {}
@@ -1065,8 +1208,6 @@ for name in old_versions.keys() & new_versions.keys():
     if name in old_direct or name in new_direct:
         continue
     previous_contexts = old_protected_contexts.get(name, {})
-    if any(minimums(requirements, allow_missing=True, exact=True) for requirements in previous_contexts.values()):
-        continue
     previous_domains = old_resolution_contexts.get(name, {})
     current_domains = new_resolution_contexts.get(name, {})
     for domain in previous_domains.keys() | current_domains.keys():
@@ -1085,8 +1226,21 @@ for name in old_versions.keys() & new_versions.keys():
         ):
             raise SystemExit("Missing contextual upgraded transitive security dependency release for " + name)
         for removed_release, patched_release in zip(removed, introduced, strict=True):
-            if not covers_transitive_security_release(
-                new_protected_contexts.get(name, {}), domain, removed_release, patched_release, current_domains
+            protected = [
+                context[3]
+                for context, declarations in previous_contexts.items()
+                for declaration in declarations
+                if minimums({declaration}, allow_missing=True, exact=True)
+                and matches_protected_release({declaration}, removed_release)
+            ]
+            fragments = uncovered_marker_fragments(domain, protected)
+            if fragments and not covers_transitive_security_release(
+                new_protected_contexts.get(name, {}),
+                domain,
+                fragments,
+                removed_release,
+                patched_release,
+                current_domains,
             ):
                 raise SystemExit("Add a reviewed contextual transitive security dependency boundary for " + name)
 

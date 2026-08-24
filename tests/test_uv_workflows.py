@@ -3313,7 +3313,7 @@ def test_security_floors_preserve_original_optional_contexts(
             "python_version in '3.10, 3.11'",
             "python_full_version >= '3.12'",
             False,
-            True,
+            False,
             id="python-membership-excludes-other-release",
         ),
         pytest.param(
@@ -3327,7 +3327,7 @@ def test_security_floors_preserve_original_optional_contexts(
             "python_version not in '3.10, 3.11'",
             "python_full_version == '3.10.*'",
             False,
-            True,
+            False,
             id="python-negative-membership-excludes-listed-release",
         ),
         pytest.param(
@@ -3355,7 +3355,7 @@ def test_security_floors_preserve_original_optional_contexts(
             "platform_system in 'Linux, Darwin'",
             "platform_system == 'linux'",
             False,
-            True,
+            False,
             id="platform-membership-preserves-quoted-case",
         ),
         pytest.param(
@@ -3696,7 +3696,7 @@ def test_security_updates_preserve_uv_and_dependency_group_floors(tmp_path: Path
         pytest.param("added-release", False, id="protected-added-release-without-prior-line-fails-closed"),
         pytest.param("removed-release", False, id="protected-removed-release-without-patch-fails-closed"),
         pytest.param("prerelease", False, id="protected-prerelease-patch-fails-closed"),
-        pytest.param("marker-low-unaffected", True, id="protected-unrelated-marker-line-remains-unchanged"),
+        pytest.param("marker-low-unaffected", False, id="unprotected-marker-line-upgrade-requires-security-boundary"),
         pytest.param("marker-high-lock-only", False, id="protected-marker-context-floor-must-reach-patch"),
         pytest.param("marker-high-patched", True, id="protected-marker-context-floor-reaches-patch"),
         pytest.param("pydantic-v1-lock-only", False, id="protected-pydantic-v1-floor-must-reach-patch"),
@@ -3956,6 +3956,205 @@ def test_newly_patched_transitive_dependencies_require_security_boundaries(
         head_dependency_groups=head_groups,
         base_resolution_markers=base_markers,
         head_resolution_markers=head_markers,
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("variant", "accepted"),
+    [
+        pytest.param("disjoint-unreviewed", False, id="protected-high-domain-cannot-hide-unreviewed-low-upgrade"),
+        pytest.param("disjoint-reviewed", True, id="new-disjoint-reviewed-floor-protects-low-domain"),
+        pytest.param("disjoint-insufficient", False, id="new-disjoint-floor-must-reach-low-domain-patch"),
+        pytest.param("disjoint-drops-retained", False, id="new-overlapping-floor-cannot-drop-retained-high-domain"),
+        pytest.param("broad-prior-partial", False, id="prior-partial-marker-cannot-cover-broad-resolution-domain"),
+        pytest.param("broad-prior-complement", True, id="complementary-prior-markers-cover-broad-resolution-domain"),
+        pytest.param("broad-prior-additive-global", True, id="reviewed-global-floor-may-overlap-protected-domain"),
+        pytest.param("broad-prior-additive-broad", True, id="reviewed-broader-floor-may-overlap-protected-domain"),
+        pytest.param("broad-prior-additive-insufficient", False, id="overlapping-additive-floor-must-reach-patch"),
+        pytest.param("broad-prior-old-weakened", False, id="overlapping-addition-cannot-weaken-original-context"),
+        pytest.param("broad-prior-old-dropped", False, id="overlapping-addition-cannot-remove-original-context"),
+        pytest.param("broad-current-partial", False, id="reviewed-partial-marker-cannot-cover-broad-resolution-domain"),
+        pytest.param("broad-current-complement", True, id="complementary-reviewed-markers-cover-resolution-domain"),
+        pytest.param("platform-prior-partial", False, id="python-platform-conjunction-cannot-cover-other-platforms"),
+        pytest.param("platform-prior-complement", True, id="complementary-platform-markers-cover-every-platform"),
+        pytest.param("membership-prior-partial", False, id="membership-protection-cannot-hide-unlisted-python-lines"),
+        pytest.param("membership-prior-complement", True, id="membership-complements-cover-all-python-lines"),
+        pytest.param("full-version-prior-partial", False, id="full-python-version-protection-cannot-hide-other-lines"),
+        pytest.param("independent-major-unreviewed", False, id="protected-v1-cannot-hide-unreviewed-v2-upgrade"),
+        pytest.param("independent-major-reviewed", True, id="new-reviewed-v2-group-preserves-existing-v1-group"),
+        pytest.param("independent-major-insufficient", False, id="new-v2-group-must-exclude-vulnerable-release"),
+        pytest.param(
+            "independent-major-global-drops-retained",
+            False,
+            id="global-additive-floor-cannot-drop-same-domain-protected-v1-release",
+        ),
+        pytest.param(
+            "independent-major-same-group-drops-retained",
+            False,
+            id="same-group-additive-floor-cannot-drop-same-domain-protected-v1-release",
+        ),
+        pytest.param("mixed-declarations", False, id="same-context-floor-must-protect-the-actual-removed-release"),
+        pytest.param("unchanged-uncovered", True, id="unchanged-unprotected-resolution-domain-remains-supported"),
+        pytest.param("extra-platform-uncovered", False, id="selected-extra-platform-cannot-borrow-linux-protection"),
+        pytest.param("malformed-membership", False, id="ambiguous-protected-domain-membership-fails-closed"),
+        pytest.param("fragment-limit", False, id="overcomplex-security-domain-partition-fails-closed"),
+    ],
+)
+def test_transitive_security_boundaries_cover_every_resolution_fragment(
+    tmp_path: Path, variant: str, accepted: bool
+) -> None:
+    name = "transitive"
+    before = [(name, "4")]
+    after = [(name, "5")]
+    base_requirements = ["patch-me>=1"]
+    head_requirements = ["patch-me>=1.1"]
+    base_constraints: list[str] | None = None
+    head_constraints: list[str] | None = None
+    base_groups: dict[str, list[str]] | None = None
+    head_groups: dict[str, list[str]] | None = None
+    base_optional_edges: dict[tuple[str, str], dict[str, list[dict[str, object]]]] | None = None
+    head_optional_edges: dict[tuple[str, str], dict[str, list[dict[str, object]]]] | None = None
+    broad = "python_full_version >= '3.10'"
+    base_markers: dict[tuple[str, str], list[str]] = {(name, "4"): [broad]}
+    head_markers: dict[tuple[str, str], list[str]] = {(name, "5"): [broad]}
+
+    if variant.startswith("disjoint-"):
+        before = [(name, "1"), (name, "3")]
+        after = [(name, "2"), (name, "3")]
+        base_markers = {
+            (name, "1"): ["python_full_version < '3.11'"],
+            (name, "3"): ["python_full_version >= '3.11'"],
+        }
+        head_markers = {
+            (name, "2"): ["python_full_version < '3.11'"],
+            (name, "3"): ["python_full_version >= '3.11'"],
+        }
+        high = name + ">=3; python_version >= '3.11'"
+        base_constraints = [high]
+        head_constraints = [high]
+        if variant == "disjoint-reviewed":
+            head_constraints.append(name + ">=2; python_version < '3.11'")
+        elif variant == "disjoint-insufficient":
+            head_constraints.append(name + ">=1; python_version < '3.11'")
+        elif variant == "disjoint-drops-retained":
+            head_constraints.append(name + ">=2,<3")
+    elif variant.startswith("broad-prior-"):
+        high = "; python_version >= '3.11'"
+        base_constraints = [name + ">=4" + high]
+        head_constraints = [name + ">=5" + high]
+        if variant == "broad-prior-complement":
+            low = "; python_version < '3.11'"
+            base_constraints.append(name + ">=4" + low)
+            head_constraints.append(name + ">=5" + low)
+        elif variant == "broad-prior-additive-global":
+            head_constraints.append(name + ">=5")
+        elif variant == "broad-prior-additive-broad":
+            head_constraints.append(name + ">=5; python_version >= '3.10'")
+        elif variant == "broad-prior-additive-insufficient":
+            head_constraints.append(name + ">=4")
+        elif variant == "broad-prior-old-weakened":
+            head_constraints = [name + ">=3" + high, name + ">=5"]
+        elif variant == "broad-prior-old-dropped":
+            head_constraints = [name + ">=5"]
+    elif variant in {"broad-current-partial", "broad-current-complement"}:
+        head_constraints = [name + ">=5; python_version >= '3.11'"]
+        if variant == "broad-current-complement":
+            head_constraints.append(name + ">=5; python_version < '3.11'")
+    elif variant in {"platform-prior-partial", "platform-prior-complement"}:
+        marker = "; sys_platform == 'linux'"
+        if variant == "platform-prior-partial":
+            marker = "; python_version >= '3.11' and sys_platform == 'linux'"
+        base_constraints = [name + ">=4" + marker]
+        head_constraints = [name + ">=5" + marker]
+        if variant == "platform-prior-complement":
+            other = "; sys_platform != 'linux'"
+            base_constraints.append(name + ">=4" + other)
+            head_constraints.append(name + ">=5" + other)
+    elif variant in {"membership-prior-partial", "membership-prior-complement"}:
+        marker = "; python_version in '3.11, 3.12'"
+        base_constraints = [name + ">=4" + marker]
+        head_constraints = [name + ">=5" + marker]
+        if variant == "membership-prior-complement":
+            other = "; python_version not in '3.11, 3.12'"
+            base_constraints.append(name + ">=4" + other)
+            head_constraints.append(name + ">=5" + other)
+    elif variant == "full-version-prior-partial":
+        marker = "; python_full_version == '3.11.*'"
+        base_constraints = [name + ">=4" + marker]
+        head_constraints = [name + ">=5" + marker]
+    elif variant.startswith("independent-major-"):
+        name = "pydantic"
+        before = [(name, "1.5"), (name, "2.4")]
+        after = [(name, "1.5"), (name, "2.5")]
+        base_markers = {}
+        head_markers = {}
+        base_groups = {"pydantic-v1": [name + ">=1,<2"]}
+        head_groups = {"pydantic-v1": [name + ">=1,<2"]}
+        if variant == "independent-major-reviewed":
+            head_groups["pydantic-v2"] = [name + ">=2.5,<3"]
+        elif variant == "independent-major-insufficient":
+            head_groups["pydantic-v2"] = [name + ">=2.4,<3"]
+        elif variant == "independent-major-global-drops-retained":
+            head_constraints = [name + ">=2.5,<3"]
+        elif variant == "independent-major-same-group-drops-retained":
+            base_markers = {(name, release): [broad] for _, release in before}
+            head_markers = {(name, release): [broad] for _, release in after}
+            head_groups["pydantic-v1"].append(name + ">=2.5,<3; python_version >= '3.10'")
+    elif variant == "mixed-declarations":
+        before = [(name, "5")]
+        after = [(name, "6")]
+        base_markers = {}
+        head_markers = {}
+        base_constraints = [name + ">=10", name + "<8"]
+        head_constraints = list(base_constraints)
+    elif variant == "unchanged-uncovered":
+        after = list(before)
+        head_markers = dict(base_markers)
+        marker = "; python_version >= '3.11'"
+        base_constraints = [name + ">=4" + marker]
+        head_constraints = list(base_constraints)
+    elif variant == "extra-platform-uncovered":
+        base_requirements.append("parent[feature]")
+        head_requirements.append("parent[feature]")
+        before.insert(0, ("parent", "1"))
+        after.insert(0, ("parent", "1"))
+        edges = {
+            ("parent", "1"): {"feature": [{"name": name, "marker": "extra == 'feature' and sys_platform == 'win32'"}]}
+        }
+        base_optional_edges = edges
+        head_optional_edges = edges
+        marker = "; python_version >= '3.11' and sys_platform == 'linux'"
+        base_constraints = [name + ">=4" + marker]
+        head_constraints = [name + ">=5" + marker]
+    elif variant == "malformed-membership":
+        marker = "; sys_platform in 'linux, linux'"
+        base_constraints = [name + ">=4" + marker]
+        head_constraints = [name + ">=5" + marker]
+    elif variant == "fragment-limit":
+        membership = ", ".join("3." + str(minor) for minor in range(16))
+        platforms = "linux, darwin, win32, freebsd, openbsd"
+        broad = "python_version in '" + membership + "' and sys_platform in '" + platforms + "'"
+        base_markers = {(name, "4"): [broad]}
+        head_markers = {(name, "5"): [broad]}
+        marker = "; python_version >= '3.11'"
+        base_constraints = [name + ">=4" + marker]
+        head_constraints = [name + ">=5" + marker]
+
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=base_requirements,
+        head_requirements=head_requirements,
+        base_packages=[("patch-me", "1"), *before],
+        head_packages=[("patch-me", "1.1"), *after],
+        base_constraints=base_constraints,
+        head_constraints=head_constraints,
+        base_dependency_groups=base_groups,
+        head_dependency_groups=head_groups,
+        base_resolution_markers=base_markers,
+        head_resolution_markers=head_markers,
+        base_lock_optional_dependencies=base_optional_edges,
+        head_lock_optional_dependencies=head_optional_edges,
     )
     assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
 
