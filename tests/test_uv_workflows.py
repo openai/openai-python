@@ -2219,8 +2219,8 @@ def run_security_dependency_floor_check(
             [("other", "2")],
             [("other", "2")],
             False,
-            False,
-            id="unchanged-lock-ambiguous-or-marker-fails-closed",
+            True,
+            id="unchanged-lock-valid-or-marker-remains-supported",
         ),
         pytest.param(
             ["other>=2; (python_version < '3.11')"],
@@ -2228,8 +2228,8 @@ def run_security_dependency_floor_check(
             [("other", "2")],
             [("other", "2")],
             False,
-            False,
-            id="unchanged-lock-parenthesized-marker-fails-closed",
+            True,
+            id="unchanged-lock-parenthesized-marker-remains-supported",
         ),
         pytest.param(
             ["danger-pkg>=1.0"],
@@ -3410,9 +3410,9 @@ def test_security_floors_preserve_original_optional_contexts(
         pytest.param(
             "python_version in '3.10' or sys_platform == 'linux'",
             "python_full_version == '3.10.*'",
-            False,
-            False,
-            id="source-level-or-membership-fails-closed",
+            True,
+            True,
+            id="source-level-or-membership-remains-supported",
         ),
     ],
 )
@@ -4675,3 +4675,462 @@ def test_reviewed_root_build_still_runs_with_source_distribution_builds_disabled
     assert calls[0][0] == "export"
     assert calls[1][0] == "build"
     assert "--no-sources" in calls[1]
+
+
+@pytest.mark.parametrize(
+    ("variant", "accepted"),
+    [
+        pytest.param("runtime", True, id="published-runtime-or-marker-receives-security-patch"),
+        pytest.param("optional", True, id="published-optional-or-marker-receives-security-patch"),
+        pytest.param("constraint", True, id="reviewed-uv-constraint-or-marker-receives-security-patch"),
+        pytest.param("build", True, id="reviewed-build-constraint-or-marker-receives-security-patch"),
+        pytest.param("group", True, id="reviewed-development-group-or-marker-receives-security-patch"),
+        pytest.param("grouped", True, id="grouped-marker-disjunction-preserves-safe-precedence"),
+        pytest.param("precedence", True, id="ungrouped-marker-disjunction-preserves-and-precedence"),
+        pytest.param("reordered", True, id="reordered-marker-disjunction-preserves-original-source-scope"),
+        pytest.param("duplicate", True, id="duplicate-marker-disjunction-arm-is-idempotent"),
+        pytest.param("subsumed", True, id="subsumed-marker-disjunction-arm-preserves-source-scope"),
+        pytest.param("membership", True, id="membership-marker-disjunction-remains-bounded"),
+        pytest.param("widen-single", False, id="single-marker-source-cannot-gain-unreviewed-or-arm"),
+        pytest.param("widen-existing", False, id="existing-disjunction-cannot-gain-unreviewed-or-arm"),
+        pytest.param("dropped-arm", False, id="existing-disjunction-cannot-drop-supported-source-arm"),
+        pytest.param("lowered-arm", False, id="split-disjunction-arm-cannot-lower-original-security-floor"),
+        pytest.param("unsafe-call", False, id="disjunction-cannot-hide-executable-marker-expression"),
+        pytest.param("unsafe-constant", False, id="disjunction-cannot-hide-constant-marker-expression"),
+        pytest.param("unsafe-unary", False, id="disjunction-cannot-hide-unary-marker-expression"),
+        pytest.param("unsafe-chained", False, id="disjunction-cannot-hide-chained-marker-comparison"),
+        pytest.param("malformed-membership", False, id="disjunction-cannot-hide-ambiguous-membership"),
+        pytest.param("unbounded", False, id="unbounded-marker-disjunction-fails-closed"),
+    ],
+)
+def test_security_updates_preserve_bounded_disjunctive_requirement_markers(
+    tmp_path: Path, variant: str, accepted: bool
+) -> None:
+    low = "python_version < '3.11'"
+    windows = "sys_platform == 'win32'"
+    marker = low + " or " + windows
+    head_marker = marker
+    base_floor, head_floor = "1", "2"
+    before, after = "1", "2"
+    head_entries: list[str] | None = None
+    scope = variant if variant in {"optional", "constraint", "build", "group"} else "runtime"
+
+    if variant == "grouped":
+        marker = "(" + low + " or " + windows + ") and python_version >= '3.10'"
+        head_marker = marker
+    elif variant == "precedence":
+        marker = low + " or " + windows + " and python_version >= '3.10'"
+        head_marker = marker
+    elif variant == "reordered":
+        head_marker = windows + " or " + low
+    elif variant == "duplicate":
+        marker = low + " or " + low
+        head_marker = marker
+    elif variant == "subsumed":
+        marker = low + " or (" + low + " and " + windows + ")"
+        head_marker = marker
+    elif variant == "membership":
+        marker = "python_version in '3.10, 3.11' or " + windows
+        head_marker = marker
+    elif variant in {"widen-single", "widen-existing", "dropped-arm", "lowered-arm"}:
+        base_floor = head_floor = before = after = "2"
+        if variant == "widen-single":
+            marker, head_marker = low, marker
+        elif variant == "widen-existing":
+            head_marker = marker + " or sys_platform == 'darwin'"
+        elif variant == "dropped-arm":
+            head_marker = low
+        else:
+            head_entries = ["danger>=1; " + low, "danger>=2; " + windows]
+    elif variant == "unsafe-call":
+        head_marker = low + " or __import__('os').system('true')"
+    elif variant == "unsafe-constant":
+        head_marker = low + " or True"
+    elif variant == "unsafe-unary":
+        head_marker = low + " or not " + windows
+    elif variant == "unsafe-chained":
+        head_marker = low + " or python_version < '3.11' < '3.12'"
+    elif variant == "malformed-membership":
+        head_marker = low + " or python_version in '3.10,,3.11'"
+    elif variant == "unbounded":
+        head_marker = " or ".join("sys_platform == 'platform" + str(index) + "'" for index in range(129))
+
+    previous = "danger>=" + base_floor + "; " + marker
+    current = "danger>=" + head_floor + "; " + head_marker
+    head_entries = [current] if head_entries is None else head_entries
+    base_requirements = [previous] if scope == "runtime" else []
+    head_requirements = head_entries if scope == "runtime" else []
+    base_optional = {"feature": [previous]} if scope == "optional" else None
+    head_optional = {"feature": head_entries} if scope == "optional" else None
+    base_constraints = [previous] if scope == "constraint" else None
+    head_constraints = head_entries if scope == "constraint" else None
+    base_build = [previous] if scope == "build" else None
+    head_build = head_entries if scope == "build" else None
+    base_groups = {"reviewed": [previous]} if scope == "group" else None
+    head_groups = {"reviewed": head_entries} if scope == "group" else None
+    resolution = "python_full_version == '3.10.*'"
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=base_requirements,
+        head_requirements=head_requirements,
+        base_packages=[("danger", before)],
+        head_packages=[("danger", after)],
+        base_optional_groups=base_optional,
+        head_optional_groups=head_optional,
+        base_constraints=base_constraints,
+        head_constraints=head_constraints,
+        base_build_constraints=base_build,
+        head_build_constraints=head_build,
+        base_dependency_groups=base_groups,
+        head_dependency_groups=head_groups,
+        base_resolution_markers={("danger", before): [resolution]},
+        head_resolution_markers={("danger", after): [resolution]},
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("variant", "accepted"),
+    [
+        pytest.param("runtime", True, id="existing-published-marker-can-split-into-supported-domains"),
+        pytest.param("optional", True, id="existing-optional-marker-can-split-within-original-group"),
+        pytest.param("constraint", True, id="existing-uv-constraint-marker-can-split-within-original-scope"),
+        pytest.param("group", True, id="existing-development-marker-can-split-within-original-group"),
+        pytest.param("implicit-lower", True, id="marked-split-can-use-implicit-supported-python-lower-bound"),
+        pytest.param("gap", False, id="marked-split-cannot-drop-supported-original-resolution-domain"),
+        pytest.param("widened", False, id="marked-split-cannot-widen-outside-original-marker"),
+        pytest.param("overlap", False, id="marked-split-cannot-overlap-supported-resolution-subdomains"),
+        pytest.param("partial", False, id="marked-split-cannot-cover-only-one-supported-platform"),
+        pytest.param("weakened", False, id="marked-split-cannot-lower-original-security-floor"),
+        pytest.param("upper-removed", False, id="marked-split-cannot-remove-existing-upper-bound"),
+        pytest.param("exclusion-removed", False, id="marked-split-cannot-remove-existing-wildcard-exclusion"),
+        pytest.param("moved-group", False, id="marked-split-cannot-move-existing-optional-group"),
+        pytest.param("moved-extra", False, id="marked-split-cannot-replace-original-requested-extra"),
+    ],
+)
+def test_security_floors_can_safely_split_existing_marked_resolution_domains(
+    tmp_path: Path, variant: str, accepted: bool
+) -> None:
+    original = "danger>=1,<3,!=2.0.*; python_version < '3.14'"
+    low = "danger>=1.6,<3,!=2.0.*; python_version >= '3.10' and python_version < '3.11'"
+    high = "danger>=2.6,<3,!=2.0.*; python_version >= '3.11' and python_version < '3.14'"
+    scope = variant if variant in {"optional", "constraint", "group"} else "runtime"
+
+    if variant == "implicit-lower":
+        low = "danger>=1.6,<3,!=2.0.*; python_version < '3.11'"
+    elif variant == "gap":
+        low = ""
+    elif variant == "widened":
+        high = "danger>=2.6,<3,!=2.0.*; python_version >= '3.11'"
+    elif variant == "overlap":
+        low = "danger>=1.6,<3,!=2.0.*; python_version >= '3.10' and python_version < '3.12'"
+    elif variant == "partial":
+        low += " and sys_platform == 'linux'"
+    elif variant == "weakened":
+        low = "danger>=0.9,<3,!=2.0.*; python_version >= '3.10' and python_version < '3.11'"
+    elif variant == "upper-removed":
+        low = low.replace(",<3", "")
+    elif variant == "exclusion-removed":
+        low = low.replace(",!=2.0.*", "")
+    elif variant == "moved-extra":
+        original = original.replace("danger>=", "danger[secure]>=")
+        low = low.replace("danger>=", "danger[other]>=")
+        high = high.replace("danger>=", "danger[other]>=")
+
+    replacements = [value for value in (low, high) if value]
+    base_requirements = [original] if scope == "runtime" else []
+    head_requirements = replacements if scope == "runtime" else []
+    base_optional = {"feature": [original]} if scope == "optional" or variant == "moved-group" else None
+    head_optional = (
+        {"different": replacements}
+        if variant == "moved-group"
+        else {"feature": replacements}
+        if scope == "optional"
+        else None
+    )
+    if variant == "moved-group":
+        base_requirements = head_requirements = []
+    base_constraints = [original] if scope == "constraint" else None
+    head_constraints = replacements if scope == "constraint" else None
+    base_groups = {"reviewed": [original]} if scope == "group" else None
+    head_groups = {"reviewed": replacements} if scope == "group" else None
+    low_domain = "python_full_version >= '3.10' and python_full_version < '3.11'"
+    high_domain = "python_full_version >= '3.11'"
+    if scope in {"constraint", "group"}:
+        high_domain += " and python_full_version < '3.14'"
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=base_requirements,
+        head_requirements=head_requirements,
+        base_packages=[("danger", "1.5"), ("danger", "2.5")],
+        head_packages=[("danger", "1.6"), ("danger", "2.6")],
+        base_optional_groups=base_optional,
+        head_optional_groups=head_optional,
+        base_constraints=base_constraints,
+        head_constraints=head_constraints,
+        base_dependency_groups=base_groups,
+        head_dependency_groups=head_groups,
+        base_resolution_markers={("danger", "1.5"): [low_domain], ("danger", "2.5"): [high_domain]},
+        head_resolution_markers={("danger", "1.6"): [low_domain], ("danger", "2.6"): [high_domain]},
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("variant", "accepted"),
+    [
+        pytest.param("both", True, id="every-supported-major-can-receive-security-patch-together"),
+        pytest.param("missing-v1-exclusion", False, id="joint-patch-must-exclude-entire-vulnerable-v1-series"),
+        pytest.param("missing-v2-exclusion", False, id="joint-patch-must-exclude-entire-vulnerable-v2-series"),
+        pytest.param("drops-patched-v1", False, id="joint-patch-cannot-exclude-other-patched-supported-major"),
+        pytest.param("unchanged-v1-floor", False, id="joint-patch-must-raise-preexisting-v1-security-floor"),
+        pytest.param("unchanged-v2-floor", False, id="joint-patch-must-raise-preexisting-v2-security-floor"),
+        pytest.param("missing-old-group", False, id="joint-patch-cannot-trust-newly-added-protected-context"),
+        pytest.param("removed-group", False, id="joint-patch-cannot-remove-existing-supported-major-context"),
+        pytest.param("missing-upper", False, id="joint-patch-must-preserve-independent-branch-upper-bound"),
+        pytest.param("downgrade", False, id="joint-patch-cannot-downgrade-one-supported-major"),
+        pytest.param("removed-branch", False, id="joint-patch-cannot-remove-one-supported-locked-major"),
+        pytest.param("single-branch", False, id="published-exclusion-path-requires-distinct-supported-peer"),
+    ],
+)
+def test_security_updates_can_patch_all_independent_supported_major_branches(
+    tmp_path: Path, variant: str, accepted: bool
+) -> None:
+    published = "danger>=1.5,<3"
+    exclusions = ["!=1.5.*", *("!=2." + str(minor) + ".*" for minor in range(6))]
+    updated_published = published + "," + ",".join(exclusions)
+    base_groups = {
+        "danger-v1": ["danger>=1.5,<2"],
+        "danger-v2": ["danger>=2.5,<3"],
+    }
+    head_groups = {
+        "danger-v1": ["danger>=1.6,<2"],
+        "danger-v2": ["danger>=2.6,<3"],
+    }
+    previous = [("danger", "1.5"), ("danger", "2.5")]
+    current = [("danger", "1.6"), ("danger", "2.6")]
+
+    if variant == "missing-v1-exclusion":
+        updated_published = updated_published.replace(",!=1.5.*", "")
+    elif variant == "missing-v2-exclusion":
+        updated_published = updated_published.replace(",!=2.4.*", "")
+    elif variant == "drops-patched-v1":
+        updated_published += ",!=1.6.*"
+    elif variant == "unchanged-v1-floor":
+        head_groups["danger-v1"] = ["danger>=1.5,<2"]
+    elif variant == "unchanged-v2-floor":
+        head_groups["danger-v2"] = ["danger>=2.5,<3"]
+    elif variant == "missing-old-group":
+        base_groups.pop("danger-v2")
+    elif variant == "removed-group":
+        head_groups.pop("danger-v2")
+    elif variant == "missing-upper":
+        head_groups["danger-v2"] = ["danger>=2.6"]
+    elif variant == "downgrade":
+        current[1] = ("danger", "2.4")
+    elif variant == "removed-branch":
+        current = [("danger", "2.6")]
+    elif variant == "single-branch":
+        base_groups.pop("danger-v2")
+        head_groups.pop("danger-v2")
+        previous = [("danger", "1.5")]
+        current = [("danger", "1.6")]
+
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=[published],
+        head_requirements=[updated_published],
+        base_packages=previous,
+        head_packages=current,
+        base_dependency_groups=base_groups,
+        head_dependency_groups=head_groups,
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("variant", "accepted"),
+    [
+        pytest.param("unchanged", True, id="independent-overlapping-or-sources-can-remain-unchanged"),
+        pytest.param("raised", True, id="independent-overlapping-or-sources-can-both-raise-their-floor"),
+        pytest.param("widened", False, id="overlapping-source-cannot-borrow-another-source-to-widen"),
+        pytest.param("dropped", False, id="overlapping-source-cannot-drop-its-own-original-marker-arm"),
+        pytest.param("swapped-floor", False, id="overlapping-sources-cannot-swap-a-lower-security-floor"),
+        pytest.param("removed-source", False, id="overlapping-sources-cannot-remove-independent-source"),
+    ],
+)
+def test_security_marker_source_lineage_preserves_independent_overlapping_declarations(
+    tmp_path: Path, variant: str, accepted: bool
+) -> None:
+    shared = "sys_platform == 'linux'"
+    low = "python_version < '3.11'"
+    high = "python_version >= '3.11'"
+    base = ["danger>=1; " + shared + " or " + low, "danger>=2; " + shared + " or " + high]
+    head = ["danger>=3; " + shared + " or " + low, "danger>=3; " + shared + " or " + high]
+    before, after = "2", "3"
+    if variant == "unchanged":
+        head = list(base)
+        after = before
+    elif variant == "widened":
+        head[0] += " or os_name == 'nt'"
+    elif variant == "dropped":
+        head[0] = "danger>=3; " + shared
+    elif variant == "swapped-floor":
+        base = ["danger>=2; " + shared + " or " + low, "danger>=3; " + shared + " or " + high]
+        head = ["danger>=3; " + shared + " or " + low, "danger>=2; " + shared + " or " + high]
+        before = after = "3"
+    elif variant == "removed-source":
+        head.pop()
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=base,
+        head_requirements=head,
+        base_packages=[("danger", before)],
+        head_packages=[("danger", after)],
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    "variant",
+    [
+        pytest.param("disjoint", id="unbounded-protected-source-cannot-move-to-disjoint-domain"),
+        pytest.param("removed", id="unbounded-protected-source-cannot-disappear-entirely"),
+        pytest.param("widened", id="unbounded-protected-source-cannot-gain-unreviewed-domain"),
+        pytest.param("add-protected", id="retained-protected-source-cannot-add-unbounded-disjoint-source"),
+        pytest.param("add-runtime", id="retained-runtime-source-cannot-add-unbounded-disjoint-source"),
+    ],
+)
+def test_unbounded_protected_marker_sources_preserve_their_reviewed_domain(tmp_path: Path, variant: str) -> None:
+    original = "danger; python_version < '3.11' or sys_platform == 'linux'"
+    if variant == "disjoint":
+        updated = ["danger; python_version >= '3.11' and sys_platform != 'linux'"]
+    elif variant == "removed":
+        updated = []
+    elif variant in {"add-protected", "add-runtime"}:
+        updated = [original, "danger; os_name == 'nt'"]
+    else:
+        updated = [original + " or os_name == 'nt'"]
+    runtime = variant == "add-runtime"
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=[original] if runtime else [],
+        head_requirements=updated if runtime else [],
+        base_packages=[("danger", "2")],
+        head_packages=[("danger", "2")],
+        base_dependency_groups=None if runtime else {"reviewed": [original]},
+        head_dependency_groups=None if runtime else {"reviewed": updated},
+    )
+    assert result.returncode == 1, result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("variant", "accepted"),
+    [
+        pytest.param("runtime", True, id="published-or-source-can-split-into-independently-raised-arms"),
+        pytest.param("group", True, id="protected-or-source-can-split-into-independently-raised-arms"),
+        pytest.param("drop", False, id="or-source-partition-cannot-drop-original-supported-arm"),
+        pytest.param("widen", False, id="or-source-partition-cannot-widen-beyond-original-union"),
+        pytest.param("lower", False, id="or-source-partition-cannot-lower-any-original-floor"),
+        pytest.param("overlap", False, id="or-source-partition-cannot-overlap-independent-replacements"),
+    ],
+)
+def test_security_marker_disjunction_can_split_into_reviewed_source_declarations(
+    tmp_path: Path, variant: str, accepted: bool
+) -> None:
+    low = "python_version < '3.11'"
+    high = "python_version >= '3.11' and python_version < '3.14'"
+    original = "danger>=1,<3; " + low + " or " + high
+    first = "danger>=1.6,<3; " + low
+    second = "danger>=2.6,<3; " + high
+    if variant == "drop":
+        second = ""
+    elif variant == "widen":
+        second = "danger>=2.6,<3; python_version >= '3.11'"
+    elif variant == "lower":
+        second = "danger>=0.5,<3; " + high
+    elif variant == "overlap":
+        first = "danger>=1.6,<3; python_version < '3.12'"
+    updated = [value for value in (first, second) if value]
+    protected = variant == "group"
+    low_domain = "python_full_version < '3.11'"
+    high_domain = "python_full_version >= '3.11' and python_full_version < '3.14'"
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=[] if protected else [original],
+        head_requirements=[] if protected else updated,
+        base_packages=[("danger", "1.5"), ("danger", "2.5")],
+        head_packages=[("danger", "1.6"), ("danger", "2.6")],
+        base_dependency_groups={"reviewed": [original]} if protected else None,
+        head_dependency_groups={"reviewed": updated} if protected else None,
+        base_resolution_markers={("danger", "1.5"): [low_domain], ("danger", "2.5"): [high_domain]},
+        head_resolution_markers={("danger", "1.6"): [low_domain], ("danger", "2.6"): [high_domain]},
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+def test_direct_disjunction_preserves_symbolic_extra_markers(tmp_path: Path) -> None:
+    marker = "extra == 'feature' or sys_platform == 'win32'"
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=["danger[secure]>=1; " + marker],
+        head_requirements=["danger[secure]>=2; " + marker],
+        base_packages=[("danger", "1")],
+        head_packages=[("danger", "2")],
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("variant", "accepted"),
+    [
+        pytest.param("reviewed", True, id="new-extra-can-review-exact-newly-exposed-locked-package"),
+        pytest.param("fake-extra", False, id="unrelated-new-extra-cannot-approve-different-protected-source"),
+        pytest.param("wrong-marker", False, id="new-extra-review-boundary-must-cover-actual-exposed-marker"),
+        pytest.param("low-floor", False, id="new-extra-review-boundary-must-reach-actual-locked-release"),
+        pytest.param("floorless", False, id="new-extra-cannot-approve-unbounded-protected-source"),
+    ],
+)
+def test_requested_extra_source_exceptions_validate_the_exact_exposed_package(
+    tmp_path: Path, variant: str, accepted: bool
+) -> None:
+    marker = "python_version >= '3.11'"
+    requirement = "danger>=2; " + marker
+    target = "danger"
+    packages = [("parent", "1"), ("danger", "2")]
+    groups = {"reviewed": ["danger"]}
+    constraints: list[str]
+
+    if variant == "wrong-marker":
+        requirement = "danger>=2; python_version < '3.11'"
+    elif variant == "low-floor":
+        requirement = "danger>=1; " + marker
+    elif variant == "floorless":
+        requirement = "danger; " + marker
+    elif variant == "fake-extra":
+        target = "safe-plugin"
+        packages.append(("safe-plugin", "1"))
+        groups["reviewed"].append("safe-plugin")
+
+    constraints = [requirement]
+    if variant == "fake-extra":
+        constraints.append("safe-plugin>=1")
+    optional: dict[tuple[str, str], dict[str, list[dict[str, object]]]] = {
+        ("parent", "1"): {"feature": [{"name": target}]}
+    }
+    domains = {("danger", "2"): ["python_full_version >= '3.11'"]}
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=["parent"],
+        head_requirements=["parent", "parent[feature]; " + marker],
+        base_packages=packages,
+        head_packages=packages,
+        base_dependency_groups=groups,
+        head_dependency_groups=groups,
+        head_constraints=constraints,
+        base_resolution_markers=domains,
+        head_resolution_markers=domains,
+        base_lock_optional_dependencies=optional,
+        head_lock_optional_dependencies=optional,
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr

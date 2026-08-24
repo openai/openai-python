@@ -15,6 +15,7 @@ MarkerContext: TypeAlias = tuple[MarkerClause, ...]
 StableRelease: TypeAlias = tuple[int, tuple[int, ...], int]
 PublishedBound: TypeAlias = tuple[str, int, tuple[int, ...], int, bool]
 DependencyContext: TypeAlias = tuple[str, str, tuple[str, ...], MarkerContext]
+RequirementSource: TypeAlias = tuple[str, str, tuple[str, ...], str]
 RequirementMap: TypeAlias = dict[str, set[str]]
 ContextRequirements: TypeAlias = dict[DependencyContext, set[str]]
 ContextsByName: TypeAlias = dict[str, ContextRequirements]
@@ -79,6 +80,60 @@ def marker_context(marker: str) -> MarkerContext:
     return tuple(sorted(result))
 
 
+def direct_marker_contexts(marker: str) -> tuple[MarkerContext, ...]:
+    if not marker.strip():
+        return ((),)
+    if len(marker) > 1024:
+        raise SystemExit("Unbounded direct security dependency marker")
+    try:
+        expression = ast.parse(marker.strip(), mode="eval").body
+    except SyntaxError:
+        raise SystemExit("Ambiguous direct security dependency marker") from None
+    if sum(1 for _ in ast.walk(expression)) > 256:
+        raise SystemExit("Unbounded direct security dependency marker")
+
+    def expand(node: ast.expr, depth: int = 0) -> list[MarkerContext]:
+        if depth > 32:
+            raise SystemExit("Unbounded direct security dependency marker")
+        if isinstance(node, ast.BoolOp):
+            values: list[MarkerContext]
+            if isinstance(node.op, ast.Or):
+                values = []
+                for child in node.values:
+                    values.extend(expand(child, depth + 1))
+                    if len(values) > 128:
+                        raise SystemExit("Unbounded direct security dependency marker")
+            elif isinstance(node.op, ast.And):
+                values = [()]
+                for child in node.values:
+                    current = expand(child, depth + 1)
+                    if len(values) * len(current) > 128:
+                        raise SystemExit("Unbounded direct security dependency marker")
+                    values = [tuple(sorted(set(left + right))) for left in values for right in current]
+            else:
+                raise SystemExit("Ambiguous direct security dependency marker")
+            return values
+        context = marker_context(ast.unparse(node))
+        if len(context) != 1:
+            raise SystemExit("Ambiguous direct security dependency marker")
+        for option in marker_options(context):
+            simple_marker_overlap(option, ())
+        return [context]
+
+    expanded = expand(expression)
+    if sum(len(marker_options(context)) for context in expanded) > 128:
+        raise SystemExit("Unbounded direct security dependency marker")
+    unique: list[MarkerContext] = []
+    for context in sorted(set(expanded), key=lambda value: (len(value), value)):
+        if not marker_overlap(context, ()):
+            continue
+        if any(not uncovered_marker_fragments(context, [previous]) for previous in unique):
+            continue
+        unique = [previous for previous in unique if uncovered_marker_fragments(previous, [context])]
+        unique.append(context)
+    return tuple(unique)
+
+
 def direct(project: dict[str, Any], *, protected: bool = False) -> tuple[RequirementMap, ContextsByName]:
     if protected:
         uv = project.get("tool", {}).get("uv", {})
@@ -110,10 +165,11 @@ def direct(project: dict[str, Any], *, protected: bool = False) -> tuple[Require
                 requested = tuple(sorted(canonical(value.strip()) for value in extra[1:-1].split(",")))
                 if any(not re.fullmatch(r"[a-z0-9][a-z0-9-]*", value) for value in requested):
                     raise SystemExit("Ambiguous direct security dependency extras")
-            context = (scope, group, requested, marker_context(match.group(3).partition(";")[2]))
             normalized = name + (match.group(2) or "").lower() + re.sub(r"\s+", "", match.group(3)).lower()
             result.setdefault(name, set()).add(normalized)
-            contexts.setdefault(name, {}).setdefault(context, set()).add(normalized)
+            for marker in direct_marker_contexts(match.group(3).partition(";")[2]):
+                context = (scope, group, requested, marker)
+                contexts.setdefault(name, {}).setdefault(context, set()).add(normalized)
     return result, contexts
 
 
@@ -548,7 +604,7 @@ def replacement_contexts(
     current = current_contexts.get(previous_context, set())
     if len(current) >= len(previous_requirements):
         return {previous_context: current}
-    if current or previous_context[3] or len(previous_requirements) != 1:
+    if current or len(previous_requirements) != 1:
         return {}
     original = next(iter(previous_requirements))
     original_minimums = minimums(previous_requirements, allow_missing=True, exact=exact)
@@ -557,12 +613,12 @@ def replacement_contexts(
     replacements = {
         context: requirements
         for context, requirements in current_contexts.items()
-        if context[:3] == previous_context[:3] and context[3]
+        if context[:3] == previous_context[:3] and context[3] and marker_overlap(context[3], previous_context[3])
     }
     if len(replacements) < 2:
         return {}
-    for requirements in replacements.values():
-        if len(requirements) != 1:
+    for context, requirements in replacements.items():
+        if len(requirements) != 1 or uncovered_marker_fragments(context[3], [previous_context[3]]):
             return {}
         replacement = next(iter(requirements))
         if unchanged_nonfloor_bounds(replacement) != unchanged_nonfloor_bounds(original):
@@ -573,30 +629,195 @@ def replacement_contexts(
     relevant = {
         domain
         for domain, versions in domains.items()
-        if any(matches_protected_release(previous_requirements, stable_version(version)) for version in versions)
+        if marker_overlap(previous_context[3], domain)
+        and any(matches_protected_release(previous_requirements, stable_version(version)) for version in versions)
     }
     if len(relevant) < 2:
         return {}
     covered: set[DependencyContext] = set()
-    opposite = {
-        "Eq": "NotEq",
-        "NotEq": "Eq",
-        "Lt": "GtE",
-        "LtE": "Gt",
-        "Gt": "LtE",
-        "GtE": "Lt",
-        "In": "NotIn",
-        "NotIn": "In",
-    }
     for domain in relevant:
-        matched = [context for context in replacements if marker_overlap(context[3], domain)]
-        if len(matched) != 1:
+        original_domain = tuple(sorted(set(previous_context[3] + domain)))
+        matched = [context for context in replacements if marker_overlap(context[3], original_domain)]
+        if not matched or uncovered_marker_fragments(original_domain, [context[3] for context in matched]):
             return {}
-        for variable, operator, value in matched[0][3]:
-            if operator not in opposite or marker_overlap(domain, ((variable, opposite[operator], value),)):
-                return {}
-        covered.add(matched[0])
+        if any(
+            replacements[first] != replacements[second]
+            and marker_overlap(tuple(sorted(set(first[3] + second[3]))), original_domain)
+            for index, first in enumerate(matched)
+            for second in matched[index + 1 :]
+        ):
+            return {}
+        covered.update(matched)
     return replacements if covered == set(replacements) else {}
+
+
+def preserves_requirement_source_markers(
+    previous_contexts: ContextRequirements,
+    current_contexts: ContextRequirements,
+    domains: ResolutionDomains,
+    current_domains: ResolutionDomains,
+    *,
+    extra_review: bool = False,
+) -> tuple[bool, bool]:
+    previous_sources: dict[RequirementSource, list[MarkerContext]] = {}
+    current_sources: dict[RequirementSource, list[MarkerContext]] = {}
+    for context, requirements in previous_contexts.items():
+        for requirement in requirements:
+            previous_sources.setdefault((*context[:3], requirement), []).append(context[3])
+    for context, requirements in current_contexts.items():
+        for requirement in requirements:
+            current_sources.setdefault((*context[:3], requirement), []).append(context[3])
+    previous = list(previous_sources.items())
+    current = list(current_sources.items())
+    if len(previous) > 64 or len(current) > 64 or len(previous) * len(current) > 2048:
+        raise SystemExit("Unbounded security dependency source marker assignment")
+
+    def source_bounds(requirement: str) -> tuple[PublishedBound, ...]:
+        expression = requirement.split(";", 1)[0]
+        match = re.fullmatch(r"\s*([A-Za-z0-9][A-Za-z0-9_.-]*)(\[[^\]]+\])?\s*(.*)", expression)
+        if match is None:
+            raise SystemExit("Ambiguous security dependency source requirement")
+        return published_bounds(requirement) if match.group(3).strip() else ()
+
+    def source_floor(requirement: str) -> StableRelease | None:
+        floors = [
+            (epoch, release, post)
+            for operator, epoch, release, post, _ in source_bounds(requirement)
+            if operator in {">=", ">", "=="}
+        ]
+        return max(floors, default=None)
+
+    def compatible(original: str, replacement: str) -> bool:
+        before, after = source_floor(original), source_floor(replacement)
+        if before is not None and (after is None or after < before):
+            return False
+        original_bounds = source_bounds(original)
+        replacement_bounds = source_bounds(replacement)
+        return all(
+            preserves_published_security_bound(bound, replacement_bounds)
+            for bound in original_bounds
+            if bound[0] not in {">=", ">", "=="}
+        )
+
+    edges: dict[int, list[int]] = {}
+    for index, (identity, markers) in enumerate(previous):
+        matching: list[int] = []
+        for candidate, (updated, updated_markers) in enumerate(current):
+            if updated[:3] != identity[:3] or not compatible(identity[3], updated[3]):
+                continue
+            if any(uncovered_marker_fragments(marker, updated_markers) for marker in markers):
+                continue
+            if any(uncovered_marker_fragments(marker, markers) for marker in updated_markers):
+                continue
+            matching.append(candidate)
+        if matching:
+            edges[index] = matching
+
+    assigned: dict[int, int] = {}
+
+    def claim(index: int, visited: set[int]) -> bool:
+        for candidate in edges[index]:
+            if candidate in visited:
+                continue
+            visited.add(candidate)
+            original = assigned.get(candidate)
+            if original is None or claim(original, visited):
+                assigned[candidate] = index
+                return True
+        return False
+
+    for index in sorted(edges, key=lambda value: len(edges[value])):
+        if not claim(index, set()):
+            return False, False
+
+    partitioned = False
+    for index, (identity, markers) in enumerate(previous):
+        if index in assigned.values():
+            continue
+        original = identity[3]
+        if source_floor(original) is None:
+            return False, False
+        candidates = [
+            (candidate, updated_markers)
+            for candidate, (updated, updated_markers) in enumerate(current)
+            if candidate not in assigned
+            and updated[:3] == identity[:3]
+            and compatible(original, updated[3])
+            and all(not uncovered_marker_fragments(marker, markers) for marker in updated_markers)
+        ]
+        if len(candidates) < 2:
+            return False, False
+        regions = {
+            tuple(sorted(set(marker + domain)))
+            for marker in markers
+            for domain, releases in domains.items()
+            if marker_overlap(marker, domain)
+            and any(matches_protected_release({original}, stable_version(release)) for release in releases)
+        }
+        if not regions:
+            return False, False
+        covered: set[int] = set()
+        for region in regions:
+            applicable = [
+                (candidate, marker)
+                for candidate, updated_markers in candidates
+                for marker in updated_markers
+                if marker_overlap(marker, region)
+            ]
+            if not applicable or uncovered_marker_fragments(region, [marker for _, marker in applicable]):
+                return False, False
+            if any(
+                first != second and marker_overlap(tuple(sorted(set(left + right))), region)
+                for position, (first, left) in enumerate(applicable)
+                for second, right in applicable[position + 1 :]
+            ):
+                return False, False
+            covered.update(candidate for candidate, _ in applicable)
+        if covered != {candidate for candidate, _ in candidates}:
+            return False, False
+        for candidate, _ in candidates:
+            assigned[candidate] = index
+        partitioned = True
+    for candidate, (identity, markers) in enumerate(current):
+        if candidate in assigned:
+            continue
+        if identity[0] in {"runtime", "optional"} and identity[2]:
+            continue
+        floor = source_floor(identity[3])
+        if floor is None:
+            return False, False
+        bounds = source_bounds(identity[3])
+        reviewed = False
+        for domain in domains.keys() | current_domains.keys():
+            previous_versions = domains.get(domain, set())
+            updated_versions = current_domains.get(domain, set())
+            if previous_versions == updated_versions or not any(marker_overlap(marker, domain) for marker in markers):
+                continue
+            removed = sorted(stable_version(version) for version in previous_versions - updated_versions)
+            patched = sorted(stable_version(version) for version in updated_versions - previous_versions)
+            if not removed or len(removed) != len(patched):
+                continue
+            if any(
+                updated > previous
+                and floor >= updated
+                and allows_published_release(bounds, updated)
+                and not allows_published_release(bounds, previous)
+                for previous, updated in zip(removed, patched, strict=True)
+            ):
+                reviewed = True
+                break
+        if not reviewed and extra_review:
+            reviewed = any(
+                any(marker_overlap(marker, domain) for marker in markers)
+                and any(
+                    floor >= stable_version(version) and allows_published_release(bounds, stable_version(version))
+                    for version in releases
+                )
+                for domain, releases in current_domains.items()
+            )
+        if not reviewed:
+            return False, False
+    return True, partitioned
 
 
 def preserves_supported_security_branches(
@@ -614,16 +835,26 @@ def preserves_supported_security_branches(
         removed = sorted(stable_version(version) for version in previous_versions - current_versions)
         introduced = sorted(stable_version(version) for version in current_versions - previous_versions)
         unchanged = {stable_version(version) for version in previous_versions & current_versions}
-        if not unchanged or not removed or len(removed) != len(introduced):
+        if not removed or len(removed) != len(introduced):
             return False
-        observed = True
+        validated: dict[StableRelease, DependencyContext] = {}
         for previous_release, patched_release in zip(removed, introduced, strict=True):
-            if patched_release <= previous_release:
+            if (
+                patched_release <= previous_release
+                or patched_release[0] != previous_release[0]
+                or not patched_release[1]
+                or not previous_release[1]
+                or patched_release[1][0] != previous_release[1][0]
+            ):
                 return False
-            supported = False
             for context, previous_requirements in previous_contexts.items():
                 requirements = current_contexts.get(context, set())
-                if len(previous_requirements) != 1 or len(requirements) != 1 or not marker_overlap(context[3], domain):
+                if (
+                    context in validated.values()
+                    or len(previous_requirements) != 1
+                    or len(requirements) != 1
+                    or not marker_overlap(context[3], domain)
+                ):
                     continue
                 original = next(iter(previous_requirements))
                 replacement = next(iter(requirements))
@@ -637,25 +868,34 @@ def preserves_supported_security_branches(
                     continue
                 before = minimums(previous_requirements, allow_missing=True, exact=True)
                 after = minimums(requirements, exact=True)
-                if len(before) != 1 or len(after) != 1 or after[0] < patched_release or after[0] <= before[0]:
-                    continue
-                if not any(
-                    not matches_protected_release(previous_requirements, preserved)
-                    and any(
-                        other != context
-                        and marker_overlap(other[3], domain)
-                        and other in current_contexts
-                        and matches_protected_release(protected, preserved)
-                        and matches_protected_release(current_contexts[other], preserved)
-                        for other, protected in previous_contexts.items()
-                    )
-                    for preserved in unchanged
-                ):
-                    continue
-                supported = True
-                break
-            if not supported:
+                if len(before) == 1 and len(after) == 1 and after[0] >= patched_release and after[0] > before[0]:
+                    validated[patched_release] = context
+                    break
+            if patched_release not in validated:
                 return False
+        for patched_release, context in validated.items():
+            candidates = [
+                (release, other)
+                for release, other in validated.items()
+                if release != patched_release and other != context
+            ]
+            candidates.extend(
+                (release, other)
+                for release in unchanged
+                for other, protected in previous_contexts.items()
+                if other != context
+                and marker_overlap(other[3], domain)
+                and other in current_contexts
+                and matches_protected_release(protected, release)
+                and matches_protected_release(current_contexts[other], release)
+            )
+            if not any(
+                not matches_protected_release(previous_contexts[context], release)
+                and matches_protected_release(current_contexts[other], release)
+                for release, other in candidates
+            ):
+                return False
+        observed = True
     return observed
 
 
@@ -948,7 +1188,7 @@ def secures_supported_published_branches(
         removed = sorted(stable_version(value) for value in prior_versions - updated_versions)
         patched = sorted(stable_version(value) for value in updated_versions - prior_versions)
         retained = {stable_version(value) for value in prior_versions & updated_versions}
-        if not retained or len(removed) != len(patched):
+        if len(removed) != len(patched):
             return False
         for old, new in zip(removed, patched, strict=True):
             covered = False
@@ -960,7 +1200,8 @@ def secures_supported_published_branches(
                 if not allows_published_release(before, old):
                     continue
                 after = published_bounds(next(iter(current)))
-                if not excludes_affected_published_branch(before, after, old, new, retained):
+                preserved = retained | {release for release in patched if release != new}
+                if not excludes_affected_published_branch(before, after, old, new, preserved):
                     return False
                 covered = True
             if not covered:
@@ -1110,6 +1351,54 @@ old_versions, old_resolution_contexts = versions(old_lock)
 new_versions, new_resolution_contexts = versions(new_lock)
 old_protected, old_protected_contexts = direct(old_project, protected=True)
 new_protected, new_protected_contexts = direct(new_project, protected=True)
+new_requested_extra_contexts: list[tuple[str, DependencyContext]] = []
+for name, contexts in new_contexts.items():
+    previous_contexts = old_contexts.get(name, {})
+    for context in contexts:
+        if context[2] and not any(
+            previous[:2] == context[:2] and set(context[2]).issubset(previous[2]) and previous[3] == context[3]
+            for previous in previous_contexts
+        ):
+            new_requested_extra_contexts.append((name, context))
+previous_reachable: dict[str, set[tuple[str, str, MarkerContext]]] = {}
+current_reachable: dict[str, set[tuple[str, str, MarkerContext]]] = {}
+newly_exposed: set[str] = set()
+if new_requested_extra_contexts:
+    previous_reachable = published_reachability(old_lock, old_contexts)
+    current_reachable = published_reachability(new_lock, new_contexts)
+    newly_exposed = {
+        name
+        for name, audiences in current_reachable.items()
+        for audience in audiences
+        if name not in new_direct
+        and any(
+            audience[:2] == requested[:2] and marker_overlap(audience[2], requested[3])
+            for _, requested in new_requested_extra_contexts
+        )
+        and not any(audience_covers(previous, audience) for previous in previous_reachable.get(name, set()))
+    }
+partitioned_security_sources: set[tuple[bool, str]] = set()
+for protected, previous_by_name, current_by_name in (
+    (False, old_contexts, new_contexts),
+    (True, old_protected_contexts, new_protected_contexts),
+):
+    for name, previous_contexts in previous_by_name.items():
+        preserved, partitioned = preserves_requirement_source_markers(
+            previous_contexts,
+            current_by_name.get(name, {}),
+            old_resolution_contexts.get(name, {}),
+            new_resolution_contexts.get(name, {}),
+            extra_review=protected and name in newly_exposed,
+        )
+        if not preserved:
+            message = (
+                "Do not widen or narrow an existing security dependency marker for "
+                if protected
+                else "Do not remove a published direct dependency or its original context for "
+            )
+            raise SystemExit(message + name)
+        if partitioned:
+            partitioned_security_sources.add((protected, name))
 for name, previous in old_protected.items():
     requirements = new_protected.get(name, set())
     previous_contexts = old_protected_contexts.get(name, {})
@@ -1146,7 +1435,10 @@ for name, previous in old_protected.items():
                 updated < previous for previous, updated in zip(context_minimums, updated_context_minimums, strict=True)
             ):
                 raise SystemExit("Do not lower a contextual protected security minimum for " + name)
-    split = any(context not in replacements for context, replacements in mapped_contexts.items())
+    split = (
+        any(context not in replacements for context, replacements in mapped_contexts.items())
+        or (True, name) in partitioned_security_sources
+    )
     if split:
         if set(current_contexts) != {
             replacement for replacements in mapped_contexts.values() for replacement in replacements
@@ -1244,29 +1536,7 @@ for name in old_versions.keys() & new_versions.keys():
             ):
                 raise SystemExit("Add a reviewed contextual transitive security dependency boundary for " + name)
 
-new_requested_extra_contexts: list[tuple[str, DependencyContext]] = []
-for name, contexts in new_contexts.items():
-    previous_contexts = old_contexts.get(name, {})
-    for context in contexts:
-        if context[2] and not any(
-            previous[:2] == context[:2] and set(context[2]).issubset(previous[2]) and previous[3] == context[3]
-            for previous in previous_contexts
-        ):
-            new_requested_extra_contexts.append((name, context))
 if new_requested_extra_contexts:
-    previous_reachable = published_reachability(old_lock, old_contexts)
-    current_reachable = published_reachability(new_lock, new_contexts)
-    newly_exposed = {
-        name
-        for name, audiences in current_reachable.items()
-        for audience in audiences
-        if name not in new_direct
-        and any(
-            audience[:2] == requested[:2] and marker_overlap(audience[2], requested[3])
-            for _, requested in new_requested_extra_contexts
-        )
-        and not any(audience_covers(previous, audience) for previous in previous_reachable.get(name, set()))
-    }
     for name in (new_versions.keys() - old_versions.keys()) | newly_exposed:
         reviewed_contexts = new_protected_contexts.get(name, {}) | new_contexts.get(name, {})
         for domain, domain_versions in new_resolution_contexts.get(name, {}).items():
@@ -1326,7 +1596,10 @@ for name, requirements in new_direct.items():
         if previous_minimums:
             updated_minimums = minimums(requirements)
             mapped_contexts = direct_replacements.get(name, {})
-            split = any(context not in replacements for context, replacements in mapped_contexts.items())
+            split = (
+                any(context not in replacements for context, replacements in mapped_contexts.items())
+                or (False, name) in partitioned_security_sources
+            )
             if not split and (
                 len(updated_minimums) != len(previous_minimums)
                 or any(
