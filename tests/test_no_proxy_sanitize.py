@@ -263,7 +263,7 @@ def test_concurrent_no_proxy_update_not_clobbered(monkeypatch: pytest.MonkeyPatc
     value — the update is newer and more relevant than the pre-construction
     value.
     """
-    from openai._base_client import _DefaultHttpxClient, _sanitized_no_proxy
+    from openai._base_client import _sanitized_no_proxy
 
     _set_no_proxy(monkeypatch, "localhost\n127.0.0.1")
 
