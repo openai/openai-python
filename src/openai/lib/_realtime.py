@@ -43,7 +43,7 @@ class _Calls(Calls):
         session_payload = maybe_transform(session, RealtimeSessionCreateRequestParam)
         files = [
             ("sdp", (None, sdp.encode("utf-8"), "application/sdp")),
-            ("session", (None, json.dumps(session_payload).encode("utf-8"), "application/json")),
+            ("session", (None, json.dumps(session_payload, ensure_ascii=False).encode("utf-8"), "application/json")),
         ]
         return self._post(
             "/realtime/calls",
@@ -80,7 +80,7 @@ class _AsyncCalls(AsyncCalls):
         session_payload = await async_maybe_transform(session, RealtimeSessionCreateRequestParam)
         files = [
             ("sdp", (None, sdp.encode("utf-8"), "application/sdp")),
-            ("session", (None, json.dumps(session_payload).encode("utf-8"), "application/json")),
+            ("session", (None, json.dumps(session_payload, ensure_ascii=False).encode("utf-8"), "application/json")),
         ]
         return await self._post(
             "/realtime/calls",
