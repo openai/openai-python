@@ -3396,9 +3396,9 @@ def test_security_floors_preserve_original_optional_contexts(
         pytest.param(
             "sys_platform in 'win, win32'",
             "sys_platform == 'win32'",
-            False,
-            False,
-            id="substring-ambiguous-platform-membership-fails-closed",
+            True,
+            True,
+            id="overlapping-platform-membership-tokens-preserve-pep508-substrings",
         ),
         pytest.param(
             "unsupported_platform in 'linux'",
@@ -5345,6 +5345,23 @@ def test_requested_extra_review_only_covers_packages_reachable_through_that_extr
     [
         pytest.param("substring", True, id="platform-membership-covers-actual-arm-substring"),
         pytest.param("complete-token", True, id="platform-membership-still-covers-complete-token"),
+        pytest.param("overlapping-prefix", True, id="overlapping-platform-membership-covers-shorter-token"),
+        pytest.param("overlapping-long", True, id="overlapping-platform-membership-covers-longer-token"),
+        pytest.param("overlapping-short", True, id="overlapping-platform-membership-covers-hidden-short-substring"),
+        pytest.param("overlapping-negative", False, id="negative-overlapping-membership-excludes-shared-prefix"),
+        pytest.param("overlapping-negative-outside", True, id="negative-overlapping-membership-retains-outside-value"),
+        pytest.param("overlapping-case-sensitive", False, id="overlapping-platform-membership-preserves-quoted-case"),
+        pytest.param("overlapping-resolution", True, id="overlapping-platform-resolution-membership-remains-supported"),
+        pytest.param("overlapping-complement", True, id="overlapping-membership-and-complement-cover-every-substring"),
+        pytest.param(
+            "overlapping-dropped-complement", False, id="overlapping-membership-cannot-drop-complement-substrings"
+        ),
+        pytest.param(
+            "overlapping-dropped-substrings", False, id="overlapping-token-split-cannot-drop-hidden-substrings"
+        ),
+        pytest.param("duplicate-token", False, id="platform-membership-still-rejects-duplicate-tokens"),
+        pytest.param("empty-token", False, id="platform-membership-still-rejects-empty-tokens"),
+        pytest.param("unbounded-tokens", False, id="platform-membership-still-rejects-too-many-tokens"),
         pytest.param("case-sensitive", False, id="platform-membership-keeps-quoted-case"),
         pytest.param("negative-substring", False, id="negative-membership-rejects-an-actual-substring"),
         pytest.param("negative-outside", True, id="negative-membership-keeps-values-outside-the-string"),
@@ -5355,8 +5372,9 @@ def test_requested_extra_review_only_covers_packages_reachable_through_that_extr
         pytest.param("dropped-substrings", False, id="equality-split-cannot-drop-original-membership-substrings"),
     ],
 )
+@pytest.mark.parametrize("protected", [False, True], ids=["published-direct", "protected-constraint"])
 def test_platform_membership_markers_preserve_pep508_substring_domains(
-    tmp_path: Path, variant: str, accepted: bool
+    tmp_path: Path, variant: str, accepted: bool, protected: bool
 ) -> None:
     expression = "platform_machine in 'arm64, x86_64'"
     original = "danger>=1; " + expression
@@ -5366,6 +5384,55 @@ def test_platform_membership_markers_preserve_pep508_substring_domains(
 
     if variant == "complete-token":
         old_domains = new_domains = ["platform_machine == 'arm64'"]
+    elif variant in {
+        "overlapping-prefix",
+        "overlapping-long",
+        "overlapping-short",
+        "overlapping-negative",
+        "overlapping-negative-outside",
+        "overlapping-case-sensitive",
+    }:
+        negative = variant in {"overlapping-negative", "overlapping-negative-outside"}
+        expression = "platform_machine " + ("not in" if negative else "in") + " 'arm, arm64'"
+        original = "danger>=1; " + expression
+        updated = ["danger>=2; " + expression]
+        if variant == "overlapping-long":
+            old_domains = new_domains = ["platform_machine == 'arm64'"]
+        elif variant == "overlapping-short":
+            old_domains = new_domains = ["platform_machine == 'a'"]
+        elif variant == "overlapping-negative-outside":
+            old_domains = new_domains = ["platform_machine == 'aarch64'"]
+        elif variant == "overlapping-case-sensitive":
+            old_domains = new_domains = ["platform_machine == 'ARM'"]
+    elif variant == "overlapping-resolution":
+        expression = "platform_machine != 'aarch64'"
+        original = "danger>=1; " + expression
+        updated = ["danger>=2; " + expression]
+        old_domains = new_domains = ["platform_machine in 'arm, arm64'"]
+    elif variant in {"overlapping-complement", "overlapping-dropped-complement"}:
+        expression = "platform_machine in 'arm, arm64'"
+        original = "danger>=1; " + expression
+        included = expression + " and platform_machine in 'arm64'"
+        excluded = expression + " and platform_machine not in 'arm64'"
+        updated = ["danger>=2; " + excluded]
+        old_domains = [expression]
+        new_domains = [excluded]
+        if variant == "overlapping-complement":
+            updated.append("danger>=2; " + included)
+            new_domains.append(included)
+    elif variant == "overlapping-dropped-substrings":
+        expression = "platform_machine in 'arm, arm64'"
+        original = "danger>=1; " + expression
+        updated = ["danger>=2; platform_machine == 'arm'", "danger>=2; platform_machine == 'arm64'"]
+        old_domains = [expression]
+        new_domains = ["platform_machine == 'arm'", "platform_machine == 'arm64'"]
+    elif variant in {"duplicate-token", "empty-token", "unbounded-tokens"}:
+        values = "arm, arm" if variant == "duplicate-token" else "arm,,arm64"
+        if variant == "unbounded-tokens":
+            values = ", ".join("arm" + str(index) for index in range(17))
+        expression = "platform_machine in '" + values + "'"
+        original = "danger>=1; " + expression
+        updated = ["danger>=2; " + expression]
     elif variant == "case-sensitive":
         old_domains = new_domains = ["platform_machine == 'ARM'"]
     elif variant in {"negative-substring", "negative-outside"}:
@@ -5399,10 +5466,12 @@ def test_platform_membership_markers_preserve_pep508_substring_domains(
 
     result = run_security_dependency_floor_check(
         tmp_path,
-        base_requirements=[original],
-        head_requirements=updated,
+        base_requirements=[] if protected else [original],
+        head_requirements=[] if protected else updated,
         base_packages=[("danger", "1")],
         head_packages=[("danger", "2")],
+        base_constraints=[original] if protected else None,
+        head_constraints=updated if protected else None,
         base_resolution_markers={("danger", "1"): old_domains},
         head_resolution_markers={("danger", "2"): new_domains},
     )
@@ -5976,6 +6045,115 @@ def test_locked_extra_membership_uses_pep508_substring_containment(
         base_packages=[("patch-me", "1"), ("parent", "1")],
         head_packages=[("patch-me", "1.1"), ("parent", "1"), ("plugin", "1")],
         head_constraints=["plugin>=1"] if reviewed else None,
+        base_lock_optional_dependencies=optional,
+        head_lock_optional_dependencies=optional,
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("marker", "reviewed", "accepted"),
+    [
+        pytest.param(
+            "extra != 'foo' and extra != 'bar'",
+            None,
+            True,
+            id="different-selected-extras-cannot-witness-separate-negative-clauses",
+        ),
+        pytest.param(
+            "extra == 'foo' and extra == 'bar'",
+            None,
+            True,
+            id="different-selected-extras-cannot-witness-separate-equality-clauses",
+        ),
+        pytest.param(
+            "extra == 'foo' and extra != 'bar'",
+            None,
+            False,
+            id="one-selected-extra-satisfying-both-clauses-exposes-the-package",
+        ),
+        pytest.param(
+            "extra == 'foo' and extra != 'bar'",
+            ["plugin>=1"],
+            True,
+            id="one-selected-extra-satisfying-both-clauses-can-use-a-reviewed-package",
+        ),
+        pytest.param(
+            "extra in 'foobar' and extra not in 'foobar'",
+            None,
+            True,
+            id="membership-and-its-complement-cannot-use-different-selected-extras",
+        ),
+        pytest.param(
+            "extra in 'foo' and extra not in 'bar'",
+            None,
+            False,
+            id="membership-conjunction-retains-a-single-valid-selected-extra",
+        ),
+        pytest.param(
+            "(extra == 'foo' and sys_platform == 'linux') or (extra == 'bar' and sys_platform == 'win32')",
+            ["plugin>=1; sys_platform == 'linux'"],
+            False,
+            id="distinct-selected-extras-retain-both-platform-security-domains",
+        ),
+        pytest.param(
+            "(extra == 'foo' and sys_platform == 'linux') or (extra == 'bar' and sys_platform == 'win32')",
+            ["plugin>=1; sys_platform == 'linux'", "plugin>=1; sys_platform == 'win32'"],
+            True,
+            id="distinct-selected-extras-can-each-use-their-reviewed-platform-domain",
+        ),
+        pytest.param(
+            "(extra != 'foo' and extra != 'bar') or (extra == 'foo' and sys_platform == 'linux')",
+            ["plugin>=1; sys_platform == 'linux'"],
+            True,
+            id="nested-boolean-marker-discards-cross-extra-witnesses-and-keeps-platform-context",
+        ),
+    ],
+)
+def test_locked_extra_conjunctions_share_one_selected_extra_witness(
+    tmp_path: Path, marker: str, reviewed: list[str] | None, accepted: bool
+) -> None:
+    optional: dict[tuple[str, str], dict[str, list[dict[str, object]]]] = {
+        ("parent", "1"): {"foo": [{"name": "plugin", "marker": marker}], "bar": []}
+    }
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=["patch-me>=1", "parent"],
+        head_requirements=["patch-me>=1.1", "parent", "parent[foo,bar]"],
+        base_packages=[("patch-me", "1"), ("parent", "1")],
+        head_packages=[("patch-me", "1.1"), ("parent", "1"), ("plugin", "1")],
+        head_constraints=reviewed,
+        base_lock_optional_dependencies=optional,
+        head_lock_optional_dependencies=optional,
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("marker", "reviewed", "accepted"),
+    [
+        pytest.param("extra == ''", False, False, id="missing-extra-uses-its-empty-selected-value"),
+        pytest.param("extra == ''", True, True, id="matching-empty-extra-can-use-a-reviewed-package"),
+        pytest.param("extra != ''", False, True, id="missing-extra-rejects-a-nonempty-only-edge"),
+        pytest.param("extra in ''", False, False, id="empty-selected-extra-preserves-substring-containment"),
+        pytest.param("extra in 'foobar'", False, False, id="empty-selected-extra-is-a-substring-of-other-values"),
+        pytest.param("extra not in ''", False, True, id="empty-selected-extra-preserves-negative-containment"),
+    ],
+)
+def test_locked_extra_marker_defaults_to_one_empty_selected_extra(
+    tmp_path: Path, marker: str, reviewed: bool, accepted: bool
+) -> None:
+    optional: dict[tuple[str, str], dict[str, list[dict[str, object]]]] = {
+        ("parent", "1"): {"feature": [{"name": "nested"}]}
+    }
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=["patch-me>=1", "parent"],
+        head_requirements=["patch-me>=1.1", "parent", "parent[feature]"],
+        base_packages=[("patch-me", "1"), ("parent", "1"), ("nested", "1")],
+        head_packages=[("patch-me", "1.1"), ("parent", "1"), ("nested", "1"), *([("plugin", "1")] if reviewed else [])],
+        head_constraints=["nested>=1", *(["plugin>=1"] if reviewed else [])],
+        head_lock_dependencies={("nested", "1"): [{"name": "plugin", "marker": marker}]},
         base_lock_optional_dependencies=optional,
         head_lock_optional_dependencies=optional,
     )

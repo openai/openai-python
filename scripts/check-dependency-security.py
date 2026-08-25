@@ -254,15 +254,24 @@ def dependency_marker_options(marker: object, extras: tuple[str, ...]) -> list[M
     except (SyntaxError, tokenize.TokenError, ValueError):
         raise SystemExit("Ambiguous locked security dependency edge marker") from None
 
-    def options(node: ast.expr) -> list[MarkerContext]:
+    selected = extras or ("",)
+    if len(selected) > 128:
+        raise SystemExit("Unbounded locked security dependency edge extras")
+    work = 0
+
+    def options(node: ast.expr, extra: str) -> list[MarkerContext]:
+        nonlocal work
+        work += 1
+        if work > 8192:
+            raise SystemExit("Unbounded locked security dependency edge marker")
         if isinstance(node, ast.BoolOp):
             values: list[MarkerContext]
             if isinstance(node.op, ast.Or):
-                values = [context for child in node.values for context in options(child)]
+                values = [context for child in node.values for context in options(child, extra)]
             elif isinstance(node.op, ast.And):
                 values = [()]
                 for child in node.values:
-                    current = options(child)
+                    current = options(child, extra)
                     if len(values) * len(current) > 128:
                         raise SystemExit("Unbounded locked security dependency edge marker")
                     values = [tuple(sorted(set(left + right))) for left in values for right in current]
@@ -275,21 +284,30 @@ def dependency_marker_options(marker: object, extras: tuple[str, ...]) -> list[M
         variable, operator, value = context[0]
         if variable != "extra":
             return [context]
-        selected = extras or ("",)
         normalized = canonical(value)
         if operator == "Eq":
-            accepted = any(extra == normalized for extra in selected)
+            accepted = extra == normalized
         elif operator == "NotEq":
-            accepted = any(extra != normalized for extra in selected)
+            accepted = extra != normalized
         elif operator in {"In", "NotIn"}:
             if len(value) > 256:
                 raise SystemExit("Unbounded locked security dependency edge extra")
-            accepted = any((extra in normalized) == (operator == "In") for extra in selected)
+            accepted = (extra in normalized) == (operator == "In")
         else:
             raise SystemExit("Ambiguous locked security dependency edge extra")
         return [()] if accepted else []
 
-    return options(expression)
+    result: list[MarkerContext] = []
+    seen: set[MarkerContext] = set()
+    for extra in selected:
+        for context in options(expression, extra):
+            if context in seen:
+                continue
+            seen.add(context)
+            result.append(context)
+            if len(result) > 128:
+                raise SystemExit("Unbounded locked security dependency edge marker")
+    return result
 
 
 def published_reachability(
@@ -691,12 +709,6 @@ def marker_options(context: MarkerContext) -> list[MarkerContext]:
                     for stop in range(start + 1, len(item) + 1)
                 )
                 for item in values
-            )
-            or variable in allowed_platforms
-            and any(
-                first in second or second in first
-                for index, first in enumerate(values)
-                for second in values[index + 1 :]
             )
         ):
             raise SystemExit("Ambiguous security dependency membership marker")
