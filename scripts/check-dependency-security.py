@@ -556,34 +556,16 @@ def simple_marker_overlap(requirement: MarkerContext, resolution: MarkerContext)
             }:
                 raise SystemExit("Unsupported security dependency marker variable")
             equality: str | None = None
-            platform_lower: tuple[str, bool] | None = None
-            platform_upper: tuple[str, bool] | None = None
             memberships: list[str] = []
             for _, operator, value in constraints:
                 if len(value) > 256:
                     raise SystemExit("Unbounded platform security dependency marker")
-                if operator == "Eq":
+                if operator in {"Eq", "GtE", "LtE"}:
                     if equality is not None and equality != value:
                         return False
                     equality = value
-                elif operator in {"Gt", "GtE"}:
-                    inclusive = operator == "GtE"
-                    if (
-                        platform_lower is None
-                        or value > platform_lower[0]
-                        or value == platform_lower[0]
-                        and not inclusive
-                    ):
-                        platform_lower = value, inclusive
-                elif operator in {"Lt", "LtE"}:
-                    inclusive = operator == "LtE"
-                    if (
-                        platform_upper is None
-                        or value < platform_upper[0]
-                        or value == platform_upper[0]
-                        and not inclusive
-                    ):
-                        platform_upper = value, inclusive
+                elif operator in {"Gt", "Lt"}:
+                    return False
                 elif operator == "In":
                     memberships.append(value)
                 elif operator not in {"NotEq", "NotIn"}:
@@ -592,18 +574,11 @@ def simple_marker_overlap(requirement: MarkerContext, resolution: MarkerContext)
             def matches(platform_candidate: str, terms: list[MarkerClause] = constraints) -> bool:
                 for _, operator, value in terms:
                     if (
-                        operator == "Eq"
+                        operator in {"Eq", "GtE", "LtE"}
                         and platform_candidate != value
                         or operator == "NotEq"
                         and platform_candidate == value
-                        or operator == "Lt"
-                        and platform_candidate >= value
-                        or operator == "LtE"
-                        and platform_candidate > value
-                        or operator == "Gt"
-                        and platform_candidate <= value
-                        or operator == "GtE"
-                        and platform_candidate < value
+                        or operator in {"Lt", "Gt"}
                         or operator == "In"
                         and platform_candidate not in value
                         or operator == "NotIn"
@@ -629,16 +604,8 @@ def simple_marker_overlap(requirement: MarkerContext, resolution: MarkerContext)
                 if not any(matches(platform_candidate) for platform_candidate in candidates):
                     return False
             else:
-                platform_candidate = (
-                    "" if platform_lower is None else platform_lower[0] + ("\x00" if not platform_lower[1] else "")
-                )
+                platform_candidate = ""
                 for _ in range(258):
-                    if platform_upper is not None and (
-                        platform_candidate > platform_upper[0]
-                        or platform_candidate == platform_upper[0]
-                        and not platform_upper[1]
-                    ):
-                        return False
                     if matches(platform_candidate):
                         break
                     platform_candidate += "\x00"
@@ -725,7 +692,8 @@ def marker_options(context: MarkerContext) -> list[MarkerContext]:
                 )
                 for item in values
             )
-            or any(
+            or variable in allowed_platforms
+            and any(
                 first in second or second in first
                 for index, first in enumerate(values)
                 for second in values[index + 1 :]
@@ -805,6 +773,8 @@ def uncovered_marker_fragments(domain: MarkerContext, coverings: list[MarkerCont
                             inverse = "RawLt"
                         elif operator == "Lt":
                             inverse = "RawGtE"
+                    elif variable != "python_version" and operator in {"GtE", "LtE"}:
+                        inverse = "NotEq"
                     excluded = tuple(sorted(set(prefix + ((variable, inverse, value),))))
                     if simple_marker_overlap(excluded, ()):
                         remaining.add(excluded)
@@ -893,7 +863,7 @@ def minimums(requirements: set[str], *, allow_missing: bool = False, exact: bool
     result: list[StableRelease] = []
     for requirement in requirements:
         specifier = requirement.split(";", 1)[0]
-        pattern = r"(?<![<>=!~])(?:>=|>|==|~=)([^,;]+)" if exact else r"(?<![<>=!~])(?:>=|>|~=)([^,;]+)"
+        pattern = r"(?<![<>=!~])(?:===|>=|>|==|~=)([^,;]+)" if exact else r"(?<![<>=!~])(?:>=|>|~=)([^,;]+)"
         matches = re.findall(pattern, specifier)
         if exact:
             matches = [value.strip().removesuffix(".*") for value in matches]
@@ -924,7 +894,7 @@ def matches_protected_release(requirements: set[str], release: StableRelease, *,
 
 
 def unchanged_nonfloor_bounds(requirement: str) -> tuple[PublishedBound, ...]:
-    return tuple(sorted(bound for bound in published_bounds(requirement) if bound[0] not in {">=", ">", "=="}))
+    return tuple(sorted(bound for bound in published_bounds(requirement) if bound[0] not in {">=", ">", "==", "==="}))
 
 
 def replacement_contexts(
@@ -1017,7 +987,7 @@ def preserves_requirement_source_markers(
         floors = [
             (epoch, release, post)
             for operator, epoch, release, post, _ in source_bounds(requirement)
-            if operator in {">=", ">", "=="}
+            if operator in {">=", ">", "==", "==="}
         ]
         return max(floors, default=None)
 
@@ -1027,10 +997,14 @@ def preserves_requirement_source_markers(
             return False
         original_bounds = source_bounds(original)
         replacement_bounds = source_bounds(replacement)
+        if any(bound[0] == "===" for bound in replacement_bounds) and not any(
+            bound[0] == "===" for bound in original_bounds
+        ):
+            return False
         return all(
             preserves_published_security_bound(bound, replacement_bounds)
             for bound in original_bounds
-            if bound[0] not in {">=", ">", "=="}
+            if bound[0] not in {">=", ">", "==", "==="}
         )
 
     edges: dict[int, list[int]] = {}
@@ -1250,13 +1224,14 @@ def published_bounds(requirement: str) -> tuple[PublishedBound, ...]:
     match = re.fullmatch(r"\s*([A-Za-z0-9][A-Za-z0-9_.-]*)(\[[^\]]+\])?\s*(.*)", expression)
     if match is None:
         raise SystemExit("Ambiguous published security dependency requirement")
+    name = canonical(match.group(1))
     clauses = match.group(3).split(",")
     if len(clauses) > 256:
         raise SystemExit("Unbounded published security dependency exclusions")
     result: list[PublishedBound] = []
     for clause in clauses:
         match = re.fullmatch(
-            r"(~=|>=|<=|==|!=|>|<)\s*((?:(\d+)!)?(\d+(?:\.\d+)*)(?:\.post(\d+))?)(\.\*)?",
+            r"(===|~=|>=|<=|==|!=|>|<)\s*((?:(\d+)!)?(\d+(?:\.\d+)*)(?:\.post(\d+))?)(\.\*)?",
             clause.strip(),
         )
         if match is None or len(match.group(2)) > 128:
@@ -1268,6 +1243,11 @@ def published_bounds(requirement: str) -> tuple[PublishedBound, ...]:
         if wildcard and (match.group(1) not in {"!=", "=="} or match.group(5) is not None):
             raise SystemExit("Ambiguous published security dependency wildcard")
         epoch, release, post = stable_version(match.group(2))
+        if match.group(1) == "===" and any(
+            stable_version(version) == (epoch, release, post) and version != match.group(2)
+            for version in old_versions.get(name, set()) | new_versions.get(name, set())
+        ):
+            raise SystemExit("Arbitrary-equality security dependency pin does not match its raw locked release")
         prefix = tuple(int(component) for component in components)
         if match.group(1) == "==" and wildcard:
             ceiling = prefix[:-1] + (prefix[-1] + 1,)
@@ -1303,7 +1283,7 @@ def allows_published_release(bounds: tuple[PublishedBound, ...], release: Stable
             and release > bound
             or operator == "<"
             and release >= bound
-            or operator == "=="
+            or operator in {"==", "==="}
             and release != bound
             or operator == "!="
             and release == bound
@@ -1317,7 +1297,7 @@ def preserves_published_security_bound(previous: PublishedBound, current: tuple[
     if operator in {">", ">="}:
         limit = epoch, components, post
         for updated, candidate_epoch, candidate, candidate_post, candidate_wildcard in current:
-            if candidate_wildcard or updated not in {">", ">=", "=="}:
+            if candidate_wildcard or updated not in {">", ">=", "==", "==="}:
                 continue
             bound = candidate_epoch, candidate, candidate_post
             if bound > limit or bound == limit and (operator == ">=" or updated == ">"):
@@ -1326,13 +1306,13 @@ def preserves_published_security_bound(previous: PublishedBound, current: tuple[
     if operator in {"<", "<="}:
         limit = epoch, components, post
         for updated, candidate_epoch, candidate, candidate_post, candidate_wildcard in current:
-            if candidate_wildcard or updated not in {"<", "<=", "=="}:
+            if candidate_wildcard or updated not in {"<", "<=", "==", "==="}:
                 continue
             bound = candidate_epoch, candidate, candidate_post
             if bound < limit or bound == limit and (operator == "<=" or updated == "<"):
                 return True
         return False
-    if operator == "==":
+    if operator in {"==", "==="}:
         return any(bound == previous for bound in current)
     if operator != "!=":
         return True
@@ -1359,7 +1339,7 @@ def preserves_published_security_bound(previous: PublishedBound, current: tuple[
             return True
         if updated in {">=", ">"} and bound >= stop:
             return True
-        if updated == "==":
+        if updated in {"==", "==="}:
             padded = candidate + (0,) * max(0, len(components) - len(candidate))
             if candidate_epoch != epoch or padded[: len(components)] != components:
                 return True
@@ -1376,7 +1356,7 @@ def preserves_exact_pinned_release(
     if preserves_published_security_bound(previous, current):
         return True
     operator, epoch, components, post, wildcard = previous
-    if operator != "==" or wildcard:
+    if operator not in {"==", "==="} or wildcard:
         return False
     pinned = epoch, components, post
     replacements: list[StableRelease] = []
@@ -1399,8 +1379,8 @@ def preserves_exact_pinned_release(
         return False
     patched = replacements[0]
     return any(
-        operator == "==" and not wildcard and (epoch, components, post) == patched
-        for operator, epoch, components, post, wildcard in current
+        candidate_operator == operator and not candidate_wildcard and (epoch, components, post) == patched
+        for candidate_operator, epoch, components, post, candidate_wildcard in current
     )
 
 
@@ -1417,11 +1397,11 @@ def preserves_dependency_security_bounds(
             if match is None:
                 raise SystemExit("Ambiguous unchanged published security dependency requirement")
             clauses = match.group(3).split(",")
-            if not any(re.match(r"(?:~=|!=|<=|<|>=|>|==)", clause.strip()) for clause in clauses):
+            if not any(re.match(r"(?:===|~=|!=|<=|<|>=|>|==)", clause.strip()) for clause in clauses):
                 continue
             before = published_bounds(requirement)
-            protected = tuple(bound for bound in before if bound[0] in {"<", "<=", "!=", ">", ">=", "=="})
-            preserve_releases = any(bound[0] in {"<", "<=", "!=", "=="} for bound in protected)
+            protected = tuple(bound for bound in before if bound[0] in {"<", "<=", "!=", ">", ">=", "==", "==="})
+            preserve_releases = any(bound[0] in {"<", "<=", "!=", "==", "==="} for bound in protected)
             context_replacements = replacements.get(previous_context, {})
             if not context_replacements:
                 return False
@@ -1438,7 +1418,7 @@ def preserves_dependency_security_bounds(
                     after = published_bounds(candidate)
                     if all(
                         preserves_exact_pinned_release(bound, after, replacement_context[3], previous_domains, domains)
-                        if bound[0] == "=="
+                        if bound[0] in {"==", "==="}
                         else preserves_published_security_bound(bound, after)
                         for bound in protected
                     ) and (

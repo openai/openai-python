@@ -3382,9 +3382,9 @@ def test_security_floors_preserve_original_optional_contexts(
         pytest.param(
             "python_version in '3.1, 3.10'",
             "python_full_version == '3.10.*'",
-            False,
-            False,
-            id="substring-ambiguous-membership-token-fails-closed",
+            True,
+            True,
+            id="overlapping-python-membership-tokens-preserve-pep508-substrings",
         ),
         pytest.param(
             "python_version in '3.10, beta'",
@@ -5416,78 +5416,144 @@ def test_platform_membership_markers_preserve_pep508_substring_domains(
             "sys_platform >= 'linux'",
             "sys_platform == 'linux'",
             True,
-            id="lexical-inclusive-lower-includes-equal-platform",
+            id="inclusive-lower-includes-only-the-equal-platform",
         ),
         pytest.param(
             "sys_platform > 'linux'",
             "sys_platform == 'linux'",
             False,
-            id="lexical-exclusive-lower-rejects-equal-platform",
+            id="exclusive-lower-rejects-equal-platform",
         ),
         pytest.param(
             "sys_platform > 'linux'",
             "sys_platform == 'win32'",
-            True,
-            id="lexical-exclusive-lower-accepts-greater-platform",
+            False,
+            id="exclusive-lower-does-not-use-lexical-platform-ordering",
+        ),
+        pytest.param(
+            "sys_platform >= 'linux'",
+            "sys_platform == 'win32'",
+            False,
+            id="inclusive-lower-does-not-cover-a-lexically-greater-platform",
         ),
         pytest.param(
             "sys_platform <= 'linux'",
             "sys_platform == 'linux'",
             True,
-            id="lexical-inclusive-upper-includes-equal-platform",
+            id="inclusive-upper-includes-only-the-equal-platform",
+        ),
+        pytest.param(
+            "sys_platform <= 'linux'",
+            "sys_platform == 'darwin'",
+            False,
+            id="inclusive-upper-does-not-cover-a-lexically-smaller-platform",
         ),
         pytest.param(
             "sys_platform < 'linux'",
             "sys_platform == 'linux'",
             False,
-            id="lexical-exclusive-upper-rejects-equal-platform",
+            id="exclusive-upper-rejects-equal-platform",
+        ),
+        pytest.param(
+            "sys_platform < 'ab'",
+            "sys_platform == 'a'",
+            False,
+            id="exclusive-upper-does-not-use-lexical-platform-ordering",
+        ),
+        pytest.param(
+            "'ab' > sys_platform",
+            "sys_platform == 'a'",
+            False,
+            id="reversed-exclusive-comparison-does-not-use-lexical-ordering",
+        ),
+        pytest.param(
+            "'a' <= sys_platform",
+            "sys_platform == 'a'",
+            True,
+            id="reversed-inclusive-comparison-preserves-equal-platform",
+        ),
+        pytest.param(
+            "'a' <= sys_platform",
+            "sys_platform == 'b'",
+            False,
+            id="reversed-inclusive-comparison-rejects-unequal-platform",
         ),
         pytest.param(
             "sys_platform >= 'linux' and sys_platform < 'win32'",
             "sys_platform == 'linux'",
-            True,
-            id="lexical-platform-window-accepts-covered-value",
+            False,
+            id="exclusive-upper-makes-a-platform-window-unsatisfiable",
         ),
         pytest.param(
             "sys_platform >= 'linux' and sys_platform < 'win32'",
             "sys_platform == 'win32'",
             False,
-            id="lexical-platform-window-rejects-exclusive-ceiling",
+            id="exclusive-platform-window-rejects-every-platform",
         ),
         pytest.param(
             "sys_platform >= 'linux'",
             "sys_platform >= 'linux' and sys_platform < 'win32'",
-            True,
-            id="lexical-requirement-and-resolution-intervals-overlap",
+            False,
+            id="exclusive-resolution-marker-has-no-installer-domain",
         ),
         pytest.param(
             "sys_platform > 'linux'",
             "sys_platform <= 'linux'",
             False,
-            id="disjoint-lexical-platform-intervals-fail-closed",
+            id="strict-platform-comparison-cannot-cover-an-inclusive-domain",
         ),
         pytest.param(
             "sys_platform >= 'linux' and sys_platform != 'linux'",
             "sys_platform == 'linux'",
             False,
-            id="lexical-platform-exclusion-cannot-be-lost",
+            id="inclusive-platform-exclusion-cannot-be-lost",
         ),
         pytest.param(
             "sys_platform >= 'linux' and sys_platform != 'linux'",
             "sys_platform > 'linux'",
-            True,
-            id="lexical-platform-witness-skips-an-excluded-inclusive-bound",
+            False,
+            id="inclusive-platform-exclusion-leaves-no-other-witness",
         ),
         pytest.param(
             "platform_machine > 'ar' and platform_machine in 'arm64, x86_64'",
             "platform_machine == 'arm'",
+            False,
+            id="strict-platform-comparison-cannot-gain-a-substring-witness",
+        ),
+        pytest.param(
+            "platform_machine >= 'arm' and platform_machine in 'arm64, x86_64'",
+            "platform_machine == 'arm'",
             True,
-            id="lexical-and-substring-platform-predicates-intersect-exactly",
+            id="inclusive-platform-comparison-retains-an-equal-substring-witness",
+        ),
+        pytest.param(
+            "platform_version > '3.9'",
+            "platform_version == '3.10'",
+            False,
+            id="platform-version-does-not-enable-version-ordering",
+        ),
+        pytest.param(
+            "platform_version >= '3.9'",
+            "platform_version == '3.10'",
+            False,
+            id="inclusive-platform-version-comparison-still-requires-equality",
+        ),
+        pytest.param(
+            "platform_release < 'build-42'",
+            "platform_release == 'build-4'",
+            False,
+            id="nonnumeric-platform-release-does-not-use-lexical-ordering",
+        ),
+        pytest.param(
+            "platform_release >= 'build-42'",
+            "platform_release == 'build-42'",
+            True,
+            id="nonnumeric-platform-release-inclusive-comparison-preserves-equality",
         ),
     ],
 )
 @pytest.mark.parametrize("protected", [False, True], ids=["published-direct", "protected-constraint"])
-def test_ordered_platform_markers_preserve_lexical_security_domains(
+def test_ordered_platform_markers_preserve_installer_security_domains(
     tmp_path: Path,
     requirement_marker: str,
     resolution_marker: str,
@@ -5504,6 +5570,64 @@ def test_ordered_platform_markers_preserve_lexical_security_domains(
         head_packages=[("danger", "2")],
         base_constraints=[before] if protected else None,
         head_constraints=[after] if protected else None,
+        base_resolution_markers={("danger", "1"): [resolution_marker]},
+        head_resolution_markers={("danger", "2"): [resolution_marker]},
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("requirement_marker", "resolution_marker", "accepted"),
+    [
+        pytest.param(
+            "sys_platform < 'ab'",
+            "sys_platform == 'a'",
+            False,
+            id="strict-less-than-never-protects-a-transitive-platform",
+        ),
+        pytest.param(
+            "sys_platform > 'a'",
+            "sys_platform == 'ab'",
+            False,
+            id="strict-greater-than-never-protects-a-transitive-platform",
+        ),
+        pytest.param(
+            "sys_platform >= 'a'",
+            "sys_platform in 'a,b'",
+            False,
+            id="inclusive-lower-cannot-hide-an-unprotected-platform-fragment",
+        ),
+        pytest.param(
+            "sys_platform <= 'a'",
+            "sys_platform in 'a,b'",
+            False,
+            id="inclusive-upper-cannot-hide-an-unprotected-platform-fragment",
+        ),
+        pytest.param(
+            "sys_platform >= 'a'",
+            "sys_platform == 'a'",
+            True,
+            id="inclusive-lower-protects-its-equal-platform",
+        ),
+        pytest.param(
+            "sys_platform <= 'a'",
+            "sys_platform == 'a'",
+            True,
+            id="inclusive-upper-protects-its-equal-platform",
+        ),
+    ],
+)
+def test_ordered_platform_markers_cannot_fake_transitive_security_coverage(
+    tmp_path: Path, requirement_marker: str, resolution_marker: str, accepted: bool
+) -> None:
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=["patch-me>=1"],
+        head_requirements=["patch-me>=1.1"],
+        base_packages=[("patch-me", "1"), ("danger", "1")],
+        head_packages=[("patch-me", "1.1"), ("danger", "2")],
+        base_constraints=["danger>=1; " + (requirement_marker if accepted else resolution_marker)],
+        head_constraints=["danger>=2; " + requirement_marker],
         base_resolution_markers={("danger", "1"): [resolution_marker]},
         head_resolution_markers={("danger", "2"): [resolution_marker]},
     )
@@ -5601,8 +5725,24 @@ def test_wildcard_equality_series_preserve_reviewed_security_bounds(
         pytest.param(
             "minor-containing-full-versions", True, id="python-minor-membership-allows-containing-full-version-list"
         ),
+        pytest.param("minor-overlapping-prefix", True, id="python-minor-membership-allows-overlapping-prefix"),
+        pytest.param("minor-overlapping-short", True, id="python-minor-membership-preserves-short-overlapping-prefix"),
+        pytest.param(
+            "minor-overlapping-negative", False, id="negative-python-minor-membership-excludes-overlapping-prefix"
+        ),
+        pytest.param(
+            "minor-overlapping-negative-outside", True, id="negative-python-minor-membership-keeps-outside-release"
+        ),
+        pytest.param("full-overlapping-prefix", True, id="full-python-membership-allows-overlapping-prefix"),
+        pytest.param("full-overlapping-short", True, id="full-python-membership-preserves-short-overlapping-prefix"),
+        pytest.param(
+            "full-overlapping-prerelease", True, id="full-python-membership-allows-overlapping-prerelease-serials"
+        ),
         pytest.param("minor-negative-substring", False, id="python-minor-negative-membership-excludes-partial-minor"),
         pytest.param("minor-dropped-substrings", False, id="python-minor-equalities-cannot-drop-hidden-three-one"),
+        pytest.param(
+            "minor-overlapping-dropped-substrings", False, id="overlapping-python-membership-cannot-drop-short-prefix"
+        ),
         pytest.param("resolution-projection", True, id="full-python-membership-resolution-projects-into-minor"),
         pytest.param("complete-partition", True, id="python-membership-and-complement-cover-entire-domain"),
         pytest.param("missing-partition", False, id="missing-python-membership-complement-cannot-drop-domain"),
@@ -5643,6 +5783,36 @@ def test_python_membership_markers_preserve_exact_pep508_substrings(
         original = "danger>=1; " + expression
         updated = ["danger>=2; " + expression]
         old_domains = new_domains = ["python_full_version == '" + release + "'"]
+    elif variant in {
+        "minor-overlapping-prefix",
+        "minor-overlapping-short",
+        "minor-overlapping-negative",
+        "minor-overlapping-negative-outside",
+    }:
+        negative = variant in {"minor-overlapping-negative", "minor-overlapping-negative-outside"}
+        operator = "not in" if negative else "in"
+        expression = "python_version " + operator + " '3.1, 3.10'"
+        original = "danger>=1; " + expression
+        updated = ["danger>=2; " + expression]
+        if variant == "minor-overlapping-short":
+            release = "3.1.7"
+        elif variant == "minor-overlapping-negative-outside":
+            release = "3.11.7"
+        else:
+            release = "3.10.7"
+        old_domains = new_domains = ["python_full_version == '" + release + "'"]
+    elif variant in {"full-overlapping-prefix", "full-overlapping-short", "full-overlapping-prerelease"}:
+        versions = "3.15.0a1, 3.15.0a10" if variant == "full-overlapping-prerelease" else "3.10.1, 3.10.10"
+        if variant == "full-overlapping-short":
+            release = "3.10.1"
+        elif variant == "full-overlapping-prerelease":
+            release = "3.15.0a10"
+        else:
+            release = "3.10.10"
+        expression = "python_full_version in '" + versions + "'"
+        original = "danger>=1; " + expression
+        updated = ["danger>=2; " + expression]
+        old_domains = new_domains = ["python_full_version == '" + release + "'"]
     elif variant == "minor-dropped-substrings":
         expression = "python_version in '3.10, 3.11'"
         original = "danger>=1; " + expression
@@ -5652,6 +5822,12 @@ def test_python_membership_markers_preserve_exact_pep508_substrings(
         ]
         old_domains = [expression]
         new_domains = ["python_version == '3.10'", "python_version == '3.11'"]
+    elif variant == "minor-overlapping-dropped-substrings":
+        expression = "python_version in '3.1, 3.10'"
+        original = "danger>=1; " + expression
+        updated = ["danger>=2; python_version == '3.10'"]
+        old_domains = [expression]
+        new_domains = ["python_version == '3.10'"]
     elif variant == "resolution-projection":
         expression = "python_version == '3.10'"
         original = "danger>=1; " + expression
@@ -5716,7 +5892,7 @@ def test_python_membership_markers_preserve_exact_pep508_substrings(
         pytest.param("'3.10' >= python_version", "python_full_version == '3.11.4'", False, id="reversed-upper-outside"),
         pytest.param("'3.1' == python_version", "python_full_version == '3.1.7'", True, id="reversed-minor-projection"),
         pytest.param("'3.10.1' <= python_full_version", "python_full_version == '3.10.1'", True, id="reversed-full"),
-        pytest.param("'linux' <= sys_platform", "sys_platform == 'win32'", True, id="reversed-platform-order"),
+        pytest.param("'linux' <= sys_platform", "sys_platform == 'win32'", False, id="reversed-platform-unequal"),
         pytest.param("'linux' <= sys_platform", "sys_platform == 'darwin'", False, id="reversed-platform-outside"),
         pytest.param(
             "python_version >= '3.10'",
@@ -6390,3 +6566,134 @@ def test_resolution_refinement_preserves_explicit_prerelease_domains(
         head_resolution_markers={("danger", "2"): updated_markers},
     )
     assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize("scope", ["runtime", "optional", "constraint", "build", "group"])
+@pytest.mark.parametrize("marked", [False, True], ids=["unmarked", "marker-scoped"])
+def test_arbitrary_equality_dependency_pins_can_track_reviewed_security_upgrades(
+    tmp_path: Path, scope: str, marked: bool
+) -> None:
+    marker = "; python_version >= '3.11'" if marked else ""
+    previous, current = "danger===1" + marker, "danger===2" + marker
+    protected = scope in {"constraint", "build", "group"}
+    resolutions = ["python_full_version >= '3.11'"] if marked else None
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=["patch-me>=1"] + ([] if protected else [previous]),
+        head_requirements=["patch-me>=1.1"] + ([] if protected else [current]),
+        base_packages=[("patch-me", "1"), ("danger", "1")],
+        head_packages=[("patch-me", "1.1"), ("danger", "2")],
+        optional=scope == "optional",
+        base_constraints=[previous] if scope == "constraint" else None,
+        head_constraints=[current] if scope == "constraint" else None,
+        base_build_constraints=[previous] if scope == "build" else None,
+        head_build_constraints=[current] if scope == "build" else None,
+        base_dependency_groups={"reviewed": [previous]} if scope == "group" else None,
+        head_dependency_groups={"reviewed": [current]} if scope == "group" else None,
+        base_resolution_markers={("danger", "1"): resolutions} if resolutions is not None else None,
+        head_resolution_markers={("danger", "2"): resolutions} if resolutions is not None else None,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("previous", "current", "before", "after", "accepted"),
+    [
+        pytest.param("danger===1", "danger===1", ["1"], ["1"], True, id="unchanged-canonical-arbitrary-pin"),
+        pytest.param("danger===1.0", "danger===2.0", ["1.0"], ["2.0"], True, id="raw-dotted-arbitrary-pin-upgrade"),
+        pytest.param("danger===1!1", "danger===1!2", ["1!1"], ["1!2"], True, id="raw-epoch-arbitrary-pin-upgrade"),
+        pytest.param(
+            "danger===1.post1",
+            "danger===1.post2",
+            ["1.post1"],
+            ["1.post2"],
+            True,
+            id="raw-post-release-arbitrary-pin-upgrade",
+        ),
+        pytest.param("danger===1", "danger>=1", ["1"], ["1"], False, id="arbitrary-pin-cannot-widen-to-floor"),
+        pytest.param("danger===1", "danger==1", ["1"], ["1"], False, id="arbitrary-pin-cannot-widen-to-pep440-pin"),
+        pytest.param("danger==1", "danger===1", ["1"], ["1"], False, id="pep440-pin-cannot-narrow-to-arbitrary-pin"),
+        pytest.param("danger===1", "danger===3", ["1"], ["2"], False, id="arbitrary-pin-must-match-patched-lock"),
+        pytest.param("danger===2", "danger===1", ["2"], ["1"], False, id="arbitrary-pin-cannot-follow-downgrade"),
+        pytest.param("danger===1", "danger===2", ["1", "2"], ["2"], False, id="arbitrary-pin-cannot-hide-old-alias"),
+        pytest.param(
+            "danger===1.0", "danger===2", ["1"], ["2"], False, id="trailing-zero-arbitrary-pin-is-not-raw-lock"
+        ),
+        pytest.param("danger===1", "danger===2", ["1.0"], ["2"], False, id="old-lock-alias-cannot-match-raw-pin"),
+        pytest.param("danger===1", "danger===2", ["1"], ["2.0"], False, id="new-lock-alias-cannot-match-raw-pin"),
+        pytest.param("danger===01", "danger===2", ["1"], ["2"], False, id="zero-padded-arbitrary-pin-fails-closed"),
+        pytest.param("danger===0!1", "danger===2", ["1"], ["2"], False, id="epoch-arbitrary-pin-fails-closed"),
+        pytest.param(
+            "danger===1.post1",
+            "danger===2",
+            ["1.post01"],
+            ["2"],
+            False,
+            id="post-release-arbitrary-pin-rejects-nonraw-serial",
+        ),
+        pytest.param("danger===1.*", "danger===2", ["1"], ["2"], False, id="wildcard-arbitrary-pin-fails-closed"),
+    ],
+)
+@pytest.mark.parametrize("protected", [False, True], ids=["published-direct", "protected-constraint"])
+def test_arbitrary_equality_dependency_pins_preserve_raw_security_boundaries(
+    tmp_path: Path, previous: str, current: str, before: list[str], after: list[str], accepted: bool, protected: bool
+) -> None:
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=["patch-me>=1"] + ([] if protected else [previous]),
+        head_requirements=["patch-me>=1.1"] + ([] if protected else [current]),
+        base_packages=[("patch-me", "1"), *[("danger", release) for release in before]],
+        head_packages=[("patch-me", "1.1"), *[("danger", release) for release in after]],
+        base_constraints=[previous] if protected else None,
+        head_constraints=[current] if protected else None,
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("pin", "locked", "accepted"),
+    [
+        pytest.param("plugin===1", "1", True, id="reviewed-arbitrary-pin-can-approve-new-extra-package"),
+        pytest.param("plugin===1", "1.0", False, id="arbitrary-pin-cannot-approve-nonraw-extra-package-version"),
+        pytest.param("plugin===1", "2", False, id="arbitrary-pin-cannot-approve-another-extra-package-version"),
+    ],
+)
+def test_arbitrary_equality_pin_reviews_exact_new_extra_release(
+    tmp_path: Path, pin: str, locked: str, accepted: bool
+) -> None:
+    optional: dict[tuple[str, str], dict[str, list[dict[str, object]]]] = {
+        ("parent", "1"): {"feature": [{"name": "plugin"}]}
+    }
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=["patch-me>=1", "parent"],
+        head_requirements=["patch-me>=1.1", "parent", "parent[feature]"],
+        base_packages=[("patch-me", "1"), ("parent", "1")],
+        head_packages=[("patch-me", "1.1"), ("parent", "1"), ("plugin", locked)],
+        head_constraints=[pin],
+        base_lock_optional_dependencies=optional,
+        head_lock_optional_dependencies=optional,
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize("optional", [False, True], ids=["published-runtime", "published-optional"])
+@pytest.mark.parametrize(
+    ("previous", "current"),
+    [
+        pytest.param("danger==1", "danger==1,===1", id="raw-pin-cannot-narrow-existing-pep440-equality"),
+        pytest.param("danger>=1,<2", "danger>=1,<2,===1", id="raw-pin-cannot-narrow-existing-published-range"),
+    ],
+)
+def test_new_arbitrary_equality_bound_cannot_narrow_existing_published_source(
+    tmp_path: Path, previous: str, current: str, optional: bool
+) -> None:
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=["patch-me>=1", previous],
+        head_requirements=["patch-me>=1.1", current],
+        base_packages=[("patch-me", "1"), ("danger", "1")],
+        head_packages=[("patch-me", "1.1"), ("danger", "1")],
+        optional=optional,
+    )
+    assert result.returncode != 0
