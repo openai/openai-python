@@ -8,12 +8,13 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Iterator
 
 import pytest
 
 
 @pytest.fixture(autouse=True)
-def _restore_inherited_no_proxy(monkeypatch: pytest.MonkeyPatch) -> None:
+def _restore_inherited_no_proxy(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:  # pyright: ignore[reportUnusedFunction]
     """Restore any NO_PROXY/no_proxy inherited from the test environment.
 
     The sanitizer mutates os.environ during client construction and restores
