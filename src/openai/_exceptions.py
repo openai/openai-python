@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import timedelta
 from typing import TYPE_CHECKING, Any, Optional, cast
 from typing_extensions import Literal, override
 
@@ -31,13 +32,23 @@ __all__ = [
 ]
 
 _RequestSnapshot = tuple[str, str, list[tuple[bytes, bytes]], bytes | None]
-_ResponseSnapshot = tuple[int, list[tuple[bytes, bytes]], bytes | None, _RequestSnapshot | None]
+_ResponseSnapshot = tuple[
+    int,
+    list[tuple[bytes, bytes]],
+    bytes | None,
+    _RequestSnapshot | None,
+    timedelta | None,
+]
+
+_REDACTED_HEADER_VALUE = b"<redacted>"
+_SENSITIVE_REQUEST_HEADERS = {b"api-key", b"authorization", b"x-amz-security-token"}
 
 
 class OpenAIError(Exception):
     @override
     def __reduce__(self) -> tuple[object, tuple[object, ...]]:
         state = self.__dict__.copy()
+        slot_state = _snapshot_slot_state(self)
 
         request_snapshot: _RequestSnapshot | None = None
         request = state.get("request")
@@ -53,8 +64,15 @@ class OpenAIError(Exception):
 
         return (
             _reconstruct_openai_error,
-            (type(self), self.args, state, request_snapshot, response_snapshot),
+            (type(self), self.args, state, slot_state, request_snapshot, response_snapshot),
         )
+
+
+def _snapshot_headers(headers: httpx2.Headers) -> list[tuple[bytes, bytes]]:
+    return [
+        (name, _REDACTED_HEADER_VALUE if name.lower() in _SENSITIVE_REQUEST_HEADERS else value)
+        for name, value in headers.raw
+    ]
 
 
 def _snapshot_request(request: httpx2.Request) -> _RequestSnapshot:
@@ -63,7 +81,7 @@ def _snapshot_request(request: httpx2.Request) -> _RequestSnapshot:
     except httpx2.RequestNotRead:
         content = None
 
-    return (request.method, str(request.url), list(request.headers.raw), content)
+    return (request.method, str(request.url), _snapshot_headers(request.headers), content)
 
 
 def _restore_request(snapshot: _RequestSnapshot) -> httpx2.Request:
@@ -84,7 +102,12 @@ def _snapshot_response(response: httpx2.Response) -> _ResponseSnapshot:
     except RuntimeError:
         request_snapshot = None
 
-    return (response.status_code, list(response.headers.raw), content, request_snapshot)
+    try:
+        elapsed = response.elapsed
+    except RuntimeError:
+        elapsed = None
+
+    return (response.status_code, list(response.headers.raw), content, request_snapshot, elapsed)
 
 
 def _restore_response(
@@ -92,7 +115,7 @@ def _restore_response(
     *,
     request: httpx2.Request | None,
 ) -> httpx2.Response:
-    status_code, headers, content, response_request_snapshot = snapshot
+    status_code, headers, content, response_request_snapshot, elapsed = snapshot
     if request is None and response_request_snapshot is not None:
         request = _restore_request(response_request_snapshot)
 
@@ -102,19 +125,46 @@ def _restore_response(
     if request is not None:
         kwargs["request"] = request
 
-    return httpx2.Response(status_code, **kwargs)
+    response = httpx2.Response(status_code, **kwargs)
+    if elapsed is not None:
+        response.elapsed = elapsed
+    return response
+
+
+def _snapshot_slot_state(error: OpenAIError) -> dict[str, Any]:
+    slot_state: dict[str, Any] = {}
+    for cls in type(error).__mro__:
+        slots = cls.__dict__.get("__slots__")
+        if slots is None:
+            continue
+        if isinstance(slots, str):
+            slots = (slots,)
+        for slot in slots:
+            if slot in {"__dict__", "__weakref__"}:
+                continue
+            name = slot
+            if name.startswith("__") and not name.endswith("__"):
+                name = f"_{cls.__name__.lstrip('_')}{name}"
+            try:
+                slot_state[name] = getattr(error, name)
+            except AttributeError:
+                pass
+    return slot_state
 
 
 def _reconstruct_openai_error(
     error_type: type[OpenAIError],
     args: tuple[object, ...],
     state: dict[str, Any],
+    slot_state: dict[str, Any],
     request_snapshot: _RequestSnapshot | None,
     response_snapshot: _ResponseSnapshot | None,
 ) -> OpenAIError:
     error = Exception.__new__(error_type)
     Exception.__init__(error, *args)
     error.__dict__.update(state)
+    for name, value in slot_state.items():
+        setattr(error, name, value)
 
     request = _restore_request(request_snapshot) if request_snapshot is not None else None
     if request is not None:
