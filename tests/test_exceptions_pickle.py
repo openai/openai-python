@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import pickle
+from datetime import timedelta
 from collections.abc import Iterator
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from threading import Thread
@@ -19,6 +20,14 @@ _ERROR_PAYLOAD = b'{"error":{"message":"bad request","type":"invalid_request_err
 class _CustomNewOpenAIError(OpenAIError):
     def __new__(cls, message: str) -> _CustomNewOpenAIError:
         return Exception.__new__(cls)
+
+
+class _SlottedOpenAIError(OpenAIError):
+    __slots__ = ("context",)
+
+    def __init__(self, message: str, context: str) -> None:
+        super().__init__(message, context)
+        self.context = context
 
 
 class _BadRequestHandler(BaseHTTPRequestHandler):
@@ -63,6 +72,28 @@ def test_timeout_error_pickle_round_trip() -> None:
     assert restored.body is None
 
 
+@pytest.mark.parametrize(
+    ("header_name", "header_value"),
+    [
+        ("Authorization", "Bearer sk-openai-secret"),
+        ("api-key", "azure-secret-key"),
+    ],
+)
+def test_request_credentials_are_redacted_from_pickle(header_name: str, header_value: str) -> None:
+    request = httpx2.Request(
+        "POST",
+        "https://example.test/v1/responses",
+        headers={header_name: header_value},
+    )
+    error = APITimeoutError(request)
+
+    payload = pickle.dumps(error)
+    restored = pickle.loads(payload)
+
+    assert header_value.encode() not in payload
+    assert restored.request.headers[header_name] == "<redacted>"
+
+
 def test_status_error_pickle_round_trip_preserves_response_state() -> None:
     request = httpx2.Request("POST", "https://example.test/v1/responses")
     response = httpx2.Response(
@@ -71,6 +102,7 @@ def test_status_error_pickle_round_trip_preserves_response_state() -> None:
         headers={"x-request-id": "req_123"},
         json={"error": "bad request"},
     )
+    response.elapsed = timedelta(milliseconds=125)
     body = {
         "code": "invalid_value",
         "param": "input",
@@ -89,6 +121,7 @@ def test_status_error_pickle_round_trip_preserves_response_state() -> None:
     assert restored.type == "invalid_request_error"
     assert restored.response.status_code == 400
     assert restored.response.json() == {"error": "bad request"}
+    assert restored.response.elapsed == timedelta(milliseconds=125)
 
 
 def _assert_transport_status_error_pickle_round_trip(error: BadRequestError) -> None:
@@ -109,6 +142,9 @@ def _assert_transport_status_error_pickle_round_trip(error: BadRequestError) -> 
             "code": "bad_request",
         }
     }
+    assert restored.request.headers["Authorization"] == "<redacted>"
+    assert error.request.headers["Authorization"] != restored.request.headers["Authorization"]
+    assert restored.response.elapsed >= timedelta(0)
 
 
 def test_status_error_from_sync_transport_pickle_round_trip(transport_error_base_url: str) -> None:
@@ -137,6 +173,16 @@ def test_custom_error_subclass_with_required_new_argument_pickle_round_trip() ->
 
     assert isinstance(restored, _CustomNewOpenAIError)
     assert str(restored) == "custom error"
+
+
+def test_custom_error_subclass_preserves_slotted_state() -> None:
+    error = _SlottedOpenAIError("custom error", "slot context")
+
+    restored = pickle.loads(pickle.dumps(error))
+
+    assert isinstance(restored, _SlottedOpenAIError)
+    assert restored.args == ("custom error", "slot context")
+    assert restored.context == "slot context"
 
 
 def test_websocket_error_pickle_round_trip_preserves_unsent_messages() -> None:
