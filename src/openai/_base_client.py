@@ -886,6 +886,7 @@ def _sanitized_no_proxy() -> Iterator[None]:
     """
     with _no_proxy_sanitizer_lock:
         originals: dict[str, str] = {}
+        sanitized: dict[str, str] = {}
         try:
             for key in ("NO_PROXY", "no_proxy"):
                 val = os.environ.get(key)
@@ -894,11 +895,17 @@ def _sanitized_no_proxy() -> Iterator[None]:
                     # splitlines() handles \n, \r, \r\n, and other Unicode line
                     # separators uniformly.
                     parts = [part.strip() for part in val.splitlines()]
-                    os.environ[key] = ",".join(p for p in parts if p)
+                    sanitized[key] = ",".join(p for p in parts if p)
+                    os.environ[key] = sanitized[key]
             yield
         finally:
             for key, val in originals.items():
-                os.environ[key] = val
+                # Only restore if the value is still the one we sanitized —
+                # application code may have updated NO_PROXY while the client
+                # was being constructed, and clobbering that update would be
+                # worse than leaving the sanitized value in place.
+                if os.environ.get(key) == sanitized.get(key):
+                    os.environ[key] = val
 
 
 class _DefaultHttpxClient(httpx2.Client):

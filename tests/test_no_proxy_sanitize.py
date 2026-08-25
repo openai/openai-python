@@ -12,6 +12,28 @@ import os
 import pytest
 
 
+@pytest.fixture(autouse=True)
+def _restore_inherited_no_proxy(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Restore any NO_PROXY/no_proxy inherited from the test environment.
+
+    The sanitizer mutates os.environ during client construction and restores
+    it afterwards, but a test that fails mid-construction (or a test that
+    deliberately leaves a value set) can leak into the next test.  Snapshot the
+    inherited values up front and restore them after each test so the suite
+    is deterministic regardless of the host environment.
+    """
+    inherited = {
+        key: os.environ.get(key)
+        for key in ("NO_PROXY", "no_proxy")
+    }
+    yield
+    for key, val in inherited.items():
+        if val is None:
+            monkeypatch.delenv(key, raising=False)
+        else:
+            monkeypatch.setenv(key, val)
+
+
 def _set_no_proxy(monkeypatch: pytest.MonkeyPatch, value: str | None) -> None:
     """Set both NO_PROXY and no_proxy via monkeypatch for automatic cleanup."""
     if value is None:
@@ -231,3 +253,23 @@ def test_concurrent_client_construction_serializes_sanitization(monkeypatch: pyt
     assert not errors, f"Concurrent constructions failed: {errors}"
     # The original (invalid) value must be restored after all constructions
     assert os.environ.get("NO_PROXY") == "localhost\n127.0.0.1"
+
+
+def test_concurrent_no_proxy_update_not_clobbered(monkeypatch: pytest.MonkeyPatch) -> None:
+    """An application update to NO_PROXY during construction is preserved.
+
+    If application code changes NO_PROXY while a client is being constructed,
+    the sanitizer must not clobber that update when it restores the original
+    value — the update is newer and more relevant than the pre-construction
+    value.
+    """
+    from openai._base_client import _DefaultHttpxClient, _sanitized_no_proxy
+
+    _set_no_proxy(monkeypatch, "localhost\n127.0.0.1")
+
+    with _sanitized_no_proxy():
+        # Simulate application code updating NO_PROXY mid-construction.
+        os.environ["NO_PROXY"] = "api.example.com"
+
+    # The application's update must survive the sanitizer's restore.
+    assert os.environ.get("NO_PROXY") == "api.example.com"
