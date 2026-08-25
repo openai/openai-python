@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Optional, cast
-from typing_extensions import Literal
+from typing_extensions import Literal, override
 
 import httpx2
 
@@ -32,7 +32,20 @@ __all__ = [
 
 
 class OpenAIError(Exception):
-    pass
+    @override
+    def __reduce__(self) -> tuple[object, tuple[object, ...]]:
+        return (_reconstruct_openai_error, (type(self), self.args, self.__dict__))
+
+
+def _reconstruct_openai_error(
+    error_type: type[OpenAIError],
+    args: tuple[object, ...],
+    state: dict[str, Any],
+) -> OpenAIError:
+    error = error_type.__new__(error_type)
+    Exception.__init__(error, *args)
+    error.__dict__.update(state)
+    return error
 
 
 class SubjectTokenProviderError(OpenAIError):
