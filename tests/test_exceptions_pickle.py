@@ -11,10 +11,11 @@ import httpx2
 import pytest
 
 from openai import APITimeoutError, AsyncOpenAI, BadRequestError, OpenAI, OpenAIError
-from openai._exceptions import WebSocketConnectionClosedError
+from openai._exceptions import SubjectTokenProviderError, WebSocketConnectionClosedError
 
 
 _ERROR_PAYLOAD = b'{"error":{"message":"bad request","type":"invalid_request_error","param":null,"code":"bad_request"}}'
+_REDACTED_REQUEST_URL = "https://redacted.invalid/"
 
 
 class _CustomNewOpenAIError(OpenAIError):
@@ -68,8 +69,38 @@ def test_timeout_error_pickle_round_trip() -> None:
     assert str(restored) == "Request timed out."
     assert restored.message == "Request timed out."
     assert restored.request.method == "POST"
-    assert str(restored.request.url) == "https://example.test/v1/responses"
+    assert str(restored.request.url) == _REDACTED_REQUEST_URL
     assert restored.body is None
+
+
+def test_request_private_data_is_omitted_and_timeout_is_preserved() -> None:
+    request = httpx2.Request(
+        "POST",
+        "https://example.test/v1/responses?customer_secret=query-private",
+        content=b"request-body-private",
+        extensions={
+            "timeout": {
+                "connect": 1.0,
+                "read": 2.0,
+                "write": 3.0,
+                "pool": 4.0,
+            }
+        },
+    )
+    error = APITimeoutError(request)
+
+    payload = pickle.dumps(error)
+    restored = pickle.loads(payload)
+
+    assert b"query-private" not in payload
+    assert b"request-body-private" not in payload
+    assert str(restored.request.url) == _REDACTED_REQUEST_URL
+    assert restored.request.extensions["timeout"] == {
+        "connect": 1.0,
+        "read": 2.0,
+        "write": 3.0,
+        "pool": 4.0,
+    }
 
 
 @pytest.mark.parametrize(
@@ -92,6 +123,36 @@ def test_request_credentials_are_redacted_from_pickle(header_name: str, header_v
 
     assert header_value.encode() not in payload
     assert restored.request.headers[header_name] == "<redacted>"
+
+
+def test_response_private_data_is_omitted_and_headers_are_redacted() -> None:
+    request = httpx2.Request("POST", "https://example.test/v1/token")
+    response = httpx2.Response(
+        400,
+        request=request,
+        headers={
+            "Authorization": "Bearer response-auth-secret",
+            "api-key": "response-api-key-secret",
+            "Set-Cookie": "session=response-cookie-secret",
+            "x-request-id": "req_123",
+        },
+        content=b"response-body-private",
+    )
+    error = SubjectTokenProviderError("token exchange failed", response=response)
+
+    payload = pickle.dumps(error)
+    restored = pickle.loads(payload)
+
+    assert b"response-auth-secret" not in payload
+    assert b"response-api-key-secret" not in payload
+    assert b"response-cookie-secret" not in payload
+    assert b"response-body-private" not in payload
+    assert restored.response is not None
+    assert restored.response.headers["Authorization"] == "<redacted>"
+    assert restored.response.headers["api-key"] == "<redacted>"
+    assert restored.response.headers["Set-Cookie"] == "<redacted>"
+    assert restored.response.headers["x-request-id"] == "req_123"
+    assert restored.response.content == b""
 
 
 def test_status_error_pickle_round_trip_preserves_response_state() -> None:
@@ -120,7 +181,7 @@ def test_status_error_pickle_round_trip_preserves_response_state() -> None:
     assert restored.param == "input"
     assert restored.type == "invalid_request_error"
     assert restored.response.status_code == 400
-    assert restored.response.json() == {"error": "bad request"}
+    assert restored.response.content == b""
     assert restored.response.elapsed == timedelta(milliseconds=125)
 
 
@@ -133,8 +194,8 @@ def _assert_transport_status_error_pickle_round_trip(error: BadRequestError) -> 
     assert restored.response.status_code == 400
     assert restored.response.request is restored.request
     assert restored.request.method == "GET"
-    assert str(restored.request.url).endswith("/v1/models")
-    assert restored.response.json() == {
+    assert str(restored.request.url) == _REDACTED_REQUEST_URL
+    assert restored.body == {
         "error": {
             "message": "bad request",
             "type": "invalid_request_error",
@@ -142,6 +203,7 @@ def _assert_transport_status_error_pickle_round_trip(error: BadRequestError) -> 
             "code": "bad_request",
         }
     }
+    assert restored.response.content == b""
     assert restored.request.headers["Authorization"] == "<redacted>"
     assert error.request.headers["Authorization"] != restored.request.headers["Authorization"]
     assert restored.response.elapsed >= timedelta(0)
