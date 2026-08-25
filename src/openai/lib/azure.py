@@ -9,7 +9,7 @@ import httpx2
 
 from ..auth import WorkloadIdentity, X509WorkloadIdentity
 from .._types import NOT_GIVEN, Omit, Query, Headers, Timeout, NotGiven
-from .._utils import is_given, is_mapping
+from .._utils import is_given, is_mapping, path_template
 from .._client import OpenAI, AsyncOpenAI
 from .._compat import model_copy
 from .._httpx2 import normalize_httpx_url
@@ -56,11 +56,81 @@ def _has_auth_header(headers: Headers) -> bool:
     return _has_header(headers, "Authorization") or _has_header(headers, "api-key")
 
 
+_AZURE_AUTH_ORIGIN = "openai.azure_auth_origin"
+
+
+def _origin(url: httpx2.URL) -> tuple[str, str, int | None]:
+    port = url.port
+    if port is None:
+        port = {"http": 80, "https": 443}.get(url.scheme)
+    return url.scheme, url.host, port
+
+
+def _strip_azure_api_key_on_redirect(request: httpx2.Request) -> None:
+    origin = request.extensions.get(_AZURE_AUTH_ORIGIN)
+    if origin is not None and origin != _origin(request.url):
+        request.headers.pop("api-key", None)
+
+
+async def _async_strip_azure_api_key_on_redirect(request: httpx2.Request) -> None:
+    _strip_azure_api_key_on_redirect(request)
+
+
 class MutuallyExclusiveAuthError(OpenAIError):
     def __init__(self) -> None:
         super().__init__(
             "The `api_key`, `azure_ad_token` and `azure_ad_token_provider` arguments are mutually exclusive; Only one can be passed at a time"
         )
+
+
+_AzureApiKeyT = TypeVar("_AzureApiKeyT", bound=Union[str, Callable[..., Any]])
+_AzureTokenProviderT = TypeVar("_AzureTokenProviderT", bound=Callable[..., Any])
+
+
+def _resolve_azure_auth(
+    api_key: _AzureApiKeyT | None,
+    azure_ad_token: str | None,
+    azure_ad_token_provider: _AzureTokenProviderT | None,
+) -> tuple[_AzureApiKeyT | str | None, str | None, _AzureTokenProviderT | None]:
+    # The sentinel is internal state carried by copies, not a second credential.
+    if (
+        sum(
+            (
+                api_key is not None and api_key != API_KEY_SENTINEL,
+                azure_ad_token is not None,
+                azure_ad_token_provider is not None,
+            )
+        )
+        > 1
+    ):
+        raise MutuallyExclusiveAuthError()
+
+    # Explicit credentials select the principal. Only an entirely unspecified
+    # configuration may consult the environment; retain AD-token precedence.
+    resolved_api_key: _AzureApiKeyT | str | None = api_key
+    if api_key is None and azure_ad_token is None and azure_ad_token_provider is None:
+        azure_ad_token = os.environ.get("AZURE_OPENAI_AD_TOKEN")
+        if azure_ad_token is None:
+            resolved_api_key = os.environ.get("AZURE_OPENAI_API_KEY")
+
+    return resolved_api_key, azure_ad_token, azure_ad_token_provider
+
+
+def _copy_azure_auth(
+    api_key: _AzureApiKeyT | None,
+    azure_ad_token: str | None,
+    azure_ad_token_provider: _AzureTokenProviderT | None,
+    *,
+    current_api_key: _AzureApiKeyT | str,
+    current_token: str | None,
+    current_provider: _AzureTokenProviderT | None,
+) -> tuple[_AzureApiKeyT | str, str | None, _AzureTokenProviderT | None]:
+    if api_key is None and azure_ad_token is None and azure_ad_token_provider is None:
+        return current_api_key or API_KEY_SENTINEL, current_token, current_provider
+
+    # Prevent OpenAI.copy() from inheriting the old API key when switching to AD.
+    key, token, provider = _resolve_azure_auth(api_key, azure_ad_token, azure_ad_token_provider)
+    return key or API_KEY_SENTINEL, token, provider
 
 
 class BaseAzureClient(BaseClient[_HttpxClientT, _DefaultStreamT]):
@@ -77,9 +147,13 @@ class BaseAzureClient(BaseClient[_HttpxClientT, _DefaultStreamT]):
         if options.url in _deployments_endpoints and is_mapping(options.json_data):
             model = options.json_data.get("model")
             if model is not None and "/deployments" not in str(self.base_url.path):
-                options.url = f"/deployments/{model}{options.url}"
+                options.url = path_template("/deployments/{model}", model=model) + options.url
 
-        return super()._build_request(options, retries_taken=retries_taken)
+        request = super()._build_request(options, retries_taken=retries_taken)
+        # HTTPX preserves request extensions through redirects. Scope the hook
+        # to this Azure request, including when its HTTP client is shared.
+        request.extensions[_AZURE_AUTH_ORIGIN] = _origin(request.url)
+        return request
 
     @override
     def _prepare_url(self, url: str) -> httpx2.URL:
@@ -203,6 +277,10 @@ class AzureOpenAI(BaseAzureClient[httpx2.Client, Stream[Any]], OpenAI):
         - `api_version` from `OPENAI_API_VERSION`
         - `azure_endpoint` from `AZURE_OPENAI_ENDPOINT`
 
+        Pass at most one of `api_key`, `azure_ad_token`, or `azure_ad_token_provider`.
+        An explicit credential takes precedence over Azure credential environment variables.
+        With no explicit credential, `AZURE_OPENAI_AD_TOKEN` takes precedence over `AZURE_OPENAI_API_KEY`.
+
         Args:
             azure_endpoint: Your Azure endpoint, including the resource, e.g. `https://example-resource.azure.openai.com/`
 
@@ -216,11 +294,9 @@ class AzureOpenAI(BaseAzureClient[httpx2.Client, Stream[Any]], OpenAI):
         if is_x509_workload_identity(workload_identity):
             raise OpenAIError("X.509 workload identity is not supported by Azure clients")
 
-        if api_key is None:
-            api_key = os.environ.get("AZURE_OPENAI_API_KEY")
-
-        if azure_ad_token is None:
-            azure_ad_token = os.environ.get("AZURE_OPENAI_AD_TOKEN")
+        api_key, azure_ad_token, azure_ad_token_provider = _resolve_azure_auth(
+            api_key, azure_ad_token, azure_ad_token_provider
+        )
 
         if _enforce_credentials and api_key is None and azure_ad_token is None and azure_ad_token_provider is None:
             raise OpenAIError(
@@ -283,6 +359,10 @@ class AzureOpenAI(BaseAzureClient[httpx2.Client, Stream[Any]], OpenAI):
         self._azure_deployment = azure_deployment if azure_endpoint else None
         self._azure_endpoint = httpx2.URL(azure_endpoint) if azure_endpoint else None
 
+        hooks = self._client.event_hooks["request"]
+        if _strip_azure_api_key_on_redirect not in hooks:
+            hooks.append(_strip_azure_api_key_on_redirect)
+
     @override
     def copy(
         self,
@@ -321,6 +401,15 @@ class AzureOpenAI(BaseAzureClient[httpx2.Client, Stream[Any]], OpenAI):
         if is_x509_workload_identity(workload_identity):
             raise OpenAIError("X.509 workload identity is not supported by Azure clients")
 
+        api_key, azure_ad_token, azure_ad_token_provider = _copy_azure_auth(
+            api_key,
+            azure_ad_token,
+            azure_ad_token_provider,
+            current_api_key=self._api_key_provider or self.api_key,
+            current_token=self._azure_ad_token,
+            current_provider=self._azure_ad_token_provider,
+        )
+
         return super().copy(
             api_key=api_key,
             admin_api_key=admin_api_key,
@@ -340,8 +429,8 @@ class AzureOpenAI(BaseAzureClient[httpx2.Client, Stream[Any]], OpenAI):
             _enforce_credentials=_enforce_credentials,
             _extra_kwargs={
                 "api_version": api_version or self._api_version,
-                "azure_ad_token": azure_ad_token or self._azure_ad_token,
-                "azure_ad_token_provider": azure_ad_token_provider or self._azure_ad_token_provider,
+                "azure_ad_token": azure_ad_token,
+                "azure_ad_token_provider": azure_ad_token_provider,
                 **_extra_kwargs,
             },
         )
@@ -354,11 +443,12 @@ class AzureOpenAI(BaseAzureClient[httpx2.Client, Stream[Any]], OpenAI):
 
         provider = self._azure_ad_token_provider
         if provider is not None:
-            token = provider()
-            if not token or not isinstance(token, str):  # pyright: ignore[reportUnnecessaryIsInstance]
-                raise ValueError(
-                    f"Expected `azure_ad_token_provider` argument to return a string but it returned {token}",
-                )
+            token = cast(object, provider())
+            if isinstance(token, str):
+                # Bypass subclass methods before validating or interpolating credentials.
+                token = str.__str__(token)
+            if not isinstance(token, str) or not token:
+                raise ValueError("Expected `azure_ad_token_provider` argument to return a non-empty string.")
             return token
 
         return None
@@ -384,6 +474,9 @@ class AzureOpenAI(BaseAzureClient[httpx2.Client, Stream[Any]], OpenAI):
 
     @override
     def _prepare_options(self, options: FinalRequestOptions) -> FinalRequestOptions:
+        if self._api_key_provider is not None:
+            self._refresh_api_key()
+
         headers: dict[str, str | Omit] = {**options.headers} if is_given(options.headers) else {}
 
         options = model_copy(options)
@@ -536,6 +629,10 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx2.AsyncClient, AsyncStream[Any]], As
         - `api_version` from `OPENAI_API_VERSION`
         - `azure_endpoint` from `AZURE_OPENAI_ENDPOINT`
 
+        Pass at most one of `api_key`, `azure_ad_token`, or `azure_ad_token_provider`.
+        An explicit credential takes precedence over Azure credential environment variables.
+        With no explicit credential, `AZURE_OPENAI_AD_TOKEN` takes precedence over `AZURE_OPENAI_API_KEY`.
+
         Args:
             azure_endpoint: Your Azure endpoint, including the resource, e.g. `https://example-resource.azure.openai.com/`
 
@@ -549,11 +646,9 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx2.AsyncClient, AsyncStream[Any]], As
         if is_x509_workload_identity(workload_identity):
             raise OpenAIError("X.509 workload identity is not supported by Azure clients")
 
-        if api_key is None:
-            api_key = os.environ.get("AZURE_OPENAI_API_KEY")
-
-        if azure_ad_token is None:
-            azure_ad_token = os.environ.get("AZURE_OPENAI_AD_TOKEN")
+        api_key, azure_ad_token, azure_ad_token_provider = _resolve_azure_auth(
+            api_key, azure_ad_token, azure_ad_token_provider
+        )
 
         if _enforce_credentials and api_key is None and azure_ad_token is None and azure_ad_token_provider is None:
             raise OpenAIError(
@@ -616,6 +711,10 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx2.AsyncClient, AsyncStream[Any]], As
         self._azure_deployment = azure_deployment if azure_endpoint else None
         self._azure_endpoint = httpx2.URL(azure_endpoint) if azure_endpoint else None
 
+        hooks = self._client.event_hooks["request"]
+        if _async_strip_azure_api_key_on_redirect not in hooks:
+            hooks.append(_async_strip_azure_api_key_on_redirect)
+
     @override
     def copy(
         self,
@@ -654,6 +753,15 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx2.AsyncClient, AsyncStream[Any]], As
         if is_x509_workload_identity(workload_identity):
             raise OpenAIError("X.509 workload identity is not supported by Azure clients")
 
+        api_key, azure_ad_token, azure_ad_token_provider = _copy_azure_auth(
+            api_key,
+            azure_ad_token,
+            azure_ad_token_provider,
+            current_api_key=self._api_key_provider or self.api_key,
+            current_token=self._azure_ad_token,
+            current_provider=self._azure_ad_token_provider,
+        )
+
         return super().copy(
             api_key=api_key,
             admin_api_key=admin_api_key,
@@ -673,8 +781,8 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx2.AsyncClient, AsyncStream[Any]], As
             _enforce_credentials=_enforce_credentials,
             _extra_kwargs={
                 "api_version": api_version or self._api_version,
-                "azure_ad_token": azure_ad_token or self._azure_ad_token,
-                "azure_ad_token_provider": azure_ad_token_provider or self._azure_ad_token_provider,
+                "azure_ad_token": azure_ad_token,
+                "azure_ad_token_provider": azure_ad_token_provider,
                 **_extra_kwargs,
             },
         )
@@ -687,14 +795,15 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx2.AsyncClient, AsyncStream[Any]], As
 
         provider = self._azure_ad_token_provider
         if provider is not None:
-            token = provider()
+            token = cast(object, provider())
             if inspect.isawaitable(token):
                 token = await token
-            if not token or not isinstance(cast(Any, token), str):
-                raise ValueError(
-                    f"Expected `azure_ad_token_provider` argument to return a string but it returned {token}",
-                )
-            return str(token)
+            if isinstance(token, str):
+                # Bypass subclass methods before validating or interpolating credentials.
+                token = str.__str__(token)
+            if not isinstance(token, str) or not token:
+                raise ValueError("Expected `azure_ad_token_provider` argument to return a non-empty string.")
+            return token
 
         return None
 
@@ -719,6 +828,9 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx2.AsyncClient, AsyncStream[Any]], As
 
     @override
     async def _prepare_options(self, options: FinalRequestOptions) -> FinalRequestOptions:
+        if self._api_key_provider is not None:
+            await self._refresh_api_key()
+
         headers: dict[str, str | Omit] = {**options.headers} if is_given(options.headers) else {}
 
         options = model_copy(options)

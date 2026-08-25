@@ -1,0 +1,237 @@
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
+name: Castiron custom code comment
+
+on:
+  workflow_run:
+    workflows: [Castiron custom code]
+    types: [completed]
+
+permissions: {}
+
+concurrency:
+  group: castiron-custom-code-comment-${{ github.event.workflow_run.head_repository.id }}-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: false
+
+jobs:
+  compute:
+    name: Compute trusted custom-code report
+    if: contains(fromJSON('["pull_request", "merge_group"]'), github.event.workflow_run.event) && github.event.workflow_run.path == '.github/workflows/castiron-custom-code.yml'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: read
+    outputs:
+      number: ${{ steps.report.outputs.number }}
+      artifact-id: ${{ steps.artifact.outputs.artifact-id }}
+      artifact-run-attempt: ${{ github.run_attempt }}
+      base-sha: ${{ steps.budget.outputs.base_sha }}
+      head-sha: ${{ steps.budget.outputs.head_sha }}
+      isolation: ${{ steps.budget.outputs.isolation }}
+      budget: ${{ steps.budget.outputs.budget }}
+    steps:
+      - name: Check out the trusted reporter
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: main
+          persist-credentials: false
+
+      - name: Compute from the current pull request Git objects
+        id: report
+        if: github.event.workflow_run.event == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GIT_CONFIG_COUNT: '2'
+          GIT_CONFIG_KEY_0: credential.helper
+          GIT_CONFIG_VALUE_0: ''
+          GIT_CONFIG_KEY_1: credential.https://github.com.helper
+          GIT_CONFIG_VALUE_1: '!gh auth git-credential'
+          REPOSITORY: ${{ github.repository }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+        run: |
+          python3 -I scripts/castiron/custom_code_report.py trusted-report \
+            --repo "$RUNNER_TEMP/castiron-objects.git" \
+            --repository "$REPOSITORY" --run-id "$RUN_ID" --run-attempt "$RUN_ATTEMPT" \
+            --out "$RUNNER_TEMP/castiron-custom-code"
+          if test -f "$RUNNER_TEMP/castiron-custom-code/context.json"; then
+            number=$(jq -er '.pr' "$RUNNER_TEMP/castiron-custom-code/context.json")
+            printf 'number=%s\n' "$number" >> "$GITHUB_OUTPUT"
+            cat "$RUNNER_TEMP/castiron-custom-code/summary.md" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload the trusted report and patch
+        id: artifact
+        if: steps.report.outputs.number != ''
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: castiron-custom-code-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/castiron-custom-code/
+          if-no-files-found: error
+          retention-days: 7
+
+      # The prior step's report was computed here from
+      # Git objects by main's reporter, not downloaded from the candidate run.
+      - name: Evaluate main's custom-code budget
+        id: budget
+        if: always()
+        continue-on-error: true # A budget failure must not suppress the existing report comment.
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          SOURCE_EVENT: ${{ github.event.workflow_run.event }}
+          GIT_CONFIG_COUNT: '2'
+          GIT_CONFIG_KEY_0: credential.helper
+          GIT_CONFIG_VALUE_0: ''
+          GIT_CONFIG_KEY_1: credential.https://github.com.helper
+          GIT_CONFIG_VALUE_1: '!gh auth git-credential'
+        run: |
+          trusted_sha=$(git rev-parse HEAD)
+          reuse=()
+          if [[ "$SOURCE_EVENT" == pull_request ]]; then
+            reuse=(--trusted-report-dir "$RUNNER_TEMP/castiron-custom-code")
+          fi
+          python3 -I scripts/castiron/custom_code_budget.py github \
+            --repository "$REPOSITORY" --event-path "$GITHUB_EVENT_PATH" \
+            --trusted-sha "$trusted_sha" --repo "$RUNNER_TEMP/castiron-objects.git" \
+            "${reuse[@]}" --out "$RUNNER_TEMP/custom-code-budget"
+
+      - name: Add the budget to the run summary
+        if: always()
+        run: |
+          if test -f "$RUNNER_TEMP/custom-code-budget/summary.md"; then
+            cat "$RUNNER_TEMP/custom-code-budget/summary.md" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload trusted budget measurements
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: custom-code-budget-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/custom-code-budget/
+          if-no-files-found: error
+          retention-days: 7
+
+  budget-status:
+    name: Publish custom-code budget checks
+    needs: compute
+    if: always() && !cancelled() && needs.compute.result != 'skipped'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: read
+      statuses: write
+    steps:
+      # This workflow definition is from main. No candidate checkout/artifacts.
+      - name: Publish exact-head statuses after checking freshness
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        env:
+          BASE_SHA: ${{ needs.compute.outputs.base-sha }}
+          HEAD_SHA: ${{ needs.compute.outputs.head-sha }}
+          ISOLATION_RESULT: ${{ needs.compute.outputs.isolation }}
+          BUDGET_RESULT: ${{ needs.compute.outputs.budget }}
+        with:
+          script: |
+            const event = context.payload.workflow_run;
+            const {data: run} = await github.rest.actions.getWorkflowRun({...context.repo, run_id: event.id});
+            if (run.head_sha !== event.head_sha || run.run_attempt !== event.run_attempt ||
+                run.status !== 'completed' || run.path.split('@', 1)[0] !== '.github/workflows/castiron-custom-code.yml' ||
+                run.repository.full_name !== `${context.repo.owner}/${context.repo.repo}`) return;
+            const head = run.head_sha;
+            if (!/^[0-9a-f]{40}$/.test(head)) throw new Error('Invalid candidate SHA');
+            const {data: main} = await github.rest.git.getRef({...context.repo, ref: 'heads/main'});
+            const base = main.object.sha;
+            if (run.event === 'pull_request') {
+              const pulls = run.pull_requests.length ? run.pull_requests : await github.paginate(
+                github.rest.repos.listPullRequestsAssociatedWithCommit, {...context.repo, commit_sha: head});
+              const current = [];
+              for (const pull of pulls) {
+                const {data: pr} = await github.rest.pulls.get({...context.repo, pull_number: pull.number});
+                if (pr.state === 'open' && pr.head.sha === head && pr.base.sha === base &&
+                    pr.base.ref === 'main' && pr.base.repo.full_name === `${context.repo.owner}/${context.repo.repo}`) current.push(pr);
+              }
+              if (current.length !== 1) return;
+            } else if (run.event !== 'merge_group' || !run.head_branch.startsWith('gh-readonly-queue/main/')) {
+              return;
+            }
+            const fresh = base === process.env.BASE_SHA && head === process.env.HEAD_SHA;
+            const url = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            for (const [name, result] of [
+              ['Castiron / budget-only change', process.env.ISOLATION_RESULT],
+              ['Castiron / custom-code budget', process.env.BUDGET_RESULT],
+            ]) {
+              const state = fresh && result === 'success' ? 'success' : 'failure';
+              const description = !fresh ? 'Evaluation unavailable or base changed; rerun against current main.'
+                : state === 'success' ? 'Passed against main policy. See the trusted run summary.'
+                : 'Budget check failed. See the trusted run summary.';
+              await github.rest.repos.createCommitStatus({...context.repo, sha: head, context: name,
+                state, description, target_url: url});
+            }
+
+  comment:
+    name: Update custom-code comment
+    needs: compute
+    if: always() && !cancelled() && github.event.workflow_run.event == 'pull_request' && (needs.compute.result == 'failure' || needs.compute.outputs.number != '')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: write
+    steps:
+      - name: Check out the trusted publisher
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ github.workflow_sha }}
+          persist-credentials: false
+
+      - name: Download this workflow's trusted report
+        if: needs.compute.result == 'success'
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          artifact-ids: ${{ needs.compute.outputs.artifact-id }}
+          merge-multiple: true
+          path: ${{ runner.temp }}/castiron-custom-code
+
+      - name: Create or update the single report comment
+        id: publish
+        if: needs.compute.result == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ needs.compute.outputs.number }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+          ARTIFACT_RUN_ID: ${{ github.run_id }}
+          ARTIFACT_RUN_ATTEMPT: ${{ needs.compute.outputs.artifact-run-attempt }}
+        run: |
+          python3 -I scripts/castiron/custom_code_report.py comment \
+            --report "$RUNNER_TEMP/castiron-custom-code/report.json" \
+            --repository "$REPOSITORY" --pr "$PR_NUMBER" --run-id "$RUN_ID" \
+            --run-attempt "$RUN_ATTEMPT" \
+            --artifact-run-id "$ARTIFACT_RUN_ID" --artifact-run-attempt "$ARTIFACT_RUN_ATTEMPT"
+
+      - name: Publish a trusted failure status
+        if: always() && !cancelled() && steps.publish.outcome != 'success'
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          script: |
+            const marker = '<!-- castiron:custom-code-report:v1 -->';
+            const run = context.payload.workflow_run;
+            if (run.event !== 'pull_request' || run.path !== '.github/workflows/castiron-custom-code.yml') return;
+            const pulls = run.pull_requests?.length ? run.pull_requests : await github.paginate(github.rest.repos.listPullRequestsAssociatedWithCommit, {...context.repo, commit_sha: run.head_sha});
+            for (const pull of pulls) {
+              const {data: current} = await github.rest.pulls.get({...context.repo, pull_number: pull.number});
+              if (current.state !== 'open' || current.head.sha !== run.head_sha) continue;
+              const comments = await github.paginate(github.rest.issues.listComments, {...context.repo, issue_number: pull.number});
+              const previous = comments.find(c => c.user?.type === 'Bot' && c.user?.login === 'github-actions[bot]' && c.body?.startsWith(marker));
+              const prior = previous?.body?.match(/<!-- castiron:run:v1:(\d+):(\d+) -->/);
+              if (prior && (Number(prior[1]) > run.id || (Number(prior[1]) === run.id && Number(prior[2]) > run.run_attempt))) continue;
+              const url = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${run.id}`;
+              const body = `${marker}\n\n## Castiron custom code\n\n⚠️ Report unavailable for \`${run.head_sha.slice(0, 12)}\`.\n\nThe report setup or validation failed. [Inspect the workflow run](${url}).\n\n<!-- castiron:run:v1:${run.id}:${run.run_attempt} -->`;
+              if (previous) await github.rest.issues.updateComment({...context.repo, comment_id: previous.id, body});
+              else await github.rest.issues.createComment({...context.repo, issue_number: pull.number, body});
+            }

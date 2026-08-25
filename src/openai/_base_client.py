@@ -62,7 +62,7 @@ from ._types import (
     not_given,
 )
 from ._utils import SensitiveHeadersFilter, is_dict, is_list, asyncify, is_given, lru_cache, is_mapping
-from ._compat import PYDANTIC_V1, model_copy, model_dump
+from ._compat import PYDANTIC_V1, model_copy
 from ._httpx2 import (
     status_exceptions,
     timeout_exceptions,
@@ -104,6 +104,7 @@ from ._exceptions import (
     APIResponseValidationError,
 )
 from ._utils._json import openapi_dumps
+from ._utils._logs import get_http_method_for_logging
 from ._legacy_response import LegacyAPIResponse
 
 log: logging.Logger = logging.getLogger(__name__)
@@ -519,20 +520,12 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         *,
         retries_taken: int = 0,
     ) -> httpx2.Request:
-        if log.isEnabledFor(logging.DEBUG):
-            log.debug(
-                "Request options: %s",
-                model_dump(
-                    options,
-                    exclude_unset=True,
-                    # Pydantic v1 can't dump every type we support in content, so we exclude it for now.
-                    exclude={
-                        "content",
-                    }
-                    if PYDANTIC_V1
-                    else {},
-                ),
-            )
+        # Request bodies, files, URLs, and custom options can contain private data.
+        log.debug(
+            "Building HTTP request: method=%s retries_taken=%i",
+            get_http_method_for_logging(options.method),
+            retries_taken,
+        )
         kwargs: dict[str, Any] = {}
 
         json_data = options.json_data
@@ -583,9 +576,6 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         if params and prepared_url.query:
             params = {**dict(prepared_url.params.items()), **params}
             prepared_url = prepared_url.copy_with(raw_path=prepared_url.raw_path.split(b"?", 1)[0])
-        if "_" in prepared_url.host:
-            # work around https://github.com/encode/httpx/discussions/2880
-            kwargs["extensions"] = {"sni_hostname": prepared_url.host.replace("_", "-")}
 
         is_body_allowed = options.method.lower() != "get"
 
@@ -1079,7 +1069,7 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
             if options.follow_redirects is not None:
                 kwargs["follow_redirects"] = options.follow_redirects
 
-            log.debug("Sending HTTP Request: %s %s", request.method, request.url)
+            log.debug("Sending HTTP Request: %s", get_http_method_for_logging(request.method))
 
             response = None
             try:
@@ -1089,7 +1079,7 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
                     **kwargs,
                 )
             except timeout_exceptions() as err:
-                log.debug("Encountered a timeout exception", exc_info=True)
+                log.debug("Encountered a timeout exception: %s", type(err).__name__)
 
                 if remaining_retries > 0:
                     self._sleep_for_retry(
@@ -1106,7 +1096,7 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
                 # Propagate OpenAIErrors as-is, without retrying or wrapping in APIConnectionError
                 raise err
             except Exception as err:
-                log.debug("Encountered Exception", exc_info=True)
+                log.debug("Encountered exception: %s", type(err).__name__)
 
                 if remaining_retries > 0:
                     self._sleep_for_retry(
@@ -1121,19 +1111,16 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
                 raise APIConnectionError(request=request) from err
 
             log.debug(
-                'HTTP Response: %s %s "%i %s" %s',
-                request.method,
-                request.url,
+                "HTTP Response: %s %i",
+                get_http_method_for_logging(request.method),
                 response.status_code,
-                response.reason_phrase,
-                response.headers,
             )
             log.debug("request_id: %s", response.headers.get("x-request-id"))
 
             try:
                 response.raise_for_status()
             except status_exceptions() as err:  # thrown on 4xx and 5xx status code
-                log.debug("Encountered an HTTP status error", exc_info=True)
+                log.debug("Encountered an HTTP status error: %i", response.status_code)
 
                 if remaining_retries > 0 and self._should_retry(err.response):
                     err.response.close()
@@ -1175,7 +1162,7 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
             log.debug("%i retries left", remaining_retries)
 
         timeout = self._calculate_retry_timeout(remaining_retries, options, response.headers if response else None)
-        log.info("Retrying request to %s in %f seconds", options.url, timeout)
+        log.info("Retrying request in %f seconds", timeout)
 
         time.sleep(timeout)
 
@@ -1705,7 +1692,7 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
             if options.follow_redirects is not None:
                 kwargs["follow_redirects"] = options.follow_redirects
 
-            log.debug("Sending HTTP Request: %s %s", request.method, request.url)
+            log.debug("Sending HTTP Request: %s", get_http_method_for_logging(request.method))
 
             response = None
             try:
@@ -1715,7 +1702,7 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
                     **kwargs,
                 )
             except timeout_exceptions() as err:
-                log.debug("Encountered a timeout exception", exc_info=True)
+                log.debug("Encountered a timeout exception: %s", type(err).__name__)
 
                 if remaining_retries > 0:
                     await self._sleep_for_retry(
@@ -1732,7 +1719,7 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
                 # Propagate OpenAIErrors as-is, without retrying or wrapping in APIConnectionError
                 raise err
             except Exception as err:
-                log.debug("Encountered Exception", exc_info=True)
+                log.debug("Encountered exception: %s", type(err).__name__)
 
                 if remaining_retries > 0:
                     await self._sleep_for_retry(
@@ -1747,19 +1734,16 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
                 raise APIConnectionError(request=request) from err
 
             log.debug(
-                'HTTP Response: %s %s "%i %s" %s',
-                request.method,
-                request.url,
+                "HTTP Response: %s %i",
+                get_http_method_for_logging(request.method),
                 response.status_code,
-                response.reason_phrase,
-                response.headers,
             )
             log.debug("request_id: %s", response.headers.get("x-request-id"))
 
             try:
                 response.raise_for_status()
             except status_exceptions() as err:  # thrown on 4xx and 5xx status code
-                log.debug("Encountered an HTTP status error", exc_info=True)
+                log.debug("Encountered an HTTP status error: %i", response.status_code)
 
                 if remaining_retries > 0 and self._should_retry(err.response):
                     await err.response.aclose()
@@ -1801,7 +1785,7 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
             log.debug("%i retries left", remaining_retries)
 
         timeout = self._calculate_retry_timeout(remaining_retries, options, response.headers if response else None)
-        log.info("Retrying request to %s in %f seconds", options.url, timeout)
+        log.info("Retrying request in %f seconds", timeout)
 
         await anyio.sleep(timeout)
 

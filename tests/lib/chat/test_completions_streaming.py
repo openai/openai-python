@@ -19,7 +19,7 @@ import openai
 from openai import OpenAI, AsyncOpenAI
 from tests.respx2 import MockRouter
 from openai._utils import consume_sync_iterator, assert_signatures_in_sync
-from openai._compat import model_copy
+from openai._compat import model_copy, model_parse
 from openai.types.chat import ChatCompletionChunk
 from openai.lib.streaming.chat import (
     ContentDoneEvent,
@@ -1021,6 +1021,43 @@ FunctionToolCallArgumentsDoneEvent(
 ]
 """
     )
+
+
+@pytest.mark.parametrize("padding", [("first-padding", "last-padding"), (None, "last-padding"), ("", "")])
+def test_stream_obfuscation_stays_on_raw_chunks(padding: tuple[str | None, str | None]) -> None:
+    state = ChatCompletionStreamState()
+    for index, value in enumerate(padding):
+        chunk = model_parse(
+            ChatCompletionChunk,
+            {
+                "id": "chatcmpl-test",
+                "object": "chat.completion.chunk",
+                "created": 0,
+                "model": "gpt-test",
+                **({"obfuscation": value} if value is not None else {}),
+                "choices": [
+                    {
+                        "index": 0,
+                        "delta": {"role": "assistant", "content": "Hello"} if index == 0 else {"content": " world"},
+                        "finish_reason": "stop" if index == 1 else None,
+                        "logprobs": None,
+                    }
+                ],
+            },
+        )
+        raw = chunk.to_dict()
+        events = list(state.handle_chunk(chunk))
+        event = next(event for event in events if event.type == "chunk")
+        assert event.chunk.to_dict() == raw
+        assert event.chunk.obfuscation == value
+        assert "obfuscation" not in event.snapshot.to_dict()
+        assert "obfuscation" not in state.current_completion_snapshot.to_dict()
+        assert chunk.to_dict() == raw
+
+    completion = state.get_final_completion()
+    assert completion.choices[0].message.content == "Hello world"
+    assert "obfuscation" not in completion.to_dict()
+    assert "obfuscation" not in completion.to_json()
 
 
 @pytest.mark.respx2(base_url=base_url)
