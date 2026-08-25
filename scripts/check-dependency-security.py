@@ -92,7 +92,7 @@ def marker_clause(part: ast.expr) -> MarkerClause:
         isinstance(part.left, ast.Constant)
         and isinstance(part.left.value, str)
         and isinstance(right, ast.Name)
-        and operator in {"Eq", "NotEq", "Lt", "LtE", "Gt", "GtE"}
+        and operator in {"Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "In", "NotIn"}
     ):
         variable, value = right.id, part.left.value
         operator = {
@@ -102,6 +102,8 @@ def marker_clause(part: ast.expr) -> MarkerClause:
             "LtE": "GtE",
             "Gt": "Lt",
             "GtE": "LtE",
+            "In": "ReverseIn",
+            "NotIn": "ReverseNotIn",
         }[operator]
     else:
         raise SystemExit("Ambiguous direct security dependency marker")
@@ -289,10 +291,13 @@ def dependency_marker_options(marker: object, extras: tuple[str, ...]) -> list[M
             accepted = extra == normalized
         elif operator == "NotEq":
             accepted = extra != normalized
-        elif operator in {"In", "NotIn"}:
+        elif operator in {"In", "NotIn", "ReverseIn", "ReverseNotIn"}:
             if len(value) > 256:
                 raise SystemExit("Unbounded locked security dependency edge extra")
-            accepted = (extra in normalized) == (operator == "In")
+            if operator in {"ReverseIn", "ReverseNotIn"}:
+                accepted = (normalized in extra) == (operator == "ReverseIn")
+            else:
+                accepted = (extra in normalized) == (operator == "In")
         else:
             raise SystemExit("Ambiguous locked security dependency edge extra")
         return [()] if accepted else []
@@ -575,6 +580,7 @@ def simple_marker_overlap(requirement: MarkerContext, resolution: MarkerContext)
                 raise SystemExit("Unsupported security dependency marker variable")
             equality: str | None = None
             memberships: list[str] = []
+            required_substrings: list[str] = []
             for _, operator, value in constraints:
                 if len(value) > 256:
                     raise SystemExit("Unbounded platform security dependency marker")
@@ -586,7 +592,9 @@ def simple_marker_overlap(requirement: MarkerContext, resolution: MarkerContext)
                     return False
                 elif operator == "In":
                     memberships.append(value)
-                elif operator not in {"NotEq", "NotIn"}:
+                elif operator == "ReverseIn":
+                    required_substrings.append(value)
+                elif operator not in {"NotEq", "NotIn", "ReverseNotIn"}:
                     raise SystemExit("Ambiguous platform security dependency marker")
 
             def matches(platform_candidate: str, terms: list[MarkerClause] = constraints) -> bool:
@@ -601,6 +609,10 @@ def simple_marker_overlap(requirement: MarkerContext, resolution: MarkerContext)
                         and platform_candidate not in value
                         or operator == "NotIn"
                         and platform_candidate in value
+                        or operator == "ReverseIn"
+                        and value not in platform_candidate
+                        or operator == "ReverseNotIn"
+                        and value in platform_candidate
                     ):
                         return False
                 return True
@@ -622,7 +634,16 @@ def simple_marker_overlap(requirement: MarkerContext, resolution: MarkerContext)
                 if not any(matches(platform_candidate) for platform_candidate in candidates):
                     return False
             else:
-                platform_candidate = ""
+                if sum(map(len, required_substrings)) > 4096:
+                    raise SystemExit("Unbounded platform security dependency substring")
+                if any(
+                    forbidden in required
+                    for _, operator, forbidden in constraints
+                    if operator == "ReverseNotIn"
+                    for required in required_substrings
+                ) or any(operator == "ReverseNotIn" and not value for _, operator, value in constraints):
+                    return False
+                platform_candidate = "\x00".join(required_substrings)
                 for _ in range(258):
                     if matches(platform_candidate):
                         break
@@ -646,6 +667,13 @@ def marker_options(context: MarkerContext) -> list[MarkerContext]:
         "extra",
     }
     for variable, operator, value in context:
+        if operator in {"ReverseIn", "ReverseNotIn"}:
+            if variable not in allowed_platforms or variable == "platform_release":
+                raise SystemExit("Unsupported reversed security dependency membership marker")
+            if len(value) > 256 or value and re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", value) is None:
+                raise SystemExit("Ambiguous reversed security dependency membership marker")
+            options = [option + ((variable, operator, value),) for option in options]
+            continue
         if operator == "Compatible":
             if variable not in {"python_version", "python_full_version", "implementation_version", "platform_release"}:
                 raise SystemExit("Unsupported compatible security dependency marker")
@@ -756,6 +784,8 @@ def uncovered_marker_fragments(domain: MarkerContext, coverings: list[MarkerCont
         "RawGtE": "Lt",
         "In": "NotIn",
         "NotIn": "In",
+        "ReverseIn": "ReverseNotIn",
+        "ReverseNotIn": "ReverseIn",
     }
     fragments = {tuple(sorted(set(option))) for option in marker_options(domain) if simple_marker_overlap(option, ())}
     work = 0
@@ -881,11 +911,36 @@ def minimums(requirements: set[str], *, allow_missing: bool = False, exact: bool
             matches = [value.strip().removesuffix(".*") for value in matches]
         else:
             matches.extend(re.findall(r"(?<![<>=!~])==\s*((?:(?:\d+)!)?\d+(?:\.\d+)*)\.\*(?=\s*(?:,|$))", specifier))
-        if len(matches) != 1:
-            if allow_missing and not matches:
+        if not matches:
+            if allow_missing:
                 continue
             raise SystemExit("Missing or ambiguous direct security dependency minimum")
-        result.append(stable_version(matches[0].strip()))
+        bounds = published_bounds(requirement)
+        lower = [bound for bound in bounds if bound[0] in {">=", ">"}]
+        pinned = [bound for bound in bounds if bound[0] in {"==", "==="}]
+        for _, epoch, components, post, _ in pinned:
+            if not allows_published_release(bounds, (epoch, components, post)):
+                raise SystemExit("Missing or ambiguous direct security dependency minimum")
+        for operator, epoch, components, post, _ in lower:
+            release = epoch, components, post
+            for upper_operator, upper_epoch, upper_components, upper_post, _ in bounds:
+                if upper_operator not in {"<", "<="}:
+                    continue
+                upper = upper_epoch, upper_components, upper_post
+                if (
+                    release > upper
+                    or release == upper
+                    and (operator == ">" or upper_operator == "<")
+                    or operator == ">"
+                    and post == -1
+                    and upper_epoch == epoch
+                    and upper_components == components
+                ):
+                    raise SystemExit("Missing or ambiguous direct security dependency minimum")
+        floors = lower + pinned if exact else lower
+        if not floors:
+            raise SystemExit("Missing or ambiguous direct security dependency minimum")
+        result.append(max((epoch, components, post) for _, epoch, components, post, _ in floors))
     return sorted(result)
 
 
@@ -1290,7 +1345,7 @@ def allows_published_release(bounds: tuple[PublishedBound, ...], release: Stable
             operator == ">="
             and release < bound
             or operator == ">"
-            and release <= bound
+            and (release <= bound or post < 0 and release[0] == epoch and release[1] == components and release[2] >= 0)
             or operator == "<="
             and release > bound
             or operator == "<"
@@ -1312,6 +1367,14 @@ def preserves_published_security_bound(previous: PublishedBound, current: tuple[
             if candidate_wildcard or updated not in {">", ">=", "==", "==="}:
                 continue
             bound = candidate_epoch, candidate, candidate_post
+            if (
+                operator == ">"
+                and post < 0
+                and candidate_epoch == epoch
+                and candidate == components
+                and candidate_post >= 0
+            ):
+                continue
             if bound > limit or bound == limit and (operator == ">=" or updated == ">"):
                 return True
         return False

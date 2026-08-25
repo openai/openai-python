@@ -2458,6 +2458,96 @@ def test_only_direct_security_updates_must_raise_published_minimums(
     assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
 
 
+@pytest.mark.parametrize("scope", ["runtime", "optional", "protected"])
+@pytest.mark.parametrize(
+    ("previous", "current", "before", "after", "accepted"),
+    [
+        pytest.param(">=1,>=1.5", ">=1,>=2", "1.5", "2", True, id="strongest-redundant-floor-reaches-patched-release"),
+        pytest.param(">=1.5,>=1", ">=2,>=1", "1.5", "2", True, id="strongest-redundant-floor-is-order-independent"),
+        pytest.param(">=1,>=2", ">=1,>=1.5", "2", "2", False, id="strongest-redundant-floor-cannot-be-lowered"),
+        pytest.param(
+            ">=1,>=1.5", ">=1.1,>=1.5", "1.5", "2", False, id="weaker-redundant-floor-cannot-mask-patched-floor"
+        ),
+        pytest.param(
+            ">=1.9,>=1.10", ">=1.9,>=1.11", "1.10", "1.11", True, id="redundant-floors-use-numeric-release-order"
+        ),
+        pytest.param(">=0!9,>=1!1", ">=0!9,>=1!2", "1!1", "1!2", True, id="redundant-floors-preserve-epoch-order"),
+        pytest.param(
+            ">=1,>=1.post1",
+            ">=1,>=1.post2",
+            "1.post1",
+            "1.post2",
+            True,
+            id="redundant-floors-preserve-post-release-order",
+        ),
+        pytest.param(">1,>=1.5", ">1,>=2", "1.5", "2", True, id="strict-and-inclusive-floors-select-strongest"),
+        pytest.param(">=1,>1.5", ">=1,>=2", "1.6", "2", True, id="stronger-inclusive-floor-preserves-strict-floor"),
+        pytest.param(">1,>=1.post1", ">1,>=1.2", "1.1", "1.2", True, id="strict-final-floor-still-excludes-base-posts"),
+        pytest.param("~=1.4,>=1.5", "~=1.4,>=1.7", "1.5", "1.7", True, id="compatible-floor-retains-implicit-ceiling"),
+        pytest.param(
+            "~=1.4,>=1.5", ">=1.4,>=1.7", "1.5", "1.7", False, id="redundant-floor-cannot-drop-compatible-ceiling"
+        ),
+        pytest.param("==1.*,>=1.5", "==1.*,>=1.7", "1.5", "1.7", True, id="wildcard-floor-retains-implicit-ceiling"),
+        pytest.param(
+            "==1.*,>=1.5", ">=1,>=1.7,<3", "1.5", "1.7", False, id="redundant-floor-cannot-widen-wildcard-ceiling"
+        ),
+        pytest.param(
+            ">=1,>=1.5,!=1.6",
+            ">=1,>=1.7,!=1.6",
+            "1.5",
+            "1.7",
+            True,
+            id="redundant-floor-preserves-published-exclusion",
+        ),
+        pytest.param(
+            ">=1,>=1.5,!=1.8",
+            ">=1,>=1.7",
+            "1.5",
+            "1.7",
+            False,
+            id="redundant-floor-cannot-remove-published-exclusion",
+        ),
+        pytest.param(
+            ">=1,>=1.5,<3", ">=1,>=2,<3", "1.5", "2", True, id="redundant-floor-preserves-published-upper-bound"
+        ),
+        pytest.param(
+            ">=1,>=1.5,<3", ">=1,>=2,<4", "1.5", "2", False, id="redundant-floor-cannot-widen-published-upper-bound"
+        ),
+        pytest.param("==1.5,>=1", "==2,>=1", "1.5", "2", True, id="exact-pin-and-redundant-floor-upgrade"),
+        pytest.param(
+            "==1.5,>=1", "==1.5,>=2", "1.5", "2", False, id="exact-pin-contradicting-strongest-floor-fails-closed"
+        ),
+        pytest.param("===1.5,>=1", "===2,>=1", "1.5", "2", True, id="arbitrary-pin-and-redundant-floor-upgrade"),
+        pytest.param("===1.5,>=1", "===2.0,>=1", "1.5", "2", False, id="arbitrary-pin-retains-raw-lock-identity"),
+        pytest.param(
+            ">=1,>=1.5", ">=2rc1,>=2", "1.5", "2", False, id="unsupported-redundant-prerelease-floor-fails-closed"
+        ),
+        pytest.param(">=1,>=1.5", ">=2,>=", "1.5", "2", False, id="malformed-redundant-floor-fails-closed"),
+        pytest.param(
+            ">=1,>=1.5", ">=2,>=2.0", "1.5", "2", False, id="ambiguous-equivalent-redundant-floor-fails-closed"
+        ),
+        pytest.param(">=1,>=1.5,<3", ">=1,>=2,<2", "1.5", "2", False, id="contradictory-floor-and-ceiling-fail-closed"),
+    ],
+)
+def test_security_dependency_minimum_uses_strongest_effective_floor(
+    tmp_path: Path, scope: str, previous: str, current: str, before: str, after: str, accepted: bool
+) -> None:
+    base = "danger-pkg" + previous
+    head = "danger-pkg" + current
+    protected = scope == "protected"
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=["safe-direct>=1"] if protected else [base],
+        head_requirements=["safe-direct>=1"] if protected else [head],
+        base_packages=[("danger-pkg", before), *([("safe-direct", "1")] if protected else [])],
+        head_packages=[("danger-pkg", after), *([("safe-direct", "1")] if protected else [])],
+        optional=scope == "optional",
+        base_constraints=[base] if protected else None,
+        head_constraints=[head] if protected else None,
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
 @pytest.mark.parametrize(
     ("variant", "accepted"),
     [
@@ -2854,12 +2944,22 @@ def test_grouped_security_updates_preserve_exact_dependency_pins(tmp_path: Path,
         pytest.param("strict-dropped", False, id="strict-floor-cannot-disappear"),
         pytest.param("epoch-inclusive", False, id="strict-epoch-floor-cannot-become-inclusive"),
         pytest.param("post-inclusive", False, id="strict-post-release-floor-cannot-become-inclusive"),
+        pytest.param("runtime-final-post", False, id="exclusive-final-runtime-floor-cannot-admit-same-release-post"),
+        pytest.param("optional-final-post", False, id="exclusive-final-optional-floor-cannot-admit-same-release-post"),
+        pytest.param("constraint-final-post", False, id="exclusive-final-constraint-cannot-admit-same-release-post"),
+        pytest.param("build-final-post", False, id="exclusive-final-build-floor-cannot-admit-same-release-post"),
+        pytest.param("group-final-post", False, id="exclusive-final-group-floor-cannot-admit-same-release-post"),
+        pytest.param("final-exclusive-post", False, id="exclusive-final-floor-cannot-admit-later-post-releases"),
+        pytest.param("epoch-final-post", False, id="exclusive-epoch-final-floor-cannot-admit-same-release-post"),
+        pytest.param("zero-final-post", False, id="exclusive-zero-normalized-final-floor-cannot-admit-post-release"),
         pytest.param("marker-inclusive", False, id="strict-contextual-floor-cannot-become-inclusive"),
         pytest.param("strict-preserved", True, id="unchanged-strict-floor-remains-supported"),
         pytest.param("strict-raised", True, id="strict-floor-may-increase"),
         pytest.param("inclusive-higher", True, id="higher-inclusive-floor-may-replace-strict-floor"),
         pytest.param("inclusive-to-strict", True, id="inclusive-floor-may-strengthen-to-strict"),
         pytest.param("canonical-strict", True, id="canonical-equivalent-strict-floor-remains-supported"),
+        pytest.param("post-exclusive-higher", True, id="exclusive-post-floor-may-increase-within-same-release"),
+        pytest.param("post-inclusive-higher", True, id="inclusive-later-post-may-strengthen-exclusive-post-floor"),
     ],
 )
 def test_grouped_security_updates_preserve_strict_dependency_floors(
@@ -2867,12 +2967,36 @@ def test_grouped_security_updates_preserve_strict_dependency_floors(
 ) -> None:
     previous, current = "danger>1", "danger>=1"
     locked = "2"
-    optional = variant == "optional-inclusive"
+    optional = variant in {"optional-inclusive", "optional-final-post"}
     constraints: tuple[list[str], list[str]] | None = None
     build: tuple[list[str], list[str]] | None = None
     groups: tuple[dict[str, list[str]], dict[str, list[str]]] | None = None
 
-    if variant == "constraint-inclusive":
+    if variant in {
+        "runtime-final-post",
+        "optional-final-post",
+        "constraint-final-post",
+        "build-final-post",
+        "group-final-post",
+    }:
+        previous, current = "danger>1.0", "danger>=1.0.post1"
+        if variant == "constraint-final-post":
+            constraints = ([previous], [current])
+        elif variant == "build-final-post":
+            build = ([previous], [current])
+        elif variant == "group-final-post":
+            groups = ({"reviewed": [previous]}, {"reviewed": [current]})
+    elif variant == "final-exclusive-post":
+        previous, current = "danger>1.0", "danger>1.0.post1"
+    elif variant == "epoch-final-post":
+        previous, current, locked = "danger>1!1.0", "danger>=1!1.0.post1", "1!2"
+    elif variant == "zero-final-post":
+        previous, current = "danger>1.0.0", "danger>=1.0.post1"
+    elif variant == "post-exclusive-higher":
+        previous, current, locked = "danger>1.0.post1", "danger>1.0.post2", "1.0.post3"
+    elif variant == "post-inclusive-higher":
+        previous, current, locked = "danger>1.0.post1", "danger>=1.0.post2", "1.0.post2"
+    elif variant == "constraint-inclusive":
         constraints = ([previous], [current])
     elif variant == "build-inclusive":
         build = ([previous], [current])
@@ -2916,6 +3040,62 @@ def test_grouped_security_updates_preserve_strict_dependency_floors(
         head_build_constraints=None if build is None else build[1],
         base_dependency_groups=None if groups is None else groups[0],
         head_dependency_groups=None if groups is None else groups[1],
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("previous", "current", "locked", "accepted"),
+    [
+        pytest.param(
+            "danger>=1,<2",
+            "danger>1,<2",
+            "1.post1",
+            False,
+            id="exclusive-final-floor-cannot-drop-retained-post-release",
+        ),
+        pytest.param(
+            "danger>=1.0,<2",
+            "danger>1.0.0,<2",
+            "1.0.post2",
+            False,
+            id="canonical-exclusive-final-floor-cannot-drop-retained-post-release",
+        ),
+        pytest.param(
+            "danger>=1!1,<1!2",
+            "danger>1!1,<1!2",
+            "1!1.post1",
+            False,
+            id="exclusive-epoch-final-floor-cannot-drop-retained-post-release",
+        ),
+        pytest.param(
+            "danger>=1.post1,<2",
+            "danger>1.post1,<2",
+            "1.post2",
+            True,
+            id="exclusive-post-floor-retains-later-same-release-post",
+        ),
+        pytest.param(
+            "danger>=1,<2",
+            "danger>1,<2",
+            "1.1",
+            True,
+            id="exclusive-final-floor-retains-later-base-release",
+        ),
+    ],
+)
+@pytest.mark.parametrize("protected", [False, True], ids=["published-direct", "protected-constraint"])
+def test_exclusive_final_dependency_floors_preserve_retained_post_releases(
+    tmp_path: Path, previous: str, current: str, locked: str, accepted: bool, protected: bool
+) -> None:
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=["patch-me>=1"] + ([] if protected else [previous]),
+        head_requirements=["patch-me>=1.1"] + ([] if protected else [current]),
+        base_packages=[("patch-me", "1"), ("danger", locked)],
+        head_packages=[("patch-me", "1.1"), ("danger", locked)],
+        base_constraints=[previous] if protected else None,
+        head_constraints=[current] if protected else None,
     )
     assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
 
@@ -4559,8 +4739,26 @@ def test_compatible_release_requirements_preserve_reviewed_security_bounds(
     assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
 
 
-def test_security_floor_parser_strips_requirement_whitespace() -> None:
-    assert "stable_version(matches[0].strip())" in security_dependency_floor_program()
+@pytest.mark.parametrize(
+    ("previous", "updated"),
+    [
+        pytest.param("danger >= 1.0 ", "danger >= 2.0 ", id="whitespace-padded-security-floor"),
+        pytest.param(
+            "danger >= 1.0 , >= 1.5 ",
+            "danger >= 1.0 , >= 2.0 ",
+            id="whitespace-padded-redundant-security-floors",
+        ),
+    ],
+)
+def test_security_floor_parser_strips_requirement_whitespace(tmp_path: Path, previous: str, updated: str) -> None:
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=[previous],
+        head_requirements=[updated],
+        base_packages=[("danger", "1.5")],
+        head_packages=[("danger", "2.0")],
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
 
 
 @pytest.mark.parametrize(
@@ -5481,6 +5679,124 @@ def test_platform_membership_markers_preserve_pep508_substring_domains(
 @pytest.mark.parametrize(
     ("requirement_marker", "resolution_marker", "accepted"),
     [
+        pytest.param("'lin' in sys_platform", "sys_platform == 'linux'", True, id="reversed-platform-substring"),
+        pytest.param(
+            "'linux' in sys_platform", "sys_platform == 'lin'", False, id="reversed-membership-keeps-direction"
+        ),
+        pytest.param("'lin' in sys_platform", "sys_platform == 'win32'", False, id="reversed-platform-missing-needle"),
+        pytest.param("'win' not in sys_platform", "sys_platform == 'linux'", True, id="reversed-negative-outside"),
+        pytest.param("'lin' not in sys_platform", "sys_platform == 'linux'", False, id="reversed-negative-substring"),
+        pytest.param(
+            "sys_platform == 'linux'",
+            "'lin' in sys_platform and sys_platform == 'linux'",
+            True,
+            id="reversed-resolution-substring",
+        ),
+        pytest.param("sys_platform == 'linux'", "'lin' not in sys_platform", False, id="reversed-resolution-negative"),
+        pytest.param(
+            "'lin' in sys_platform and 'ux' in sys_platform",
+            "sys_platform == 'linux'",
+            True,
+            id="reversed-platform-keeps-every-required-needle",
+        ),
+        pytest.param(
+            "'lin' in sys_platform and 'in' not in sys_platform",
+            "sys_platform == 'linux'",
+            False,
+            id="required-needle-cannot-contain-a-forbidden-needle",
+        ),
+        pytest.param(
+            "'lin' in sys_platform and sys_platform in 'linux,win32'",
+            "sys_platform == 'linux'",
+            True,
+            id="forward-and-reversed-membership-share-one-platform-witness",
+        ),
+        pytest.param(
+            "'inu' in sys_platform and sys_platform in 'linux,win32'",
+            "sys_platform == 'win32'",
+            False,
+            id="forward-and-reversed-membership-reject-distinct-witnesses",
+        ),
+        pytest.param("'' in sys_platform", "sys_platform == 'linux'", True, id="empty-reversed-needle-is-universal"),
+        pytest.param("'' not in sys_platform", "sys_platform == 'linux'", False, id="empty-reversed-negative-is-empty"),
+        pytest.param("'LIN' in sys_platform", "sys_platform == 'linux'", False, id="reversed-platform-keeps-case"),
+        pytest.param(
+            "'3.1' in platform_version",
+            "platform_version == '3.10'",
+            True,
+            id="reversed-platform-version-remains-string-containment",
+        ),
+        pytest.param(
+            "'6.1' in platform_release",
+            "platform_release == '6.10'",
+            False,
+            id="reversed-numeric-platform-release-fails-closed",
+        ),
+        pytest.param(
+            "'3.1' in python_version",
+            "python_full_version == '3.10.4'",
+            False,
+            id="unbounded-reversed-python-version-space-fails-closed",
+        ),
+        pytest.param(
+            "'" + "a" * 257 + "' in sys_platform",
+            "sys_platform == 'linux'",
+            False,
+            id="unbounded-reversed-platform-needle-fails-closed",
+        ),
+    ],
+)
+@pytest.mark.parametrize("protected", [False, True], ids=["published-direct", "protected-constraint"])
+def test_reversed_platform_membership_preserves_operand_orientation(
+    tmp_path: Path, requirement_marker: str, resolution_marker: str, accepted: bool, protected: bool
+) -> None:
+    previous = "danger>=1; " + requirement_marker
+    updated = "danger>=2; " + requirement_marker
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=[] if protected else [previous],
+        head_requirements=[] if protected else [updated],
+        base_packages=[("danger", "1")],
+        head_packages=[("danger", "2")],
+        base_constraints=[previous] if protected else None,
+        head_constraints=[updated] if protected else None,
+        base_resolution_markers={("danger", "1"): [resolution_marker]},
+        head_resolution_markers={("danger", "2"): [resolution_marker]},
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize("complete", [False, True], ids=["missing-complement", "complete-complement"])
+@pytest.mark.parametrize("protected", [False, True], ids=["published-direct", "protected-constraint"])
+def test_reversed_platform_membership_complements_preserve_every_security_domain(
+    tmp_path: Path, complete: bool, protected: bool
+) -> None:
+    domain = "sys_platform != 'darwin'"
+    included = domain + " and 'lin' in sys_platform"
+    excluded = domain + " and 'lin' not in sys_platform"
+    updated = ["danger>=2; " + included]
+    new_domains = [included]
+    if complete:
+        updated.append("danger>=2; " + excluded)
+        new_domains.append(excluded)
+    previous = "danger>=1; " + domain
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=[] if protected else [previous],
+        head_requirements=[] if protected else updated,
+        base_packages=[("danger", "1")],
+        head_packages=[("danger", "2")],
+        base_constraints=[previous] if protected else None,
+        head_constraints=updated if protected else None,
+        base_resolution_markers={("danger", "1"): [domain]},
+        head_resolution_markers={("danger", "2"): new_domains},
+    )
+    assert result.returncode == (0 if complete else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("requirement_marker", "resolution_marker", "accepted"),
+    [
         pytest.param(
             "sys_platform >= 'linux'",
             "sys_platform == 'linux'",
@@ -6030,6 +6346,13 @@ def test_reversed_literal_marker_comparisons_preserve_semantic_security_domains(
         pytest.param(
             "foo-bar", "extra in 'FOO_BAR-baz'", False, False, id="extra-substring-normalizes-both-pep508-operands"
         ),
+        pytest.param(
+            "foo-bar", "'FOO_BAR' in extra", False, False, id="reversed-extra-containment-normalizes-the-needle"
+        ),
+        pytest.param("foo-bar", "'foo' in extra", False, False, id="reversed-extra-containment-keeps-direction"),
+        pytest.param("foo", "'foobar' in extra", False, True, id="reversed-extra-longer-needle-cannot-match"),
+        pytest.param("foo", "'foo' not in extra", False, True, id="reversed-extra-negative-excludes-a-real-needle"),
+        pytest.param("bar", "'foo' not in extra", False, False, id="reversed-extra-negative-keeps-an-outside-needle"),
     ],
 )
 def test_locked_extra_membership_uses_pep508_substring_containment(
