@@ -108,9 +108,12 @@ def test_request_private_data_is_omitted_and_timeout_is_preserved() -> None:
     [
         ("Authorization", "Bearer sk-openai-secret"),
         ("api-key", "azure-secret-key"),
+        ("OpenAI-Organization", "org-private-identifier"),
+        ("OpenAI-Project", "proj-private-identifier"),
+        ("X-Customer-Metadata", "arbitrary-customer-data"),
     ],
 )
-def test_request_credentials_are_redacted_from_pickle(header_name: str, header_value: str) -> None:
+def test_request_private_header_values_are_redacted(header_name: str, header_value: str) -> None:
     request = httpx2.Request(
         "POST",
         "https://example.test/v1/responses",
@@ -153,6 +156,28 @@ def test_response_private_data_is_omitted_and_headers_are_redacted() -> None:
     assert restored.response.headers["Set-Cookie"] == "<redacted>"
     assert restored.response.headers["x-request-id"] == "req_123"
     assert restored.response.content == b""
+
+
+def test_response_protocol_metadata_is_preserved() -> None:
+    request = httpx2.Request("GET", "https://example.test/v1/models")
+    response = httpx2.Response(
+        418,
+        request=request,
+        extensions={
+            "http_version": b"HTTP/2",
+            "reason_phrase": b"Custom reason",
+            "network_stream": object(),
+        },
+    )
+    error = SubjectTokenProviderError("request failed", response=response)
+
+    payload = pickle.dumps(error)
+    restored = pickle.loads(payload)
+
+    assert restored.response is not None
+    assert restored.response.http_version == "HTTP/2"
+    assert restored.response.reason_phrase == "Custom reason"
+    assert "network_stream" not in restored.response.extensions
 
 
 def test_status_error_pickle_round_trip_preserves_response_state() -> None:
@@ -247,14 +272,17 @@ def test_custom_error_subclass_preserves_slotted_state() -> None:
     assert restored.context == "slot context"
 
 
-def test_websocket_error_pickle_round_trip_preserves_unsent_messages() -> None:
+def test_websocket_error_pickle_omits_unsent_payloads() -> None:
+    sensitive_event = '{"type":"input_audio_buffer.append","audio":"private-audio"}'
     error = WebSocketConnectionClosedError(
         "connection closed",
-        unsent_messages=["first", "second"],
+        unsent_messages=[sensitive_event],
     )
 
-    restored = pickle.loads(pickle.dumps(error))
+    payload = pickle.dumps(error)
+    restored = pickle.loads(payload)
 
     assert isinstance(restored, WebSocketConnectionClosedError)
     assert str(restored) == "connection closed"
-    assert restored.unsent_messages == ["first", "second"]
+    assert b"private-audio" not in payload
+    assert restored.unsent_messages == []
