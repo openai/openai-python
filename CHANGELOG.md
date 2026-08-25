@@ -1,5 +1,56 @@
 # Changelog
 
+## [3.4.0](https://github.com/openai/openai-python/compare/v3.3.1...v3.4.0) (2026-08-25)
+
+
+### Features
+
+* **api:** Add obfuscation field to ChatCompletionChunk ([#3690](https://github.com/openai/openai-python/issues/3690)) ([c7d8e1d](https://github.com/openai/openai-python/commit/c7d8e1d26be1f958e55c80f26b648f768afabdf2))
+* **api:** add project residency configuration and cost quantity units ([#3726](https://github.com/openai/openai-python/issues/3726)) ([bc4f8ef](https://github.com/openai/openai-python/commit/bc4f8efdbc1f8fa6b78935e205780e259d83576d))
+
+
+### Bug Fixes
+
+* **api:** encode Realtime call offers and session configuration ([#3736](https://github.com/openai/openai-python/issues/3736)) ([555ac48](https://github.com/openai/openai-python/commit/555ac487f450f24928d859478ea2f41b58906206))
+* apply consistent origin checks to WebSocket redirects ([#3693](https://github.com/openai/openai-python/issues/3693)) ([1b324d0](https://github.com/openai/openai-python/commit/1b324d044dcedc377e688c405416f928b0aedfb6))
+* **azure:** encode deployment names consistently ([#3683](https://github.com/openai/openai-python/issues/3683)) ([689538d](https://github.com/openai/openai-python/commit/689538d531692e30ac1928779e6f1b97cc95db45))
+* **azure:** keep provider validation errors value-free ([#3691](https://github.com/openai/openai-python/issues/3691)) ([72529c0](https://github.com/openai/openai-python/commit/72529c013707e7b5ed99edbc836603618a1e4be6))
+* **azure:** resolve one authentication mode ([#3689](https://github.com/openai/openai-python/issues/3689)) ([e3d0681](https://github.com/openai/openai-python/commit/e3d06812535d7f2fe1bc6e57c12bd0ac0dd4acd1))
+* compute custom-code summaries from trusted workflow code ([#3692](https://github.com/openai/openai-python/issues/3692)) ([2b5868d](https://github.com/openai/openai-python/commit/2b5868da23cb61876ec27d76591ea5fdb2b8c14d))
+* create upload example fixtures in private directories ([#3686](https://github.com/openai/openai-python/issues/3686)) ([f36e6f7](https://github.com/openai/openai-python/commit/f36e6f79662b22e9d8f1660d4576b4b15cd8ac76))
+* decode SSE incrementally without limiting event size ([#3687](https://github.com/openai/openai-python/issues/3687)) ([2598d53](https://github.com/openai/openai-python/commit/2598d530cf682784465e9f82558a830ac5f94486))
+* keep Python SDK diagnostics metadata-only ([#3685](https://github.com/openai/openai-python/issues/3685)) ([600aa8d](https://github.com/openai/openai-python/commit/600aa8daade4c9df87deb76f6b8442ee828a7cbc))
+* Preserve Azure authentication boundaries across transports ([#3684](https://github.com/openai/openai-python/issues/3684)) ([06ef57c](https://github.com/openai/openai-python/commit/06ef57caafe73d625ad4458ab5d29241e30c44bc))
+* preserve the configured TLS hostname ([#3694](https://github.com/openai/openai-python/issues/3694)) ([aa5fbc4](https://github.com/openai/openai-python/commit/aa5fbc401f179fc515905d84623718c2b66ec653))
+* preserve WebSocket send queue byte accounting during flush ([#3688](https://github.com/openai/openai-python/issues/3688)) ([96f966d](https://github.com/openai/openai-python/commit/96f966d77bddc7449ae23fda5b29ef44c3f98cc2))
+
+
+### Chores
+
+* **api:** Clarify image background docs and preview support ([#3703](https://github.com/openai/openai-python/issues/3703)) ([bedb9a7](https://github.com/openai/openai-python/commit/bedb9a7b8839e193107e88b92f7cc166f08ac83d))
+* **api:** document supported image generation models ([#3695](https://github.com/openai/openai-python/issues/3695)) ([8edd9ae](https://github.com/openai/openai-python/commit/8edd9ae411f9d0a5385447a4697c9f7042868213))
+* **api:** move chat validation tests out of generated code ([#3698](https://github.com/openai/openai-python/issues/3698)) ([9d3ba20](https://github.com/openai/openai-python/commit/9d3ba20f9567a62b2ebb3542661a60dc4ed2fd67))
+* **api:** move webhook tests out of generated code ([#3700](https://github.com/openai/openai-python/issues/3700)) ([04ecb3c](https://github.com/openai/openai-python/commit/04ecb3c21712e1236e7aa2eb9d715d57acb26c35))
+* **api:** remove redundant generated formatting ([#3696](https://github.com/openai/openai-python/issues/3696)) ([5ac1e03](https://github.com/openai/openai-python/commit/5ac1e03e1ae8f08acf6213b3e44772734dbb8e59))
+* **api:** remove redundant generated test edits ([#3697](https://github.com/openai/openai-python/issues/3697)) ([351ef84](https://github.com/openai/openai-python/commit/351ef84dc25211ea871f60eb16a469a89d20e133))
+* **api:** Update SDK generation metadata only ([#3716](https://github.com/openai/openai-python/issues/3716)) ([e43b422](https://github.com/openai/openai-python/commit/e43b422412a9e96c9cc5192c61fffbe2d7e04836))
+* set a ceiling for Python SDK customization ([#3714](https://github.com/openai/openai-python/issues/3714)) ([04d5d79](https://github.com/openai/openai-python/commit/04d5d79fc71e883a3114b80ed8408bef76e72cd3))
+
+
+### Documentation
+
+* **api:** restore generated ChatKit API index ([#3705](https://github.com/openai/openai-python/issues/3705)) ([4534106](https://github.com/openai/openai-python/commit/45341061b382473ee8a8e8c796ef8819089abbb6))
+* standardize Python SDK vulnerability disclosure policy ([#3642](https://github.com/openai/openai-python/issues/3642)) ([1fc0a21](https://github.com/openai/openai-python/commit/1fc0a217047cf7f767db10479b5d741b870bc74f))
+
+
+### Refactors
+
+* **api:** isolate audio response format selection ([#3701](https://github.com/openai/openai-python/issues/3701)) ([ece4324](https://github.com/openai/openai-python/commit/ece4324da0b96f848b48bdef090a372ff0a1db26))
+* **api:** isolate vector-store polling helpers ([#3713](https://github.com/openai/openai-python/issues/3713)) ([a002ef3](https://github.com/openai/openai-python/commit/a002ef3c7d2276fb63deeea58d920d87da61b1e5))
+* **api:** move file processing polling into SDK-owned helpers ([#3712](https://github.com/openai/openai-python/issues/3712)) ([5f20c51](https://github.com/openai/openai-python/commit/5f20c51c694801cb0a4d0fed413bedc1bac2dda0))
+* **api:** share embedding response decoding ([#3699](https://github.com/openai/openai-python/issues/3699)) ([50de9af](https://github.com/openai/openai-python/commit/50de9af45900fa2c88ac11efbb7f9a7ff0057c42))
+* **api:** share webhook signature verification ([#3704](https://github.com/openai/openai-python/issues/3704)) ([e14ac34](https://github.com/openai/openai-python/commit/e14ac34376efa5260ef9ef82b939f451f6f9a66a))
+
 ## [3.3.1](https://github.com/openai/openai-python/compare/v3.3.0...v3.3.1) (2026-08-19)
 
 
