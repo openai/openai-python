@@ -488,42 +488,50 @@ def is_numeric_platform_release(value: str) -> bool:
     )
 
 
-def marker_version_bounds(variable: str, value: str) -> tuple[tuple[int, ...], tuple[int, ...], bool, bool]:
+def marker_version_bounds(
+    variable: str, value: str, *, release_width: int = 3
+) -> tuple[tuple[int, ...], tuple[int, ...], bool, bool]:
     match = re.fullmatch(
-        r"(\d+)\.(\d+)(?:\.(\d+))?(?:(a|b|rc)(\d+))?(?:\.post(\d+))?(?:\.dev(\d+))?(\.\*)?",
-        value,
+        r"(\d+(?:\.\d+)*)(?:(a|b|rc)(\d+))?(?:\.post(\d+))?(?:\.dev(\d+))?(\.\*)?",
+        value.strip() if variable == "platform_release" else value,
     )
     if match is None:
         raise SystemExit("Ambiguous Python security dependency marker")
-    if any(len(match.group(index)) > 9 for index in (1, 2, 3, 5, 6, 7) if match.group(index) is not None):
+    components = match.group(1).split(".")
+    if variable == "platform_release" and len(components) > 32:
+        raise SystemExit("Unbounded platform security dependency marker")
+    if variable != "platform_release" and len(components) not in {2, 3}:
+        raise SystemExit("Ambiguous Python security dependency marker")
+    if any(len(component) > 9 for component in components) or any(
+        len(match.group(index)) > 9 for index in (3, 4, 5) if match.group(index) is not None
+    ):
         raise SystemExit("Unbounded Python security dependency marker")
 
-    major, minor = int(match.group(1)), int(match.group(2))
-    patch = int(match.group(3) or 0)
-    prerelease = match.group(4) is not None or match.group(7) is not None
-    wildcard = match.group(8) is not None
-    if wildcard and (prerelease or match.group(6) is not None):
+    release = tuple(int(component) for component in components)
+    release += (0,) * max(0, release_width - len(release))
+    prerelease = match.group(2) is not None or match.group(5) is not None
+    wildcard = match.group(6) is not None
+    if wildcard and (prerelease or match.group(4) is not None):
         raise SystemExit("Ambiguous wildcard security dependency marker")
-    if variable == "python_version" and (patch != 0 or prerelease or match.group(6) is not None):
+    if variable == "python_version" and (release[2] != 0 or prerelease or match.group(4) is not None):
         raise SystemExit("Ambiguous Python security dependency marker")
 
     phase = (
         -4
-        if match.group(7) is not None and match.group(4) is None and match.group(6) is None
-        else {"a": -3, "b": -2, "rc": -1}.get(match.group(4) or "", 0)
+        if match.group(5) is not None and match.group(2) is None and match.group(4) is None
+        else {"a": -3, "b": -2, "rc": -1}.get(match.group(2) or "", 0)
     )
-    serial = int(match.group(5) or 0)
-    post = -1 if match.group(6) is None else int(match.group(6))
-    development = -1 if match.group(7) is not None else 0
-    development_serial = int(match.group(7) or 0)
+    serial = int(match.group(3) or 0)
+    post = -1 if match.group(4) is None else int(match.group(4))
+    development = -1 if match.group(5) is not None else 0
+    development_serial = int(match.group(5) or 0)
     if variable == "python_version" or wildcard:
-        start = major, minor, patch, -5, 0, -1, -1, 0
-        if variable == "python_version" or match.group(3) is None:
-            stop = major, minor + 1, 0, -5, 0, -1, -1, 0
-        else:
-            stop = major, minor, patch + 1, -5, 0, -1, -1, 0
+        start = release + (-5, 0, -1, -1, 0)
+        prefix = 2 if variable == "python_version" else len(components)
+        stop = release[: prefix - 1] + (release[prefix - 1] + 1,) + (0,) * (len(release) - prefix)
+        stop += -5, 0, -1, -1, 0
     else:
-        start = major, minor, patch, phase, serial, post, development, development_serial
+        start = release + (phase, serial, post, development, development_serial)
         stop = start[:-1] + (development_serial + 1,)
     return start, stop, wildcard, prerelease
 
@@ -552,11 +560,22 @@ def simple_marker_overlap(requirement: MarkerContext, resolution: MarkerContext)
             for numeric, (_, operator, _) in zip(numeric_platform_values, constraints, strict=True)
         )
         if family in {"python", "implementation_version"} or numeric_platform_release:
-            lower: tuple[int, ...] = (0, 0, 0, -5, 0, -1, -1, 0)
+            release_width = 3
+            if numeric_platform_release:
+                release_width = max(
+                    (
+                        len(match.group().split("."))
+                        for _, _, value in constraints
+                        if (match := re.match(r"\d+(?:\.\d+)*", value.strip()))
+                    ),
+                    default=release_width,
+                )
+                release_width = max(3, release_width)
+            lower: tuple[int, ...] = (0,) * release_width + (-5, 0, -1, -1, 0)
             upper: tuple[int, ...] | None = None
             excluded: list[tuple[tuple[int, ...], tuple[int, ...]]] = []
             for variable, operator, value in constraints:
-                start, stop, wildcard, prerelease = marker_version_bounds(variable, value)
+                start, stop, wildcard, prerelease = marker_version_bounds(variable, value, release_width=release_width)
                 if wildcard and operator not in {"Eq", "NotEq"}:
                     raise SystemExit("Ambiguous wildcard security dependency marker")
                 if operator == "Eq":
@@ -567,34 +586,34 @@ def simple_marker_overlap(requirement: MarkerContext, resolution: MarkerContext)
                 elif operator in {"Lt", "RawLt"}:
                     ceiling = start
                     if operator == "Lt" and variable != "python_version" and not prerelease:
-                        if start[5] == -1:
-                            ceiling = start[0], start[1], start[2], -5, 0, -1, -1, 0
+                        if start[-3] == -1:
+                            ceiling = start[:-5] + (-5, 0, -1, -1, 0)
                         else:
-                            ceiling = start[:6] + (-1, 0)
+                            ceiling = start[:-2] + (-1, 0)
                     upper = ceiling if upper is None else min(upper, ceiling)
                 elif operator in {"LtE", "RawLtE"}:
                     ceiling = stop
-                    if operator == "RawLtE" and variable != "python_version" and start[5] == -1 and start[6] == 0:
+                    if operator == "RawLtE" and variable != "python_version" and start[-3] == -1 and start[-2] == 0:
                         if prerelease:
-                            ceiling = start[0], start[1], start[2], start[3], start[4] + 1, -1, -1, 0
+                            ceiling = start[:-4] + (start[-4] + 1, -1, -1, 0)
                         else:
-                            ceiling = start[0], start[1], start[2] + 1, -5, 0, -1, -1, 0
+                            ceiling = start[:-6] + (start[-6] + 1, -5, 0, -1, -1, 0)
                     upper = ceiling if upper is None else min(upper, ceiling)
                 elif operator in {"Gt", "RawGt"}:
                     floor = stop
-                    if operator == "Gt" and variable != "python_version" and start[5] == -1 and start[6] == 0:
+                    if operator == "Gt" and variable != "python_version" and start[-3] == -1 and start[-2] == 0:
                         if prerelease:
-                            floor = start[0], start[1], start[2], start[3], start[4] + 1, -1, -1, 0
+                            floor = start[:-4] + (start[-4] + 1, -1, -1, 0)
                         else:
-                            floor = start[0], start[1], start[2] + 1, -5, 0, -1, -1, 0
+                            floor = start[:-6] + (start[-6] + 1, -5, 0, -1, -1, 0)
                     lower = max(lower, floor)
                 elif operator in {"GtE", "RawGtE"}:
                     floor = start
                     if operator == "RawGtE" and variable != "python_version" and not prerelease:
-                        if start[5] == -1:
-                            floor = start[0], start[1], start[2], -5, 0, -1, -1, 0
+                        if start[-3] == -1:
+                            floor = start[:-5] + (-5, 0, -1, -1, 0)
                         else:
-                            floor = start[:6] + (-1, 0)
+                            floor = start[:-2] + (-1, 0)
                     lower = max(lower, floor)
                 else:
                     raise SystemExit("Ambiguous Python security dependency marker")
@@ -744,7 +763,7 @@ def marker_options(context: MarkerContext) -> list[MarkerContext]:
             continue
         if operator == "ArbitraryEq":
             if variable == "python_version":
-                pattern = r"(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:\.0)?"
+                pattern = r"(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)"
             elif variable in {"python_full_version", "implementation_version"}:
                 pattern = (
                     r"(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)"
@@ -936,12 +955,12 @@ def reconcile_resolution_domains(
         if bool(old) != bool(new):
             if not explicit_prerelease:
                 earliest = {
-                    (variable, marker_version_bounds(variable, value)[0][:3])
+                    (variable, marker_version_bounds(variable, value)[0][:-5])
                     for variable, operator, value in fragment
                     if operator == "RawGtE"
                 }
                 final = {
-                    (variable, marker_version_bounds(variable, value)[0][:3])
+                    (variable, marker_version_bounds(variable, value)[0][:-5])
                     for variable, operator, value in fragment
                     if operator == "RawLt"
                 }

@@ -1081,9 +1081,12 @@ def test_agents_sdk_build_exemption_only_covers_its_trusted_editable_project() -
     job = match.group("body")
     trusted_checkout = job.index("repository: openai/openai-agents-python")
     exception = "UV_NO_BINARY_PACKAGE: 'openai openai-agents'"
-    reviewed_aiohttp = 'UV_NO_BINARY_PACKAGE="openai openai-agents ${reviewed_sources}" make sync'
+    reviewed_sources = (
+        'env -u UV_NO_BUILD UV_NO_BUILD_PACKAGE="${denied_sources}" '
+        'UV_NO_BINARY_PACKAGE="openai openai-agents ${reviewed_sources}" make sync'
+    )
     assert job.count(exception) == 3
-    assert job.count(reviewed_aiohttp) == 1
+    assert job.count(reviewed_sources) == 1
 
     for command in ("uv add --no-sync ../openai-python", "make sync", "make mypy"):
         command_index = job.index(command)
@@ -1096,10 +1099,126 @@ def test_agents_sdk_build_exemption_only_covers_its_trusted_editable_project() -
         assert "working-directory: openai-agents-python" in step
         assert exception in step
         if command == "make sync":
-            assert reviewed_aiohttp in step
+            assert reviewed_sources in step
 
     assert exception not in job[:trusted_checkout]
-    assert reviewed_aiohttp not in job[:trusted_checkout]
+    assert reviewed_sources not in job[:trusted_checkout]
+
+
+@pytest.mark.parametrize(
+    ("reviewed", "requested", "variant", "accepted", "reaches_sync"),
+    [
+        pytest.param("evdev", "evdev", "reviewed", True, True, id="immutable-reviewed-source-can-build"),
+        pytest.param("evdev", "aiohttp", "reviewed", False, True, id="inactive-static-allowlist-entry-stays-denied"),
+        pytest.param(
+            "evdev", "unreviewed-package", "reviewed", False, True, id="unreviewed-source-distribution-stays-denied"
+        ),
+        pytest.param(
+            "evdev missing", "evdev", "reviewed", False, False, id="unverified-source-exemption-cannot-reach-sync"
+        ),
+        pytest.param("evdev", "evdev", "untrusted-source", False, False, id="untrusted-package-cannot-reach-sync"),
+        pytest.param("evdev", "evdev", "missing-root", False, False, id="missing-local-root-cannot-reach-sync"),
+        pytest.param(
+            "evdev", "evdev", "duplicate-version", True, True, id="multiple-reviewed-lock-versions-can-reach-sync"
+        ),
+        pytest.param("evdev", "evdev", "duplicate-root", False, False, id="duplicate-local-root-cannot-reach-sync"),
+        pytest.param("evdev", "evdev", "duplicate-alias", False, False, id="duplicate-package-cannot-reach-sync"),
+    ],
+)
+def test_agents_source_sync_only_builds_immutable_reviewed_distributions(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    reviewed: str,
+    requested: str,
+    variant: str,
+    accepted: bool,
+    reaches_sync: bool,
+) -> None:
+    workflow = (ROOT / ".github/workflows/detect-breaking-changes.yml").read_text()
+    job = workflow.split("\n  agents_sdk:\n", 1)[1]
+    match = re.search(
+        r"      - name: Install dependencies\n"
+        r"        working-directory: openai-agents-python\n"
+        r"        env:\n"
+        r"(?:          [^\n]*\n)+"
+        r"        run: \|\n"
+        r"(?P<body>.*?)(?=\n      - name:|\Z)",
+        job,
+        re.DOTALL,
+    )
+    assert match is not None
+    lines = [line[10:] for line in match.group("body").splitlines()]
+    assert lines[0].startswith('reviewed_sources="$(python -c ')
+    assert "Use only the immutable reviewed Agents source distributions" in lines[0]
+    assert job.index("Verify relinked Agents lock package provenance") < job.index(lines[0])
+    script = "\n".join(['reviewed_sources="$UV_TEST_REVIEWED_SOURCES"', *lines[1:]])
+    if sys.version_info < (3, 11):
+        script = script.replace("\nimport tomllib\n", "\nimport tomli as tomllib\n")
+
+    public = 'registry = "https://pypi.org/simple"'
+    packages = [
+        ("openai-agents", 'editable = "."'),
+        ("openai", 'directory = "../openai-python"'),
+        ("evdev", public),
+        ("aiohttp", public),
+        ("MarkupSafe", public),
+        ("pyyaml", public),
+        ("unreviewed_package", public),
+    ]
+    if variant == "untrusted-source":
+        packages[-1] = ("unreviewed_package", 'registry = "https://private.example/simple"')
+    elif variant == "missing-root":
+        packages.pop(0)
+    elif variant == "duplicate-version":
+        packages.append(("evdev", public))
+    elif variant == "duplicate-root":
+        packages.append(("openai", 'directory = "../openai-python"'))
+    elif variant == "duplicate-alias":
+        packages.append(("EVDEV", public))
+    lock = "\n".join(
+        f'[[package]]\nname = "{name}"\nversion = "{index + 1}"\nsource = {{ {source} }}\n'
+        for index, (name, source) in enumerate(packages)
+    )
+    (tmp_path / "uv.lock").write_text(lock)
+
+    log = tmp_path / "sync.json"
+    executable = tmp_path / "make"
+    executable.write_text(
+        f"#!{sys.executable}\n"
+        "import json, os, pathlib, sys\n"
+        "entry = {'args': sys.argv[1:], 'no_build': os.environ.get('UV_NO_BUILD'), "
+        "'no_build_packages': os.environ.get('UV_NO_BUILD_PACKAGE'), "
+        "'no_binary_packages': os.environ.get('UV_NO_BINARY_PACKAGE')}\n"
+        "pathlib.Path(os.environ['UV_TEST_LOG']).write_text(json.dumps(entry))\n"
+        "requested = os.environ['UV_TEST_REQUESTED_SOURCE']\n"
+        "if requested in set(entry['no_build_packages'].split()):\n"
+        "    raise SystemExit('source distribution denied by --no-build-package')\n"
+        "if requested not in set(entry['no_binary_packages'].split()):\n"
+        "    raise SystemExit('source distribution was not explicitly reviewed')\n"
+    )
+    executable.chmod(0o755)
+    monkeypatch.setenv("PATH", str(tmp_path) + os.pathsep + os.environ["PATH"])
+    monkeypatch.setenv("UV_TEST_LOG", str(log))
+    monkeypatch.setenv("UV_TEST_REVIEWED_SOURCES", reviewed)
+    monkeypatch.setenv("UV_TEST_REQUESTED_SOURCE", requested)
+    monkeypatch.setenv("UV_NO_BUILD", "1")
+
+    result = subprocess.run(["bash", "-e", "-c", script], cwd=tmp_path, capture_output=True, text=True, check=False)
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+    assert log.exists() is reaches_sync
+    if reaches_sync:
+        call = cast(dict[str, object], json.loads(log.read_text()))
+        assert call["args"] == ["sync"]
+        assert call["no_build"] is None
+        assert set(cast(str, call["no_build_packages"]).split()) == {
+            "aiohttp",
+            "markupsafe",
+            "pyyaml",
+            "unreviewed-package",
+        }
+        assert set(cast(str, call["no_binary_packages"]).split()) == {"openai", "openai-agents", "evdev"}
+        if not accepted:
+            assert "--no-build-package" in result.stderr
 
 
 def test_agents_source_allowlist_uses_its_immutable_reviewed_checkout() -> None:
@@ -4640,7 +4759,9 @@ def test_new_extra_direct_dependency_boundaries_cover_their_actual_audience(
         base_optional = {"public": ["parent", "plugin>=2"]}
         head_optional = {"public": ["parent", "parent[feature]", "plugin>=2"]}
 
-    edges = {("parent", "1"): {"feature": [{"name": "plugin"}]}}
+    edges: dict[tuple[str, str], dict[str, list[dict[str, object]]]] = {
+        ("parent", "1"): {"feature": [{"name": "plugin"}]}
+    }
     result = run_security_dependency_floor_check(
         tmp_path,
         base_requirements=base_requirements,
@@ -6581,6 +6702,114 @@ def test_locked_extra_marker_defaults_to_one_empty_selected_extra(
             id="platform-release-rejects-lower-numeric-release",
         ),
         pytest.param(
+            "platform_release >= '6.8.0.1'",
+            "platform_release == '6.8.0.2'",
+            True,
+            id="platform-release-preserves-four-component-numeric-ordering",
+        ),
+        pytest.param(
+            "platform_release >= '6.8.0.2'",
+            "platform_release == '6.8.0.1'",
+            False,
+            id="platform-release-rejects-lower-four-component-release",
+        ),
+        pytest.param(
+            "platform_release < '6.8.0.10'",
+            "platform_release == '6.8.0.2'",
+            True,
+            id="platform-release-orders-fourth-component-numerically",
+        ),
+        pytest.param(
+            "platform_release >= '6.8'",
+            "platform_release == '6.8.0.1'",
+            True,
+            id="platform-release-compares-short-and-long-release-segments",
+        ),
+        pytest.param(
+            "platform_release >= '6.8.0.1'",
+            "platform_release == '6.8'",
+            False,
+            id="platform-release-rejects-shorter-lower-release-segments",
+        ),
+        pytest.param(
+            "platform_release == '6.8.0.1'",
+            "platform_release == '6.8.0.1.0'",
+            True,
+            id="platform-release-normalizes-trailing-zero-components",
+        ),
+        pytest.param(
+            "platform_release > '6.8.0'",
+            "platform_release == '6.8.0.1'",
+            True,
+            id="platform-release-preserves-strict-longer-release-ordering",
+        ),
+        pytest.param(
+            "platform_release == '6.8.0.*'",
+            "platform_release == '6.8.0.2'",
+            True,
+            id="platform-release-wildcard-covers-longer-release-segments",
+        ),
+        pytest.param(
+            "platform_release == '6.8.0.*'",
+            "platform_release == '6.8.1.0'",
+            False,
+            id="platform-release-wildcard-does-not-cover-another-prefix",
+        ),
+        pytest.param(
+            "platform_release >= '6.8.0.1.2'",
+            "platform_release == '6.8.0.1.3'",
+            True,
+            id="platform-release-preserves-five-component-numeric-ordering",
+        ),
+        pytest.param(
+            "platform_release >= '6'",
+            "platform_release == '6.0.0.1'",
+            True,
+            id="platform-release-supports-single-component-numeric-floor",
+        ),
+        pytest.param(
+            "platform_release >= ' 6.8.0.1 '",
+            "platform_release == '6.8.0.2'",
+            True,
+            id="platform-release-normalizes-surrounding-version-whitespace",
+        ),
+        pytest.param(
+            "platform_release >= '06.008.000.001'",
+            "platform_release == '6.8.0.2'",
+            True,
+            id="platform-release-normalizes-component-leading-zeroes",
+        ),
+        pytest.param(
+            "platform_release >= '6.8.1234567890.1'",
+            "platform_release == '6.8.1234567890.2'",
+            False,
+            id="platform-release-rejects-unbounded-numeric-components",
+        ),
+        pytest.param(
+            "platform_release >= '" + ".".join(["6"] * 33) + "'",
+            "platform_release == '" + ".".join(["6"] * 33) + "'",
+            False,
+            id="platform-release-rejects-unbounded-release-component-count",
+        ),
+        pytest.param(
+            "platform_release >= 'v6.8.0.1'",
+            "platform_release == 'v6.8.0.2'",
+            False,
+            id="platform-release-unsupported-v-prefix-fails-closed",
+        ),
+        pytest.param(
+            "platform_release >= '1!6.8.0.1'",
+            "platform_release == '1!6.8.0.2'",
+            False,
+            id="platform-release-unsupported-epoch-fails-closed",
+        ),
+        pytest.param(
+            "platform_release == '6.8.0.1+linux'",
+            "platform_release == '6.8.0.1+linux'",
+            False,
+            id="platform-release-unsupported-local-label-fails-closed",
+        ),
+        pytest.param(
             "platform_release >= '6.10'",
             "platform_release == 'build-42'",
             False,
@@ -6647,16 +6876,34 @@ def test_locked_extra_marker_defaults_to_one_empty_selected_extra(
             id="platform-release-preserves-numeric-prerelease-ordering",
         ),
         pytest.param(
+            "platform_release >= '6.8.0.1a1'",
+            "platform_release == '6.8.0.1a2'",
+            True,
+            id="platform-release-preserves-four-component-prerelease-ordering",
+        ),
+        pytest.param(
             "platform_release >= '6.8.0.post1'",
             "platform_release == '6.8.0.post2'",
             True,
             id="platform-release-preserves-numeric-post-release-ordering",
         ),
         pytest.param(
+            "platform_release >= '6.8.0.1.post1'",
+            "platform_release == '6.8.0.1.post2'",
+            True,
+            id="platform-release-preserves-four-component-post-release-ordering",
+        ),
+        pytest.param(
             "platform_release >= '6.8.0.dev1'",
             "platform_release == '6.8.0.dev2'",
             True,
             id="platform-release-preserves-numeric-development-ordering",
+        ),
+        pytest.param(
+            "platform_release >= '6.8.0.1.dev1'",
+            "platform_release == '6.8.0.1.dev2'",
+            True,
+            id="platform-release-preserves-four-component-development-ordering",
         ),
         pytest.param(
             "platform_release != 'build-42'",
@@ -7247,6 +7494,30 @@ def test_pep508_compatible_and_arbitrary_equality_marker_operators(
             id="three-component-python-version-projects-zero-micro-to-minor",
         ),
         pytest.param(
+            "python_version === '3.10'",
+            "python_version == '3.10'",
+            True,
+            id="raw-python-version-equality-retains-exact-two-component-value",
+        ),
+        pytest.param(
+            "python_version === '3.10.0'",
+            "python_version == '3.10'",
+            False,
+            id="raw-python-version-equality-rejects-extra-zero-component",
+        ),
+        pytest.param(
+            "python_version === '3.10.0'",
+            "python_full_version == '3.10.4'",
+            False,
+            id="raw-python-version-equality-cannot-use-normalized-full-version",
+        ),
+        pytest.param(
+            "python_version === '03.10'",
+            "python_version == '3.10'",
+            False,
+            id="raw-python-version-equality-rejects-zero-padded-components",
+        ),
+        pytest.param(
             "python_version == '3.10.1'",
             "python_full_version == '3.10.1'",
             False,
@@ -7334,6 +7605,40 @@ def test_transitive_prerelease_security_boundaries_cannot_hide_unprotected_domai
         head_constraints=["danger>=2; " + marker for marker in protected_markers],
         base_resolution_markers={("danger", "1"): [resolution_marker]},
         head_resolution_markers={("danger", "2"): [resolution_marker]},
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("marker", "accepted"),
+    [
+        pytest.param("python_version == '3.10.0'", True, id="pep440-equality-normalizes-zero-component"),
+        pytest.param("python_version === '3.10'", True, id="raw-equality-covers-exact-python-minor"),
+        pytest.param("python_version === '3.10.0'", False, id="raw-equality-cannot-fake-python-minor-coverage"),
+        pytest.param("python_version === '3.10.00'", False, id="raw-equality-rejects-noncanonical-zero-component"),
+        pytest.param("python_version === '03.10'", False, id="raw-equality-rejects-zero-padded-python-major"),
+    ],
+)
+@pytest.mark.parametrize("scope", ["constraint", "build", "group"])
+def test_transitive_python_security_boundaries_preserve_raw_arbitrary_equality(
+    tmp_path: Path, marker: str, accepted: bool, scope: str
+) -> None:
+    previous, updated = "danger>=1; " + marker, "danger>=2; " + marker
+    resolution = "python_version == '3.10'"
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=["patch-me>=1"],
+        head_requirements=["patch-me>=1.1"],
+        base_packages=[("patch-me", "1"), ("danger", "1")],
+        head_packages=[("patch-me", "1.1"), ("danger", "2")],
+        base_constraints=[previous] if scope == "constraint" else None,
+        head_constraints=[updated] if scope == "constraint" else None,
+        base_build_constraints=[previous] if scope == "build" else None,
+        head_build_constraints=[updated] if scope == "build" else None,
+        base_dependency_groups={"reviewed": [previous]} if scope == "group" else None,
+        head_dependency_groups={"reviewed": [updated]} if scope == "group" else None,
+        base_resolution_markers={("danger", "1"): [resolution]},
+        head_resolution_markers={("danger", "2"): [resolution]},
     )
     assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
 

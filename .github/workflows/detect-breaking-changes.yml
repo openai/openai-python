@@ -359,7 +359,36 @@ jobs:
           UV_LOCKED: '1'
         run: |
           reviewed_sources="$(python -c 'import pathlib, re, subprocess, tomllib; origin = subprocess.check_output(["git", "remote", "get-url", "origin"], text=True).strip(); assert origin in {"https://github.com/openai/openai-agents-python", "https://github.com/openai/openai-agents-python.git"}, "Use only the immutable reviewed Agents source distributions"; trusted = tomllib.loads(subprocess.check_output(["git", "show", "HEAD:uv.lock"], text=True)); current = tomllib.loads(pathlib.Path("uv.lock").read_text()); canonical = lambda value: re.sub(r"[-_.]+", "-", value).lower(); reviewed = {"aiohttp": ("3.12.15", "https://files.pythonhosted.org/packages/9b/e7/d92a237d8802ca88483906c388f7c201bbe96cd80a165ffd0ac2f6a8d59f/aiohttp-3.12.15.tar.gz", "sha256:4fc61385e9c98d72fcdf47e6dd81833f47b2f77c114c29cd64a361be57a763a2"), "markupsafe": ("3.0.2", "https://files.pythonhosted.org/packages/b2/97/5d42485e71dfc078108a86d6de8fa46db44a1a9295e89c5d6d4a06e23a62/markupsafe-3.0.2.tar.gz", "sha256:ee55d3edf80167e48ea11a923c7386f4669df67d7994554387f84e7d8b0a2bf0"), "pyyaml": ("6.0.2", "https://files.pythonhosted.org/packages/54/ed/79a089b6be93607fa5cdaedf301d7dfb23af5f25c398d5ead2525b063e17/pyyaml-6.0.2.tar.gz", "sha256:d584d9ec91ad65861cc08d42e834324ef890a082e591037abe114850ff7bbc3e"), "evdev": ("1.9.2", "https://files.pythonhosted.org/packages/63/fe/a17c106a1f4061ce83f04d14bcedcfb2c38c7793ea56bfb906a6fadae8cb/evdev-1.9.2.tar.gz", "sha256:5d3278892ce1f92a74d6bf888cc8525d9f68af85dbe336c95d1c87fb8f423069")}; public = {"registry": "https://pypi.org/simple"}; approved = {name: [entry for entry in trusted["package"] if canonical(entry.get("name", "")) == name] for name in reviewed}; actual = {name: [entry for entry in current["package"] if canonical(entry.get("name", "")) == name] for name in reviewed}; safe = lambda artifact: isinstance(artifact, dict) and re.fullmatch(r"https://files\.pythonhosted\.org/packages/[^\s?#]+", artifact.get("url", "")) and re.fullmatch(r"sha256:[0-9a-f]{64}", artifact.get("hash", "")); assert all(len(approved[name]) == 1 and approved[name][0].get("version") == version and approved[name][0].get("source") == public and isinstance(approved[name][0].get("sdist"), dict) and approved[name][0]["sdist"].get("url") == url and approved[name][0]["sdist"].get("hash") == digest for name, (version, url, digest) in reviewed.items()), "Use only the immutable reviewed Agents source distributions"; assert all(len(actual[name]) <= 1 and (not actual[name] or actual[name][0].get("source") == public and (actual[name][0].get("version") == version and actual[name][0].get("sdist") == approved[name][0].get("sdist") or actual[name][0].get("version") != version and isinstance(wheels := actual[name][0].get("wheels"), list) and bool(wheels) and all(safe(artifact) for artifact in ([actual[name][0]["sdist"]] if "sdist" in actual[name][0] else []) + wheels) and all(wheel["url"].endswith(".whl") for wheel in wheels))) for name, (version, _, _) in reviewed.items()), "Use only the immutable reviewed Agents source distributions"; print(" ".join(name for name, (version, _, _) in reviewed.items() if actual[name] and actual[name][0].get("version") == version and actual[name][0].get("sdist") == approved[name][0].get("sdist")))')"
-          UV_NO_BINARY_PACKAGE="openai openai-agents ${reviewed_sources}" make sync
+          denied_sources="$(python - "$reviewed_sources" <<'PY'
+          import pathlib
+          import re
+          import sys
+          import tomllib
+
+          roots = {"openai": {"directory": "../openai-python"}, "openai-agents": {"editable": "."}}
+          public = {"registry": "https://pypi.org/simple"}
+          reviewed = set(sys.argv[1].split())
+          packages = {}
+          for package in tomllib.loads(pathlib.Path("uv.lock").read_text())["package"]:
+              original = package.get("name")
+              if not isinstance(original, str):
+                  raise SystemExit("Refuse an invalid Agents source-build package name")
+              name = re.sub(r"[-_.]+", "-", original).lower()
+              if not re.fullmatch(r"[a-z0-9][a-z0-9-]*", name):
+                  raise SystemExit("Refuse an invalid Agents source-build package name")
+              if package.get("source") != roots.get(name, public) or name in packages and (
+                  original != packages[name] or name in roots
+              ):
+                  raise SystemExit("Refuse an unreviewed Agents source-build package")
+              packages[name] = original
+          external = set(packages) - set(roots)
+          denied = external - reviewed
+          if not set(roots).issubset(packages) or not reviewed.issubset(external) or not denied:
+              raise SystemExit("Refuse incomplete Agents source-build restrictions")
+          print(" ".join(sorted(denied)))
+          PY
+          )"
+          env -u UV_NO_BUILD UV_NO_BUILD_PACKAGE="${denied_sources}" UV_NO_BINARY_PACKAGE="openai openai-agents ${reviewed_sources}" make sync
 
       - name: Run integration type checks
         env:
