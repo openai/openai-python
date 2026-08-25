@@ -472,36 +472,43 @@ def stable_version(value: str) -> StableRelease:
 
 def marker_version_bounds(
     variable: str, value: str
-) -> tuple[tuple[int, int, int, int, int], tuple[int, int, int, int, int], bool, bool]:
-    match = re.fullmatch(r"(\d+)\.(\d+)(?:\.(\d+))?(?:(a|b|rc)(\d+))?(\.\*)?", value)
-    if match is None or (variable == "python_version" and (match.group(3) is not None or match.group(4) is not None)):
+) -> tuple[tuple[int, ...], tuple[int, ...], bool, bool]:
+    match = re.fullmatch(
+        r"(\d+)\.(\d+)(?:\.(\d+))?(?:(a|b|rc)(\d+))?(?:\.post(\d+))?(?:\.dev(\d+))?(\.\*)?",
+        value,
+    )
+    if match is None:
         raise SystemExit("Ambiguous Python security dependency marker")
-    if any(len(component) > 9 for component in match.groups()[:3] if component is not None) or (
-        match.group(5) is not None and len(match.group(5)) > 9
-    ):
+    if any(len(match.group(index)) > 9 for index in (1, 2, 3, 5, 6, 7) if match.group(index) is not None):
         raise SystemExit("Unbounded Python security dependency marker")
 
     major, minor = int(match.group(1)), int(match.group(2))
     patch = int(match.group(3) or 0)
-    prerelease = match.group(4) is not None
-    wildcard = match.group(6) is not None
-    if prerelease and wildcard:
+    prerelease = match.group(4) is not None or match.group(7) is not None
+    wildcard = match.group(8) is not None
+    if wildcard and (prerelease or match.group(6) is not None):
         raise SystemExit("Ambiguous wildcard security dependency marker")
+    if variable == "python_version" and (patch != 0 or prerelease or match.group(6) is not None):
+        raise SystemExit("Ambiguous Python security dependency marker")
 
-    phase = {"a": -3, "b": -2, "rc": -1}.get(match.group(4) or "", 0)
+    phase = (
+        -4
+        if match.group(7) is not None and match.group(4) is None and match.group(6) is None
+        else {"a": -3, "b": -2, "rc": -1}.get(match.group(4) or "", 0)
+    )
     serial = int(match.group(5) or 0)
+    post = -1 if match.group(6) is None else int(match.group(6))
+    development = -1 if match.group(7) is not None else 0
+    development_serial = int(match.group(7) or 0)
     if variable == "python_version" or wildcard:
-        start = major, minor, patch, -4, 0
+        start = major, minor, patch, -5, 0, -1, -1, 0
         if variable == "python_version" or match.group(3) is None:
-            stop = major, minor + 1, 0, -4, 0
+            stop = major, minor + 1, 0, -5, 0, -1, -1, 0
         else:
-            stop = major, minor, patch + 1, -4, 0
-    elif prerelease:
-        start = major, minor, patch, phase, serial
-        stop = major, minor, patch, phase, serial + 1
+            stop = major, minor, patch + 1, -5, 0, -1, -1, 0
     else:
-        start = major, minor, patch, 0, 0
-        stop = major, minor, patch + 1, -4, 0
+        start = major, minor, patch, phase, serial, post, development, development_serial
+        stop = start[:-1] + (development_serial + 1,)
     return start, stop, wildcard, prerelease
 
 
@@ -529,9 +536,9 @@ def simple_marker_overlap(requirement: MarkerContext, resolution: MarkerContext)
             for numeric, (_, operator, _) in zip(numeric_platform_values, constraints, strict=True)
         )
         if family in {"python", "implementation_version"} or numeric_platform_release:
-            lower: tuple[int, int, int, int, int] = (0, 0, 0, -4, 0)
-            upper: tuple[int, int, int, int, int] | None = None
-            excluded: list[tuple[tuple[int, int, int, int, int], tuple[int, int, int, int, int]]] = []
+            lower: tuple[int, ...] = (0, 0, 0, -5, 0, -1, -1, 0)
+            upper: tuple[int, ...] | None = None
+            excluded: list[tuple[tuple[int, ...], tuple[int, ...]]] = []
             for variable, operator, value in constraints:
                 start, stop, wildcard, prerelease = marker_version_bounds(variable, value)
                 if wildcard and operator not in {"Eq", "NotEq"}:
@@ -543,17 +550,20 @@ def simple_marker_overlap(requirement: MarkerContext, resolution: MarkerContext)
                     excluded.append((start, stop))
                 elif operator in {"Lt", "RawLt"}:
                     ceiling = start
-                    if operator == "Lt" and variable != "python_version" and not prerelease:
-                        ceiling = start[0], start[1], start[2], -4, 0
+                    if operator == "Lt" and variable != "python_version" and not prerelease and start[5] == -1:
+                        ceiling = start[0], start[1], start[2], -5, 0, -1, -1, 0
                     upper = ceiling if upper is None else min(upper, ceiling)
                 elif operator == "LtE":
                     upper = stop if upper is None else min(upper, stop)
                 elif operator == "Gt":
-                    lower = max(lower, stop)
+                    floor = stop
+                    if variable != "python_version" and not prerelease and start[5] == -1:
+                        floor = start[0], start[1], start[2] + 1, -5, 0, -1, -1, 0
+                    lower = max(lower, floor)
                 elif operator in {"GtE", "RawGtE"}:
                     floor = start
-                    if operator == "RawGtE" and variable != "python_version" and not prerelease:
-                        floor = start[0], start[1], start[2], -4, 0
+                    if operator == "RawGtE" and variable != "python_version" and not prerelease and start[5] == -1:
+                        floor = start[0], start[1], start[2], -5, 0, -1, -1, 0
                     lower = max(lower, floor)
                 else:
                     raise SystemExit("Ambiguous Python security dependency marker")
@@ -678,7 +688,8 @@ def marker_options(context: MarkerContext) -> list[MarkerContext]:
             if variable not in {"python_version", "python_full_version", "implementation_version", "platform_release"}:
                 raise SystemExit("Unsupported compatible security dependency marker")
             compatible = re.fullmatch(
-                r"((?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:\.(?:0|[1-9]\d*))?)((?:a|b|rc)(?:0|[1-9]\d*))?",
+                r"((?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:\.(?:0|[1-9]\d*))?)"
+                r"((?:(?:a|b|rc)(?:0|[1-9]\d*))?(?:\.post(?:0|[1-9]\d*))?(?:\.dev(?:0|[1-9]\d*))?)",
                 value,
             )
             if compatible is None:
@@ -687,7 +698,7 @@ def marker_options(context: MarkerContext) -> list[MarkerContext]:
             if (
                 len(components) not in {2, 3}
                 or any(len(component) > 9 for component in components)
-                or compatible.group(2) is not None
+                or bool(compatible.group(2))
                 and (variable in {"python_version", "platform_release"} or len(compatible.group(2)) > 11)
                 or variable == "python_version"
                 and len(components) != 2
@@ -702,9 +713,12 @@ def marker_options(context: MarkerContext) -> list[MarkerContext]:
             continue
         if operator == "ArbitraryEq":
             if variable == "python_version":
-                pattern = r"(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)"
+                pattern = r"(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:\.0)?"
             elif variable in {"python_full_version", "implementation_version"}:
-                pattern = r"(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:(?:a|b|rc)(?:0|[1-9]\d*))?"
+                pattern = (
+                    r"(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)"
+                    r"(?:(?:a|b|rc)(?:0|[1-9]\d*))?(?:\.post(?:0|[1-9]\d*))?(?:\.dev(?:0|[1-9]\d*))?"
+                )
             else:
                 raise SystemExit("Unsupported arbitrary security dependency marker variable")
             if re.fullmatch(pattern, value) is None:
@@ -714,9 +728,12 @@ def marker_options(context: MarkerContext) -> list[MarkerContext]:
             options = [option + ((variable, operator, value),) for option in options]
             continue
         if variable == "python_version":
-            pattern = r"(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)"
+            pattern = r"(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:\.0)?"
         elif variable in {"python_full_version", "implementation_version"}:
-            pattern = r"(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:(?:a|b|rc)(?:0|[1-9]\d*))?"
+            pattern = (
+                r"(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)"
+                r"(?:(?:a|b|rc)(?:0|[1-9]\d*))?(?:\.post(?:0|[1-9]\d*))?(?:\.dev(?:0|[1-9]\d*))?"
+            )
         elif variable in allowed_platforms:
             pattern = r"[A-Za-z0-9][A-Za-z0-9_.-]*"
         else:
@@ -1779,8 +1796,11 @@ if new_requested_extra_contexts:
         name
         for name, audiences in extra_reachable.items()
         for audience in audiences
-        if name not in new_direct
-        and not any(audience_covers(previous, audience) for previous in previous_reachable.get(name, set()))
+        if not any(audience_covers(previous, audience) for previous in previous_reachable.get(name, set()))
+        and not any(
+            root == name and audience_covers((context[0], context[1], context[3]), audience)
+            for root, context in new_requested_extra_contexts
+        )
     }
 partitioned_security_sources: set[tuple[bool, str]] = set()
 for is_protected, previous_by_name, current_by_name in (
@@ -1945,7 +1965,7 @@ if new_requested_extra_contexts:
     for name in newly_exposed:
         reviewed_contexts = new_protected_contexts.get(name, {}) | new_contexts.get(name, {})
         for domain, domain_versions in new_resolution_contexts.get(name, {}).items():
-            exposed: set[MarkerContext] = set()
+            exposed: set[tuple[str, str, MarkerContext]] = set()
             for scope, group, marker in extra_reachable.get(name, set()):
                 if not marker_overlap(marker, domain):
                     continue
@@ -1955,29 +1975,30 @@ if new_requested_extra_contexts:
                     for previous_scope, previous_group, previous_marker in previous_reachable.get(name, set())
                     if previous_scope == "runtime" or (previous_scope, previous_group) == (scope, group)
                 ]
-                exposed.update(uncovered_marker_fragments(shared, prior))
+                exposed.update((scope, group, fragment) for fragment in uncovered_marker_fragments(shared, prior))
             if not exposed:
                 continue
             for version in domain_versions:
                 release = stable_version(version)
-                extra_coverings: list[MarkerContext] = []
-                for context, requirements in reviewed_contexts.items():
-                    if not any(marker_overlap(context[3], fragment) for fragment in exposed):
-                        continue
-                    for requirement in requirements:
-                        floors = minimums({requirement}, allow_missing=True, exact=True)
-                        if (
-                            len(floors) == 1
-                            and floors[0] >= release
-                            and allows_published_release(published_bounds(requirement), release)
-                        ):
-                            extra_coverings.append(context[3])
-                if not extra_coverings or any(
-                    uncovered_marker_fragments(fragment, extra_coverings) for fragment in exposed
-                ):
-                    raise SystemExit(
-                        "Review the contextual dependency introduced by a newly requested extra for " + name
-                    )
+                for scope, group, fragment in exposed:
+                    extra_coverings: list[MarkerContext] = []
+                    for context, requirements in reviewed_contexts.items():
+                        if context[0] == "optional" and context[:2] != (scope, group):
+                            continue
+                        if not marker_overlap(context[3], fragment):
+                            continue
+                        for requirement in requirements:
+                            floors = minimums({requirement}, allow_missing=True, exact=True)
+                            if (
+                                len(floors) == 1
+                                and floors[0] >= release
+                                and allows_published_release(published_bounds(requirement), release)
+                            ):
+                                extra_coverings.append(context[3])
+                    if not extra_coverings or uncovered_marker_fragments(fragment, extra_coverings):
+                        raise SystemExit(
+                            "Review the contextual dependency introduced by a newly requested extra for " + name
+                        )
 
 direct_replacements: dict[str, ContextReplacements] = {}
 for name, previous_contexts in old_contexts.items():

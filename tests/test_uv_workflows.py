@@ -4604,6 +4604,58 @@ def test_new_extras_cannot_publish_previously_locked_transitive_packages(
     assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
 
 
+@pytest.mark.parametrize(
+    ("variant", "accepted"),
+    [
+        pytest.param("optional-to-runtime", False, id="optional-direct-floor-cannot-review-new-runtime-audience"),
+        pytest.param("runtime-reviewed", True, id="reviewed-runtime-floor-covers-new-runtime-audience"),
+        pytest.param("protected-reviewed", True, id="protected-floor-can-review-new-runtime-audience"),
+        pytest.param("protected-too-low", False, id="protected-review-must-reach-the-actual-locked-release"),
+        pytest.param("different-optional", False, id="one-optional-group-cannot-review-another-group-audience"),
+        pytest.param("same-optional", True, id="same-optional-group-retains-its-reviewed-direct-audience"),
+    ],
+)
+def test_new_extra_direct_dependency_boundaries_cover_their_actual_audience(
+    tmp_path: Path, variant: str, accepted: bool
+) -> None:
+    base_requirements = ["patch-me>=1", "parent"]
+    head_requirements = ["patch-me>=1.1", "parent", "parent[feature]"]
+    base_optional = {"private": ["plugin>=1"]}
+    head_optional = {"private": ["plugin>=1"]}
+    constraints: list[str] | None = None
+
+    if variant == "runtime-reviewed":
+        base_requirements.append("plugin>=2")
+        head_requirements.append("plugin>=2")
+    elif variant == "protected-reviewed":
+        constraints = ["plugin>=2"]
+    elif variant == "protected-too-low":
+        constraints = ["plugin>=1"]
+    elif variant == "different-optional":
+        base_requirements, head_requirements = ["patch-me>=1"], ["patch-me>=1.1"]
+        base_optional = {"private": ["plugin>=1"], "public": ["parent"]}
+        head_optional = {"private": ["plugin>=1"], "public": ["parent", "parent[feature]"]}
+    elif variant == "same-optional":
+        base_requirements, head_requirements = ["patch-me>=1"], ["patch-me>=1.1"]
+        base_optional = {"public": ["parent", "plugin>=2"]}
+        head_optional = {"public": ["parent", "parent[feature]", "plugin>=2"]}
+
+    edges = {("parent", "1"): {"feature": [{"name": "plugin"}]}}
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=base_requirements,
+        head_requirements=head_requirements,
+        base_packages=[("patch-me", "1"), ("parent", "1"), ("plugin", "2")],
+        head_packages=[("patch-me", "1.1"), ("parent", "1"), ("plugin", "2")],
+        base_optional_groups=base_optional,
+        head_optional_groups=head_optional,
+        head_constraints=constraints,
+        base_lock_optional_dependencies=edges,
+        head_lock_optional_dependencies=edges,
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
 def test_cyclic_extra_dependency_graph_retains_bounded_pending_states(tmp_path: Path) -> None:
     edges: list[dict[str, object]] = [{"name": "parent", "extra": ["new-extra"]} for _ in range(4097)]
     optional: dict[tuple[str, str], dict[str, list[dict[str, object]]]] = {("parent", "1"): {"new-extra": edges}}
@@ -6957,14 +7009,98 @@ def test_pep508_compatible_and_arbitrary_equality_marker_operators(
         pytest.param(
             "python_full_version >= '3.15.0.dev1'",
             "python_full_version == '3.15.0a1'",
+            True,
+            id="development-prerelease-precedes-alpha",
+        ),
+        pytest.param(
+            "python_full_version >= '3.15.0.dev1'",
+            "python_full_version == '3.15.0.dev2'",
+            True,
+            id="development-prerelease-ordering-preserves-later-builds",
+        ),
+        pytest.param(
+            "python_full_version >= '3.15.0.dev2'",
+            "python_full_version == '3.15.0.dev1'",
             False,
-            id="unsupported-development-prerelease-fails-closed",
+            id="development-prerelease-floor-rejects-earlier-builds",
+        ),
+        pytest.param(
+            "python_full_version >= '3.15.0a1.dev2'",
+            "python_full_version == '3.15.0a1.dev3'",
+            True,
+            id="alpha-development-builds-retain-their-own-ordering",
+        ),
+        pytest.param(
+            "python_full_version >= '3.15.0.post1'",
+            "python_full_version == '3.15.0.post2'",
+            True,
+            id="post-release-floor-preserves-later-post-releases",
+        ),
+        pytest.param(
+            "python_full_version >= '3.15.0.post2'",
+            "python_full_version == '3.15.0.post1'",
+            False,
+            id="post-release-floor-rejects-earlier-post-releases",
+        ),
+        pytest.param(
+            "python_full_version >= '3.15.0.post1.dev2'",
+            "python_full_version == '3.15.0.post1'",
+            True,
+            id="post-development-build-precedes-its-post-release",
+        ),
+        pytest.param(
+            "python_full_version == '3.15.0'",
+            "python_full_version == '3.15.0.post1'",
+            False,
+            id="exact-final-release-cannot-admit-a-post-release",
+        ),
+        pytest.param(
+            "python_full_version > '3.15.0'",
+            "python_full_version == '3.15.0.post1'",
+            False,
+            id="exclusive-final-floor-cannot-admit-same-release-post-versions",
+        ),
+        pytest.param(
+            "implementation_version >= '3.15.0.post1'",
+            "implementation_version == '3.15.0.post2'",
+            True,
+            id="implementation-version-preserves-post-release-ordering",
+        ),
+        pytest.param(
+            "implementation_version >= '3.15.0.dev1'",
+            "implementation_version == '3.15.0a1'",
+            True,
+            id="implementation-development-release-precedes-alpha",
+        ),
+        pytest.param(
+            "python_version == '3.10.0'",
+            "python_full_version == '3.10.4'",
+            True,
+            id="three-component-python-version-projects-zero-micro-to-minor",
+        ),
+        pytest.param(
+            "python_version == '3.10.1'",
+            "python_full_version == '3.10.1'",
+            False,
+            id="python-version-nonzero-micro-does-not-falsely-match-minor",
+        ),
+        pytest.param(
+            "python_full_version in '3.15.0.dev1, 3.15.0.post2'",
+            "python_full_version == '3.15.0.dev1'",
+            True,
+            id="membership-retains-development-and-post-release-operands",
+        ),
+        pytest.param(
+            "python_full_version === '3.15.0.post2'",
+            "python_full_version == '3.15.0.post2'",
+            True,
+            id="arbitrary-equality-preserves-post-release-identities",
         ),
         pytest.param(
             "python_full_version >= '3.15.0.post1'",
             "python_full_version == '3.15.0a1'",
             False,
-            id="unsupported-post-release-fails-closed",
+            id="post-release-floor-rejects-earlier-prerelease-stages",
         ),
     ],
 )
