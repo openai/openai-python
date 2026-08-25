@@ -30,21 +30,98 @@ __all__ = [
     "WebSocketQueueFullError",
 ]
 
+_RequestSnapshot = tuple[str, str, list[tuple[bytes, bytes]], bytes | None]
+_ResponseSnapshot = tuple[int, list[tuple[bytes, bytes]], bytes | None, _RequestSnapshot | None]
+
 
 class OpenAIError(Exception):
     @override
     def __reduce__(self) -> tuple[object, tuple[object, ...]]:
-        return (_reconstruct_openai_error, (type(self), self.args, self.__dict__))
+        state = self.__dict__.copy()
+
+        request_snapshot: _RequestSnapshot | None = None
+        request = state.get("request")
+        if isinstance(request, httpx2.Request):
+            request_snapshot = _snapshot_request(request)
+            del state["request"]
+
+        response_snapshot: _ResponseSnapshot | None = None
+        response = state.get("response")
+        if isinstance(response, httpx2.Response):
+            response_snapshot = _snapshot_response(response)
+            del state["response"]
+
+        return (
+            _reconstruct_openai_error,
+            (type(self), self.args, state, request_snapshot, response_snapshot),
+        )
+
+
+def _snapshot_request(request: httpx2.Request) -> _RequestSnapshot:
+    try:
+        content = request.content
+    except httpx2.RequestNotRead:
+        content = None
+
+    return (request.method, str(request.url), list(request.headers.raw), content)
+
+
+def _restore_request(snapshot: _RequestSnapshot) -> httpx2.Request:
+    method, url, headers, content = snapshot
+    if content is None:
+        return httpx2.Request(method, url, headers=headers)
+    return httpx2.Request(method, url, headers=headers, content=content)
+
+
+def _snapshot_response(response: httpx2.Response) -> _ResponseSnapshot:
+    try:
+        content = response.content
+    except httpx2.ResponseNotRead:
+        content = None
+
+    try:
+        request_snapshot = _snapshot_request(response.request)
+    except RuntimeError:
+        request_snapshot = None
+
+    return (response.status_code, list(response.headers.raw), content, request_snapshot)
+
+
+def _restore_response(
+    snapshot: _ResponseSnapshot,
+    *,
+    request: httpx2.Request | None,
+) -> httpx2.Response:
+    status_code, headers, content, response_request_snapshot = snapshot
+    if request is None and response_request_snapshot is not None:
+        request = _restore_request(response_request_snapshot)
+
+    kwargs: dict[str, Any] = {"headers": headers}
+    if content is not None:
+        kwargs["content"] = content
+    if request is not None:
+        kwargs["request"] = request
+
+    return httpx2.Response(status_code, **kwargs)
 
 
 def _reconstruct_openai_error(
     error_type: type[OpenAIError],
     args: tuple[object, ...],
     state: dict[str, Any],
+    request_snapshot: _RequestSnapshot | None,
+    response_snapshot: _ResponseSnapshot | None,
 ) -> OpenAIError:
     error = error_type.__new__(error_type)
     Exception.__init__(error, *args)
     error.__dict__.update(state)
+
+    request = _restore_request(request_snapshot) if request_snapshot is not None else None
+    if request is not None:
+        error.__dict__["request"] = request
+    if response_snapshot is not None:
+        error.__dict__["response"] = _restore_response(response_snapshot, request=request)
+
     return error
 
 
