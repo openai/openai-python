@@ -34,27 +34,24 @@ __all__ = [
 
 _RequestTimeoutSnapshot = dict[str, float | None]
 _RequestSnapshot = tuple[str, list[tuple[bytes, bytes]], _RequestTimeoutSnapshot | None]
+_ResponseExtensionsSnapshot = dict[str, bytes]
 _ResponseSnapshot = tuple[
     int,
     list[tuple[bytes, bytes]],
     _RequestSnapshot | None,
     timedelta | None,
+    _ResponseExtensionsSnapshot,
 ]
 
 _REDACTED_REQUEST_URL = "https://redacted.invalid/"
 _REDACTED_HEADER_VALUE = b"<redacted>"
-_SENSITIVE_HEADERS = {
-    b"api-key",
-    b"authorization",
-    b"cookie",
-    b"host",
-    b"proxy-authorization",
-    b"set-cookie",
-    b"x-amz-security-token",
-    b"x-api-key",
-    b"x-goog-api-key",
+_SAFE_HEADER_VALUES = {
+    b"content-length",
+    b"content-type",
+    b"x-request-id",
 }
 _TIMEOUT_EXTENSION_KEYS = ("connect", "read", "write", "pool")
+_RESPONSE_EXTENSION_KEYS = ("http_version", "reason_phrase")
 
 
 class OpenAIError(Exception):
@@ -62,6 +59,9 @@ class OpenAIError(Exception):
     def __reduce__(self) -> tuple[object, tuple[object, ...]]:
         state = self.__dict__.copy()
         slot_state = _snapshot_slot_state(self)
+
+        if isinstance(self, WebSocketConnectionClosedError):
+            state["unsent_messages"] = []
 
         request_snapshot: _RequestSnapshot | None = None
         request = state.get("request")
@@ -97,7 +97,7 @@ def _is_http_response(value: object) -> bool:
 
 def _snapshot_headers(headers: Any) -> list[tuple[bytes, bytes]]:
     return [
-        (name, _REDACTED_HEADER_VALUE if name.lower() in _SENSITIVE_HEADERS else value)
+        (name, value if name.lower() in _SAFE_HEADER_VALUES else _REDACTED_HEADER_VALUE)
         for name, value in headers.raw
     ]
 
@@ -135,6 +135,19 @@ def _restore_request(snapshot: _RequestSnapshot) -> httpx2.Request:
     return httpx2.Request(method, _REDACTED_REQUEST_URL, **kwargs)
 
 
+def _snapshot_response_extensions(response: Any) -> _ResponseExtensionsSnapshot:
+    extensions = response.extensions
+    if not isinstance(extensions, dict):
+        return {}
+
+    snapshot: _ResponseExtensionsSnapshot = {}
+    for key in _RESPONSE_EXTENSION_KEYS:
+        value = extensions.get(key)
+        if isinstance(value, bytes):
+            snapshot[key] = value
+    return snapshot
+
+
 def _snapshot_response(response: Any) -> _ResponseSnapshot:
     try:
         request_snapshot = _snapshot_request(response.request)
@@ -151,6 +164,7 @@ def _snapshot_response(response: Any) -> _ResponseSnapshot:
         _snapshot_headers(response.headers),
         request_snapshot,
         elapsed,
+        _snapshot_response_extensions(response),
     )
 
 
@@ -159,13 +173,15 @@ def _restore_response(
     *,
     request: httpx2.Request | None,
 ) -> httpx2.Response:
-    status_code, headers, response_request_snapshot, elapsed = snapshot
+    status_code, headers, response_request_snapshot, elapsed, extensions = snapshot
     if request is None and response_request_snapshot is not None:
         request = _restore_request(response_request_snapshot)
 
     kwargs: dict[str, Any] = {"headers": headers}
     if request is not None:
         kwargs["request"] = request
+    if extensions:
+        kwargs["extensions"] = extensions
 
     response = httpx2.Response(status_code, **kwargs)
     if elapsed is not None:
