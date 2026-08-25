@@ -9,11 +9,16 @@ from threading import Thread
 import httpx2
 import pytest
 
-from openai import APITimeoutError, AsyncOpenAI, BadRequestError, OpenAI
+from openai import APITimeoutError, AsyncOpenAI, BadRequestError, OpenAI, OpenAIError
 from openai._exceptions import WebSocketConnectionClosedError
 
 
 _ERROR_PAYLOAD = b'{"error":{"message":"bad request","type":"invalid_request_error","param":null,"code":"bad_request"}}'
+
+
+class _CustomNewOpenAIError(OpenAIError):
+    def __new__(cls, message: str) -> _CustomNewOpenAIError:
+        return Exception.__new__(cls)
 
 
 class _BadRequestHandler(BaseHTTPRequestHandler):
@@ -123,6 +128,15 @@ def test_status_error_from_async_transport_pickle_round_trip(transport_error_bas
             _assert_transport_status_error_pickle_round_trip(exc_info.value)
 
     asyncio.run(run())
+
+
+def test_custom_error_subclass_with_required_new_argument_pickle_round_trip() -> None:
+    error = _CustomNewOpenAIError("custom error")
+
+    restored = pickle.loads(pickle.dumps(error))
+
+    assert isinstance(restored, _CustomNewOpenAIError)
+    assert str(restored) == "custom error"
 
 
 def test_websocket_error_pickle_round_trip_preserves_unsent_messages() -> None:
