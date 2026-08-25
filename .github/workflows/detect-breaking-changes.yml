@@ -100,10 +100,135 @@ jobs:
           UV_NO_BINARY_PACKAGE: 'openai openai-agents'
         run: uv add --no-sync ../openai-python
 
+      - name: Verify relinked Agents lock package provenance
+        working-directory: openai-agents-python
+        run: |
+          python -I <<'PY'
+          import os
+          import pathlib
+          import re
+          import subprocess
+          import tomllib
+
+          PUBLIC = {"registry": "https://pypi.org/simple"}
+
+          def reject(reason):
+              raise SystemExit("Unreviewed relinked Agents lock package: " + reason)
+
+          def canonical(value):
+              if not isinstance(value, str):
+                  reject("invalid package name")
+              return re.sub(r"[-_.]+", "-", value).lower()
+
+          def identity(package):
+              name = canonical(package.get("name"))
+              version = package.get("version")
+              source = package.get("source")
+              if not isinstance(version, str) or source != PUBLIC:
+                  reject(name + " has an unreviewed version or package source")
+              artifacts = []
+              if "sdist" in package:
+                  artifacts.append(("sdist", package["sdist"]))
+              if "wheels" in package:
+                  wheels = package["wheels"]
+                  if not isinstance(wheels, list):
+                      reject(name + " has invalid wheels")
+                  artifacts.extend(("wheel", wheel) for wheel in wheels)
+              if not artifacts:
+                  reject(name + " has no reviewed distribution artifacts")
+              complete = []
+              for kind, artifact in artifacts:
+                  if not isinstance(artifact, dict):
+                      reject(name + " has an invalid artifact")
+                  url, digest = artifact.get("url"), artifact.get("hash")
+                  if not isinstance(url, str) or not re.fullmatch(
+                      r"https://files\.pythonhosted\.org/packages/[^\s?#]+", url
+                  ):
+                      reject(name + " has an unreviewed artifact URL")
+                  if not isinstance(digest, str) or not re.fullmatch(r"sha256:[0-9a-f]{64}", digest):
+                      reject(name + " has an unreviewed artifact digest")
+                  if kind == "wheel" and not url.endswith(".whl"):
+                      reject(name + " has an invalid wheel")
+                  complete.append((kind, url, digest))
+              if len(set(complete)) != len(complete):
+                  reject(name + " has duplicate artifact records")
+              return name, version, tuple(sorted(source.items())), tuple(sorted(complete))
+
+          def checkout_origin(arguments, expected):
+              origin = subprocess.check_output(arguments, text=True).strip()
+              if origin not in {expected, expected + ".git"}:
+                  reject("untrusted checkout origin")
+
+          checkout_origin(
+              ["git", "remote", "get-url", "origin"],
+              "https://github.com/openai/openai-agents-python",
+          )
+          sdk = pathlib.Path("../openai-python")
+          if sdk.is_symlink() or not sdk.is_dir():
+              reject("the local SDK must be the reviewed sibling checkout")
+          checkout_origin(
+              ["git", "-C", "../openai-python", "remote", "get-url", "origin"],
+              "https://github.com/openai/openai-python",
+          )
+
+          agents_lock = tomllib.loads(subprocess.check_output(["git", "show", "HEAD:uv.lock"], text=True))
+          if os.environ.get("UNTRUSTED_BUILD_FORK") == "1":
+              base = os.environ.get("TRUSTED_BUILD_BASE_SHA", "")
+              if not re.fullmatch(r"[0-9a-f]{40}", base):
+                  reject("invalid immutable SDK base revision")
+              sdk_content = subprocess.check_output(
+                  ["git", "-C", "../openai-python", "show", base + ":uv.lock"],
+                  text=True,
+              )
+          else:
+              sdk_content = sdk.joinpath("uv.lock").read_text()
+          sdk_lock = tomllib.loads(sdk_content)
+          current = tomllib.loads(pathlib.Path("uv.lock").read_text())
+
+          def reviewed_root(lock, name):
+              matches = [
+                  package
+                  for package in lock.get("package", [])
+                  if canonical(package.get("name")) == name
+                  and package.get("source") == {"editable": "."}
+              ]
+              if len(matches) != 1 or not isinstance(matches[0].get("version"), str):
+                  reject("the trusted " + name + " root is invalid")
+              return matches[0]
+
+          agents_root = reviewed_root(agents_lock, "openai-agents")
+          sdk_root = reviewed_root(sdk_lock, "openai")
+          approved = set()
+          for lock, root in ((agents_lock, agents_root), (sdk_lock, sdk_root)):
+              for package in lock.get("package", []):
+                  if package is root:
+                      continue
+                  approved.add(identity(package))
+
+          seen = set()
+          local_roots = {"openai-agents": 0, "openai": 0}
+          for package in current.get("package", []):
+              name = canonical(package.get("name"))
+              if name in local_roots:
+                  local_roots[name] += 1
+                  expected = agents_root if name == "openai-agents" else sdk_root
+                  source = {"editable": "."} if name == "openai-agents" else {"directory": "../openai-python"}
+                  if package.get("version") != expected.get("version") or package.get("source") != source:
+                      reject("the local " + name + " root changed")
+                  continue
+              actual = identity(package)
+              if actual not in approved or actual in seen:
+                  reject(name + " is unreviewed or duplicated")
+              seen.add(actual)
+          if local_roots != {"openai-agents": 1, "openai": 1}:
+              reject("the relinked lock must contain exactly the two reviewed local roots")
+          PY
+
       - name: Install dependencies
         working-directory: openai-agents-python
         env:
           UV_NO_BINARY_PACKAGE: 'openai openai-agents'
+          UV_LOCKED: '1'
         run: |
           reviewed_sources="$(python -c 'import pathlib, re, subprocess, tomllib; origin = subprocess.check_output(["git", "remote", "get-url", "origin"], text=True).strip(); assert origin in {"https://github.com/openai/openai-agents-python", "https://github.com/openai/openai-agents-python.git"}, "Use only the immutable reviewed Agents source distributions"; trusted = tomllib.loads(subprocess.check_output(["git", "show", "HEAD:uv.lock"], text=True)); current = tomllib.loads(pathlib.Path("uv.lock").read_text()); canonical = lambda value: re.sub(r"[-_.]+", "-", value).lower(); reviewed = {"aiohttp": ("3.12.15", "https://files.pythonhosted.org/packages/9b/e7/d92a237d8802ca88483906c388f7c201bbe96cd80a165ffd0ac2f6a8d59f/aiohttp-3.12.15.tar.gz", "sha256:4fc61385e9c98d72fcdf47e6dd81833f47b2f77c114c29cd64a361be57a763a2"), "markupsafe": ("3.0.2", "https://files.pythonhosted.org/packages/b2/97/5d42485e71dfc078108a86d6de8fa46db44a1a9295e89c5d6d4a06e23a62/markupsafe-3.0.2.tar.gz", "sha256:ee55d3edf80167e48ea11a923c7386f4669df67d7994554387f84e7d8b0a2bf0"), "pyyaml": ("6.0.2", "https://files.pythonhosted.org/packages/54/ed/79a089b6be93607fa5cdaedf301d7dfb23af5f25c398d5ead2525b063e17/pyyaml-6.0.2.tar.gz", "sha256:d584d9ec91ad65861cc08d42e834324ef890a082e591037abe114850ff7bbc3e"), "evdev": ("1.9.2", "https://files.pythonhosted.org/packages/63/fe/a17c106a1f4061ce83f04d14bcedcfb2c38c7793ea56bfb906a6fadae8cb/evdev-1.9.2.tar.gz", "sha256:5d3278892ce1f92a74d6bf888cc8525d9f68af85dbe336c95d1c87fb8f423069")}; public = {"registry": "https://pypi.org/simple"}; approved = {name: [entry for entry in trusted["package"] if canonical(entry.get("name", "")) == name] for name in reviewed}; actual = {name: [entry for entry in current["package"] if canonical(entry.get("name", "")) == name] for name in reviewed}; safe = lambda artifact: isinstance(artifact, dict) and re.fullmatch(r"https://files\.pythonhosted\.org/packages/[^\s?#]+", artifact.get("url", "")) and re.fullmatch(r"sha256:[0-9a-f]{64}", artifact.get("hash", "")); assert all(len(approved[name]) == 1 and approved[name][0].get("version") == version and approved[name][0].get("source") == public and isinstance(approved[name][0].get("sdist"), dict) and approved[name][0]["sdist"].get("url") == url and approved[name][0]["sdist"].get("hash") == digest for name, (version, url, digest) in reviewed.items()), "Use only the immutable reviewed Agents source distributions"; assert all(len(actual[name]) <= 1 and (not actual[name] or actual[name][0].get("source") == public and (actual[name][0].get("version") == version and actual[name][0].get("sdist") == approved[name][0].get("sdist") or actual[name][0].get("version") != version and isinstance(wheels := actual[name][0].get("wheels"), list) and bool(wheels) and all(safe(artifact) for artifact in ([actual[name][0]["sdist"]] if "sdist" in actual[name][0] else []) + wheels) and all(wheel["url"].endswith(".whl") for wheel in wheels))) for name, (version, _, _) in reviewed.items()), "Use only the immutable reviewed Agents source distributions"; print(" ".join(name for name, (version, _, _) in reviewed.items() if actual[name] and actual[name][0].get("version") == version and actual[name][0].get("sdist") == approved[name][0].get("sdist")))')"
           UV_NO_BINARY_PACKAGE="openai openai-agents ${reviewed_sources}" make sync
