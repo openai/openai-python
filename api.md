@@ -907,6 +907,7 @@ Types:
 
 ```python
 from openai.types.admin.organization import (
+    CostQuantityUnit,
     UsageAudioSpeechesResponse,
     UsageAudioTranscriptionsResponse,
     UsageCodeInterpreterSessionsResponse,
@@ -1129,7 +1130,7 @@ Methods:
 Types:
 
 ```python
-from openai.types.admin.organization import Project
+from openai.types.admin.organization import Project, ProjectResidency
 ```
 
 Methods:

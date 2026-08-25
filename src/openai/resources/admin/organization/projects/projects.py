@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from typing import Optional
-from typing_extensions import Literal
 
 import httpx2
 
@@ -103,7 +102,12 @@ from .hosted_tool_permissions import (
     HostedToolPermissionsWithStreamingResponse,
     AsyncHostedToolPermissionsWithStreamingResponse,
 )
-from .....types.admin.organization import project_list_params, project_create_params, project_update_params
+from .....types.admin.organization import (
+    ProjectResidency,
+    project_list_params,
+    project_create_params,
+    project_update_params,
+)
 from .service_accounts.service_accounts import (
     ServiceAccounts,
     AsyncServiceAccounts,
@@ -113,6 +117,7 @@ from .service_accounts.service_accounts import (
     AsyncServiceAccountsWithStreamingResponse,
 )
 from .....types.admin.organization.project import Project
+from .....types.admin.organization.project_residency import ProjectResidency
 
 __all__ = ["Projects", "AsyncProjects"]
 
@@ -191,23 +196,7 @@ class Projects(SyncAPIResource):
         name: str,
         external_key_id: Optional[str] | Omit = omit,
         geography: Optional[str] | Omit = omit,
-        residency: Optional[
-            Literal[
-                "GLOBAL",
-                "US_STORAGE_PROCESSING",
-                "EU_STORAGE_PROCESSING",
-                "JP_STORAGE",
-                "KR_STORAGE",
-                "CA_STORAGE",
-                "SG_STORAGE",
-                "IN_STORAGE",
-                "AU_STORAGE",
-                "GB_STORAGE",
-                "AE_STORAGE",
-                "AE_STORAGE_PROCESSING",
-            ]
-        ]
-        | Omit = omit,
+        residency: Optional[ProjectResidency] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -530,23 +519,7 @@ class AsyncProjects(AsyncAPIResource):
         name: str,
         external_key_id: Optional[str] | Omit = omit,
         geography: Optional[str] | Omit = omit,
-        residency: Optional[
-            Literal[
-                "GLOBAL",
-                "US_STORAGE_PROCESSING",
-                "EU_STORAGE_PROCESSING",
-                "JP_STORAGE",
-                "KR_STORAGE",
-                "CA_STORAGE",
-                "SG_STORAGE",
-                "IN_STORAGE",
-                "AU_STORAGE",
-                "GB_STORAGE",
-                "AE_STORAGE",
-                "AE_STORAGE_PROCESSING",
-            ]
-        ]
-        | Omit = omit,
+        residency: Optional[ProjectResidency] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,

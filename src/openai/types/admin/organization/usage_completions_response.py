@@ -5,6 +5,7 @@ from typing_extensions import Literal, Annotated, TypeAlias
 
 from ...._utils import PropertyInfo
 from ...._models import BaseModel
+from .cost_quantity_unit import CostQuantityUnit
 
 __all__ = [
     "UsageCompletionsResponse",
@@ -470,20 +471,7 @@ class DataResultOrganizationCostsResult(BaseModel):
     result.
     """
 
-    quantity_unit: Union[
-        str,
-        Literal[
-            "tokens",
-            "1000_tokens",
-            "duration_seconds",
-            "duration_minutes",
-            "duration_hours",
-            "gibibyte_hours",
-            "images",
-            "characters",
-        ],
-        None,
-    ] = None
+    quantity_unit: Optional[CostQuantityUnit] = None
     """The unit of the `quantity` value.
 
     If no single supported unit applies to the result, this field is `null`.

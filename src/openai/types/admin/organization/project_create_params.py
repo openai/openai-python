@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from typing import Optional
-from typing_extensions import Literal, Required, TypedDict
+from typing_extensions import Required, TypedDict
+
+from .project_residency import ProjectResidency
 
 __all__ = ["ProjectCreateParams"]
 
@@ -25,22 +27,7 @@ class ProjectCreateParams(TypedDict, total=False):
     use `residency` instead. Do not provide both `geography` and `residency`.
     """
 
-    residency: Optional[
-        Literal[
-            "GLOBAL",
-            "US_STORAGE_PROCESSING",
-            "EU_STORAGE_PROCESSING",
-            "JP_STORAGE",
-            "KR_STORAGE",
-            "CA_STORAGE",
-            "SG_STORAGE",
-            "IN_STORAGE",
-            "AU_STORAGE",
-            "GB_STORAGE",
-            "AE_STORAGE",
-            "AE_STORAGE_PROCESSING",
-        ]
-    ]
+    residency: Optional[ProjectResidency]
     """Create the project with the specified residency configuration.
 
     Your organization must have access to the requested residency configuration in
