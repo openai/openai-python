@@ -5294,3 +5294,249 @@ def test_requested_extra_review_only_covers_packages_reachable_through_that_extr
         head_lock_optional_dependencies=optional,
     )
     assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("variant", "accepted"),
+    [
+        pytest.param("substring", True, id="platform-membership-covers-actual-arm-substring"),
+        pytest.param("complete-token", True, id="platform-membership-still-covers-complete-token"),
+        pytest.param("case-sensitive", False, id="platform-membership-keeps-quoted-case"),
+        pytest.param("negative-substring", False, id="negative-membership-rejects-an-actual-substring"),
+        pytest.param("negative-outside", True, id="negative-membership-keeps-values-outside-the-string"),
+        pytest.param("mixed-complement", True, id="membership-and-negative-complement-intersect-exactly"),
+        pytest.param("mixed-complement-rejected", False, id="negative-membership-removes-an-actual-substring"),
+        pytest.param("complement-partition", True, id="membership-and-complement-fully-partition-original-domain"),
+        pytest.param("dropped-complement", False, id="missing-membership-complement-cannot-drop-original-contexts"),
+        pytest.param("dropped-substrings", False, id="equality-split-cannot-drop-original-membership-substrings"),
+    ],
+)
+def test_platform_membership_markers_preserve_pep508_substring_domains(
+    tmp_path: Path, variant: str, accepted: bool
+) -> None:
+    expression = "platform_machine in 'arm64, x86_64'"
+    original = "danger>=1; " + expression
+    updated = ["danger>=2; " + expression]
+    old_domains = ["platform_machine == 'arm'"]
+    new_domains = list(old_domains)
+
+    if variant == "complete-token":
+        old_domains = new_domains = ["platform_machine == 'arm64'"]
+    elif variant == "case-sensitive":
+        old_domains = new_domains = ["platform_machine == 'ARM'"]
+    elif variant in {"negative-substring", "negative-outside"}:
+        expression = "platform_machine not in 'arm64, x86_64'"
+        original = "danger>=1; " + expression
+        updated = ["danger>=2; " + expression]
+        if variant == "negative-outside":
+            old_domains = new_domains = ["platform_machine == 'aarch64'"]
+    elif variant in {"mixed-complement", "mixed-complement-rejected"}:
+        expression = "platform_machine in 'arm64, x86_64' and platform_machine not in 'x86_64'"
+        original = "danger>=1; " + expression
+        updated = ["danger>=2; " + expression]
+        if variant == "mixed-complement-rejected":
+            old_domains = new_domains = ["platform_machine == 'x86'"]
+    elif variant in {"complement-partition", "dropped-complement"}:
+        included = expression + " and platform_machine in 'x86_64'"
+        excluded = expression + " and platform_machine not in 'x86_64'"
+        updated = ["danger>=2; " + excluded]
+        old_domains = [expression]
+        new_domains = [excluded]
+        if variant == "complement-partition":
+            updated.append("danger>=2; " + included)
+            new_domains.append(included)
+    elif variant == "dropped-substrings":
+        updated = [
+            "danger>=2; platform_machine == 'arm64'",
+            "danger>=2; platform_machine == 'x86_64'",
+        ]
+        old_domains = [expression]
+        new_domains = ["platform_machine == 'arm64'", "platform_machine == 'x86_64'"]
+
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=[original],
+        head_requirements=updated,
+        base_packages=[("danger", "1")],
+        head_packages=[("danger", "2")],
+        base_resolution_markers={("danger", "1"): old_domains},
+        head_resolution_markers={("danger", "2"): new_domains},
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("requirement_marker", "resolution_marker", "accepted"),
+    [
+        pytest.param(
+            "sys_platform >= 'linux'",
+            "sys_platform == 'linux'",
+            True,
+            id="lexical-inclusive-lower-includes-equal-platform",
+        ),
+        pytest.param(
+            "sys_platform > 'linux'",
+            "sys_platform == 'linux'",
+            False,
+            id="lexical-exclusive-lower-rejects-equal-platform",
+        ),
+        pytest.param(
+            "sys_platform > 'linux'",
+            "sys_platform == 'win32'",
+            True,
+            id="lexical-exclusive-lower-accepts-greater-platform",
+        ),
+        pytest.param(
+            "sys_platform <= 'linux'",
+            "sys_platform == 'linux'",
+            True,
+            id="lexical-inclusive-upper-includes-equal-platform",
+        ),
+        pytest.param(
+            "sys_platform < 'linux'",
+            "sys_platform == 'linux'",
+            False,
+            id="lexical-exclusive-upper-rejects-equal-platform",
+        ),
+        pytest.param(
+            "sys_platform >= 'linux' and sys_platform < 'win32'",
+            "sys_platform == 'linux'",
+            True,
+            id="lexical-platform-window-accepts-covered-value",
+        ),
+        pytest.param(
+            "sys_platform >= 'linux' and sys_platform < 'win32'",
+            "sys_platform == 'win32'",
+            False,
+            id="lexical-platform-window-rejects-exclusive-ceiling",
+        ),
+        pytest.param(
+            "sys_platform >= 'linux'",
+            "sys_platform >= 'linux' and sys_platform < 'win32'",
+            True,
+            id="lexical-requirement-and-resolution-intervals-overlap",
+        ),
+        pytest.param(
+            "sys_platform > 'linux'",
+            "sys_platform <= 'linux'",
+            False,
+            id="disjoint-lexical-platform-intervals-fail-closed",
+        ),
+        pytest.param(
+            "sys_platform >= 'linux' and sys_platform != 'linux'",
+            "sys_platform == 'linux'",
+            False,
+            id="lexical-platform-exclusion-cannot-be-lost",
+        ),
+        pytest.param(
+            "sys_platform >= 'linux' and sys_platform != 'linux'",
+            "sys_platform > 'linux'",
+            True,
+            id="lexical-platform-witness-skips-an-excluded-inclusive-bound",
+        ),
+        pytest.param(
+            "platform_machine > 'ar' and platform_machine in 'arm64, x86_64'",
+            "platform_machine == 'arm'",
+            True,
+            id="lexical-and-substring-platform-predicates-intersect-exactly",
+        ),
+    ],
+)
+@pytest.mark.parametrize("protected", [False, True], ids=["published-direct", "protected-constraint"])
+def test_ordered_platform_markers_preserve_lexical_security_domains(
+    tmp_path: Path,
+    requirement_marker: str,
+    resolution_marker: str,
+    accepted: bool,
+    protected: bool,
+) -> None:
+    before = "danger>=1; " + requirement_marker
+    after = "danger>=2; " + requirement_marker
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=[] if protected else [before],
+        head_requirements=[] if protected else [after],
+        base_packages=[("danger", "1")],
+        head_packages=[("danger", "2")],
+        base_constraints=[before] if protected else None,
+        head_constraints=[after] if protected else None,
+        base_resolution_markers={("danger", "1"): [resolution_marker]},
+        head_resolution_markers={("danger", "2"): [resolution_marker]},
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("variant", "accepted"),
+    [
+        pytest.param("patched-range", True, id="wildcard-equality-normalizes-to-inclusive-series-range"),
+        pytest.param("subsumed-exclusion", True, id="patched-floor-subsumes-the-original-wildcard-exclusion"),
+        pytest.param("preserved-exclusion", True, id="wildcard-equality-retains-an-independent-prefix-exclusion"),
+        pytest.param("removed-exclusion", False, id="wildcard-equality-cannot-drop-an-uncovered-exclusion"),
+        pytest.param("widened-series", False, id="wildcard-equality-cannot-widen-its-original-major-series"),
+        pytest.param("removed-upper", False, id="wildcard-equality-cannot-drop-its-implicit-upper-bound"),
+        pytest.param("nested-prefix", True, id="minor-wildcard-equality-keeps-the-correct-next-prefix-ceiling"),
+        pytest.param("minor-zero-prefix", True, id="one-zero-wildcard-equality-has-one-one-exclusive-ceiling"),
+        pytest.param("patch-zero-prefix", True, id="one-zero-zero-wildcard-equality-has-one-zero-one-ceiling"),
+        pytest.param("canonical-zeroes", True, id="wildcard-equality-normalizes-release-prefix-zeroes"),
+        pytest.param("epoch-zeroes", True, id="wildcard-equality-normalizes-epoch-and-release-zeroes"),
+        pytest.param("epoch", True, id="wildcard-equality-preserves-its-explicit-epoch"),
+        pytest.param("wrong-epoch", False, id="wildcard-equality-cannot-move-its-epoch"),
+        pytest.param("malformed-post", False, id="post-release-wildcard-equality-remains-invalid"),
+        pytest.param("retained-release", False, id="wildcard-equality-cannot-drop-an-unchanged-supported-lock"),
+    ],
+)
+@pytest.mark.parametrize("protected", [False, True], ids=["published-direct", "protected-constraint"])
+def test_wildcard_equality_series_preserve_reviewed_security_bounds(
+    tmp_path: Path, variant: str, accepted: bool, protected: bool
+) -> None:
+    previous, current = "danger==1.*", "danger>=1.3,<2"
+    before, after = ["1.2"], ["1.3"]
+
+    if variant in {"preserved-exclusion", "removed-exclusion"}:
+        previous = "danger==1.*,!=1.8.*"
+        current = "danger>=1.3,<2" + (",!=1.8.*" if variant == "preserved-exclusion" else "")
+    elif variant == "subsumed-exclusion":
+        previous = "danger==1.*,!=1.2.*"
+        before = ["1.1"]
+    elif variant == "widened-series":
+        current = "danger>=1.3,<3"
+    elif variant == "removed-upper":
+        current = "danger>=1.3"
+    elif variant == "nested-prefix":
+        previous, current = "danger==1.2.*", "danger>=1.2.4,<1.3"
+        before, after = ["1.2.3"], ["1.2.4"]
+    elif variant == "minor-zero-prefix":
+        previous, current = "danger==1.0.*", "danger>=1.0.3,<1.1"
+        before, after = ["1.0.2"], ["1.0.3"]
+    elif variant == "patch-zero-prefix":
+        previous, current = "danger==1.0.0.*", "danger>=1.0.0.4,<1.0.1"
+        before, after = ["1.0.0.3"], ["1.0.0.4"]
+    elif variant == "canonical-zeroes":
+        previous, current = "danger==01.00.*", "danger>=1.0.3,<1.1"
+        before, after = ["1.0.2"], ["1.0.3"]
+    elif variant == "epoch-zeroes":
+        previous, current = "danger==01!01.00.*", "danger>=1!1.0.3,<1!1.1"
+        before, after = ["1!1.0.2"], ["1!1.0.3"]
+    elif variant in {"epoch", "wrong-epoch"}:
+        previous = "danger==1!1.*"
+        current = "danger>=1!1.3,<1!2" if variant == "epoch" else "danger>=0!1.3,<0!2"
+        before = ["1!1.2"]
+        after = ["1!1.3"] if variant == "epoch" else ["1.3"]
+    elif variant == "malformed-post":
+        previous = "danger==1.post1.*"
+        before, after = ["1.post1"], ["1.3"]
+    elif variant == "retained-release":
+        current = "danger>=1.3,<1.5"
+        before, after = ["1.2", "1.8"], ["1.3", "1.8"]
+
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=[] if protected else [previous],
+        head_requirements=[] if protected else [current],
+        base_packages=[("danger", version) for version in before],
+        head_packages=[("danger", version) for version in after],
+        base_constraints=[previous] if protected else None,
+        head_constraints=[current] if protected else None,
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr

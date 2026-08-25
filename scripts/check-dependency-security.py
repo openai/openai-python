@@ -484,18 +484,94 @@ def simple_marker_overlap(requirement: MarkerContext, resolution: MarkerContext)
             }:
                 raise SystemExit("Unsupported security dependency marker variable")
             equality: str | None = None
-            exclusions: set[str] = set()
+            platform_lower: tuple[str, bool] | None = None
+            platform_upper: tuple[str, bool] | None = None
+            memberships: list[str] = []
             for _, operator, value in constraints:
+                if len(value) > 256:
+                    raise SystemExit("Unbounded platform security dependency marker")
                 if operator == "Eq":
                     if equality is not None and equality != value:
                         return False
                     equality = value
-                elif operator == "NotEq":
-                    exclusions.add(value)
+                elif operator in {"Gt", "GtE"}:
+                    inclusive = operator == "GtE"
+                    if (
+                        platform_lower is None
+                        or value > platform_lower[0]
+                        or value == platform_lower[0]
+                        and not inclusive
+                    ):
+                        platform_lower = value, inclusive
+                elif operator in {"Lt", "LtE"}:
+                    inclusive = operator == "LtE"
+                    if (
+                        platform_upper is None
+                        or value < platform_upper[0]
+                        or value == platform_upper[0]
+                        and not inclusive
+                    ):
+                        platform_upper = value, inclusive
+                elif operator == "In":
+                    memberships.append(value)
+                elif operator not in {"NotEq", "NotIn"}:
+                    raise SystemExit("Ambiguous platform security dependency marker")
+
+            def matches(platform_candidate: str, terms: list[MarkerClause] = constraints) -> bool:
+                for _, operator, value in terms:
+                    if (
+                        operator == "Eq"
+                        and platform_candidate != value
+                        or operator == "NotEq"
+                        and platform_candidate == value
+                        or operator == "Lt"
+                        and platform_candidate >= value
+                        or operator == "LtE"
+                        and platform_candidate > value
+                        or operator == "Gt"
+                        and platform_candidate <= value
+                        or operator == "GtE"
+                        and platform_candidate < value
+                        or operator == "In"
+                        and platform_candidate not in value
+                        or operator == "NotIn"
+                        and platform_candidate in value
+                    ):
+                        return False
+                return True
+
+            if equality is not None:
+                if not matches(equality):
+                    return False
+            elif memberships:
+                shortest = min(memberships, key=len)
+                if len(shortest) > 128:
+                    raise SystemExit("Unbounded platform security dependency membership")
+                candidates = {
+                    shortest[start:stop]
+                    for start in range(len(shortest) + 1)
+                    for stop in range(start, len(shortest) + 1)
+                }
+                if len(candidates) > 4096:
+                    raise SystemExit("Unbounded platform security dependency membership")
+                if not any(matches(platform_candidate) for platform_candidate in candidates):
+                    return False
+            else:
+                platform_candidate = (
+                    "" if platform_lower is None else platform_lower[0] + ("\x00" if not platform_lower[1] else "")
+                )
+                for _ in range(258):
+                    if platform_upper is not None and (
+                        platform_candidate > platform_upper[0]
+                        or platform_candidate == platform_upper[0]
+                        and not platform_upper[1]
+                    ):
+                        return False
+                    if matches(platform_candidate):
+                        break
+                    platform_candidate += "\x00"
                 else:
                     raise SystemExit("Ambiguous platform security dependency marker")
-            if equality is not None and equality in exclusions:
-                return False
     return True
 
 
@@ -535,7 +611,9 @@ def marker_options(context: MarkerContext) -> list[MarkerContext]:
             )
         ):
             raise SystemExit("Ambiguous security dependency membership marker")
-        if operator == "In":
+        if variable in allowed_platforms:
+            options = [option + ((variable, operator, value),) for option in options]
+        elif operator == "In":
             options = [option + ((variable, "Eq", member),) for option in options for member in values]
         else:
             exclusions = tuple((variable, "NotEq", member) for member in values)
@@ -653,6 +731,10 @@ def minimums(requirements: set[str], *, allow_missing: bool = False, exact: bool
         specifier = requirement.split(";", 1)[0]
         pattern = r"(?<![<>=!~])(?:>=|>|==|~=)([^,;]+)" if exact else r"(?<![<>=!~])(?:>=|>|~=)([^,;]+)"
         matches = re.findall(pattern, specifier)
+        if exact:
+            matches = [value.strip().removesuffix(".*") for value in matches]
+        else:
+            matches.extend(re.findall(r"(?<![<>=!~])==\s*((?:(?:\d+)!)?\d+(?:\.\d+)*)\.\*(?=\s*(?:,|$))", specifier))
         if len(matches) != 1:
             if allow_missing and not matches:
                 continue
@@ -1007,11 +1089,15 @@ def published_bounds(requirement: str) -> tuple[PublishedBound, ...]:
         if len(components) > 16 or any(len(component) > 9 for component in components):
             raise SystemExit("Unbounded published security dependency release")
         wildcard = match.group(6) is not None
-        if wildcard and (match.group(1) != "!=" or match.group(5) is not None):
+        if wildcard and (match.group(1) not in {"!=", "=="} or match.group(5) is not None):
             raise SystemExit("Ambiguous published security dependency wildcard")
         epoch, release, post = stable_version(match.group(2))
         prefix = tuple(int(component) for component in components)
-        if match.group(1) == "~=":
+        if match.group(1) == "==" and wildcard:
+            ceiling = prefix[:-1] + (prefix[-1] + 1,)
+            upper = stable_version(str(epoch) + "!" + ".".join(str(part) for part in ceiling))
+            result.extend(((">=", epoch, release, post, False), ("<", upper[0], upper[1], upper[2], False)))
+        elif match.group(1) == "~=":
             if len(prefix) < 2 or wildcard:
                 raise SystemExit("Ambiguous compatible published security dependency bound")
             ceiling = prefix[:-2] + (prefix[-2] + 1,)
