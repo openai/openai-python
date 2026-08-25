@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sys
 from datetime import timedelta
 from typing import TYPE_CHECKING, Any, Optional, cast
 from typing_extensions import Literal, override
@@ -31,17 +32,29 @@ __all__ = [
     "WebSocketQueueFullError",
 ]
 
-_RequestSnapshot = tuple[str, str, list[tuple[bytes, bytes]], bytes | None]
+_RequestTimeoutSnapshot = dict[str, float | None]
+_RequestSnapshot = tuple[str, list[tuple[bytes, bytes]], _RequestTimeoutSnapshot | None]
 _ResponseSnapshot = tuple[
     int,
     list[tuple[bytes, bytes]],
-    bytes | None,
     _RequestSnapshot | None,
     timedelta | None,
 ]
 
+_REDACTED_REQUEST_URL = "https://redacted.invalid/"
 _REDACTED_HEADER_VALUE = b"<redacted>"
-_SENSITIVE_REQUEST_HEADERS = {b"api-key", b"authorization", b"x-amz-security-token"}
+_SENSITIVE_HEADERS = {
+    b"api-key",
+    b"authorization",
+    b"cookie",
+    b"host",
+    b"proxy-authorization",
+    b"set-cookie",
+    b"x-amz-security-token",
+    b"x-api-key",
+    b"x-goog-api-key",
+}
+_TIMEOUT_EXTENSION_KEYS = ("connect", "read", "write", "pool")
 
 
 class OpenAIError(Exception):
@@ -52,13 +65,13 @@ class OpenAIError(Exception):
 
         request_snapshot: _RequestSnapshot | None = None
         request = state.get("request")
-        if isinstance(request, httpx2.Request):
+        if _is_http_request(request):
             request_snapshot = _snapshot_request(request)
             del state["request"]
 
         response_snapshot: _ResponseSnapshot | None = None
         response = state.get("response")
-        if isinstance(response, httpx2.Response):
+        if _is_http_response(response):
             response_snapshot = _snapshot_response(response)
             del state["response"]
 
@@ -68,35 +81,61 @@ class OpenAIError(Exception):
         )
 
 
-def _snapshot_headers(headers: httpx2.Headers) -> list[tuple[bytes, bytes]]:
+def _is_legacy_httpx_instance(value: object, type_name: str) -> bool:
+    module = sys.modules.get("httpx")
+    legacy_type = getattr(module, type_name, None) if module is not None else None
+    return isinstance(legacy_type, type) and isinstance(value, legacy_type)
+
+
+def _is_http_request(value: object) -> bool:
+    return isinstance(value, httpx2.Request) or _is_legacy_httpx_instance(value, "Request")
+
+
+def _is_http_response(value: object) -> bool:
+    return isinstance(value, httpx2.Response) or _is_legacy_httpx_instance(value, "Response")
+
+
+def _snapshot_headers(headers: Any) -> list[tuple[bytes, bytes]]:
     return [
-        (name, _REDACTED_HEADER_VALUE if name.lower() in _SENSITIVE_REQUEST_HEADERS else value)
+        (name, _REDACTED_HEADER_VALUE if name.lower() in _SENSITIVE_HEADERS else value)
         for name, value in headers.raw
     ]
 
 
-def _snapshot_request(request: httpx2.Request) -> _RequestSnapshot:
-    try:
-        content = request.content
-    except httpx2.RequestNotRead:
-        content = None
+def _snapshot_timeout_extension(request: Any) -> _RequestTimeoutSnapshot | None:
+    extensions = request.extensions
+    timeout = extensions.get("timeout") if isinstance(extensions, dict) else None
+    if not isinstance(timeout, dict):
+        return None
 
-    return (request.method, str(request.url), _snapshot_headers(request.headers), content)
+    snapshot: _RequestTimeoutSnapshot = {}
+    for key in _TIMEOUT_EXTENSION_KEYS:
+        value = timeout.get(key)
+        if value is None:
+            if key in timeout:
+                snapshot[key] = None
+        elif isinstance(value, (int, float)):
+            snapshot[key] = float(value)
+    return snapshot or None
+
+
+def _snapshot_request(request: Any) -> _RequestSnapshot:
+    return (
+        request.method,
+        _snapshot_headers(request.headers),
+        _snapshot_timeout_extension(request),
+    )
 
 
 def _restore_request(snapshot: _RequestSnapshot) -> httpx2.Request:
-    method, url, headers, content = snapshot
-    if content is None:
-        return httpx2.Request(method, url, headers=headers)
-    return httpx2.Request(method, url, headers=headers, content=content)
+    method, headers, timeout = snapshot
+    kwargs: dict[str, Any] = {"headers": headers}
+    if timeout is not None:
+        kwargs["extensions"] = {"timeout": timeout}
+    return httpx2.Request(method, _REDACTED_REQUEST_URL, **kwargs)
 
 
-def _snapshot_response(response: httpx2.Response) -> _ResponseSnapshot:
-    try:
-        content = response.content
-    except httpx2.ResponseNotRead:
-        content = None
-
+def _snapshot_response(response: Any) -> _ResponseSnapshot:
     try:
         request_snapshot = _snapshot_request(response.request)
     except RuntimeError:
@@ -107,7 +146,12 @@ def _snapshot_response(response: httpx2.Response) -> _ResponseSnapshot:
     except RuntimeError:
         elapsed = None
 
-    return (response.status_code, list(response.headers.raw), content, request_snapshot, elapsed)
+    return (
+        response.status_code,
+        _snapshot_headers(response.headers),
+        request_snapshot,
+        elapsed,
+    )
 
 
 def _restore_response(
@@ -115,13 +159,11 @@ def _restore_response(
     *,
     request: httpx2.Request | None,
 ) -> httpx2.Response:
-    status_code, headers, content, response_request_snapshot, elapsed = snapshot
+    status_code, headers, response_request_snapshot, elapsed = snapshot
     if request is None and response_request_snapshot is not None:
         request = _restore_request(response_request_snapshot)
 
     kwargs: dict[str, Any] = {"headers": headers}
-    if content is not None:
-        kwargs["content"] = content
     if request is not None:
         kwargs["request"] = request
 
