@@ -304,6 +304,14 @@ class ResponseStreamState(Generic[TextFormatT]):
                     snapshot=output.arguments,
                 )
             )
+        elif event.type == "response.function_call_arguments.done":
+            output = snapshot.output[event.output_index]
+            assert output.type == "function_call"
+
+            if not event.name:
+                event.name = output.name
+
+            events.append(event)
 
         elif event.type == "response.completed":
             response = self._completed_response
