@@ -56,6 +56,14 @@ def _program() -> str:
     return line.split("python -c '", 1)[1].rsplit("'", 1)[0]
 
 
+def _constraints_program() -> str:
+    workflow = WORKFLOW.read_text()
+    marker = "      - name: Constrain Agents-only packages to reviewed locked versions\n"
+    step = workflow.split(marker, 1)[1].split("      - name:", 1)[0]
+    program = step.split("          python -I - \"$constraints\" <<'PY'\n", 1)[1].split("          PY\n", 1)[0]
+    return textwrap.dedent(program)
+
+
 def _artifact(name: str, version: str, digest: str, suffix: str) -> dict[str, str]:
     return {
         "url": "https://files.pythonhosted.org/packages/aa/bb/" + name + "-" + version + suffix,
@@ -118,7 +126,9 @@ def _lock(packages: list[dict[str, object]]) -> str:
     return "\n\n".join(entries) + "\n"
 
 
-def _execute(tmp_path: Path, variant: str, *, fork: bool = True) -> subprocess.CompletedProcess[str]:
+def _execute(
+    tmp_path: Path, variant: str, *, fork: bool = True, constraints: bool = False
+) -> subprocess.CompletedProcess[str]:
     agents = tmp_path / "agents"
     sdk = tmp_path / "openai-python"
     binaries = tmp_path / "bin"
@@ -142,7 +152,9 @@ def _execute(tmp_path: Path, variant: str, *, fork: bool = True) -> subprocess.C
     sdk_only = _package("sdk-only-lib", "1.0.0")
     wheel_only = _package("playwright", "1.0.0", sdist=False)
     old_sdk = _package("openai", "3.0.0")
-    trusted_agents = [agents_root, *reviewed, httpx, wheel_only, old_sdk]
+    pynput = _package("pynput", "1.8.1")
+    multiple = [_package("multi-version", "1.0.0"), _package("multi-version", "2.0.0")]
+    trusted_agents = [agents_root, *reviewed, httpx, wheel_only, old_sdk, pynput, *multiple]
     trusted_sdk = [sdk_root, sdk_only, _package("httpx", "0.29.0")]
     current = copy.deepcopy([agents_root, linked_sdk, *reviewed, httpx, wheel_only, sdk_only])
 
@@ -197,6 +209,8 @@ def _execute(tmp_path: Path, variant: str, *, fork: bool = True) -> subprocess.C
         injected = _package("fork-submitted-wheel", "9.9.9", sdist=False)
         current.append(injected)
         submitted_sdk = copy.deepcopy(trusted_sdk) + [injected]
+    elif variant == "fork-submitted-pynput":
+        submitted_sdk = copy.deepcopy(trusted_sdk) + [_package("pynput", "1.8.2")]
     elif variant == "sdk-symlink":
         sdk.rmdir()
         outside = tmp_path / "outside"
@@ -234,14 +248,20 @@ def _execute(tmp_path: Path, variant: str, *, fork: bool = True) -> subprocess.C
             "TEST_LOCK_ROOT": str(tmp_path),
             "UNTRUSTED_BUILD_FORK": "1" if fork else "0",
             "TRUSTED_BUILD_BASE_SHA": BASE_SHA,
+            "RUNNER_TEMP": str(tmp_path),
         }
     )
 
-    program = _program()
+    program = _constraints_program() if constraints else _program()
     if sys.version_info < (3, 11):
         program = "import sys, tomli; sys.modules['tomllib'] = tomli\n" + program
+    arguments = [sys.executable, "-c", program]
+    if constraints:
+        target = tmp_path / "reviewed-constraints.txt"
+        target.touch(mode=0o600)
+        arguments.append(str(target))
     return subprocess.run(
-        [sys.executable, "-c", program],
+        arguments,
         cwd=agents,
         env=environment,
         capture_output=True,
@@ -369,3 +389,87 @@ def test_uv_locked_rejects_dependency_resolution_after_lock_validation(tmp_path:
     )
     assert attempted.returncode != 0
     assert "lock" in attempted.stderr.lower()
+
+
+@pytest.mark.parametrize("fork", [True, False], ids=["immutable-fork-base", "reviewed-same-repository"])
+def test_agents_constraints_pin_only_unique_reviewed_agents_only_packages(tmp_path: Path, fork: bool) -> None:
+    result = _execute(tmp_path, "reviewed", fork=fork, constraints=True)
+    assert result.returncode == 0, result.stdout + result.stderr
+    pins = set((tmp_path / "reviewed-constraints.txt").read_text().splitlines())
+    assert "pynput==1.8.1" in pins
+    assert "playwright==1.0.0" in pins
+    assert "httpx==0.28.1" not in pins
+    assert "httpx==0.29.0" not in pins
+    assert not any(pin.startswith("multi-version==") for pin in pins)
+    assert not any(pin.startswith("openai==") or pin.startswith("openai-agents==") for pin in pins)
+    assert "sdk-only-lib==1.0.0" not in pins
+
+
+@pytest.mark.parametrize("fork", [True, False], ids=["immutable-fork-base", "reviewed-same-repository"])
+def test_submitted_fork_lock_cannot_remove_reviewed_agents_constraint(tmp_path: Path, fork: bool) -> None:
+    result = _execute(tmp_path, "fork-submitted-pynput", fork=fork, constraints=True)
+    assert result.returncode == 0, result.stdout + result.stderr
+    pins = set((tmp_path / "reviewed-constraints.txt").read_text().splitlines())
+    assert ("pynput==1.8.1" in pins) == fork
+
+
+def test_reviewed_constraints_apply_only_to_existing_no_sync_link_step() -> None:
+    workflow = WORKFLOW.read_text()
+    generator = workflow.index("      - name: Constrain Agents-only packages to reviewed locked versions\n")
+    link = workflow.index("      - name: Link to local SDK\n", generator)
+    validator = workflow.index("      - name: Verify relinked Agents lock package provenance\n", link)
+    install = workflow.index("      - name: Install dependencies\n", validator)
+    link_step = workflow[link:validator]
+    assert generator < link < validator < install
+    assert "          UV_CONSTRAINT: " in link_step
+    assert "steps.reviewed_agents_constraints.outputs.path" in link_step
+    assert "        run: uv add --no-sync ../openai-python\n" in link_step
+    assert "UV_CONSTRAINT:" not in workflow[validator:]
+    assert "mktemp" in workflow[generator:link]
+    assert "GITHUB_OUTPUT" in workflow[generator:link]
+
+
+def test_uv_constraint_prevents_unreviewed_agents_only_upgrade_before_relink(tmp_path: Path) -> None:
+    uv = shutil.which("uv")
+    if uv is None:
+        pytest.skip("uv is unavailable")
+
+    candidate = tmp_path / "candidate"
+    candidate.mkdir()
+    (candidate / "pyproject.toml").write_text(
+        '[project]\nname = "pynput"\nversion = "1.8.2"\nrequires-python = ">=3.10"\ndependencies = []\n'
+    )
+    vulnerable = tmp_path / "vulnerable"
+    protected = tmp_path / "protected"
+    for project in (vulnerable, protected):
+        project.mkdir()
+        (project / "pyproject.toml").write_text(
+            '[project]\nname = "reviewed-agents"\nversion = "1.0.0"\nrequires-python = ">=3.10"\ndependencies = []\n'
+        )
+
+    environment = dict(os.environ)
+    environment.pop("UV_CONSTRAINT", None)
+    environment["UV_CACHE_DIR"] = str(tmp_path / "cache")
+    environment["UV_PYTHON_DOWNLOADS"] = "never"
+    unconstrained = subprocess.run(
+        [uv, "--offline", "--directory", str(vulnerable), "add", "--no-sync", "../candidate"],
+        env=environment,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert unconstrained.returncode == 0, unconstrained.stdout + unconstrained.stderr
+    assert 'version = "1.8.2"' in (vulnerable / "uv.lock").read_text()
+
+    constraints = tmp_path / "reviewed-constraints.txt"
+    constraints.write_text("pynput==1.8.1\n")
+    environment["UV_CONSTRAINT"] = str(constraints)
+    constrained = subprocess.run(
+        [uv, "--offline", "--directory", str(protected), "add", "--no-sync", "../candidate"],
+        env=environment,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert constrained.returncode != 0
+    assert "pynput" in constrained.stderr

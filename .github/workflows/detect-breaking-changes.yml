@@ -94,10 +94,94 @@ jobs:
           ref: 7e55afc9500d12937687988f1e91e900dcb4ad09
           path: openai-agents-python
 
+      - name: Constrain Agents-only packages to reviewed locked versions
+        id: reviewed_agents_constraints
+        working-directory: openai-agents-python
+        run: |
+          constraints="$(mktemp "$RUNNER_TEMP/reviewed-agents-constraints.XXXXXXXX")"
+          python -I - "$constraints" <<'PY'
+          import collections
+          import os
+          import pathlib
+          import re
+          import subprocess
+          import sys
+          import tomllib
+
+          PUBLIC = {"registry": "https://pypi.org/simple"}
+
+          def reject(reason):
+              raise SystemExit("Unreviewed Agents dependency constraint: " + reason)
+
+          def canonical(value):
+              if not isinstance(value, str):
+                  reject("invalid package name")
+              normalized = re.sub(r"[-_.]+", "-", value).lower()
+              if not re.fullmatch(r"[a-z0-9][a-z0-9-]*", normalized):
+                  reject("invalid package name")
+              return normalized
+
+          def checkout_origin(arguments, expected):
+              origin = subprocess.check_output(arguments, text=True).strip()
+              if origin not in {expected, expected + ".git"}:
+                  reject("untrusted checkout origin")
+
+          checkout_origin(
+              ["git", "remote", "get-url", "origin"],
+              "https://github.com/openai/openai-agents-python",
+          )
+          sdk = pathlib.Path("../openai-python")
+          if sdk.is_symlink() or not sdk.is_dir():
+              reject("the local SDK must be the reviewed sibling checkout")
+          checkout_origin(
+              ["git", "-C", "../openai-python", "remote", "get-url", "origin"],
+              "https://github.com/openai/openai-python",
+          )
+
+          agents = tomllib.loads(subprocess.check_output(["git", "show", "HEAD:uv.lock"], text=True))
+          if os.environ.get("UNTRUSTED_BUILD_FORK") == "1":
+              base = os.environ.get("TRUSTED_BUILD_BASE_SHA", "")
+              if not re.fullmatch(r"[0-9a-f]{40}", base):
+                  reject("invalid immutable SDK base revision")
+              sdk_content = subprocess.check_output(
+                  ["git", "-C", "../openai-python", "show", base + ":uv.lock"],
+                  text=True,
+              )
+          else:
+              sdk_content = sdk.joinpath("uv.lock").read_text()
+          sdk_lock = tomllib.loads(sdk_content)
+
+          shared = {canonical(package.get("name")) for package in sdk_lock.get("package", [])}
+          agents_only = collections.defaultdict(list)
+          for package in agents.get("package", []):
+              name = canonical(package.get("name"))
+              if name in shared or name in {"openai", "openai-agents"}:
+                  continue
+              if package.get("source") != PUBLIC:
+                  reject(name + " has an unreviewed package source")
+              version = package.get("version")
+              if not isinstance(version, str) or not re.fullmatch(r"[0-9][A-Za-z0-9.!+_-]*", version):
+                  reject(name + " has an unsafe package version")
+              agents_only[name].append(version)
+
+          target = pathlib.Path(sys.argv[1])
+          runner_temp = pathlib.Path(os.environ["RUNNER_TEMP"]).resolve()
+          if target.is_symlink() or not target.is_file() or target.parent.resolve() != runner_temp:
+              reject("unsafe runner constraint-file path")
+          pins = [
+              name + "==" + versions[0]
+              for name, versions in sorted(agents_only.items())
+              if len(versions) == 1
+          ]
+          target.write_text("\n".join(pins) + "\n")
+          PY
+          printf 'path=%s\n' "$constraints" >> "$GITHUB_OUTPUT"
+
       - name: Link to local SDK
         working-directory: openai-agents-python
         env:
           UV_NO_BINARY_PACKAGE: 'openai openai-agents'
+          UV_CONSTRAINT: ${{ steps.reviewed_agents_constraints.outputs.path }}
         run: uv add --no-sync ../openai-python
 
       - name: Verify relinked Agents lock package provenance
