@@ -8,6 +8,13 @@ logger: logging.Logger = logging.getLogger("openai")
 
 
 SENSITIVE_HEADERS = {"api-key", "authorization", "x-amz-security-token"}
+LOG_LEVELS = {
+    "debug": logging.DEBUG,
+    "info": logging.INFO,
+    "warning": logging.WARNING,
+    "error": logging.ERROR,
+    "critical": logging.CRITICAL,
+}
 
 
 def _basic_config() -> None:
@@ -29,12 +36,9 @@ def setup_logging() -> None:
     # Transport loggers may include complete URLs. Leave their configuration to
     # the application instead of enabling them with the SDK's logging switch.
     env = os.environ.get("OPENAI_LOG")
-    if env == "debug":
+    if env in LOG_LEVELS:
         _basic_config()
-        logger.setLevel(logging.DEBUG)
-    elif env == "info":
-        _basic_config()
-        logger.setLevel(logging.INFO)
+        logger.setLevel(LOG_LEVELS[env])  # type: ignore[index]
 
 
 class SensitiveHeadersFilter(logging.Filter):
