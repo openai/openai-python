@@ -112,7 +112,7 @@ def _reconstruct_openai_error(
     request_snapshot: _RequestSnapshot | None,
     response_snapshot: _ResponseSnapshot | None,
 ) -> OpenAIError:
-    error = error_type.__new__(error_type)
+    error = Exception.__new__(error_type)
     Exception.__init__(error, *args)
     error.__dict__.update(state)
 
