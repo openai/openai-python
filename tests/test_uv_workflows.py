@@ -12,6 +12,7 @@ from pathlib import Path
 import pytest
 from packaging.markers import Marker
 from packaging.version import Version
+from packaging.requirements import Requirement
 
 if sys.version_info >= (3, 11):
     import tomllib
@@ -2775,6 +2776,90 @@ def test_grouped_security_updates_preserve_unchanged_published_bounds(
         head_optional_groups=head_optional_groups,
     )
     assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("specifier", "locked"),
+    [
+        pytest.param(">=1.0a1", "1.0", id="unchanged-alpha-lower-bound"),
+        pytest.param(">=1.0b2", "1.0", id="unchanged-beta-lower-bound"),
+        pytest.param(">=1.0rc1", "1.0", id="unchanged-release-candidate-lower-bound"),
+        pytest.param(">=1.0.dev1", "1.0", id="unchanged-development-lower-bound"),
+        pytest.param(">=1.0rc1.post2.dev3", "1.0", id="unchanged-combined-prerelease-post-development-bound"),
+        pytest.param("<2.0rc1", "1.0", id="unchanged-prerelease-upper-bound"),
+        pytest.param("!=1.0rc1", "1.0", id="unchanged-prerelease-exclusion"),
+        pytest.param("~=1.0rc1", "1.0", id="unchanged-compatible-prerelease-bound"),
+        pytest.param("==1.0rc1", "1.0rc1", id="unchanged-exact-prerelease-pin"),
+        pytest.param("===1.0rc1", "1.0rc1", id="unchanged-arbitrary-prerelease-pin"),
+        pytest.param("==1.0+linux", "1.0+linux", id="unchanged-local-version-pin"),
+        pytest.param(">=1!1.0rc1", "1!1.0", id="unchanged-epoch-prerelease-bound"),
+    ],
+)
+@pytest.mark.parametrize("scope", ["runtime", "optional", "constraint", "build", "group"])
+def test_grouped_security_updates_preserve_unchanged_pep440_prerelease_requirements(
+    tmp_path: Path, specifier: str, locked: str, scope: str
+) -> None:
+    requirement = "beta" + specifier
+    assert Requirement(requirement).specifier.contains(locked, prereleases=True)
+    base_requirements = ["patch>=1"]
+    head_requirements = ["patch>=2"]
+    if scope == "runtime":
+        base_requirements.append(requirement)
+        head_requirements.append(requirement)
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=base_requirements,
+        head_requirements=head_requirements,
+        base_packages=[("patch", "1"), ("beta", locked)],
+        head_packages=[("patch", "2"), ("beta", locked)],
+        base_optional_groups={"feature": [requirement]} if scope == "optional" else None,
+        head_optional_groups={"feature": [requirement]} if scope == "optional" else None,
+        base_constraints=[requirement] if scope == "constraint" else None,
+        head_constraints=[requirement] if scope == "constraint" else None,
+        base_build_constraints=[requirement] if scope == "build" else None,
+        head_build_constraints=[requirement] if scope == "build" else None,
+        base_dependency_groups={"development": [requirement]} if scope == "group" else None,
+        head_dependency_groups={"development": [requirement]} if scope == "group" else None,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.mark.parametrize("scope", ["runtime", "optional", "constraint", "build", "group"])
+@pytest.mark.parametrize(
+    ("previous", "current"),
+    [
+        pytest.param("beta>=1.0rc1", "beta>=1", id="changed-prerelease-floor-is-not-silently-reinterpreted"),
+        pytest.param("beta>=1.0.dev1", "beta>=1", id="changed-development-floor-is-not-silently-reinterpreted"),
+        pytest.param("beta<2.0rc1", "beta<3", id="changed-prerelease-ceiling-is-not-silently-reinterpreted"),
+        pytest.param("beta!=1.0rc1", "beta", id="removed-prerelease-exclusion-is-not-silently-reinterpreted"),
+    ],
+)
+def test_grouped_security_updates_do_not_bypass_changed_prerelease_requirements(
+    tmp_path: Path, previous: str, current: str, scope: str
+) -> None:
+    Requirement(previous)
+    Requirement(current)
+    base_requirements = ["patch>=1"]
+    head_requirements = ["patch>=2"]
+    if scope == "runtime":
+        base_requirements.append(previous)
+        head_requirements.append(current)
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=base_requirements,
+        head_requirements=head_requirements,
+        base_packages=[("patch", "1"), ("beta", "1.5")],
+        head_packages=[("patch", "2"), ("beta", "1.5")],
+        base_optional_groups={"feature": [previous]} if scope == "optional" else None,
+        head_optional_groups={"feature": [current]} if scope == "optional" else None,
+        base_constraints=[previous] if scope == "constraint" else None,
+        head_constraints=[current] if scope == "constraint" else None,
+        base_build_constraints=[previous] if scope == "build" else None,
+        head_build_constraints=[current] if scope == "build" else None,
+        base_dependency_groups={"development": [previous]} if scope == "group" else None,
+        head_dependency_groups={"development": [current]} if scope == "group" else None,
+    )
+    assert result.returncode == 1, result.stdout + result.stderr
 
 
 @pytest.mark.parametrize(
@@ -6060,6 +6145,303 @@ def test_platform_release_negative_membership_retains_equivalent_numeric_aliases
 
 
 @pytest.mark.parametrize(
+    ("requirement_marker", "release"),
+    [
+        pytest.param("platform_release not in '6'", "6", id="standalone-negative-excludes-exact-release"),
+        pytest.param("platform_release not in '7'", "6", id="standalone-negative-preserves-other-release"),
+        pytest.param("platform_release not in 'kernel-6'", "6", id="negative-preserves-raw-substring-semantics"),
+        pytest.param("platform_release not in 'linux'", "6", id="negative-preserves-nonnumeric-operand"),
+        pytest.param("platform_release not in '6'", "6.0", id="negative-preserves-dotted-raw-alias"),
+        pytest.param("platform_release not in '6.0'", "6.0", id="negative-excludes-dotted-raw-release"),
+        pytest.param("platform_release not in '06'", "6", id="negative-excludes-leading-zero-containing-string"),
+        pytest.param("platform_release not in '6'", "06", id="negative-preserves-leading-zero-raw-alias"),
+        pytest.param(
+            "platform_release not in '7' and platform_release not in 'kernel-6'",
+            "6",
+            id="every-negative-clause-is-preserved",
+        ),
+        pytest.param(
+            "platform_release not in '7' and platform_release not in 'linux'",
+            "6",
+            id="multiple-negative-clauses-can-share-a-witness",
+        ),
+        pytest.param(
+            "platform_release >= '5' and platform_release not in '6'",
+            "6",
+            id="numeric-lower-bound-cannot-drop-negative-membership",
+        ),
+        pytest.param(
+            "platform_release == '6' and platform_release not in '6'",
+            "6",
+            id="numeric-equality-cannot-manufacture-an-alias-to-evade-negative-membership",
+        ),
+        pytest.param(
+            "platform_release == '6' and platform_release not in '6'",
+            "6.0",
+            id="numeric-equality-retains-a-real-dotted-raw-alias",
+        ),
+        pytest.param(
+            "platform_release == '6' and platform_release in '6'",
+            "6.0",
+            id="numeric-equality-cannot-manufacture-a-positive-membership-alias",
+        ),
+        pytest.param(
+            "platform_release == '6' or platform_release in 'arm64'",
+            "6.0",
+            id="numeric-equality-disjunction-preserves-its-dotted-alias-alternative",
+        ),
+        pytest.param(
+            "platform_release < '7' and platform_release not in '5'",
+            "6",
+            id="numeric-upper-bound-retains-valid-negative-membership",
+        ),
+        pytest.param(
+            "platform_release != 'linux' and platform_release not in '6'",
+            "6",
+            id="mixed-raw-and-numeric-domains-retain-negative-membership",
+        ),
+        pytest.param(
+            "platform_release in 'kernel-6' and platform_release not in '6'",
+            "6",
+            id="positive-and-negative-memberships-share-the-same-witness",
+        ),
+        pytest.param(
+            "platform_release not in 'kernel-6.8.0.1'",
+            "6.8.0.1",
+            id="negative-membership-preserves-arbitrary-release-width",
+        ),
+        pytest.param(
+            "platform_release not in 'kernel-6.8.0.1a1'",
+            "6.8.0.1a1",
+            id="negative-membership-preserves-prerelease-spelling",
+        ),
+        pytest.param(
+            "platform_release not in 'kernel-6.8.0.1.post2'",
+            "6.8.0.1.post2",
+            id="negative-membership-preserves-postrelease-spelling",
+        ),
+        pytest.param(
+            "platform_release not in 'kernel-6.8.0.1.dev3'",
+            "6.8.0.1.dev3",
+            id="negative-membership-preserves-development-spelling",
+        ),
+    ],
+)
+@pytest.mark.parametrize("protected", [False, True], ids=["published-direct", "protected-constraint"])
+def test_platform_release_negative_membership_matches_packaging_without_positive_membership(
+    tmp_path: Path, requirement_marker: str, release: str, protected: bool
+) -> None:
+    expected = Marker(requirement_marker).evaluate(environment={"platform_release": release})
+    domain = f"platform_release == '{release}'"
+    previous, updated = "danger>=1; " + requirement_marker, "danger>=2; " + requirement_marker
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=[] if protected else [previous],
+        head_requirements=[] if protected else [updated],
+        base_packages=[("danger", "1")],
+        head_packages=[("danger", "2")],
+        base_constraints=[previous] if protected else None,
+        head_constraints=[updated] if protected else None,
+        base_resolution_markers={("danger", "1"): [domain]},
+        head_resolution_markers={("danger", "2"): [domain]},
+    )
+    assert result.returncode == (0 if expected else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("requirement_marker", "resolution_marker", "release"),
+    [
+        pytest.param(
+            "platform_release === '6.8.0'",
+            "platform_release == '6.8.0'",
+            "6.8.0",
+            id="arbitrary-equality-preserves-exact-raw-platform-release",
+        ),
+        pytest.param(
+            "platform_release === '6.8.0'",
+            "platform_release == '6.8'",
+            "6.8",
+            id="arbitrary-equality-rejects-shorter-normalized-alias",
+        ),
+        pytest.param(
+            "platform_release === '6.8'",
+            "platform_release == '6.8.0'",
+            "6.8.0",
+            id="arbitrary-equality-rejects-longer-normalized-alias",
+        ),
+        pytest.param(
+            "platform_release === '06.008.000'",
+            "platform_release == '06.008.000'",
+            "06.008.000",
+            id="arbitrary-equality-retains-leading-zero-spelling",
+        ),
+        pytest.param(
+            "platform_release === '6.0' and platform_release == '6'",
+            "platform_release == '6.0'",
+            "6.0",
+            id="arbitrary-equality-can-intersect-an-equivalent-numeric-alias",
+        ),
+        pytest.param(
+            "platform_release === '06' and platform_release == '6'",
+            "platform_release == '06'",
+            "06",
+            id="arbitrary-equality-can-intersect-a-leading-zero-numeric-alias",
+        ),
+        pytest.param(
+            "platform_release === '6.8.0.1.2'",
+            "platform_release == '6.8.0.1.2'",
+            "6.8.0.1.2",
+            id="arbitrary-equality-supports-arbitrary-release-width",
+        ),
+        pytest.param(
+            "platform_release === '6.8.0.1a1'",
+            "platform_release == '6.8.0.1a1'",
+            "6.8.0.1a1",
+            id="arbitrary-equality-retains-prerelease-spelling",
+        ),
+        pytest.param(
+            "platform_release === '6.8.0.1.post2'",
+            "platform_release == '6.8.0.1.post2'",
+            "6.8.0.1.post2",
+            id="arbitrary-equality-retains-postrelease-spelling",
+        ),
+        pytest.param(
+            "platform_release === '6.8.0.1.dev3'",
+            "platform_release == '6.8.0.1.dev3'",
+            "6.8.0.1.dev3",
+            id="arbitrary-equality-retains-development-spelling",
+        ),
+        pytest.param(
+            "platform_release === 'Linux'",
+            "platform_release == 'linux'",
+            "linux",
+            id="arbitrary-equality-matches-packaging-case-insensitivity",
+        ),
+        pytest.param(
+            "platform_release === 'v6.8'",
+            "platform_release === 'v6.8'",
+            "v6.8",
+            id="arbitrary-equality-retains-v-prefixed-raw-domains",
+        ),
+        pytest.param(
+            "platform_release === '6+LOCAL'",
+            "platform_release === '6+local'",
+            "6+local",
+            id="arbitrary-equality-retains-case-insensitive-local-domains",
+        ),
+        pytest.param(
+            "platform_release === '6' and platform_release not in '6'",
+            "platform_release == '6'",
+            "6",
+            id="raw-equality-cannot-evade-negative-membership",
+        ),
+        pytest.param(
+            "platform_release === '6' and platform_release in 'kernel-6'",
+            "platform_release == '6'",
+            "6",
+            id="raw-equality-can-intersect-positive-membership",
+        ),
+    ],
+)
+@pytest.mark.parametrize("protected", [False, True], ids=["published-direct", "protected-constraint"])
+def test_platform_release_arbitrary_equality_matches_packaging_raw_domains(
+    tmp_path: Path, requirement_marker: str, resolution_marker: str, release: str, protected: bool
+) -> None:
+    expected = Marker(requirement_marker).evaluate(environment={"platform_release": release})
+    assert Marker(resolution_marker).evaluate(environment={"platform_release": release})
+    previous, updated = "danger>=1; " + requirement_marker, "danger>=2; " + requirement_marker
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=[] if protected else [previous],
+        head_requirements=[] if protected else [updated],
+        base_packages=[("danger", "1")],
+        head_packages=[("danger", "2")],
+        base_constraints=[previous] if protected else None,
+        head_constraints=[updated] if protected else None,
+        base_resolution_markers={("danger", "1"): [resolution_marker]},
+        head_resolution_markers={("danger", "2"): [resolution_marker]},
+    )
+    assert result.returncode == (0 if expected else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize("scope", ["runtime", "optional", "constraint", "build", "group"])
+@pytest.mark.parametrize(
+    ("marker", "release"),
+    [
+        pytest.param("platform_release not in '6'", "6", id="inactive-negative-membership"),
+        pytest.param("platform_release not in '7'", "6", id="active-negative-membership"),
+        pytest.param("platform_release === '6.0'", "6", id="inactive-normalized-raw-equality-alias"),
+        pytest.param("platform_release === '6'", "6", id="active-exact-raw-equality"),
+    ],
+)
+def test_platform_release_raw_security_boundaries_are_consistent_across_dependency_groups(
+    tmp_path: Path, scope: str, marker: str, release: str
+) -> None:
+    expected = Marker(marker).evaluate(environment={"platform_release": release})
+    previous, updated = "danger>=1; " + marker, "danger>=2; " + marker
+    runtime = scope in {"runtime", "optional"}
+    domain = f"platform_release == '{release}'"
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=[previous] if runtime else [],
+        head_requirements=[updated] if runtime else [],
+        base_packages=[("danger", "1")],
+        head_packages=[("danger", "2")],
+        optional=scope == "optional",
+        base_constraints=[previous] if scope == "constraint" else None,
+        head_constraints=[updated] if scope == "constraint" else None,
+        base_build_constraints=[previous] if scope == "build" else None,
+        head_build_constraints=[updated] if scope == "build" else None,
+        base_dependency_groups={"development": [previous]} if scope == "group" else None,
+        head_dependency_groups={"development": [updated]} if scope == "group" else None,
+        base_resolution_markers={("danger", "1"): [domain]},
+        head_resolution_markers={("danger", "2"): [domain]},
+    )
+    assert result.returncode == (0 if expected else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize("scope", ["constraint", "build", "group"])
+@pytest.mark.parametrize("exposure", ["transitive-upgrade", "new-extra"])
+@pytest.mark.parametrize(
+    ("marker", "release"),
+    [
+        pytest.param("platform_release not in '6'", "6", id="inactive-negative-boundary"),
+        pytest.param("platform_release not in '7'", "6", id="active-negative-boundary"),
+        pytest.param("platform_release not in '6'", "6.0", id="active-normalized-numeric-alias"),
+        pytest.param("platform_release === '6'", "6", id="active-exact-raw-boundary"),
+        pytest.param("platform_release === '6.0'", "6", id="inactive-normalized-raw-boundary"),
+    ],
+)
+def test_new_platform_release_security_boundaries_cover_actual_exposure_domains(
+    tmp_path: Path, scope: str, exposure: str, marker: str, release: str
+) -> None:
+    expected = Marker(marker).evaluate(environment={"platform_release": release})
+    requirement = "danger>=2; " + marker
+    domain = f"platform_release == '{release}'"
+    extra = exposure == "new-extra"
+    optional: dict[tuple[str, str], dict[str, list[dict[str, object]]]] | None = (
+        {("parent", "1"): {"feature": [{"name": "danger"}]}} if extra else None
+    )
+    base_packages = [("patch", "1"), ("parent", "1") if extra else ("danger", "1")]
+    head_packages = [("patch", "2"), *([("parent", "1")] if extra else []), ("danger", "2")]
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=["patch>=1", *(["parent"] if extra else [])],
+        head_requirements=["patch>=2", *(["parent", "parent[feature]"] if extra else [])],
+        base_packages=base_packages,
+        head_packages=head_packages,
+        head_constraints=[requirement] if scope == "constraint" else None,
+        head_build_constraints=[requirement] if scope == "build" else None,
+        head_dependency_groups={"reviewed": [requirement]} if scope == "group" else None,
+        base_lock_optional_dependencies=optional,
+        head_lock_optional_dependencies=optional,
+        base_resolution_markers=None if extra else {("danger", "1"): [domain]},
+        head_resolution_markers={("danger", "2"): [domain]},
+    )
+    assert result.returncode == (0 if expected else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
     ("requirement_marker", "resolution_marker", "accepted"),
     [
         pytest.param("'lin' in sys_platform", "sys_platform == 'linux'", True, id="reversed-platform-substring"),
@@ -6755,6 +7137,59 @@ def test_locked_extra_membership_uses_pep508_substring_containment(
         head_lock_optional_dependencies=optional,
     )
     assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("requested", "marker"),
+    [
+        pytest.param("new-extra", "extra >= 'new-extra'", id="inclusive-lower-order-matches-selected-extra"),
+        pytest.param("new-extra", "extra <= 'new-extra'", id="inclusive-upper-order-matches-selected-extra"),
+        pytest.param("new-extra", "extra > 'new-extra'", id="strict-lower-order-does-not-match-selected-extra"),
+        pytest.param("new-extra", "extra < 'new-extra'", id="strict-upper-order-does-not-match-selected-extra"),
+        pytest.param("new-extra", "extra >= 'other-extra'", id="inclusive-lower-order-rejects-different-extra"),
+        pytest.param("new-extra", "extra <= 'other-extra'", id="inclusive-upper-order-rejects-different-extra"),
+        pytest.param("new-extra", "extra > 'aaa'", id="strict-lower-order-does-not-fall-back-to-lexical-order"),
+        pytest.param("new-extra", "extra < 'zzz'", id="strict-upper-order-does-not-fall-back-to-lexical-order"),
+        pytest.param("new-extra", "extra >= 'NEW_EXTRA'", id="inclusive-order-normalizes-pep508-extra-alias"),
+        pytest.param("new-extra", "'NEW_EXTRA' <= extra", id="reversed-inclusive-order-normalizes-extra-alias"),
+        pytest.param("new-extra", "'new-extra' >= extra", id="reversed-inclusive-upper-order-matches-equality"),
+        pytest.param("new-extra", "'new-extra' < extra", id="reversed-strict-order-remains-unsatisfied"),
+        pytest.param(
+            "new-extra",
+            "extra >= 'new-extra' and extra <= 'NEW_EXTRA'",
+            id="inclusive-extra-conjunction-shares-one-normalized-witness",
+        ),
+        pytest.param(
+            "new-extra",
+            "extra >= 'new-extra' and extra < 'new-extra'",
+            id="strict-and-inclusive-extra-conjunction-remains-unsatisfied",
+        ),
+        pytest.param(
+            "new-extra",
+            "extra > 'new-extra' or extra <= 'NEW_EXTRA'",
+            id="inclusive-extra-disjunction-retains-its-active-alternative",
+        ),
+    ],
+)
+@pytest.mark.parametrize("reviewed", [False, True], ids=["unreviewed-package", "reviewed-package"])
+def test_selected_extra_ordered_markers_match_packaging_without_hiding_dependencies(
+    tmp_path: Path, requested: str, marker: str, reviewed: bool
+) -> None:
+    active = Marker(marker).evaluate(environment={"extra": requested})
+    optional: dict[tuple[str, str], dict[str, list[dict[str, object]]]] = {
+        ("parent", "1"): {requested: [{"name": "plugin", "marker": marker}]}
+    }
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=["patch-me>=1", "parent"],
+        head_requirements=["patch-me>=1.1", "parent", "parent[" + requested + "]"],
+        base_packages=[("patch-me", "1"), ("parent", "1")],
+        head_packages=[("patch-me", "1.1"), ("parent", "1"), ("plugin", "1")],
+        head_constraints=["plugin>=1"] if reviewed else None,
+        base_lock_optional_dependencies=optional,
+        head_lock_optional_dependencies=optional,
+    )
+    assert result.returncode == (0 if not active or reviewed else 1), result.stdout + result.stderr
 
 
 @pytest.mark.parametrize(

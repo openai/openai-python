@@ -287,10 +287,12 @@ def dependency_marker_options(marker: object, extras: tuple[str, ...]) -> list[M
         if variable != "extra":
             return [context]
         normalized = canonical(value)
-        if operator == "Eq":
+        if operator in {"Eq", "GtE", "LtE"}:
             accepted = extra == normalized
         elif operator == "NotEq":
             accepted = extra != normalized
+        elif operator in {"Gt", "Lt"}:
+            accepted = False
         elif operator in {"In", "NotIn", "ReverseIn", "ReverseNotIn"}:
             if len(value) > 256:
                 raise SystemExit("Unbounded locked security dependency edge extra")
@@ -575,8 +577,16 @@ def simple_marker_overlap(requirement: MarkerContext, resolution: MarkerContext)
         platform_memberships = [
             clause for clause in constraints if family == "platform_release" and clause[1] in {"In", "NotIn"}
         ]
+        platform_raw_equalities = [
+            clause for clause in constraints if family == "platform_release" and clause[1] == "ArbitraryEq"
+        ]
+        platform_raw_exclusions = [
+            clause for clause in constraints if family == "platform_release" and clause[1] == "ArbitraryNotEq"
+        ]
         comparisons = [
-            clause for clause in constraints if family != "platform_release" or clause[1] not in {"In", "NotIn"}
+            clause
+            for clause in constraints
+            if family != "platform_release" or clause[1] not in {"In", "NotIn", "ArbitraryEq", "ArbitraryNotEq"}
         ]
         numeric_platform_values = [
             family == "platform_release" and is_numeric_platform_release(value) for _, _, value in comparisons
@@ -592,9 +602,86 @@ def simple_marker_overlap(requirement: MarkerContext, resolution: MarkerContext)
             ]
             numeric_platform_values = [True] * len(comparisons)
         numeric_platform_release = family == "platform_release" and bool(comparisons) and all(numeric_platform_values)
+
+        def platform_witness_matches(
+            candidate: str,
+            memberships: list[MarkerClause] = platform_memberships,
+            exclusions: list[MarkerClause] = platform_raw_exclusions,
+        ) -> bool:
+            return all((candidate in value) == (operator == "In") for _, operator, value in memberships) and all(
+                candidate.lower() != value.lower() for _, _, value in exclusions
+            )
+
+        def anchored_platform_witness() -> str | None:
+            for context in (resolution, requirement):
+                equalities = [
+                    value.strip()
+                    for variable, operator, value in context
+                    if variable == "platform_release" and operator == "Eq" and not value.rstrip().endswith(".*")
+                ]
+                if not equalities:
+                    continue
+                local = [
+                    clause
+                    for clause in context
+                    if clause[0] == "platform_release" and clause[1] in {"In", "NotIn", "ArbitraryNotEq"}
+                ]
+                for candidate in equalities:
+                    if all(
+                        (candidate in value) == (operator == "In")
+                        if operator in {"In", "NotIn"}
+                        else candidate.lower() != value.lower()
+                        for _, operator, value in local
+                    ):
+                        return candidate
+                return None
+            return None
+
+        if family == "platform_release" and (platform_raw_equalities or platform_raw_exclusions):
+            if any(len(value) > 256 for _, _, value in platform_raw_equalities + platform_raw_exclusions):
+                raise SystemExit("Unbounded platform security dependency marker")
+            if platform_raw_equalities:
+                raw_values = {value.lower() for _, _, value in platform_raw_equalities}
+                if len(raw_values) != 1:
+                    return False
+                anchor = (
+                    anchored_platform_witness()
+                    if any(variable == "platform_release" and operator == "Eq" for variable, operator, _ in resolution)
+                    and not any(
+                        variable == "platform_release" and operator == "ArbitraryEq"
+                        for variable, operator, _ in resolution
+                    )
+                    else None
+                )
+                selected = next(
+                    (
+                        value
+                        for variable, operator, value in resolution
+                        if variable == "platform_release" and operator == "ArbitraryEq"
+                    ),
+                    platform_raw_equalities[0][2],
+                )
+                if anchor is not None:
+                    if anchor.lower() not in raw_values:
+                        return False
+                    selected = anchor
+                if not platform_witness_matches(selected):
+                    return False
+                if not comparisons:
+                    continue
+                if numeric_platform_release:
+                    normalized = numeric_platform_release_candidate(selected)
+                    if normalized is None:
+                        raise SystemExit("Ambiguous platform security dependency raw equality")
+                    selected = normalized
+                if not simple_marker_overlap(tuple(comparisons), (("platform_release", "Eq", selected),)):
+                    return False
+                continue
+
         if numeric_platform_release and platform_memberships:
             if any(len(value) > 256 for _, _, value in platform_memberships):
                 raise SystemExit("Unbounded platform security dependency marker")
+            anchor = anchored_platform_witness()
             included = [value for _, operator, value in platform_memberships if operator == "In"]
             if included:
                 shortest = min(included, key=len)
@@ -610,10 +697,12 @@ def simple_marker_overlap(requirement: MarkerContext, resolution: MarkerContext)
                 unsupported = False
                 matched = False
                 for membership_candidate in sorted(candidates):
-                    if not all(
-                        membership_candidate in value if operator == "In" else membership_candidate not in value
-                        for _, operator, value in platform_memberships
-                    ) or not is_numeric_platform_release(membership_candidate):
+                    if (
+                        anchor is not None
+                        and membership_candidate != anchor
+                        or not platform_witness_matches(membership_candidate)
+                        or not is_numeric_platform_release(membership_candidate)
+                    ):
                         continue
                     normalized = numeric_platform_release_candidate(membership_candidate)
                     if normalized is None:
@@ -635,7 +724,50 @@ def simple_marker_overlap(requirement: MarkerContext, resolution: MarkerContext)
                         raise SystemExit("Ambiguous platform security dependency membership")
                     return False
                 continue
-            constraints = comparisons
+            if anchor is not None:
+                if not platform_witness_matches(anchor):
+                    return False
+                normalized = numeric_platform_release_candidate(anchor)
+                if normalized is None:
+                    raise SystemExit("Ambiguous platform security dependency membership")
+                if not simple_marker_overlap(tuple(comparisons), (("platform_release", "Eq", normalized),)):
+                    return False
+                continue
+            equalities = [value for _, operator, value in comparisons if operator == "Eq" and not value.endswith(".*")]
+            if equalities:
+                if not simple_marker_overlap(tuple(comparisons), ()):
+                    return False
+                matched = False
+                for numeric_equality in equalities:
+                    normalized = numeric_platform_release_candidate(numeric_equality)
+                    if normalized is None:
+                        raise SystemExit("Ambiguous platform security dependency membership")
+                    match = re.fullmatch(r"(\d+(?:\.\d+)*)(.*)", normalized)
+                    if match is None:
+                        raise SystemExit("Ambiguous platform security dependency membership")
+                    release, suffix = match.groups()
+                    components = release.split(".")
+                    if len(components) > 32:
+                        raise SystemExit("Unbounded platform security dependency membership")
+                    for trailing in range(33 - len(components)):
+                        for leading in range(10 - len(components[0])):
+                            raw_candidate = "0" * leading + release + ".0" * trailing + suffix
+                            if len(raw_candidate) > 256 or not platform_witness_matches(raw_candidate):
+                                continue
+                            if simple_marker_overlap(tuple(comparisons), (("platform_release", "Eq", normalized),)):
+                                matched = True
+                                break
+                        if matched:
+                            break
+                    if matched:
+                        break
+                if not matched:
+                    raise SystemExit("Ambiguous platform security dependency membership")
+                continue
+        elif numeric_platform_release and platform_raw_exclusions:
+            anchor = anchored_platform_witness()
+            if anchor is not None and not platform_witness_matches(anchor):
+                return False
         if family in {"python", "implementation_version"} or numeric_platform_release:
             if numeric_platform_release:
                 constraints = comparisons
@@ -733,7 +865,7 @@ def simple_marker_overlap(requirement: MarkerContext, resolution: MarkerContext)
                     memberships.append(value)
                 elif operator == "ReverseIn":
                     required_substrings.append(value)
-                elif operator not in {"NotEq", "NotIn", "ReverseNotIn"}:
+                elif operator not in {"NotEq", "NotIn", "ReverseNotIn", "ArbitraryNotEq"}:
                     raise SystemExit("Ambiguous platform security dependency marker")
 
             def matches(platform_candidate: str, terms: list[MarkerClause] = constraints) -> bool:
@@ -743,6 +875,8 @@ def simple_marker_overlap(requirement: MarkerContext, resolution: MarkerContext)
                         and platform_candidate != value
                         or operator == "NotEq"
                         and platform_candidate == value
+                        or operator == "ArbitraryNotEq"
+                        and platform_candidate.lower() == value.lower()
                         or operator in {"Lt", "Gt"}
                         or operator == "In"
                         and platform_candidate not in value
@@ -854,6 +988,11 @@ def marker_options(context: MarkerContext) -> list[MarkerContext]:
                     r"(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)"
                     r"(?:(?:a|b|rc)(?:0|[1-9]\d*))?(?:\.post(?:0|[1-9]\d*))?(?:\.dev(?:0|[1-9]\d*))?"
                 )
+            elif variable == "platform_release":
+                if len(value) > 256 or re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.!+-]*", value.strip()) is None:
+                    raise SystemExit("Ambiguous platform security dependency raw equality")
+                options = [option + ((variable, operator, value.strip()),) for option in options]
+                continue
             else:
                 raise SystemExit("Unsupported arbitrary security dependency marker variable")
             if re.fullmatch(pattern, value) is None:
@@ -924,7 +1063,32 @@ def marker_overlap(requirement: MarkerContext, resolution: MarkerContext) -> boo
     return any(simple_marker_overlap(left, right) for left in requirements for right in resolutions)
 
 
-def uncovered_marker_fragments(domain: MarkerContext, coverings: list[MarkerContext]) -> tuple[MarkerContext, ...]:
+def uncovered_marker_fragments(
+    domain: MarkerContext, coverings: list[MarkerContext], *, anchor_platform_release: bool = False
+) -> tuple[MarkerContext, ...]:
+    platform_equalities = [
+        value.strip()
+        for variable, operator, value in domain
+        if variable == "platform_release" and operator == "Eq" and not value.rstrip().endswith(".*")
+    ]
+    raw_coverings = [
+        covering
+        for covering in coverings
+        if any(
+            variable == "platform_release" and operator in {"In", "NotIn", "ArbitraryEq"}
+            for variable, operator, _ in covering
+        )
+    ]
+    if (
+        anchor_platform_release
+        and len(platform_equalities) == 1
+        and raw_coverings
+        and not any(
+            variable == "platform_release" and operator in {"In", "NotIn", "ArbitraryEq", "ArbitraryNotEq"}
+            for variable, operator, _ in domain
+        )
+    ):
+        domain = tuple(sorted(domain + (("platform_release", "ArbitraryEq", platform_equalities[0]),)))
     opposite = {
         "Eq": "NotEq",
         "NotEq": "Eq",
@@ -940,6 +1104,8 @@ def uncovered_marker_fragments(domain: MarkerContext, coverings: list[MarkerCont
         "NotIn": "In",
         "ReverseIn": "ReverseNotIn",
         "ReverseNotIn": "ReverseIn",
+        "ArbitraryEq": "ArbitraryNotEq",
+        "ArbitraryNotEq": "ArbitraryEq",
     }
     fragments = {tuple(sorted(set(option))) for option in marker_options(domain) if simple_marker_overlap(option, ())}
     work = 0
@@ -953,7 +1119,7 @@ def uncovered_marker_fragments(domain: MarkerContext, coverings: list[MarkerCont
                 work += 1
                 if work > 2048:
                     raise SystemExit("Ambiguous security dependency marker partition")
-                if not simple_marker_overlap(fragment, option):
+                if not simple_marker_overlap(option, fragment):
                     remaining.add(fragment)
                     continue
                 prefix = fragment
@@ -1032,10 +1198,10 @@ def reconcile_resolution_domains(
     aligned_current: ResolutionDomains = {}
     for fragment in fragments:
         old = {
-            release for domain, releases in previous.items() if marker_overlap(fragment, domain) for release in releases
+            release for domain, releases in previous.items() if marker_overlap(domain, fragment) for release in releases
         }
         new = {
-            release for domain, releases in current.items() if marker_overlap(fragment, domain) for release in releases
+            release for domain, releases in current.items() if marker_overlap(domain, fragment) for release in releases
         }
         if bool(old) != bool(new):
             if not explicit_prerelease:
@@ -1141,7 +1307,7 @@ def replacement_contexts(
     replacements = {
         context: requirements
         for context, requirements in current_contexts.items()
-        if context[:3] == previous_context[:3] and context[3] and marker_overlap(context[3], previous_context[3])
+        if context[:3] == previous_context[:3] and context[3] and marker_overlap(previous_context[3], context[3])
     }
     if len(replacements) < 2:
         return {}
@@ -1216,6 +1382,8 @@ def preserves_requirement_source_markers(
         return max(floors, default=None)
 
     def compatible(original: str, replacement: str) -> bool:
+        if original == replacement:
+            return True
         before, after = source_floor(original), source_floor(replacement)
         if before is not None and (after is None or after < before):
             return False
@@ -1808,7 +1976,9 @@ def covers_transitive_security_release(
             ):
                 continue
             covered.append(context[3])
-    return bool(covered) and all(not uncovered_marker_fragments(fragment, covered) for fragment in fragments)
+    return bool(covered) and all(
+        not uncovered_marker_fragments(fragment, covered, anchor_platform_release=True) for fragment in fragments
+    )
 
 
 def preserves_additive_supported_releases(
@@ -2090,7 +2260,7 @@ for name in old_versions.keys() & new_versions.keys():
                 if minimums({declaration}, allow_missing=True, exact=True)
                 and matches_protected_release({declaration}, removed_release)
             ]
-            fragments = uncovered_marker_fragments(domain, protected)
+            fragments = uncovered_marker_fragments(domain, protected, anchor_platform_release=True)
             if fragments and not covers_transitive_security_release(
                 new_protected_contexts.get(name, {}),
                 domain,
@@ -2135,7 +2305,9 @@ if new_requested_extra_contexts:
                                 and allows_published_release(published_bounds(requirement), release)
                             ):
                                 extra_coverings.append(context[3])
-                    if not extra_coverings or uncovered_marker_fragments(fragment, extra_coverings):
+                    if not extra_coverings or uncovered_marker_fragments(
+                        fragment, extra_coverings, anchor_platform_release=True
+                    ):
                         raise SystemExit(
                             "Review the contextual dependency introduced by a newly requested extra for " + name
                         )
