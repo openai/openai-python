@@ -1,11 +1,47 @@
 from __future__ import annotations
 
+import asyncio
 import pickle
+from collections.abc import Iterator
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from threading import Thread
 
 import httpx2
+import pytest
 
-from openai import APITimeoutError, BadRequestError
+from openai import APITimeoutError, AsyncOpenAI, BadRequestError, OpenAI
 from openai._exceptions import WebSocketConnectionClosedError
+
+
+_ERROR_PAYLOAD = b'{"error":{"message":"bad request","type":"invalid_request_error","param":null,"code":"bad_request"}}'
+
+
+class _BadRequestHandler(BaseHTTPRequestHandler):
+    protocol_version = "HTTP/1.1"
+
+    def do_GET(self) -> None:
+        self.send_response(400)
+        self.send_header("content-type", "application/json")
+        self.send_header("content-length", str(len(_ERROR_PAYLOAD)))
+        self.send_header("x-request-id", "req_transport")
+        self.end_headers()
+        self.wfile.write(_ERROR_PAYLOAD)
+
+    def log_message(self, format: str, *args: object) -> None:
+        pass
+
+
+@pytest.fixture
+def transport_error_base_url() -> Iterator[str]:
+    server = ThreadingHTTPServer(("127.0.0.1", 0), _BadRequestHandler)
+    thread = Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        yield f"http://127.0.0.1:{server.server_port}/v1"
+    finally:
+        server.shutdown()
+        thread.join()
+        server.server_close()
 
 
 def test_timeout_error_pickle_round_trip() -> None:
@@ -48,6 +84,45 @@ def test_status_error_pickle_round_trip_preserves_response_state() -> None:
     assert restored.type == "invalid_request_error"
     assert restored.response.status_code == 400
     assert restored.response.json() == {"error": "bad request"}
+
+
+def _assert_transport_status_error_pickle_round_trip(error: BadRequestError) -> None:
+    restored = pickle.loads(pickle.dumps(error))
+
+    assert isinstance(restored, BadRequestError)
+    assert restored.status_code == 400
+    assert restored.request_id == "req_transport"
+    assert restored.response.status_code == 400
+    assert restored.response.request is restored.request
+    assert restored.request.method == "GET"
+    assert str(restored.request.url).endswith("/v1/models")
+    assert restored.response.json() == {
+        "error": {
+            "message": "bad request",
+            "type": "invalid_request_error",
+            "param": None,
+            "code": "bad_request",
+        }
+    }
+
+
+def test_status_error_from_sync_transport_pickle_round_trip(transport_error_base_url: str) -> None:
+    with OpenAI(api_key="test", base_url=transport_error_base_url) as client:
+        with pytest.raises(BadRequestError) as exc_info:
+            client.models.list()
+
+        _assert_transport_status_error_pickle_round_trip(exc_info.value)
+
+
+def test_status_error_from_async_transport_pickle_round_trip(transport_error_base_url: str) -> None:
+    async def run() -> None:
+        async with AsyncOpenAI(api_key="test", base_url=transport_error_base_url) as client:
+            with pytest.raises(BadRequestError) as exc_info:
+                await client.models.list()
+
+            _assert_transport_status_error_pickle_round_trip(exc_info.value)
+
+    asyncio.run(run())
 
 
 def test_websocket_error_pickle_round_trip_preserves_unsent_messages() -> None:
