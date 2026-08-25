@@ -142,8 +142,8 @@ def run_dependency_lock_source_check(
             configuration += name + " = " + json.dumps(value) + "\n"
     if uv_sources is not None:
         configuration += "[tool.uv.sources]\n"
-        for name, source in uv_sources.items():
-            values = ", ".join(key + " = " + json.dumps(value) for key, value in source.items())
+        for name, configured_source in uv_sources.items():
+            values = ", ".join(key + " = " + json.dumps(value) for key, value in configured_source.items())
             configuration += name + " = { " + values + " }\n"
     configuration += hatch_configuration
     (tmp_path / "pyproject.toml").write_text(configuration)
@@ -4326,7 +4326,12 @@ def test_new_requested_extras_cannot_introduce_unreviewed_dependency_identities(
         pytest.param("wrong-marker", False, id="reviewed-existing-package-bound-must-cover-extra-domain"),
         pytest.param("matching-marker", True, id="reviewed-existing-package-marker-can-cover-extra-domain"),
         pytest.param("unchanged-extra", True, id="unchanged-requested-extra-keeps-prior-published-reachability"),
-        pytest.param("cyclic-extra", False, id="cyclic-extra-dependency-graph-fails-closed"),
+        pytest.param("cyclic-extra", False, id="cyclic-extra-cannot-hide-an-unreviewed-dependency"),
+        pytest.param("reviewed-cyclic-extra", True, id="reviewed-cyclic-extra-dependency-graph-is-supported"),
+        pytest.param("composed-extra", False, id="composed-extra-cannot-hide-an-unreviewed-dependency"),
+        pytest.param("reviewed-composed-extra", True, id="reviewed-self-referential-composed-extra-is-supported"),
+        pytest.param("mutual-cycle", False, id="mutual-package-cycle-cannot-hide-an-unreviewed-dependency"),
+        pytest.param("reviewed-mutual-cycle", True, id="reviewed-mutual-package-dependency-cycle-is-supported"),
         pytest.param("ambiguous-edge", False, id="ambiguous-extra-dependency-edge-fails-closed"),
     ],
 )
@@ -4351,23 +4356,44 @@ def test_new_extras_cannot_publish_previously_locked_transitive_packages(
     elif variant == "already-runtime":
         base_requirements.append("existing-plugin>=1")
         head_requirements.append("existing-plugin>=1")
-    elif variant in {"transitive-existing", "reviewed-transitive", "selected-nested-extra", "cyclic-extra"}:
+    elif variant in {
+        "transitive-existing",
+        "reviewed-transitive",
+        "selected-nested-extra",
+        "cyclic-extra",
+        "reviewed-cyclic-extra",
+        "mutual-cycle",
+        "reviewed-mutual-cycle",
+    }:
         packages.append(("bridge", "1"))
         parent_optional["new-extra"] = [{"name": "bridge"}]
         if variant == "selected-nested-extra":
             parent_optional["new-extra"] = [{"name": "bridge", "extra": ["nested"]}]
             head_optional[("bridge", "1")] = {"nested": [{"name": "existing-plugin"}]}
             base_optional[("bridge", "1")] = {"nested": [{"name": "existing-plugin"}]}
-        elif variant == "cyclic-extra":
+        elif variant in {"cyclic-extra", "reviewed-cyclic-extra"}:
             head_edges[("bridge", "1")] = [{"name": "parent", "extra": ["new-extra"]}]
             base_edges[("bridge", "1")] = list(head_edges[("bridge", "1")])
+        elif variant in {"mutual-cycle", "reviewed-mutual-cycle"}:
+            head_edges[("bridge", "1")] = [{"name": "existing-plugin"}]
+            head_edges[("existing-plugin", "1")] = [{"name": "bridge"}]
+            base_edges.update({identity: list(edges) for identity, edges in head_edges.items()})
         else:
             head_edges[("bridge", "1")] = [{"name": "existing-plugin"}]
             base_edges[("bridge", "1")] = [{"name": "existing-plugin"}]
-        if variant == "reviewed-transitive":
+        base_optional[("parent", "1")]["new-extra"] = list(parent_optional["new-extra"])
+        head_optional[("parent", "1")]["new-extra"] = list(parent_optional["new-extra"])
+        if variant in {"reviewed-transitive", "reviewed-mutual-cycle"}:
             constraints = ["bridge>=1", "existing-plugin>=1"]
-        elif variant in {"transitive-existing", "selected-nested-extra"}:
+        elif variant in {"transitive-existing", "selected-nested-extra", "reviewed-cyclic-extra", "mutual-cycle"}:
             constraints = ["bridge>=1"]
+    elif variant in {"composed-extra", "reviewed-composed-extra"}:
+        parent_optional["new-extra"] = [{"name": "parent", "extra": ["nested"]}]
+        parent_optional["nested"] = [{"name": "existing-plugin"}]
+        base_optional[("parent", "1")] = dict(parent_optional)
+        head_optional[("parent", "1")] = dict(parent_optional)
+        if variant == "reviewed-composed-extra":
+            constraints = ["existing-plugin>=1"]
     elif variant in {"wrong-marker", "matching-marker"}:
         head_requirements[-1] += "; python_version >= '3.11'"
         markers = {("existing-plugin", "1"): ["python_full_version >= '3.11'"]}
@@ -4396,6 +4422,22 @@ def test_new_extras_cannot_publish_previously_locked_transitive_packages(
         head_lock_optional_dependencies=head_optional,
     )
     assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+def test_cyclic_extra_dependency_graph_retains_bounded_pending_states(tmp_path: Path) -> None:
+    edges: list[dict[str, object]] = [{"name": "parent", "extra": ["new-extra"]} for _ in range(4097)]
+    optional: dict[tuple[str, str], dict[str, list[dict[str, object]]]] = {("parent", "1"): {"new-extra": edges}}
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=["patch-me>=1", "parent"],
+        head_requirements=["patch-me>=1.1", "parent", "parent[new-extra]"],
+        base_packages=[("patch-me", "1"), ("parent", "1")],
+        head_packages=[("patch-me", "1.1"), ("parent", "1")],
+        base_lock_optional_dependencies=optional,
+        head_lock_optional_dependencies=optional,
+    )
+    assert result.returncode != 0
+    assert "Unbounded published security dependency graph" in result.stderr
 
 
 @pytest.mark.parametrize(
@@ -5553,6 +5595,12 @@ def test_wildcard_equality_series_preserve_reviewed_security_bounds(
         pytest.param("full-negative-substring", False, id="full-python-negative-membership-rejects-real-substring"),
         pytest.param("full-negative-outside", True, id="full-python-negative-membership-keeps-outside-release"),
         pytest.param("minor-substring", True, id="python-minor-membership-covers-partial-minor-digits"),
+        pytest.param(
+            "minor-containing-full-version", True, id="python-minor-membership-allows-containing-full-version"
+        ),
+        pytest.param(
+            "minor-containing-full-versions", True, id="python-minor-membership-allows-containing-full-version-list"
+        ),
         pytest.param("minor-negative-substring", False, id="python-minor-negative-membership-excludes-partial-minor"),
         pytest.param("minor-dropped-substrings", False, id="python-minor-equalities-cannot-drop-hidden-three-one"),
         pytest.param("resolution-projection", True, id="full-python-membership-resolution-projects-into-minor"),
@@ -5588,6 +5636,13 @@ def test_python_membership_markers_preserve_exact_pep508_substrings(
         original = "danger>=1; " + expression
         updated = ["danger>=2; " + expression]
         old_domains = new_domains = ["python_full_version == '3.1.7'"]
+    elif variant in {"minor-containing-full-version", "minor-containing-full-versions"}:
+        versions = "3.10.1" if variant == "minor-containing-full-version" else "3.10.1, 3.11.2"
+        release = "3.10.7" if variant == "minor-containing-full-version" else "3.11.7"
+        expression = "python_version in '" + versions + "'"
+        original = "danger>=1; " + expression
+        updated = ["danger>=2; " + expression]
+        old_domains = new_domains = ["python_full_version == '" + release + "'"]
     elif variant == "minor-dropped-substrings":
         expression = "python_version in '3.10, 3.11'"
         original = "danger>=1; " + expression
@@ -5715,5 +5770,623 @@ def test_reversed_literal_marker_comparisons_preserve_semantic_security_domains(
         head_constraints=[updated] if protected else None,
         base_resolution_markers={("danger", "1"): [resolution_marker]},
         head_resolution_markers={("danger", "2"): [resolution_marker]},
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("requested", "marker", "reviewed", "accepted"),
+    [
+        pytest.param("foo", "extra in 'foobar'", False, False, id="substring-extra-cannot-hide-unreviewed-package"),
+        pytest.param("foo", "extra in 'foobar'", True, True, id="substring-extra-can-use-reviewed-package"),
+        pytest.param(
+            "foo", "extra not in 'foobar'", False, True, id="negative-substring-extra-does-not-expose-package"
+        ),
+        pytest.param(
+            "foo-bar", "extra in 'FOO_BAR-baz'", False, False, id="extra-substring-normalizes-both-pep508-operands"
+        ),
+    ],
+)
+def test_locked_extra_membership_uses_pep508_substring_containment(
+    tmp_path: Path, requested: str, marker: str, reviewed: bool, accepted: bool
+) -> None:
+    optional: dict[tuple[str, str], dict[str, list[dict[str, object]]]] = {
+        ("parent", "1"): {requested: [{"name": "plugin", "marker": marker}]}
+    }
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=["patch-me>=1", "parent"],
+        head_requirements=["patch-me>=1.1", "parent", "parent[" + requested + "]"],
+        base_packages=[("patch-me", "1"), ("parent", "1")],
+        head_packages=[("patch-me", "1.1"), ("parent", "1"), ("plugin", "1")],
+        head_constraints=["plugin>=1"] if reviewed else None,
+        base_lock_optional_dependencies=optional,
+        head_lock_optional_dependencies=optional,
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("requirement_marker", "resolution_marker", "accepted"),
+    [
+        pytest.param(
+            "implementation_version >= '3.10'",
+            "implementation_version == '3.11.0'",
+            True,
+            id="implementation-version-uses-pep440-ordering",
+        ),
+        pytest.param(
+            "implementation_version >= '3.10'",
+            "implementation_version == '3.9.9'",
+            False,
+            id="implementation-version-rejects-lower-numeric-release",
+        ),
+        pytest.param(
+            "implementation_version < '3.10'",
+            "implementation_version == '3.9.9'",
+            True,
+            id="implementation-version-does-not-use-lexical-ordering",
+        ),
+        pytest.param(
+            "platform_release == '6.8.0'",
+            "platform_release == '6.8.0'",
+            True,
+            id="platform-release-marker-is-supported",
+        ),
+        pytest.param(
+            "platform_release >= '6.10'",
+            "platform_release == '6.11.0'",
+            True,
+            id="platform-release-uses-pep440-ordering",
+        ),
+        pytest.param(
+            "platform_release < '6.10'",
+            "platform_release == '6.9.0'",
+            True,
+            id="platform-release-does-not-use-lexical-ordering",
+        ),
+        pytest.param(
+            "platform_release >= '6.10'",
+            "platform_release == '6.9.0'",
+            False,
+            id="platform-release-rejects-lower-numeric-release",
+        ),
+        pytest.param(
+            "platform_release >= '6.10'",
+            "platform_release == 'build-42'",
+            False,
+            id="platform-release-rejects-mixed-numeric-and-nonversion-domains",
+        ),
+        pytest.param(
+            "platform_release != 'build-42'",
+            "platform_release == '6.9.0'",
+            True,
+            id="platform-release-string-exclusions-preserve-numeric-domains",
+        ),
+        pytest.param(
+            "platform_release === '6.10.0'",
+            "platform_release == '6.10'",
+            False,
+            id="platform-release-arbitrary-equality-cannot-cover-normalized-domain",
+        ),
+        pytest.param(
+            "platform_version == 'build-42'",
+            "platform_version == 'build-42'",
+            True,
+            id="platform-version-marker-is-supported",
+        ),
+    ],
+)
+@pytest.mark.parametrize("protected", [False, True], ids=["published-direct", "protected-constraint"])
+def test_additional_pep508_marker_variables_preserve_security_domains(
+    tmp_path: Path, requirement_marker: str, resolution_marker: str, accepted: bool, protected: bool
+) -> None:
+    previous = "danger>=1; " + requirement_marker
+    updated = "danger>=2; " + requirement_marker
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=[] if protected else [previous],
+        head_requirements=[] if protected else [updated],
+        base_packages=[("danger", "1")],
+        head_packages=[("danger", "2")],
+        base_constraints=[previous] if protected else None,
+        head_constraints=[updated] if protected else None,
+        base_resolution_markers={("danger", "1"): [resolution_marker]},
+        head_resolution_markers={("danger", "2"): [resolution_marker]},
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("original", "addition", "accepted"),
+    [
+        pytest.param("sniffio", "sniffio[feature]", True, id="new-unbounded-extra-retains-unbounded-parent"),
+        pytest.param("sniffio", "sniffio[feature]<2", False, id="new-extra-cannot-add-unreviewed-upper-bound"),
+        pytest.param("sniffio", "sniffio[feature]>=1", False, id="new-extra-cannot-add-unreviewed-lower-bound"),
+        pytest.param(
+            "sniffio>=1,<3", "sniffio[feature]>=1,<3", True, id="new-extra-may-repeat-existing-reviewed-bounds"
+        ),
+        pytest.param(
+            "sniffio>=1,<3", "sniffio[feature]>=1,<2", False, id="new-extra-cannot-narrow-existing-reviewed-bounds"
+        ),
+    ],
+)
+def test_new_requested_extras_cannot_narrow_existing_published_bounds(
+    tmp_path: Path, original: str, addition: str, accepted: bool
+) -> None:
+    optional: dict[tuple[str, str], dict[str, list[dict[str, object]]]] = {("sniffio", "1.5"): {"feature": []}}
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=["patch-me>=1", original],
+        head_requirements=["patch-me>=1.1", original, addition],
+        base_packages=[("patch-me", "1"), ("sniffio", "1.5")],
+        head_packages=[("patch-me", "1.1"), ("sniffio", "1.5")],
+        base_lock_optional_dependencies=optional,
+        head_lock_optional_dependencies=optional,
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("addition", "accepted"),
+    [
+        pytest.param("sniffio[feature]>=1,<3", True, id="optional-extra-may-repeat-reviewed-runtime-bounds"),
+        pytest.param("sniffio[feature]>=1,<2", False, id="optional-extra-cannot-narrow-reviewed-runtime-bounds"),
+    ],
+)
+def test_optional_requested_extras_preserve_existing_runtime_bounds(
+    tmp_path: Path, addition: str, accepted: bool
+) -> None:
+    optional: dict[tuple[str, str], dict[str, list[dict[str, object]]]] = {("sniffio", "1.5"): {"feature": []}}
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=["patch-me>=1", "sniffio>=1,<3"],
+        head_requirements=["patch-me>=1.1", "sniffio>=1,<3"],
+        base_packages=[("patch-me", "1"), ("sniffio", "1.5")],
+        head_packages=[("patch-me", "1.1"), ("sniffio", "1.5")],
+        head_optional_groups={"feature": [addition]},
+        base_lock_optional_dependencies=optional,
+        head_lock_optional_dependencies=optional,
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("previous_marker", "requested_marker", "accepted"),
+    [
+        pytest.param(
+            "python_version ~= '3.10'",
+            "python_version ~= '3.10'",
+            True,
+            id="compatible-marker-preserves-previously-published-extra-audience",
+        ),
+        pytest.param(
+            "python_version === '3.10'",
+            "python_version === '3.10'",
+            True,
+            id="arbitrary-equality-preserves-previously-published-extra-audience",
+        ),
+        pytest.param(
+            "python_version ~= '3.10'",
+            "python_version ~= '4.0'",
+            False,
+            id="compatible-extra-marker-cannot-expose-unreviewed-major",
+        ),
+        pytest.param(
+            "python_version === '3.10'",
+            "python_version === '3.11'",
+            False,
+            id="arbitrary-equality-extra-marker-cannot-expose-unreviewed-minor",
+        ),
+    ],
+)
+def test_new_extra_reachability_compares_pep508_version_marker_audiences(
+    tmp_path: Path, previous_marker: str, requested_marker: str, accepted: bool
+) -> None:
+    previous = [("existing-parent", "1"), ("parent", "1"), ("plugin", "1")]
+    edges: dict[tuple[str, str], list[dict[str, object]]] = {
+        ("existing-parent", "1"): [{"name": "plugin", "marker": previous_marker}]
+    }
+    optional: dict[tuple[str, str], dict[str, list[dict[str, object]]]] = {
+        ("parent", "1"): {"feature": [{"name": "plugin"}]}
+    }
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=["patch-me>=1", "existing-parent", "parent"],
+        head_requirements=[
+            "patch-me>=1.1",
+            "existing-parent",
+            "parent",
+            "parent[feature]; " + requested_marker,
+        ],
+        base_packages=[("patch-me", "1"), *previous],
+        head_packages=[("patch-me", "1.1"), *previous],
+        base_lock_dependencies=edges,
+        head_lock_dependencies=edges,
+        base_lock_optional_dependencies=optional,
+        head_lock_optional_dependencies=optional,
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("requirement_marker", "resolution_marker", "accepted"),
+    [
+        pytest.param(
+            "python_version ~= '3.10'",
+            "python_full_version == '3.11.4'",
+            True,
+            id="compatible-python-marker-includes-next-supported-minor",
+        ),
+        pytest.param(
+            "python_version ~= '3.10'",
+            "python_full_version == '4.0.1'",
+            False,
+            id="compatible-python-marker-rejects-next-major",
+        ),
+        pytest.param(
+            "python_version ~= '3.10'",
+            "python_full_version == '3.9.9'",
+            False,
+            id="compatible-python-marker-rejects-lower-minor",
+        ),
+        pytest.param(
+            "python_version === '3.10'",
+            "python_full_version == '3.10.4'",
+            True,
+            id="arbitrary-equality-python-marker-includes-exact-minor",
+        ),
+        pytest.param(
+            "python_version === '3.10'",
+            "python_full_version == '3.11.4'",
+            False,
+            id="arbitrary-equality-python-marker-excludes-other-minor",
+        ),
+        pytest.param(
+            "implementation_version ~= '3.10'",
+            "implementation_version == '3.11.4'",
+            True,
+            id="compatible-implementation-marker-includes-next-minor",
+        ),
+        pytest.param(
+            "implementation_version ~= '3.10'",
+            "implementation_version == '4.0.1'",
+            False,
+            id="compatible-implementation-marker-rejects-next-major",
+        ),
+        pytest.param(
+            "python_version >= '3.10'",
+            "python_full_version ~= '3.10.0'",
+            True,
+            id="compatible-resolution-marker-is-supported",
+        ),
+        pytest.param(
+            "python_version is '3.10'",
+            "python_full_version == '3.10.4'",
+            False,
+            id="raw-python-is-operator-is-not-a-pep508-marker",
+        ),
+        pytest.param(
+            "python_version is not '3.10'",
+            "python_full_version == '3.10.4'",
+            False,
+            id="raw-python-is-not-operator-is-not-a-pep508-marker",
+        ),
+        pytest.param(
+            "python_version >= '3.10'",
+            "python_full_version is '3.10.4'",
+            False,
+            id="raw-python-is-operator-is-rejected-in-resolution-marker",
+        ),
+    ],
+)
+@pytest.mark.parametrize("protected", [False, True], ids=["published-direct", "protected-constraint"])
+def test_pep508_compatible_and_arbitrary_equality_marker_operators(
+    tmp_path: Path, requirement_marker: str, resolution_marker: str, accepted: bool, protected: bool
+) -> None:
+    previous = "danger>=1; " + requirement_marker
+    updated = "danger>=2; " + requirement_marker
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=[] if protected else [previous],
+        head_requirements=[] if protected else [updated],
+        base_packages=[("danger", "1")],
+        head_packages=[("danger", "2")],
+        base_constraints=[previous] if protected else None,
+        head_constraints=[updated] if protected else None,
+        base_resolution_markers={("danger", "1"): [resolution_marker]},
+        head_resolution_markers={("danger", "2"): [resolution_marker]},
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("requirement_marker", "resolution_marker", "accepted"),
+    [
+        pytest.param(
+            "python_full_version >= '3.15.0a1'",
+            "python_full_version == '3.15.0a1'",
+            True,
+            id="alpha-bound-includes-exact-prerelease",
+        ),
+        pytest.param(
+            "python_full_version >= '3.15.0a2'",
+            "python_full_version == '3.15.0a1'",
+            False,
+            id="alpha-bound-rejects-earlier-alpha",
+        ),
+        pytest.param(
+            "python_full_version >= '3.15.0a2'",
+            "python_full_version == '3.15.0b1'",
+            True,
+            id="alpha-precedes-beta",
+        ),
+        pytest.param(
+            "python_full_version >= '3.15.0b2'",
+            "python_full_version == '3.15.0a9'",
+            False,
+            id="beta-bound-rejects-alpha",
+        ),
+        pytest.param(
+            "python_full_version >= '3.15.0rc1'",
+            "python_full_version == '3.15.0b9'",
+            False,
+            id="release-candidate-bound-rejects-beta",
+        ),
+        pytest.param(
+            "python_full_version >= '3.15.0rc1'",
+            "python_full_version == '3.15.0'",
+            True,
+            id="release-candidate-precedes-final",
+        ),
+        pytest.param(
+            "python_full_version >= '3.15.0'",
+            "python_full_version == '3.15.0rc1'",
+            False,
+            id="final-bound-rejects-release-candidate",
+        ),
+        pytest.param(
+            "python_full_version < '3.15.0'",
+            "python_full_version == '3.15.0rc1'",
+            False,
+            id="exclusive-final-ceiling-excludes-matching-release-prereleases",
+        ),
+        pytest.param(
+            "python_full_version <= '3.15.0'",
+            "python_full_version == '3.15.0rc1'",
+            True,
+            id="inclusive-final-ceiling-includes-release-candidate",
+        ),
+        pytest.param(
+            "python_full_version > '3.15.0a1'",
+            "python_full_version == '3.15.0a2'",
+            True,
+            id="exclusive-alpha-bound-includes-later-alpha",
+        ),
+        pytest.param(
+            "python_full_version != '3.15.0a1'",
+            "python_full_version == '3.15.0a1'",
+            False,
+            id="alpha-exclusion-removes-exact-prerelease",
+        ),
+        pytest.param(
+            "python_full_version == '3.15.0a1'",
+            "python_full_version == '3.15.0b1'",
+            False,
+            id="exact-alpha-excludes-later-prerelease-stages",
+        ),
+        pytest.param(
+            "python_full_version == '3.15.0'",
+            "python_full_version == '3.15.0a1'",
+            False,
+            id="exact-final-excludes-alpha",
+        ),
+        pytest.param(
+            "python_full_version == '3.15.*'",
+            "python_full_version == '3.15.0a1'",
+            True,
+            id="wildcard-minor-includes-alpha",
+        ),
+        pytest.param(
+            "python_version == '3.15'",
+            "python_full_version == '3.15.0a1'",
+            True,
+            id="python-minor-projection-includes-alpha",
+        ),
+        pytest.param(
+            "python_version >= '3.15'",
+            "python_full_version == '3.15.0a1'",
+            True,
+            id="python-minor-floor-includes-alpha",
+        ),
+        pytest.param(
+            "python_version < '3.15'",
+            "python_full_version == '3.15.0a1'",
+            False,
+            id="python-minor-ceiling-excludes-alpha-from-that-minor",
+        ),
+        pytest.param(
+            "implementation_version >= '3.15.0a1'",
+            "implementation_version == '3.15.0b2'",
+            True,
+            id="implementation-version-preserves-prerelease-ordering",
+        ),
+        pytest.param(
+            "python_full_version ~= '3.15.0a1'",
+            "python_full_version == '3.15.0b2'",
+            True,
+            id="compatible-alpha-bound-includes-beta",
+        ),
+        pytest.param(
+            "python_full_version ~= '3.15.0a1'",
+            "python_full_version == '3.16.0a1'",
+            False,
+            id="compatible-alpha-bound-excludes-next-minor-alpha",
+        ),
+        pytest.param(
+            "python_full_version === '3.15.0a1'",
+            "python_full_version == '3.15.0a1'",
+            True,
+            id="arbitrary-equality-preserves-alpha",
+        ),
+        pytest.param(
+            "python_full_version in '3.15.0a1, 3.15.0b2'",
+            "python_full_version == '3.15.0a1'",
+            True,
+            id="membership-preserves-alpha",
+        ),
+        pytest.param(
+            "python_full_version not in '3.15.0a1, 3.15.0b2'",
+            "python_full_version == '3.15.0a1'",
+            False,
+            id="negative-membership-excludes-alpha",
+        ),
+        pytest.param(
+            "python_full_version in '3.15.0a1'",
+            "python_full_version == '3.15.0'",
+            True,
+            id="membership-retains-final-substring-of-alpha",
+        ),
+        pytest.param(
+            "python_full_version not in '3.15.0a1'",
+            "python_full_version == '3.15.0'",
+            False,
+            id="negative-membership-excludes-final-substring-of-alpha",
+        ),
+        pytest.param(
+            "python_full_version in '3.15.0a10'",
+            "python_full_version == '3.15.0a1'",
+            True,
+            id="membership-retains-shorter-alpha-serial-substring",
+        ),
+        pytest.param(
+            "python_full_version not in '3.15.0a10'",
+            "python_full_version == '3.15.0a1'",
+            False,
+            id="negative-membership-excludes-shorter-alpha-serial-substring",
+        ),
+        pytest.param(
+            "python_full_version >= '3.15.0z1'",
+            "python_full_version == '3.15.0a1'",
+            False,
+            id="unknown-prerelease-stage-fails-closed",
+        ),
+        pytest.param(
+            "python_full_version >= '3.15.0a'",
+            "python_full_version == '3.15.0a1'",
+            False,
+            id="missing-prerelease-serial-fails-closed",
+        ),
+        pytest.param(
+            "python_full_version >= '3.15.0.dev1'",
+            "python_full_version == '3.15.0a1'",
+            False,
+            id="unsupported-development-prerelease-fails-closed",
+        ),
+        pytest.param(
+            "python_full_version >= '3.15.0.post1'",
+            "python_full_version == '3.15.0a1'",
+            False,
+            id="unsupported-post-release-fails-closed",
+        ),
+    ],
+)
+@pytest.mark.parametrize("protected", [False, True], ids=["published-direct", "protected-constraint"])
+def test_prerelease_python_markers_preserve_pep440_security_domains(
+    tmp_path: Path, requirement_marker: str, resolution_marker: str, accepted: bool, protected: bool
+) -> None:
+    previous = "danger>=1; " + requirement_marker
+    updated = "danger>=2; " + requirement_marker
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=[] if protected else [previous],
+        head_requirements=[] if protected else [updated],
+        base_packages=[("danger", "1")],
+        head_packages=[("danger", "2")],
+        base_constraints=[previous] if protected else None,
+        head_constraints=[updated] if protected else None,
+        base_resolution_markers={("danger", "1"): [resolution_marker]},
+        head_resolution_markers={("danger", "2"): [resolution_marker]},
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("resolution_marker", "protected_markers", "accepted"),
+    [
+        pytest.param(
+            "python_full_version >= '3.15.0a1'",
+            ["python_full_version >= '3.15.0'"],
+            False,
+            id="final-only-protection-cannot-hide-unprotected-prerelease-domain",
+        ),
+        pytest.param(
+            "python_version == '3.15'",
+            ["python_full_version >= '3.15.0'"],
+            False,
+            id="final-only-protection-cannot-hide-prerelease-minor-projection",
+        ),
+        pytest.param(
+            "python_full_version >= '3.14.0'",
+            ["python_full_version < '3.15.0'", "python_full_version >= '3.15.0'"],
+            False,
+            id="ordered-final-complements-cannot-hide-prerelease-gap",
+        ),
+        pytest.param(
+            "python_full_version >= '3.15.0a1'",
+            ["python_full_version >= '3.15.0a1'"],
+            True,
+            id="reviewed-prerelease-floor-covers-complete-prerelease-domain",
+        ),
+    ],
+)
+def test_transitive_prerelease_security_boundaries_cannot_hide_unprotected_domains(
+    tmp_path: Path, resolution_marker: str, protected_markers: list[str], accepted: bool
+) -> None:
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=["patch-me>=1"],
+        head_requirements=["patch-me>=1.1"],
+        base_packages=[("patch-me", "1"), ("danger", "1")],
+        head_packages=[("patch-me", "1.1"), ("danger", "2")],
+        base_constraints=["danger>=1; " + marker for marker in protected_markers],
+        head_constraints=["danger>=2; " + marker for marker in protected_markers],
+        base_resolution_markers={("danger", "1"): [resolution_marker]},
+        head_resolution_markers={("danger", "2"): [resolution_marker]},
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("previous_markers", "updated_markers", "accepted"),
+    [
+        pytest.param(
+            ["python_full_version < '3.12'"],
+            [
+                "python_full_version < '3.11'",
+                "python_full_version >= '3.11' and python_full_version < '3.12'",
+            ],
+            True,
+            id="stable-only-lock-refinement-keeps-existing-complement-semantics",
+        ),
+        pytest.param(
+            ["python_full_version >= '3.11.0a1' and python_full_version < '3.12'"],
+            ["python_full_version >= '3.11' and python_full_version < '3.12'"],
+            False,
+            id="explicit-prerelease-lock-domain-cannot-be-dropped-during-refinement",
+        ),
+    ],
+)
+def test_resolution_refinement_preserves_explicit_prerelease_domains(
+    tmp_path: Path, previous_markers: list[str], updated_markers: list[str], accepted: bool
+) -> None:
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=["patch-me>=1"],
+        head_requirements=["patch-me>=1.1"],
+        base_packages=[("patch-me", "1"), ("danger", "2")],
+        head_packages=[("patch-me", "1.1"), ("danger", "2")],
+        base_resolution_markers={("danger", "2"): previous_markers},
+        head_resolution_markers={("danger", "2"): updated_markers},
     )
     assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
