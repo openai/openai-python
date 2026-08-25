@@ -549,7 +549,15 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
                     tool_call = tool_calls[idx]
 
                     if tool_call.type == "function":
-                        assert tool_call_delta.function is not None
+                        # A raw delta entry may be metadata-only (e.g. a
+                        # duplicate index-0 entry carrying just `id` and
+                        # `type: "function"` while the arguments arrived in
+                        # an earlier entry). Coalescing merges them into one
+                        # snapshot entry, but the raw delta itself has no
+                        # function payload — skip it rather than aborting
+                        # the stream on the assertion below. (#3201)
+                        if tool_call_delta.function is None:
+                            continue
                         events_to_fire.append(
                             build(
                                 FunctionToolCallArgumentsDeltaEvent,
