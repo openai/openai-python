@@ -1453,12 +1453,10 @@ for name, contexts in new_contexts.items():
         ):
             new_requested_extra_contexts.append((name, context))
 previous_reachable: dict[str, set[tuple[str, str, MarkerContext]]] = {}
-current_reachable: dict[str, set[tuple[str, str, MarkerContext]]] = {}
 extra_reachable: dict[str, set[tuple[str, str, MarkerContext]]] = {}
 newly_exposed: set[str] = set()
 if new_requested_extra_contexts:
     previous_reachable = published_reachability(old_lock, old_contexts)
-    current_reachable = published_reachability(new_lock, new_contexts)
     extra_reachable = requested_extra_reachability(new_lock, old_contexts, new_contexts, new_requested_extra_contexts)
     newly_exposed = {
         name
