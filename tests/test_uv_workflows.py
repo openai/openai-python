@@ -10,6 +10,8 @@ from typing import Any, cast
 from pathlib import Path
 
 import pytest
+from packaging.markers import Marker
+from packaging.version import Version
 
 if sys.version_info >= (3, 11):
     import tomllib
@@ -5850,6 +5852,214 @@ def test_platform_membership_markers_preserve_pep508_substring_domains(
 
 
 @pytest.mark.parametrize(
+    ("requirement_marker", "release", "membership"),
+    [
+        pytest.param("platform_release in 'arm64'", "6", "arm64", id="string-membership-keeps-numeric-substring"),
+        pytest.param(
+            "platform_release not in 'arm64'", "6", "arm64", id="negative-membership-rejects-numeric-substring"
+        ),
+        pytest.param("platform_release in 'arm64, x86_64'", "6", "arm64", id="membership-preserves-entire-raw-string"),
+        pytest.param(
+            "platform_release == '6.0' and platform_release in 'arm64'",
+            "6",
+            "arm64",
+            id="normalized-equality-keeps-raw-substring-witness",
+        ),
+        pytest.param(
+            "platform_release == '6' and platform_release in 'v6' and platform_release not in '6'",
+            "v6",
+            "v6",
+            id="v-prefixed-raw-alias-survives-negative-membership",
+        ),
+        pytest.param(
+            "platform_release == '6a0' and platform_release in '6a'",
+            "6a",
+            "6a",
+            id="missing-prerelease-serial-normalizes-without-losing-raw-spelling",
+        ),
+        pytest.param(
+            "platform_release == '6a1' and platform_release in '6alpha1'",
+            "6alpha1",
+            "6alpha1",
+            id="prerelease-stage-alias-normalizes-without-losing-raw-spelling",
+        ),
+        pytest.param(
+            "platform_release == '6.post0' and platform_release in '6.post'",
+            "6.post",
+            "6.post",
+            id="missing-postrelease-serial-normalizes-without-losing-raw-spelling",
+        ),
+        pytest.param(
+            "platform_release == '6.post1' and platform_release in '6-1'",
+            "6-1",
+            "6-1",
+            id="implicit-postrelease-normalizes-without-losing-raw-spelling",
+        ),
+        pytest.param(
+            "platform_release == '6.dev0' and platform_release in '6.dev'",
+            "6.dev",
+            "6.dev",
+            id="missing-development-serial-normalizes-without-losing-raw-spelling",
+        ),
+        pytest.param(
+            "platform_release != '6.0' and platform_release in 'arm64'",
+            "6",
+            "arm64",
+            id="normalized-inequality-removes-raw-substring-witness",
+        ),
+        pytest.param(
+            "platform_release != 'linux' and platform_release in 'arm64'",
+            "6",
+            "arm64",
+            id="string-exclusion-does-not-reject-numeric-membership-domain",
+        ),
+        pytest.param(
+            "platform_release < '7' and platform_release in 'arm64'",
+            "6",
+            "arm64",
+            id="exclusive-upper-bound-keeps-numeric-substring",
+        ),
+        pytest.param(
+            "platform_release <= '6' and platform_release in 'arm64'",
+            "6",
+            "arm64",
+            id="inclusive-upper-bound-keeps-numeric-substring",
+        ),
+        pytest.param(
+            "platform_release > '5' and platform_release in 'arm64'",
+            "6",
+            "arm64",
+            id="exclusive-lower-bound-keeps-numeric-substring",
+        ),
+        pytest.param(
+            "platform_release >= '6' and platform_release in 'arm64'",
+            "6",
+            "arm64",
+            id="inclusive-lower-bound-keeps-numeric-substring",
+        ),
+        pytest.param(
+            "platform_release > '6' and platform_release in 'arm64'",
+            "6",
+            "arm64",
+            id="exclusive-lower-bound-rejects-equal-substring",
+        ),
+        pytest.param(
+            "platform_release >= '5' and platform_release not in 'arm64'",
+            "6",
+            "arm64",
+            id="negative-membership-still-limits-numeric-witness",
+        ),
+        pytest.param(
+            "platform_release == '6.*' and platform_release in 'arm64'",
+            "6",
+            "arm64",
+            id="wildcard-equality-keeps-numeric-substring",
+        ),
+        pytest.param(
+            "platform_release >= '6.8.0.1a1' and platform_release in 'kernel-6.8.0.1a2'",
+            "6.8.0.1a2",
+            "kernel-6.8.0.1a2",
+            id="prerelease-membership-preserves-numeric-ordering",
+        ),
+        pytest.param(
+            "platform_release > '6.8.0.1a1' and platform_release in 'kernel-6.8.0.1a1.post1'",
+            "6.8.0.1a1.post1",
+            "kernel-6.8.0.1a1.post1",
+            id="strict-prerelease-floor-excludes-its-post-release",
+        ),
+        pytest.param(
+            "platform_release > '6.8.0.1.post1' and platform_release in 'kernel-6.8.0.1.post2'",
+            "6.8.0.1.post2",
+            "kernel-6.8.0.1.post2",
+            id="post-release-membership-preserves-numeric-ordering",
+        ),
+        pytest.param(
+            "platform_release >= '6.8.0.1.dev1' and platform_release in 'kernel-6.8.0.1.dev2'",
+            "6.8.0.1.dev2",
+            "kernel-6.8.0.1.dev2",
+            id="development-membership-preserves-numeric-ordering",
+        ),
+        pytest.param(
+            "platform_release ~= '6.8.0.1' and platform_release in 'kernel-6.8.0.2'",
+            "6.8.0.2",
+            "kernel-6.8.0.2",
+            id="wide-compatible-range-preserves-raw-membership",
+        ),
+    ],
+)
+@pytest.mark.parametrize("protected", [False, True], ids=["published-direct", "protected-constraint"])
+def test_platform_release_membership_matches_packaging_version_domains(
+    tmp_path: Path, requirement_marker: str, release: str, membership: str, protected: bool
+) -> None:
+    expected = Marker(requirement_marker).evaluate(environment={"platform_release": release})
+    resolution_marker = f"platform_release == '{Version(release)}' and platform_release in '{membership}'"
+    if release == "v6":
+        resolution_marker += " and platform_release not in '6'"
+    previous = "danger>=1; " + requirement_marker
+    updated = "danger>=2; " + requirement_marker
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=[] if protected else [previous],
+        head_requirements=[] if protected else [updated],
+        base_packages=[("danger", "1")],
+        head_packages=[("danger", "2")],
+        base_constraints=[previous] if protected else None,
+        head_constraints=[updated] if protected else None,
+        base_resolution_markers={("danger", "1"): [resolution_marker]},
+        head_resolution_markers={("danger", "2"): [resolution_marker]},
+    )
+    assert result.returncode == (0 if expected else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize("missing", [None, "included", "excluded"], ids=["complete", "missing-in", "missing-not-in"])
+@pytest.mark.parametrize("protected", [False, True], ids=["published-direct", "protected-constraint"])
+def test_platform_release_membership_complements_preserve_every_numeric_alias(
+    tmp_path: Path, missing: str | None, protected: bool
+) -> None:
+    domain = "platform_release == '6'"
+    partitions = {
+        "included": domain + " and platform_release in 'arm64'",
+        "excluded": domain + " and platform_release not in 'arm64'",
+    }
+    current = [marker for name, marker in partitions.items() if name != missing]
+    previous = "danger>=1; " + domain
+    updated = ["danger>=2; " + marker for marker in current]
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=[] if protected else [previous],
+        head_requirements=[] if protected else updated,
+        base_packages=[("danger", "1")],
+        head_packages=[("danger", "2")],
+        base_constraints=[previous] if protected else None,
+        head_constraints=updated if protected else None,
+        base_resolution_markers={("danger", "1"): [domain]},
+        head_resolution_markers={("danger", "2"): current},
+    )
+    assert result.returncode == (0 if missing is None else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize("protected", [False, True], ids=["published-direct", "protected-constraint"])
+def test_platform_release_negative_membership_retains_equivalent_numeric_aliases(
+    tmp_path: Path, protected: bool
+) -> None:
+    marker = "platform_release == '6' and platform_release not in '6, 6.0, 06, 6.00'"
+    assert Marker(marker).evaluate(environment={"platform_release": "6.0.0"})
+    previous, updated = "danger>=1; " + marker, "danger>=2; " + marker
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=[] if protected else [previous],
+        head_requirements=[] if protected else [updated],
+        base_packages=[("danger", "1")],
+        head_packages=[("danger", "2")],
+        base_constraints=[previous] if protected else None,
+        head_constraints=[updated] if protected else None,
+        base_resolution_markers={("danger", "1"): [marker]},
+        head_resolution_markers={("danger", "2"): [marker]},
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
     ("requirement_marker", "resolution_marker", "accepted"),
     [
         pytest.param("'lin' in sys_platform", "sys_platform == 'linux'", True, id="reversed-platform-substring"),
@@ -7055,6 +7265,230 @@ def test_new_extra_reachability_compares_pep508_version_marker_audiences(
         head_lock_optional_dependencies=optional,
     )
     assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("variable", "compatible", "release"),
+    [
+        pytest.param("platform_release", "6.8", "6.9", id="two-component-compatible-range-keeps-next-minor"),
+        pytest.param("platform_release", "6.8", "7.0", id="two-component-compatible-range-rejects-next-major"),
+        pytest.param("platform_release", "6.8.0", "6.8.9", id="three-component-compatible-range-keeps-next-patch"),
+        pytest.param("platform_release", "6.8.0", "6.9", id="three-component-compatible-range-rejects-next-minor"),
+        pytest.param("platform_release", "6.8.0.1", "6.8.0.1", id="four-component-compatible-range-keeps-lower-bound"),
+        pytest.param("platform_release", "6.8.0.1", "6.8.0.2", id="four-component-compatible-range-keeps-next-build"),
+        pytest.param("platform_release", "6.8.0.1", "6.8.1", id="four-component-compatible-range-rejects-next-patch"),
+        pytest.param(
+            "platform_release", "6.8.0.1", "6.8.1a1", id="four-component-compatible-range-rejects-next-patch-alpha"
+        ),
+        pytest.param(
+            "platform_release", "6.8.0.1", "6.8.1.dev1", id="four-component-compatible-range-rejects-next-patch-dev"
+        ),
+        pytest.param(
+            "platform_release", "6.8.0.1.2", "6.8.0.1.3", id="five-component-compatible-range-keeps-next-build"
+        ),
+        pytest.param(
+            "platform_release", "6.8.0.1.2", "6.8.0.2", id="five-component-compatible-range-rejects-next-build-series"
+        ),
+        pytest.param(
+            "platform_release", "6.8.0.1.0", "6.8.0.1.9", id="trailing-zero-compatible-range-preserves-precision"
+        ),
+        pytest.param(
+            "platform_release", "6.8.0.1.0", "6.8.0.2", id="trailing-zero-compatible-range-rejects-next-series"
+        ),
+        pytest.param(
+            "platform_release", "06.008.000.001", "6.8.0.2", id="compatible-range-normalizes-release-leading-zeroes"
+        ),
+        pytest.param("platform_release", "6.8.0.1a1", "6.8.0.1a2", id="compatible-alpha-range-keeps-later-alpha"),
+        pytest.param("platform_release", "6.8.0.1a1", "6.8.0.1b1", id="compatible-alpha-range-keeps-later-beta"),
+        pytest.param("platform_release", "6.8.0.1a1", "6.8.0.2", id="compatible-alpha-range-keeps-next-build"),
+        pytest.param("platform_release", "6.8.0.1a1", "6.8.1a1", id="compatible-alpha-range-rejects-next-series"),
+        pytest.param("platform_release", "6.8.0.1.post2", "6.8.0.1.post1", id="compatible-post-range-rejects-old-post"),
+        pytest.param("platform_release", "6.8.0.1.post2", "6.8.0.1.post3", id="compatible-post-range-keeps-later-post"),
+        pytest.param("platform_release", "6.8.0.1.post2", "6.8.0.2", id="compatible-post-range-keeps-next-build"),
+        pytest.param("platform_release", "6.8.0.1.dev2", "6.8.0.1.dev1", id="compatible-dev-range-rejects-earlier-dev"),
+        pytest.param("platform_release", "6.8.0.1.dev2", "6.8.0.1a1", id="compatible-dev-range-keeps-alpha"),
+        pytest.param("platform_release", "6.8.0.1.dev2", "6.8.0.1", id="compatible-dev-range-keeps-final"),
+        pytest.param(
+            "platform_release", "6.8.0.1a1.post2.dev1", "6.8.0.1a1.post2", id="compatible-combined-suffix-range"
+        ),
+        pytest.param(
+            "python_full_version", "3.10.0.1", "3.10.0.2", id="full-python-version-supports-four-component-range"
+        ),
+        pytest.param(
+            "python_full_version", "3.10.0.1", "3.10.1", id="full-python-version-preserves-four-component-ceiling"
+        ),
+        pytest.param(
+            "python_full_version", "3.10.0.1.2", "3.10.0.1.3", id="full-python-version-supports-five-component-range"
+        ),
+        pytest.param(
+            "implementation_version", "3.10.0.1", "3.10.0.2", id="implementation-version-supports-four-component-range"
+        ),
+        pytest.param(
+            "implementation_version", "3.10.0.1", "3.10.1", id="implementation-version-preserves-four-component-ceiling"
+        ),
+        pytest.param("python_version", "3.10.0", "3.10", id="python-minor-compatible-range-projects-zero-micro"),
+        pytest.param("python_version", "3.10.0", "3.11", id="python-minor-compatible-range-preserves-micro-ceiling"),
+        pytest.param("python_version", "3.10.0.0", "3.10", id="python-minor-compatible-range-projects-zero-build"),
+        pytest.param("python_version", "3.10.0.1", "3.10", id="python-minor-compatible-range-rejects-nonzero-build"),
+        pytest.param("python_version", "3.10.1", "3.10", id="python-minor-compatible-range-rejects-nonzero-micro"),
+        pytest.param("python_version", "3.10.0a1", "3.10", id="python-minor-compatible-range-keeps-prerelease-floor"),
+        pytest.param("python_version", "3.10.0.post1", "3.10", id="python-minor-compatible-range-rejects-post-floor"),
+        pytest.param("python_version", "3.10.post1", "3.11", id="two-component-python-post-floor-keeps-next-minor"),
+        pytest.param("python_version", "3.10.post1", "3.10", id="two-component-python-post-floor-rejects-same-minor"),
+    ],
+)
+@pytest.mark.parametrize("protected", [False, True], ids=["published-direct", "protected-constraint"])
+def test_arbitrary_width_compatible_markers_match_packaging(
+    tmp_path: Path, variable: str, compatible: str, release: str, protected: bool
+) -> None:
+    marker = f"{variable} ~= '{compatible}'"
+    expected = Marker(marker).evaluate(environment={variable: release})
+    resolution = f"{variable} == '{release}'"
+    previous, updated = "danger>=1; " + marker, "danger>=2; " + marker
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=[] if protected else [previous],
+        head_requirements=[] if protected else [updated],
+        base_packages=[("danger", "1")],
+        head_packages=[("danger", "2")],
+        base_constraints=[previous] if protected else None,
+        head_constraints=[updated] if protected else None,
+        base_resolution_markers={("danger", "1"): [resolution]},
+        head_resolution_markers={("danger", "2"): [resolution]},
+    )
+    assert result.returncode == (0 if expected else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize("variable", ["python_full_version", "implementation_version"])
+@pytest.mark.parametrize(
+    ("operator", "operand", "release"),
+    [
+        pytest.param("==", "3.10.0.1", "3.10.0.1", id="wide-pep440-equality"),
+        pytest.param("!=", "3.10.0.1", "3.10.0.1", id="wide-pep440-inequality"),
+        pytest.param("<", "3.10.0.2", "3.10.0.1", id="wide-exclusive-ceiling"),
+        pytest.param("<=", "3.10.0.1", "3.10.0.1", id="wide-inclusive-ceiling"),
+        pytest.param(">", "3.10.0.1", "3.10.0.2", id="wide-exclusive-floor"),
+        pytest.param(">=", "3.10.0.1", "3.10.0.1", id="wide-inclusive-floor"),
+        pytest.param("~=", "3.10.0.1", "3.10.0.2", id="wide-compatible-range"),
+        pytest.param("===", "3.10.0", "3.10.0", id="canonical-raw-equality"),
+        pytest.param("===", "3.10.0", "3.10.1", id="canonical-raw-equality-rejects-other-patch"),
+        pytest.param("in", "3.10.0.1, 3.10.0.2", "3.10.0", id="wide-membership-retains-real-python-version"),
+        pytest.param("in", "3.10.0.1, 3.10.0.2", "3.10.3", id="wide-membership-rejects-other-python-version"),
+        pytest.param("not in", "3.10.0.1, 3.10.0.2", "3.10.0", id="wide-negative-membership-excludes-real-version"),
+        pytest.param("not in", "3.10.0.1, 3.10.0.2", "3.10.3", id="wide-negative-membership-keeps-other-version"),
+        pytest.param("in", "3.10.0.10", "3.10.0", id="wide-membership-preserves-canonical-raw-prefix"),
+        pytest.param("not in", "3.10.0.10", "3.10.0", id="wide-negative-membership-preserves-canonical-prefix"),
+        pytest.param("===", "3.10.0a1", "3.10.0a1", id="canonical-raw-prerelease-equality"),
+        pytest.param("in", "3.10.0.post1", "3.10.0.post1", id="canonical-postrelease-membership"),
+        pytest.param("not in", "3.10.0.dev1", "3.10.0.dev1", id="canonical-development-negative-membership"),
+    ],
+)
+@pytest.mark.parametrize("protected", [False, True], ids=["published-direct", "protected-constraint"])
+def test_arbitrary_width_python_marker_operators_match_packaging(
+    tmp_path: Path, variable: str, operator: str, operand: str, release: str, protected: bool
+) -> None:
+    marker = f"{variable} {operator} '{operand}'"
+    expected = Marker(marker).evaluate(environment={variable: release})
+    resolution = f"{variable} == '{release}'"
+    previous, updated = "danger>=1; " + marker, "danger>=2; " + marker
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=[] if protected else [previous],
+        head_requirements=[] if protected else [updated],
+        base_packages=[("danger", "1")],
+        head_packages=[("danger", "2")],
+        base_constraints=[previous] if protected else None,
+        head_constraints=[updated] if protected else None,
+        base_resolution_markers={("danger", "1"): [resolution]},
+        head_resolution_markers={("danger", "2"): [resolution]},
+    )
+    assert result.returncode == (0 if expected else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize("variable", ["python_full_version", "implementation_version"])
+@pytest.mark.parametrize(
+    "marker",
+    [
+        pytest.param("{variable} === '3.10.0.1'", id="wide-raw-equality-fails-closed"),
+        pytest.param(
+            "{variable} === '3.10.0' and {variable} === '3.10.0.0'",
+            id="distinct-raw-equality-aliases-cannot-share-a-normalized-witness",
+        ),
+        pytest.param(
+            "{variable} == '3.10.0a1' and {variable} in '3.10.0.0a1' and {variable} in '3.10.0a1'",
+            id="distinct-prerelease-membership-aliases-cannot-share-a-normalized-witness",
+        ),
+        pytest.param(
+            "{variable} === '3.10.0a1' and {variable} in '3.10.0.0a1'",
+            id="raw-prerelease-equality-cannot-use-a-normalized-membership-alias",
+        ),
+    ],
+)
+@pytest.mark.parametrize("protected", [False, True], ids=["published-direct", "protected-constraint"])
+def test_python_raw_marker_operators_cannot_merge_distinct_release_aliases(
+    tmp_path: Path, variable: str, marker: str, protected: bool
+) -> None:
+    expression = marker.format(variable=variable)
+    previous, updated = "danger>=1; " + expression, "danger>=2; " + expression
+    release = "3.10.0a1" if "a1" in expression else "3.10.0.1" if "3.10.0.1" in expression else "3.10.0"
+    resolution = f"{variable} == '{release}'"
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=[] if protected else [previous],
+        head_requirements=[] if protected else [updated],
+        base_packages=[("danger", "1")],
+        head_packages=[("danger", "2")],
+        base_constraints=[previous] if protected else None,
+        head_constraints=[updated] if protected else None,
+        base_resolution_markers={("danger", "1"): [resolution]},
+        head_resolution_markers={("danger", "2"): [resolution]},
+    )
+    assert result.returncode == 1, result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("variable", "compatible"),
+    [
+        pytest.param("platform_release", "6", id="single-component-compatible-operand-remains-invalid"),
+        pytest.param("platform_release", "1!6.8.0.1", id="unsupported-compatible-epoch-fails-closed"),
+        pytest.param("platform_release", "6.8.0.1+local", id="unsupported-compatible-local-version-fails-closed"),
+        pytest.param("platform_release", "6.8.1234567890.1", id="unbounded-compatible-release-component-fails-closed"),
+        pytest.param("platform_release", "6.8.0.1a1234567890", id="unbounded-compatible-alpha-serial-fails-closed"),
+        pytest.param(
+            "platform_release", "6.8.0.1.post1234567890", id="unbounded-compatible-postrelease-serial-fails-closed"
+        ),
+        pytest.param("platform_release", ".".join(["6"] * 33), id="unbounded-platform-compatible-width-fails-closed"),
+        pytest.param(
+            "python_full_version",
+            ".".join(["3", "10", *(["0"] * 31)]),
+            id="unbounded-python-compatible-width-fails-closed",
+        ),
+        pytest.param(
+            "implementation_version",
+            ".".join(["3", "10", *(["0"] * 31)]),
+            id="unbounded-implementation-compatible-width-fails-closed",
+        ),
+    ],
+)
+@pytest.mark.parametrize("protected", [False, True], ids=["published-direct", "protected-constraint"])
+def test_arbitrary_width_compatible_markers_preserve_fail_closed_bounds(
+    tmp_path: Path, variable: str, compatible: str, protected: bool
+) -> None:
+    marker = f"{variable} ~= '{compatible}'"
+    resolution = f"{variable} == '6.8.0.2'" if variable == "platform_release" else f"{variable} == '3.10.0'"
+    previous, updated = "danger>=1; " + marker, "danger>=2; " + marker
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=[] if protected else [previous],
+        head_requirements=[] if protected else [updated],
+        base_packages=[("danger", "1")],
+        head_packages=[("danger", "2")],
+        base_constraints=[previous] if protected else None,
+        head_constraints=[updated] if protected else None,
+        base_resolution_markers={("danger", "1"): [resolution]},
+        head_resolution_markers={("danger", "2"): [resolution]},
+    )
+    assert result.returncode == 1, result.stdout + result.stderr
 
 
 @pytest.mark.parametrize(

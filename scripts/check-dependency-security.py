@@ -488,6 +488,32 @@ def is_numeric_platform_release(value: str) -> bool:
     )
 
 
+def numeric_platform_release_candidate(value: str) -> str | None:
+    match = re.fullmatch(
+        r"v?(?P<release>[0-9]+(?:\.[0-9]+)*)"
+        r"(?:[._-]?(?P<stage>alpha|a|beta|b|preview|pre|c|rc)[._-]?(?P<serial>[0-9]*))?"
+        r"(?:(?:-(?P<implicit_post>[0-9]+))|"
+        r"(?:[._-]?(?P<post>post|rev|r)[._-]?(?P<post_serial>[0-9]*)))?"
+        r"(?:[._-]?dev[._-]?(?P<development>[0-9]*))?",
+        value.strip(),
+        re.IGNORECASE,
+    )
+    if match is None:
+        return None
+    result = match.group("release")
+    stage = match.group("stage")
+    if stage is not None:
+        result += {"alpha": "a", "a": "a", "beta": "b", "b": "b"}.get(stage.lower(), "rc")
+        result += match.group("serial") or "0"
+    if match.group("implicit_post") is not None:
+        result += ".post" + match.group("implicit_post")
+    elif match.group("post") is not None:
+        result += ".post" + (match.group("post_serial") or "0")
+    if match.group("development") is not None:
+        result += ".dev" + (match.group("development") or "0")
+    return result
+
+
 def marker_version_bounds(
     variable: str, value: str, *, release_width: int = 3
 ) -> tuple[tuple[int, ...], tuple[int, ...], bool, bool]:
@@ -498,9 +524,11 @@ def marker_version_bounds(
     if match is None:
         raise SystemExit("Ambiguous Python security dependency marker")
     components = match.group(1).split(".")
-    if variable == "platform_release" and len(components) > 32:
-        raise SystemExit("Unbounded platform security dependency marker")
-    if variable != "platform_release" and len(components) not in {2, 3}:
+    if len(components) > 32:
+        if variable == "platform_release":
+            raise SystemExit("Unbounded platform security dependency marker")
+        raise SystemExit("Unbounded Python security dependency marker")
+    if variable != "platform_release" and len(components) < 2:
         raise SystemExit("Ambiguous Python security dependency marker")
     if any(len(component) > 9 for component in components) or any(
         len(match.group(index)) > 9 for index in (3, 4, 5) if match.group(index) is not None
@@ -513,7 +541,9 @@ def marker_version_bounds(
     wildcard = match.group(6) is not None
     if wildcard and (prerelease or match.group(4) is not None):
         raise SystemExit("Ambiguous wildcard security dependency marker")
-    if variable == "python_version" and (release[2] != 0 or prerelease or match.group(4) is not None):
+    if variable == "python_version" and (
+        any(component != 0 for component in release[2:]) or prerelease or match.group(4) is not None
+    ):
         raise SystemExit("Ambiguous Python security dependency marker")
 
     phase = (
@@ -542,35 +572,84 @@ def simple_marker_overlap(requirement: MarkerContext, resolution: MarkerContext)
         family = "python" if variable in {"python_version", "python_full_version"} else variable
         clauses.setdefault(family, []).append((variable, operator, value))
     for family, constraints in clauses.items():
+        platform_memberships = [
+            clause for clause in constraints if family == "platform_release" and clause[1] in {"In", "NotIn"}
+        ]
+        comparisons = [
+            clause for clause in constraints if family != "platform_release" or clause[1] not in {"In", "NotIn"}
+        ]
         numeric_platform_values = [
-            family == "platform_release" and is_numeric_platform_release(value) for _, _, value in constraints
+            family == "platform_release" and is_numeric_platform_release(value) for _, _, value in comparisons
         ]
         if family == "platform_release" and any(numeric_platform_values) and not all(numeric_platform_values):
             if any(
                 not numeric and operator != "NotEq"
-                for numeric, (_, operator, _) in zip(numeric_platform_values, constraints, strict=True)
+                for numeric, (_, operator, _) in zip(numeric_platform_values, comparisons, strict=True)
             ):
                 return False
-            constraints = [
-                clause for numeric, clause in zip(numeric_platform_values, constraints, strict=True) if numeric
+            comparisons = [
+                clause for numeric, clause in zip(numeric_platform_values, comparisons, strict=True) if numeric
             ]
-            numeric_platform_values = [True] * len(constraints)
-        numeric_platform_release = family == "platform_release" and all(
-            numeric and operator not in {"In", "NotIn"}
-            for numeric, (_, operator, _) in zip(numeric_platform_values, constraints, strict=True)
-        )
+            numeric_platform_values = [True] * len(comparisons)
+        numeric_platform_release = family == "platform_release" and bool(comparisons) and all(numeric_platform_values)
+        if numeric_platform_release and platform_memberships:
+            if any(len(value) > 256 for _, _, value in platform_memberships):
+                raise SystemExit("Unbounded platform security dependency marker")
+            included = [value for _, operator, value in platform_memberships if operator == "In"]
+            if included:
+                shortest = min(included, key=len)
+                if len(shortest) > 128:
+                    raise SystemExit("Unbounded platform security dependency membership")
+                candidates = {
+                    shortest[start:stop]
+                    for start in range(len(shortest) + 1)
+                    for stop in range(start, len(shortest) + 1)
+                }
+                if len(candidates) > 4096:
+                    raise SystemExit("Unbounded platform security dependency membership")
+                unsupported = False
+                matched = False
+                for membership_candidate in sorted(candidates):
+                    if not all(
+                        membership_candidate in value if operator == "In" else membership_candidate not in value
+                        for _, operator, value in platform_memberships
+                    ) or not is_numeric_platform_release(membership_candidate):
+                        continue
+                    normalized = numeric_platform_release_candidate(membership_candidate)
+                    if normalized is None:
+                        unsupported = True
+                        continue
+                    try:
+                        _, _, wildcard, _ = marker_version_bounds("platform_release", normalized)
+                    except SystemExit:
+                        unsupported = True
+                        continue
+                    if wildcard:
+                        unsupported = True
+                        continue
+                    if simple_marker_overlap(tuple(comparisons), (("platform_release", "Eq", normalized),)):
+                        matched = True
+                        break
+                if not matched:
+                    if unsupported:
+                        raise SystemExit("Ambiguous platform security dependency membership")
+                    return False
+                continue
+            constraints = comparisons
         if family in {"python", "implementation_version"} or numeric_platform_release:
-            release_width = 3
             if numeric_platform_release:
-                release_width = max(
+                constraints = comparisons
+            release_width = max(
+                3,
+                max(
                     (
                         len(match.group().split("."))
                         for _, _, value in constraints
-                        if (match := re.match(r"\d+(?:\.\d+)*", value.strip()))
+                        if (match := re.match(r"\d+(?:\.\d+)*", value.strip() if numeric_platform_release else value))
                     ),
-                    default=release_width,
-                )
-                release_width = max(3, release_width)
+                    default=3,
+                ),
+            )
             lower: tuple[int, ...] = (0,) * release_width + (-5, 0, -1, -1, 0)
             upper: tuple[int, ...] | None = None
             excluded: list[tuple[tuple[int, ...], tuple[int, ...]]] = []
@@ -738,27 +817,33 @@ def marker_options(context: MarkerContext) -> list[MarkerContext]:
             if variable not in {"python_version", "python_full_version", "implementation_version", "platform_release"}:
                 raise SystemExit("Unsupported compatible security dependency marker")
             compatible = re.fullmatch(
-                r"((?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:\.(?:0|[1-9]\d*))?)"
-                r"((?:(?:a|b|rc)(?:0|[1-9]\d*))?(?:\.post(?:0|[1-9]\d*))?(?:\.dev(?:0|[1-9]\d*))?)",
+                r"(\d+(?:\.\d+)+)"
+                r"((?:(?:a|b|rc)\d+)?(?:\.post\d+)?(?:\.dev\d+)?)",
                 value,
             )
             if compatible is None:
                 raise SystemExit("Ambiguous compatible security dependency marker")
             components = compatible.group(1).split(".")
-            if (
-                len(components) not in {2, 3}
-                or any(len(component) > 9 for component in components)
-                or bool(compatible.group(2))
-                and (variable in {"python_version", "platform_release"} or len(compatible.group(2)) > 11)
-                or variable == "python_version"
-                and len(components) != 2
-            ):
+            if len(components) > 32 or any(len(component) > 9 for component in components):
                 raise SystemExit("Ambiguous compatible security dependency marker")
             ceiling = [int(component) for component in components[:-1]]
             ceiling[-1] += 1
             if len(ceiling) == 1:
                 ceiling.append(0)
             upper = ".".join(str(component) for component in ceiling)
+            if variable == "python_version":
+                minor = int(components[1])
+                lower = f"{int(components[0])}.{minor}"
+                width = max(3, len(components))
+                projected = marker_version_bounds("platform_release", lower, release_width=width)[0]
+                actual = marker_version_bounds("platform_release", value, release_width=width)[0]
+                if projected < actual:
+                    lower = f"{int(components[0])}.{minor + 1}"
+                if len(ceiling) > 2 and any(component != 0 for component in ceiling[2:]):
+                    upper = f"{ceiling[0]}.{ceiling[1] + 1}"
+                else:
+                    upper = f"{ceiling[0]}.{ceiling[1]}"
+                value = lower
             options = [option + ((variable, "GtE", value), (variable, "Lt", upper)) for option in options]
             continue
         if operator == "ArbitraryEq":
