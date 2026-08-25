@@ -159,18 +159,20 @@ def _execute(
     current = copy.deepcopy([agents_root, linked_sdk, *reviewed, httpx, wheel_only, sdk_only])
 
     reviewed_pynput = _package("pynput", "1.6.8")
-    reviewed_pynput["sdist"] = {
+    reviewed_pynput_sdist: dict[str, str] = {
         "url": "https://files.pythonhosted.org/packages/e7/32/"
         "fa88984fc580de9e9fd08ee36dfd78ea15658d5b0268095785da7ab75ba0/pynput-1.6.8.tar.gz",
         "hash": "sha256:68c1863d6a1520b44b6a915e866cbfa1b8d127aef9289f25183c93e28ee5049a",
     }
-    reviewed_pynput["wheels"] = [
+    reviewed_pynput["sdist"] = reviewed_pynput_sdist
+    reviewed_pynput_wheels: list[dict[str, str]] = [
         {
             "url": "https://files.pythonhosted.org/packages/33/0a/"
             "ea13c055a90b1aff5945e7eb330584f15e5282aead15a8f3cdb977a1534e/pynput-1.6.8-py2.py3-none-any.whl",
             "hash": "sha256:42d6d58abe401a4c98ea04e443e61f74b6b0f97672f42042f566c68700ad0c65",
         }
     ]
+    reviewed_pynput["wheels"] = reviewed_pynput_wheels
 
     target = next(package for package in current if package["name"] == "httpx")
     if variant == "unreviewed-wheel":
@@ -237,17 +239,15 @@ def _execute(
         elif variant == "pynput-registry":
             reviewed_pynput["source"] = {"registry": "https://private.example/simple"}
         elif variant == "pynput-sdist-url":
-            cast(dict[str, str], reviewed_pynput["sdist"])["url"] += ".replaced"
+            reviewed_pynput_sdist["url"] += ".replaced"
         elif variant == "pynput-sdist-hash":
-            cast(dict[str, str], reviewed_pynput["sdist"])["hash"] = "sha256:" + "b" * 64
+            reviewed_pynput_sdist["hash"] = "sha256:" + "b" * 64
         elif variant == "pynput-wheel-url":
-            cast(list[dict[str, str]], reviewed_pynput["wheels"])[0]["url"] = (
-                "https://files.pythonhosted.org/packages/aa/bb/replaced.whl"
-            )
+            reviewed_pynput_wheels[0]["url"] = "https://files.pythonhosted.org/packages/aa/bb/replaced.whl"
         elif variant == "pynput-wheel-hash":
-            cast(list[dict[str, str]], reviewed_pynput["wheels"])[0]["hash"] = "sha256:" + "c" * 64
+            reviewed_pynput_wheels[0]["hash"] = "sha256:" + "c" * 64
         elif variant == "pynput-extra-wheel":
-            cast(list[dict[str, object]], reviewed_pynput["wheels"]).append(_artifact("pynput", "1.6.8", "d", ".whl"))
+            reviewed_pynput_wheels.append(_artifact("pynput", "1.6.8", "d", ".whl"))
         elif variant == "pynput-missing-wheel":
             reviewed_pynput.pop("wheels")
         elif variant == "pynput-missing-sdist":
