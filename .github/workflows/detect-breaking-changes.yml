@@ -168,11 +168,14 @@ jobs:
           runner_temp = pathlib.Path(os.environ["RUNNER_TEMP"]).resolve()
           if target.is_symlink() or not target.is_file() or target.parent.resolve() != runner_temp:
               reject("unsafe runner constraint-file path")
-          pins = [
-              name + "==" + versions[0]
-              for name, versions in sorted(agents_only.items())
-              if len(versions) == 1
-          ]
+          pins = []
+          for name, versions in sorted(agents_only.items()):
+              if len(versions) != 1:
+                  continue
+              if name == "pynput" and versions[0] != "1.8.1":
+                  reject("the reviewed pynput dependency changed")
+              version = "1.6.8" if name == "pynput" else versions[0]
+              pins.append(name + "==" + version)
           target.write_text("\n".join(pins) + "\n")
           PY
           printf 'path=%s\n' "$constraints" >> "$GITHUB_OUTPUT"
@@ -288,6 +291,47 @@ jobs:
                   if package is root:
                       continue
                   approved.add(identity(package))
+
+          reviewed_pynput = [
+              package
+              for package in agents_lock.get("package", [])
+              if canonical(package.get("name")) == "pynput"
+          ]
+          if (
+              len(reviewed_pynput) != 1
+              or reviewed_pynput[0].get("version") != "1.8.1"
+              or reviewed_pynput[0].get("source") != PUBLIC
+          ):
+              reject("the reviewed pynput dependency changed")
+          approved.add(
+              identity(
+                  {
+                      "name": "pynput",
+                      "version": "1.6.8",
+                      "source": PUBLIC,
+                      "sdist": {
+                          "url": (
+                              "https://files.pythonhosted.org/packages/e7/32/"
+                              "fa88984fc580de9e9fd08ee36dfd78ea15658d5b0268095785da7ab75ba0/"
+                              "pynput-1.6.8.tar.gz"
+                          ),
+                          "hash": "sha256:68c1863d6a1520b44b6a915e866cbfa1b8d127aef9289f25183c93e28ee5049a",
+                      },
+                      "wheels": [
+                          {
+                              "url": (
+                                  "https://files.pythonhosted.org/packages/33/0a/"
+                                  "ea13c055a90b1aff5945e7eb330584f15e5282aead15a8f3cdb977a1534e/"
+                                  "pynput-1.6.8-py2.py3-none-any.whl"
+                              ),
+                              "hash": (
+                                  "sha256:42d6d58abe401a4c98ea04e443e61f74b6b0f97672f42042f566c68700ad0c65"
+                              ),
+                          }
+                      ],
+                  }
+              )
+          )
 
           seen = set()
           local_roots = {"openai-agents": 0, "openai": 0}

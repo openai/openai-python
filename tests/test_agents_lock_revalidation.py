@@ -158,6 +158,20 @@ def _execute(
     trusted_sdk = [sdk_root, sdk_only, _package("httpx", "0.29.0")]
     current = copy.deepcopy([agents_root, linked_sdk, *reviewed, httpx, wheel_only, sdk_only])
 
+    reviewed_pynput = _package("pynput", "1.6.8")
+    reviewed_pynput["sdist"] = {
+        "url": "https://files.pythonhosted.org/packages/e7/32/"
+        "fa88984fc580de9e9fd08ee36dfd78ea15658d5b0268095785da7ab75ba0/pynput-1.6.8.tar.gz",
+        "hash": "sha256:68c1863d6a1520b44b6a915e866cbfa1b8d127aef9289f25183c93e28ee5049a",
+    }
+    reviewed_pynput["wheels"] = [
+        {
+            "url": "https://files.pythonhosted.org/packages/33/0a/"
+            "ea13c055a90b1aff5945e7eb330584f15e5282aead15a8f3cdb977a1534e/pynput-1.6.8-py2.py3-none-any.whl",
+            "hash": "sha256:42d6d58abe401a4c98ea04e443e61f74b6b0f97672f42042f566c68700ad0c65",
+        }
+    ]
+
     target = next(package for package in current if package["name"] == "httpx")
     if variant == "unreviewed-wheel":
         current.append(_package("unreviewed-wheel", "9.9.9", sdist=False))
@@ -216,6 +230,28 @@ def _execute(
         outside = tmp_path / "outside"
         outside.mkdir()
         sdk.symlink_to(outside, target_is_directory=True)
+    elif variant.startswith("pynput-"):
+        current.append(reviewed_pynput)
+        if variant == "pynput-version":
+            reviewed_pynput["version"] = "1.6.9"
+        elif variant == "pynput-registry":
+            reviewed_pynput["source"] = {"registry": "https://private.example/simple"}
+        elif variant == "pynput-sdist-url":
+            cast(dict[str, str], reviewed_pynput["sdist"])["url"] += ".replaced"
+        elif variant == "pynput-sdist-hash":
+            cast(dict[str, str], reviewed_pynput["sdist"])["hash"] = "sha256:" + "b" * 64
+        elif variant == "pynput-wheel-url":
+            cast(list[dict[str, str]], reviewed_pynput["wheels"])[0]["url"] = (
+                "https://files.pythonhosted.org/packages/aa/bb/replaced.whl"
+            )
+        elif variant == "pynput-wheel-hash":
+            cast(list[dict[str, str]], reviewed_pynput["wheels"])[0]["hash"] = "sha256:" + "c" * 64
+        elif variant == "pynput-extra-wheel":
+            cast(list[dict[str, object]], reviewed_pynput["wheels"]).append(_artifact("pynput", "1.6.8", "d", ".whl"))
+        elif variant == "pynput-missing-wheel":
+            reviewed_pynput.pop("wheels")
+        elif variant == "pynput-missing-sdist":
+            reviewed_pynput.pop("sdist")
 
     submitted_sdk = locals().get("submitted_sdk", copy.deepcopy(trusted_sdk))
     (agents / "uv.lock").write_text(_lock(current))
@@ -257,9 +293,9 @@ def _execute(
         program = "import sys, tomli; sys.modules['tomllib'] = tomli\n" + program
     arguments = [sys.executable, "-c", program]
     if constraints:
-        target = tmp_path / "reviewed-constraints.txt"
-        target.touch(mode=0o600)
-        arguments.append(str(target))
+        constraints_path = tmp_path / "reviewed-constraints.txt"
+        constraints_path.touch(mode=0o600)
+        arguments.append(str(constraints_path))
     return subprocess.run(
         arguments,
         cwd=agents,
@@ -289,6 +325,15 @@ def _execute(
         pytest.param("agents-version", id="unreviewed-agents-root-version"),
         pytest.param("fork-submitted-lock", id="fork-lock-cannot-expand-trusted-union"),
         pytest.param("sdk-symlink", id="local-sdk-symlink-escape"),
+        pytest.param("pynput-version", id="curated-pynput-version-substituted"),
+        pytest.param("pynput-registry", id="curated-pynput-private-registry"),
+        pytest.param("pynput-sdist-url", id="curated-pynput-source-url-substituted"),
+        pytest.param("pynput-sdist-hash", id="curated-pynput-source-digest-substituted"),
+        pytest.param("pynput-wheel-url", id="curated-pynput-wheel-url-substituted"),
+        pytest.param("pynput-wheel-hash", id="curated-pynput-wheel-digest-substituted"),
+        pytest.param("pynput-extra-wheel", id="curated-pynput-extra-wheel"),
+        pytest.param("pynput-missing-wheel", id="curated-pynput-wheel-removed"),
+        pytest.param("pynput-missing-sdist", id="curated-pynput-source-removed"),
     ],
 )
 def test_relinked_agents_lock_rejects_unreviewed_package_identities(tmp_path: Path, variant: str) -> None:
@@ -303,6 +348,7 @@ def test_relinked_agents_lock_rejects_unreviewed_package_identities(tmp_path: Pa
         pytest.param("artifact-order", id="wheel-order-is-not-security-significant"),
         pytest.param("sdk-reviewed-version", id="sdk-trusted-version-may-replace-agents-version"),
         pytest.param("multiple-reviewed-versions", id="distinct-reviewed-versions-of-same-name"),
+        pytest.param("pynput-reviewed", id="curated-no-build-compatible-pynput-168-full-identity"),
     ],
 )
 @pytest.mark.parametrize("fork", [True, False], ids=["immutable-fork-base", "reviewed-same-repository"])
@@ -396,7 +442,7 @@ def test_agents_constraints_pin_only_unique_reviewed_agents_only_packages(tmp_pa
     result = _execute(tmp_path, "reviewed", fork=fork, constraints=True)
     assert result.returncode == 0, result.stdout + result.stderr
     pins = set((tmp_path / "reviewed-constraints.txt").read_text().splitlines())
-    assert "pynput==1.8.1" in pins
+    assert "pynput==1.6.8" in pins
     assert "playwright==1.0.0" in pins
     assert "httpx==0.28.1" not in pins
     assert "httpx==0.29.0" not in pins
@@ -410,7 +456,7 @@ def test_submitted_fork_lock_cannot_remove_reviewed_agents_constraint(tmp_path: 
     result = _execute(tmp_path, "fork-submitted-pynput", fork=fork, constraints=True)
     assert result.returncode == 0, result.stdout + result.stderr
     pins = set((tmp_path / "reviewed-constraints.txt").read_text().splitlines())
-    assert ("pynput==1.8.1" in pins) == fork
+    assert ("pynput==1.6.8" in pins) == fork
 
 
 def test_reviewed_constraints_apply_only_to_existing_no_sync_link_step() -> None:
@@ -462,7 +508,7 @@ def test_uv_constraint_prevents_unreviewed_agents_only_upgrade_before_relink(tmp
     assert 'version = "1.8.2"' in (vulnerable / "uv.lock").read_text()
 
     constraints = tmp_path / "reviewed-constraints.txt"
-    constraints.write_text("pynput==1.8.1\n")
+    constraints.write_text("pynput==1.6.8\n")
     environment["UV_CONSTRAINT"] = str(constraints)
     constrained = subprocess.run(
         [uv, "--offline", "--directory", str(protected), "add", "--no-sync", "../candidate"],
