@@ -6587,6 +6587,78 @@ def test_locked_extra_marker_defaults_to_one_empty_selected_extra(
             id="platform-release-rejects-mixed-numeric-and-nonversion-domains",
         ),
         pytest.param(
+            "platform_release != '6.8.0.1'",
+            "platform_release == 'linux'",
+            False,
+            id="platform-release-rejects-four-component-version-against-nonversion-domain",
+        ),
+        pytest.param(
+            "platform_release != ' 6.8.0.1 '",
+            "platform_release == 'linux'",
+            False,
+            id="platform-release-rejects-whitespace-padded-version-against-nonversion-domain",
+        ),
+        pytest.param(
+            "platform_release != '6'",
+            "platform_release == 'linux'",
+            False,
+            id="platform-release-rejects-single-component-version-against-nonversion-domain",
+        ),
+        pytest.param(
+            "platform_release != '1!6.8.0'",
+            "platform_release == 'linux'",
+            False,
+            id="platform-release-rejects-epoch-version-against-nonversion-domain",
+        ),
+        pytest.param(
+            "platform_release != '6.8.0.1rc1'",
+            "platform_release == 'linux'",
+            False,
+            id="platform-release-rejects-prerelease-version-against-nonversion-domain",
+        ),
+        pytest.param(
+            "platform_release != '6.8.0.1.post1'",
+            "platform_release == 'linux'",
+            False,
+            id="platform-release-rejects-post-release-version-against-nonversion-domain",
+        ),
+        pytest.param(
+            "platform_release != '6.8.0.1.dev1'",
+            "platform_release == 'linux'",
+            False,
+            id="platform-release-rejects-development-version-against-nonversion-domain",
+        ),
+        pytest.param(
+            "platform_release != '6.8.0.1+local'",
+            "platform_release == 'linux'",
+            False,
+            id="platform-release-rejects-local-version-against-nonversion-domain",
+        ),
+        pytest.param(
+            "platform_release != 'v6.8alpha1'",
+            "platform_release == 'linux'",
+            False,
+            id="platform-release-rejects-normalized-version-against-nonversion-domain",
+        ),
+        pytest.param(
+            "platform_release >= '6.8.0a1'",
+            "platform_release == '6.8.0a2'",
+            True,
+            id="platform-release-preserves-numeric-prerelease-ordering",
+        ),
+        pytest.param(
+            "platform_release >= '6.8.0.post1'",
+            "platform_release == '6.8.0.post2'",
+            True,
+            id="platform-release-preserves-numeric-post-release-ordering",
+        ),
+        pytest.param(
+            "platform_release >= '6.8.0.dev1'",
+            "platform_release == '6.8.0.dev2'",
+            True,
+            id="platform-release-preserves-numeric-development-ordering",
+        ),
+        pytest.param(
             "platform_release != 'build-42'",
             "platform_release == '6.9.0'",
             True,
@@ -6891,6 +6963,102 @@ def test_pep508_compatible_and_arbitrary_equality_marker_operators(
             "python_full_version == '3.15.0a2'",
             True,
             id="exclusive-alpha-bound-includes-later-alpha",
+        ),
+        pytest.param(
+            "python_full_version > '3.15.0a1'",
+            "python_full_version == '3.15.0a1.post1'",
+            False,
+            id="exclusive-alpha-bound-excludes-post-release-of-same-alpha",
+        ),
+        pytest.param(
+            "python_full_version > '3.15.0a1'",
+            "python_full_version == '3.15.0a1.post1.dev1'",
+            False,
+            id="exclusive-alpha-bound-excludes-development-build-of-same-alpha-post-release",
+        ),
+        pytest.param(
+            "python_full_version > '3.15.0b1'",
+            "python_full_version == '3.15.0b1.post2'",
+            False,
+            id="exclusive-beta-bound-excludes-post-release-of-same-beta",
+        ),
+        pytest.param(
+            "python_full_version > '3.15.0rc1'",
+            "python_full_version == '3.15.0rc1.post1'",
+            False,
+            id="exclusive-release-candidate-bound-excludes-post-release-of-same-candidate",
+        ),
+        pytest.param(
+            "implementation_version > '3.15.0a1'",
+            "implementation_version == '3.15.0a1.post1'",
+            False,
+            id="exclusive-implementation-alpha-bound-excludes-post-release-of-same-alpha",
+        ),
+        pytest.param(
+            "python_full_version > '3.15.0a1'",
+            "python_full_version == '3.15.0a2.dev1'",
+            True,
+            id="exclusive-alpha-bound-includes-development-build-of-next-alpha",
+        ),
+        pytest.param(
+            "python_full_version > '3.15.0a1.dev1'",
+            "python_full_version == '3.15.0a1.post1'",
+            True,
+            id="exclusive-alpha-development-bound-includes-post-release-of-later-alpha",
+        ),
+        pytest.param(
+            "python_full_version > '3.15.0a1.post1'",
+            "python_full_version == '3.15.0a1.post2'",
+            True,
+            id="exclusive-alpha-post-release-bound-includes-later-post-releases",
+        ),
+        pytest.param(
+            "python_full_version > '3.15.0a1.post1.dev1'",
+            "python_full_version == '3.15.0a1.post1'",
+            True,
+            id="exclusive-alpha-post-development-bound-includes-its-post-release",
+        ),
+        pytest.param(
+            "python_full_version < '3.15.0.post1'",
+            "python_full_version == '3.15.0.post1.dev1'",
+            False,
+            id="exclusive-post-release-ceiling-excludes-its-own-development-build",
+        ),
+        pytest.param(
+            "python_full_version < '3.15.0.post0'",
+            "python_full_version == '3.15.0.post0.dev0'",
+            False,
+            id="exclusive-first-post-release-ceiling-excludes-its-own-development-build",
+        ),
+        pytest.param(
+            "implementation_version < '3.15.0.post1'",
+            "implementation_version == '3.15.0.post1.dev1'",
+            False,
+            id="exclusive-implementation-post-ceiling-excludes-its-own-development-build",
+        ),
+        pytest.param(
+            "python_full_version <= '3.15.0.post1'",
+            "python_full_version == '3.15.0.post1.dev1'",
+            True,
+            id="inclusive-post-release-ceiling-retains-its-own-development-build",
+        ),
+        pytest.param(
+            "python_full_version < '3.15.0.post1'",
+            "python_full_version == '3.15.0.post0.dev1'",
+            True,
+            id="exclusive-post-release-ceiling-retains-earlier-post-development-builds",
+        ),
+        pytest.param(
+            "python_full_version < '3.15.0a1.post1'",
+            "python_full_version == '3.15.0a1.post1.dev1'",
+            True,
+            id="exclusive-prerelease-post-ceiling-retains-its-own-development-build",
+        ),
+        pytest.param(
+            "python_full_version < '3.15.0.post1.dev1'",
+            "python_full_version == '3.15.0.post1.dev0'",
+            True,
+            id="exclusive-post-development-ceiling-retains-earlier-development-build",
         ),
         pytest.param(
             "python_full_version != '3.15.0a1'",
@@ -7203,6 +7371,56 @@ def test_resolution_refinement_preserves_explicit_prerelease_domains(
         head_resolution_markers={("danger", "2"): updated_markers},
     )
     assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("variable", "bound", "next_release"),
+    [
+        pytest.param("python_full_version", "3.15.0", "3.15.1", id="python-full-final-release"),
+        pytest.param("python_full_version", "3.15.0a1", "3.15.0a2", id="python-full-prerelease"),
+        pytest.param("implementation_version", "3.15.0", "3.15.1", id="implementation-final-release"),
+        pytest.param("platform_release", "6.8.0", "6.8.1", id="platform-final-release"),
+    ],
+)
+@pytest.mark.parametrize("protected", [False, True], ids=["published-direct", "protected-constraint"])
+@pytest.mark.parametrize("missing_posts", [False, True], ids=["complete-inclusive-domain", "missing-post-release-gap"])
+@pytest.mark.parametrize("strict_floor", [False, True], ids=["inclusive-ceiling", "strict-floor"])
+def test_inclusive_version_marker_partitions_preserve_post_release_contexts(
+    tmp_path: Path,
+    variable: str,
+    bound: str,
+    next_release: str,
+    protected: bool,
+    missing_posts: bool,
+    strict_floor: bool,
+) -> None:
+    if strict_floor:
+        original_marker = f"{variable} >= '{bound}.post0'" if missing_posts else f"{variable} > '{bound}'"
+        replacement_marker = f"{variable} > '{bound}'"
+    else:
+        original_marker = f"{variable} < '{next_release}'" if missing_posts else f"{variable} <= '{bound}'"
+        replacement_marker = f"{variable} <= '{bound}'"
+    original = "danger>=1,<3; " + original_marker
+    replacements = [
+        f"danger>=1,<3; {replacement_marker} and sys_platform == 'linux'",
+        f"danger>=1,<3; {replacement_marker} and sys_platform != 'linux'",
+    ]
+    resolutions = {
+        ("danger", "1"): ["sys_platform == 'linux'"],
+        ("danger", "2"): ["sys_platform != 'linux'"],
+    }
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=["patch-me>=1"] + ([] if protected else [original]),
+        head_requirements=["patch-me>=1.1"] + ([] if protected else replacements),
+        base_packages=[("patch-me", "1"), ("danger", "1"), ("danger", "2")],
+        head_packages=[("patch-me", "1.1"), ("danger", "1"), ("danger", "2")],
+        base_constraints=[original] if protected else None,
+        head_constraints=replacements if protected else None,
+        base_resolution_markers=resolutions,
+        head_resolution_markers=resolutions,
+    )
+    assert result.returncode == (1 if missing_posts else 0), result.stdout + result.stderr
 
 
 @pytest.mark.parametrize("scope", ["runtime", "optional", "constraint", "build", "group"])

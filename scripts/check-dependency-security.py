@@ -470,9 +470,25 @@ def stable_version(value: str) -> StableRelease:
     return int(match.group(1) or 0), release, post
 
 
-def marker_version_bounds(
-    variable: str, value: str
-) -> tuple[tuple[int, ...], tuple[int, ...], bool, bool]:
+def is_numeric_platform_release(value: str) -> bool:
+    if len(value) > 256:
+        raise SystemExit("Unbounded platform security dependency marker")
+    return (
+        re.fullmatch(
+            r"v?(?:[0-9]+!)?[0-9]+(?:\.[0-9]+)*"
+            r"(?:[._-]?(?:alpha|a|beta|b|preview|pre|c|rc)[._-]?[0-9]*)?"
+            r"(?:(?:-[0-9]+)|(?:[._-]?(?:post|rev|r)[._-]?[0-9]*))?"
+            r"(?:[._-]?dev[._-]?[0-9]*)?"
+            r"(?:\+[a-z0-9]+(?:[._-][a-z0-9]+)*)?"
+            r"(?:\.\*)?",
+            value.strip(),
+            re.IGNORECASE,
+        )
+        is not None
+    )
+
+
+def marker_version_bounds(variable: str, value: str) -> tuple[tuple[int, ...], tuple[int, ...], bool, bool]:
     match = re.fullmatch(
         r"(\d+)\.(\d+)(?:\.(\d+))?(?:(a|b|rc)(\d+))?(?:\.post(\d+))?(?:\.dev(\d+))?(\.\*)?",
         value,
@@ -519,7 +535,7 @@ def simple_marker_overlap(requirement: MarkerContext, resolution: MarkerContext)
         clauses.setdefault(family, []).append((variable, operator, value))
     for family, constraints in clauses.items():
         numeric_platform_values = [
-            re.fullmatch(r"\d+\.\d+(?:\.\d+)?(?:\.\*)?", value) is not None for _, _, value in constraints
+            family == "platform_release" and is_numeric_platform_release(value) for _, _, value in constraints
         ]
         if family == "platform_release" and any(numeric_platform_values) and not all(numeric_platform_values):
             if any(
@@ -550,20 +566,35 @@ def simple_marker_overlap(requirement: MarkerContext, resolution: MarkerContext)
                     excluded.append((start, stop))
                 elif operator in {"Lt", "RawLt"}:
                     ceiling = start
-                    if operator == "Lt" and variable != "python_version" and not prerelease and start[5] == -1:
-                        ceiling = start[0], start[1], start[2], -5, 0, -1, -1, 0
+                    if operator == "Lt" and variable != "python_version" and not prerelease:
+                        if start[5] == -1:
+                            ceiling = start[0], start[1], start[2], -5, 0, -1, -1, 0
+                        else:
+                            ceiling = start[:6] + (-1, 0)
                     upper = ceiling if upper is None else min(upper, ceiling)
-                elif operator == "LtE":
-                    upper = stop if upper is None else min(upper, stop)
-                elif operator == "Gt":
+                elif operator in {"LtE", "RawLtE"}:
+                    ceiling = stop
+                    if operator == "RawLtE" and variable != "python_version" and start[5] == -1 and start[6] == 0:
+                        if prerelease:
+                            ceiling = start[0], start[1], start[2], start[3], start[4] + 1, -1, -1, 0
+                        else:
+                            ceiling = start[0], start[1], start[2] + 1, -5, 0, -1, -1, 0
+                    upper = ceiling if upper is None else min(upper, ceiling)
+                elif operator in {"Gt", "RawGt"}:
                     floor = stop
-                    if variable != "python_version" and not prerelease and start[5] == -1:
-                        floor = start[0], start[1], start[2] + 1, -5, 0, -1, -1, 0
+                    if operator == "Gt" and variable != "python_version" and start[5] == -1 and start[6] == 0:
+                        if prerelease:
+                            floor = start[0], start[1], start[2], start[3], start[4] + 1, -1, -1, 0
+                        else:
+                            floor = start[0], start[1], start[2] + 1, -5, 0, -1, -1, 0
                     lower = max(lower, floor)
                 elif operator in {"GtE", "RawGtE"}:
                     floor = start
-                    if operator == "RawGtE" and variable != "python_version" and not prerelease and start[5] == -1:
-                        floor = start[0], start[1], start[2], -5, 0, -1, -1, 0
+                    if operator == "RawGtE" and variable != "python_version" and not prerelease:
+                        if start[5] == -1:
+                            floor = start[0], start[1], start[2], -5, 0, -1, -1, 0
+                        else:
+                            floor = start[:6] + (-1, 0)
                     lower = max(lower, floor)
                 else:
                     raise SystemExit("Ambiguous Python security dependency marker")
@@ -798,6 +829,8 @@ def uncovered_marker_fragments(domain: MarkerContext, coverings: list[MarkerCont
         "Gt": "LtE",
         "GtE": "Lt",
         "RawLt": "GtE",
+        "RawLtE": "Gt",
+        "RawGt": "LtE",
         "RawGtE": "Lt",
         "In": "NotIn",
         "NotIn": "In",
@@ -825,13 +858,16 @@ def uncovered_marker_fragments(domain: MarkerContext, coverings: list[MarkerCont
                         raise SystemExit("Ambiguous security dependency marker partition")
                     inverse = opposite[operator]
                     if variable in {"python_full_version", "implementation_version"} or (
-                        variable == "platform_release"
-                        and re.fullmatch(r"\d+\.\d+(?:\.\d+)?(?:\.\*)?", value) is not None
+                        variable == "platform_release" and is_numeric_platform_release(value)
                     ):
                         if operator == "GtE":
                             inverse = "RawLt"
+                        elif operator == "Gt":
+                            inverse = "RawLtE"
                         elif operator == "Lt":
                             inverse = "RawGtE"
+                        elif operator == "LtE":
+                            inverse = "RawGt"
                     elif variable != "python_version" and operator in {"GtE", "LtE"}:
                         inverse = "NotEq"
                     excluded = tuple(sorted(set(prefix + ((variable, inverse, value),))))
