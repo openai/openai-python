@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import asyncio
 import pickle
-from datetime import timedelta
 from collections.abc import Iterator
+from datetime import timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from threading import Thread
 
