@@ -7,6 +7,7 @@ import json
 import shutil
 import textwrap
 import subprocess
+from typing import cast
 from pathlib import Path
 
 import pytest
@@ -92,19 +93,24 @@ def _lock(packages: list[dict[str, object]]) -> str:
         ]
         source = package["source"]
         assert isinstance(source, dict)
-        lines.append("source = { " + ", ".join(key + " = " + json.dumps(value) for key, value in source.items()) + " }")
+        typed_source = cast(dict[str, object], source)
+        lines.append(
+            "source = { " + ", ".join(key + " = " + json.dumps(value) for key, value in typed_source.items()) + " }"
+        )
         sdist = package.get("sdist")
         if isinstance(sdist, dict):
+            typed_sdist = cast(dict[str, object], sdist)
             lines.append(
-                "sdist = { " + ", ".join(key + " = " + json.dumps(value) for key, value in sdist.items()) + " }"
+                "sdist = { " + ", ".join(key + " = " + json.dumps(value) for key, value in typed_sdist.items()) + " }"
             )
         wheels = package.get("wheels")
         if isinstance(wheels, list):
+            typed_wheels = cast(list[dict[str, object]], wheels)
             lines.append(
                 "wheels = ["
                 + ", ".join(
                     "{ " + ", ".join(key + " = " + json.dumps(value) for key, value in wheel.items()) + " }"
-                    for wheel in wheels
+                    for wheel in typed_wheels
                 )
                 + "]"
             )
@@ -164,7 +170,8 @@ def _execute(tmp_path: Path, variant: str, *, fork: bool = True) -> subprocess.C
     elif variant == "duplicate-artifact":
         wheels = target["wheels"]
         assert isinstance(wheels, list)
-        wheels.append(copy.deepcopy(wheels[0]))
+        typed_wheels = cast(list[dict[str, object]], wheels)
+        typed_wheels.append(copy.deepcopy(typed_wheels[0]))
     elif variant == "missing-sdist":
         del target["sdist"]
     elif variant == "private-registry":

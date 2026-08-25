@@ -3359,7 +3359,7 @@ def test_security_floors_preserve_original_optional_contexts(
             id="platform-membership-preserves-quoted-case",
         ),
         pytest.param(
-            "python_version >= '3.10'",
+            "python_version >= '3.1'",
             "python_version in '3.10, 3.11'",
             True,
             True,
@@ -5190,7 +5190,9 @@ def test_security_resolution_domains_compare_semantic_release_coverage(
         }
     elif variant == "membership-refined":
         base_markers = {("danger", "2"): ["python_version in '3.10, 3.11'"]}
-        head_markers = {("danger", "2"): ["python_version == '3.10'", "python_version == '3.11'"]}
+        head_markers = {
+            ("danger", "2"): ["python_version == '3.1'", "python_version == '3.10'", "python_version == '3.11'"]
+        }
     elif variant == "independent-majors":
         previous = current = [("danger", "1.5"), ("danger", "2.5")]
         base_markers = {(name, release): [broad] for name, release in previous}
@@ -5538,5 +5540,180 @@ def test_wildcard_equality_series_preserve_reviewed_security_bounds(
         head_packages=[("danger", version) for version in after],
         base_constraints=[previous] if protected else None,
         head_constraints=[current] if protected else None,
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("variant", "accepted"),
+    [
+        pytest.param("full-substring", True, id="full-python-membership-covers-partial-final-digits"),
+        pytest.param("full-token", True, id="full-python-membership-keeps-complete-token"),
+        pytest.param("full-outside", False, id="full-python-membership-rejects-values-outside-literal"),
+        pytest.param("full-negative-substring", False, id="full-python-negative-membership-rejects-real-substring"),
+        pytest.param("full-negative-outside", True, id="full-python-negative-membership-keeps-outside-release"),
+        pytest.param("minor-substring", True, id="python-minor-membership-covers-partial-minor-digits"),
+        pytest.param("minor-negative-substring", False, id="python-minor-negative-membership-excludes-partial-minor"),
+        pytest.param("minor-dropped-substrings", False, id="python-minor-equalities-cannot-drop-hidden-three-one"),
+        pytest.param("resolution-projection", True, id="full-python-membership-resolution-projects-into-minor"),
+        pytest.param("complete-partition", True, id="python-membership-and-complement-cover-entire-domain"),
+        pytest.param("missing-partition", False, id="missing-python-membership-complement-cannot-drop-domain"),
+        pytest.param("dropped-substrings", False, id="python-token-equalities-cannot-drop-original-substrings"),
+        pytest.param("unbounded-substrings", False, id="unbounded-python-membership-substrings-fail-closed"),
+    ],
+)
+@pytest.mark.parametrize("protected", [False, True], ids=["published-direct", "protected-constraint"])
+def test_python_membership_markers_preserve_exact_pep508_substrings(
+    tmp_path: Path, variant: str, accepted: bool, protected: bool
+) -> None:
+    expression = "python_full_version in '3.10.10, 3.10.11'"
+    original = "danger>=1; " + expression
+    updated = ["danger>=2; " + expression]
+    old_domains = ["python_full_version == '3.10.1'"]
+    new_domains = list(old_domains)
+
+    if variant == "full-token":
+        old_domains = new_domains = ["python_full_version == '3.10.10'"]
+    elif variant == "full-outside":
+        old_domains = new_domains = ["python_full_version == '3.10.12'"]
+    elif variant in {"full-negative-substring", "full-negative-outside"}:
+        expression = "python_full_version not in '3.10.10, 3.10.11'"
+        original = "danger>=1; " + expression
+        updated = ["danger>=2; " + expression]
+        if variant == "full-negative-outside":
+            old_domains = new_domains = ["python_full_version == '3.10.12'"]
+    elif variant in {"minor-substring", "minor-negative-substring"}:
+        operator = "not in" if variant == "minor-negative-substring" else "in"
+        expression = "python_version " + operator + " '3.10, 3.11'"
+        original = "danger>=1; " + expression
+        updated = ["danger>=2; " + expression]
+        old_domains = new_domains = ["python_full_version == '3.1.7'"]
+    elif variant == "minor-dropped-substrings":
+        expression = "python_version in '3.10, 3.11'"
+        original = "danger>=1; " + expression
+        updated = [
+            "danger>=2; python_version == '3.10'",
+            "danger>=2; python_version == '3.11'",
+        ]
+        old_domains = [expression]
+        new_domains = ["python_version == '3.10'", "python_version == '3.11'"]
+    elif variant == "resolution-projection":
+        expression = "python_version == '3.10'"
+        original = "danger>=1; " + expression
+        updated = ["danger>=2; " + expression]
+        old_domains = new_domains = ["python_full_version in '3.10.10, 3.10.11'"]
+    elif variant in {"complete-partition", "missing-partition"}:
+        included = expression + " and python_full_version in '3.10.11'"
+        excluded = expression + " and python_full_version not in '3.10.11'"
+        updated = ["danger>=2; " + excluded]
+        old_domains = new_domains = [
+            "python_full_version == '3.10.1'",
+            "python_full_version == '3.10.10'",
+            "python_full_version == '3.10.11'",
+        ]
+        if variant == "complete-partition":
+            updated.append("danger>=2; " + included)
+    elif variant == "dropped-substrings":
+        updated = [
+            "danger>=2; python_full_version == '3.10.10'",
+            "danger>=2; python_full_version == '3.10.11'",
+        ]
+        old_domains = [expression]
+        new_domains = ["python_full_version == '3.10.10'", "python_full_version == '3.10.11'"]
+    elif variant == "unbounded-substrings":
+        members = ", ".join("3.10." + str(1000 + index) for index in range(16))
+        expression = "python_full_version in '" + members + "'"
+        original = "danger>=1; " + expression
+        updated = ["danger>=2; " + expression]
+        old_domains = new_domains = ["python_full_version == '3.10.1000'"]
+
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=[] if protected else [original],
+        head_requirements=[] if protected else updated,
+        base_packages=[("danger", "1")],
+        head_packages=[("danger", "2")],
+        base_constraints=[original] if protected else None,
+        head_constraints=updated if protected else None,
+        base_resolution_markers={("danger", "1"): old_domains},
+        head_resolution_markers={("danger", "2"): new_domains},
+    )
+    assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr
+
+
+@pytest.mark.parametrize(
+    ("requirement_marker", "resolution_marker", "accepted"),
+    [
+        pytest.param("'3.10' == python_version", "python_full_version == '3.10.4'", True, id="reversed-equality"),
+        pytest.param("'3.10' != python_version", "python_full_version == '3.11.4'", True, id="reversed-inequality"),
+        pytest.param("'3.10' != python_version", "python_full_version == '3.10.4'", False, id="reversed-excluded"),
+        pytest.param("'3.10' < python_version", "python_full_version == '3.11.0'", True, id="reversed-exclusive-lower"),
+        pytest.param("'3.10' < python_version", "python_full_version == '3.10.4'", False, id="reversed-lower-equal"),
+        pytest.param(
+            "'3.10' <= python_version", "python_full_version == '3.10.4'", True, id="reversed-inclusive-lower"
+        ),
+        pytest.param("'3.10' <= python_version", "python_full_version == '3.9.4'", False, id="reversed-lower-outside"),
+        pytest.param("'3.10' > python_version", "python_full_version == '3.9.4'", True, id="reversed-exclusive-upper"),
+        pytest.param("'3.10' > python_version", "python_full_version == '3.10.4'", False, id="reversed-upper-equal"),
+        pytest.param(
+            "'3.10' >= python_version", "python_full_version == '3.10.4'", True, id="reversed-inclusive-upper"
+        ),
+        pytest.param("'3.10' >= python_version", "python_full_version == '3.11.4'", False, id="reversed-upper-outside"),
+        pytest.param("'3.1' == python_version", "python_full_version == '3.1.7'", True, id="reversed-minor-projection"),
+        pytest.param("'3.10.1' <= python_full_version", "python_full_version == '3.10.1'", True, id="reversed-full"),
+        pytest.param("'linux' <= sys_platform", "sys_platform == 'win32'", True, id="reversed-platform-order"),
+        pytest.param("'linux' <= sys_platform", "sys_platform == 'darwin'", False, id="reversed-platform-outside"),
+        pytest.param(
+            "python_version >= '3.10'",
+            "'3.10.4' <= python_full_version",
+            True,
+            id="reversed-resolution-comparison",
+        ),
+        pytest.param(
+            "sys_platform >= 'linux'",
+            "'linux' <= sys_platform",
+            True,
+            id="reversed-platform-resolution",
+        ),
+        pytest.param("'3.10' in python_version", "python_full_version == '3.10.4'", False, id="reversed-in-rejected"),
+        pytest.param(
+            "'3.10' not in python_version",
+            "python_full_version == '3.11.4'",
+            False,
+            id="reversed-not-in-rejected",
+        ),
+        pytest.param(
+            "'3.10' <= python_version <= '3.11'",
+            "python_full_version == '3.10.4'",
+            False,
+            id="reversed-chained-comparison-rejected",
+        ),
+        pytest.param(
+            "3.10 <= python_version", "python_full_version == '3.10.4'", False, id="nonstring-literal-rejected"
+        ),
+        pytest.param(
+            "python_full_version <= python_version",
+            "python_full_version == '3.10.4'",
+            False,
+            id="two-marker-variables-rejected",
+        ),
+    ],
+)
+@pytest.mark.parametrize("protected", [False, True], ids=["published-direct", "protected-constraint"])
+def test_reversed_literal_marker_comparisons_preserve_semantic_security_domains(
+    tmp_path: Path, requirement_marker: str, resolution_marker: str, accepted: bool, protected: bool
+) -> None:
+    previous = "danger>=1; " + requirement_marker
+    updated = "danger>=2; " + requirement_marker
+    result = run_security_dependency_floor_check(
+        tmp_path,
+        base_requirements=[] if protected else [previous],
+        head_requirements=[] if protected else [updated],
+        base_packages=[("danger", "1")],
+        head_packages=[("danger", "2")],
+        base_constraints=[previous] if protected else None,
+        head_constraints=[updated] if protected else None,
+        base_resolution_markers={("danger", "1"): [resolution_marker]},
+        head_resolution_markers={("danger", "2"): [resolution_marker]},
     )
     assert result.returncode == (0 if accepted else 1), result.stdout + result.stderr

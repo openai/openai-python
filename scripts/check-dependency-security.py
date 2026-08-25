@@ -68,15 +68,33 @@ def marker_context(marker: str) -> MarkerContext:
     for part in parts:
         if (
             not isinstance(part, ast.Compare)
-            or not isinstance(part.left, ast.Name)
             or len(part.ops) != 1
             or len(part.comparators) != 1
-            or not isinstance(part.comparators[0], ast.Constant)
-            or not isinstance(part.comparators[0].value, str)
             or type(part.ops[0]) not in {ast.Eq, ast.NotEq, ast.Lt, ast.LtE, ast.Gt, ast.GtE, ast.In, ast.NotIn}
         ):
             raise SystemExit("Ambiguous direct security dependency marker")
-        result.append((part.left.id.lower(), type(part.ops[0]).__name__, part.comparators[0].value))
+        operator = type(part.ops[0]).__name__
+        right = part.comparators[0]
+        if isinstance(part.left, ast.Name) and isinstance(right, ast.Constant) and isinstance(right.value, str):
+            variable, value = part.left.id, right.value
+        elif (
+            isinstance(part.left, ast.Constant)
+            and isinstance(part.left.value, str)
+            and isinstance(right, ast.Name)
+            and operator in {"Eq", "NotEq", "Lt", "LtE", "Gt", "GtE"}
+        ):
+            variable, value = right.id, part.left.value
+            operator = {
+                "Eq": "Eq",
+                "NotEq": "NotEq",
+                "Lt": "Gt",
+                "LtE": "GtE",
+                "Gt": "Lt",
+                "GtE": "LtE",
+            }[operator]
+        else:
+            raise SystemExit("Ambiguous direct security dependency marker")
+        result.append((variable.lower(), operator, value))
     return tuple(sorted(result))
 
 
@@ -613,11 +631,26 @@ def marker_options(context: MarkerContext) -> list[MarkerContext]:
             raise SystemExit("Ambiguous security dependency membership marker")
         if variable in allowed_platforms:
             options = [option + ((variable, operator, value),) for option in options]
-        elif operator == "In":
-            options = [option + ((variable, "Eq", member),) for option in options for member in values]
         else:
-            exclusions = tuple((variable, "NotEq", member) for member in values)
-            options = [option + exclusions for option in options]
+            if len(value) > 128:
+                raise SystemExit("Unbounded Python security dependency membership marker")
+            members = tuple(
+                sorted(
+                    {
+                        value[start:stop]
+                        for start in range(len(value))
+                        for stop in range(start + 1, len(value) + 1)
+                        if re.fullmatch(pattern, value[start:stop])
+                    }
+                )
+            )
+            if len(members) > 64:
+                raise SystemExit("Unbounded Python security dependency membership marker")
+            if operator == "In":
+                options = [option + ((variable, "Eq", member),) for option in options for member in members]
+            else:
+                exclusions = tuple((variable, "NotEq", member) for member in members)
+                options = [option + exclusions for option in options]
         if len(options) > 64:
             raise SystemExit("Ambiguous security dependency membership marker")
     return options
