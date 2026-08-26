@@ -678,8 +678,8 @@ class AsyncRealtimeConnectionManager:
         url = self._prepare_url().copy_with(
             params={
                 **self.__client.base_url.params,
-                "call_id": self.__call_id,
-                "model": self.__model,
+                **({"call_id": self.__call_id} if self.__call_id is not omit else {}),
+                **({"model": self.__model} if self.__model is not omit else {}),
                 **extra_query,
             },
         )
@@ -1136,8 +1136,8 @@ class RealtimeConnectionManager:
         url = self._prepare_url().copy_with(
             params={
                 **self.__client.base_url.params,
-                "call_id": self.__call_id,
-                "model": self.__model,
+                **({"call_id": self.__call_id} if self.__call_id is not omit else {}),
+                **({"model": self.__model} if self.__model is not omit else {}),
                 **extra_query,
             },
         )
