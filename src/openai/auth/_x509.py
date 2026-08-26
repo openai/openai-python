@@ -3,8 +3,12 @@ from __future__ import annotations
 import re
 import math
 import time
+import threading
 import email.utils
-from typing import Any, NoReturn, cast
+from typing import Any, Iterator, NoReturn, cast
+from weakref import ReferenceType, ref
+from contextlib import contextmanager
+from contextvars import ContextVar
 from typing_extensions import TypeIs, override
 
 import anyio
@@ -29,6 +33,81 @@ _REPLAY_POSITION_EXTENSION = "openai_x509_replay_position"
 _REPLAY_FILE_POSITIONS_EXTENSION = "openai_x509_replay_file_positions"
 _ALLOWED_IDENTITY_FIELDS = {"type", "identity_provider_id", "service_account_id", "refresh_buffer_seconds"}
 _BEARER_ACCESS_TOKEN = re.compile(r"[A-Za-z0-9._~+/-]+=*")
+_MTLS_REGIONAL_BASE_URLS = {
+    "global": MTLS_API_BASE_URL,
+    "us": "https://mtls-us.api.openai.com/v1",
+    "eu": "https://mtls-eu.api.openai.com/v1",
+}
+_OPENAI_MTLS_HOSTS = {httpx2.URL(url).host for url in _MTLS_REGIONAL_BASE_URLS.values()}
+_EXCHANGE_REQUEST_TIMEOUT: ContextVar[dict[str, float | None] | None] = ContextVar(
+    "openai_x509_exchange_request_timeout", default=None
+)
+_API_TRANSPORT_SCOPE: ContextVar[tuple[httpx2.Request, httpx2.URL, str | None] | None] = ContextVar(
+    "openai_x509_api_transport_scope", default=None
+)
+_API_TRANSPORT_SCOPE_EXTENSION = "openai_x509_api_transport_scope"
+_UNPROTECTED_TRANSPORT_SCOPE_EXTENSION = "openai_x509_unprotected_transport_scope"
+_ACTIVE_API_TRANSPORT_SCOPES: dict[object, tuple[httpx2.Request, httpx2.URL, str | None]] = {}
+_ACTIVE_UNPROTECTED_TRANSPORT_SCOPES: dict[object, tuple[httpx2.Request, httpx2.URL, str | None]] = {}
+_ACTIVE_API_TRANSPORT_SCOPES_LOCK = threading.RLock()
+_UNPROTECTED_TRANSPORT_SCOPE: ContextVar[object | None] = ContextVar(
+    "openai_x509_unprotected_transport_scope", default=None
+)
+
+
+@contextmanager
+def non_x509_request_scope(request: httpx2.Request) -> Iterator[None]:
+    marker = object()
+    had_previous_marker = _UNPROTECTED_TRANSPORT_SCOPE_EXTENSION in request.extensions
+    previous_marker = request.extensions.get(_UNPROTECTED_TRANSPORT_SCOPE_EXTENSION)
+    request.extensions[_UNPROTECTED_TRANSPORT_SCOPE_EXTENSION] = marker
+    with _ACTIVE_API_TRANSPORT_SCOPES_LOCK:
+        _ACTIVE_UNPROTECTED_TRANSPORT_SCOPES[marker] = (
+            request,
+            request.url,
+            request.headers.get("Authorization"),
+        )
+    protected_scope = _API_TRANSPORT_SCOPE.set(None)
+    unprotected_scope = _UNPROTECTED_TRANSPORT_SCOPE.set(marker)
+    try:
+        yield
+    finally:
+        _UNPROTECTED_TRANSPORT_SCOPE.reset(unprotected_scope)
+        _API_TRANSPORT_SCOPE.reset(protected_scope)
+        with _ACTIVE_API_TRANSPORT_SCOPES_LOCK:
+            _ACTIVE_UNPROTECTED_TRANSPORT_SCOPES.pop(marker, None)
+        if had_previous_marker:
+            request.extensions[_UNPROTECTED_TRANSPORT_SCOPE_EXTENSION] = previous_marker
+        else:
+            request.extensions.pop(_UNPROTECTED_TRANSPORT_SCOPE_EXTENSION, None)
+
+
+def _is_unprotected_transport_request(request: httpx2.Request) -> bool:
+    marker = request.extensions.get(_UNPROTECTED_TRANSPORT_SCOPE_EXTENSION)
+    contextual_marker = _UNPROTECTED_TRANSPORT_SCOPE.get()
+    with _ACTIVE_API_TRANSPORT_SCOPES_LOCK:
+        if type(marker) is object and marker in _ACTIVE_UNPROTECTED_TRANSPORT_SCOPES:
+            return True
+        return contextual_marker is not None and contextual_marker in _ACTIVE_UNPROTECTED_TRANSPORT_SCOPES
+
+
+def _request_transport_scope(request: httpx2.Request) -> tuple[httpx2.Request, httpx2.URL, str | None] | None:
+    marker = request.extensions.get(_API_TRANSPORT_SCOPE_EXTENSION)
+    if type(marker) is object:
+        with _ACTIVE_API_TRANSPORT_SCOPES_LOCK:
+            marked_scope = _ACTIVE_API_TRANSPORT_SCOPES.get(marker)
+        if marked_scope is not None:
+            return marked_scope
+
+    if _is_unprotected_transport_request(request):
+        return None
+
+    return _API_TRANSPORT_SCOPE.get()
+
+
+class _TransientTokenExchangeError(Exception):
+    def __init__(self, error: OpenAIError) -> None:
+        self.error = error
 
 
 def validate_x509_api_url(url: httpx2.URL | str, *, expected_origin: httpx2.URL | None = None) -> None:
@@ -89,6 +168,15 @@ def _validate_transport_request(
     validate_x509_api_url(request.url, expected_origin=expected_origin)
     validate_x509_request_authority(request)
 
+    target = request.extensions.get("target")
+    if target is not None and target != request.url.raw_path:
+        raise OpenAIError("X.509 workload identity request target must match the request URL")
+
+    sni_hostname = request.extensions.get("sni_hostname")
+    if request.url.host in _OPENAI_MTLS_HOSTS and sni_hostname is not None:
+        if not isinstance(sni_hostname, str) or sni_hostname.lower() != request.url.host.lower():
+            raise OpenAIError("X.509 workload identity TLS hostname must match the OpenAI mTLS origin")
+
     if token_exchange:
         if str(request.url) != _X509_TOKEN_EXCHANGE_URL:
             raise OpenAIError("X.509 token exchange requests must use the pinned authentication URL")
@@ -128,7 +216,11 @@ class _SyncX509ForwardingTransport(httpx2.BaseTransport):
         )
         if self._http_client.is_closed:
             raise RuntimeError("Cannot send a request, as the client has been closed.")
-        return self._http_client._transport_for_url(request.url).handle_request(request)
+        transport = self._http_client._transport_for_url(request.url)
+        if self._token_exchange:
+            with non_x509_request_scope(request):
+                return transport.handle_request(request)
+        return transport.handle_request(request)
 
     @override
     def close(self) -> None:
@@ -160,12 +252,240 @@ class _AsyncX509ForwardingTransport(httpx2.AsyncBaseTransport):
         )
         if self._http_client.is_closed:
             raise RuntimeError("Cannot send a request, as the client has been closed.")
-        return await self._http_client._transport_for_url(request.url).handle_async_request(request)
+        transport = self._http_client._transport_for_url(request.url)
+        if self._token_exchange:
+            with non_x509_request_scope(request):
+                return await transport.handle_async_request(request)
+        return await transport.handle_async_request(request)
 
     @override
     async def aclose(self) -> None:
         # The caller owns the selected connection pool and proxy transports.
         return None
+
+
+class _SyncX509ScopedTransport(httpx2.BaseTransport):
+    def __init__(self, transport: httpx2.BaseTransport, owner: _X509ClientTransportScope) -> None:
+        self._transport = transport
+        self._owner = owner
+
+    @override
+    def handle_request(self, request: httpx2.Request) -> httpx2.Response:
+        scope = self._owner.request_scope(request)
+        if scope is not None:
+            _validate_transport_request(
+                request,
+                expected_origin=scope[1],
+                expected_authorization=scope[2],
+                token_exchange=False,
+            )
+        return self._transport.handle_request(request)
+
+    @override
+    def close(self) -> None:
+        self._transport.close()
+
+
+class _AsyncX509ScopedTransport(httpx2.AsyncBaseTransport):
+    def __init__(self, transport: httpx2.AsyncBaseTransport, owner: _X509ClientTransportScope) -> None:
+        self._transport = transport
+        self._owner = owner
+
+    @override
+    async def handle_async_request(self, request: httpx2.Request) -> httpx2.Response:
+        scope = self._owner.request_scope(request)
+        if scope is not None:
+            _validate_transport_request(
+                request,
+                expected_origin=scope[1],
+                expected_authorization=scope[2],
+                token_exchange=False,
+            )
+        return await self._transport.handle_async_request(request)
+
+    @override
+    async def aclose(self) -> None:
+        await self._transport.aclose()
+
+
+class _FinalizingRequestHooks(list[Any]):
+    def __init__(self, hooks: list[Any], finalizer: Any) -> None:
+        super().__init__(hooks)
+        self._finalizer = finalizer
+
+    @override
+    def __iter__(self) -> Iterator[Any]:
+        finalizer = self._finalizer
+        yield finalizer
+        index = 0
+        while index < len(self):
+            hook = self[index]
+            index += 1
+            yield hook
+        yield finalizer
+
+
+class _X509ClientTransportScope:
+    def __init__(self, http_client: httpx2.Client | httpx2.AsyncClient, *, is_async: bool) -> None:
+        self._http_client_ref = ref(http_client)
+        self._is_async = is_async
+        self._lock = threading.RLock()
+        self._active_requests = 0
+        self._request_scopes: dict[object, tuple[httpx2.Request, httpx2.URL, str | None]] = {}
+        self._bound_requests: dict[int, tuple[httpx2.Request, object]] = {}
+        self._scope_request_bindings: dict[object, set[int]] = {}
+        self._original_transport: Any = None
+        self._original_mounts: dict[Any, Any] = {}
+        self._original_request_hooks: list[Any] = []
+
+    def _wrap(self, transport: Any) -> Any:
+        if self._is_async:
+            return _AsyncX509ScopedTransport(transport, self)
+        return _SyncX509ScopedTransport(transport, self)
+
+    def request_scope(self, request: httpx2.Request) -> tuple[httpx2.Request, httpx2.URL, str | None] | None:
+        with self._lock:
+            bound_request = self._bound_requests.get(id(request))
+            if bound_request is not None and bound_request[0] is request:
+                bound_scope = self._request_scopes.get(bound_request[1])
+                if bound_scope is not None:
+                    return bound_scope
+
+        scope = _request_transport_scope(request)
+        if scope is not None:
+            marker = request.extensions.get(_API_TRANSPORT_SCOPE_EXTENSION)
+            with self._lock:
+                if type(marker) is object and marker in self._request_scopes:
+                    self._bind_request(request, marker)
+            return scope
+        if _is_unprotected_transport_request(request):
+            return None
+
+        with self._lock:
+            if not self._request_scopes:
+                return None
+            same_origin = [
+                (marker, active_scope)
+                for marker, active_scope in self._request_scopes.items()
+                if (request.url.host, request.url.port) == (active_scope[1].host, active_scope[1].port)
+            ]
+            candidates = same_origin if same_origin else list(self._request_scopes.items())
+            marker, active_scope = next(
+                (
+                    (active_marker, candidate)
+                    for active_marker, candidate in candidates
+                    if request.headers.get("Authorization") == candidate[2]
+                ),
+                candidates[0],
+            )
+            self._bind_request(request, marker)
+            return active_scope
+
+    def _bind_request(self, request: httpx2.Request, marker: object) -> None:
+        identifier = id(request)
+        self._bound_requests[identifier] = (request, marker)
+        self._scope_request_bindings.setdefault(marker, set()).add(identifier)
+
+    def _validate_sync_request(self, request: httpx2.Request) -> None:
+        scope = self.request_scope(request)
+        if scope is not None:
+            _validate_transport_request(
+                request,
+                expected_origin=scope[1],
+                expected_authorization=scope[2],
+                token_exchange=False,
+            )
+
+    async def _validate_async_request(self, request: httpx2.Request) -> None:
+        self._validate_sync_request(request)
+
+    @contextmanager
+    def activate(
+        self, request: httpx2.Request, expected_origin: httpx2.URL, expected_authorization: str | None
+    ) -> Iterator[None]:
+        http_client = self._http_client_ref()
+        if http_client is None:
+            raise RuntimeError("Cannot send a request after the HTTP client has been released.")
+        with self._lock:
+            if self._active_requests == 0:
+                self._original_transport = http_client._transport
+                self._original_mounts = http_client._mounts
+                http_client._transport = self._wrap(self._original_transport)
+                http_client._mounts = {
+                    pattern: self._wrap(transport) if transport is not None else None
+                    for pattern, transport in self._original_mounts.items()
+                }
+                self._original_request_hooks = http_client.event_hooks["request"]
+                validator = self._validate_async_request if self._is_async else self._validate_sync_request
+                http_client.event_hooks["request"] = _FinalizingRequestHooks(self._original_request_hooks, validator)
+            self._active_requests += 1
+
+        marker = object()
+        had_previous_marker = _API_TRANSPORT_SCOPE_EXTENSION in request.extensions
+        previous_marker = request.extensions.get(_API_TRANSPORT_SCOPE_EXTENSION)
+        request.extensions[_API_TRANSPORT_SCOPE_EXTENSION] = marker
+        request_scope = (request, expected_origin, expected_authorization)
+        with _ACTIVE_API_TRANSPORT_SCOPES_LOCK:
+            _ACTIVE_API_TRANSPORT_SCOPES[marker] = request_scope
+        with self._lock:
+            self._request_scopes[marker] = request_scope
+        scope = _API_TRANSPORT_SCOPE.set(request_scope)
+        unprotected_scope = _UNPROTECTED_TRANSPORT_SCOPE.set(None)
+        try:
+            yield
+        finally:
+            with _ACTIVE_API_TRANSPORT_SCOPES_LOCK:
+                _ACTIVE_API_TRANSPORT_SCOPES.pop(marker, None)
+            if had_previous_marker:
+                request.extensions[_API_TRANSPORT_SCOPE_EXTENSION] = previous_marker
+            else:
+                request.extensions.pop(_API_TRANSPORT_SCOPE_EXTENSION, None)
+            _UNPROTECTED_TRANSPORT_SCOPE.reset(unprotected_scope)
+            _API_TRANSPORT_SCOPE.reset(scope)
+            with self._lock:
+                for identifier in self._scope_request_bindings.pop(marker, set()):
+                    self._bound_requests.pop(identifier, None)
+                self._request_scopes.pop(marker, None)
+                self._active_requests -= 1
+                if self._active_requests == 0:
+                    http_client._transport = self._original_transport
+                    http_client._mounts = self._original_mounts
+                    scoped_hooks = http_client.event_hooks["request"]
+                    self._original_request_hooks[:] = (
+                        scoped_hooks.copy() if isinstance(scoped_hooks, _FinalizingRequestHooks) else list(scoped_hooks)
+                    )
+                    http_client.event_hooks["request"] = self._original_request_hooks
+                    self._original_transport = None
+                    self._original_mounts = {}
+                    self._original_request_hooks = []
+
+
+_TRANSPORT_SCOPES: dict[int, tuple[ReferenceType[Any], _X509ClientTransportScope]] = {}
+_TRANSPORT_SCOPES_LOCK = threading.RLock()
+
+
+def _release_transport_scope(client_id: int, reference: ReferenceType[Any]) -> None:
+    with _TRANSPORT_SCOPES_LOCK:
+        entry = _TRANSPORT_SCOPES.get(client_id)
+        if entry is not None and entry[0] is reference:
+            _TRANSPORT_SCOPES.pop(client_id, None)
+
+
+def _client_transport_scope(
+    http_client: httpx2.Client | httpx2.AsyncClient, *, is_async: bool
+) -> _X509ClientTransportScope:
+    client_id = id(http_client)
+    with _TRANSPORT_SCOPES_LOCK:
+        existing = _TRANSPORT_SCOPES.get(client_id)
+        if existing is not None and existing[0]() is http_client:
+            return existing[1]
+
+        def release(reference: ReferenceType[Any]) -> None:
+            _release_transport_scope(client_id, reference)
+
+        scope = _X509ClientTransportScope(http_client, is_async=is_async)
+        _TRANSPORT_SCOPES[client_id] = (ref(http_client, release), scope)
+        return scope
 
 
 def _scoped_sync_client(
@@ -185,15 +505,7 @@ def _scoped_sync_client(
     client_type = httpx2.Client
     if legacy_httpx is not None and not isinstance(cast(object, http_client), httpx2.Client):
         client_type = legacy_httpx.Client
-    scoped_client = client_type(
-        transport=transport,
-        timeout=http_client.timeout,
-        event_hooks=None if token_exchange else http_client.event_hooks,
-        trust_env=False,
-    )
-    if not token_exchange:
-        scoped_client._cookies = http_client.cookies
-    return scoped_client
+    return client_type(transport=transport, timeout=http_client.timeout, event_hooks=None, trust_env=False)
 
 
 def _scoped_async_client(
@@ -213,15 +525,7 @@ def _scoped_async_client(
     client_type = httpx2.AsyncClient
     if legacy_httpx is not None and not isinstance(cast(object, http_client), httpx2.AsyncClient):
         client_type = legacy_httpx.AsyncClient
-    scoped_client = client_type(
-        transport=transport,
-        timeout=http_client.timeout,
-        event_hooks=None if token_exchange else http_client.event_hooks,
-        trust_env=False,
-    )
-    if not token_exchange:
-        scoped_client._cookies = http_client.cookies
-    return scoped_client
+    return client_type(transport=transport, timeout=http_client.timeout, event_hooks=None, trust_env=False)
 
 
 def _as_finite_float(value: object) -> float | None:
@@ -240,6 +544,26 @@ def is_x509_workload_identity(
     return identity is not None and identity.get("type") == "x509"
 
 
+def x509_data_residency_base_url(
+    base_url: httpx2.URL | str | None,
+    data_residency: str | None,
+    workload_identity: WorkloadIdentity | X509WorkloadIdentity | None,
+) -> httpx2.URL | str | None:
+    if data_residency is None or not is_x509_workload_identity(workload_identity):
+        return base_url
+    if data_residency not in _MTLS_REGIONAL_BASE_URLS:
+        raise OpenAIError("X.509 workload identity requires a supported regional mTLS endpoint")
+    return _MTLS_REGIONAL_BASE_URLS[data_residency]
+
+
+def x509_safe_environment_headers(
+    headers: dict[str, str], workload_identity: X509WorkloadIdentity | None
+) -> dict[str, str]:
+    if workload_identity is None:
+        return headers
+    return {name: value for name, value in headers.items() if name.lower() != "authorization"}
+
+
 def _validate_identity(identity: X509WorkloadIdentity) -> None:
     if "provider" in identity or "client_id" in identity:
         raise OpenAIError("X.509 workload identity does not accept a subject-token provider or client ID")
@@ -247,7 +571,13 @@ def _validate_identity(identity: X509WorkloadIdentity) -> None:
     if set(identity) - _ALLOWED_IDENTITY_FIELDS:
         raise OpenAIError("X.509 workload identity accepts only identity IDs and an optional refresh buffer")
 
-    if not identity.get("identity_provider_id") or not identity.get("service_account_id"):
+    if any(
+        not isinstance(identity.get(field), str) or not identity.get(field)
+        for field in (
+            "identity_provider_id",
+            "service_account_id",
+        )
+    ):
         raise OpenAIError("X.509 workload identity requires identity-provider and service-account IDs")
 
     refresh_buffer = cast(object, identity.get("refresh_buffer_seconds"))
@@ -276,20 +606,39 @@ def _token_exchange_request(
     if legacy_httpx is not None and not isinstance(cast(object, http_client), (httpx2.Client, httpx2.AsyncClient)):
         request_type = cast(type[httpx2.Request], cast(Any, legacy_httpx).Request)
 
+    configured_timeout = _EXCHANGE_REQUEST_TIMEOUT.get()
+    timeout = {
+        phase: min(value, 10.0) if value is not None else 10.0
+        for phase, value in (configured_timeout or httpx2.Timeout(10.0).as_dict()).items()
+    }
     return request_type(
         "POST",
         _X509_TOKEN_EXCHANGE_URL,
         json=_exchange_payload(identity),
-        extensions={"timeout": httpx2.Timeout(10.0).as_dict()},
+        extensions={"timeout": timeout},
     )
 
 
 def _retry_delay(response: httpx2.Response | None, attempt: int) -> float | None:
     if response is not None:
-        if response.status_code not in (408, 409, 429) and response.status_code < 500:
+        should_retry = response.headers.get("x-should-retry")
+        if response.status_code in (400, 401, 403) or should_retry == "false":
+            return None
+        if should_retry != "true" and response.status_code not in (408, 409, 429) and response.status_code < 500:
             return None
 
+        retry_after_ms = response.headers.get("retry-after-ms")
         retry_after = response.headers.get("retry-after")
+        if retry_after_ms is not None:
+            try:
+                millisecond_delay = float(retry_after_ms) / 1000
+            except ValueError:
+                pass
+            else:
+                if math.isfinite(millisecond_delay) and 0 <= millisecond_delay <= MAX_RETRY_AFTER_DELAY:
+                    return millisecond_delay
+                if millisecond_delay > MAX_RETRY_AFTER_DELAY:
+                    return None
         if retry_after is not None:
             try:
                 delay = float(retry_after)
@@ -323,9 +672,12 @@ def _is_replayable_request(request: httpx2.Request) -> bool:
             seekable = getattr(file, "seekable", None)
             seek = getattr(file, "seek", None)
             tell = getattr(file, "tell", None)
-            if not callable(seekable) or not seekable() or not callable(seek) or not callable(tell):
+            try:
+                if not callable(seekable) or not seekable() or not callable(seek) or not callable(tell):
+                    return False
+                position = tell()
+            except (OSError, ValueError):
                 return False
-            position = tell()
             if not isinstance(position, int):
                 return False
             file_positions.append((file, position))
@@ -336,9 +688,12 @@ def _is_replayable_request(request: httpx2.Request) -> bool:
     seekable = getattr(source, "seekable", None)
     seek = getattr(source, "seek", None)
     tell = getattr(source, "tell", None)
-    if not callable(seekable) or not seekable() or not callable(seek) or not callable(tell):
+    try:
+        if not callable(seekable) or not seekable() or not callable(seek) or not callable(tell):
+            return False
+        request.extensions[_REPLAY_POSITION_EXTENSION] = tell()
+    except (OSError, ValueError):
         return False
-    request.extensions[_REPLAY_POSITION_EXTENSION] = tell()
     return True
 
 
@@ -416,8 +771,25 @@ class _X509WorkloadIdentityAuth(_WorkloadIdentityAuth[X509WorkloadIdentity]):
         if callable(seek):
             seek(position)
 
+    def _usable_token_after_transient_failure(self) -> str | None:
+        with self._lock:
+            if self._token_unusable():
+                return None
+            self._cached_token_refresh_at_monotonic = time.monotonic() + INITIAL_RETRY_DELAY
+            return self._cached_token
+
+    def _handle_exchange_response(self, response: httpx2.Response) -> dict[str, Any]:
+        try:
+            return self._handle_token_response(response)
+        except OpenAIError as error:
+            if response.status_code in (408, 409, 429) or response.status_code >= 500:
+                raise _TransientTokenExchangeError(error) from error
+            raise
+
 
 class SyncX509WorkloadIdentityAuth(_X509WorkloadIdentityAuth):
+    _http_client: httpx2.Client
+
     def __init__(
         self, *, workload_identity: X509WorkloadIdentity, http_client: httpx2.Client, max_retries: int
     ) -> None:
@@ -433,12 +805,28 @@ class SyncX509WorkloadIdentityAuth(_X509WorkloadIdentityAuth):
         stream: bool,
         **kwargs: Any,
     ) -> httpx2.Response:
-        with _scoped_sync_client(
-            self._http_client,
-            expected_origin=expected_origin,
-            expected_authorization=expected_authorization,
-        ) as scoped_client:
-            return scoped_client.send(request, stream=stream, **kwargs)
+        if self._http_client.is_closed:
+            raise RuntimeError("Cannot send a request, as the client has been closed.")
+        with _client_transport_scope(self._http_client, is_async=False).activate(
+            request, expected_origin, expected_authorization
+        ):
+            kwargs.setdefault("auth", None)
+            return self._http_client.send(request, stream=stream, **kwargs)
+
+    def get_token_for_request(self, request: httpx2.Request) -> str:
+        timeout_token = _EXCHANGE_REQUEST_TIMEOUT.set(request.extensions.get("timeout"))
+        try:
+            try:
+                return self.get_token()
+            except (APIConnectionError, _TransientTokenExchangeError) as error:
+                token = self._usable_token_after_transient_failure()
+                if token is None:
+                    if isinstance(error, _TransientTokenExchangeError):
+                        raise error.error from None
+                    raise
+                return token
+        finally:
+            _EXCHANGE_REQUEST_TIMEOUT.reset(timeout_token)
 
     @override
     def _fetch_token_from_exchange(self) -> dict[str, Any]:
@@ -461,7 +849,7 @@ class SyncX509WorkloadIdentityAuth(_X509WorkloadIdentityAuth):
             else:
                 delay = _retry_delay(response, attempt)
                 if attempt >= self._max_exchange_retries or delay is None:
-                    return self._handle_token_response(response)
+                    return self._handle_exchange_response(response)
 
             if delay is not None:
                 time.sleep(delay)
@@ -470,6 +858,8 @@ class SyncX509WorkloadIdentityAuth(_X509WorkloadIdentityAuth):
 
 
 class AsyncX509WorkloadIdentityAuth(_X509WorkloadIdentityAuth):
+    _http_client: httpx2.AsyncClient
+
     def __init__(
         self, *, workload_identity: X509WorkloadIdentity, http_client: httpx2.AsyncClient, max_retries: int
     ) -> None:
@@ -486,12 +876,28 @@ class AsyncX509WorkloadIdentityAuth(_X509WorkloadIdentityAuth):
         stream: bool,
         **kwargs: Any,
     ) -> httpx2.Response:
-        async with _scoped_async_client(
-            self._http_client,
-            expected_origin=expected_origin,
-            expected_authorization=expected_authorization,
-        ) as scoped_client:
-            return await scoped_client.send(request, stream=stream, **kwargs)
+        if self._http_client.is_closed:
+            raise RuntimeError("Cannot send a request, as the client has been closed.")
+        with _client_transport_scope(self._http_client, is_async=True).activate(
+            request, expected_origin, expected_authorization
+        ):
+            kwargs.setdefault("auth", None)
+            return await self._http_client.send(request, stream=stream, **kwargs)
+
+    async def get_token_for_request(self, request: httpx2.Request) -> str:
+        timeout_token = _EXCHANGE_REQUEST_TIMEOUT.set(request.extensions.get("timeout"))
+        try:
+            try:
+                return await self.get_token_async()
+            except (APIConnectionError, _TransientTokenExchangeError) as error:
+                token = self._usable_token_after_transient_failure()
+                if token is None:
+                    if isinstance(error, _TransientTokenExchangeError):
+                        raise error.error from None
+                    raise
+                return token
+        finally:
+            _EXCHANGE_REQUEST_TIMEOUT.reset(timeout_token)
 
     @override
     async def get_token_async(self) -> str:
@@ -525,9 +931,28 @@ class AsyncX509WorkloadIdentityAuth(_X509WorkloadIdentityAuth):
             else:
                 delay = _retry_delay(response, attempt)
                 if attempt >= self._max_exchange_retries or delay is None:
-                    return self._handle_token_response(response)
+                    return self._handle_exchange_response(response)
 
             if delay is not None:
                 await anyio.sleep(delay)
 
         raise AssertionError("X.509 token exchange retry loop exhausted unexpectedly")
+
+
+def can_share_x509_auth(
+    current: object,
+    replacement: object,
+    *,
+    current_origin: httpx2.URL,
+    replacement_origin: httpx2.URL,
+) -> bool:
+    auth_types = (SyncX509WorkloadIdentityAuth, AsyncX509WorkloadIdentityAuth)
+    if not isinstance(current, auth_types) or not isinstance(replacement, auth_types):
+        return False
+    return (
+        type(current) is type(replacement)
+        and current.workload_identity == replacement.workload_identity
+        and current._http_client is replacement._http_client
+        and current_origin == replacement_origin
+        and current._max_exchange_retries == replacement._max_exchange_retries
+    )
