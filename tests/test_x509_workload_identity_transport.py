@@ -18,6 +18,7 @@ import pytest
 
 from openai import OpenAI, AsyncOpenAI, OpenAIError
 from openai.auth import X509WorkloadIdentity, x509_workload_identity
+from openai.auth._x509 import _FinalizingRequestHooks
 
 _TOKEN_URL = "https://mtls.auth.openai.com/oauth/token"
 _API_URL = "https://mtls.api.openai.com/v1/models"
@@ -859,6 +860,228 @@ async def test_async_x509_preserves_request_hooks_added_during_send() -> None:
         await client.models.list()
 
     assert calls == ["initial", "appended", "initial", "appended"]
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    [
+        "remove",
+        "append",
+        "mixed",
+        "extend",
+        "insert",
+        "pop",
+        "setitem",
+        "slice",
+        "delete",
+        "iadd",
+        "imul",
+        "self_extend",
+        "self_iadd",
+        "self_slice",
+    ],
+)
+def test_sync_x509_preserves_mutations_through_retained_request_hook_lists(mutation: str) -> None:
+    calls: list[str] = []
+    http_client = httpx2.Client(transport=httpx2.MockTransport(_response))
+    retained_hooks = http_client.event_hooks["request"]
+
+    def appended(_request: httpx2.Request) -> None:
+        calls.append("appended")
+
+    def initial(_request: httpx2.Request) -> None:
+        calls.append("initial")
+        scoped_hooks = http_client.event_hooks["request"]
+        if mutation == "remove":
+            retained_hooks.remove(initial)
+        elif mutation == "append":
+            if appended not in retained_hooks:
+                retained_hooks.append(appended)
+            assert scoped_hooks == retained_hooks
+            assert scoped_hooks + [] == retained_hooks
+            assert [] + scoped_hooks == retained_hooks
+            assert scoped_hooks * 2 == retained_hooks * 2
+            assert 2 * scoped_hooks == 2 * retained_hooks
+            assert list(reversed(scoped_hooks)) == list(reversed(retained_hooks))
+            assert repr(scoped_hooks) == repr(retained_hooks)
+        elif mutation == "mixed":
+            retained_hooks.remove(initial)
+            scoped_hooks.append(appended)
+        elif mutation == "extend" and appended not in scoped_hooks:
+            scoped_hooks.extend([appended])
+        elif mutation == "insert" and appended not in scoped_hooks:
+            scoped_hooks.insert(len(scoped_hooks), appended)
+        elif mutation == "pop":
+            scoped_hooks.pop(0)
+        elif mutation == "setitem":
+            scoped_hooks[0] = appended
+        elif mutation == "slice":
+            scoped_hooks[:] = [appended]
+        elif mutation == "delete":
+            del scoped_hooks[0]
+        elif mutation == "iadd" and appended not in scoped_hooks:
+            scoped_hooks += [appended]
+        elif mutation == "imul" and len(scoped_hooks) == 1:
+            scoped_hooks *= 2
+        elif mutation == "self_extend" and len(scoped_hooks) == 1:
+            scoped_hooks.extend(scoped_hooks)
+        elif mutation == "self_iadd" and len(scoped_hooks) == 1:
+            scoped_hooks += scoped_hooks
+        elif mutation == "self_slice":
+            scoped_hooks[:] = scoped_hooks
+
+    retained_hooks.append(initial)
+    with OpenAI(workload_identity=_identity(), http_client=http_client, max_retries=0) as client:
+        client.models.list()
+        assert http_client.event_hooks["request"] is retained_hooks
+        expected_hooks = (
+            []
+            if mutation in ("remove", "pop", "delete")
+            else [appended]
+            if mutation in ("mixed", "setitem", "slice")
+            else [initial, initial]
+            if mutation in ("imul", "self_extend", "self_iadd")
+            else [initial]
+            if mutation == "self_slice"
+            else [initial, appended]
+        )
+        assert retained_hooks == expected_hooks
+        client.models.list()
+
+    expected_calls = (
+        ["initial"]
+        if mutation in ("remove", "pop", "delete")
+        else ["initial", "appended"]
+        if mutation in ("mixed", "setitem", "slice")
+        else ["initial"] * 4
+        if mutation in ("imul", "self_extend", "self_iadd")
+        else ["initial", "initial"]
+        if mutation == "self_slice"
+        else ["initial", "appended", "initial", "appended"]
+    )
+    assert calls == expected_calls
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    [
+        "remove",
+        "append",
+        "mixed",
+        "extend",
+        "insert",
+        "pop",
+        "setitem",
+        "slice",
+        "delete",
+        "iadd",
+        "imul",
+        "self_extend",
+        "self_iadd",
+        "self_slice",
+    ],
+)
+async def test_async_x509_preserves_mutations_through_retained_request_hook_lists(mutation: str) -> None:
+    calls: list[str] = []
+    http_client = httpx2.AsyncClient(transport=httpx2.MockTransport(_response))
+    retained_hooks = http_client.event_hooks["request"]
+
+    async def appended(_request: httpx2.Request) -> None:
+        calls.append("appended")
+
+    async def initial(_request: httpx2.Request) -> None:
+        calls.append("initial")
+        scoped_hooks = http_client.event_hooks["request"]
+        if mutation == "remove":
+            retained_hooks.remove(initial)
+        elif mutation == "append":
+            if appended not in retained_hooks:
+                retained_hooks.append(appended)
+            assert scoped_hooks == retained_hooks
+            assert scoped_hooks + [] == retained_hooks
+            assert [] + scoped_hooks == retained_hooks
+            assert scoped_hooks * 2 == retained_hooks * 2
+            assert 2 * scoped_hooks == 2 * retained_hooks
+            assert list(reversed(scoped_hooks)) == list(reversed(retained_hooks))
+            assert repr(scoped_hooks) == repr(retained_hooks)
+        elif mutation == "mixed":
+            retained_hooks.remove(initial)
+            scoped_hooks.append(appended)
+        elif mutation == "extend" and appended not in scoped_hooks:
+            scoped_hooks.extend([appended])
+        elif mutation == "insert" and appended not in scoped_hooks:
+            scoped_hooks.insert(len(scoped_hooks), appended)
+        elif mutation == "pop":
+            scoped_hooks.pop(0)
+        elif mutation == "setitem":
+            scoped_hooks[0] = appended
+        elif mutation == "slice":
+            scoped_hooks[:] = [appended]
+        elif mutation == "delete":
+            del scoped_hooks[0]
+        elif mutation == "iadd" and appended not in scoped_hooks:
+            scoped_hooks += [appended]
+        elif mutation == "imul" and len(scoped_hooks) == 1:
+            scoped_hooks *= 2
+        elif mutation == "self_extend" and len(scoped_hooks) == 1:
+            scoped_hooks.extend(scoped_hooks)
+        elif mutation == "self_iadd" and len(scoped_hooks) == 1:
+            scoped_hooks += scoped_hooks
+        elif mutation == "self_slice":
+            scoped_hooks[:] = scoped_hooks
+
+    retained_hooks.append(initial)
+    async with AsyncOpenAI(workload_identity=_identity(), http_client=http_client, max_retries=0) as client:
+        await client.models.list()
+        assert http_client.event_hooks["request"] is retained_hooks
+        expected_hooks = (
+            []
+            if mutation in ("remove", "pop", "delete")
+            else [appended]
+            if mutation in ("mixed", "setitem", "slice")
+            else [initial, initial]
+            if mutation in ("imul", "self_extend", "self_iadd")
+            else [initial]
+            if mutation == "self_slice"
+            else [initial, appended]
+        )
+        assert retained_hooks == expected_hooks
+        await client.models.list()
+
+    expected_calls = (
+        ["initial"]
+        if mutation in ("remove", "pop", "delete")
+        else ["initial", "appended"]
+        if mutation in ("mixed", "setitem", "slice")
+        else ["initial"] * 4
+        if mutation in ("imul", "self_extend", "self_iadd")
+        else ["initial", "initial"]
+        if mutation == "self_slice"
+        else ["initial", "appended", "initial", "appended"]
+    )
+    assert calls == expected_calls
+
+
+@pytest.mark.parametrize("mutation", ["extend", "iadd", "slice"])
+def test_x509_hook_list_composition_never_retains_private_validation_callbacks(mutation: str) -> None:
+    first_hooks: list[Any] = [object()]
+    second_hooks: list[Any] = [object()]
+    first_validator = object()
+    second_validator = object()
+    first = _FinalizingRequestHooks(first_hooks, first_validator)
+    second = _FinalizingRequestHooks(second_hooks, second_validator)
+
+    if mutation == "extend":
+        first.extend(second)
+    elif mutation == "iadd":
+        first += second
+    else:
+        first[:] = second
+
+    assert first_validator not in first_hooks
+    assert second_validator not in first_hooks
+    expected = second_hooks if mutation == "slice" else [first_hooks[0], *second_hooks]
+    assert first_hooks == expected
 
 
 def test_sync_x509_preserves_custom_client_send_and_response_encoding() -> None:

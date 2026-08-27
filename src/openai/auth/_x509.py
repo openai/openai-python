@@ -6,7 +6,7 @@ import time
 import importlib
 import threading
 import email.utils
-from typing import Any, Iterator, NoReturn, cast
+from typing import Any, Iterable, Iterator, NoReturn, SupportsIndex, cast
 from weakref import ReferenceType, ref
 from functools import wraps
 from contextlib import ExitStack, contextmanager
@@ -345,15 +345,160 @@ class _AsyncX509ScopedTransport(httpx2.AsyncBaseTransport):
 class _FinalizingRequestHooks(list[Any]):
     def __init__(self, hooks: list[Any], finalizer: Any) -> None:
         super().__init__(hooks)
+        self._hooks = hooks
         self._finalizer = finalizer
+
+    def _synchronize(self) -> None:
+        super().clear()
+        super().extend(self._hooks)
+
+    @override
+    def __len__(self) -> int:
+        return len(self._hooks)
+
+    @override
+    def __repr__(self) -> str:
+        return repr(self._hooks)
+
+    @override
+    def __str__(self) -> str:
+        return str(self._hooks)
+
+    @override
+    def __eq__(self, other: object) -> bool:
+        return self._hooks == (other._hooks if isinstance(other, _FinalizingRequestHooks) else other)
+
+    @override
+    def __ne__(self, other: object) -> bool:
+        return not self == other
+
+    @override
+    def __lt__(self, other: Any) -> bool:
+        return self._hooks < (other._hooks if isinstance(other, _FinalizingRequestHooks) else other)
+
+    @override
+    def __le__(self, other: Any) -> bool:
+        return self._hooks <= (other._hooks if isinstance(other, _FinalizingRequestHooks) else other)
+
+    @override
+    def __gt__(self, other: Any) -> bool:
+        return self._hooks > (other._hooks if isinstance(other, _FinalizingRequestHooks) else other)
+
+    @override
+    def __ge__(self, other: Any) -> bool:
+        return self._hooks >= (other._hooks if isinstance(other, _FinalizingRequestHooks) else other)
+
+    @override
+    def __getitem__(self, index: Any) -> Any:
+        return self._hooks[index]
+
+    @override
+    def __setitem__(self, index: Any, value: Any) -> None:
+        if isinstance(index, slice) and isinstance(value, _FinalizingRequestHooks):
+            value = value._hooks.copy()
+        self._hooks[index] = value
+        self._synchronize()
+
+    @override
+    def __delitem__(self, index: Any) -> None:
+        del self._hooks[index]
+        self._synchronize()
+
+    @override
+    def __contains__(self, hook: object) -> bool:
+        return hook in self._hooks
+
+    @override
+    def __add__(self, hooks: list[Any]) -> list[Any]:
+        return self._hooks + (hooks._hooks if isinstance(hooks, _FinalizingRequestHooks) else hooks)
+
+    def __radd__(self, hooks: list[Any]) -> list[Any]:
+        return hooks + self._hooks
+
+    @override
+    def __mul__(self, count: SupportsIndex) -> list[Any]:
+        return self._hooks * count
+
+    @override
+    def __rmul__(self, count: SupportsIndex) -> list[Any]:
+        return count * self._hooks
+
+    @override
+    def __iadd__(self, hooks: Iterable[Any]) -> _FinalizingRequestHooks:
+        self._hooks.extend(hooks._hooks.copy() if isinstance(hooks, _FinalizingRequestHooks) else hooks)
+        self._synchronize()
+        return self
+
+    @override
+    def __imul__(self, count: SupportsIndex) -> _FinalizingRequestHooks:
+        self._hooks *= count
+        self._synchronize()
+        return self
+
+    @override
+    def append(self, hook: Any) -> None:
+        self._hooks.append(hook)
+        self._synchronize()
+
+    @override
+    def clear(self) -> None:
+        self._hooks.clear()
+        self._synchronize()
+
+    @override
+    def count(self, hook: Any) -> int:
+        return self._hooks.count(hook)
+
+    @override
+    def extend(self, hooks: Iterable[Any]) -> None:
+        self._hooks.extend(hooks._hooks.copy() if isinstance(hooks, _FinalizingRequestHooks) else hooks)
+        self._synchronize()
+
+    @override
+    def index(self, hook: Any, *args: Any) -> int:
+        return self._hooks.index(hook, *args)
+
+    @override
+    def insert(self, index: SupportsIndex, hook: Any) -> None:
+        self._hooks.insert(index, hook)
+        self._synchronize()
+
+    @override
+    def pop(self, index: SupportsIndex = -1) -> Any:
+        hook = self._hooks.pop(index)
+        self._synchronize()
+        return hook
+
+    @override
+    def remove(self, hook: Any) -> None:
+        self._hooks.remove(hook)
+        self._synchronize()
+
+    @override
+    def reverse(self) -> None:
+        self._hooks.reverse()
+        self._synchronize()
+
+    @override
+    def sort(self, *, key: Any = None, reverse: bool = False) -> None:
+        self._hooks.sort(key=key, reverse=reverse)
+        self._synchronize()
+
+    @override
+    def copy(self) -> list[Any]:
+        return self._hooks.copy()
+
+    @override
+    def __reversed__(self) -> Iterator[Any]:
+        return reversed(self._hooks)
 
     @override
     def __iter__(self) -> Iterator[Any]:
         finalizer = self._finalizer
         yield finalizer
         index = 0
-        while index < len(self):
-            hook = self[index]
+        while index < len(self._hooks):
+            hook = self._hooks[index]
             index += 1
             yield hook
         yield finalizer
