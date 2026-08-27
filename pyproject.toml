@@ -249,6 +249,11 @@ module = "black.files.*"
 ignore_errors = true
 ignore_missing_imports = true
 
+# Preserve the existing _files.py exclusion when mypy follows its imports.
+[[tool.mypy.overrides]]
+module = "openai._files"
+follow_imports = "silent"
+
 [tool.ruff]
 extend-exclude = ["tests/respx2", "src/openai/_vendor"]
 line-length = 120
