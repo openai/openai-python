@@ -429,7 +429,9 @@ async function check(stale, exists, priorRun, expected) {
         self.write("generated.py", "generated\n# custom\n")
         # Neither a replacement reporter nor its claimed result may be executed
         # or read by the trusted job.
-        self.write("scripts/castiron/custom_code_report.py", "raise RuntimeError('PR code ran')\n")
+        self.write(
+            "scripts/castiron/custom_code_report.py", "raise RuntimeError('PR code ran')\n"
+        )
         self.write("report.json", json.dumps(legitimate))
         head = self.commit()
         broken_stats = (
@@ -471,7 +473,9 @@ async function check(stale, exists, priorRun, expected) {
                 producer.mkdir()
                 (producer / "report.json").write_text(json.dumps(forged))
 
-                def fake_api(method: str, path: str, payload: dict[str, Any] | None = None) -> Any:
+                def fake_api(
+                    method: str, path: str, payload: dict[str, Any] | None = None
+                ) -> Any:
                     calls.append((method, path))
                     if method == "GET":
                         responses: dict[str, Any] = {
