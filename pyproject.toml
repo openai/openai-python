@@ -53,7 +53,7 @@ bedrock = [
 
 [dependency-groups]
 dev = [
-    "mypy==1.17",
+    "mypy==2.3.1",
     "pytest>=9.0.3",
     "pytest-asyncio>=1.4.0",
     "ruff",
@@ -248,6 +248,11 @@ disable_error_code = "func-returns-value,overload-cannot-match"
 module = "black.files.*"
 ignore_errors = true
 ignore_missing_imports = true
+
+# Preserve the existing _files.py exclusion when mypy follows its imports.
+[[tool.mypy.overrides]]
+module = "openai._files"
+follow_imports = "silent"
 
 [tool.ruff]
 extend-exclude = ["tests/respx2", "src/openai/_vendor"]

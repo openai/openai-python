@@ -9,7 +9,7 @@ from typing_extensions import get_args as _get_args, get_origin as _get_origin
 from .._types import StrBytesIntFloat
 from ._datetime_parse import parse_date as _parse_date, parse_datetime as _parse_datetime
 
-_LITERAL_TYPES = {Literal, typing_extensions.Literal}
+_LITERAL_TYPES: set[object] = {Literal, typing_extensions.Literal}
 
 
 def get_args(tp: type[Any]) -> tuple[Any, ...]:
