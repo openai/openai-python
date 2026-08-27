@@ -7,6 +7,6 @@
   },
   "devDependencies": {
     "@stdy/cli": "0.22.1",
-    "pyright": "1.1.399"
+    "pyright": "1.1.413"
   }
 }
