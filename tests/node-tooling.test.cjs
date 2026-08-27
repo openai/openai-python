@@ -22,7 +22,7 @@ function fixture(t) {
   return root;
 }
 
-function installFake(root, version = '1.1.399') {
+function installFake(root, version = JSON.parse(fs.readFileSync(path.join(root, 'package.json'))).devDependencies.pyright) {
   const directory = path.join(root, 'node_modules/pyright');
   fs.mkdirSync(directory, { recursive: true });
   fs.writeFileSync(path.join(directory, 'package.json'), JSON.stringify({ version }));
