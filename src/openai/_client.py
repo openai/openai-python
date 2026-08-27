@@ -726,6 +726,8 @@ class OpenAI(SyncAPIClient):
                 if name.lower() != "authorization" or value not in self._ambient_authorizations
             }
         if default_headers is not None:
+            if any(name.lower() == "authorization" for name in default_headers):
+                headers = {name: value for name, value in headers.items() if name.lower() != "authorization"}
             headers = {**headers, **default_headers}
         elif set_default_headers is not None:
             headers = set_default_headers
@@ -1480,6 +1482,8 @@ class AsyncOpenAI(AsyncAPIClient):
                 if name.lower() != "authorization" or value not in self._ambient_authorizations
             }
         if default_headers is not None:
+            if any(name.lower() == "authorization" for name in default_headers):
+                headers = {name: value for name, value in headers.items() if name.lower() != "authorization"}
             headers = {**headers, **default_headers}
         elif set_default_headers is not None:
             headers = set_default_headers

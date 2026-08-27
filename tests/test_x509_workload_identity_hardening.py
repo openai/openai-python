@@ -82,6 +82,48 @@ async def test_async_switch_to_x509_discards_inherited_ambient_authorization(
     assert requests[-1].headers["Authorization"] == "Bearer access-token"
 
 
+@pytest.mark.parametrize("ambient_header", ["authorization", "aUtHoRiZaTiOn"])
+def test_sync_switch_to_x509_discards_ambient_authorization_from_an_explicit_intermediate_copy(
+    monkeypatch: pytest.MonkeyPatch, ambient_header: str
+) -> None:
+    requests: list[httpx2.Request] = []
+    monkeypatch.setenv("OPENAI_CUSTOM_HEADERS", f"{ambient_header}: Bearer ambient-secret")
+    http_client = httpx2.Client(transport=httpx2.MockTransport(lambda request: _record(requests, request)))
+
+    with OpenAI(api_key="original-api-key", http_client=http_client, max_retries=0) as original:
+        intermediate = original.with_options(default_headers={"Authorization": "Bearer workload-identity-auth"})
+        assert httpx2.Headers(intermediate._custom_headers).get_list("Authorization") == [
+            "Bearer workload-identity-auth"
+        ]
+        copied = intermediate.with_options(workload_identity=_identity())
+        assert httpx2.Headers(copied._custom_headers).get_list("Authorization") == ["Bearer workload-identity-auth"]
+        assert copied.models.list().object == "list"
+
+    assert [str(request.url) for request in requests] == [_TOKEN_URL, _API_URL]
+    assert requests[-1].headers.get_list("Authorization") == ["Bearer access-token"]
+
+
+@pytest.mark.parametrize("ambient_header", ["authorization", "aUtHoRiZaTiOn"])
+async def test_async_switch_to_x509_discards_ambient_authorization_from_an_explicit_intermediate_copy(
+    monkeypatch: pytest.MonkeyPatch, ambient_header: str
+) -> None:
+    requests: list[httpx2.Request] = []
+    monkeypatch.setenv("OPENAI_CUSTOM_HEADERS", f"{ambient_header}: Bearer ambient-secret")
+    http_client = httpx2.AsyncClient(transport=httpx2.MockTransport(lambda request: _record(requests, request)))
+
+    async with AsyncOpenAI(api_key="original-api-key", http_client=http_client, max_retries=0) as original:
+        intermediate = original.with_options(default_headers={"Authorization": "Bearer workload-identity-auth"})
+        assert httpx2.Headers(intermediate._custom_headers).get_list("Authorization") == [
+            "Bearer workload-identity-auth"
+        ]
+        copied = intermediate.with_options(workload_identity=_identity())
+        assert httpx2.Headers(copied._custom_headers).get_list("Authorization") == ["Bearer workload-identity-auth"]
+        assert (await copied.models.list()).object == "list"
+
+    assert [str(request.url) for request in requests] == [_TOKEN_URL, _API_URL]
+    assert requests[-1].headers.get_list("Authorization") == ["Bearer access-token"]
+
+
 def test_sync_switch_to_x509_discards_every_mixed_case_ambient_authorization(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
