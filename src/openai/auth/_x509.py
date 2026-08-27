@@ -3,10 +3,12 @@ from __future__ import annotations
 import re
 import math
 import time
+import importlib
 import threading
 import email.utils
 from typing import Any, Iterator, NoReturn, cast
 from weakref import ReferenceType, ref
+from functools import wraps
 from contextlib import ExitStack, contextmanager
 from contextvars import ContextVar
 from typing_extensions import TypeIs, override
@@ -568,6 +570,171 @@ def _client_transport_scope(
         return scope
 
 
+_CLIENT_SEND_GUARD_LOCK = threading.RLock()
+_CLIENT_SEND_GUARD_STATE = {"users": 0}
+_ORIGINAL_CLIENT_DISPATCH_METHODS: dict[type[Any], tuple[Any, Any, Any, Any]] = {}
+
+
+def _active_request_transport_scope(request: httpx2.Request) -> tuple[httpx2.Request, httpx2.URL, str | None] | None:
+    request_scope = _request_transport_scope(request)
+    if _is_unprotected_transport_request(request):
+        return None
+
+    authorization = request.headers.get("Authorization")
+    if request_scope is not None:
+        marker = request.extensions.get(_API_TRANSPORT_SCOPE_EXTENSION)
+        with _ACTIVE_API_TRANSPORT_SCOPES_LOCK:
+            marked_scope = type(marker) is object and marker in _ACTIVE_API_TRANSPORT_SCOPES
+        protected_authorization = request_scope[2]
+        if (
+            request is request_scope[0]
+            or marked_scope
+            or (
+                authorization is not None
+                and protected_authorization is not None
+                and (
+                    authorization == protected_authorization
+                    or (
+                        protected_authorization.startswith("Bearer ")
+                        and protected_authorization[len("Bearer ") :] in authorization
+                    )
+                )
+            )
+        ):
+            return request_scope
+
+    if authorization is None:
+        return None
+    with _ACTIVE_API_TRANSPORT_SCOPES_LOCK:
+        matching_scopes = [
+            scope
+            for scope in _ACTIVE_API_TRANSPORT_SCOPES.values()
+            if scope[2] is not None
+            and (
+                authorization == scope[2]
+                or (scope[2].startswith("Bearer ") and scope[2][len("Bearer ") :] in authorization)
+            )
+        ]
+    if not matching_scopes:
+        return None
+    if len({(scope[1].host, scope[1].port) for scope in matching_scopes}) > 1:
+        raise OpenAIError("X.509 workload identity request cannot be associated with a single API origin")
+    same_origin = [
+        scope for scope in matching_scopes if (request.url.host, request.url.port) == (scope[1].host, scope[1].port)
+    ]
+    return (same_origin if same_origin else matching_scopes)[0]
+
+
+def _validate_guarded_client_dispatch(request: httpx2.Request) -> None:
+    request_scope = _active_request_transport_scope(request)
+    if request_scope is not None:
+        _validate_transport_request(
+            request,
+            expected_origin=request_scope[1],
+            expected_authorization=request_scope[2],
+            token_exchange=False,
+        )
+
+
+@contextmanager
+def _guarded_client_redirects(http_client: Any, request: httpx2.Request, *, is_async: bool) -> Iterator[None]:
+    request_scope = _active_request_transport_scope(request)
+    if request_scope is None:
+        yield
+        return
+
+    client_scope = _client_transport_scope(http_client, is_async=is_async)
+    marker = request.extensions.get(_API_TRANSPORT_SCOPE_EXTENSION)
+    with client_scope._lock:
+        already_scoped = type(marker) is object and marker in client_scope._request_scopes
+    if already_scoped:
+        yield
+        return
+
+    with client_scope.activate(request, request_scope[1], request_scope[2]):
+        yield
+
+
+def _guard_client_dispatch_method(client_type: type[Any], *, is_async: bool) -> None:
+    original_dispatch = client_type._send_single_request
+    original_redirects = client_type._send_handling_redirects
+    if is_async:
+
+        @wraps(original_dispatch)
+        async def guarded_async_dispatch(client: Any, request: httpx2.Request, *args: Any, **kwargs: Any) -> Any:
+            _validate_guarded_client_dispatch(request)
+            return await original_dispatch(client, request, *args, **kwargs)
+
+        guarded_dispatch: Any = guarded_async_dispatch
+
+        @wraps(original_redirects)
+        async def guarded_async_redirects(client: Any, request: httpx2.Request, *args: Any, **kwargs: Any) -> Any:
+            with _guarded_client_redirects(client, request, is_async=True):
+                return await original_redirects(client, request, *args, **kwargs)
+
+        guarded_redirects: Any = guarded_async_redirects
+    else:
+
+        @wraps(original_dispatch)
+        def guarded_sync_dispatch(client: Any, request: httpx2.Request, *args: Any, **kwargs: Any) -> Any:
+            _validate_guarded_client_dispatch(request)
+            return original_dispatch(client, request, *args, **kwargs)
+
+        guarded_dispatch = guarded_sync_dispatch
+
+        @wraps(original_redirects)
+        def guarded_sync_redirects(client: Any, request: httpx2.Request, *args: Any, **kwargs: Any) -> Any:
+            with _guarded_client_redirects(client, request, is_async=False):
+                return original_redirects(client, request, *args, **kwargs)
+
+        guarded_redirects = guarded_sync_redirects
+
+    _ORIGINAL_CLIENT_DISPATCH_METHODS[client_type] = (
+        original_dispatch,
+        guarded_dispatch,
+        original_redirects,
+        guarded_redirects,
+    )
+    client_type._send_single_request = guarded_dispatch
+    client_type._send_handling_redirects = guarded_redirects
+
+
+@contextmanager
+def _active_client_send_guards() -> Iterator[None]:
+    with _CLIENT_SEND_GUARD_LOCK:
+        if _CLIENT_SEND_GUARD_STATE["users"] == 0:
+            client_types: list[tuple[type[Any], bool]] = [(httpx2.Client, False), (httpx2.AsyncClient, True)]
+            legacy_httpx = _loaded_legacy_httpx()
+            if legacy_httpx is None:
+                try:
+                    importlib.import_module("httpx")
+                except ModuleNotFoundError as error:
+                    if error.name != "httpx":
+                        raise
+                else:
+                    legacy_httpx = _loaded_legacy_httpx()
+            if legacy_httpx is not None:
+                client_types.extend([(legacy_httpx.Client, False), (legacy_httpx.AsyncClient, True)])
+            for client_type, is_async in client_types:
+                if client_type not in _ORIGINAL_CLIENT_DISPATCH_METHODS:
+                    _guard_client_dispatch_method(client_type, is_async=is_async)
+        _CLIENT_SEND_GUARD_STATE["users"] += 1
+
+    try:
+        yield
+    finally:
+        with _CLIENT_SEND_GUARD_LOCK:
+            _CLIENT_SEND_GUARD_STATE["users"] -= 1
+            if _CLIENT_SEND_GUARD_STATE["users"] == 0:
+                for client_type, methods in _ORIGINAL_CLIENT_DISPATCH_METHODS.items():
+                    original_dispatch, guarded_dispatch, original_redirects, guarded_redirects = methods
+                    if client_type._send_single_request is guarded_dispatch:
+                        client_type._send_single_request = original_dispatch
+                    if client_type._send_handling_redirects is guarded_redirects:
+                        client_type._send_handling_redirects = original_redirects
+                _ORIGINAL_CLIENT_DISPATCH_METHODS.clear()
+
+
 @contextmanager
 def _active_client_transport_scopes(
     http_client: httpx2.Client | httpx2.AsyncClient,
@@ -584,6 +751,7 @@ def _active_client_transport_scopes(
     pending = [http_client]
     visited: set[int] = set()
     with ExitStack() as scopes:
+        scopes.enter_context(_active_client_send_guards())
         while pending:
             current = pending.pop()
             if id(current) in visited:

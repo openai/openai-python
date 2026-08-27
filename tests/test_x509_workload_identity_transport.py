@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import os
+import sys
 import json
 import asyncio
 import importlib
 import threading
+import subprocess
 from typing import Any, cast
+from textwrap import dedent
 from contextvars import Context
 from typing_extensions import override
 from concurrent.futures import ThreadPoolExecutor
@@ -405,8 +408,151 @@ async def test_async_x509_validates_requests_delegated_to_another_http_client(
     assert [str(request.url) for request in requests] == expected
 
 
+@pytest.mark.parametrize("redirect", [False, True])
+@pytest.mark.parametrize("delegate_source", ["factory", "lazy", "bound", "dispatch"])
+@pytest.mark.parametrize("reconstruct", [False, True])
+def test_sync_x509_validates_lazily_delegated_http_client_requests(
+    redirect: bool, delegate_source: str, reconstruct: bool
+) -> None:
+    requests: list[httpx2.Request] = []
+
+    def redirect_request(request: httpx2.Request) -> None:
+        if redirect:
+            request.url = httpx2.URL("https://attacker.invalid/capture")
+            request.headers["host"] = "attacker.invalid"
+
+    def make_delegate() -> httpx2.Client:
+        return httpx2.Client(
+            transport=httpx2.MockTransport(lambda request: _record(requests, request)),
+            event_hooks={"request": [redirect_request]},
+        )
+
+    factory_delegate = make_delegate() if delegate_source in ("factory", "bound", "dispatch") else None
+    bound_send = factory_delegate.send if delegate_source == "bound" and factory_delegate is not None else None
+    if delegate_source == "dispatch" and factory_delegate is not None:
+        vars(factory_delegate)["_send_single_request"] = factory_delegate._send_single_request
+
+    class DelegatingClient(httpx2.Client):
+        @override
+        def send(self, request: httpx2.Request, **kwargs: Any) -> httpx2.Response:
+            inner = factory_delegate if factory_delegate is not None else make_delegate()
+            if reconstruct:
+                reconstructed = inner.build_request(request.method, request.url)
+                reconstructed.headers.update(request.headers)
+                request = reconstructed
+            return bound_send(request, **kwargs) if bound_send is not None else inner.send(request, **kwargs)
+
+    original_send = httpx2.Client.send
+    original_dispatch = httpx2.Client._send_single_request
+    http_client = DelegatingClient(transport=httpx2.MockTransport(lambda request: _record(requests, request)))
+    with OpenAI(workload_identity=_identity(), http_client=http_client, max_retries=0) as client:
+        if redirect:
+            with pytest.raises(OpenAIError, match="configured API origin"):
+                client.models.list()
+        else:
+            assert client.models.list().object == "list"
+
+    expected = [_TOKEN_URL] if redirect else [_TOKEN_URL, _API_URL]
+    assert [str(request.url) for request in requests] == expected
+    assert httpx2.Client.send is original_send
+    assert httpx2.Client._send_single_request is original_dispatch
+    if factory_delegate is not None:
+        assert factory_delegate.event_hooks["request"] == [redirect_request]
+
+
+@pytest.mark.parametrize("redirect", [False, True])
+@pytest.mark.parametrize("delegate_source", ["factory", "lazy", "bound", "dispatch"])
+@pytest.mark.parametrize("reconstruct", [False, True])
+async def test_async_x509_validates_lazily_delegated_http_client_requests(
+    redirect: bool, delegate_source: str, reconstruct: bool
+) -> None:
+    requests: list[httpx2.Request] = []
+
+    async def redirect_request(request: httpx2.Request) -> None:
+        if redirect:
+            request.url = httpx2.URL("https://attacker.invalid/capture")
+            request.headers["host"] = "attacker.invalid"
+
+    def make_delegate() -> httpx2.AsyncClient:
+        return httpx2.AsyncClient(
+            transport=httpx2.MockTransport(lambda request: _record(requests, request)),
+            event_hooks={"request": [redirect_request]},
+        )
+
+    factory_delegate = make_delegate() if delegate_source in ("factory", "bound", "dispatch") else None
+    bound_send = factory_delegate.send if delegate_source == "bound" and factory_delegate is not None else None
+    if delegate_source == "dispatch" and factory_delegate is not None:
+        vars(factory_delegate)["_send_single_request"] = factory_delegate._send_single_request
+
+    class DelegatingClient(httpx2.AsyncClient):
+        @override
+        async def send(self, request: httpx2.Request, **kwargs: Any) -> httpx2.Response:
+            inner = factory_delegate if factory_delegate is not None else make_delegate()
+            if reconstruct:
+                reconstructed = inner.build_request(request.method, request.url)
+                reconstructed.headers.update(request.headers)
+                request = reconstructed
+            return await (bound_send(request, **kwargs) if bound_send is not None else inner.send(request, **kwargs))
+
+    original_send = httpx2.AsyncClient.send
+    original_dispatch = httpx2.AsyncClient._send_single_request
+    http_client = DelegatingClient(transport=httpx2.MockTransport(lambda request: _record(requests, request)))
+    async with AsyncOpenAI(workload_identity=_identity(), http_client=http_client, max_retries=0) as client:
+        if redirect:
+            with pytest.raises(OpenAIError, match="configured API origin"):
+                await client.models.list()
+        else:
+            assert (await client.models.list()).object == "list"
+
+    expected = [_TOKEN_URL] if redirect else [_TOKEN_URL, _API_URL]
+    assert [str(request.url) for request in requests] == expected
+    assert httpx2.AsyncClient.send is original_send
+    assert httpx2.AsyncClient._send_single_request is original_dispatch
+    if factory_delegate is not None:
+        assert factory_delegate.event_hooks["request"] == [redirect_request]
+
+
+@pytest.mark.parametrize("authorization", [None, "Bearer telemetry-token"])
+def test_sync_x509_allows_telemetry_from_a_separately_created_http_client(authorization: str | None) -> None:
+    requests: list[httpx2.Request] = []
+
+    class TelemetryClient(httpx2.Client):
+        @override
+        def send(self, request: httpx2.Request, **kwargs: Any) -> httpx2.Response:
+            telemetry = httpx2.Client(transport=httpx2.MockTransport(lambda value: _record(requests, value)))
+            headers = {} if authorization is None else {"Authorization": authorization}
+            telemetry.get("https://telemetry.example/collect", headers=headers)
+            return super().send(request, **kwargs)
+
+    http_client = TelemetryClient(transport=httpx2.MockTransport(lambda request: _record(requests, request)))
+    with OpenAI(workload_identity=_identity(), http_client=http_client, max_retries=0) as client:
+        assert client.models.list().object == "list"
+
+    assert [str(request.url) for request in requests] == [_TOKEN_URL, "https://telemetry.example/collect", _API_URL]
+
+
+@pytest.mark.parametrize("authorization", [None, "Bearer telemetry-token"])
+async def test_async_x509_allows_telemetry_from_a_separately_created_http_client(authorization: str | None) -> None:
+    requests: list[httpx2.Request] = []
+
+    class TelemetryClient(httpx2.AsyncClient):
+        @override
+        async def send(self, request: httpx2.Request, **kwargs: Any) -> httpx2.Response:
+            telemetry = httpx2.AsyncClient(transport=httpx2.MockTransport(lambda value: _record(requests, value)))
+            headers = {} if authorization is None else {"Authorization": authorization}
+            await telemetry.get("https://telemetry.example/collect", headers=headers)
+            return await super().send(request, **kwargs)
+
+    http_client = TelemetryClient(transport=httpx2.MockTransport(lambda request: _record(requests, request)))
+    async with AsyncOpenAI(workload_identity=_identity(), http_client=http_client, max_retries=0) as client:
+        assert (await client.models.list()).object == "list"
+
+    assert [str(request.url) for request in requests] == [_TOKEN_URL, "https://telemetry.example/collect", _API_URL]
+
+
 @pytest.mark.skipif(os.getenv("OPENAI_TEST_LEGACY_HTTPX") != "1", reason="requires legacy HTTPX compatibility lane")
-def test_sync_x509_validates_requests_delegated_to_legacy_httpx_clients() -> None:
+@pytest.mark.parametrize("lazy", [False, True])
+def test_sync_x509_validates_requests_delegated_to_legacy_httpx_clients(lazy: bool) -> None:
     legacy_httpx = cast(Any, importlib.import_module("httpx"))
     requests: list[Any] = []
 
@@ -423,12 +569,18 @@ def test_sync_x509_validates_requests_delegated_to_legacy_httpx_clients() -> Non
         request.headers["host"] = "attacker.invalid"
 
     outer = legacy_httpx.Client(transport=legacy_httpx.MockTransport(handler))
-    outer.inner = legacy_httpx.Client(
-        transport=legacy_httpx.MockTransport(handler), event_hooks={"request": [redirect]}
-    )
+    if not lazy:
+        outer.inner = legacy_httpx.Client(
+            transport=legacy_httpx.MockTransport(handler), event_hooks={"request": [redirect]}
+        )
 
     def delegate(request: Any, **kwargs: Any) -> Any:
-        return outer.inner.send(request, **kwargs)
+        inner = (
+            legacy_httpx.Client(transport=legacy_httpx.MockTransport(handler), event_hooks={"request": [redirect]})
+            if lazy
+            else outer.inner
+        )
+        return inner.send(request, **kwargs)
 
     outer.send = delegate
     with OpenAI(workload_identity=_identity(), http_client=outer, max_retries=0) as client:
@@ -439,7 +591,8 @@ def test_sync_x509_validates_requests_delegated_to_legacy_httpx_clients() -> Non
 
 
 @pytest.mark.skipif(os.getenv("OPENAI_TEST_LEGACY_HTTPX") != "1", reason="requires legacy HTTPX compatibility lane")
-async def test_async_x509_validates_requests_delegated_to_legacy_httpx_clients() -> None:
+@pytest.mark.parametrize("lazy", [False, True])
+async def test_async_x509_validates_requests_delegated_to_legacy_httpx_clients(lazy: bool) -> None:
     legacy_httpx = cast(Any, importlib.import_module("httpx"))
     requests: list[Any] = []
 
@@ -456,12 +609,18 @@ async def test_async_x509_validates_requests_delegated_to_legacy_httpx_clients()
         request.headers["host"] = "attacker.invalid"
 
     outer = legacy_httpx.AsyncClient(transport=legacy_httpx.MockTransport(handler))
-    outer.inner = legacy_httpx.AsyncClient(
-        transport=legacy_httpx.MockTransport(handler), event_hooks={"request": [redirect]}
-    )
+    if not lazy:
+        outer.inner = legacy_httpx.AsyncClient(
+            transport=legacy_httpx.MockTransport(handler), event_hooks={"request": [redirect]}
+        )
 
     async def delegate(request: Any, **kwargs: Any) -> Any:
-        return await outer.inner.send(request, **kwargs)
+        inner = (
+            legacy_httpx.AsyncClient(transport=legacy_httpx.MockTransport(handler), event_hooks={"request": [redirect]})
+            if lazy
+            else outer.inner
+        )
+        return await inner.send(request, **kwargs)
 
     outer.send = delegate
     async with AsyncOpenAI(workload_identity=_identity(), http_client=outer, max_retries=0) as client:
@@ -469,6 +628,87 @@ async def test_async_x509_validates_requests_delegated_to_legacy_httpx_clients()
             await client.models.list()
 
     assert [str(request.url) for request in requests] == [_TOKEN_URL]
+
+
+@pytest.mark.skipif(os.getenv("OPENAI_TEST_LEGACY_HTTPX") != "1", reason="requires legacy HTTPX compatibility lane")
+@pytest.mark.parametrize("is_async", [False, True])
+def test_x509_guards_legacy_httpx_imported_by_a_lazy_delegate(is_async: bool) -> None:
+    script = dedent(
+        """
+        import asyncio
+        import importlib
+        import sys
+
+        import httpx2
+        from openai import AsyncOpenAI, OpenAI, OpenAIError
+        from openai.auth import x509_workload_identity
+
+        assert "httpx" not in sys.modules
+        captures = []
+
+        def handler(request):
+            captures.append(str(request.url))
+            if request.url.host == "mtls.auth.openai.com":
+                return httpx2.Response(
+                    200, request=request, json={"access_token": "fake-access-token", "expires_in": 3600}
+                )
+            return httpx2.Response(200, request=request, json={"object": "list", "data": []})
+
+        def redirect(request):
+            legacy = importlib.import_module("httpx")
+            request.url = legacy.URL("https://attacker.invalid/capture")
+            request.headers["host"] = "attacker.invalid"
+
+        identity = x509_workload_identity(identity_provider_id="idp_example", service_account_id="svc_example")
+
+        if sys.argv[1] == "async":
+            class Outer(httpx2.AsyncClient):
+                async def send(self, request, **kwargs):
+                    legacy = importlib.import_module("httpx")
+
+                    async def hook(value):
+                        redirect(value)
+
+                    inner = legacy.AsyncClient(transport=legacy.MockTransport(handler), event_hooks={"request": [hook]})
+                    copied = legacy.Request(request.method, str(request.url), headers=dict(request.headers))
+                    kwargs["auth"] = None
+                    return await inner.send(copied, **kwargs)
+
+            async def run():
+                outer = Outer(transport=httpx2.MockTransport(handler))
+                async with AsyncOpenAI(workload_identity=identity, http_client=outer, max_retries=0) as client:
+                    try:
+                        await client.models.list()
+                    except OpenAIError:
+                        return
+                    raise AssertionError("redirected X.509 request was not blocked")
+
+            asyncio.run(run())
+        else:
+            class Outer(httpx2.Client):
+                def send(self, request, **kwargs):
+                    legacy = importlib.import_module("httpx")
+                    inner = legacy.Client(transport=legacy.MockTransport(handler), event_hooks={"request": [redirect]})
+                    copied = legacy.Request(request.method, str(request.url), headers=dict(request.headers))
+                    kwargs["auth"] = None
+                    return inner.send(copied, **kwargs)
+
+            outer = Outer(transport=httpx2.MockTransport(handler))
+            with OpenAI(workload_identity=identity, http_client=outer, max_retries=0) as client:
+                try:
+                    client.models.list()
+                except OpenAIError:
+                    pass
+                else:
+                    raise AssertionError("redirected X.509 request was not blocked")
+
+        assert captures == ["https://mtls.auth.openai.com/oauth/token"], captures
+        """
+    )
+    result = subprocess.run(
+        [sys.executable, "-c", script, "async" if is_async else "sync"], capture_output=True, check=False, text=True
+    )
+    assert result.returncode == 0, result.stderr
 
 
 @pytest.mark.parametrize("reconstruct", [False, True])
