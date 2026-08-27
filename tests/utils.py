@@ -5,7 +5,7 @@ import os
 import inspect
 import traceback
 import contextlib
-from typing import Any, TypeVar, Iterator, Sequence, ForwardRef, cast
+from typing import Any, TypeVar, Sequence, Generator, ForwardRef, cast
 from datetime import date, datetime
 from typing_extensions import Literal, get_args, get_origin, assert_type
 
@@ -168,7 +168,7 @@ def rich_print_str(obj: object) -> str:
 
 
 @contextlib.contextmanager
-def update_env(**new_env: str | Omit) -> Iterator[None]:
+def update_env(**new_env: str | Omit) -> Generator[None, None, None]:
     old = os.environ.copy()
 
     try:

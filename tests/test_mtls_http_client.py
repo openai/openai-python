@@ -9,7 +9,7 @@ from typing import Any, cast
 from pathlib import Path
 from contextlib import contextmanager
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
-from collections.abc import Iterator
+from collections.abc import Generator
 from typing_extensions import override
 
 import pytest
@@ -45,7 +45,7 @@ class _Handler(BaseHTTPRequestHandler):
 
 
 @contextmanager
-def _mtls_server() -> Iterator[ThreadingHTTPServer]:
+def _mtls_server() -> Generator[ThreadingHTTPServer, None, None]:
     _Handler.peer_certificates = []
     _Handler.request_paths = []
     server_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
