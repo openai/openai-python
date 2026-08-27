@@ -40,7 +40,9 @@ from .auth._x509 import (
     AsyncX509WorkloadIdentityAuth,
     validate_x509_api_url,
     is_x509_workload_identity,
+    x509_data_residency_base_url,
     validate_x509_api_credentials,
+    x509_safe_environment_headers,
     validate_x509_request_authority,
 )
 from ._exceptions import OpenAIError, APIStatusError
@@ -127,6 +129,8 @@ class OpenAI(SyncAPIClient):
     _provider: _Provider | None
     _provider_runtime: _ProviderRuntime | None
     _base_url_was_default: bool
+    _data_residency: DataResidency | None
+    _ambient_authorizations: frozenset[str]
 
     websocket_base_url: str | httpx2.URL | None
     """Base URL for WebSocket connections.
@@ -148,6 +152,7 @@ class OpenAI(SyncAPIClient):
             validate_x509_api_url(normalized_url)
         self._base_url = self._enforce_trailing_slash(normalized_url)
         self._base_url_was_default = False
+        self._data_residency = None
 
     def __init__(
         self,
@@ -197,6 +202,7 @@ class OpenAI(SyncAPIClient):
         base_url = resolve_data_residency(
             data_residency, base_url, provider=provider, websocket_base_url=websocket_base_url
         )
+        base_url = x509_data_residency_base_url(base_url, data_residency, workload_identity)
         provider_runtime: _ProviderRuntime | None = None
         if provider is not None:
             provider_name = _provider_name(provider)
@@ -294,11 +300,13 @@ class OpenAI(SyncAPIClient):
         elif base_url is None:
             base_url = os.environ.get("OPENAI_BASE_URL")
         self._base_url_was_default = provider_runtime is None and base_url is None
+        self._data_residency = data_residency
         if base_url is None:
             base_url = MTLS_API_BASE_URL if x509_identity is not None else "https://api.openai.com/v1"
         if x509_identity is not None:
             validate_x509_api_url(base_url)
 
+        self._ambient_authorizations = frozenset()
         custom_headers_env = os.environ.get("OPENAI_CUSTOM_HEADERS") if provider_runtime is None else None
         if custom_headers_env is not None:
             parsed: dict[str, str] = {}
@@ -306,7 +314,18 @@ class OpenAI(SyncAPIClient):
                 colon = line.find(":")
                 if colon >= 0:
                     parsed[line[:colon].strip()] = line[colon + 1 :].strip()
-            default_headers = {**parsed, **(default_headers if is_mapping_t(default_headers) else {})}
+            explicit_headers: Mapping[str, str] = default_headers if is_mapping_t(default_headers) else {}
+            explicit_authorization = any(name.lower() == "authorization" for name in explicit_headers)
+            if explicit_authorization:
+                parsed = {name: value for name, value in parsed.items() if name.lower() != "authorization"}
+            elif x509_identity is None:
+                self._ambient_authorizations = frozenset(
+                    value for name, value in parsed.items() if name.lower() == "authorization"
+                )
+            default_headers = {
+                **x509_safe_environment_headers(parsed, x509_identity),
+                **explicit_headers,
+            }
 
         super().__init__(
             version=__version__,
@@ -523,7 +542,11 @@ class OpenAI(SyncAPIClient):
                 kwargs["follow_redirects"] = x509_auth._follow_redirects
             authorization = request.headers.get("Authorization")
             if authorization == f"Bearer {WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER}":
-                used_access_token = x509_auth.get_token()
+                used_access_token = (
+                    x509_auth.get_token_for_request(request)
+                    if isinstance(x509_auth, SyncX509WorkloadIdentityAuth)
+                    else x509_auth.get_token()
+                )
                 request.headers["Authorization"] = f"Bearer {used_access_token}"
                 request_is_replayable = x509_auth._can_retry_request(request)
 
@@ -690,7 +713,19 @@ class OpenAI(SyncAPIClient):
         inherited_project = None if provider_changed else self.project
 
         headers: Mapping[str, str] = {} if provider_changed else self._custom_headers
+        if (
+            is_x509_workload_identity(workload_identity)
+            and not is_x509_workload_identity(self.workload_identity)
+            and self._ambient_authorizations
+        ):
+            headers = {
+                name: value
+                for name, value in headers.items()
+                if name.lower() != "authorization" or value not in self._ambient_authorizations
+            }
         if default_headers is not None:
+            if any(name.lower() == "authorization" for name in default_headers):
+                headers = {name: value for name, value in headers.items() if name.lower() != "authorization"}
             headers = {**headers, **default_headers}
         elif set_default_headers is not None:
             headers = set_default_headers
@@ -704,9 +739,23 @@ class OpenAI(SyncAPIClient):
         http_client = http_client or self._client
 
         next_provider = self._provider if isinstance(provider, NotGiven) else provider
+        explicit_base_url = base_url is not None and not isinstance(base_url, NotGiven)
+        next_workload_identity = workload_identity if workload_identity is not None else self.workload_identity
+        if api_key is not None and workload_identity is None:
+            next_workload_identity = None
+        current_x509 = is_x509_workload_identity(self.workload_identity)
+        next_x509 = is_x509_workload_identity(next_workload_identity)
+        mode_changed = current_x509 != next_x509
+        effective_data_residency = data_residency
+        if effective_data_residency is None and mode_changed and not explicit_base_url:
+            effective_data_residency = self._data_residency
         base_url = resolve_data_residency(
-            data_residency, base_url, provider=next_provider, websocket_base_url=websocket_base_url
+            effective_data_residency,
+            not_given if base_url is None and data_residency is None else base_url,
+            provider=next_provider,
+            websocket_base_url=websocket_base_url,
         )
+        base_url = x509_data_residency_base_url(base_url, effective_data_residency, next_workload_identity)
         preserve_default_base_url = False
         auth_options: dict[str, Any]
         if next_provider is not None:
@@ -725,12 +774,6 @@ class OpenAI(SyncAPIClient):
                 "base_url": base_url,
             }
         else:
-            next_workload_identity = workload_identity if workload_identity is not None else self.workload_identity
-            if api_key is not None and workload_identity is None:
-                next_workload_identity = None
-            current_x509 = is_x509_workload_identity(self.workload_identity)
-            next_x509 = is_x509_workload_identity(next_workload_identity)
-            mode_changed = current_x509 != next_x509
             inherited_base_url = None if mode_changed and self._base_url_was_default else self.base_url
             preserve_default_base_url = base_url is None and not mode_changed and self._base_url_was_default
             auth_options = {
@@ -758,6 +801,23 @@ class OpenAI(SyncAPIClient):
         )
         if preserve_default_base_url:
             copied._base_url_was_default = True
+        overridden_authorizations = default_headers if default_headers is not None else set_default_headers
+        explicit_authorization_override = overridden_authorizations is not None and any(
+            name.lower() == "authorization" for name in overridden_authorizations
+        )
+        if (
+            self._ambient_authorizations
+            and not explicit_authorization_override
+            and any(
+                name.lower() == "authorization" and value in self._ambient_authorizations
+                for name, value in copied._custom_headers.items()
+            )
+        ):
+            copied._ambient_authorizations = self._ambient_authorizations
+        if data_residency is not None:
+            copied._data_residency = data_residency
+        elif not explicit_base_url and not provider_changed:
+            copied._data_residency = self._data_residency
         return copied
 
     # Alias for `copy` for nicer inline usage, e.g.
@@ -811,6 +871,8 @@ class AsyncOpenAI(AsyncAPIClient):
     _provider: _Provider | None
     _provider_runtime: _ProviderRuntime | None
     _base_url_was_default: bool
+    _data_residency: DataResidency | None
+    _ambient_authorizations: frozenset[str]
 
     websocket_base_url: str | httpx2.URL | None
     """Base URL for WebSocket connections.
@@ -832,6 +894,7 @@ class AsyncOpenAI(AsyncAPIClient):
             validate_x509_api_url(normalized_url)
         self._base_url = self._enforce_trailing_slash(normalized_url)
         self._base_url_was_default = False
+        self._data_residency = None
 
     def __init__(
         self,
@@ -881,6 +944,7 @@ class AsyncOpenAI(AsyncAPIClient):
         base_url = resolve_data_residency(
             data_residency, base_url, provider=provider, websocket_base_url=websocket_base_url
         )
+        base_url = x509_data_residency_base_url(base_url, data_residency, workload_identity)
         provider_runtime: _ProviderRuntime | None = None
         if provider is not None:
             provider_name = _provider_name(provider)
@@ -978,11 +1042,13 @@ class AsyncOpenAI(AsyncAPIClient):
         elif base_url is None:
             base_url = os.environ.get("OPENAI_BASE_URL")
         self._base_url_was_default = provider_runtime is None and base_url is None
+        self._data_residency = data_residency
         if base_url is None:
             base_url = MTLS_API_BASE_URL if x509_identity is not None else "https://api.openai.com/v1"
         if x509_identity is not None:
             validate_x509_api_url(base_url)
 
+        self._ambient_authorizations = frozenset()
         custom_headers_env = os.environ.get("OPENAI_CUSTOM_HEADERS") if provider_runtime is None else None
         if custom_headers_env is not None:
             parsed: dict[str, str] = {}
@@ -990,7 +1056,18 @@ class AsyncOpenAI(AsyncAPIClient):
                 colon = line.find(":")
                 if colon >= 0:
                     parsed[line[:colon].strip()] = line[colon + 1 :].strip()
-            default_headers = {**parsed, **(default_headers if is_mapping_t(default_headers) else {})}
+            explicit_headers: Mapping[str, str] = default_headers if is_mapping_t(default_headers) else {}
+            explicit_authorization = any(name.lower() == "authorization" for name in explicit_headers)
+            if explicit_authorization:
+                parsed = {name: value for name, value in parsed.items() if name.lower() != "authorization"}
+            elif x509_identity is None:
+                self._ambient_authorizations = frozenset(
+                    value for name, value in parsed.items() if name.lower() == "authorization"
+                )
+            default_headers = {
+                **x509_safe_environment_headers(parsed, x509_identity),
+                **explicit_headers,
+            }
 
         super().__init__(
             version=__version__,
@@ -1207,7 +1284,11 @@ class AsyncOpenAI(AsyncAPIClient):
                 kwargs["follow_redirects"] = x509_auth._follow_redirects
             authorization = request.headers.get("Authorization")
             if authorization == f"Bearer {WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER}":
-                used_access_token = await x509_auth.get_token_async()
+                used_access_token = (
+                    await x509_auth.get_token_for_request(request)
+                    if isinstance(x509_auth, AsyncX509WorkloadIdentityAuth)
+                    else await x509_auth.get_token_async()
+                )
                 request.headers["Authorization"] = f"Bearer {used_access_token}"
                 request_is_replayable = x509_auth._can_retry_request(request)
 
@@ -1387,7 +1468,19 @@ class AsyncOpenAI(AsyncAPIClient):
         inherited_project = None if provider_changed else self.project
 
         headers: Mapping[str, str] = {} if provider_changed else self._custom_headers
+        if (
+            is_x509_workload_identity(workload_identity)
+            and not is_x509_workload_identity(self.workload_identity)
+            and self._ambient_authorizations
+        ):
+            headers = {
+                name: value
+                for name, value in headers.items()
+                if name.lower() != "authorization" or value not in self._ambient_authorizations
+            }
         if default_headers is not None:
+            if any(name.lower() == "authorization" for name in default_headers):
+                headers = {name: value for name, value in headers.items() if name.lower() != "authorization"}
             headers = {**headers, **default_headers}
         elif set_default_headers is not None:
             headers = set_default_headers
@@ -1400,9 +1493,23 @@ class AsyncOpenAI(AsyncAPIClient):
 
         http_client = http_client or self._client
         next_provider = self._provider if isinstance(provider, NotGiven) else provider
+        explicit_base_url = base_url is not None and not isinstance(base_url, NotGiven)
+        next_workload_identity = workload_identity if workload_identity is not None else self.workload_identity
+        if api_key is not None and workload_identity is None:
+            next_workload_identity = None
+        current_x509 = is_x509_workload_identity(self.workload_identity)
+        next_x509 = is_x509_workload_identity(next_workload_identity)
+        mode_changed = current_x509 != next_x509
+        effective_data_residency = data_residency
+        if effective_data_residency is None and mode_changed and not explicit_base_url:
+            effective_data_residency = self._data_residency
         base_url = resolve_data_residency(
-            data_residency, base_url, provider=next_provider, websocket_base_url=websocket_base_url
+            effective_data_residency,
+            not_given if base_url is None and data_residency is None else base_url,
+            provider=next_provider,
+            websocket_base_url=websocket_base_url,
         )
+        base_url = x509_data_residency_base_url(base_url, effective_data_residency, next_workload_identity)
         preserve_default_base_url = False
         auth_options: dict[str, Any]
         if next_provider is not None:
@@ -1421,12 +1528,6 @@ class AsyncOpenAI(AsyncAPIClient):
                 "base_url": base_url,
             }
         else:
-            next_workload_identity = workload_identity if workload_identity is not None else self.workload_identity
-            if api_key is not None and workload_identity is None:
-                next_workload_identity = None
-            current_x509 = is_x509_workload_identity(self.workload_identity)
-            next_x509 = is_x509_workload_identity(next_workload_identity)
-            mode_changed = current_x509 != next_x509
             inherited_base_url = None if mode_changed and self._base_url_was_default else self.base_url
             preserve_default_base_url = base_url is None and not mode_changed and self._base_url_was_default
             auth_options = {
@@ -1454,6 +1555,23 @@ class AsyncOpenAI(AsyncAPIClient):
         )
         if preserve_default_base_url:
             copied._base_url_was_default = True
+        overridden_authorizations = default_headers if default_headers is not None else set_default_headers
+        explicit_authorization_override = overridden_authorizations is not None and any(
+            name.lower() == "authorization" for name in overridden_authorizations
+        )
+        if (
+            self._ambient_authorizations
+            and not explicit_authorization_override
+            and any(
+                name.lower() == "authorization" and value in self._ambient_authorizations
+                for name, value in copied._custom_headers.items()
+            )
+        ):
+            copied._ambient_authorizations = self._ambient_authorizations
+        if data_residency is not None:
+            copied._data_residency = data_residency
+        elif not explicit_base_url and not provider_changed:
+            copied._data_residency = self._data_residency
         return copied
 
     # Alias for `copy` for nicer inline usage, e.g.
