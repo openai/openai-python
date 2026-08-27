@@ -9552,7 +9552,8 @@ paths:
                                 "line_item": null,
                                 "project_id": null,
                                 "api_key_id": null,
-                                "quantity": null
+                                "quantity": null,
+                                "quantity_unit": null
                             }
                         ]
                     }
@@ -28667,6 +28668,8 @@ components:
       - tenant.admin_api_key.updated
       - tenant.admin_api_key.deleted
       - tenant.project_api_key.created
+      - tenant.trusted_access.business_verification.started
+      - tenant.trusted_access.application.submitted
       - tenant.chatgpt_access_token.revoked
       - tenant.migration.completed
       - tenant.sso.migrated
@@ -30464,6 +30467,13 @@ components:
           type: integer
           default: 0
           description: Total number of tokens used in the request (prompt + completion).
+        compute_units:
+          anyOf:
+          - type: integer
+            minimum: 0
+          - type: 'null'
+          description: |
+            Compute units for the request. Currently null when available.
         completion_tokens_details:
           type: object
           description: Breakdown of tokens used in a completion.
@@ -31011,6 +31021,21 @@ components:
           - type: number
             description: When `group_by=line_item`, this field provides the quantity of the grouped costs result.
           - type: 'null'
+        quantity_unit:
+          description: The unit of the `quantity` value. If no single supported unit applies to the result, this field is `null`.
+          anyOf:
+          - type: string
+          - type: string
+            enum:
+            - tokens
+            - 1000_tokens
+            - duration_seconds
+            - duration_minutes
+            - duration_hours
+            - gibibyte_hours
+            - images
+            - characters
+          - type: 'null'
       required:
       - object
       x-oaiMeta:
@@ -31022,9 +31047,10 @@ components:
                 "value": 0.06,
                 "currency": "usd"
               },
-              "line_item": "Image models",
+              "line_item": "input_tokens",
               "project_id": "proj_abc",
-              "quantity": 10000
+              "quantity": 10000,
+              "quantity_unit": "tokens"
           }
     CreateAssistantRequest:
       type: object
@@ -31738,6 +31764,12 @@ components:
         model:
           type: string
           description: The model to generate the completion.
+        obfuscation:
+          type: string
+          description: |
+            An obfuscation string added to normalize the size of streamed chunks as a
+            mitigation to certain side-channel attacks. The field is included by
+            default and omitted when `stream_options.include_obfuscation` is `false`.
         service_tier:
           $ref: '#/components/schemas/ServiceTier'
         system_fingerprint:
@@ -31781,13 +31813,13 @@ components:
         name: The chat completion chunk object
         group: chat
         example: |
-          {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1694268190,"model":"gpt-4o-mini", "system_fingerprint": "fp_44709d6fcb", "choices":[{"index":0,"delta":{"role":"assistant","content":""},"logprobs":null,"finish_reason":null}]}
+          {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1694268190,"model":"gpt-4o-mini", "system_fingerprint": "fp_44709d6fcb", "choices":[{"index":0,"delta":{"role":"assistant","content":""},"logprobs":null,"finish_reason":null}],"obfuscation":"r4N7vQ2m"}
 
-          {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1694268190,"model":"gpt-4o-mini", "system_fingerprint": "fp_44709d6fcb", "choices":[{"index":0,"delta":{"content":"Hello"},"logprobs":null,"finish_reason":null}]}
+          {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1694268190,"model":"gpt-4o-mini", "system_fingerprint": "fp_44709d6fcb", "choices":[{"index":0,"delta":{"content":"Hello"},"logprobs":null,"finish_reason":null}],"obfuscation":"p9K3xT6w"}
 
           ....
 
-          {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1694268190,"model":"gpt-4o-mini", "system_fingerprint": "fp_44709d6fcb", "choices":[{"index":0,"delta":{},"logprobs":null,"finish_reason":"stop"}]}
+          {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1694268190,"model":"gpt-4o-mini", "system_fingerprint": "fp_44709d6fcb", "choices":[{"index":0,"delta":{},"logprobs":null,"finish_reason":"stop"}],"obfuscation":""}
     CreateCompletionRequest:
       type: object
       properties:
@@ -33065,18 +33097,14 @@ components:
           nullable: true
           description: |
             Allows to set transparency for the background of the generated image(s).
-            This parameter is only supported for GPT image models that support
-            transparent backgrounds. Must be one of `transparent`, `opaque`, or
-            `auto` (default value). When `auto` is used, the model will
-            automatically determine the best background for the image.
+            Must be one of `transparent`, `opaque`, or `auto` (default value). When
+            `auto` is used, the model will automatically determine the best
+            background for the image.
 
-            `gpt-image-2` and `gpt-image-2-2026-04-21` do not support
-            transparent backgrounds. Requests with `background` set to
-            `transparent` will return an error for these models; use `opaque` or
-            `auto` instead.
-
-            If `transparent`, the output format needs to support transparency,
-            so it should be set to either `png` (default value) or `webp`.
+            Transparent backgrounds are available for supported GPT Image models.
+            For `gpt-image-2` and `gpt-image-2-2026-04-21`, this support is in
+            preview. When using `transparent`, set the output format to `png` or
+            `webp`.
         model:
           anyOf:
           - type: string
@@ -33304,18 +33332,14 @@ components:
           nullable: true
           description: |
             Allows to set transparency for the background of the generated image(s).
-            This parameter is only supported for GPT image models that support
-            transparent backgrounds. Must be one of `transparent`, `opaque`, or
-            `auto` (default value). When `auto` is used, the model will
-            automatically determine the best background for the image.
+            Must be one of `transparent`, `opaque`, or `auto` (default value). When
+            `auto` is used, the model will automatically determine the best
+            background for the image.
 
-            `gpt-image-2` and `gpt-image-2-2026-04-21` do not support
-            transparent backgrounds. Requests with `background` set to
-            `transparent` will return an error for these models; use `opaque` or
-            `auto` instead.
-
-            If `transparent`, the output format needs to support transparency,
-            so it should be set to either `png` (default value) or `webp`.
+            Transparent backgrounds are available for supported GPT Image models.
+            For `gpt-image-2` and `gpt-image-2-2026-04-21`, this support is in
+            preview. When using `transparent`, set the output format to `png` or
+            `webp`.
         style:
           type: string
           enum:
@@ -35392,6 +35416,8 @@ components:
           - type: string
             enum:
             - gpt-image-1.5
+            - gpt-image-2
+            - gpt-image-2-2026-04-21
             - gpt-image-1
             - gpt-image-1-mini
             - chatgpt-image-latest
@@ -35399,7 +35425,7 @@ components:
           x-oaiTypeLabel: string
           default: gpt-image-1.5
           example: gpt-image-1.5
-          description: The model to use for image editing.
+          description: The GPT image model to use for image editing, including `gpt-image-2` and its dated snapshot `gpt-image-2-2026-04-21`.
         images:
           type: array
           minItems: 1
@@ -35504,7 +35530,7 @@ components:
           - type: 'null'
           default: auto
           example: transparent
-          description: Background behavior for generated image output.
+          description: Set the background of the generated image output. Transparent backgrounds are available for supported GPT Image models. For `gpt-image-2` and `gpt-image-2-2026-04-21`, this support is in preview. When using `transparent`, set the output format to `png` or `webp`.
         stream:
           anyOf:
           - type: boolean
@@ -37951,7 +37977,6 @@ components:
           - incomplete
       required:
       - type
-      - call_id
       - output
     FunctionToolCallOutputResource:
       allOf:
@@ -39130,7 +39155,10 @@ components:
             - gpt-image-1.5
             - chatgpt-image-latest
             description: |
-              The image generation model to use. Default: `gpt-image-1`.
+              The image generation model to use. One of `gpt-image-1`,
+              `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+              `gpt-image-2-2026-04-21`, or `chatgpt-image-latest`. Default:
+              `gpt-image-1`.
             default: gpt-image-1
         quality:
           type: string
@@ -39187,18 +39215,14 @@ components:
           - auto
           description: |
             Allows to set transparency for the background of the generated image(s).
-            This parameter is only supported for GPT image models that support
-            transparent backgrounds. Must be one of `transparent`, `opaque`, or
-            `auto` (default value). When `auto` is used, the model will
-            automatically determine the best background for the image.
+            Must be one of `transparent`, `opaque`, or `auto` (default value). When
+            `auto` is used, the model will automatically determine the best
+            background for the image.
 
-            `gpt-image-2` and `gpt-image-2-2026-04-21` do not support
-            transparent backgrounds. Requests with `background` set to
-            `transparent` will return an error for these models; use `opaque` or
-            `auto` instead.
-
-            If `transparent`, the output format needs to support transparency,
-            so it should be set to either `png` (default value) or `webp`.
+            Transparent backgrounds are available for supported GPT Image models.
+            For `gpt-image-2` and `gpt-image-2-2026-04-21`, this support is in
+            preview. When using `transparent`, set the output format to `png` or
+            `webp`.
           default: auto
         input_fidelity:
           anyOf:
@@ -42279,6 +42303,9 @@ components:
           - type: string
           - type: 'null'
           description: The external key associated with the project.
+        residency:
+          $ref: '#/components/schemas/PublicProjectResidency'
+          description: The residency configuration for the project.
       required:
       - id
       - object
@@ -42474,7 +42501,15 @@ components:
           anyOf:
           - type: string
           - type: 'null'
-          description: Create the project with the specified data residency region. Your organization must have access to Data residency functionality in order to use. See [data residency controls](https://platform.openai.com/docs/guides/your-data#data-residency-controls) to review the functionality and limitations of setting this field.
+          deprecated: true
+          description: |-
+            Create the project with the specified data residency region. Your organization must have access to Data residency functionality in order to use. See [data residency controls](https://platform.openai.com/docs/guides/your-data#data-residency-controls) to review the functionality and limitations of setting this field.
+            Deprecated: use `residency` instead. Do not provide both `geography` and `residency`.
+        residency:
+          anyOf:
+          - $ref: '#/components/schemas/PublicProjectResidency'
+          - type: 'null'
+          description: Create the project with the specified residency configuration. Your organization must have access to the requested residency configuration in order to use it. See [data residency controls](https://platform.openai.com/docs/guides/your-data#data-residency-controls) to review the functionality and limitations of setting this field.
         external_key_id:
           anyOf:
           - type: string
@@ -43171,7 +43206,10 @@ components:
           anyOf:
           - type: string
           - type: 'null'
-          description: Geography for the project.
+          deprecated: true
+          description: |-
+            Geography for the project.
+            Deprecated: use `residency` when creating a project to configure data residency. This field is retained for backward compatibility.
     ProjectUser:
       type: object
       description: Represents an individual user in a project.
@@ -51406,8 +51444,9 @@ components:
     RealtimeTranslationServerEventSessionOutputAudioDelta:
       type: object
       description: |
-        Returned when translated output audio is available. Output audio deltas are
-        200 ms frames of PCM16 audio.
+        Returned when translated output audio is available. The `delta` contains a
+        PCM16 audio chunk whose length can vary. Clients should decode and queue the
+        complete delta instead of assuming a fixed byte or sample count.
       properties:
         event_id:
           type: string
@@ -54919,6 +54958,13 @@ components:
         total_tokens:
           type: integer
           description: The total number of tokens used.
+        compute_units:
+          anyOf:
+          - type: integer
+            minimum: 0
+          - type: 'null'
+          description: |
+            Compute units for the request. Currently null when available.
       required:
       - input_tokens
       - input_tokens_details
@@ -63908,10 +63954,12 @@ components:
             example: fc_123
           - type: 'null'
         call_id:
-          type: string
-          maxLength: 64
-          minLength: 1
-          description: The unique ID of the function tool call generated by the model.
+          anyOf:
+          - type: string
+            maxLength: 64
+            minLength: 1
+            description: The unique ID of the function tool call generated by the model.
+          - type: 'null'
         type:
           type: string
           enum:
@@ -63963,7 +64011,6 @@ components:
       type: object
       required:
       - type
-      - call_id
       - output
       title: Function tool call output
       description: The output of a function tool call.
@@ -64185,7 +64232,7 @@ components:
           x-stainless-const: true
         encrypted_content:
           type: string
-          maxLength: 10485760
+          maxLength: 20971520
           description: The encrypted content of the compaction summary.
       type: object
       required:
@@ -64729,6 +64776,21 @@ components:
       - input_tokens_details
       title: Image generation usage
       description: For `gpt-image-1` only, the token usage information for the image generation.
+    PublicProjectResidency:
+      type: string
+      enum:
+      - GLOBAL
+      - US_STORAGE_PROCESSING
+      - EU_STORAGE_PROCESSING
+      - JP_STORAGE
+      - KR_STORAGE
+      - CA_STORAGE
+      - SG_STORAGE
+      - IN_STORAGE
+      - AU_STORAGE
+      - GB_STORAGE
+      - AE_STORAGE
+      - AE_STORAGE_PROCESSING
     SpecificProgrammaticToolCallingParam:
       properties:
         type:
@@ -68506,7 +68568,10 @@ components:
             - gpt-image-1.5
             - chatgpt-image-latest
             description: |
-              The image generation model to use. Default: `gpt-image-1`.
+              The image generation model to use. One of `gpt-image-1`,
+              `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+              `gpt-image-2-2026-04-21`, or `chatgpt-image-latest`. Default:
+              `gpt-image-1`.
             default: gpt-image-1
         quality:
           type: string
@@ -68563,18 +68628,14 @@ components:
           - auto
           description: |
             Allows to set transparency for the background of the generated image(s).
-            This parameter is only supported for GPT image models that support
-            transparent backgrounds. Must be one of `transparent`, `opaque`, or
-            `auto` (default value). When `auto` is used, the model will
-            automatically determine the best background for the image.
+            Must be one of `transparent`, `opaque`, or `auto` (default value). When
+            `auto` is used, the model will automatically determine the best
+            background for the image.
 
-            `gpt-image-2` and `gpt-image-2-2026-04-21` do not support
-            transparent backgrounds. Requests with `background` set to
-            `transparent` will return an error for these models; use `opaque` or
-            `auto` instead.
-
-            If `transparent`, the output format needs to support transparency,
-            so it should be set to either `png` (default value) or `webp`.
+            Transparent backgrounds are available for supported GPT Image models.
+            For `gpt-image-2` and `gpt-image-2-2026-04-21`, this support is in
+            preview. When using `transparent`, set the output format to `png` or
+            `webp`.
           default: auto
         input_fidelity:
           anyOf:
@@ -70602,7 +70663,7 @@ components:
           x-stainless-const: true
         encrypted_content:
           type: string
-          maxLength: 10485760
+          maxLength: 20971520
           description: The encrypted content of the compaction summary.
       type: object
       required:
@@ -71206,10 +71267,12 @@ components:
             example: fc_123
           - type: 'null'
         call_id:
-          type: string
-          maxLength: 64
-          minLength: 1
-          description: The unique ID of the function tool call generated by the model.
+          anyOf:
+          - type: string
+            maxLength: 64
+            minLength: 1
+            description: The unique ID of the function tool call generated by the model.
+          - type: 'null'
         type:
           type: string
           enum:
@@ -71261,7 +71324,6 @@ components:
       type: object
       required:
       - type
-      - call_id
       - output
       title: Function tool call output
       description: The output of a function tool call.
@@ -73613,7 +73675,6 @@ components:
           - incomplete
       required:
       - type
-      - call_id
       - output
     BetaFunctionToolCallResource:
       allOf:
@@ -73793,6 +73854,13 @@ components:
         total_tokens:
           type: integer
           description: The total number of tokens used.
+        compute_units:
+          anyOf:
+          - type: integer
+            minimum: 0
+          - type: 'null'
+          description: |
+            Compute units for the request. Currently null when available.
       required:
       - input_tokens
       - input_tokens_details

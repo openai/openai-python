@@ -1,6 +1,6 @@
 [project]
 name = "openai"
-version = "3.3.0"
+version = "3.5.0"
 description = "The official Python library for the openai API"
 dynamic = ["readme"]
 license = "Apache-2.0"
@@ -10,12 +10,11 @@ authors = [
 
 dependencies = [
   "httpx2>=2.7.0, <3",
-  "pydantic>=1.9.0, <3",
+  "pydantic>=1.10.13, <3, !=2.0.*, !=2.1.*, !=2.2.*, !=2.3.*",
   "typing-extensions>=4.14, <5",
   "anyio>=4.10.0, <5",
-  "distro>=1.7.0, <2",
   "sniffio",
-  "jiter>=0.10.0, <1",
+  "jiter>=0.16.0, <1",
 ]
 
 requires-python = ">= 3.10"
@@ -54,11 +53,9 @@ bedrock = [
 
 [dependency-groups]
 dev = [
-    "pyright==1.1.399",
     "mypy==1.17",
-    "pytest",
-    "pytest-asyncio",
-    "jsonschema>=4.23.0",
+    "pytest>=9.0.3",
+    "pytest-asyncio>=1.4.0",
     "ruff",
     "rich>=13.7.1",
     "inline-snapshot>=0.28.0",
@@ -73,8 +70,7 @@ pydantic-v1 = ["pydantic>=1.10.26,<2"]
 pydantic-v2 = ["pydantic>=2,<3"]
 # Isolated build requirements are exported with hashes by scripts/build.
 build = [
-    "hatchling==1.26.3",
-    "hatch-fancy-pypi-readme==25.1.0",
+    "hatchling==1.27.0",
     "packaging==26.3",
     "pathspec==1.1.1",
     "pluggy==1.6.0",
@@ -88,10 +84,19 @@ required-version = ">=0.12.1"
 exclude-newer = "8 days"
 default-groups = ["dev", "pydantic-v2"]
 conflicts = [[{ group = "pydantic-v1" }, { group = "pydantic-v2" }]]
+# Security floors for transitive development dependencies. Constraints do not
+# install these packages into the SDK's runtime environment.
+constraint-dependencies = [
+    "azure-core>=1.38.0",
+    "cryptography>=50.0.0",
+    "msal>=1.37.0",
+    "pygments>=2.20.0",
+    "pyjwt>=2.13.0",
+    "requests>=2.33.0",
+]
 # Also constrain editable/source builds performed by uv sync.
 build-constraint-dependencies = [
-    "hatchling==1.26.3",
-    "hatch-fancy-pypi-readme==25.1.0",
+    "hatchling==1.27.0",
     "packaging==26.3",
     "pathspec==1.1.1",
     "pluggy==1.6.0",
@@ -101,7 +106,7 @@ build-constraint-dependencies = [
 
 
 [build-system]
-requires = ["hatchling==1.26.3", "hatch-fancy-pypi-readme==25.1.0"]
+requires = ["hatchling==1.27.0"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build]
@@ -119,6 +124,9 @@ include = [
   "/*.json",
   "/*.lock",
   "/*.md",
+  "/.node-version",
+  "/pnpm-lock.yaml",
+  "/pnpm-workspace.yaml",
   "/mypy.ini",
   "bin/*",
   "examples/*",
@@ -127,16 +135,8 @@ include = [
   "tests/*",
 ]
 
-[tool.hatch.metadata.hooks.fancy-pypi-readme]
-content-type = "text/markdown"
-
-[[tool.hatch.metadata.hooks.fancy-pypi-readme.fragments]]
-path = "README.md"
-
-[[tool.hatch.metadata.hooks.fancy-pypi-readme.substitutions]]
-# replace relative links with absolute links
-pattern = '\[(.+?)\]\(((?!https?://)\S+?)\)'
-replacement = '[\1](https://github.com/openai/openai-python/tree/main/\g<2>)'
+[tool.hatch.metadata.hooks.custom]
+path = "scripts/hatch_metadata.py"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -160,6 +160,8 @@ pythonVersion = "3.10"
 
 exclude = [
     "_dev",
+    "node_modules",
+    ".pnpm-store",
     ".venv",
     ".venv-pydantic-v1",
     # Contributors may still have an environment from before the uv migration.
@@ -167,6 +169,8 @@ exclude = [
     ".git",
     "tests/respx2",
     "src/openai/_vendor",
+    # Loaded in Hatchling's isolated build environment.
+    "scripts/hatch_metadata.py",
 
     # uses inline `uv` script dependencies
     # which means it can't be type checked
@@ -195,7 +199,10 @@ show_error_codes = true
 # which means it can't be type checked
 exclude = [
   'src/openai/_files.py',
+  'node_modules/.*',
+  '\.pnpm-store/.*',
   'src/openai/_vendor/.*',
+  'scripts/hatch_metadata.py',
   '_dev/.*.py',
   'tests/.*',
   'src/openai/_utils/_logs.py',

@@ -1,15 +1,48 @@
 version: 2
 updates:
-  - package-ecosystem: uv
+  - package-ecosystem: npm
     directory: /
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 8
+  - package-ecosystem: uv
+    directory: /
+    versioning-strategy: increase-if-necessary
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: Etc/UTC
     # Version updates wait; Dependabot security updates are exempt.
     cooldown:
       default-days: 8
+    open-pull-requests-limit: 3
+    groups:
+      python-maintenance:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+      python-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
+      day: monday
+      time: "09:30"
+      timezone: Etc/UTC
     cooldown:
       default-days: 8
+    open-pull-requests-limit: 5
+    groups:
+      # CodeQL init/analyze share versioned state and must change together.
+      codeql:
+        patterns:
+          - "github/codeql-action"

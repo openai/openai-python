@@ -22,3 +22,5 @@ fi
 echo "==> Installing Python dependencies…"
 
 uv sync --locked --all-extras
+
+./scripts/bootstrap-node
