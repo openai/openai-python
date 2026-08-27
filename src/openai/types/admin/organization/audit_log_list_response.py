@@ -1053,6 +1053,8 @@ class AuditLogListResponse(BaseModel):
         "tenant.admin_api_key.updated",
         "tenant.admin_api_key.deleted",
         "tenant.project_api_key.created",
+        "tenant.trusted_access.business_verification.started",
+        "tenant.trusted_access.application.submitted",
         "tenant.chatgpt_access_token.revoked",
         "tenant.migration.completed",
         "tenant.sso.migrated",
