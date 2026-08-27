@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import threading
-from typing import Any
+from typing import Any, cast
 from contextvars import Context
 from typing_extensions import override
 from concurrent.futures import ThreadPoolExecutor
@@ -834,7 +834,10 @@ async def test_async_x509_rejects_redirected_protected_requests_nested_inside_or
     assert all(request.url.host != "attacker.invalid" for request in requests)
 
 
-def test_sync_x509_allows_ordinary_requests_that_start_before_a_concurrent_protected_request() -> None:
+@pytest.mark.parametrize("direct_request", [False, True])
+def test_sync_x509_allows_ordinary_requests_that_start_before_a_concurrent_protected_request(
+    direct_request: bool,
+) -> None:
     ordinary_started = threading.Event()
     protected_started = threading.Event()
     allow_ordinary = threading.Event()
@@ -855,20 +858,28 @@ def test_sync_x509_allows_ordinary_requests_that_start_before_a_concurrent_prote
     ordinary = OpenAI(api_key="ordinary-key", base_url="https://nested.example/v1", http_client=http_client)
     protected = OpenAI(workload_identity=_identity(), http_client=http_client)
 
+    def list_ordinary() -> str:
+        if direct_request:
+            return cast(str, http_client.get("https://nested.example/v1/models").json()["object"])
+        return ordinary.models.list().object
+
     with ThreadPoolExecutor(max_workers=2) as executor:
-        ordinary_result = executor.submit(ordinary.models.list)
+        ordinary_result = executor.submit(list_ordinary)
         assert ordinary_started.wait(timeout=5)
         protected_result = executor.submit(protected.models.list)
         assert protected_started.wait(timeout=5)
         allow_ordinary.set()
         try:
-            assert ordinary_result.result(timeout=5).object == "list"
+            assert ordinary_result.result(timeout=5) == "list"
         finally:
             allow_protected.set()
         assert protected_result.result(timeout=5).object == "list"
 
 
-async def test_async_x509_allows_ordinary_requests_that_start_before_a_concurrent_protected_request() -> None:
+@pytest.mark.parametrize("direct_request", [False, True])
+async def test_async_x509_allows_ordinary_requests_that_start_before_a_concurrent_protected_request(
+    direct_request: bool,
+) -> None:
     ordinary_started = asyncio.Event()
     protected_started = asyncio.Event()
     allow_ordinary = asyncio.Event()
@@ -892,7 +903,13 @@ async def test_async_x509_allows_ordinary_requests_that_start_before_a_concurren
     async def list_models(client: AsyncOpenAI) -> str:
         return (await client.models.list()).object
 
-    ordinary_result = asyncio.create_task(list_models(ordinary))
+    async def list_ordinary() -> str:
+        if direct_request:
+            response = await http_client.get("https://nested.example/v1/models")
+            return cast(str, response.json()["object"])
+        return await list_models(ordinary)
+
+    ordinary_result = asyncio.create_task(list_ordinary())
     await asyncio.wait_for(ordinary_started.wait(), timeout=5)
     protected_result = asyncio.create_task(list_models(protected))
     await asyncio.wait_for(protected_started.wait(), timeout=5)
@@ -905,7 +922,10 @@ async def test_async_x509_allows_ordinary_requests_that_start_before_a_concurren
 
 
 @pytest.mark.parametrize("shared_client", [False, True])
-def test_sync_x509_never_trusts_a_matching_concurrent_ordinary_request(shared_client: bool) -> None:
+@pytest.mark.parametrize("lowercase_bearer", [False, True])
+def test_sync_x509_never_trusts_a_matching_concurrent_ordinary_request(
+    shared_client: bool, lowercase_bearer: bool
+) -> None:
     requests: list[httpx2.Request] = []
     ordinary_started = threading.Event()
     allow_ordinary = threading.Event()
@@ -926,6 +946,8 @@ def test_sync_x509_never_trusts_a_matching_concurrent_ordinary_request(shared_cl
         def send(self, request: httpx2.Request, **kwargs: Any) -> httpx2.Response:
             if request.url.host == "mtls.api.openai.com":
                 request = httpx2.Request(request.method, request.url, headers=dict(request.headers))
+                if lowercase_bearer:
+                    request.headers["authorization"] = "bearer access-token"
                 with ThreadPoolExecutor(max_workers=1) as executor:
                     return executor.submit(super().send, request, **kwargs).result()
             return super().send(request, **kwargs)
@@ -939,7 +961,7 @@ def test_sync_x509_never_trusts_a_matching_concurrent_ordinary_request(shared_cl
         ordinary_result = executor.submit(ordinary.models.list)
         assert ordinary_started.wait(timeout=5)
         try:
-            with pytest.raises(OpenAIError, match="configured API origin"):
+            with pytest.raises(OpenAIError, match="configured API origin|authorization"):
                 protected.models.list()
         finally:
             allow_ordinary.set()
@@ -949,7 +971,10 @@ def test_sync_x509_never_trusts_a_matching_concurrent_ordinary_request(shared_cl
 
 
 @pytest.mark.parametrize("shared_client", [False, True])
-async def test_async_x509_never_trusts_a_matching_concurrent_ordinary_request(shared_client: bool) -> None:
+@pytest.mark.parametrize("lowercase_bearer", [False, True])
+async def test_async_x509_never_trusts_a_matching_concurrent_ordinary_request(
+    shared_client: bool, lowercase_bearer: bool
+) -> None:
     requests: list[httpx2.Request] = []
     ordinary_started = asyncio.Event()
     allow_ordinary = asyncio.Event()
@@ -970,6 +995,8 @@ async def test_async_x509_never_trusts_a_matching_concurrent_ordinary_request(sh
         async def send(self, request: httpx2.Request, **kwargs: Any) -> httpx2.Response:
             if request.url.host == "mtls.api.openai.com":
                 copied = httpx2.Request(request.method, request.url, headers=dict(request.headers))
+                if lowercase_bearer:
+                    copied.headers["authorization"] = "bearer access-token"
                 coroutine = super().send(copied, **kwargs)
                 return await Context().run(asyncio.create_task, coroutine)
             return await super().send(request, **kwargs)
@@ -991,7 +1018,7 @@ async def test_async_x509_never_trusts_a_matching_concurrent_ordinary_request(sh
     ordinary_result = asyncio.create_task(run_ordinary())
     await asyncio.wait_for(ordinary_started.wait(), timeout=5)
     try:
-        with pytest.raises(OpenAIError, match="configured API origin"):
+        with pytest.raises(OpenAIError, match="configured API origin|authorization"):
             await protected.models.list()
     finally:
         allow_ordinary.set()

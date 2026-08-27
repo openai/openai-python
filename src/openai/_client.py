@@ -740,7 +740,7 @@ class OpenAI(SyncAPIClient):
         http_client = http_client or self._client
 
         next_provider = self._provider if isinstance(provider, NotGiven) else provider
-        explicit_base_url = not isinstance(base_url, NotGiven)
+        explicit_base_url = base_url is not None and not isinstance(base_url, NotGiven)
         next_workload_identity = workload_identity if workload_identity is not None else self.workload_identity
         if api_key is not None and workload_identity is None:
             next_workload_identity = None
@@ -751,7 +751,10 @@ class OpenAI(SyncAPIClient):
         if effective_data_residency is None and mode_changed and not explicit_base_url:
             effective_data_residency = self._data_residency
         base_url = resolve_data_residency(
-            effective_data_residency, base_url, provider=next_provider, websocket_base_url=websocket_base_url
+            effective_data_residency,
+            not_given if base_url is None and data_residency is None else base_url,
+            provider=next_provider,
+            websocket_base_url=websocket_base_url,
         )
         base_url = x509_data_residency_base_url(base_url, effective_data_residency, next_workload_identity)
         preserve_default_base_url = False
@@ -1497,7 +1500,7 @@ class AsyncOpenAI(AsyncAPIClient):
 
         http_client = http_client or self._client
         next_provider = self._provider if isinstance(provider, NotGiven) else provider
-        explicit_base_url = not isinstance(base_url, NotGiven)
+        explicit_base_url = base_url is not None and not isinstance(base_url, NotGiven)
         next_workload_identity = workload_identity if workload_identity is not None else self.workload_identity
         if api_key is not None and workload_identity is None:
             next_workload_identity = None
@@ -1508,7 +1511,10 @@ class AsyncOpenAI(AsyncAPIClient):
         if effective_data_residency is None and mode_changed and not explicit_base_url:
             effective_data_residency = self._data_residency
         base_url = resolve_data_residency(
-            effective_data_residency, base_url, provider=next_provider, websocket_base_url=websocket_base_url
+            effective_data_residency,
+            not_given if base_url is None and data_residency is None else base_url,
+            provider=next_provider,
+            websocket_base_url=websocket_base_url,
         )
         base_url = x509_data_residency_base_url(base_url, effective_data_residency, next_workload_identity)
         preserve_default_base_url = False

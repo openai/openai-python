@@ -212,22 +212,36 @@ def test_switching_from_provider_to_regional_x509_uses_the_mtls_endpoint(
 
 @pytest.mark.parametrize("client_type", [OpenAI, AsyncOpenAI])
 @pytest.mark.parametrize("region", ["global", "us", "eu"])
+@pytest.mark.parametrize("base_url_mode", ["omitted", "none", "intermediate_none"])
 def test_switching_regional_api_key_client_to_x509_preserves_residency(
-    client_type: type[OpenAI] | type[AsyncOpenAI], region: str
+    client_type: type[OpenAI] | type[AsyncOpenAI], region: str, base_url_mode: str
 ) -> None:
     original = client_type(api_key="original-api-key", data_residency=cast(Any, region))
-    copied = original.with_options(workload_identity=_identity())
+    if base_url_mode == "intermediate_none":
+        original = original.with_options(base_url=None)
+    copied = (
+        original.with_options(workload_identity=_identity(), base_url=None)
+        if base_url_mode == "none"
+        else original.with_options(workload_identity=_identity())
+    )
     assert str(copied.base_url) == _REGIONAL_MTLS_URLS[region]
     assert str(copied.with_options(timeout=1).base_url) == _REGIONAL_MTLS_URLS[region]
 
 
 @pytest.mark.parametrize("client_type", [OpenAI, AsyncOpenAI])
 @pytest.mark.parametrize("region", ["global", "us", "eu"])
+@pytest.mark.parametrize("base_url_mode", ["omitted", "none", "intermediate_none"])
 def test_switching_regional_x509_client_to_api_key_preserves_residency(
-    client_type: type[OpenAI] | type[AsyncOpenAI], region: str
+    client_type: type[OpenAI] | type[AsyncOpenAI], region: str, base_url_mode: str
 ) -> None:
     original = client_type(workload_identity=_identity(), data_residency=cast(Any, region))
-    copied = original.with_options(api_key="replacement-api-key")
+    if base_url_mode == "intermediate_none":
+        original = original.with_options(base_url=None)
+    copied = (
+        original.with_options(api_key="replacement-api-key", base_url=None)
+        if base_url_mode == "none"
+        else original.with_options(api_key="replacement-api-key")
+    )
     expected_host = "api.openai.com" if region == "global" else f"{region}.api.openai.com"
     assert str(copied.base_url) == f"https://{expected_host}/v1/"
     assert str(copied.with_options(timeout=1).base_url) == f"https://{expected_host}/v1/"
@@ -468,8 +482,17 @@ async def test_async_x509_uses_unexpired_token_when_proactive_refresh_temporaril
             await client.models.list()
 
 
-@pytest.mark.parametrize("status_code", [429, 500, 503])
-def test_sync_x509_uses_unexpired_token_when_proactive_refresh_gets_transient_status(status_code: int) -> None:
+@pytest.mark.parametrize(
+    ("status_code", "headers"),
+    [(429, {}), (500, {}), (503, {}), (418, {"x-should-retry": "true"}), (425, {"x-should-retry": "true"})],
+)
+def test_sync_x509_uses_unexpired_token_when_proactive_refresh_gets_transient_status(
+    monkeypatch: pytest.MonkeyPatch, status_code: int, headers: dict[str, str]
+) -> None:
+    def no_sleep(_delay: float) -> None:
+        return None
+
+    monkeypatch.setattr(x509_auth.time, "sleep", no_sleep)
     exchange_count = 0
 
     def handler(request: httpx2.Request) -> httpx2.Response:
@@ -477,11 +500,11 @@ def test_sync_x509_uses_unexpired_token_when_proactive_refresh_gets_transient_st
         if str(request.url) == _TOKEN_URL:
             exchange_count += 1
             if exchange_count > 1:
-                return httpx2.Response(status_code, request=request)
+                return httpx2.Response(status_code, request=request, headers=headers)
         return _response(request)
 
     with OpenAI(
-        workload_identity=_identity(), http_client=httpx2.Client(transport=httpx2.MockTransport(handler)), max_retries=0
+        workload_identity=_identity(), http_client=httpx2.Client(transport=httpx2.MockTransport(handler)), max_retries=2
     ) as client:
         client.models.list()
         assert client._workload_identity_auth is not None
@@ -492,8 +515,17 @@ def test_sync_x509_uses_unexpired_token_when_proactive_refresh_gets_transient_st
             client.models.list()
 
 
-@pytest.mark.parametrize("status_code", [429, 500, 503])
-async def test_async_x509_uses_unexpired_token_when_proactive_refresh_gets_transient_status(status_code: int) -> None:
+@pytest.mark.parametrize(
+    ("status_code", "headers"),
+    [(429, {}), (500, {}), (503, {}), (418, {"x-should-retry": "true"}), (425, {"x-should-retry": "true"})],
+)
+async def test_async_x509_uses_unexpired_token_when_proactive_refresh_gets_transient_status(
+    monkeypatch: pytest.MonkeyPatch, status_code: int, headers: dict[str, str]
+) -> None:
+    async def no_sleep(_delay: float) -> None:
+        return None
+
+    monkeypatch.setattr(x509_auth.anyio, "sleep", no_sleep)
     exchange_count = 0
 
     def handler(request: httpx2.Request) -> httpx2.Response:
@@ -501,13 +533,13 @@ async def test_async_x509_uses_unexpired_token_when_proactive_refresh_gets_trans
         if str(request.url) == _TOKEN_URL:
             exchange_count += 1
             if exchange_count > 1:
-                return httpx2.Response(status_code, request=request)
+                return httpx2.Response(status_code, request=request, headers=headers)
         return _response(request)
 
     async with AsyncOpenAI(
         workload_identity=_identity(),
         http_client=httpx2.AsyncClient(transport=httpx2.MockTransport(handler)),
-        max_retries=0,
+        max_retries=2,
     ) as client:
         await client.models.list()
         assert client._workload_identity_auth is not None
@@ -519,7 +551,10 @@ async def test_async_x509_uses_unexpired_token_when_proactive_refresh_gets_trans
 
 
 @pytest.mark.parametrize("status_code", [400, 401, 403])
-def test_sync_x509_never_falls_back_after_permanent_oauth_rejection(status_code: int) -> None:
+@pytest.mark.parametrize("server_requests_retry", [False, True])
+def test_sync_x509_never_falls_back_after_permanent_oauth_rejection(
+    status_code: int, server_requests_retry: bool
+) -> None:
     exchange_count = 0
 
     def handler(request: httpx2.Request) -> httpx2.Response:
@@ -527,7 +562,8 @@ def test_sync_x509_never_falls_back_after_permanent_oauth_rejection(status_code:
         if str(request.url) == _TOKEN_URL:
             exchange_count += 1
             if exchange_count > 1:
-                return httpx2.Response(status_code, request=request, json={"error": "invalid_grant"})
+                headers = {"x-should-retry": "true"} if server_requests_retry else {}
+                return httpx2.Response(status_code, request=request, headers=headers, json={"error": "invalid_grant"})
         return _response(request)
 
     with OpenAI(
@@ -541,7 +577,10 @@ def test_sync_x509_never_falls_back_after_permanent_oauth_rejection(status_code:
 
 
 @pytest.mark.parametrize("status_code", [400, 401, 403])
-async def test_async_x509_never_falls_back_after_permanent_oauth_rejection(status_code: int) -> None:
+@pytest.mark.parametrize("server_requests_retry", [False, True])
+async def test_async_x509_never_falls_back_after_permanent_oauth_rejection(
+    status_code: int, server_requests_retry: bool
+) -> None:
     exchange_count = 0
 
     def handler(request: httpx2.Request) -> httpx2.Response:
@@ -549,7 +588,8 @@ async def test_async_x509_never_falls_back_after_permanent_oauth_rejection(statu
         if str(request.url) == _TOKEN_URL:
             exchange_count += 1
             if exchange_count > 1:
-                return httpx2.Response(status_code, request=request, json={"error": "invalid_grant"})
+                headers = {"x-should-retry": "true"} if server_requests_retry else {}
+                return httpx2.Response(status_code, request=request, headers=headers, json={"error": "invalid_grant"})
         return _response(request)
 
     async with AsyncOpenAI(
@@ -740,6 +780,95 @@ async def test_async_x509_pins_concurrent_reconstructed_requests_to_the_correct_
         second = responses[1]
         assert not isinstance(second, BaseException)
         assert second.object == "list"
+
+
+def test_sync_x509_rejects_ambiguous_reconstructed_requests_across_protected_origins() -> None:
+    arrived = threading.Barrier(2)
+    first_finished = threading.Event()
+    captured: list[httpx2.Request] = []
+
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        captured.append(request)
+        return _response(request, token="shared-token")
+
+    class CrossOriginClient(httpx2.Client):
+        @override
+        def send(self, request: httpx2.Request, **kwargs: Any) -> httpx2.Response:
+            arrived.wait(timeout=5)
+            if request.url.host == "private.example":
+                assert first_finished.wait(timeout=5)
+                return super().send(request, **kwargs)
+            copied = httpx2.Request(request.method, "https://private.example/v1/models", headers=dict(request.headers))
+            copied.headers["host"] = "private.example"
+            try:
+                with ThreadPoolExecutor(max_workers=1) as executor:
+                    return executor.submit(super().send, copied, **kwargs).result()
+            finally:
+                first_finished.set()
+
+    transport = CrossOriginClient(transport=httpx2.MockTransport(handler))
+    clients = [
+        OpenAI(workload_identity=_identity(), http_client=transport, max_retries=0),
+        OpenAI(
+            workload_identity=_identity(), base_url="https://private.example/v1", http_client=transport, max_retries=0
+        ),
+    ]
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        requests = [executor.submit(client.models.list) for client in clients]
+        with pytest.raises(OpenAIError, match="origin|associated"):
+            requests[0].result(timeout=5)
+        assert requests[1].result(timeout=5).object == "list"
+
+    assert [str(request.url) for request in captured if request.url.host == "private.example"] == [
+        "https://private.example/v1/models"
+    ]
+
+
+async def test_async_x509_rejects_ambiguous_reconstructed_requests_across_protected_origins() -> None:
+    arrived = 0
+    both_arrived = asyncio.Event()
+    first_finished = asyncio.Event()
+    captured: list[httpx2.Request] = []
+
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        captured.append(request)
+        return _response(request, token="shared-token")
+
+    class CrossOriginClient(httpx2.AsyncClient):
+        @override
+        async def send(self, request: httpx2.Request, **kwargs: Any) -> httpx2.Response:
+            nonlocal arrived
+            arrived += 1
+            if arrived == 2:
+                both_arrived.set()
+            await asyncio.wait_for(both_arrived.wait(), timeout=5)
+            if request.url.host == "private.example":
+                await asyncio.wait_for(first_finished.wait(), timeout=5)
+                return await super().send(request, **kwargs)
+            copied = httpx2.Request(request.method, "https://private.example/v1/models", headers=dict(request.headers))
+            copied.headers["host"] = "private.example"
+            try:
+                return await Context().run(asyncio.create_task, super().send(copied, **kwargs))
+            finally:
+                first_finished.set()
+
+    transport = CrossOriginClient(transport=httpx2.MockTransport(handler))
+    clients = [
+        AsyncOpenAI(workload_identity=_identity(), http_client=transport, max_retries=0),
+        AsyncOpenAI(
+            workload_identity=_identity(), base_url="https://private.example/v1", http_client=transport, max_retries=0
+        ),
+    ]
+
+    responses = await asyncio.gather(*(client.models.list() for client in clients), return_exceptions=True)
+    assert isinstance(responses[0], OpenAIError)
+    second = responses[1]
+    assert not isinstance(second, BaseException)
+    assert second.object == "list"
+    assert [str(request.url) for request in captured if request.url.host == "private.example"] == [
+        "https://private.example/v1/models"
+    ]
 
 
 def _record(requests: list[httpx2.Request], request: httpx2.Request) -> httpx2.Response:

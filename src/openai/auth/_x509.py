@@ -362,22 +362,30 @@ class _X509ClientTransportScope:
             return None
 
         with self._lock:
-            if not self._request_scopes:
-                return None
-            same_origin = [
+            request_authorization = request.headers.get("Authorization")
+            matching_authorization = [
                 (marker, active_scope)
                 for marker, active_scope in self._request_scopes.items()
+                if request_authorization is not None
+                and active_scope[2] is not None
+                and (
+                    request_authorization == active_scope[2]
+                    or (
+                        active_scope[2].startswith("Bearer ")
+                        and active_scope[2][len("Bearer ") :] in request_authorization
+                    )
+                )
+            ]
+            if not matching_authorization:
+                return None
+            if len({(active_scope[1].host, active_scope[1].port) for _, active_scope in matching_authorization}) > 1:
+                raise OpenAIError("X.509 workload identity request cannot be associated with a single API origin")
+            same_origin = [
+                (marker, active_scope)
+                for marker, active_scope in matching_authorization
                 if (request.url.host, request.url.port) == (active_scope[1].host, active_scope[1].port)
             ]
-            candidates = same_origin if same_origin else list(self._request_scopes.items())
-            marker, active_scope = next(
-                (
-                    (active_marker, candidate)
-                    for active_marker, candidate in candidates
-                    if request.headers.get("Authorization") == candidate[2]
-                ),
-                candidates[0],
-            )
+            marker, active_scope = (same_origin if same_origin else matching_authorization)[0]
             self._bind_request(request, marker)
             return active_scope
 
@@ -782,7 +790,11 @@ class _X509WorkloadIdentityAuth(_WorkloadIdentityAuth[X509WorkloadIdentity]):
         try:
             return self._handle_token_response(response)
         except OpenAIError as error:
-            if response.status_code in (408, 409, 429) or response.status_code >= 500:
+            if (
+                response.status_code in (408, 409, 429)
+                or response.status_code >= 500
+                or (response.status_code not in (400, 401, 403) and response.headers.get("x-should-retry") == "true")
+            ):
                 raise _TransientTokenExchangeError(error) from error
             raise
 
