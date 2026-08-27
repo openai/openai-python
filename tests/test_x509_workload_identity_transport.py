@@ -7,7 +7,7 @@ import asyncio
 import importlib
 import threading
 import subprocess
-from typing import Any, cast
+from typing import Any, Generator, AsyncGenerator, cast
 from textwrap import dedent
 from contextvars import Context
 from typing_extensions import override
@@ -534,6 +534,7 @@ def test_sync_x509_validates_lazily_delegated_http_client_requests(
 
     original_send = httpx2.Client.send
     original_dispatch = httpx2.Client._send_single_request
+    original_auth = httpx2.Client._send_handling_auth
     http_client = DelegatingClient(transport=httpx2.MockTransport(lambda request: _record(requests, request)))
     with OpenAI(workload_identity=_identity(), http_client=http_client, max_retries=0) as client:
         if redirect:
@@ -546,13 +547,15 @@ def test_sync_x509_validates_lazily_delegated_http_client_requests(
     assert [str(request.url) for request in requests] == expected
     assert httpx2.Client.send is original_send
     assert httpx2.Client._send_single_request is original_dispatch
+    assert httpx2.Client._send_handling_auth is original_auth
     if factory_delegate is not None:
         assert factory_delegate.event_hooks["request"] == [redirect_request]
 
 
 @pytest.mark.parametrize("credential_location", ["query", "body"])
+@pytest.mark.parametrize("mutation_source", ["hook", "auth"])
 def test_sync_x509_rejects_lazy_delegate_hooks_that_move_credentials_outside_headers(
-    credential_location: str,
+    credential_location: str, mutation_source: str
 ) -> None:
     requests: list[httpx2.Request] = []
 
@@ -565,15 +568,23 @@ def test_sync_x509_rejects_lazy_delegate_hooks_that_move_credentials_outside_hea
         request.headers["host"] = "attacker.invalid"
         request.extensions.clear()
 
+    class RelocatingAuth(httpx2.Auth):
+        @override
+        def auth_flow(self, request: httpx2.Request) -> Generator[httpx2.Request, httpx2.Response, None]:
+            relocate_credential(request)
+            yield request
+
     class DelegatingClient(httpx2.Client):
         @override
         def send(self, request: httpx2.Request, **kwargs: Any) -> httpx2.Response:
             delegate = httpx2.Client(
                 transport=httpx2.MockTransport(lambda value: _record(requests, value)),
-                event_hooks={"request": [relocate_credential]},
+                event_hooks={"request": [relocate_credential] if mutation_source == "hook" else []},
             )
             reconstructed = delegate.build_request(request.method, request.url)
             reconstructed.headers.update(request.headers)
+            if mutation_source == "auth":
+                kwargs["auth"] = RelocatingAuth()
             return delegate.send(reconstructed, **kwargs)
 
     transport = DelegatingClient(transport=httpx2.MockTransport(lambda request: _record(requests, request)))
@@ -620,6 +631,7 @@ async def test_async_x509_validates_lazily_delegated_http_client_requests(
 
     original_send = httpx2.AsyncClient.send
     original_dispatch = httpx2.AsyncClient._send_single_request
+    original_auth = httpx2.AsyncClient._send_handling_auth
     http_client = DelegatingClient(transport=httpx2.MockTransport(lambda request: _record(requests, request)))
     async with AsyncOpenAI(workload_identity=_identity(), http_client=http_client, max_retries=0) as client:
         if redirect:
@@ -632,13 +644,15 @@ async def test_async_x509_validates_lazily_delegated_http_client_requests(
     assert [str(request.url) for request in requests] == expected
     assert httpx2.AsyncClient.send is original_send
     assert httpx2.AsyncClient._send_single_request is original_dispatch
+    assert httpx2.AsyncClient._send_handling_auth is original_auth
     if factory_delegate is not None:
         assert factory_delegate.event_hooks["request"] == [redirect_request]
 
 
 @pytest.mark.parametrize("credential_location", ["query", "body"])
+@pytest.mark.parametrize("mutation_source", ["hook", "auth"])
 async def test_async_x509_rejects_lazy_delegate_hooks_that_move_credentials_outside_headers(
-    credential_location: str,
+    credential_location: str, mutation_source: str
 ) -> None:
     requests: list[httpx2.Request] = []
 
@@ -651,15 +665,23 @@ async def test_async_x509_rejects_lazy_delegate_hooks_that_move_credentials_outs
         request.headers["host"] = "attacker.invalid"
         request.extensions.clear()
 
+    class RelocatingAuth(httpx2.Auth):
+        @override
+        async def async_auth_flow(self, request: httpx2.Request) -> AsyncGenerator[httpx2.Request, httpx2.Response]:
+            await relocate_credential(request)
+            yield request
+
     class DelegatingClient(httpx2.AsyncClient):
         @override
         async def send(self, request: httpx2.Request, **kwargs: Any) -> httpx2.Response:
             delegate = httpx2.AsyncClient(
                 transport=httpx2.MockTransport(lambda value: _record(requests, value)),
-                event_hooks={"request": [relocate_credential]},
+                event_hooks={"request": [relocate_credential] if mutation_source == "hook" else []},
             )
             reconstructed = delegate.build_request(request.method, request.url)
             reconstructed.headers.update(request.headers)
+            if mutation_source == "auth":
+                kwargs["auth"] = RelocatingAuth()
             return await delegate.send(reconstructed, **kwargs)
 
     transport = DelegatingClient(transport=httpx2.MockTransport(lambda request: _record(requests, request)))

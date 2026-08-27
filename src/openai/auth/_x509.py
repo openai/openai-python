@@ -818,7 +818,7 @@ def _client_transport_scope(
 
 _CLIENT_SEND_GUARD_LOCK = threading.RLock()
 _CLIENT_SEND_GUARD_STATE = {"users": 0}
-_ORIGINAL_CLIENT_DISPATCH_METHODS: dict[type[Any], tuple[Any, Any, Any, Any]] = {}
+_ORIGINAL_CLIENT_DISPATCH_METHODS: dict[type[Any], tuple[Any, Any, Any, Any, Any, Any]] = {}
 
 
 def _active_request_transport_scope(request: httpx2.Request) -> tuple[httpx2.Request, httpx2.URL, str | None] | None:
@@ -919,6 +919,7 @@ def _guarded_client_redirects(http_client: Any, request: httpx2.Request, *, is_a
 def _guard_client_dispatch_method(client_type: type[Any], *, is_async: bool) -> None:
     original_dispatch = client_type._send_single_request
     original_redirects = client_type._send_handling_redirects
+    original_auth = client_type._send_handling_auth
     if is_async:
 
         @wraps(original_dispatch)
@@ -934,6 +935,13 @@ def _guard_client_dispatch_method(client_type: type[Any], *, is_async: bool) -> 
                 return await original_redirects(client, request, *args, **kwargs)
 
         guarded_redirects: Any = guarded_async_redirects
+
+        @wraps(original_auth)
+        async def guarded_async_auth(client: Any, request: httpx2.Request, *args: Any, **kwargs: Any) -> Any:
+            with _guarded_client_redirects(client, request, is_async=True):
+                return await original_auth(client, request, *args, **kwargs)
+
+        guarded_auth: Any = guarded_async_auth
     else:
 
         @wraps(original_dispatch)
@@ -950,14 +958,24 @@ def _guard_client_dispatch_method(client_type: type[Any], *, is_async: bool) -> 
 
         guarded_redirects = guarded_sync_redirects
 
+        @wraps(original_auth)
+        def guarded_sync_auth(client: Any, request: httpx2.Request, *args: Any, **kwargs: Any) -> Any:
+            with _guarded_client_redirects(client, request, is_async=False):
+                return original_auth(client, request, *args, **kwargs)
+
+        guarded_auth = guarded_sync_auth
+
     _ORIGINAL_CLIENT_DISPATCH_METHODS[client_type] = (
         original_dispatch,
         guarded_dispatch,
         original_redirects,
         guarded_redirects,
+        original_auth,
+        guarded_auth,
     )
     client_type._send_single_request = guarded_dispatch
     client_type._send_handling_redirects = guarded_redirects
+    client_type._send_handling_auth = guarded_auth
 
 
 @contextmanager
@@ -988,11 +1006,20 @@ def _active_client_send_guards() -> Iterator[None]:
             _CLIENT_SEND_GUARD_STATE["users"] -= 1
             if _CLIENT_SEND_GUARD_STATE["users"] == 0:
                 for client_type, methods in _ORIGINAL_CLIENT_DISPATCH_METHODS.items():
-                    original_dispatch, guarded_dispatch, original_redirects, guarded_redirects = methods
+                    (
+                        original_dispatch,
+                        guarded_dispatch,
+                        original_redirects,
+                        guarded_redirects,
+                        original_auth,
+                        guarded_auth,
+                    ) = methods
                     if client_type._send_single_request is guarded_dispatch:
                         client_type._send_single_request = original_dispatch
                     if client_type._send_handling_redirects is guarded_redirects:
                         client_type._send_handling_redirects = original_redirects
+                    if client_type._send_handling_auth is guarded_auth:
+                        client_type._send_handling_auth = original_auth
                 _ORIGINAL_CLIENT_DISPATCH_METHODS.clear()
 
 
