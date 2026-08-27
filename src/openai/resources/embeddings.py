@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-import array
-import base64
-from typing import Union, Iterable, cast
+from typing import Union, Iterable
+from functools import partial
 from typing_extensions import Literal
 
 import httpx2
@@ -14,11 +13,11 @@ from ..types import embedding_create_params
 from .._types import Body, Omit, Query, Headers, NotGiven, SequenceNotStr, omit, not_given
 from .._utils import is_given, maybe_transform
 from .._compat import cached_property
-from .._extras import numpy as np, has_numpy
 from .._resource import SyncAPIResource, AsyncAPIResource
 from .._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from .._base_client import make_request_options
 from ..types.embedding_model import EmbeddingModel
+from ..lib._parsing._embeddings import parse_embedding_response as _parse_embedding_response
 from ..types.create_embedding_response import CreateEmbeddingResponse
 
 __all__ = ["Embeddings", "AsyncEmbeddings"]
@@ -142,7 +141,7 @@ class Embeddings(SyncAPIResource):
                 extra_query=extra_query,
                 extra_body=extra_body,
                 timeout=timeout,
-                post_parser=parser,
+                post_parser=partial(_parse_embedding_response, encoding_format=encoding_format),
                 security={"bearer_auth": True},
             ),
             cast_to=CreateEmbeddingResponse,
@@ -267,7 +266,7 @@ class AsyncEmbeddings(AsyncAPIResource):
                 extra_query=extra_query,
                 extra_body=extra_body,
                 timeout=timeout,
-                post_parser=parser,
+                post_parser=partial(_parse_embedding_response, encoding_format=encoding_format),
                 security={"bearer_auth": True},
             ),
             cast_to=CreateEmbeddingResponse,
