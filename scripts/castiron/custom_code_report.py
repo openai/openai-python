@@ -918,7 +918,9 @@ def trusted_report(
     git(repo, "fetch", "--quiet", "--no-tags", "origin", base, head)
     write_report(repo, base, head, out, fetch=True, require_head_hash=True, public=public)
     (out / "context.json").write_text(
-        json.dumps({"pr": number, "repository": repository, "run": run_id, "attempt": run_attempt})
+        json.dumps(
+            {"pr": number, "repository": repository, "run": run_id, "attempt": run_attempt}
+        )
         + "\n"
     )
 
