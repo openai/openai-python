@@ -47,9 +47,10 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
           set -euo pipefail
-          [[ "$BASE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          # Bash 3.2 does not apply errexit to failed [[ ... ]] guards.
+          [[ "$BASE_SHA" =~ ^[0-9a-f]{40}$ ]] || exit 1
           origin="$(git remote get-url origin)"
-          [[ "$origin" == "https://github.com/openai/openai-python" || "$origin" == "https://github.com/openai/openai-python.git" ]]
+          [[ "$origin" == "https://github.com/openai/openai-python" || "$origin" == "https://github.com/openai/openai-python.git" ]] || exit 1
           git fetch --no-tags --depth=1 origin "$BASE_SHA"
           git show "$BASE_SHA:scripts/check-dependency-security.py" | python -I -
 
