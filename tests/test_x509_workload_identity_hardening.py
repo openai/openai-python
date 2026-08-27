@@ -400,34 +400,64 @@ async def test_async_x509_honors_explicit_server_retry_requests(
     assert attempts == 2
 
 
-def test_sync_x509_copies_share_tokens_only_for_the_same_identity_transport_and_origin() -> None:
+def test_sync_x509_client_copies_keep_authentication_caches_independent() -> None:
     requests: list[httpx2.Request] = []
     http_client = httpx2.Client(transport=httpx2.MockTransport(lambda request: _record(requests, request)))
 
     with OpenAI(workload_identity=_identity(), http_client=http_client, max_retries=0) as client:
         client.models.list()
-        client.with_options(timeout=1).models.list()
-        client.with_options(timeout=2).models.list()
+        copied = client.with_options(timeout=1)
+        sibling = client.with_options(timeout=2)
+        assert client._workload_identity_auth is not None
+        assert copied._workload_identity_auth is not None
+        assert sibling._workload_identity_auth is not None
+        assert copied._workload_identity_auth is not client._workload_identity_auth
+        assert sibling._workload_identity_auth is not client._workload_identity_auth
+        assert sibling._workload_identity_auth is not copied._workload_identity_auth
+        copied.models.list()
+        sibling.models.list()
+
+        copied._workload_identity_auth.invalidate_token("access-token")
+        assert copied._workload_identity_auth._cached_token is None
+        assert client._workload_identity_auth._cached_token == "access-token"
+        assert sibling._workload_identity_auth._cached_token == "access-token"
+        copied.models.list()
+
         changed_identity = x509_workload_identity(identity_provider_id="other", service_account_id="svc_example")
         client.with_options(workload_identity=changed_identity).models.list()
 
     exchanges = [request for request in requests if str(request.url) == _TOKEN_URL]
-    assert len(exchanges) == 2
+    assert len(exchanges) == 5
 
 
-async def test_async_x509_copies_share_tokens_only_for_the_same_identity_transport_and_origin() -> None:
+async def test_async_x509_client_copies_keep_authentication_caches_independent() -> None:
     requests: list[httpx2.Request] = []
     http_client = httpx2.AsyncClient(transport=httpx2.MockTransport(lambda request: _record(requests, request)))
 
     async with AsyncOpenAI(workload_identity=_identity(), http_client=http_client, max_retries=0) as client:
         await client.models.list()
-        await client.with_options(timeout=1).models.list()
-        await client.with_options(timeout=2).models.list()
+        copied = client.with_options(timeout=1)
+        sibling = client.with_options(timeout=2)
+        assert client._workload_identity_auth is not None
+        assert copied._workload_identity_auth is not None
+        assert sibling._workload_identity_auth is not None
+        assert copied._workload_identity_auth is not client._workload_identity_auth
+        assert sibling._workload_identity_auth is not client._workload_identity_auth
+        assert sibling._workload_identity_auth is not copied._workload_identity_auth
+        await copied.models.list()
+        await sibling.models.list()
+
+        copied._workload_identity_auth.invalidate_token("access-token")
+        assert copied._workload_identity_auth._cached_token is None
+        assert client._workload_identity_auth._cached_token == "access-token"
+        assert sibling._workload_identity_auth._cached_token == "access-token"
+        await copied.models.list()
+
         changed_identity = x509_workload_identity(identity_provider_id="other", service_account_id="svc_example")
         await client.with_options(workload_identity=changed_identity).models.list()
 
     exchanges = [request for request in requests if str(request.url) == _TOKEN_URL]
-    assert len(exchanges) == 2
+    assert len(exchanges) == 5
 
 
 def test_sync_x509_uses_unexpired_token_when_proactive_refresh_temporarily_fails() -> None:

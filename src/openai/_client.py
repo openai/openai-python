@@ -38,7 +38,6 @@ from .auth._x509 import (
     MTLS_API_BASE_URL,
     SyncX509WorkloadIdentityAuth,
     AsyncX509WorkloadIdentityAuth,
-    can_share_x509_auth,
     validate_x509_api_url,
     non_x509_request_scope,
     is_x509_workload_identity,
@@ -819,13 +818,6 @@ class OpenAI(SyncAPIClient):
             copied._data_residency = data_residency
         elif not explicit_base_url and not provider_changed:
             copied._data_residency = self._data_residency
-        if can_share_x509_auth(
-            self._workload_identity_auth,
-            copied._workload_identity_auth,
-            current_origin=self.base_url,
-            replacement_origin=copied.base_url,
-        ):
-            copied._workload_identity_auth = self._workload_identity_auth
         return copied
 
     # Alias for `copy` for nicer inline usage, e.g.
@@ -1579,13 +1571,6 @@ class AsyncOpenAI(AsyncAPIClient):
             copied._data_residency = data_residency
         elif not explicit_base_url and not provider_changed:
             copied._data_residency = self._data_residency
-        if can_share_x509_auth(
-            self._workload_identity_auth,
-            copied._workload_identity_auth,
-            current_origin=self.base_url,
-            replacement_origin=copied.base_url,
-        ):
-            copied._workload_identity_auth = self._workload_identity_auth
         return copied
 
     # Alias for `copy` for nicer inline usage, e.g.

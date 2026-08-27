@@ -949,22 +949,3 @@ class AsyncX509WorkloadIdentityAuth(_X509WorkloadIdentityAuth):
                 await anyio.sleep(delay)
 
         raise AssertionError("X.509 token exchange retry loop exhausted unexpectedly")
-
-
-def can_share_x509_auth(
-    current: object,
-    replacement: object,
-    *,
-    current_origin: httpx2.URL,
-    replacement_origin: httpx2.URL,
-) -> bool:
-    auth_types = (SyncX509WorkloadIdentityAuth, AsyncX509WorkloadIdentityAuth)
-    if not isinstance(current, auth_types) or not isinstance(replacement, auth_types):
-        return False
-    return (
-        type(current) is type(replacement)
-        and current.workload_identity == replacement.workload_identity
-        and current._http_client is replacement._http_client
-        and current_origin == replacement_origin
-        and current._max_exchange_retries == replacement._max_exchange_retries
-    )
