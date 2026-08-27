@@ -875,7 +875,9 @@ def write_report(
     return report
 
 
-def trusted_report(repo: Path, repository: str, run_id: int, run_attempt: int, out: Path) -> None:
+def trusted_report(
+    repo: Path, repository: str, run_id: int, run_attempt: int, out: Path
+) -> None:
     """Recompute from GitHub-associated Git objects, never from PR-produced artifacts."""
     if not REPOSITORY.fullmatch(repository) or min(run_id, run_attempt) <= 0:
         raise ReportError("invalid GitHub report target")
