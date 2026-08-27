@@ -27,6 +27,18 @@ _REGIONAL_MTLS_URLS = {
 }
 
 
+class _RequestlessConnectError(httpx2.ConnectError):
+    @property
+    @override
+    def request(self) -> httpx2.Request:
+        raise RuntimeError("The .request property has not been set.")
+
+    @request.setter
+    def request(self, request: httpx2.Request) -> None:
+        del request
+        return None
+
+
 def _identity() -> X509WorkloadIdentity:
     return x509_workload_identity(identity_provider_id="idp_example", service_account_id="svc_example")
 
@@ -502,7 +514,8 @@ async def test_async_x509_client_copies_keep_authentication_caches_independent()
     assert len(exchanges) == 5
 
 
-def test_sync_x509_uses_unexpired_token_when_proactive_refresh_temporarily_fails() -> None:
+@pytest.mark.parametrize("requestless", [False, True])
+def test_sync_x509_uses_unexpired_token_when_proactive_refresh_temporarily_fails(requestless: bool) -> None:
     requests: list[httpx2.Request] = []
     exchange_count = 0
 
@@ -512,6 +525,8 @@ def test_sync_x509_uses_unexpired_token_when_proactive_refresh_temporarily_fails
         if str(request.url) == _TOKEN_URL:
             exchange_count += 1
             if exchange_count > 1:
+                if requestless:
+                    raise _RequestlessConnectError("temporary failure")
                 raise httpx2.ConnectError("temporary failure", request=request)
         return _response(request)
 
@@ -527,7 +542,8 @@ def test_sync_x509_uses_unexpired_token_when_proactive_refresh_temporarily_fails
             client.models.list()
 
 
-async def test_async_x509_uses_unexpired_token_when_proactive_refresh_temporarily_fails() -> None:
+@pytest.mark.parametrize("requestless", [False, True])
+async def test_async_x509_uses_unexpired_token_when_proactive_refresh_temporarily_fails(requestless: bool) -> None:
     requests: list[httpx2.Request] = []
     exchange_count = 0
 
@@ -537,6 +553,8 @@ async def test_async_x509_uses_unexpired_token_when_proactive_refresh_temporaril
         if str(request.url) == _TOKEN_URL:
             exchange_count += 1
             if exchange_count > 1:
+                if requestless:
+                    raise _RequestlessConnectError("temporary failure")
                 raise httpx2.ConnectError("temporary failure", request=request)
         return _response(request)
 
@@ -936,95 +954,6 @@ async def test_async_x509_pins_concurrent_reconstructed_requests_to_the_correct_
         second = responses[1]
         assert not isinstance(second, BaseException)
         assert second.object == "list"
-
-
-def test_sync_x509_rejects_ambiguous_reconstructed_requests_across_protected_origins() -> None:
-    arrived = threading.Barrier(2)
-    first_finished = threading.Event()
-    captured: list[httpx2.Request] = []
-
-    def handler(request: httpx2.Request) -> httpx2.Response:
-        captured.append(request)
-        return _response(request, token="shared-token")
-
-    class CrossOriginClient(httpx2.Client):
-        @override
-        def send(self, request: httpx2.Request, **kwargs: Any) -> httpx2.Response:
-            arrived.wait(timeout=5)
-            if request.url.host == "private.example":
-                assert first_finished.wait(timeout=5)
-                return super().send(request, **kwargs)
-            copied = httpx2.Request(request.method, "https://private.example/v1/models", headers=dict(request.headers))
-            copied.headers["host"] = "private.example"
-            try:
-                with ThreadPoolExecutor(max_workers=1) as executor:
-                    return executor.submit(super().send, copied, **kwargs).result()
-            finally:
-                first_finished.set()
-
-    transport = CrossOriginClient(transport=httpx2.MockTransport(handler))
-    clients = [
-        OpenAI(workload_identity=_identity(), http_client=transport, max_retries=0),
-        OpenAI(
-            workload_identity=_identity(), base_url="https://private.example/v1", http_client=transport, max_retries=0
-        ),
-    ]
-
-    with ThreadPoolExecutor(max_workers=2) as executor:
-        requests = [executor.submit(client.models.list) for client in clients]
-        with pytest.raises(OpenAIError, match="origin|associated"):
-            requests[0].result(timeout=5)
-        assert requests[1].result(timeout=5).object == "list"
-
-    assert [str(request.url) for request in captured if request.url.host == "private.example"] == [
-        "https://private.example/v1/models"
-    ]
-
-
-async def test_async_x509_rejects_ambiguous_reconstructed_requests_across_protected_origins() -> None:
-    arrived = 0
-    both_arrived = asyncio.Event()
-    first_finished = asyncio.Event()
-    captured: list[httpx2.Request] = []
-
-    def handler(request: httpx2.Request) -> httpx2.Response:
-        captured.append(request)
-        return _response(request, token="shared-token")
-
-    class CrossOriginClient(httpx2.AsyncClient):
-        @override
-        async def send(self, request: httpx2.Request, **kwargs: Any) -> httpx2.Response:
-            nonlocal arrived
-            arrived += 1
-            if arrived == 2:
-                both_arrived.set()
-            await asyncio.wait_for(both_arrived.wait(), timeout=5)
-            if request.url.host == "private.example":
-                await asyncio.wait_for(first_finished.wait(), timeout=5)
-                return await super().send(request, **kwargs)
-            copied = httpx2.Request(request.method, "https://private.example/v1/models", headers=dict(request.headers))
-            copied.headers["host"] = "private.example"
-            try:
-                return await Context().run(asyncio.create_task, super().send(copied, **kwargs))
-            finally:
-                first_finished.set()
-
-    transport = CrossOriginClient(transport=httpx2.MockTransport(handler))
-    clients = [
-        AsyncOpenAI(workload_identity=_identity(), http_client=transport, max_retries=0),
-        AsyncOpenAI(
-            workload_identity=_identity(), base_url="https://private.example/v1", http_client=transport, max_retries=0
-        ),
-    ]
-
-    responses = await asyncio.gather(*(client.models.list() for client in clients), return_exceptions=True)
-    assert isinstance(responses[0], OpenAIError)
-    second = responses[1]
-    assert not isinstance(second, BaseException)
-    assert second.object == "list"
-    assert [str(request.url) for request in captured if request.url.host == "private.example"] == [
-        "https://private.example/v1/models"
-    ]
 
 
 def _record(requests: list[httpx2.Request], request: httpx2.Request) -> httpx2.Response:

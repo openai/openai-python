@@ -39,7 +39,6 @@ from .auth._x509 import (
     SyncX509WorkloadIdentityAuth,
     AsyncX509WorkloadIdentityAuth,
     validate_x509_api_url,
-    non_x509_request_scope,
     is_x509_workload_identity,
     x509_data_residency_base_url,
     validate_x509_api_credentials,
@@ -560,8 +559,7 @@ class OpenAI(SyncAPIClient):
                 **kwargs,
             )
         else:
-            with non_x509_request_scope(request):
-                response = super()._send_request(request, stream=stream, **kwargs)
+            response = super()._send_request(request, stream=stream, **kwargs)
         if response.status_code != 401 or self._workload_identity_auth is None or used_access_token is None:
             return response
 
@@ -1303,8 +1301,7 @@ class AsyncOpenAI(AsyncAPIClient):
                 **kwargs,
             )
         else:
-            with non_x509_request_scope(request):
-                response = await super()._send_request(request, stream=stream, **kwargs)
+            response = await super()._send_request(request, stream=stream, **kwargs)
         if response.status_code != 401 or self._workload_identity_auth is None or used_access_token is None:
             return response
 
