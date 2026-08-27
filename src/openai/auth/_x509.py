@@ -11,6 +11,7 @@ from weakref import ReferenceType, ref
 from functools import wraps
 from contextlib import ExitStack, contextmanager
 from contextvars import ContextVar
+from urllib.parse import unquote
 from typing_extensions import TypeIs, override
 
 import anyio
@@ -90,16 +91,12 @@ def _is_unprotected_transport_request(request: httpx2.Request) -> bool:
     contextual_marker = _UNPROTECTED_TRANSPORT_SCOPE.get()
     with _ACTIVE_API_TRANSPORT_SCOPES_LOCK:
         if type(marker) is object and marker in _ACTIVE_UNPROTECTED_TRANSPORT_SCOPES:
-            current_authorization = request.headers.get("Authorization")
             originating_request = _ACTIVE_UNPROTECTED_TRANSPORT_SCOPES[marker][0]
-            if (
-                marker in _ACTIVE_AUXILIARY_TRANSPORT_MARKERS or request is not originating_request
-            ) and current_authorization is not None:
+            if marker in _ACTIVE_AUXILIARY_TRANSPORT_MARKERS or request is not originating_request:
                 for _, _, active_authorization in _ACTIVE_API_TRANSPORT_SCOPES.values():
-                    if active_authorization is None:
-                        continue
-                    access_token = active_authorization.removeprefix("Bearer ")
-                    if access_token in current_authorization:
+                    if active_authorization is not None and _request_contains_access_token(
+                        request, active_authorization
+                    ):
                         return False
             return True
         request_authorization = request.headers.get("Authorization")
@@ -114,15 +111,17 @@ def _is_unprotected_transport_request(request: httpx2.Request) -> bool:
                 or request_authorization != auxiliary_authorization
             ):
                 continue
-            if request_authorization is not None:
-                for _, _, active_authorization in _ACTIVE_API_TRANSPORT_SCOPES.values():
-                    if active_authorization is not None:
-                        access_token = active_authorization.removeprefix("Bearer ")
-                        if access_token in request_authorization:
-                            return False
+            for _, _, active_authorization in _ACTIVE_API_TRANSPORT_SCOPES.values():
+                if active_authorization is not None and _request_contains_access_token(request, active_authorization):
+                    return False
             request.extensions[_UNPROTECTED_TRANSPORT_SCOPE_EXTENSION] = auxiliary_marker
             return True
         return contextual_marker is not None and contextual_marker in _ACTIVE_UNPROTECTED_TRANSPORT_SCOPES
+
+
+def _request_contains_access_token(request: httpx2.Request, authorization: str) -> bool:
+    access_token = authorization.removeprefix("Bearer ")
+    return any(access_token in value or access_token in unquote(value) for value in request.headers.values())
 
 
 def _request_transport_scope(request: httpx2.Request) -> tuple[httpx2.Request, httpx2.URL, str | None] | None:
@@ -518,22 +517,37 @@ class _X509ClientTransportScope:
         self._original_request_hooks: list[Any] = []
         self._original_build_request: Any = None
         self._had_build_request_attribute = False
+        self._original_send: Any = None
+        self._had_send_attribute = False
+        self._send_depth: ContextVar[int] = ContextVar("openai_x509_client_send_depth", default=0)
         self._auxiliary_request_markers: set[object] = set()
 
     def _build_auxiliary_request(self, *args: Any, **kwargs: Any) -> httpx2.Request:
         request = cast(httpx2.Request, self._original_build_request(*args, **kwargs))
+        self._mark_auxiliary_request(request)
+        return request
+
+    def _mark_auxiliary_request(self, request: httpx2.Request, *, recursive: bool = False) -> None:
         active_scope = _API_TRANSPORT_SCOPE.get()
-        if active_scope is None or request is active_scope[0]:
-            return request
+        if (
+            active_scope is None
+            or request is active_scope[0]
+            or _is_unprotected_transport_request(request)
+            or _active_request_transport_scope(request) is not None
+        ):
+            return
 
         authorization = request.headers.get("Authorization")
-        if authorization is not None:
-            with _ACTIVE_API_TRANSPORT_SCOPES_LOCK:
-                for _, _, expected_authorization in _ACTIVE_API_TRANSPORT_SCOPES.values():
-                    if expected_authorization is not None:
-                        access_token = expected_authorization.removeprefix("Bearer ")
-                        if access_token in authorization:
-                            return request
+        if recursive and authorization is not None and request.method == active_scope[0].method:
+            protected_headers = {
+                name: value
+                for name, value in active_scope[0].headers.items()
+                if name.lower() not in ("authorization", "host")
+            }
+            if protected_headers and all(
+                request.headers.get(name) == value for name, value in protected_headers.items()
+            ):
+                return
 
         marker = object()
         request.extensions[_UNPROTECTED_TRANSPORT_SCOPE_EXTENSION] = marker
@@ -542,7 +556,26 @@ class _X509ClientTransportScope:
             _ACTIVE_AUXILIARY_TRANSPORT_MARKERS.add(marker)
         with self._lock:
             self._auxiliary_request_markers.add(marker)
-        return request
+
+    def _send_auxiliary_request(self, request: httpx2.Request, *args: Any, **kwargs: Any) -> Any:
+        depth = self._send_depth.get()
+        if depth:
+            self._mark_auxiliary_request(request, recursive=True)
+        previous_depth = self._send_depth.set(depth + 1)
+        try:
+            return self._original_send(request, *args, **kwargs)
+        finally:
+            self._send_depth.reset(previous_depth)
+
+    async def _send_async_auxiliary_request(self, request: httpx2.Request, *args: Any, **kwargs: Any) -> Any:
+        depth = self._send_depth.get()
+        if depth:
+            self._mark_auxiliary_request(request, recursive=True)
+        previous_depth = self._send_depth.set(depth + 1)
+        try:
+            return await self._original_send(request, *args, **kwargs)
+        finally:
+            self._send_depth.reset(previous_depth)
 
     def _wrap(self, transport: Any) -> Any:
         if self._is_async:
@@ -642,6 +675,11 @@ class _X509ClientTransportScope:
                 self._had_build_request_attribute = "build_request" in vars(http_client)
                 self._original_build_request = http_client.build_request
                 vars(http_client)["build_request"] = self._build_auxiliary_request
+                self._had_send_attribute = "send" in vars(http_client)
+                self._original_send = http_client.send
+                vars(http_client)["send"] = (
+                    self._send_async_auxiliary_request if self._is_async else self._send_auxiliary_request
+                )
             self._active_requests += 1
 
         marker = object()
@@ -684,12 +722,17 @@ class _X509ClientTransportScope:
                         vars(http_client)["build_request"] = self._original_build_request
                     else:
                         vars(http_client).pop("build_request", None)
+                    if self._had_send_attribute:
+                        vars(http_client)["send"] = self._original_send
+                    else:
+                        vars(http_client).pop("send", None)
                     auxiliary_markers = self._auxiliary_request_markers
                     self._auxiliary_request_markers = set()
                     self._original_transport = None
                     self._original_mounts = {}
                     self._original_request_hooks = []
                     self._original_build_request = None
+                    self._original_send = None
             if auxiliary_markers:
                 with _ACTIVE_API_TRANSPORT_SCOPES_LOCK:
                     for auxiliary_marker in auxiliary_markers:
@@ -736,47 +779,52 @@ def _active_request_transport_scope(request: httpx2.Request) -> tuple[httpx2.Req
         return None
 
     authorization = request.headers.get("Authorization")
-    if request_scope is not None:
+    with _ACTIVE_API_TRANSPORT_SCOPES_LOCK:
+        active_scopes = list(_ACTIVE_API_TRANSPORT_SCOPES.values())
         marker = request.extensions.get(_API_TRANSPORT_SCOPE_EXTENSION)
-        with _ACTIVE_API_TRANSPORT_SCOPES_LOCK:
-            marked_scope = type(marker) is object and marker in _ACTIVE_API_TRANSPORT_SCOPES
+        marked_scope = type(marker) is object and marker in _ACTIVE_API_TRANSPORT_SCOPES
+    matching_scopes: list[tuple[httpx2.Request, httpx2.URL, str | None]] = []
+    for header_value in request.headers.values():
+        decoded_value = unquote(header_value)
+        header_scopes = [
+            scope
+            for scope in active_scopes
+            if scope[2] is not None
+            and (scope[2].removeprefix("Bearer ") in header_value or scope[2].removeprefix("Bearer ") in decoded_value)
+        ]
+        exact_header_scopes = [
+            scope for scope in header_scopes if header_value == scope[2] or decoded_value == scope[2]
+        ]
+        for matched_scope in exact_header_scopes if exact_header_scopes else header_scopes:
+            if matched_scope not in matching_scopes:
+                matching_scopes.append(matched_scope)
+    if len({(scope[1].host, scope[1].port) for scope in matching_scopes}) > 1:
+        trusted_scope = request_scope is not None and (request is request_scope[0] or marked_scope)
+        if (
+            trusted_scope
+            and request_scope is not None
+            and all(scope[2] == request_scope[2] for scope in matching_scopes)
+        ):
+            matching_scopes = [request_scope]
+        else:
+            raise OpenAIError("X.509 workload identity request cannot be associated with a single API origin")
+
+    if request_scope is not None:
         protected_authorization = request_scope[2]
         if (
             request is request_scope[0]
             or marked_scope
             or (
-                authorization is not None
-                and protected_authorization is not None
-                and (
-                    authorization == protected_authorization
-                    or (
-                        protected_authorization.startswith("Bearer ")
-                        and protected_authorization[len("Bearer ") :] in authorization
-                    )
-                )
+                protected_authorization is not None and _request_contains_access_token(request, protected_authorization)
             )
         ):
             return request_scope
 
-    if authorization is None:
-        return None
-    with _ACTIVE_API_TRANSPORT_SCOPES_LOCK:
-        matching_scopes = [
-            scope
-            for scope in _ACTIVE_API_TRANSPORT_SCOPES.values()
-            if scope[2] is not None
-            and (
-                authorization == scope[2]
-                or (scope[2].startswith("Bearer ") and scope[2][len("Bearer ") :] in authorization)
-            )
-        ]
     if not matching_scopes:
         return None
     exact_scopes = [scope for scope in matching_scopes if authorization == scope[2]]
     if exact_scopes:
         matching_scopes = exact_scopes
-    if len({(scope[1].host, scope[1].port) for scope in matching_scopes}) > 1:
-        raise OpenAIError("X.509 workload identity request cannot be associated with a single API origin")
     same_origin = [
         scope for scope in matching_scopes if (request.url.host, request.url.port) == (scope[1].host, scope[1].port)
     ]
@@ -932,18 +980,9 @@ def _active_client_transport_scopes(
                         slot = f"_{owner.__name__.lstrip('_')}{slot}"
                     values.append(getattr(current, slot, None))
 
-            inspected: set[int] = set()
-            while values:
-                value = values.pop()
-                if id(value) in inspected:
-                    continue
-                inspected.add(id(value))
+            for value in values:
                 if isinstance(value, client_types):
                     pending.append(value)
-                elif isinstance(value, dict):
-                    values.extend(cast(dict[object, object], value).values())
-                elif isinstance(value, (list, tuple, set, frozenset)):
-                    values.extend(cast(list[object] | tuple[object, ...] | set[object] | frozenset[object], value))
         yield
 
 

