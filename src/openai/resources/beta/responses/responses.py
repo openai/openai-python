@@ -4131,7 +4131,7 @@ class AsyncResponsesConnection:
         self._extra_headers = extra_headers
         self._intentionally_closed = False
         self._is_reconnecting = False
-        self._send_queue = send_queue or SendQueue()
+        self._send_queue = send_queue if send_queue is not None else SendQueue()
         self._event_handler_registry = EventHandlerRegistry(use_lock=False)
 
         self.response = AsyncResponsesResponseResource(self)
@@ -4588,7 +4588,7 @@ class ResponsesConnection:
         self._extra_headers = extra_headers
         self._intentionally_closed = False
         self._is_reconnecting = False
-        self._send_queue = send_queue or SendQueue()
+        self._send_queue = send_queue if send_queue is not None else SendQueue()
         self._event_handler_registry = EventHandlerRegistry(use_lock=True)
 
         self.response = ResponsesResponseResource(self)
