@@ -31,6 +31,24 @@ def test_remove_only_removes_the_first_matching_registration() -> None:
     assert registry.get_handlers("event") == []
 
 
+def test_remove_prefers_identity_to_overloaded_equality() -> None:
+    class Handler:
+        def __call__(self, _event: object) -> None:
+            pass
+
+        def __eq__(self, other: object) -> bool:
+            del other
+            raise AssertionError("identity matches must not invoke __eq__")
+
+    handler = Handler()
+    registry = EventHandlerRegistry()
+    registry.add("event", handler)
+
+    registry.remove("event", handler)
+
+    assert registry.has_handlers("event") is False
+
+
 def test_merge_preserves_each_registration_mode() -> None:
     def handler(_event: object) -> None:
         pass
