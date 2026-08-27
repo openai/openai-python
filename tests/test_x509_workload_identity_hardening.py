@@ -512,6 +512,82 @@ async def test_async_x509_uses_unexpired_token_when_proactive_refresh_temporaril
             await client.models.list()
 
 
+def test_sync_x509_shares_failed_proactive_refresh_across_concurrent_requests(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    exchange_count = 0
+    count_lock = threading.Lock()
+    fallback_started = threading.Event()
+    release_fallback = threading.Event()
+
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        nonlocal exchange_count
+        if str(request.url) == _TOKEN_URL:
+            with count_lock:
+                exchange_count += 1
+                current_count = exchange_count
+            if current_count > 1:
+                time.sleep(0.025)
+                raise httpx2.ConnectError("temporary failure", request=request)
+        return _response(request)
+
+    with OpenAI(
+        workload_identity=_identity(), http_client=httpx2.Client(transport=httpx2.MockTransport(handler)), max_retries=0
+    ) as client:
+        client.models.list()
+        auth = client._workload_identity_auth
+        assert isinstance(auth, x509_auth.SyncX509WorkloadIdentityAuth)
+        auth._cached_token_refresh_at_monotonic = time.monotonic() - 1
+        fallback = auth._usable_token_after_transient_failure
+
+        def delayed_fallback() -> str | None:
+            fallback_started.set()
+            assert release_fallback.wait(timeout=5)
+            return fallback()
+
+        monkeypatch.setattr(auth, "_usable_token_after_transient_failure", delayed_fallback)
+
+        with ThreadPoolExecutor(max_workers=6) as executor:
+            first = executor.submit(client.models.list)
+            assert fallback_started.wait(timeout=5)
+            waiters = [executor.submit(client.models.list) for _ in range(5)]
+            time.sleep(0.05)
+            release_fallback.set()
+            assert [result.result(timeout=5).object for result in [first, *waiters]] == ["list"] * 6
+
+    assert exchange_count == 2
+
+
+async def test_async_x509_shares_failed_proactive_refresh_across_concurrent_requests() -> None:
+    exchange_count = 0
+
+    async def handler(request: httpx2.Request) -> httpx2.Response:
+        nonlocal exchange_count
+        if str(request.url) == _TOKEN_URL:
+            exchange_count += 1
+            if exchange_count > 1:
+                await asyncio.sleep(0.025)
+                raise httpx2.ConnectError("temporary failure", request=request)
+        return _response(request)
+
+    async with AsyncOpenAI(
+        workload_identity=_identity(),
+        http_client=httpx2.AsyncClient(transport=httpx2.MockTransport(handler)),
+        max_retries=0,
+    ) as client:
+        await client.models.list()
+        auth = client._workload_identity_auth
+        assert auth is not None
+        auth._cached_token_refresh_at_monotonic = time.monotonic() - 1
+
+        async def list_models() -> str:
+            return (await client.models.list()).object
+
+        assert await asyncio.gather(*(list_models() for _ in range(6))) == ["list"] * 6
+
+    assert exchange_count == 2
+
+
 @pytest.mark.parametrize(
     ("status_code", "headers"),
     [(429, {}), (500, {}), (503, {}), (418, {"x-should-retry": "true"}), (425, {"x-should-retry": "true"})],
@@ -718,20 +794,24 @@ def test_x509_rejects_non_string_identity_identifiers(
 
 
 @pytest.mark.parametrize("replace_authorization", [False, True])
+@pytest.mark.parametrize("overlapping_tokens", [False, True])
 def test_sync_x509_pins_concurrent_reconstructed_requests_to_the_correct_identity(
-    replace_authorization: bool,
+    replace_authorization: bool, overlapping_tokens: bool
 ) -> None:
     arrived = threading.Barrier(2)
+    tokens = (
+        {"one": "token", "two": "token.extended"} if overlapping_tokens else {"one": "token-one", "two": "token-two"}
+    )
 
     def handler(request: httpx2.Request) -> httpx2.Response:
         if str(request.url) == _TOKEN_URL:
             identity = json.loads(request.content)["identity_provider_id"]
-            return _response(request, token=f"token-{identity.rsplit('-', 1)[-1]}")
+            return _response(request, token=tokens[identity.rsplit("-", 1)[-1]])
         return _response(request)
 
     def replace(request: httpx2.Request) -> None:
-        if replace_authorization and request.headers.get("Authorization") == "Bearer token-two":
-            request.headers["Authorization"] = "Bearer token-one"
+        if replace_authorization and request.headers.get("Authorization") == f"Bearer {tokens['two']}":
+            request.headers["Authorization"] = f"Bearer {tokens['one']}"
 
     class CrossThreadClient(httpx2.Client):
         @override
@@ -762,21 +842,25 @@ def test_sync_x509_pins_concurrent_reconstructed_requests_to_the_correct_identit
 
 
 @pytest.mark.parametrize("replace_authorization", [False, True])
+@pytest.mark.parametrize("overlapping_tokens", [False, True])
 async def test_async_x509_pins_concurrent_reconstructed_requests_to_the_correct_identity(
-    replace_authorization: bool,
+    replace_authorization: bool, overlapping_tokens: bool
 ) -> None:
     arrived = 0
     both_arrived = asyncio.Event()
+    tokens = (
+        {"one": "token", "two": "token.extended"} if overlapping_tokens else {"one": "token-one", "two": "token-two"}
+    )
 
     def handler(request: httpx2.Request) -> httpx2.Response:
         if str(request.url) == _TOKEN_URL:
             identity = json.loads(request.content)["identity_provider_id"]
-            return _response(request, token=f"token-{identity.rsplit('-', 1)[-1]}")
+            return _response(request, token=tokens[identity.rsplit("-", 1)[-1]])
         return _response(request)
 
     async def replace(request: httpx2.Request) -> None:
-        if replace_authorization and request.headers.get("Authorization") == "Bearer token-two":
-            request.headers["Authorization"] = "Bearer token-one"
+        if replace_authorization and request.headers.get("Authorization") == f"Bearer {tokens['two']}":
+            request.headers["Authorization"] = f"Bearer {tokens['one']}"
 
     class CrossContextClient(httpx2.AsyncClient):
         @override

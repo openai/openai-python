@@ -91,7 +91,10 @@ def _is_unprotected_transport_request(request: httpx2.Request) -> bool:
     with _ACTIVE_API_TRANSPORT_SCOPES_LOCK:
         if type(marker) is object and marker in _ACTIVE_UNPROTECTED_TRANSPORT_SCOPES:
             current_authorization = request.headers.get("Authorization")
-            if marker in _ACTIVE_AUXILIARY_TRANSPORT_MARKERS and current_authorization is not None:
+            originating_request = _ACTIVE_UNPROTECTED_TRANSPORT_SCOPES[marker][0]
+            if (
+                marker in _ACTIVE_AUXILIARY_TRANSPORT_MARKERS or request is not originating_request
+            ) and current_authorization is not None:
                 for _, _, active_authorization in _ACTIVE_API_TRANSPORT_SCOPES.values():
                     if active_authorization is None:
                         continue
@@ -436,6 +439,13 @@ class _X509ClientTransportScope:
             ]
             if not matching_authorization:
                 return None
+            exact_authorization = [
+                (marker, active_scope)
+                for marker, active_scope in matching_authorization
+                if request_authorization == active_scope[2]
+            ]
+            if exact_authorization:
+                matching_authorization = exact_authorization
             if len({(active_scope[1].host, active_scope[1].port) for _, active_scope in matching_authorization}) > 1:
                 raise OpenAIError("X.509 workload identity request cannot be associated with a single API origin")
             same_origin = [
@@ -617,6 +627,9 @@ def _active_request_transport_scope(request: httpx2.Request) -> tuple[httpx2.Req
         ]
     if not matching_scopes:
         return None
+    exact_scopes = [scope for scope in matching_scopes if authorization == scope[2]]
+    if exact_scopes:
+        matching_scopes = exact_scopes
     if len({(scope[1].host, scope[1].port) for scope in matching_scopes}) > 1:
         raise OpenAIError("X.509 workload identity request cannot be associated with a single API origin")
     same_origin = [
@@ -1079,6 +1092,14 @@ class _X509WorkloadIdentityAuth(_WorkloadIdentityAuth[X509WorkloadIdentity]):
             self._cached_token_refresh_at_monotonic = time.monotonic() + INITIAL_RETRY_DELAY
             return self._cached_token
 
+    @override
+    def _perform_refresh(self) -> None:
+        try:
+            super()._perform_refresh()
+        except (APIConnectionError, _TransientTokenExchangeError):
+            if self._usable_token_after_transient_failure() is None:
+                raise
+
     def _handle_exchange_response(self, response: httpx2.Response) -> dict[str, Any]:
         try:
             return self._handle_token_response(response)
@@ -1211,7 +1232,13 @@ class AsyncX509WorkloadIdentityAuth(_X509WorkloadIdentityAuth):
                 if not self._token_unusable() and not self._needs_refresh():
                     return cast(str, self._cached_token)
 
-            token_data = await self._fetch_token_from_exchange_async()
+            try:
+                token_data = await self._fetch_token_from_exchange_async()
+            except (APIConnectionError, _TransientTokenExchangeError):
+                token = self._usable_token_after_transient_failure()
+                if token is None:
+                    raise
+                return token
             self._store_token(token_data)
             with self._lock:
                 return cast(str, self._cached_token)
