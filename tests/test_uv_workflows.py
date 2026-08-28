@@ -1005,6 +1005,19 @@ def test_untrusted_provenance_leaves_no_dependency_install_reachable(tmp_path: P
     } == installers
 
 
+def test_required_checks_fail_when_dependency_provenance_fails() -> None:
+    jobs = dependency_workflow_jobs()
+    for name in ("lint", "build", "test", "test-httpx2"):
+        job = jobs[name]
+        assert re.search(r"^    needs:\s*dependency-locks\s*$", job, re.MULTILINE)
+        assert re.search(r"^    if: >-\n      !cancelled\(\)\n", job, re.MULTILINE)
+
+        guard = job.split("    steps:\n", 1)[1].split("\n\n", 1)[0]
+        assert "if: needs.dependency-locks.result != 'success'" in guard
+        assert "exit 1" in guard
+        assert "uses:" not in guard
+
+
 def test_scheduled_compatibility_keeps_dependency_provenance_gate() -> None:
     jobs = dependency_workflow_jobs()
     assert not re.search(r"^    if:.*schedule", jobs["dependency-locks"], re.MULTILINE)
