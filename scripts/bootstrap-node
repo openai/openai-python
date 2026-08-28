@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+if ! command -v node >/dev/null 2>&1; then
+  echo 'Node.js is required. Install the version in .node-version, then rerun ./scripts/bootstrap.' >&2
+  exit 1
+fi
+node scripts/utils/node-tooling.cjs --check-node
+
+PNPM_VERSION="$(node -p 'require("./package.json").packageManager.slice("pnpm@".length)')"
+# Even a Corepack shim or an older pnpm must not download another manager.
+export COREPACK_ENABLE_NETWORK=0
+export npm_config_manage_package_manager_versions=false
+export pnpm_config_pm_on_fail=error
+export pnpm_config_runtime_on_fail=error
+
+if ! command -v pnpm >/dev/null 2>&1 || ! ACTUAL_PNPM_VERSION="$(pnpm --version)"; then
+  echo "Install pnpm explicitly with: npm install --global pnpm@${PNPM_VERSION}" >&2
+  exit 1
+fi
+if [ "$ACTUAL_PNPM_VERSION" != "$PNPM_VERSION" ]; then
+  echo "Expected pnpm ${PNPM_VERSION}, found ${ACTUAL_PNPM_VERSION}." >&2
+  echo "Install it explicitly with: npm install --global pnpm@${PNPM_VERSION}" >&2
+  exit 1
+fi
+
+echo '==> Installing locked Node tooling…'
+pnpm install --frozen-lockfile --ignore-scripts

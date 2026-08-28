@@ -18,28 +18,81 @@ on:
 permissions:
   contents: read
 
+env:
+  UV_NO_BUILD: '1'
+  UV_NO_BINARY_PACKAGE: 'openai'
+  UNTRUSTED_BUILD_FORK: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.id != github.event.pull_request.base.repo.id && '1' || '0' }}
+  TRUSTED_BUILD_BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || '' }}
+
 jobs:
+  dependency-locks:
+    timeout-minutes: 10
+    name: dependency lock freshness
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Verify dependency source provenance before installing tools
+        run: |
+          python -I -c 'import ast, os, pathlib, re, subprocess, tomllib; config = tomllib.loads(pathlib.Path("pyproject.toml").read_text()); fork = os.environ.get("UNTRUSTED_BUILD_FORK", "0") == "1"; base = os.environ.get("TRUSTED_BUILD_BASE_SHA", ""); assert not fork or re.fullmatch(r"[0-9a-f]{40}", base), "Untrusted fork build base commit"; assert not fork or subprocess.check_output(["git", "remote", "get-url", "origin"], text=True).strip() in {"https://github.com/openai/openai-python", "https://github.com/openai/openai-python.git"}, "Untrusted fork build base origin"; subprocess.run(["git", "fetch", "--no-tags", "--depth=1", "origin", base], check=True) if fork else None; trusted = tomllib.loads(subprocess.check_output(["git", "show", base + ":pyproject.toml"], text=True)) if fork else config; hatch = lambda document: document.get("tool", {}).get("hatch", {}); executable = lambda document: (hatch(document).get("build", {}).get("hooks", {}), tuple(sorted((name, target.get("hooks", {})) for name, target in hatch(document).get("build", {}).get("targets", {}).items() if target.get("hooks", {}))), hatch(document).get("metadata", {}).get("hooks", {})); assert not fork or executable(config) == executable(trusted), "Untrusted fork Hatch executable hook configuration"; sections = executable(config); paths = [definition.get("path", "hatch_build.py") for mapping in [sections[0], *[item[1] for item in sections[1]], sections[2]] for plugin, definition in mapping.items() if plugin == "custom" or "path" in definition] if fork else []; assert not fork or len(paths) <= 32 and all(isinstance(location, str) and bool(location) and len(location) <= 512 and not (candidate := pathlib.Path(location)).is_absolute() and bool(candidate.parts) and ".." not in candidate.parts and candidate.is_file() and all(not pathlib.Path(*candidate.parts[:index]).is_symlink() for index in range(1, len(candidate.parts) + 1)) and candidate.read_bytes() == subprocess.check_output(["git", "show", base + ":" + candidate.as_posix()]) for location in paths), "Untrusted fork Hatch executable hook source"; project = config["project"]; lock = tomllib.loads(pathlib.Path("uv.lock").read_text()); trusted_lock = tomllib.loads(subprocess.check_output(["git", "show", base + ":uv.lock"], text=True)) if fork else lock; roots = [package for package in lock["package"] if package.get("name") == project["name"] and package.get("version") == project["version"] and package.get("source") == {"editable": "."}]; build = config.get("build-system", {}); uv = config.get("tool", {}).get("uv", {}); requires = build.get("requires", []); constraints = uv.get("build-constraint-dependencies", []); reviewed = config.get("dependency-groups", {}).get("build", []); canonical = lambda value: re.sub(r"[-_.]+", "-", value).lower(); package_identity = lambda package: (canonical(package["name"]), package["version"], package.get("source", {}).get("registry", ""), tuple(sorted((artifact["url"], artifact["hash"]) for artifact in (([package["sdist"]] if "sdist" in package else []) + package.get("wheels", []))))); normalize = lambda value: re.sub(r"\s+", "", value); identity = lambda value: (canonical((item := re.fullmatch(r"([A-Za-z0-9][A-Za-z0-9_.-]*)\s*==\s*([0-9]+(?:\.[0-9]+)*(?:\.post[0-9]+)?)(?:\s*;\s*(.+))?", value)).group(1)), item.group(2), ast.dump(ast.parse(item.group(3), mode="eval")) if item.group(3) is not None else ""); assert len(roots) == 1 and canonical(project["name"]) == "openai" and sum(canonical(package.get("name", "")) == "openai" for package in lock["package"]) == 1 and all(package is roots[0] or package.get("source") == {"registry": "https://pypi.org/simple"} and isinstance(package.get("wheels"), list) and bool(package.get("wheels")) and (artifacts := ([package["sdist"]] if "sdist" in package else []) + package.get("wheels", [])) and all(isinstance(artifact, dict) and re.fullmatch(r"https://files\.pythonhosted\.org/packages/[^\s?#]+", artifact.get("url", "")) and re.fullmatch(r"sha256:[0-9a-f]{64}", artifact.get("hash", "")) for artifact in artifacts) for package in lock["package"]) and (not fork or sorted(package_identity(package) for package in lock["package"] if package is not roots[0]) == sorted(package_identity(package) for package in trusted_lock["package"] if package.get("source") != {"editable": "."})) and build.get("build-backend") == "hatchling.build" and "backend-path" not in build and isinstance(requires, list) and bool(requires) and isinstance(constraints, list) and bool(constraints) and isinstance(reviewed, list) and bool(reviewed) and not any(uv.get(key) for key in ("sources", "index", "indexes", "index-url", "extra-index-url", "default-index", "find-links", "index_url", "extra_index_url", "default_index", "find_links", "no-binary", "no-binary-package", "no_binary", "no_binary_package")) and not any(pathlib.Path(path).exists() for path in ("uv.toml", ".uv.toml")) and all(isinstance(requirement, str) and (match := re.fullmatch(r"([A-Za-z0-9][A-Za-z0-9_.-]*)\s*==\s*([0-9]+(?:\.[0-9]+)*(?:\.post[0-9]+)?)(?:\s*;\s*(.+))?", requirement)) is not None and (match.group(3) is None or isinstance(marker := ast.parse(match.group(3), mode="eval").body, ast.Compare) and isinstance(marker.left, ast.Name) and len(marker.ops) == 1 and type(marker.ops[0]) in {ast.Eq, ast.NotEq, ast.Lt, ast.LtE, ast.Gt, ast.GtE, ast.In, ast.NotIn} and len(marker.comparators) == 1 and isinstance(marker.comparators[0], ast.Constant) and isinstance(marker.comparators[0].value, str)) and any(canonical(package.get("name", "")) == canonical(match.group(1)) and package.get("version") == match.group(2) and package.get("source") == {"registry": "https://pypi.org/simple"} for package in lock["package"]) for requirement in requires + constraints + reviewed) and {normalize(requirement) for requirement in constraints} == {normalize(requirement) for requirement in reviewed} and {normalize(requirement) for requirement in requires}.issubset({normalize(requirement) for requirement in constraints}) and any(canonical(requirement.split("==", 1)[0].strip()) == "hatchling" for requirement in requires) and build.get("build-backend") == trusted.get("build-system", {}).get("build-backend") and {identity(requirement) for requirement in requires} == {identity(requirement) for requirement in trusted.get("build-system", {}).get("requires", [])} and {identity(requirement) for requirement in constraints} == {identity(requirement) for requirement in trusted.get("tool", {}).get("uv", {}).get("build-constraint-dependencies", [])} and {identity(requirement) for requirement in reviewed} == {identity(requirement) for requirement in trusted.get("dependency-groups", {}).get("build", [])}, "Use only the public PyPI registry, reviewed artifacts, the exact editable root project, and locked reviewed build requirements in uv.lock"'
+
+      - name: Require published minimums for direct security updates
+        if: >-
+          github.event_name == 'pull_request'
+          && github.event.pull_request.user.login == 'dependabot[bot]'
+          && contains(github.event.pull_request.head.ref, 'python-security')
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          # Bash 3.2 does not apply errexit to failed [[ ... ]] guards.
+          [[ "$BASE_SHA" =~ ^[0-9a-f]{40}$ ]] || exit 1
+          origin="$(git remote get-url origin)"
+          [[ "$origin" == "https://github.com/openai/openai-python" || "$origin" == "https://github.com/openai/openai-python.git" ]] || exit 1
+          git fetch --no-tags --depth=1 origin "$BASE_SHA"
+          git show "$BASE_SHA:scripts/check-dependency-security.py" | python -I -
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: '0.12.5'
+          enable-cache: true
+
+      - name: Verify dependency groups and committed lock
+        run: |
+          uv run --no-project --python '>=3.11' python -c 'import pathlib, tomllib; project = tomllib.loads(pathlib.Path("pyproject.toml").read_text()); assert project["dependency-groups"]["dev"] and "dev" in project["tool"]["uv"]["default-groups"], "Keep the uv development dependency group enabled"'
+          uv run --no-project --python '>=3.11' python -c 'import pathlib, tomllib; project = tomllib.loads(pathlib.Path("pyproject.toml").read_text()); text = pathlib.Path("uv.lock").read_text(); lock = tomllib.loads(text); version = project["project"]["version"]; assert next(package["version"] for package in lock["package"] if package["name"] == "openai") == version and "version = " + chr(34) + version + chr(34) + " # x-release-please-version" in text, "Preserve the uv.lock release-please marker and project version"'
+          uv lock --check
+
   lint:
     timeout-minutes: 10
     name: lint
     runs-on: ubuntu-latest
+    needs: dependency-locks
     if: github.event_name == 'push' || github.event_name == 'merge_group' || github.event.pull_request.head.repo.fork
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-
-      - name: Set up Rye
-        uses: eifinger/setup-rye@c694239a43768373e87d0103d7f547027a23f3c8
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          version: '0.44.0'
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup-node-tooling
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: '0.12.5'
           enable-cache: true
 
       - name: Install dependencies
-        run: rye sync --all-features
+        run: uv sync --locked --all-extras
 
       - name: Run lints
         run: ./scripts/lint
 
   build:
+    needs: dependency-locks
     if: github.event_name == 'push' || github.event_name == 'merge_group' || github.event.pull_request.head.repo.fork
     timeout-minutes: 10
     name: build
@@ -47,33 +100,35 @@ jobs:
       contents: read
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
-      - name: Set up Rye
-        uses: eifinger/setup-rye@c694239a43768373e87d0103d7f547027a23f3c8
+      - name: Set up uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
-          version: '0.44.0'
+          version: '0.12.5'
           enable-cache: true
 
       - name: Install dependencies
-        run: rye sync --all-features
+        run: uv sync --locked --all-extras
 
       - name: Run build
-        run: rye build
+        run: |
+          external_packages="$(python -c 'import importlib, re, sys; parser = importlib.import_module("tomllib" if sys.version_info >= (3, 11) else "tomli"); packages = parser.loads(open("uv.lock").read())["package"]; roots = [package for package in packages if package.get("source") == {"editable": "."}]; external = [package for package in packages if package not in roots]; assert len(roots) == 1 and roots[0].get("name") == "openai" and external and all(package.get("source") == {"registry": "https://pypi.org/simple"} and isinstance(package.get("name"), str) and re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", package["name"]) for package in external), "Refuse malformed external build package restrictions"; denied = sorted({re.sub(r"[-_.]+", "-", package["name"]).lower() for package in external}); assert denied and "openai" not in denied, "Refuse incomplete external build package restrictions"; print(" ".join(denied))')"
+          env -u UV_NO_BUILD UV_NO_BUILD_PACKAGE="$external_packages" ./scripts/build
 
       - name: Validate Python version metadata
-        run: rye run python scripts/utils/validate-python-version-wheel.py
+        run: uv run --locked --all-extras python scripts/utils/validate-python-version-wheel.py
 
       - name: Validate Bedrock wheel
-        run: rye run python scripts/utils/validate-bedrock-wheel.py
+        run: uv run --locked --all-extras python scripts/utils/validate-bedrock-wheel.py
 
       - name: Validate HTTPX2 wheel on Python 3.10
-        run: rye run python scripts/utils/validate-httpx2-wheel.py
+        run: uv run --locked --all-extras python scripts/utils/validate-httpx2-wheel.py
 
       - name: Set up Python 3.9 for resolver rejection
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.9'
 
@@ -81,7 +136,7 @@ jobs:
         run: python scripts/utils/validate-python-version-wheel.py --check-python-39
 
       - name: Set up Python 3.14
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.14'
 
@@ -92,6 +147,7 @@ jobs:
     timeout-minutes: 15
     name: test (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
+    needs: dependency-locks
     if: github.event_name == 'push' || github.event_name == 'merge_group' || github.event.pull_request.head.repo.fork
     strategy:
       fail-fast: false
@@ -99,30 +155,24 @@ jobs:
         # Per-PR coverage protects both ends of the support window.
         python-version: ["3.10", "3.14"]
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup-node-tooling
 
       - name: Set up Python ${{ matrix.python-version }}
         id: setup-python
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Set up Rye
-        uses: eifinger/setup-rye@c694239a43768373e87d0103d7f547027a23f3c8
+      - name: Set up uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
-          version: '0.44.0'
-          enable-cache: false
-
-      - name: Cache Rye virtual environment
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: .venv
-          key: rye-${{ runner.os }}-${{ runner.arch }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('requirements.lock', 'requirements-dev.lock') }}
-
-      - name: Select Python ${{ matrix.python-version }}
-        run: |
-          rye toolchain register "${{ steps.setup-python.outputs.python-path }}"
-          rye pin --relaxed --no-update-requires-python "${{ matrix.python-version }}"
+          version: '0.12.5'
+          python-version: ${{ matrix.python-version }}
+          enable-cache: true
 
       - name: Bootstrap
         run: ./scripts/bootstrap
@@ -134,33 +184,31 @@ jobs:
     timeout-minutes: 20
     name: test (HTTPX2)
     runs-on: ubuntu-latest
+    needs: dependency-locks
     if: github.event_name == 'push' || github.event_name == 'merge_group' || github.event.pull_request.head.repo.fork
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup-node-tooling
 
       - name: Set up Python 3.14
         id: setup-python
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.14'
 
-      - name: Set up Rye
-        uses: eifinger/setup-rye@c694239a43768373e87d0103d7f547027a23f3c8
+      - name: Set up uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
-          version: '0.44.0'
-          enable-cache: false
-
-      - name: Cache Rye virtual environment
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: .venv
-          key: rye-${{ runner.os }}-${{ runner.arch }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('requirements.lock', 'requirements-dev.lock') }}
+          version: '0.12.5'
+          python-version: '3.14'
+          enable-cache: true
 
       - name: Install HTTPX2 test dependencies
         run: |
-          rye toolchain register "${{ steps.setup-python.outputs.python-path }}"
-          rye pin --relaxed --no-update-requires-python 3.14
-          rye sync --all-features
+          uv sync --locked --all-extras
 
       - name: Run tests with HTTPX2
         env:
@@ -172,28 +220,31 @@ jobs:
     name: examples
     environment: ci
     runs-on: ubuntu-latest
-    if: github.repository == 'openai/openai-python' && github.ref != 'refs/heads/release-please--branches--main' && (github.event_name == 'push' || github.event.pull_request.head.repo.fork)
+    needs: dependency-locks
+    if: github.repository == 'openai/openai-python' && github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-
-      - name: Set up Rye
-        uses: eifinger/setup-rye@c694239a43768373e87d0103d7f547027a23f3c8
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          version: '0.44.0'
+          persist-credentials: false
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with:
+          version: '0.12.5'
           enable-cache: true
       - name: Install dependencies
         run: |
-          rye sync --all-features
+          uv sync --locked --all-extras
 
       - env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
-            rye run python examples/demo.py
+            uv run --locked --all-extras python examples/demo.py
       - env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
-            rye run python examples/async_demo.py
+            uv run --locked --all-extras python examples/async_demo.py
 
   python-policy:
     timeout-minutes: 5
@@ -201,7 +252,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name != 'schedule'
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
@@ -212,8 +263,11 @@ jobs:
     timeout-minutes: 20
     name: compatibility (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
+    needs: dependency-locks
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     continue-on-error: ${{ matrix.experimental }}
+    env:
+      UV_NO_BUILD: ${{ matrix.experimental && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && '0' || '1' }}
     strategy:
       fail-fast: false
       matrix:
@@ -231,41 +285,31 @@ jobs:
           - python-version: "3.15"
             experimental: true
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
       - name: Set up Python ${{ matrix.python-version }}
         id: setup-python
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: ${{ matrix.python-version }}
           allow-prereleases: ${{ matrix.experimental }}
 
-      - name: Set up Rye
-        uses: eifinger/setup-rye@c694239a43768373e87d0103d7f547027a23f3c8
+      - name: Set up uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
-          version: '0.44.0'
-          enable-cache: false
-
-      - name: Cache Rye virtual environment
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: .venv
-          key: rye-${{ runner.os }}-${{ runner.arch }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('requirements.lock', 'requirements-dev.lock') }}
-
-      - name: Select Python ${{ matrix.python-version }}
-        run: |
-          rye toolchain register "${{ steps.setup-python.outputs.python-path }}"
-          rye pin --relaxed --no-update-requires-python "${{ matrix.python-version }}"
+          version: '0.12.5'
+          python-version: ${{ matrix.python-version }}
+          enable-cache: true
 
       - name: Install dependencies
-        run: rye sync --all-features
+        run: uv sync --locked --all-extras
 
       - name: Smoke-test the supported runtime
         run: |
-          rye run python -c 'import openai; from openai import AsyncOpenAI, OpenAI'
-          rye run pytest -o addopts= --quiet \
+          uv run --locked --all-extras python -c 'import openai; from openai import AsyncOpenAI, OpenAI'
+          uv run --locked --all-extras pytest -o addopts= --quiet \
             tests/test_client.py \
             tests/test_streaming.py \
             tests/lib/test_pydantic.py

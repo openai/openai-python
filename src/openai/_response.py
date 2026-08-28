@@ -243,11 +243,11 @@ class BaseAPIResponse(Generic[R]):
         # in the response, e.g. application/json; charset=utf-8
         content_type, *_ = response.headers.get("content-type", "*").split(";")
         if not content_type.endswith("json"):
-            if is_basemodel(cast_to):
+            if is_basemodel(cast(type, cast_to)):
                 try:
                     data = response.json()
                 except Exception as exc:
-                    log.debug("Could not read JSON from response data due to %s - %s", type(exc), exc)
+                    log.debug("Could not read JSON from response data due to %s", type(exc).__name__)
                 else:
                     return self._client._process_response_data(
                         data=data,

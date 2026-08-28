@@ -17,7 +17,7 @@ import pytest
 from pydantic import ValidationError
 
 from openai import OpenAI, AsyncOpenAI, OpenAIError, APIResponseValidationError
-from openai.auth import WorkloadIdentity
+from openai.auth import SubjectTokenWorkloadIdentity
 from tests.respx2 import MockRouter
 from openai._types import Omit
 from openai._utils import asyncify
@@ -42,7 +42,7 @@ T = TypeVar("T")
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 api_key = "My API Key"
 admin_api_key = "My Admin API Key"
-workload_identity: WorkloadIdentity = {
+workload_identity: SubjectTokenWorkloadIdentity = {
     "identity_provider_id": "provider_123",
     "service_account_id": "service_account_123",
     "provider": {

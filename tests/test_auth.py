@@ -1,5 +1,5 @@
 import json
-from typing import cast
+from typing import cast, get_type_hints
 from pathlib import Path
 
 import httpx2
@@ -8,12 +8,26 @@ from inline_snapshot import snapshot
 
 from tests import respx2
 from openai import OpenAI, OAuthError
+from openai.auth import WorkloadIdentity, WorkloadIdentityAuth, SubjectTokenWorkloadIdentity
 from tests.respx2.models import Call
 from openai.auth._workload import (
     gcp_id_token_provider,
     k8s_service_account_token_provider,
     azure_managed_identity_token_provider,
 )
+
+
+def test_workload_identity_preserves_callable_typed_dict_api() -> None:
+    identity = WorkloadIdentity(
+        identity_provider_id="idp_existing",
+        service_account_id="svc_acct_existing",
+        provider={"token_type": "jwt", "get_token": lambda: "subject-token"},
+    )
+
+    assert identity["provider"]["get_token"]() == "subject-token"
+    assert SubjectTokenWorkloadIdentity is WorkloadIdentity
+    assert get_type_hints(WorkloadIdentityAuth.__init__)["workload_identity"] is WorkloadIdentity
+    assert WorkloadIdentityAuth(workload_identity=identity).workload_identity is identity
 
 
 @respx2.mock

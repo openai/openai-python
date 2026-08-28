@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Union, Mapping, cast
-from typing_extensions import Literal, overload, assert_never
+from typing import Union, Mapping, cast
+from typing_extensions import Literal, overload
 
 import httpx2
 
@@ -18,6 +18,7 @@ from ..._response import to_streamed_response_wrapper, async_to_streamed_respons
 from ...types.audio import translation_create_params
 from ..._base_client import make_request_options
 from ...types.audio_model import AudioModel
+from ...lib._parsing._audio import get_translation_response_format_type as _get_translation_response_format_type
 from ...types.audio.translation import Translation
 from ...types.audio_response_format import AudioResponseFormat
 from ...types.audio.translation_verbose import TranslationVerbose
@@ -370,17 +371,4 @@ class AsyncTranslationsWithStreamingResponse:
 def _get_response_format_type(
     response_format: AudioResponseFormat | Omit,
 ) -> type[Translation | TranslationVerbose | str]:
-    if isinstance(response_format, Omit) or response_format is None:  # pyright: ignore[reportUnnecessaryComparison]
-        return Translation
-
-    if response_format == "json":
-        return Translation
-    elif response_format == "verbose_json":
-        return TranslationVerbose
-    elif response_format == "srt" or response_format == "text" or response_format == "vtt":
-        return str
-    elif TYPE_CHECKING and response_format != "diarized_json":  # type: ignore[unreachable]
-        assert_never(response_format)
-    else:
-        log.warning("Unexpected audio response format: %s", response_format)
-        return Translation
+    return _get_translation_response_format_type(response_format, log=log)

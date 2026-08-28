@@ -21,9 +21,10 @@ from ..lib._bedrock_auth import (
 )
 
 BedrockTokenProvider = Callable[[], "str | Awaitable[str]"]
+BedrockEndpoint = Literal["mantle", "runtime"]
 
 _AWS_SIGNING_HEADERS = ("authorization", "x-amz-content-sha256", "x-amz-date", "x-amz-security-token")
-_CANONICAL_BEDROCK_HOST = re.compile(r"^bedrock-mantle\.([a-z0-9-]+)\.api\.aws$", re.IGNORECASE)
+_AWS_REGION = re.compile(r"^[a-z]{2,8}(?:-[a-z0-9]+)+-\d+$")
 
 
 def _normalize_optional_string(value: str | None) -> str | None:
@@ -42,6 +43,70 @@ def _normalize_base_url(base_url: str | httpx2.URL) -> httpx2.URL:
         path = path[: responses_match.start()]
 
     return url.copy_with(path=path or "/")
+
+
+def _runtime_dns_suffixes(region: str) -> tuple[str, str]:
+    if region.startswith("cn-"):
+        return "amazonaws.com.cn", "api.amazonwebservices.com.cn"
+    if region.startswith("eusc-"):
+        return "amazonaws.eu", "api.amazonwebservices.eu"
+    if region.startswith("us-iso-"):
+        return "c2s.ic.gov", "api.aws.ic.gov"
+    if region.startswith("us-isob-"):
+        return "sc2s.sgov.gov", "api.aws.scloud"
+    if region.startswith("eu-isoe-"):
+        return "cloud.adc-e.uk", "api.cloud-aws.adc-e.uk"
+    if region.startswith("us-isof-"):
+        return "csp.hci.ic.gov", "api.aws.hci.ic.gov"
+    return "amazonaws.com", "api.aws"
+
+
+def _parse_bedrock_endpoint_hostname(hostname: str) -> tuple[BedrockEndpoint, str] | None:
+    service, separator, remainder = hostname.removesuffix(".").lower().partition(".")
+    region, region_separator, suffix = remainder.partition(".")
+    if not separator or not region_separator or _AWS_REGION.fullmatch(region) is None:
+        return None
+
+    if service == "bedrock-mantle" and suffix == "api.aws":
+        return "mantle", region
+    if service in {"bedrock-runtime", "bedrock-runtime-fips"} and suffix in _runtime_dns_suffixes(region):
+        return "runtime", region
+    return None
+
+
+def _validate_bedrock_region(region: str | None) -> None:
+    if region is not None and _AWS_REGION.fullmatch(region) is None:
+        raise OpenAIError("The Bedrock AWS `region` is invalid. Use a standard AWS region such as `us-east-1`.")
+
+
+def _validate_canonical_bedrock_endpoint(
+    base_url: httpx2.URL, *, endpoint: BedrockEndpoint, region: str | None
+) -> None:
+    canonical_endpoint = _parse_bedrock_endpoint_hostname(base_url.host)
+    if canonical_endpoint is None:
+        return
+
+    canonical_family, canonical_region = canonical_endpoint
+    if base_url.scheme != "https":
+        raise OpenAIError("Canonical Amazon Bedrock endpoints require HTTPS.")
+    if canonical_family != endpoint:
+        raise OpenAIError(
+            f"The Bedrock {canonical_family} hostname does not match the selected `{endpoint}` endpoint. "
+            f"Set `endpoint='{canonical_family}'` to use this hostname."
+        )
+    if region is not None and canonical_region != region:
+        raise OpenAIError(
+            f"The Bedrock endpoint region `{canonical_region}` does not match the configured AWS region `{region}`."
+        )
+
+
+def _default_bedrock_base_url(endpoint: BedrockEndpoint, region: str) -> httpx2.URL:
+    hostname = (
+        f"bedrock-runtime.{region}.{_runtime_dns_suffixes(region)[0]}"
+        if endpoint == "runtime"
+        else f"bedrock-mantle.{region}.api.aws"
+    )
+    return _normalize_base_url(f"https://{hostname}/openai/v1")
 
 
 def _same_origin(left: httpx2.URL, right: httpx2.URL) -> bool:
@@ -144,12 +209,18 @@ class _BedrockSigV4Auth:
                 "Refusing to sign a Bedrock request for an origin other than the configured provider URL."
             )
 
-        endpoint_region_match = _CANONICAL_BEDROCK_HOST.fullmatch(request.url.host)
-        if endpoint_region_match is not None and endpoint_region_match.group(1) != self._config.region:
-            raise OpenAIError(
-                f"The Bedrock endpoint region `{endpoint_region_match.group(1)}` does not match the "
-                f"SigV4 region `{self._config.region}`."
-            )
+        canonical_endpoint = _parse_bedrock_endpoint_hostname(request.url.host)
+        if canonical_endpoint is not None:
+            endpoint, region = canonical_endpoint
+            expected_endpoint = "runtime" if self._config.service == "bedrock" else "mantle"
+            if endpoint != expected_endpoint:
+                raise OpenAIError(
+                    f"The Bedrock {endpoint} hostname does not match the selected `{expected_endpoint}` endpoint."
+                )
+            if region != self._config.region:
+                raise OpenAIError(
+                    f"The Bedrock endpoint region `{region}` does not match the SigV4 region `{self._config.region}`."
+                )
 
         return _body_for_signing(request)
 
@@ -196,6 +267,7 @@ class _BedrockProviderRuntime(_ProviderRuntime):
 
 @dataclass(frozen=True)
 class _BedrockProviderDefinition:
+    endpoint: BedrockEndpoint
     configured_region: str | None
     region_source: Literal["explicit", "environment"] | None
     configured_base_url: httpx2.URL | None
@@ -224,6 +296,7 @@ class _BedrockProviderDefinition:
                 BedrockAwsAuthConfig(
                     region=self.configured_region,
                     source=self._aws_source(),
+                    service="bedrock" if self.endpoint == "runtime" else "bedrock-mantle",
                     region_source=self.region_source or "explicit",
                     profile=self.profile,
                     access_key_id=self.access_key_id,
@@ -241,6 +314,7 @@ class _BedrockProviderDefinition:
             secret_access_key=self.secret_access_key,
             session_token=self.session_token,
             credentials_provider=self.credential_provider,
+            service="bedrock" if self.endpoint == "runtime" else "bedrock-mantle",
         )
         return auth.config, auth
 
@@ -268,15 +342,15 @@ class _BedrockProviderDefinition:
         else:
             aws_config, aws_auth = self._resolve_aws_auth()
             region = aws_config.region
-            base_url = self.configured_base_url or _normalize_base_url(
-                f"https://bedrock-mantle.{region}.api.aws/openai/v1"
-            )
+            _validate_bedrock_region(region)
+            base_url = self.configured_base_url or _default_bedrock_base_url(self.endpoint, region)
+            _validate_canonical_bedrock_endpoint(base_url, endpoint=self.endpoint, region=region)
             auth = _BedrockSigV4Auth(config=aws_config, base_url=base_url, auth=aws_auth)
 
         if self.configured_base_url is not None:
             base_url = self.configured_base_url
         elif region is not None:
-            base_url = _normalize_base_url(f"https://bedrock-mantle.{region}.api.aws/openai/v1")
+            base_url = _default_bedrock_base_url(self.endpoint, region)
         else:
             raise OpenAIError(
                 "Bedrock requires an AWS region. Pass `region` to `bedrock(...)`, or set `AWS_REGION` or "
@@ -308,6 +382,7 @@ class _BedrockProviderDefinition:
 
 def bedrock(
     *,
+    endpoint: BedrockEndpoint | None = None,
     region: str | None = None,
     base_url: str | httpx2.URL | None | NotGiven = NOT_GIVEN,
     api_key: str | None | NotGiven = NOT_GIVEN,
@@ -318,21 +393,17 @@ def bedrock(
     profile: str | None = None,
     credential_provider: AwsCredentialsProvider | None = None,
 ) -> _Provider:
-    """Configure the standard OpenAI client for Amazon Bedrock Mantle."""
+    """Configure the standard OpenAI client for Amazon Bedrock Mantle or Runtime."""
+
+    if endpoint is not None and endpoint not in {"mantle", "runtime"}:
+        raise OpenAIError("The Bedrock `endpoint` must be either `mantle` or `runtime`.")
 
     normalized_region = _normalize_optional_string(region)
     if region is not None and normalized_region is None:
         raise OpenAIError("The Bedrock AWS `region` must not be empty.")
+    _validate_bedrock_region(normalized_region)
 
-    region_source: Literal["explicit", "environment"] | None = None
-    if normalized_region is not None:
-        region_source = "explicit"
-    else:
-        normalized_region = _normalize_optional_string(
-            os.environ.get("AWS_REGION") or os.environ.get("AWS_DEFAULT_REGION")
-        )
-        if normalized_region is not None:
-            region_source = "environment"
+    region_source: Literal["explicit", "environment"] | None = "explicit" if normalized_region is not None else None
 
     configured_base_url: httpx2.URL | None
     if isinstance(base_url, NotGiven):
@@ -344,6 +415,13 @@ def bedrock(
         if isinstance(base_url, str) and not base_url.strip():
             raise OpenAIError("The Bedrock `base_url` must not be empty.")
         configured_base_url = _normalize_base_url(base_url)
+
+    canonical_endpoint = (
+        _parse_bedrock_endpoint_hostname(configured_base_url.host) if configured_base_url is not None else None
+    )
+    resolved_endpoint: BedrockEndpoint = endpoint or (
+        canonical_endpoint[0] if canonical_endpoint is not None else "mantle"
+    )
 
     normalized_profile = _normalize_optional_string(profile)
     if profile is not None and normalized_profile is None:
@@ -392,8 +470,20 @@ def bedrock(
         and bool(os.environ.get("AWS_BEARER_TOKEN_BEDROCK"))
     )
 
+    if normalized_region is None and (configured_base_url is None or not (explicit_bearer or use_environment_bearer)):
+        normalized_region = _normalize_optional_string(
+            os.environ.get("AWS_REGION") or os.environ.get("AWS_DEFAULT_REGION")
+        )
+        _validate_bedrock_region(normalized_region)
+        if normalized_region is not None:
+            region_source = "environment"
+
+    if configured_base_url is not None:
+        _validate_canonical_bedrock_endpoint(configured_base_url, endpoint=resolved_endpoint, region=normalized_region)
+
     return _create_provider(
         _BedrockProviderDefinition(
+            endpoint=resolved_endpoint,
             configured_region=normalized_region,
             region_source=region_source,
             configured_base_url=configured_base_url,
@@ -409,4 +499,4 @@ def bedrock(
     )
 
 
-__all__ = ["bedrock", "BedrockTokenProvider", "AwsCredentialsProvider"]
+__all__ = ["bedrock", "BedrockEndpoint", "BedrockTokenProvider", "AwsCredentialsProvider"]

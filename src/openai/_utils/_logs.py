@@ -5,30 +5,36 @@ from typing_extensions import override
 from ._utils import is_dict
 
 logger: logging.Logger = logging.getLogger("openai")
-httpx2_logger: logging.Logger = logging.getLogger("httpx2")
 
 
 SENSITIVE_HEADERS = {"api-key", "authorization", "x-amz-security-token"}
 
 
 def _basic_config() -> None:
-    # e.g. [2023-10-05 14:12:26 - openai._base_client:818 - DEBUG] HTTP Request: POST http://127.0.0.1:4010/foo/bar "200 OK"
+    # e.g. [2023-10-05 14:12:26 - openai._base_client:818 - DEBUG] HTTP Response: POST 200
     logging.basicConfig(
         format="[%(asctime)s - %(name)s:%(lineno)d - %(levelname)s] %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
 
 
+def get_http_method_for_logging(method: str) -> str:
+    normalized = method.upper()
+    if normalized in {"GET", "HEAD", "POST", "PUT", "DELETE", "CONNECT", "OPTIONS", "TRACE", "PATCH"}:
+        return normalized
+    return "<custom>"
+
+
 def setup_logging() -> None:
+    # Transport loggers may include complete URLs. Leave their configuration to
+    # the application instead of enabling them with the SDK's logging switch.
     env = os.environ.get("OPENAI_LOG")
     if env == "debug":
         _basic_config()
         logger.setLevel(logging.DEBUG)
-        httpx2_logger.setLevel(logging.DEBUG)
     elif env == "info":
         _basic_config()
         logger.setLevel(logging.INFO)
-        httpx2_logger.setLevel(logging.INFO)
 
 
 class SensitiveHeadersFilter(logging.Filter):

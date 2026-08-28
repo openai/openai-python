@@ -6,6 +6,7 @@ from typing_extensions import Literal, Annotated, TypeAlias
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
 from .beta_tool import BetaTool
+from .beta_service_tier import BetaServiceTier
 from .beta_response_input import BetaResponseInput
 from .beta_response_prompt import BetaResponsePrompt
 from .beta_tool_choice_mcp import BetaToolChoiceMcp
@@ -508,7 +509,7 @@ class ResponseCreate(BaseModel):
     [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
     """
 
-    service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast", "ultrafast"]] = None
+    service_tier: Optional[BetaServiceTier] = None
     """Specifies the processing type used for serving the request.
 
     - If set to 'auto', then the request will be processed with the service tier
