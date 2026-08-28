@@ -63,6 +63,32 @@ def test_decode_preserves_response_and_non_string_vectors(encoding_format: Omit 
     assert parsed.model == "text-embedding-3-small"
 
 
+def test_decode_checks_numpy_once_per_response(monkeypatch: pytest.MonkeyPatch) -> None:
+    checks = 0
+
+    def has_numpy() -> bool:
+        nonlocal checks
+        checks += 1
+        return False
+
+    monkeypatch.setattr(embeddings_parser, "has_numpy", has_numpy)
+    response = make_response(ENCODED, ENCODED, ENCODED)
+
+    embeddings_parser.parse_embedding_response(response, encoding_format=omit)
+
+    assert checks == 1
+
+
+def test_decode_does_not_check_numpy_without_encoded_vectors(monkeypatch: pytest.MonkeyPatch) -> None:
+    def unexpected_decoder() -> bool:
+        raise AssertionError("a response without encoded vectors must not inspect the decoder")
+
+    monkeypatch.setattr(embeddings_parser, "has_numpy", unexpected_decoder)
+    response = make_response([1.0, 2.0], [3.0, 4.0])
+
+    assert embeddings_parser.parse_embedding_response(response, encoding_format=omit) is response
+
+
 @pytest.mark.parametrize("encoding_format", ["float", "base64", None])
 @pytest.mark.parametrize("vectors", [(ENCODED,), ("abc",), ()], ids=["encoded", "invalid", "empty"])
 def test_explicit_format_is_untouched(
