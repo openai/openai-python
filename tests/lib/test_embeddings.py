@@ -81,6 +81,19 @@ def test_decoder_is_inspected_once(encoding_format: Omit | NotGiven, monkeypatch
     assert [cast(object, item.embedding) for item in parsed.data] == [VALUES, VALUES, VALUES]
 
 
+@pytest.mark.parametrize("encoding_format", [omit, not_given], ids=["omit", "not-given"])
+def test_float_vectors_skip_the_decoder(encoding_format: Omit | NotGiven, monkeypatch: pytest.MonkeyPatch) -> None:
+    def unexpected_decoder() -> bool:
+        raise AssertionError("a response without string vectors must not inspect the decoder")
+
+    monkeypatch.setattr(embeddings_parser, "has_numpy", unexpected_decoder)
+    response = make_response(VALUES, [4.0, 5.0])
+
+    parsed = embeddings_parser.parse_embedding_response(response, encoding_format=encoding_format)
+
+    assert [cast(object, item.embedding) for item in parsed.data] == [VALUES, [4.0, 5.0]]
+
+
 @pytest.mark.parametrize("encoding_format", ["float", "base64", None])
 @pytest.mark.parametrize("vectors", [(ENCODED,), ("abc",), ()], ids=["encoded", "invalid", "empty"])
 def test_explicit_format_is_untouched(

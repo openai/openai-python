@@ -20,12 +20,14 @@ def parse_embedding_response(
     if not obj.data:
         raise ValueError("No embedding data received")
 
-    use_numpy = has_numpy()
+    use_numpy: bool | None = None
 
     for embedding in obj.data:
         data = cast(object, embedding.embedding)
         if not isinstance(data, str):
             continue
+        if use_numpy is None:
+            use_numpy = has_numpy()
         if not use_numpy:
             # use array for base64 optimisation
             embedding.embedding = array.array("f", base64.b64decode(data)).tolist()
