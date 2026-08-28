@@ -22,7 +22,7 @@ function fixture(t) {
   return root;
 }
 
-function installFake(root, version = '1.1.399') {
+function installFake(root, version = JSON.parse(fs.readFileSync(path.join(root, 'package.json'))).devDependencies.pyright) {
   const directory = path.join(root, 'node_modules/pyright');
   fs.mkdirSync(directory, { recursive: true });
   fs.writeFileSync(path.join(directory, 'package.json'), JSON.stringify({ version }));
@@ -86,8 +86,9 @@ test('Steady is local-only and receives the original arguments', (t) => {
   assert.equal(missing.status, 1);
   assert.match(missing.stderr, /Missing local steady/);
   const directory = path.join(root, 'node_modules/@stdy/cli');
+  const manifest = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
   fs.mkdirSync(directory, { recursive: true });
-  fs.writeFileSync(path.join(directory, 'package.json'), JSON.stringify({ version: '0.22.1' }));
+  fs.writeFileSync(path.join(directory, 'package.json'), JSON.stringify({ version: manifest.devDependencies['@stdy/cli'] }));
   fs.writeFileSync(path.join(directory, 'steady.js'), 'console.log(JSON.stringify(process.argv.slice(2)));');
   const result = run(root, ['steady', 'spec with spaces.yml', '--version']);
   assert.equal(result.status, 0);

@@ -1,5 +1,7 @@
 # File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
+from typing import Optional
+
 from ..._models import BaseModel
 
 __all__ = ["BetaResponseUsage", "InputTokensDetails", "OutputTokensDetails"]
@@ -45,3 +47,6 @@ class BetaResponseUsage(BaseModel):
 
     total_tokens: int
     """The total number of tokens used."""
+
+    compute_units: Optional[int] = None
+    """Compute units for the request. Currently null when available."""

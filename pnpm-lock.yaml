@@ -9,41 +9,41 @@ importers:
   .:
     devDependencies:
       '@stdy/cli':
-        specifier: 0.22.1
-        version: 0.22.1
+        specifier: 0.22.2
+        version: 0.22.2
       pyright:
-        specifier: 1.1.399
-        version: 1.1.399
+        specifier: 1.1.413
+        version: 1.1.413
 
 packages:
 
-  '@stdy/cli-darwin-arm64@0.22.1':
-    resolution: {integrity: sha512-sahxc3R9I+vO7dDr7t9aneE8aLZdZeaQU5OfhZVLny97K8K7RXqhpXHN/0DFvg3Pw5ZKisHvJysY3iu/LIZA6g==}
+  '@stdy/cli-darwin-arm64@0.22.2':
+    resolution: {integrity: sha512-k5WGyCQl7DDpYWy3BI5TxGIxOdUpMeJ0q7kUi1EYs7Y72B/q0hIKDv3/fCgoZPWBI+N9XjnlSyetaxVQTRvWow==}
     cpu: [arm64]
     os: [darwin]
 
-  '@stdy/cli-darwin-x64@0.22.1':
-    resolution: {integrity: sha512-/bVzcHkbX6zn5qZL73oWR5YXVc/+/IP7uWYw905B+hWRuZlJfN7hX4+68BxCBOI8wiRf82cSQjRnI/Datdwz1Q==}
+  '@stdy/cli-darwin-x64@0.22.2':
+    resolution: {integrity: sha512-BYbQhEqBiEd+G9IyXWLpgAcSXFKMr6W3ZQXiOS3O5NnOWv+bNuyo793eBvEJ5fRKiuCV6n/ANVSJZLFOf6Nzog==}
     cpu: [x64]
     os: [darwin]
 
-  '@stdy/cli-linux-arm64@0.22.1':
-    resolution: {integrity: sha512-XGQy3ZqF5COqRgAVGxCdoW9dzxnfxxCSAHCGmhpFc+pVfpQcYHfPcnNhmWhplMCeriTUyCKLJG+/fGdyji7e2Q==}
+  '@stdy/cli-linux-arm64@0.22.2':
+    resolution: {integrity: sha512-HjSQdAt40CpYIauUKJ1xyIEsdrf5LtQP1x8Su7BEZJN94807ROJXxabW+jXyc48823tVBkrnxNUUTrBK4TVTRw==}
     cpu: [arm64]
     os: [linux]
 
-  '@stdy/cli-linux-x64@0.22.1':
-    resolution: {integrity: sha512-u7581I3sc6R+PUwGkvEFbvD/w6YXvRk+iT0BImWKPtKYA26cPP16lgA7gquu3tAEk+3c9YGn5xhUphCc96aLSg==}
+  '@stdy/cli-linux-x64@0.22.2':
+    resolution: {integrity: sha512-kp5QdG26EC8gEzVXI0YgzmiiFHz7DFCNRLNfAWa2rDPHr/jUBnfkP8AlbTPmv0YNQpnKn1wzSWHFw88fn/OTog==}
     cpu: [x64]
     os: [linux]
 
-  '@stdy/cli-win32-x64@0.22.1':
-    resolution: {integrity: sha512-4kkgSGCKTO/Fb+ciBANshegYIztBqynIyOveWYc3Vp7mXszg8yx6slKSzz5bg757H8Ol2jxxuL4XxHVIGMr6Rw==}
+  '@stdy/cli-win32-x64@0.22.2':
+    resolution: {integrity: sha512-7ZsJltOYVvMTl6eAy1AKMya7TFhb629FXr/BKZTyQsBrPj28rAaebQSTFYs1IZN0+n6LnJTpue6m4SIkevqBNA==}
     cpu: [x64]
     os: [win32]
 
-  '@stdy/cli@0.22.1':
-    resolution: {integrity: sha512-VdnCoK/d0JWIhToajBxAdagTpLCX/zTd7RiuK1KdT12Q4pZn/+eS97gq94+jv6TbiMd+9SWeOdsQCoagpLmNfA==}
+  '@stdy/cli@0.22.2':
+    resolution: {integrity: sha512-37UQfqcOSv1kevXJDt4FUA/l3vc62gzahzMcKJx5qL/kSt5ExRg++hGMwV1/PTRLIBOgbMzpKfoK26TaUYkdng==}
     engines: {node: '>=14.0.0'}
     hasBin: true
 
@@ -52,39 +52,39 @@ packages:
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
     os: [darwin]
 
-  pyright@1.1.399:
-    resolution: {integrity: sha512-roYApcOUEraOc2gTZX052/cw/AZ5rQGkdG/2DtU1/KyhfP+C5zHDlvOT24qRgPXDDkh76AvFwq5quZ1SMahq7w==}
+  pyright@1.1.413:
+    resolution: {integrity: sha512-1lpxKrh0DHHpfAQOfciZo2ojua2jase3wwO9at8kldc+F/p1PBscxA5CQ3G1qg5lMOMhXo6ZaiMLMXEAqADIAg==}
     engines: {node: '>=14.0.0'}
     hasBin: true
 
 snapshots:
 
-  '@stdy/cli-darwin-arm64@0.22.1':
+  '@stdy/cli-darwin-arm64@0.22.2':
     optional: true
 
-  '@stdy/cli-darwin-x64@0.22.1':
+  '@stdy/cli-darwin-x64@0.22.2':
     optional: true
 
-  '@stdy/cli-linux-arm64@0.22.1':
+  '@stdy/cli-linux-arm64@0.22.2':
     optional: true
 
-  '@stdy/cli-linux-x64@0.22.1':
+  '@stdy/cli-linux-x64@0.22.2':
     optional: true
 
-  '@stdy/cli-win32-x64@0.22.1':
+  '@stdy/cli-win32-x64@0.22.2':
     optional: true
 
-  '@stdy/cli@0.22.1':
+  '@stdy/cli@0.22.2':
     optionalDependencies:
-      '@stdy/cli-darwin-arm64': 0.22.1
-      '@stdy/cli-darwin-x64': 0.22.1
-      '@stdy/cli-linux-arm64': 0.22.1
-      '@stdy/cli-linux-x64': 0.22.1
-      '@stdy/cli-win32-x64': 0.22.1
+      '@stdy/cli-darwin-arm64': 0.22.2
+      '@stdy/cli-darwin-x64': 0.22.2
+      '@stdy/cli-linux-arm64': 0.22.2
+      '@stdy/cli-linux-x64': 0.22.2
+      '@stdy/cli-win32-x64': 0.22.2
 
   fsevents@2.3.3:
     optional: true
 
-  pyright@1.1.399:
+  pyright@1.1.413:
     optionalDependencies:
       fsevents: 2.3.3

@@ -5,6 +5,7 @@ from typing_extensions import Literal, Annotated, TypeAlias
 
 from ...._utils import PropertyInfo
 from ...._models import BaseModel
+from .cost_quantity_unit import CostQuantityUnit
 
 __all__ = [
     "UsageImagesResponse",
@@ -468,6 +469,12 @@ class DataResultOrganizationCostsResult(BaseModel):
     """
     When `group_by=line_item`, this field provides the quantity of the grouped costs
     result.
+    """
+
+    quantity_unit: Optional[CostQuantityUnit] = None
+    """The unit of the `quantity` value.
+
+    If no single supported unit applies to the result, this field is `null`.
     """
 
 
