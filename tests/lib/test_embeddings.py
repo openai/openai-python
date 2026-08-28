@@ -63,6 +63,24 @@ def test_decode_preserves_response_and_non_string_vectors(encoding_format: Omit 
     assert parsed.model == "text-embedding-3-small"
 
 
+@pytest.mark.parametrize("encoding_format", [omit, not_given], ids=["omit", "not-given"])
+def test_decoder_is_inspected_once(encoding_format: Omit | NotGiven, monkeypatch: pytest.MonkeyPatch) -> None:
+    calls = 0
+
+    def counting_decoder() -> bool:
+        nonlocal calls
+        calls += 1
+        return False
+
+    monkeypatch.setattr(embeddings_parser, "has_numpy", counting_decoder)
+    response = make_response(ENCODED, ENCODED, ENCODED)
+
+    parsed = embeddings_parser.parse_embedding_response(response, encoding_format=encoding_format)
+
+    assert calls == 1
+    assert [cast(object, item.embedding) for item in parsed.data] == [VALUES, VALUES, VALUES]
+
+
 @pytest.mark.parametrize("encoding_format", ["float", "base64", None])
 @pytest.mark.parametrize("vectors", [(ENCODED,), ("abc",), ()], ids=["encoded", "invalid", "empty"])
 def test_explicit_format_is_untouched(
