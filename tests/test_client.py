@@ -1153,6 +1153,25 @@ class TestOpenAI:
 
         assert route.call_count == 1
 
+    @pytest.mark.respx2(base_url=base_url)
+    def test_api_status_error_code_is_coerced_to_str(self, respx2_mock: MockRouter, client: OpenAI) -> None:
+        respx2_mock.get("/foo").mock(
+            return_value=httpx2.Response(
+                400,
+                json={"error": {"code": 404, "message": "nope", "type": "invalid_request_error"}},
+            )
+        )
+
+        with pytest.raises(APIStatusError) as exc_info:
+            client.get("/foo", cast_to=httpx2.Response)
+
+        error = exc_info.value
+        assert isinstance(error.code, str)
+        assert error.code == "404"
+        assert error.type == "invalid_request_error"
+        # the raw value is preserved on the body for consumers that need it
+        assert error.body == {"code": 404, "message": "nope", "type": "invalid_request_error"}
+
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx2(base_url=base_url)
     def test_retrying_timeout_errors_doesnt_leak(self, respx2_mock: MockRouter, client: OpenAI) -> None:
@@ -2447,6 +2466,27 @@ class TestAsyncOpenAI:
             await async_client.get("/foo", cast_to=httpx2.Response)
 
         assert route.call_count == 1
+
+    @pytest.mark.respx2(base_url=base_url)
+    async def test_api_status_error_code_is_coerced_to_str(
+        self, respx2_mock: MockRouter, async_client: AsyncOpenAI
+    ) -> None:
+        respx2_mock.get("/foo").mock(
+            return_value=httpx2.Response(
+                400,
+                json={"error": {"code": 404, "message": "nope", "type": "invalid_request_error"}},
+            )
+        )
+
+        with pytest.raises(APIStatusError) as exc_info:
+            await async_client.get("/foo", cast_to=httpx2.Response)
+
+        error = exc_info.value
+        assert isinstance(error.code, str)
+        assert error.code == "404"
+        assert error.type == "invalid_request_error"
+        # the raw value is preserved on the body for consumers that need it
+        assert error.body == {"code": 404, "message": "nope", "type": "invalid_request_error"}
 
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx2(base_url=base_url)
