@@ -127,7 +127,7 @@ jobs:
     steps:
       # This workflow definition is from main. No candidate checkout/artifacts.
       - name: Publish exact-head statuses after checking freshness
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           BASE_SHA: ${{ needs.compute.outputs.base-sha }}
           HEAD_SHA: ${{ needs.compute.outputs.head-sha }}
@@ -216,7 +216,7 @@ jobs:
 
       - name: Publish a trusted failure status
         if: always() && !cancelled() && steps.publish.outcome != 'success'
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             const marker = '<!-- castiron:custom-code-report:v1 -->';
