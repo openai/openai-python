@@ -121,6 +121,45 @@ _T_co = TypeVar("_T_co", covariant=True)
 _StreamT = TypeVar("_StreamT", bound=Stream[Any])
 _AsyncStreamT = TypeVar("_AsyncStreamT", bound=AsyncStream[Any])
 
+
+def _accepts_byte_ranges(response: httpx2.Response) -> bool:
+    # https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Accept-Ranges
+    value = str(response.headers.get("accept-ranges", ""))
+    return value.strip().lower() == "bytes"
+
+
+def _range_total_bytes(response: httpx2.Response) -> int | None:
+    """Total size reported by a `416` response's `Content-Range: bytes */<total>` header."""
+    value = str(response.headers.get("content-range", ""))
+    prefix = "bytes */"
+    if not value.startswith(prefix):
+        return None
+    try:
+        return int(value[len(prefix) :].strip())
+    except ValueError:
+        return None
+
+
+def _reassembled_download_response(
+    request: httpx2.Request,
+    response: httpx2.Response,
+    content: bytes,
+) -> httpx2.Response:
+    headers = [
+        (key, value)
+        for key, value in response.headers.raw
+        if key.decode("latin-1").lower() not in ("content-range", "content-length", "transfer-encoding")
+    ]
+    return httpx2.Response(
+        200,
+        headers=headers,
+        content=content,
+        request=request,
+        extensions=response.extensions,
+        history=response.history,
+    )
+
+
 if TYPE_CHECKING:
     from httpx2._config import (
         DEFAULT_TIMEOUT_CONFIG,  # pyright: ignore[reportPrivateImportUsage]
@@ -998,6 +1037,51 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
     ) -> httpx2.Response:
         return self._client.send(request, stream=stream, **kwargs)
 
+    def _read_resumable_body(
+        self,
+        request: httpx2.Request,
+        response: httpx2.Response,
+        partial: bytearray,
+    ) -> httpx2.Response:
+        """Read a non-streamed GET response body, resuming interrupted downloads.
+
+        Retries normally restart a failed download from the first byte, which can
+        never succeed when a transfer is deterministically cut off mid-body (for
+        example large Batch API result files). When the server advertises
+        `Accept-Ranges: bytes`, later attempts request only the bytes that are
+        still missing, so retries make forward progress instead of repeating it.
+        """
+        resuming = bool(partial)
+        if resuming and response.status_code == 416:
+            total = _range_total_bytes(response)
+            if total is not None and total == len(partial):
+                # the earlier attempt already received every byte; only the
+                # terminating chunks went missing
+                return _reassembled_download_response(request, response, bytes(partial))
+            received = len(partial)
+            partial.clear()
+            raise httpx2.ReadError(
+                f"Server rejected resuming the download at byte {received} with 416; restarting from scratch",
+                request=request,
+            )
+
+        accumulate = False
+        if resuming and response.status_code == 206:
+            # partial content; append the missing tail to what we already have
+            accumulate = True
+        elif response.status_code == 200 and _accepts_byte_ranges(response):
+            # either no range was sent or the server ignored it; this body is complete
+            partial.clear()
+            accumulate = True
+
+        if not accumulate:
+            response.read()
+            return response
+
+        for chunk in response.iter_bytes():
+            partial.extend(chunk)
+        return _reassembled_download_response(request, response, bytes(partial))
+
     @overload
     def request(
         self,
@@ -1048,6 +1132,11 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
         response: httpx2.Response | None = None
         max_retries = input_options.get_max_retries(self.max_retries)
 
+        # GET responses are idempotent, so an interrupted body can be resumed
+        # with a `Range` request once the server told us it supports byte ranges
+        resumable_download = input_options.method.lower() == "get" and not stream
+        partial_download = bytearray()
+
         retries_taken = 0
         for retries_taken in range(max_retries + 1):
             options = model_copy(input_options)
@@ -1056,6 +1145,11 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
             remaining_retries = max_retries - retries_taken
             request = self._build_request(options, retries_taken=retries_taken)
             self._prepare_request(request)
+
+            resumable_attempt = resumable_download and not self._should_stream_response_body(request)
+            if resumable_attempt and partial_download:
+                log.debug("Resuming interrupted download from byte %i", len(partial_download))
+                request.headers["Range"] = f"bytes={len(partial_download)}-"
 
             kwargs: HttpxSendArgs = {}
             custom_auth = self._custom_auth(options.security)
@@ -1075,9 +1169,11 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
             try:
                 response = self._send_request(
                     request,
-                    stream=stream or self._should_stream_response_body(request=request),
+                    stream=stream or self._should_stream_response_body(request=request) or resumable_attempt,
                     **kwargs,
                 )
+                if resumable_attempt:
+                    response = self._read_resumable_body(request, response, partial_download)
             except timeout_exceptions() as err:
                 log.debug("Encountered a timeout exception: %s", type(err).__name__)
 
@@ -1617,6 +1713,44 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
     ) -> httpx2.Response:
         return await self._client.send(request, stream=stream, **kwargs)
 
+    async def _aread_resumable_body(
+        self,
+        request: httpx2.Request,
+        response: httpx2.Response,
+        partial: bytearray,
+    ) -> httpx2.Response:
+        """Async counterpart of `_read_resumable_body`."""
+        resuming = bool(partial)
+        if resuming and response.status_code == 416:
+            total = _range_total_bytes(response)
+            if total is not None and total == len(partial):
+                # the earlier attempt already received every byte; only the
+                # terminating chunks went missing
+                return _reassembled_download_response(request, response, bytes(partial))
+            received = len(partial)
+            partial.clear()
+            raise httpx2.ReadError(
+                f"Server rejected resuming the download at byte {received} with 416; restarting from scratch",
+                request=request,
+            )
+
+        accumulate = False
+        if resuming and response.status_code == 206:
+            # partial content; append the missing tail to what we already have
+            accumulate = True
+        elif response.status_code == 200 and _accepts_byte_ranges(response):
+            # either no range was sent or the server ignored it; this body is complete
+            partial.clear()
+            accumulate = True
+
+        if not accumulate:
+            await response.aread()
+            return response
+
+        async for chunk in response.aiter_bytes():
+            partial.extend(chunk)
+        return _reassembled_download_response(request, response, bytes(partial))
+
     @overload
     async def request(
         self,
@@ -1672,6 +1806,11 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
         response: httpx2.Response | None = None
         max_retries = input_options.get_max_retries(self.max_retries)
 
+        # GET responses are idempotent, so an interrupted body can be resumed
+        # with a `Range` request once the server told us it supports byte ranges
+        resumable_download = input_options.method.lower() == "get" and not stream
+        partial_download = bytearray()
+
         retries_taken = 0
         for retries_taken in range(max_retries + 1):
             options = model_copy(input_options)
@@ -1680,6 +1819,11 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
             remaining_retries = max_retries - retries_taken
             request = self._build_request(options, retries_taken=retries_taken)
             await self._prepare_request(request)
+
+            resumable_attempt = resumable_download and not self._should_stream_response_body(request)
+            if resumable_attempt and partial_download:
+                log.debug("Resuming interrupted download from byte %i", len(partial_download))
+                request.headers["Range"] = f"bytes={len(partial_download)}-"
 
             kwargs: HttpxSendArgs = {}
             if self.custom_auth is not None:
@@ -1698,9 +1842,11 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
             try:
                 response = await self._send_request(
                     request,
-                    stream=stream or self._should_stream_response_body(request=request),
+                    stream=stream or self._should_stream_response_body(request=request) or resumable_attempt,
                     **kwargs,
                 )
+                if resumable_attempt:
+                    response = await self._aread_resumable_body(request, response, partial_download)
             except timeout_exceptions() as err:
                 log.debug("Encountered a timeout exception: %s", type(err).__name__)
 
