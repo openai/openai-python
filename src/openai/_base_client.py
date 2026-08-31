@@ -138,9 +138,10 @@ def _is_identity_encoded(response: httpx2.Response) -> bool:
 def _content_range_bounds(response: httpx2.Response) -> tuple[int, int | None, int | None] | None:
     """Parse a `206` response's `Content-Range: bytes <start>-<end>/<total>` header.
 
-    `end` and `total` are `None` when absent or unknown (`*`).
+    `end` and `total` are `None` when absent or unknown (`*`). Range unit names
+    are case-insensitive, so the header is normalised before parsing.
     """
-    value = str(response.headers.get("content-range", ""))
+    value = str(response.headers.get("content-range", "")).strip().lower()
     if not value.startswith("bytes "):
         return None
     try:
@@ -156,7 +157,7 @@ def _content_range_bounds(response: httpx2.Response) -> tuple[int, int | None, i
 
 def _range_total_bytes(response: httpx2.Response) -> int | None:
     """Total size reported by a `416` response's `Content-Range: bytes */<total>` header."""
-    value = str(response.headers.get("content-range", ""))
+    value = str(response.headers.get("content-range", "")).strip().lower()
     prefix = "bytes */"
     if not value.startswith(prefix):
         return None
@@ -189,12 +190,17 @@ class _PartialDownload:
 
 
 def _resume_validator(response: httpx2.Response) -> str | None:
-    """Strong validator for an `If-Range` request, from the interrupted response."""
+    """Strong validator for an `If-Range` request, from the interrupted response.
+
+    Only a strong `ETag` qualifies: a weak `W/` tag is explicitly unusable, and
+    a `Last-Modified` date cannot be assumed to be a strong validator (its
+    one-second granularity may hide changes), so both fall back to "no
+    validator" and the download restarts instead of being resumed.
+    """
     etag = str(response.headers.get("etag", "")).strip()
     if etag and not etag.startswith("W/"):
         return etag
-    last_modified = str(response.headers.get("last-modified", "")).strip()
-    return last_modified or None
+    return None
 
 
 def _reassembled_download_response(
@@ -1173,7 +1179,9 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
         if not accumulate:
             try:
                 response.read()
-            except Exception:
+            except BaseException:
+                # includes KeyboardInterrupt and other BaseExceptions — the
+                # stream must not outlive the failed read either way
                 response.close()
                 raise
             return response
@@ -1183,16 +1191,24 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
         try:
             for chunk in response.iter_bytes():
                 partial.data.extend(chunk)
-        except Exception:
+        except BaseException:
             # the stream is left open when the body read fails; release the
             # connection before the retry loop takes over
             response.close()
             raise
         bounds = _content_range_bounds(response)
-        if bounds is not None and resuming and bounds[2] is not None and bounds[2] != len(partial.data):
+        if resuming and bounds is not None and (bounds[2] is None or bounds[2] != len(partial.data)):
+            response.close()
+            if bounds[2] is None:
+                # the total length is unknown, so completeness can never be
+                # proven; restart with a plain full download instead
+                partial.clear()
+                raise httpx2.ReadError(
+                    "Partial response does not report a total length; restarting from scratch",
+                    request=response.request,
+                )
             # the origin served a satisfying-but-short segment; keep the bytes
             # it did send so the next attempt resumes from the new offset
-            response.close()
             raise httpx2.ReadError(
                 f"Partial response ended at byte {len(partial.data)} of {bounds[2]}; resuming",
                 request=response.request,
@@ -1904,7 +1920,9 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
         if not accumulate:
             try:
                 await response.aread()
-            except Exception:
+            except BaseException:
+                # includes CancelledError and other BaseExceptions — the stream
+                # must not outlive the failed read either way
                 await response.aclose()
                 raise
             return response
@@ -1914,16 +1932,24 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
         try:
             async for chunk in response.aiter_bytes():
                 partial.data.extend(chunk)
-        except Exception:
-            # the stream is left open when the body read fails; release the
-            # connection before the retry loop takes over
+        except BaseException:
+            # the stream is left open when the body read fails or the task is
+            # cancelled; release the connection before propagating
             await response.aclose()
             raise
         bounds = _content_range_bounds(response)
-        if bounds is not None and resuming and bounds[2] is not None and bounds[2] != len(partial.data):
+        if resuming and bounds is not None and (bounds[2] is None or bounds[2] != len(partial.data)):
+            await response.aclose()
+            if bounds[2] is None:
+                # the total length is unknown, so completeness can never be
+                # proven; restart with a plain full download instead
+                partial.clear()
+                raise httpx2.ReadError(
+                    "Partial response does not report a total length; restarting from scratch",
+                    request=response.request,
+                )
             # the origin served a satisfying-but-short segment; keep the bytes
             # it did send so the next attempt resumes from the new offset
-            await response.aclose()
             raise httpx2.ReadError(
                 f"Partial response ended at byte {len(partial.data)} of {bounds[2]}; resuming",
                 request=response.request,

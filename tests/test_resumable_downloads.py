@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import gzip
+import asyncio
 from collections.abc import Iterator, AsyncIterator
 
 import httpx2
@@ -48,6 +49,17 @@ def _stream_cls(is_async: bool) -> type[CutOffStream] | type[AsyncCutOffStream]:
     return AsyncCutOffStream if is_async else CutOffStream
 
 
+class CancellingStream(AsyncByteStream):
+    """Yields some bytes, then the task reading the body is cancelled."""
+
+    def __init__(self, data: bytes) -> None:
+        self.data = data
+
+    async def __aiter__(self) -> AsyncIterator[bytes]:
+        yield self.data[:64]
+        raise asyncio.CancelledError()
+
+
 class RangeServer:
     """Stateful handler that serves `DATA`, cutting the first transfer short.
 
@@ -63,15 +75,21 @@ class RangeServer:
         honor_range: bool = True,
         cut_first_attempt_at: int | None = CUT,
         etag: str | None = '"version-1"',
+        last_modified: str | None = None,
         misalign_content_range: bool = False,
         shorten_first_ranged_segment: bool = False,
+        unknown_total: bool = False,
+        uppercase_units: bool = False,
     ) -> None:
         self.accept_ranges = accept_ranges
         self.honor_range = honor_range
         self.cut_first_attempt_at = cut_first_attempt_at
         self.etag = etag
+        self.last_modified = last_modified
         self.misalign_content_range = misalign_content_range
         self.shorten_first_ranged_segment = shorten_first_ranged_segment
+        self.unknown_total = unknown_total
+        self.uppercase_units = uppercase_units
         self.requests: list[httpx2.Request] = []
 
     def _handle(self, request: httpx2.Request, *, is_async: bool) -> httpx2.Response:
@@ -82,11 +100,17 @@ class RangeServer:
             headers["accept-ranges"] = "bytes"
         if self.etag:
             headers["etag"] = self.etag
+        if self.last_modified:
+            headers["last-modified"] = self.last_modified
 
         range_header = request.headers.get("range")
         if not first_attempt and range_header and self.honor_range:
             start = int(range_header.removeprefix("bytes=").split("-")[0])
             end = len(DATA) - 1
+            total: int | str = len(DATA)
+            if self.unknown_total:
+                total = "*"
+            unit = "Bytes" if self.uppercase_units else "bytes"
             if self.misalign_content_range:
                 # claims a range that does not match what we asked for
                 headers["content-range"] = f"bytes 0-{len(DATA) - 1}/{len(DATA)}"
@@ -102,7 +126,7 @@ class RangeServer:
                     stream=_stream_cls(is_async)(DATA[start : end + 1], None),
                 )
             else:
-                headers["content-range"] = f"bytes {start}-{end}/{len(DATA)}"
+                headers["content-range"] = f"{unit} {start}-{end}/{total}"
             return httpx2.Response(
                 206,
                 headers=headers,
@@ -336,6 +360,66 @@ class TestResumableDownloads:
         rebuilt = _reassembled_download_response(representation, b"hello", elapsed_from=representation)
 
         assert rebuilt.elapsed == timedelta(seconds=1.5)
+
+    def test_last_modified_alone_is_not_a_validator(self) -> None:
+        server = RangeServer(etag=None, last_modified="Sun, 30 Aug 2026 12:00:00 GMT")
+        with _sync_client(server) as client:
+            content = client.files.content("file_abc").content
+
+        assert content == DATA
+        # a Last-Modified date cannot be proven strong, so nothing is resumed
+        assert server.requests[1].headers.get("range") is None
+
+    def test_unknown_total_restarts_from_scratch(self) -> None:
+        server = RangeServer(unknown_total=True)
+        with _sync_client(server) as client:
+            content = client.files.content("file_abc").content
+
+        assert content == DATA
+        # attempt 2's segment reported no total, so completeness was unprovable
+        # and attempt 3 downloaded the whole body instead of resuming
+        assert len(server.requests) == 3
+        assert server.requests[1].headers.get("range") == f"bytes={CUT}-"
+        assert server.requests[2].headers.get("range") is None
+
+    def test_range_units_are_parsed_case_insensitively(self) -> None:
+        server = RangeServer(uppercase_units=True)
+        with _sync_client(server) as client:
+            content = client.files.content("file_abc").content
+
+        assert content == DATA
+        assert len(server.requests) == 2
+
+    @pytest.mark.asyncio
+    async def test_cancelled_body_read_closes_the_response(self) -> None:
+        served: list[httpx2.Response] = []
+
+        async def handler(request: httpx2.Request) -> httpx2.Response:
+            response = httpx2.Response(
+                200,
+                headers={
+                    "content-type": "application/binary",
+                    "accept-ranges": "bytes",
+                    "etag": '"version-1"',
+                },
+                request=request,
+                stream=CancellingStream(DATA),
+            )
+            served.append(response)
+            return response
+
+        async with openai.AsyncOpenAI(
+            base_url=base_url,
+            api_key=api_key,
+            http_client=httpx2.AsyncClient(transport=httpx2.MockTransport(handler)),
+        ) as client:
+            with pytest.raises(asyncio.CancelledError):
+                await client.files.content("file_abc")
+
+        # CancelledError bypasses `except Exception` handlers; the response
+        # must still have been closed by the BaseException cleanup path
+        assert len(served) == 1
+        assert served[0].is_closed
 
     def test_restarts_when_content_range_does_not_match_offset(self) -> None:
         server = RangeServer(misalign_content_range=True)
