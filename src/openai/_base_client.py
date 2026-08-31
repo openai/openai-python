@@ -110,6 +110,52 @@ from ._legacy_response import LegacyAPIResponse
 log: logging.Logger = logging.getLogger(__name__)
 log.addFilter(SensitiveHeadersFilter())
 
+
+class _RequestContentReplay:
+    def __init__(self, content: object) -> None:
+        self._content = content
+        self._position: int | None = None
+        self._replayable = True
+
+        if content is None or isinstance(content, (bytes, bytearray)):
+            return
+
+        if callable(getattr(content, "read", None)):
+            seekable = getattr(content, "seekable", None)
+            tell = getattr(content, "tell", None)
+            try:
+                if not callable(seekable) or not seekable() or not callable(tell):
+                    self._replayable = False
+                    return
+                position = tell()
+            except (OSError, ValueError):
+                self._replayable = False
+                return
+
+            if isinstance(position, int):
+                self._position = position
+            else:
+                self._replayable = False
+            return
+
+        self._replayable = not isinstance(content, (Iterator, AsyncIterator))
+
+    def rewind(self) -> bool:
+        if not self._replayable:
+            return False
+        if self._position is None:
+            return True
+
+        seek = getattr(self._content, "seek", None)
+        if not callable(seek):
+            return False
+        try:
+            seek(self._position)
+        except (OSError, ValueError):
+            return False
+        return True
+
+
 # TODO: make base page type vars covariant
 SyncPageT = TypeVar("SyncPageT", bound="BaseSyncPage[Any]")
 AsyncPageT = TypeVar("AsyncPageT", bound="BaseAsyncPage[Any]")
@@ -1047,6 +1093,7 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
 
         response: httpx2.Response | None = None
         max_retries = input_options.get_max_retries(self.max_retries)
+        content_replay = _RequestContentReplay(input_options.content)
 
         retries_taken = 0
         for retries_taken in range(max_retries + 1):
@@ -1081,7 +1128,7 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
             except timeout_exceptions() as err:
                 log.debug("Encountered a timeout exception: %s", type(err).__name__)
 
-                if remaining_retries > 0:
+                if remaining_retries > 0 and content_replay.rewind():
                     self._sleep_for_retry(
                         retries_taken=retries_taken,
                         max_retries=max_retries,
@@ -1098,7 +1145,7 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
             except Exception as err:
                 log.debug("Encountered exception: %s", type(err).__name__)
 
-                if remaining_retries > 0:
+                if remaining_retries > 0 and content_replay.rewind():
                     self._sleep_for_retry(
                         retries_taken=retries_taken,
                         max_retries=max_retries,
@@ -1122,7 +1169,7 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
             except status_exceptions() as err:  # thrown on 4xx and 5xx status code
                 log.debug("Encountered an HTTP status error: %i", response.status_code)
 
-                if remaining_retries > 0 and self._should_retry(err.response):
+                if remaining_retries > 0 and self._should_retry(err.response) and content_replay.rewind():
                     err.response.close()
                     self._sleep_for_retry(
                         retries_taken=retries_taken,
@@ -1671,6 +1718,7 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
 
         response: httpx2.Response | None = None
         max_retries = input_options.get_max_retries(self.max_retries)
+        content_replay = _RequestContentReplay(input_options.content)
 
         retries_taken = 0
         for retries_taken in range(max_retries + 1):
@@ -1704,7 +1752,7 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
             except timeout_exceptions() as err:
                 log.debug("Encountered a timeout exception: %s", type(err).__name__)
 
-                if remaining_retries > 0:
+                if remaining_retries > 0 and content_replay.rewind():
                     await self._sleep_for_retry(
                         retries_taken=retries_taken,
                         max_retries=max_retries,
@@ -1721,7 +1769,7 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
             except Exception as err:
                 log.debug("Encountered exception: %s", type(err).__name__)
 
-                if remaining_retries > 0:
+                if remaining_retries > 0 and content_replay.rewind():
                     await self._sleep_for_retry(
                         retries_taken=retries_taken,
                         max_retries=max_retries,
@@ -1745,7 +1793,7 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
             except status_exceptions() as err:  # thrown on 4xx and 5xx status code
                 log.debug("Encountered an HTTP status error: %i", response.status_code)
 
-                if remaining_retries > 0 and self._should_retry(err.response):
+                if remaining_retries > 0 and self._should_retry(err.response) and content_replay.rewind():
                     await err.response.aclose()
                     await self._sleep_for_retry(
                         retries_taken=retries_taken,
