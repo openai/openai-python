@@ -62,14 +62,16 @@ class RangeServer:
         accept_ranges: bool = True,
         honor_range: bool = True,
         cut_first_attempt_at: int | None = CUT,
-        etag: str | None = None,
+        etag: str | None = '"version-1"',
         misalign_content_range: bool = False,
+        shorten_first_ranged_segment: bool = False,
     ) -> None:
         self.accept_ranges = accept_ranges
         self.honor_range = honor_range
         self.cut_first_attempt_at = cut_first_attempt_at
         self.etag = etag
         self.misalign_content_range = misalign_content_range
+        self.shorten_first_ranged_segment = shorten_first_ranged_segment
         self.requests: list[httpx2.Request] = []
 
     def _handle(self, request: httpx2.Request, *, is_async: bool) -> httpx2.Response:
@@ -84,12 +86,23 @@ class RangeServer:
         range_header = request.headers.get("range")
         if not first_attempt and range_header and self.honor_range:
             start = int(range_header.removeprefix("bytes=").split("-")[0])
+            end = len(DATA) - 1
             if self.misalign_content_range:
                 # claims a range that does not match what we asked for
                 headers["content-range"] = f"bytes 0-{len(DATA) - 1}/{len(DATA)}"
                 start = 0
+            elif self.shorten_first_ranged_segment and len(self.requests) == 2:
+                # a satisfying-but-short segment: legally ends before the total
+                end = start + (len(DATA) - start) // 2 - 1
+                headers["content-range"] = f"bytes {start}-{end}/{len(DATA)}"
+                return httpx2.Response(
+                    206,
+                    headers=headers,
+                    request=request,
+                    stream=_stream_cls(is_async)(DATA[start : end + 1], None),
+                )
             else:
-                headers["content-range"] = f"bytes {start}-{len(DATA) - 1}/{len(DATA)}"
+                headers["content-range"] = f"bytes {start}-{end}/{len(DATA)}"
             return httpx2.Response(
                 206,
                 headers=headers,
@@ -123,6 +136,7 @@ class AlwaysCutsServer(RangeServer):
             headers={
                 "content-type": "application/binary",
                 "accept-ranges": "bytes",
+                "etag": '"version-1"',
             },
             request=request,
             stream=_stream_cls(is_async)(DATA, CUT),
@@ -144,6 +158,7 @@ class CutAtVeryEndServer(RangeServer):
                 headers={
                     "content-type": "application/binary",
                     "accept-ranges": "bytes",
+                    "etag": '"version-1"',
                     "content-disposition": 'attachment; filename="result.jsonl"',
                 },
                 request=request,
@@ -282,7 +297,45 @@ class TestResumableDownloads:
             content = client.files.content("file_abc").content
 
         assert content == DATA
+        # a weak validator cannot guard against a changed resource, so the
+        # interrupted download is not resumed at all
         assert server.requests[1].headers.get("if-range") is None
+        assert server.requests[1].headers.get("range") is None
+
+    def test_no_resume_without_any_validator(self) -> None:
+        server = RangeServer(etag=None)
+        with _sync_client(server) as client:
+            content = client.files.content("file_abc").content
+
+        assert content == DATA
+        assert len(server.requests) == 2
+        assert server.requests[1].headers.get("range") is None
+
+    def test_short_partial_segments_resume_until_complete(self) -> None:
+        server = RangeServer(shorten_first_ranged_segment=True)
+        with _sync_client(server) as client:
+            content = client.files.content("file_abc").content
+
+        assert content == DATA
+        # attempt 2 served half the remainder, attempt 3 the rest
+        assert len(server.requests) == 3
+        second = int(server.requests[1].headers.get("range", "").removeprefix("bytes=").split("-")[0])
+        third = int(server.requests[2].headers.get("range", "").removeprefix("bytes=").split("-")[0])
+        assert second == CUT
+        assert third > CUT
+
+    def test_rebuilt_response_preserves_elapsed(self) -> None:
+        from datetime import timedelta
+
+        from openai._base_client import _reassembled_download_response
+
+        request = httpx2.Request("GET", "https://example.test/files/abc/content")
+        representation = httpx2.Response(200, request=request, content=b"hello")
+        representation.elapsed = timedelta(seconds=1.5)
+
+        rebuilt = _reassembled_download_response(representation, b"hello", elapsed_from=representation)
+
+        assert rebuilt.elapsed == timedelta(seconds=1.5)
 
     def test_restarts_when_content_range_does_not_match_offset(self) -> None:
         server = RangeServer(misalign_content_range=True)
