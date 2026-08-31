@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from collections.abc import AsyncIterator, Iterator
+import gzip
+from collections.abc import Iterator, AsyncIterator
 
 import httpx2
 import pytest
@@ -61,10 +62,14 @@ class RangeServer:
         accept_ranges: bool = True,
         honor_range: bool = True,
         cut_first_attempt_at: int | None = CUT,
+        etag: str | None = None,
+        misalign_content_range: bool = False,
     ) -> None:
         self.accept_ranges = accept_ranges
         self.honor_range = honor_range
         self.cut_first_attempt_at = cut_first_attempt_at
+        self.etag = etag
+        self.misalign_content_range = misalign_content_range
         self.requests: list[httpx2.Request] = []
 
     def _handle(self, request: httpx2.Request, *, is_async: bool) -> httpx2.Response:
@@ -73,11 +78,18 @@ class RangeServer:
         headers = {"content-type": "application/binary"}
         if self.accept_ranges:
             headers["accept-ranges"] = "bytes"
+        if self.etag:
+            headers["etag"] = self.etag
 
         range_header = request.headers.get("range")
         if not first_attempt and range_header and self.honor_range:
             start = int(range_header.removeprefix("bytes=").split("-")[0])
-            headers["content-range"] = f"bytes {start}-{len(DATA) - 1}/{len(DATA)}"
+            if self.misalign_content_range:
+                # claims a range that does not match what we asked for
+                headers["content-range"] = f"bytes 0-{len(DATA) - 1}/{len(DATA)}"
+                start = 0
+            else:
+                headers["content-range"] = f"bytes {start}-{len(DATA) - 1}/{len(DATA)}"
             return httpx2.Response(
                 206,
                 headers=headers,
@@ -132,6 +144,7 @@ class CutAtVeryEndServer(RangeServer):
                 headers={
                     "content-type": "application/binary",
                     "accept-ranges": "bytes",
+                    "content-disposition": 'attachment; filename="result.jsonl"',
                 },
                 request=request,
                 stream=_stream_cls(is_async)(DATA, len(DATA)),
@@ -145,7 +158,35 @@ class CutAtVeryEndServer(RangeServer):
         )
 
 
-def _sync_client(server: RangeServer) -> openai.OpenAI:
+class GzipServer:
+    """Serves a gzip-encoded body — byte ranges don't apply to decoded bytes."""
+
+    def __init__(self) -> None:
+        self.encoded = gzip.compress(DATA)
+        self.requests: list[httpx2.Request] = []
+
+    def _handle(self, request: httpx2.Request, *, is_async: bool) -> httpx2.Response:
+        self.requests.append(request)
+        cut_at = len(self.encoded) // 2 if len(self.requests) == 1 else None
+        return httpx2.Response(
+            200,
+            headers={
+                "content-type": "application/binary",
+                "accept-ranges": "bytes",
+                "content-encoding": "gzip",
+            },
+            request=request,
+            stream=_stream_cls(is_async)(self.encoded, cut_at),
+        )
+
+    def handle(self, request: httpx2.Request) -> httpx2.Response:
+        return self._handle(request, is_async=False)
+
+    async def handle_async(self, request: httpx2.Request) -> httpx2.Response:
+        return self._handle(request, is_async=True)
+
+
+def _sync_client(server: RangeServer | GzipServer) -> openai.OpenAI:
     return openai.OpenAI(
         base_url=base_url,
         api_key=api_key,
@@ -154,7 +195,7 @@ def _sync_client(server: RangeServer) -> openai.OpenAI:
     )
 
 
-def _async_client(server: RangeServer) -> openai.AsyncOpenAI:
+def _async_client(server: RangeServer | GzipServer) -> openai.AsyncOpenAI:
     return openai.AsyncOpenAI(
         base_url=base_url,
         api_key=api_key,
@@ -216,6 +257,55 @@ class TestResumableDownloads:
 
         assert content == DATA
         assert len(server.requests) == 2
+
+    def test_416_completion_preserves_original_response_headers(self) -> None:
+        server = CutAtVeryEndServer()
+        with _sync_client(server) as client:
+            response = client.with_raw_response.files.content("file_abc")
+
+        assert response.content == DATA
+        assert response.headers.get("content-type") == "application/binary"
+        assert response.headers.get("content-disposition") == 'attachment; filename="result.jsonl"'
+        assert "content-range" not in response.headers
+
+    def test_resume_sends_if_range_with_strong_etag(self) -> None:
+        server = RangeServer(etag='"version-1"')
+        with _sync_client(server) as client:
+            content = client.files.content("file_abc").content
+
+        assert content == DATA
+        assert server.requests[1].headers.get("if-range") == '"version-1"'
+
+    def test_weak_etag_is_not_used_as_validator(self) -> None:
+        server = RangeServer(etag='W/"version-1"')
+        with _sync_client(server) as client:
+            content = client.files.content("file_abc").content
+
+        assert content == DATA
+        assert server.requests[1].headers.get("if-range") is None
+
+    def test_restarts_when_content_range_does_not_match_offset(self) -> None:
+        server = RangeServer(misalign_content_range=True)
+        with _sync_client(server) as client:
+            content = client.files.content("file_abc").content
+
+        assert content == DATA
+        # attempt 2 returned a 206 that starts at the wrong offset, so the
+        # partial state was dropped and attempt 3 downloaded from scratch
+        assert len(server.requests) == 3
+        assert server.requests[1].headers.get("range") == f"bytes={CUT}-"
+        assert server.requests[2].headers.get("range") is None
+
+    def test_encoded_bodies_are_not_resumed(self) -> None:
+        server = GzipServer()
+        with _sync_client(server) as client:
+            content = client.files.content("file_abc").content
+
+        assert content == DATA
+        assert len(server.requests) == 2
+        # byte ranges address the encoded representation, so a gzip body is
+        # never resumed — the retry restarts from the first byte
+        assert server.requests[1].headers.get("range") is None
 
     def test_raises_when_retries_are_exhausted(self) -> None:
         server = AlwaysCutsServer()

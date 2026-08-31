@@ -128,6 +128,24 @@ def _accepts_byte_ranges(response: httpx2.Response) -> bool:
     return value.strip().lower() == "bytes"
 
 
+def _is_identity_encoded(response: httpx2.Response) -> bool:
+    # byte ranges address the encoded representation, but `iter_bytes()` yields
+    # decoded bytes — resuming is only sound when the two are the same
+    value = str(response.headers.get("content-encoding", "")).strip().lower()
+    return value in ("", "identity")
+
+
+def _range_start_bytes(response: httpx2.Response) -> int | None:
+    """Start offset reported by a `206` response's `Content-Range: bytes <start>-…` header."""
+    value = str(response.headers.get("content-range", ""))
+    if not value.startswith("bytes "):
+        return None
+    try:
+        return int(value[len("bytes ") :].split("-", 1)[0].strip())
+    except ValueError:
+        return None
+
+
 def _range_total_bytes(response: httpx2.Response) -> int | None:
     """Total size reported by a `416` response's `Content-Range: bytes */<total>` header."""
     value = str(response.headers.get("content-range", ""))
@@ -140,23 +158,54 @@ def _range_total_bytes(response: httpx2.Response) -> int | None:
         return None
 
 
-def _reassembled_download_response(
-    request: httpx2.Request,
-    response: httpx2.Response,
-    content: bytes,
-) -> httpx2.Response:
+class _PartialDownload:
+    """Bytes already received from a range-capable response body, plus the
+    response (headers, request, validator) that produced them."""
+
+    __slots__ = ("data", "representation")
+
+    def __init__(self) -> None:
+        self.data = bytearray()
+        self.representation: httpx2.Response | None = None
+
+    def __bool__(self) -> bool:
+        return bool(self.data)
+
+    def reset(self, response: httpx2.Response) -> None:
+        self.data.clear()
+        self.representation = response
+
+    def clear(self) -> None:
+        self.data.clear()
+        self.representation = None
+
+
+def _resume_validator(response: httpx2.Response) -> str | None:
+    """Strong validator for an `If-Range` request, from the interrupted response."""
+    etag = str(response.headers.get("etag", "")).strip()
+    if etag and not etag.startswith("W/"):
+        return etag
+    last_modified = str(response.headers.get("last-modified", "")).strip()
+    return last_modified or None
+
+
+def _reassembled_download_response(representation: httpx2.Response, content: bytes) -> httpx2.Response:
     headers = [
         (key, value)
-        for key, value in response.headers.raw
+        for key, value in representation.headers.raw
         if key.decode("latin-1").lower() not in ("content-range", "content-length", "transfer-encoding")
     ]
-    return httpx2.Response(
+    # keep the response class of the client that actually served the request
+    # (legacy `httpx` clients produce legacy `httpx.Response` objects)
+    response_cls = httpx2.Response if isinstance(representation, httpx2.Response) else type(representation)
+    return response_cls(
         200,
         headers=headers,
         content=content,
-        request=request,
-        extensions=response.extensions,
-        history=response.history,
+        # the request as it was actually sent (post-redirect, post-auth)
+        request=representation.request,
+        extensions=representation.extensions,
+        history=representation.history,
     )
 
 
@@ -1039,9 +1088,8 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
 
     def _read_resumable_body(
         self,
-        request: httpx2.Request,
         response: httpx2.Response,
-        partial: bytearray,
+        partial: _PartialDownload,
     ) -> httpx2.Response:
         """Read a non-streamed GET response body, resuming interrupted downloads.
 
@@ -1054,33 +1102,68 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
         resuming = bool(partial)
         if resuming and response.status_code == 416:
             total = _range_total_bytes(response)
-            if total is not None and total == len(partial):
+            representation = partial.representation
+            assert representation is not None
+            if total is not None and total == len(partial.data):
                 # the earlier attempt already received every byte; only the
                 # terminating chunks went missing
-                return _reassembled_download_response(request, response, bytes(partial))
-            received = len(partial)
+                response.close()
+                return self._finish_download(partial)
+            received = len(partial.data)
+            response.close()
             partial.clear()
             raise httpx2.ReadError(
                 f"Server rejected resuming the download at byte {received} with 416; restarting from scratch",
-                request=request,
+                request=representation.request,
             )
 
         accumulate = False
         if resuming and response.status_code == 206:
-            # partial content; append the missing tail to what we already have
-            accumulate = True
-        elif response.status_code == 200 and _accepts_byte_ranges(response):
+            start = _range_start_bytes(response)
+            if start is not None and start == len(partial.data):
+                # partial content; append the missing tail to what we already have
+                accumulate = True
+            else:
+                # unsolicited or misaligned range — our offset is unusable for
+                # this origin, so start over on the next attempt
+                received = len(partial.data)
+                response.close()
+                partial.clear()
+                raise httpx2.ReadError(
+                    f"Server returned a partial response that does not start at byte {received}; restarting from scratch",
+                    request=response.request,
+                )
+        elif response.status_code == 200 and _accepts_byte_ranges(response) and _is_identity_encoded(response):
             # either no range was sent or the server ignored it; this body is complete
-            partial.clear()
+            partial.reset(response)
             accumulate = True
+        elif resuming and response.status_code == 200:
+            # the retry delivered a complete replacement body; any partial bytes
+            # are superseded
+            partial.clear()
 
         if not accumulate:
             response.read()
             return response
 
-        for chunk in response.iter_bytes():
-            partial.extend(chunk)
-        return _reassembled_download_response(request, response, bytes(partial))
+        # on a 206 the original response stays the representation of the full
+        # body (headers, validator, request); a 200 restart already replaced it
+        try:
+            for chunk in response.iter_bytes():
+                partial.data.extend(chunk)
+        except Exception:
+            # the stream is left open when the body read fails; release the
+            # connection before the retry loop takes over
+            response.close()
+            raise
+        return self._finish_download(partial)
+
+    def _finish_download(self, partial: _PartialDownload) -> httpx2.Response:
+        representation = partial.representation
+        assert representation is not None
+        content = bytes(partial.data)
+        partial.clear()  # release the mutable buffer before response processing
+        return _reassembled_download_response(representation, content)
 
     @overload
     def request(
@@ -1135,7 +1218,7 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
         # GET responses are idempotent, so an interrupted body can be resumed
         # with a `Range` request once the server told us it supports byte ranges
         resumable_download = input_options.method.lower() == "get" and not stream
-        partial_download = bytearray()
+        partial_download = _PartialDownload()
 
         retries_taken = 0
         for retries_taken in range(max_retries + 1):
@@ -1148,8 +1231,15 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
 
             resumable_attempt = resumable_download and not self._should_stream_response_body(request)
             if resumable_attempt and partial_download:
-                log.debug("Resuming interrupted download from byte %i", len(partial_download))
-                request.headers["Range"] = f"bytes={len(partial_download)}-"
+                log.debug("Resuming interrupted download from byte %i", len(partial_download.data))
+                request.headers["Range"] = f"bytes={len(partial_download.data)}-"
+                representation = partial_download.representation
+                assert representation is not None
+                # make the range conditional so a changed resource is re-downloaded
+                # in full instead of being spliced from two different versions
+                validator = _resume_validator(representation)
+                if validator is not None:
+                    request.headers["If-Range"] = validator
 
             kwargs: HttpxSendArgs = {}
             custom_auth = self._custom_auth(options.security)
@@ -1173,7 +1263,7 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
                     **kwargs,
                 )
                 if resumable_attempt:
-                    response = self._read_resumable_body(request, response, partial_download)
+                    response = self._read_resumable_body(response, partial_download)
             except timeout_exceptions() as err:
                 log.debug("Encountered a timeout exception: %s", type(err).__name__)
 
@@ -1715,41 +1805,75 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
 
     async def _aread_resumable_body(
         self,
-        request: httpx2.Request,
         response: httpx2.Response,
-        partial: bytearray,
+        partial: _PartialDownload,
     ) -> httpx2.Response:
         """Async counterpart of `_read_resumable_body`."""
         resuming = bool(partial)
         if resuming and response.status_code == 416:
             total = _range_total_bytes(response)
-            if total is not None and total == len(partial):
+            representation = partial.representation
+            assert representation is not None
+            if total is not None and total == len(partial.data):
                 # the earlier attempt already received every byte; only the
                 # terminating chunks went missing
-                return _reassembled_download_response(request, response, bytes(partial))
-            received = len(partial)
+                await response.aclose()
+                return await self._afinish_download(partial)
+            received = len(partial.data)
+            await response.aclose()
             partial.clear()
             raise httpx2.ReadError(
                 f"Server rejected resuming the download at byte {received} with 416; restarting from scratch",
-                request=request,
+                request=representation.request,
             )
 
         accumulate = False
         if resuming and response.status_code == 206:
-            # partial content; append the missing tail to what we already have
-            accumulate = True
-        elif response.status_code == 200 and _accepts_byte_ranges(response):
+            start = _range_start_bytes(response)
+            if start is not None and start == len(partial.data):
+                # partial content; append the missing tail to what we already have
+                accumulate = True
+            else:
+                # unsolicited or misaligned range — our offset is unusable for
+                # this origin, so start over on the next attempt
+                received = len(partial.data)
+                await response.aclose()
+                partial.clear()
+                raise httpx2.ReadError(
+                    f"Server returned a partial response that does not start at byte {received}; restarting from scratch",
+                    request=response.request,
+                )
+        elif response.status_code == 200 and _accepts_byte_ranges(response) and _is_identity_encoded(response):
             # either no range was sent or the server ignored it; this body is complete
-            partial.clear()
+            partial.reset(response)
             accumulate = True
+        elif resuming and response.status_code == 200:
+            # the retry delivered a complete replacement body; any partial bytes
+            # are superseded
+            partial.clear()
 
         if not accumulate:
             await response.aread()
             return response
 
-        async for chunk in response.aiter_bytes():
-            partial.extend(chunk)
-        return _reassembled_download_response(request, response, bytes(partial))
+        # on a 206 the original response stays the representation of the full
+        # body (headers, validator, request); a 200 restart already replaced it
+        try:
+            async for chunk in response.aiter_bytes():
+                partial.data.extend(chunk)
+        except Exception:
+            # the stream is left open when the body read fails; release the
+            # connection before the retry loop takes over
+            await response.aclose()
+            raise
+        return await self._afinish_download(partial)
+
+    async def _afinish_download(self, partial: _PartialDownload) -> httpx2.Response:
+        representation = partial.representation
+        assert representation is not None
+        content = bytes(partial.data)
+        partial.clear()  # release the mutable buffer before response processing
+        return _reassembled_download_response(representation, content)
 
     @overload
     async def request(
@@ -1809,7 +1933,7 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
         # GET responses are idempotent, so an interrupted body can be resumed
         # with a `Range` request once the server told us it supports byte ranges
         resumable_download = input_options.method.lower() == "get" and not stream
-        partial_download = bytearray()
+        partial_download = _PartialDownload()
 
         retries_taken = 0
         for retries_taken in range(max_retries + 1):
@@ -1822,8 +1946,15 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
 
             resumable_attempt = resumable_download and not self._should_stream_response_body(request)
             if resumable_attempt and partial_download:
-                log.debug("Resuming interrupted download from byte %i", len(partial_download))
-                request.headers["Range"] = f"bytes={len(partial_download)}-"
+                log.debug("Resuming interrupted download from byte %i", len(partial_download.data))
+                request.headers["Range"] = f"bytes={len(partial_download.data)}-"
+                representation = partial_download.representation
+                assert representation is not None
+                # make the range conditional so a changed resource is re-downloaded
+                # in full instead of being spliced from two different versions
+                validator = _resume_validator(representation)
+                if validator is not None:
+                    request.headers["If-Range"] = validator
 
             kwargs: HttpxSendArgs = {}
             if self.custom_auth is not None:
@@ -1846,7 +1977,7 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
                     **kwargs,
                 )
                 if resumable_attempt:
-                    response = await self._aread_resumable_body(request, response, partial_download)
+                    response = await self._aread_resumable_body(response, partial_download)
             except timeout_exceptions() as err:
                 log.debug("Encountered a timeout exception: %s", type(err).__name__)
 
