@@ -329,9 +329,9 @@ class Responses(SyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI offers a
-              wide range of models with different capabilities, performance characteristics,
-              and price points. Refer to the
+          model: Model ID used to generate the response, like `gpt-5.6-sol`. OpenAI offers a wide
+              range of models with different capabilities, performance characteristics, and
+              price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
               available models.
 
@@ -381,9 +381,7 @@ class Responses(SyncAPIResource):
               - Organizations with ZDR enabled default to `in_memory` when
                 `prompt_cache_retention` is not specified.
 
-          reasoning: **gpt-5 and o-series models only**
-
-              Configuration options for
+          reasoning: Configuration options for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning).
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
@@ -732,9 +730,9 @@ class Responses(SyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI offers a
-              wide range of models with different capabilities, performance characteristics,
-              and price points. Refer to the
+          model: Model ID used to generate the response, like `gpt-5.6-sol`. OpenAI offers a wide
+              range of models with different capabilities, performance characteristics, and
+              price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
               available models.
 
@@ -784,9 +782,7 @@ class Responses(SyncAPIResource):
               - Organizations with ZDR enabled default to `in_memory` when
                 `prompt_cache_retention` is not specified.
 
-          reasoning: **gpt-5 and o-series models only**
-
-              Configuration options for
+          reasoning: Configuration options for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning).
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
@@ -1128,9 +1124,9 @@ class Responses(SyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI offers a
-              wide range of models with different capabilities, performance characteristics,
-              and price points. Refer to the
+          model: Model ID used to generate the response, like `gpt-5.6-sol`. OpenAI offers a wide
+              range of models with different capabilities, performance characteristics, and
+              price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
               available models.
 
@@ -1180,9 +1176,7 @@ class Responses(SyncAPIResource):
               - Organizations with ZDR enabled default to `in_memory` when
                 `prompt_cache_retention` is not specified.
 
-          reasoning: **gpt-5 and o-series models only**
-
-              Configuration options for
+          reasoning: Configuration options for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning).
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
@@ -1916,9 +1910,9 @@ class Responses(SyncAPIResource):
         [Compaction (advanced)](https://platform.openai.com/docs/guides/conversation-state#compaction-advanced).
 
         Args:
-          model: Model ID used to generate the response, like `gpt-5` or `o3`. OpenAI offers a
-              wide range of models with different capabilities, performance characteristics,
-              and price points. Refer to the
+          model: Model ID used to generate the response, like `gpt-5.6-sol`. OpenAI offers a wide
+              range of models with different capabilities, performance characteristics, and
+              price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
               available models.
 
@@ -2284,9 +2278,9 @@ class AsyncResponses(AsyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI offers a
-              wide range of models with different capabilities, performance characteristics,
-              and price points. Refer to the
+          model: Model ID used to generate the response, like `gpt-5.6-sol`. OpenAI offers a wide
+              range of models with different capabilities, performance characteristics, and
+              price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
               available models.
 
@@ -2336,9 +2330,7 @@ class AsyncResponses(AsyncAPIResource):
               - Organizations with ZDR enabled default to `in_memory` when
                 `prompt_cache_retention` is not specified.
 
-          reasoning: **gpt-5 and o-series models only**
-
-              Configuration options for
+          reasoning: Configuration options for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning).
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
@@ -2687,9 +2679,9 @@ class AsyncResponses(AsyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI offers a
-              wide range of models with different capabilities, performance characteristics,
-              and price points. Refer to the
+          model: Model ID used to generate the response, like `gpt-5.6-sol`. OpenAI offers a wide
+              range of models with different capabilities, performance characteristics, and
+              price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
               available models.
 
@@ -2739,9 +2731,7 @@ class AsyncResponses(AsyncAPIResource):
               - Organizations with ZDR enabled default to `in_memory` when
                 `prompt_cache_retention` is not specified.
 
-          reasoning: **gpt-5 and o-series models only**
-
-              Configuration options for
+          reasoning: Configuration options for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning).
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
@@ -3083,9 +3073,9 @@ class AsyncResponses(AsyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI offers a
-              wide range of models with different capabilities, performance characteristics,
-              and price points. Refer to the
+          model: Model ID used to generate the response, like `gpt-5.6-sol`. OpenAI offers a wide
+              range of models with different capabilities, performance characteristics, and
+              price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
               available models.
 
@@ -3135,9 +3125,7 @@ class AsyncResponses(AsyncAPIResource):
               - Organizations with ZDR enabled default to `in_memory` when
                 `prompt_cache_retention` is not specified.
 
-          reasoning: **gpt-5 and o-series models only**
-
-              Configuration options for
+          reasoning: Configuration options for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning).
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
@@ -3871,9 +3859,9 @@ class AsyncResponses(AsyncAPIResource):
         [Compaction (advanced)](https://platform.openai.com/docs/guides/conversation-state#compaction-advanced).
 
         Args:
-          model: Model ID used to generate the response, like `gpt-5` or `o3`. OpenAI offers a
-              wide range of models with different capabilities, performance characteristics,
-              and price points. Refer to the
+          model: Model ID used to generate the response, like `gpt-5.6-sol`. OpenAI offers a wide
+              range of models with different capabilities, performance characteristics, and
+              price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
               available models.
 

@@ -84,7 +84,7 @@ class SourceStoredCompletions(TypedDict, total=False):
     """
 
     model: Optional[str]
-    """An optional model to filter by (e.g., 'gpt-4o')."""
+    """An optional model to filter by (e.g., 'gpt-5.6-sol')."""
 
 
 Source: TypeAlias = Union[SourceFileContent, SourceFileID, SourceStoredCompletions]

@@ -82,7 +82,7 @@ class Batch(BaseModel):
     """
 
     model: Optional[str] = None
-    """Model ID used to process the batch, like `gpt-5-2025-08-07`.
+    """Model ID used to process the batch, like `gpt-5.6-sol`.
 
     OpenAI offers a wide range of models with different capabilities, performance
     characteristics, and price points. Refer to the

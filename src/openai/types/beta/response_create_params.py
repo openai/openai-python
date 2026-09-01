@@ -233,7 +233,7 @@ class ResponseCreateParamsBase(TypedDict, total=False):
         ],
         str,
     ]
-    """Model ID used to generate the response, like `gpt-4o` or `o3`.
+    """Model ID used to generate the response, like `gpt-5.6-sol`.
 
     OpenAI offers a wide range of models with different capabilities, performance
     characteristics, and price points. Refer to the
@@ -306,8 +306,7 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     """
 
     reasoning: Optional[Reasoning]
-    """**gpt-5 and o-series models only**
-
+    """
     Configuration options for
     [reasoning models](https://platform.openai.com/docs/guides/reasoning).
     """
@@ -528,8 +527,7 @@ class PromptCacheOptions(TypedDict, total=False):
 
 
 class Reasoning(TypedDict, total=False):
-    """**gpt-5 and o-series models only**
-
+    """
     Configuration options for
     [reasoning models](https://platform.openai.com/docs/guides/reasoning).
     """
