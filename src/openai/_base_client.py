@@ -915,8 +915,8 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
             # where they've explicitly set the timeout to match the default timeout
             # as this check is structural, meaning that we'll think they didn't
             # pass in a timeout and will ignore it
-            client_timeout = normalize_httpx_timeout(http_client.timeout) if http_client else None
-            if http_client and client_timeout != HTTPX_DEFAULT_TIMEOUT:
+            client_timeout = normalize_httpx_timeout(http_client.timeout) if http_client is not None else None
+            if http_client is not None and client_timeout != HTTPX_DEFAULT_TIMEOUT:
                 timeout = client_timeout
             else:
                 timeout = DEFAULT_TIMEOUT
@@ -941,10 +941,14 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
             custom_headers=custom_headers,
             _strict_response_validation=_strict_response_validation,
         )
-        self._client = http_client or SyncHttpxClientWrapper(
-            base_url=base_url,
-            # cast to a valid type because mypy doesn't understand our type narrowing
-            timeout=cast(Timeout, timeout),
+        self._client = (
+            http_client
+            if http_client is not None
+            else SyncHttpxClientWrapper(
+                base_url=base_url,
+                # cast to a valid type because mypy doesn't understand our type narrowing
+                timeout=cast(Timeout, timeout),
+            )
         )
 
     def is_closed(self) -> bool:
@@ -1537,8 +1541,8 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
             # where they've explicitly set the timeout to match the default timeout
             # as this check is structural, meaning that we'll think they didn't
             # pass in a timeout and will ignore it
-            client_timeout = normalize_httpx_timeout(http_client.timeout) if http_client else None
-            if http_client and client_timeout != HTTPX_DEFAULT_TIMEOUT:
+            client_timeout = normalize_httpx_timeout(http_client.timeout) if http_client is not None else None
+            if http_client is not None and client_timeout != HTTPX_DEFAULT_TIMEOUT:
                 timeout = client_timeout
             else:
                 timeout = DEFAULT_TIMEOUT
@@ -1563,10 +1567,14 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
             custom_headers=custom_headers,
             _strict_response_validation=_strict_response_validation,
         )
-        self._client = http_client or AsyncHttpxClientWrapper(
-            base_url=base_url,
-            # cast to a valid type because mypy doesn't understand our type narrowing
-            timeout=cast(Timeout, timeout),
+        self._client = (
+            http_client
+            if http_client is not None
+            else AsyncHttpxClientWrapper(
+                base_url=base_url,
+                # cast to a valid type because mypy doesn't understand our type narrowing
+                timeout=cast(Timeout, timeout),
+            )
         )
 
     def is_closed(self) -> bool:

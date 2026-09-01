@@ -404,6 +404,27 @@ class TestOpenAI:
 
             client.close()
 
+    def test_falsy_http_client_option(self) -> None:
+        class FalsyHttpClient(httpx2.Client):
+            def __bool__(self) -> bool:
+                return False
+
+        with FalsyHttpClient(timeout=None) as http_client:
+            client = OpenAI(
+                base_url=base_url,
+                api_key=api_key,
+                admin_api_key=admin_api_key,
+                _strict_response_validation=True,
+                http_client=http_client,
+            )
+
+            assert client._client is http_client
+            request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
+            timeout = httpx2.Timeout(**request.extensions["timeout"])  # type: ignore
+            assert timeout == httpx2.Timeout(None)
+
+            client.close()
+
     async def test_invalid_http_client(self) -> None:
         with pytest.raises(TypeError, match="Invalid `http_client` arg"):
             async with httpx2.AsyncClient() as http_client:
@@ -1717,6 +1738,27 @@ class TestAsyncOpenAI:
             request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
             timeout = httpx2.Timeout(**request.extensions["timeout"])  # type: ignore
             assert timeout == DEFAULT_TIMEOUT  # our default
+
+            await client.close()
+
+    async def test_falsy_http_client_option(self) -> None:
+        class FalsyHttpClient(httpx2.AsyncClient):
+            def __bool__(self) -> bool:
+                return False
+
+        async with FalsyHttpClient(timeout=None) as http_client:
+            client = AsyncOpenAI(
+                base_url=base_url,
+                api_key=api_key,
+                admin_api_key=admin_api_key,
+                _strict_response_validation=True,
+                http_client=http_client,
+            )
+
+            assert client._client is http_client
+            request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
+            timeout = httpx2.Timeout(**request.extensions["timeout"])  # type: ignore
+            assert timeout == httpx2.Timeout(None)
 
             await client.close()
 
