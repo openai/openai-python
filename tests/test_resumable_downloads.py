@@ -3,6 +3,7 @@ from __future__ import annotations
 import gzip
 import asyncio
 from collections.abc import Iterator, AsyncIterator
+from typing_extensions import override
 
 import httpx2
 import pytest
@@ -81,6 +82,7 @@ class RangeServer:
         unknown_total: bool = False,
         uppercase_units: bool = False,
         accept_ranges_value: str = "bytes",
+        lie_about_range_end: bool = False,
     ) -> None:
         self.accept_ranges = accept_ranges
         self.honor_range = honor_range
@@ -92,6 +94,7 @@ class RangeServer:
         self.unknown_total = unknown_total
         self.uppercase_units = uppercase_units
         self.accept_ranges_value = accept_ranges_value
+        self.lie_about_range_end = lie_about_range_end
         self.requests: list[httpx2.Request] = []
 
     def _handle(self, request: httpx2.Request, *, is_async: bool) -> httpx2.Response:
@@ -117,6 +120,16 @@ class RangeServer:
                 # claims a range that does not match what we asked for
                 headers["content-range"] = f"bytes 0-{len(DATA) - 1}/{len(DATA)}"
                 start = 0
+            elif self.lie_about_range_end and len(self.requests) == 2:
+                # claims a quarter of the bytes it actually delivers
+                claimed_end = start + (len(DATA) - start) // 4 - 1
+                headers["content-range"] = f"bytes {start}-{claimed_end}/{len(DATA)}"
+                return httpx2.Response(
+                    206,
+                    headers=headers,
+                    request=request,
+                    stream=_stream_cls(is_async)(DATA[start:], None),
+                )
             elif self.shorten_first_ranged_segment and len(self.requests) == 2:
                 # a satisfying-but-short segment: legally ends before the total
                 end = start + (len(DATA) - start) // 2 - 1
@@ -511,6 +524,62 @@ class TestResumableDownloads:
         # the rebuilt response is attributed to the request that completed the
         # transfer, i.e. the resumed ranged request
         assert response.request.headers.get("range") == f"bytes={CUT}-"
+
+    def test_content_range_body_mismatch_restarts(self) -> None:
+        server = RangeServer(lie_about_range_end=True)
+        with _sync_client(server) as client:
+            content = client.files.content("file_abc").content
+
+        assert content == DATA
+        # attempt 2 delivered more bytes than its Content-Range advertised, so
+        # the partial state was dropped and attempt 3 downloaded from scratch
+        assert len(server.requests) == 3
+        assert server.requests[1].headers.get("range") == f"bytes={CUT}-"
+        assert server.requests[2].headers.get("range") is None
+
+    def test_resume_headers_are_set_before_request_preparation(self) -> None:
+        server = RangeServer()
+        prepared_ranges: list[str | None] = []
+
+        class RecordingClient(openai.OpenAI):
+            @override
+            def _prepare_request(self, request: httpx2.Request) -> None:
+                prepared_ranges.append(request.headers.get("range"))
+                super()._prepare_request(request)
+
+        with RecordingClient(
+            base_url=base_url,
+            api_key=api_key,
+            max_retries=2,
+            http_client=httpx2.Client(transport=httpx2.MockTransport(server.handle)),
+        ) as client:
+            content = client.files.content("file_abc").content
+
+        assert content == DATA
+        # signing/preparation must see the final header set, Range included
+        assert prepared_ranges[0] is None
+        assert prepared_ranges[1] == f"bytes={CUT}-"
+
+    def test_provider_normalization_sees_read_response(self) -> None:
+        from openai._provider import _ProviderRuntime
+
+        server = RangeServer()
+        normalized: list[bytes] = []
+
+        def normalize(response: httpx2.Response) -> httpx2.Response:
+            normalized.append(response.content)  # raises ResponseNotRead when unread
+            return response
+
+        with _sync_client(server) as client:
+            client._provider_runtime = _ProviderRuntime(
+                name="test", base_url=client.base_url, normalize_response=normalize
+            )
+            content = client.files.content("file_abc").content
+
+        assert content == DATA
+        # only the completing exchange reaches normalisation, and it arrives
+        # already read — the reassembled response the pipeline consumes
+        assert normalized == [DATA]
 
     def test_last_modified_alone_is_not_a_validator(self) -> None:
         server = RangeServer(etag=None, last_modified="Sun, 30 Aug 2026 12:00:00 GMT")

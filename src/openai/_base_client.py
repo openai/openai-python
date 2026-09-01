@@ -23,9 +23,11 @@ from typing import (
     Generic,
     Mapping,
     TypeVar,
+    Callable,
     Iterable,
     Iterator,
     Optional,
+    Awaitable,
     Generator,
     AsyncIterator,
     cast,
@@ -1139,9 +1141,15 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
         request: httpx2.Request,
         *,
         stream: bool,
+        body_reader: Callable[[httpx2.Response], httpx2.Response] | None = None,
         **kwargs: Unpack[HttpxSendArgs],
     ) -> httpx2.Response:
-        return self._client.send(request, stream=stream, **kwargs)
+        response = self._client.send(request, stream=stream, **kwargs)
+        if body_reader is not None:
+            # consumes a streamed body before any subclass-level response
+            # normalisation sees it, preserving the non-streaming contract
+            response = body_reader(response)
+        return response
 
     def _read_resumable_body(
         self,
@@ -1229,22 +1237,32 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
         # agree (a 206 keeps its suffix-sized body, not the assembled one)
         response._content = bytes(delivered)
         bounds = _content_range_bounds(response)
-        if resuming and bounds is not None and (bounds[2] is None or bounds[2] != len(partial.data)):
-            response.close()
-            if bounds[2] is None:
-                # the total length is unknown, so completeness can never be
-                # proven; restart with a plain full download instead
+        if resuming and bounds is not None:
+            start, end, total = bounds
+            if end is not None and len(delivered) != end - start + 1:
+                # the delivered body contradicts the advertised range extent
+                response.close()
                 partial.clear()
                 raise httpx2.ReadError(
-                    "Partial response does not report a total length; restarting from scratch",
+                    "Partial response body does not match its Content-Range; restarting from scratch",
                     request=response.request,
                 )
-            # the origin served a satisfying-but-short segment; keep the bytes
-            # it did send so the next attempt resumes from the new offset
-            raise httpx2.ReadError(
-                f"Partial response ended at byte {len(partial.data)} of {bounds[2]}; resuming",
-                request=response.request,
-            )
+            if total is None or total != len(partial.data):
+                response.close()
+                if total is None:
+                    # the total length is unknown, so completeness can never be
+                    # proven; restart with a plain full download instead
+                    partial.clear()
+                    raise httpx2.ReadError(
+                        "Partial response does not report a total length; restarting from scratch",
+                        request=response.request,
+                    )
+                # the origin served a satisfying-but-short segment; keep the bytes
+                # it did send so the next attempt resumes from the new offset
+                raise httpx2.ReadError(
+                    f"Partial response ended at byte {len(partial.data)} of {total}; resuming",
+                    request=response.request,
+                )
         return self._finish_download(partial, elapsed_from=response)
 
     def _finish_download(self, partial: _PartialDownload, *, elapsed_from: httpx2.Response) -> httpx2.Response:
@@ -1321,7 +1339,6 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
 
             remaining_retries = max_retries - retries_taken
             request = self._build_request(options, retries_taken=retries_taken)
-            self._prepare_request(request)
 
             resumable_attempt = resumable_download and not self._should_stream_response_body(request)
             if resumable_attempt and partial_download:
@@ -1334,6 +1351,9 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
                 validator = _resume_validator(representation)
                 if validator is not None:
                     request.headers["If-Range"] = validator
+
+            # prepare (and sign) the request only after every header is final
+            self._prepare_request(request)
 
             kwargs: HttpxSendArgs = {}
             custom_auth = self._custom_auth(options.security)
@@ -1349,15 +1369,17 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
 
             log.debug("Sending HTTP Request: %s", get_http_method_for_logging(request.method))
 
+            def resumable_reader(response_: httpx2.Response) -> httpx2.Response:
+                return self._read_resumable_body(response_, partial_download)
+
             response = None
             try:
                 response = self._send_request(
                     request,
                     stream=stream or self._should_stream_response_body(request=request) or resumable_attempt,
+                    body_reader=resumable_reader if resumable_attempt else None,
                     **kwargs,
                 )
-                if resumable_attempt:
-                    response = self._read_resumable_body(response, partial_download)
             except timeout_exceptions() as err:
                 log.debug("Encountered a timeout exception: %s", type(err).__name__)
 
@@ -1893,9 +1915,15 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
         request: httpx2.Request,
         *,
         stream: bool,
+        body_reader: Callable[[httpx2.Response], Awaitable[httpx2.Response]] | None = None,
         **kwargs: Unpack[HttpxSendArgs],
     ) -> httpx2.Response:
-        return await self._client.send(request, stream=stream, **kwargs)
+        response = await self._client.send(request, stream=stream, **kwargs)
+        if body_reader is not None:
+            # consumes a streamed body before any subclass-level response
+            # normalisation sees it, preserving the non-streaming contract
+            response = await body_reader(response)
+        return response
 
     async def _aread_resumable_body(
         self,
@@ -1977,22 +2005,32 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
         # agree (a 206 keeps its suffix-sized body, not the assembled one)
         response._content = bytes(delivered)
         bounds = _content_range_bounds(response)
-        if resuming and bounds is not None and (bounds[2] is None or bounds[2] != len(partial.data)):
-            await response.aclose()
-            if bounds[2] is None:
-                # the total length is unknown, so completeness can never be
-                # proven; restart with a plain full download instead
+        if resuming and bounds is not None:
+            start, end, total = bounds
+            if end is not None and len(delivered) != end - start + 1:
+                # the delivered body contradicts the advertised range extent
+                await response.aclose()
                 partial.clear()
                 raise httpx2.ReadError(
-                    "Partial response does not report a total length; restarting from scratch",
+                    "Partial response body does not match its Content-Range; restarting from scratch",
                     request=response.request,
                 )
-            # the origin served a satisfying-but-short segment; keep the bytes
-            # it did send so the next attempt resumes from the new offset
-            raise httpx2.ReadError(
-                f"Partial response ended at byte {len(partial.data)} of {bounds[2]}; resuming",
-                request=response.request,
-            )
+            if total is None or total != len(partial.data):
+                await response.aclose()
+                if total is None:
+                    # the total length is unknown, so completeness can never be
+                    # proven; restart with a plain full download instead
+                    partial.clear()
+                    raise httpx2.ReadError(
+                        "Partial response does not report a total length; restarting from scratch",
+                        request=response.request,
+                    )
+                # the origin served a satisfying-but-short segment; keep the bytes
+                # it did send so the next attempt resumes from the new offset
+                raise httpx2.ReadError(
+                    f"Partial response ended at byte {len(partial.data)} of {total}; resuming",
+                    request=response.request,
+                )
         return await self._afinish_download(partial, elapsed_from=response)
 
     async def _afinish_download(self, partial: _PartialDownload, *, elapsed_from: httpx2.Response) -> httpx2.Response:
@@ -2074,7 +2112,6 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
 
             remaining_retries = max_retries - retries_taken
             request = self._build_request(options, retries_taken=retries_taken)
-            await self._prepare_request(request)
 
             resumable_attempt = resumable_download and not self._should_stream_response_body(request)
             if resumable_attempt and partial_download:
@@ -2087,6 +2124,9 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
                 validator = _resume_validator(representation)
                 if validator is not None:
                     request.headers["If-Range"] = validator
+
+            # prepare (and sign) the request only after every header is final
+            await self._prepare_request(request)
 
             kwargs: HttpxSendArgs = {}
             if self.custom_auth is not None:
@@ -2101,15 +2141,17 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
 
             log.debug("Sending HTTP Request: %s", get_http_method_for_logging(request.method))
 
+            async def resumable_reader(response_: httpx2.Response) -> httpx2.Response:
+                return await self._aread_resumable_body(response_, partial_download)
+
             response = None
             try:
                 response = await self._send_request(
                     request,
                     stream=stream or self._should_stream_response_body(request=request) or resumable_attempt,
+                    body_reader=resumable_reader if resumable_attempt else None,
                     **kwargs,
                 )
-                if resumable_attempt:
-                    response = await self._aread_resumable_body(response, partial_download)
             except timeout_exceptions() as err:
                 log.debug("Encountered a timeout exception: %s", type(err).__name__)
 
