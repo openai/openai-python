@@ -42,7 +42,7 @@ class TestResponses:
             max_output_tokens=16,
             max_tool_calls=0,
             metadata={"foo": "string"},
-            model="gpt-5.1",
+            model="gpt-5.6-sol",
             moderation={
                 "model": "model",
                 "policy": {
@@ -145,7 +145,7 @@ class TestResponses:
             max_output_tokens=16,
             max_tool_calls=0,
             metadata={"foo": "string"},
-            model="gpt-5.1",
+            model="gpt-5.6-sol",
             moderation={
                 "model": "model",
                 "policy": {
@@ -478,7 +478,7 @@ class TestAsyncResponses:
             max_output_tokens=16,
             max_tool_calls=0,
             metadata={"foo": "string"},
-            model="gpt-5.1",
+            model="gpt-5.6-sol",
             moderation={
                 "model": "model",
                 "policy": {
@@ -581,7 +581,7 @@ class TestAsyncResponses:
             max_output_tokens=16,
             max_tool_calls=0,
             metadata={"foo": "string"},
-            model="gpt-5.1",
+            model="gpt-5.6-sol",
             moderation={
                 "model": "model",
                 "policy": {

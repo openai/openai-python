@@ -51,7 +51,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     """
 
     model: Required[Union[str, ChatModel]]
-    """Model ID used to generate the response, like `gpt-4o` or `o3`.
+    """Model ID used to generate the response, like `gpt-5.6-sol` or `o3`.
 
     OpenAI offers a wide range of models with different capabilities, performance
     characteristics, and price points. Refer to the

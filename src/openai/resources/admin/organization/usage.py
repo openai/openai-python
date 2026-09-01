@@ -409,6 +409,7 @@ class Usage(SyncAPIResource):
         end_time: int | Omit = omit,
         group_by: List[Literal["project_id", "line_item", "api_key_id"]] | Omit = omit,
         limit: int | Omit = omit,
+        line_items: SequenceNotStr[str] | Omit = omit,
         page: str | Omit = omit,
         project_ids: SequenceNotStr[str] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -436,6 +437,9 @@ class Usage(SyncAPIResource):
 
           limit: A limit on the number of buckets to be returned. Limit can range between 1 and
               180, and the default is 7.
+
+          line_items: Return only costs for these exact line item names. Each value must match the
+              complete `line_item` value, for example `gpt-5.6-sol, input_tokens`.
 
           page: A cursor for use in pagination. Corresponding to the `next_page` field from the
               previous response.
@@ -465,6 +469,7 @@ class Usage(SyncAPIResource):
                         "end_time": end_time,
                         "group_by": group_by,
                         "limit": limit,
+                        "line_items": line_items,
                         "page": page,
                         "project_ids": project_ids,
                     },
@@ -1364,6 +1369,7 @@ class AsyncUsage(AsyncAPIResource):
         end_time: int | Omit = omit,
         group_by: List[Literal["project_id", "line_item", "api_key_id"]] | Omit = omit,
         limit: int | Omit = omit,
+        line_items: SequenceNotStr[str] | Omit = omit,
         page: str | Omit = omit,
         project_ids: SequenceNotStr[str] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -1391,6 +1397,9 @@ class AsyncUsage(AsyncAPIResource):
 
           limit: A limit on the number of buckets to be returned. Limit can range between 1 and
               180, and the default is 7.
+
+          line_items: Return only costs for these exact line item names. Each value must match the
+              complete `line_item` value, for example `gpt-5.6-sol, input_tokens`.
 
           page: A cursor for use in pagination. Corresponding to the `next_page` field from the
               previous response.
@@ -1420,6 +1429,7 @@ class AsyncUsage(AsyncAPIResource):
                         "end_time": end_time,
                         "group_by": group_by,
                         "limit": limit,
+                        "line_items": line_items,
                         "page": page,
                         "project_ids": project_ids,
                     },

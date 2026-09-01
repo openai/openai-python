@@ -139,7 +139,7 @@ paths:
                   "created_at": 1698982736,
                   "name": "Coding Tutor",
                   "description": null,
-                  "model": "gpt-4o",
+                  "model": "gpt-5",
                   "instructions": "You are a helpful assistant designed to make me better at coding!",
                   "tools": [],
                   "tool_resources": {},
@@ -154,7 +154,7 @@ paths:
                   "created_at": 1698982718,
                   "name": "My Assistant",
                   "description": null,
-                  "model": "gpt-4o",
+                  "model": "gpt-5",
                   "instructions": "You are a helpful assistant designed to make me better at coding!",
                   "tools": [],
                   "tool_resources": {},
@@ -169,7 +169,7 @@ paths:
                   "created_at": 1698982643,
                   "name": null,
                   "description": null,
-                  "model": "gpt-4o",
+                  "model": "gpt-5",
                   "instructions": null,
                   "tools": [],
                   "tool_resources": {},
@@ -220,7 +220,7 @@ paths:
                   "instructions": "You are a personal math tutor. When asked a question, write and run Python code to answer the question.",
                   "name": "Math Tutor",
                   "tools": [{"type": "code_interpreter"}],
-                  "model": "gpt-4o"
+                  "model": "gpt-5"
                 }'
             python: |
               from openai import OpenAI
@@ -230,7 +230,7 @@ paths:
                   instructions="You are a personal math tutor. When asked a question, write and run Python code to answer the question.",
                   name="Math Tutor",
                   tools=[{"type": "code_interpreter"}],
-                  model="gpt-4o",
+                  model="gpt-5",
               )
               print(my_assistant)
             javascript: |-
@@ -244,7 +244,7 @@ paths:
                     "You are a personal math tutor. When asked a question, write and run Python code to answer the question.",
                   name: "Math Tutor",
                   tools: [{ type: "code_interpreter" }],
-                  model: "gpt-4o",
+                  model: "gpt-5",
                 });
 
                 console.log(myAssistant);
@@ -258,7 +258,7 @@ paths:
               "created_at": 1698984975,
               "name": "Math Tutor",
               "description": null,
-              "model": "gpt-4o",
+              "model": "gpt-5",
               "instructions": "You are a personal math tutor. When asked a question, write and run Python code to answer the question.",
               "tools": [
                 {
@@ -281,7 +281,7 @@ paths:
                   "instructions": "You are an HR bot, and you have access to files to answer employee questions about company policies.",
                   "tools": [{"type": "file_search"}],
                   "tool_resources": {"file_search": {"vector_store_ids": ["vs_123"]}},
-                  "model": "gpt-4o"
+                  "model": "gpt-5"
                 }'
             python: |
               from openai import OpenAI
@@ -292,7 +292,7 @@ paths:
                   name="HR Helper",
                   tools=[{"type": "file_search"}],
                   tool_resources={"file_search": {"vector_store_ids": ["vs_123"]}},
-                  model="gpt-4o"
+                  model="gpt-5"
               )
               print(my_assistant)
             javascript: |-
@@ -311,7 +311,7 @@ paths:
                       vector_store_ids: ["vs_123"]
                     }
                   },
-                  model: "gpt-4o"
+                  model: "gpt-5"
                 });
 
                 console.log(myAssistant);
@@ -325,7 +325,7 @@ paths:
               "created_at": 1699009403,
               "name": "HR Helper",
               "description": null,
-              "model": "gpt-4o",
+              "model": "gpt-5",
               "instructions": "You are an HR bot, and you have access to files to answer employee questions about company policies.",
               "tools": [
                 {
@@ -403,7 +403,7 @@ paths:
               "created_at": 1699009709,
               "name": "HR Helper",
               "description": null,
-              "model": "gpt-4o",
+              "model": "gpt-5",
               "instructions": "You are an HR bot, and you have access to files to answer employee questions about company policies.",
               "tools": [
                 {
@@ -457,7 +457,7 @@ paths:
                 -d '{
                     "instructions": "You are an HR bot, and you have access to files to answer employee questions about company policies. Always response with info from either of the files.",
                     "tools": [{"type": "file_search"}],
-                    "model": "gpt-4o"
+                    "model": "gpt-5"
                   }'
             python: |
               from openai import OpenAI
@@ -468,7 +468,7 @@ paths:
                 instructions="You are an HR bot, and you have access to files to answer employee questions about company policies. Always response with info from either of the files.",
                 name="HR Helper",
                 tools=[{"type": "file_search"}],
-                model="gpt-4o"
+                model="gpt-5"
               )
 
               print(my_updated_assistant)
@@ -485,7 +485,7 @@ paths:
                       "You are an HR bot, and you have access to files to answer employee questions about company policies. Always response with info from either of the files.",
                     name: "HR Helper",
                     tools: [{ type: "file_search" }],
-                    model: "gpt-4o"
+                    model: "gpt-5"
                   }
                 );
 
@@ -500,7 +500,7 @@ paths:
               "created_at": 1699009709,
               "name": "HR Helper",
               "description": null,
-              "model": "gpt-4o",
+              "model": "gpt-5",
               "instructions": "You are an HR bot, and you have access to files to answer employee questions about company policies. Always response with info from either of the files.",
               "tools": [
                 {
@@ -1941,7 +1941,7 @@ paths:
                 {
                   "object": "chat.completion",
                   "id": "chatcmpl-AyPNinnUqUDYo9SAdA52NobMflmj2",
-                  "model": "gpt-5.4",
+                  "model": "gpt-5.6-sol",
                   "created": 1738960610,
                   "request_id": "req_ded8ab984ec4bf840f37566c1011c417",
                   "tool_choice": null,
@@ -2018,7 +2018,7 @@ paths:
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -d '{
-                  "model": "VAR_chat_model_id",
+                  "model": "gpt-5.6-sol",
                   "messages": [
                     {
                       "role": "developer",
@@ -2035,7 +2035,7 @@ paths:
               client = OpenAI()
 
               completion = client.chat.completions.create(
-                model="VAR_chat_model_id",
+                model="gpt-5.6-sol",
                 messages=[
                   {"role": "developer", "content": "You are a helpful assistant."},
                   {"role": "user", "content": "Hello!"}
@@ -2051,7 +2051,7 @@ paths:
               async function main() {
                 const completion = await openai.chat.completions.create({
                   messages: [{ role: "developer", content: "You are a helpful assistant." }],
-                  model: "VAR_chat_model_id",
+                  model: "gpt-5.6-sol",
                   store: true,
                 });
 
@@ -2066,7 +2066,7 @@ paths:
               using OpenAI.Chat;
 
               ChatClient client = new(
-                  model: "gpt-5.4",
+                  model: "gpt-5.6-sol",
                   apiKey: Environment.GetEnvironmentVariable("OPENAI_API_KEY")
               );
 
@@ -2084,7 +2084,7 @@ paths:
               "id": "chatcmpl-B9MBs8CjcvOU2jLn4n570S5qMJKcT",
               "object": "chat.completion",
               "created": 1741569952,
-              "model": "gpt-5.4",
+              "model": "gpt-5.6-sol",
               "choices": [
                 {
                   "index": 0,
@@ -2122,7 +2122,7 @@ paths:
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -d '{
-                  "model": "gpt-5.4",
+                  "model": "gpt-5.6-sol",
                   "messages": [
                     {
                       "role": "user",
@@ -2148,7 +2148,7 @@ paths:
               client = OpenAI()
 
               response = client.chat.completions.create(
-                  model="gpt-5.4",
+                  model="gpt-5.6-sol",
                   messages=[
                       {
                           "role": "user",
@@ -2174,7 +2174,7 @@ paths:
 
               async function main() {
                 const response = await openai.chat.completions.create({
-                  model: "gpt-5.4",
+                  model: "gpt-5.6-sol",
                   messages: [
                     {
                       role: "user",
@@ -2200,7 +2200,7 @@ paths:
               using OpenAI.Chat;
 
               ChatClient client = new(
-                  model: "gpt-5.4",
+                  model: "gpt-5.6-sol",
                   apiKey: Environment.GetEnvironmentVariable("OPENAI_API_KEY")
               );
 
@@ -2221,7 +2221,7 @@ paths:
               "id": "chatcmpl-B9MHDbslfkBeAs8l4bebGdFOJ6PeG",
               "object": "chat.completion",
               "created": 1741570283,
-              "model": "gpt-5.4",
+              "model": "gpt-5.6-sol",
               "choices": [
                 {
                   "index": 0,
@@ -2259,7 +2259,7 @@ paths:
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -d '{
-                  "model": "VAR_chat_model_id",
+                  "model": "gpt-5.6-sol",
                   "messages": [
                     {
                       "role": "developer",
@@ -2277,7 +2277,7 @@ paths:
               client = OpenAI()
 
               completion = client.chat.completions.create(
-                model="VAR_chat_model_id",
+                model="gpt-5.6-sol",
                 messages=[
                   {"role": "developer", "content": "You are a helpful assistant."},
                   {"role": "user", "content": "Hello!"}
@@ -2294,7 +2294,7 @@ paths:
 
               async function main() {
                 const completion = await openai.chat.completions.create({
-                  model: "VAR_chat_model_id",
+                  model: "gpt-5.6-sol",
                   messages: [
                     {"role": "developer", "content": "You are a helpful assistant."},
                     {"role": "user", "content": "Hello!"}
@@ -2317,7 +2317,7 @@ paths:
               using OpenAI.Chat;
 
               ChatClient client = new(
-                  model: "gpt-5.4",
+                  model: "gpt-5.6-sol",
                   apiKey: Environment.GetEnvironmentVariable("OPENAI_API_KEY")
               );
 
@@ -2337,13 +2337,13 @@ paths:
                   }
               }
           response: |
-            {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1694268190,"model":"gpt-4o-mini", "system_fingerprint": "fp_44709d6fcb", "choices":[{"index":0,"delta":{"role":"assistant","content":""},"logprobs":null,"finish_reason":null}]}
+            {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1694268190,"model":"gpt-5.6-sol", "system_fingerprint": "fp_44709d6fcb", "choices":[{"index":0,"delta":{"role":"assistant","content":""},"logprobs":null,"finish_reason":null}]}
 
-            {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1694268190,"model":"gpt-4o-mini", "system_fingerprint": "fp_44709d6fcb", "choices":[{"index":0,"delta":{"content":"Hello"},"logprobs":null,"finish_reason":null}]}
+            {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1694268190,"model":"gpt-5.6-sol", "system_fingerprint": "fp_44709d6fcb", "choices":[{"index":0,"delta":{"content":"Hello"},"logprobs":null,"finish_reason":null}]}
 
             ....
 
-            {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1694268190,"model":"gpt-4o-mini", "system_fingerprint": "fp_44709d6fcb", "choices":[{"index":0,"delta":{},"logprobs":null,"finish_reason":"stop"}]}
+            {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1694268190,"model":"gpt-5.6-sol", "system_fingerprint": "fp_44709d6fcb", "choices":[{"index":0,"delta":{},"logprobs":null,"finish_reason":"stop"}]}
         - title: Functions
           request:
             curl: |
@@ -2351,7 +2351,7 @@ paths:
               -H "Content-Type: application/json" \
               -H "Authorization: Bearer $OPENAI_API_KEY" \
               -d '{
-                "model": "gpt-5.4",
+                "model": "gpt-5.6-sol",
                 "messages": [
                   {
                     "role": "user",
@@ -2409,7 +2409,7 @@ paths:
               ]
               messages = [{"role": "user", "content": "What's the weather like in Boston today?"}]
               completion = client.chat.completions.create(
-                model="VAR_chat_model_id",
+                model="gpt-5.6-sol",
                 messages=messages,
                 tools=tools,
                 tool_choice="auto"
@@ -2445,7 +2445,7 @@ paths:
                 ];
 
                 const response = await openai.chat.completions.create({
-                  model: "gpt-5.4",
+                  model: "gpt-5.6-sol",
                   messages: messages,
                   tools: tools,
                   tool_choice: "auto",
@@ -2462,7 +2462,7 @@ paths:
               using OpenAI.Chat;
 
               ChatClient client = new(
-                  model: "gpt-5.4",
+                  model: "gpt-5.6-sol",
                   apiKey: Environment.GetEnvironmentVariable("OPENAI_API_KEY")
               );
 
@@ -2507,7 +2507,7 @@ paths:
               "id": "chatcmpl-abc123",
               "object": "chat.completion",
               "created": 1699896916,
-              "model": "gpt-4o-mini",
+              "model": "gpt-5.6-sol",
               "choices": [
                 {
                   "index": 0,
@@ -2547,13 +2547,14 @@ paths:
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -d '{
-                  "model": "VAR_chat_model_id",
+                  "model": "gpt-5.6-sol",
                   "messages": [
                     {
                       "role": "user",
                       "content": "Hello!"
                     }
                   ],
+                  "reasoning_effort": "none",
                   "logprobs": true,
                   "top_logprobs": 2
                 }'
@@ -2562,10 +2563,11 @@ paths:
               client = OpenAI()
 
               completion = client.chat.completions.create(
-                model="VAR_chat_model_id",
+                model="gpt-5.6-sol",
                 messages=[
                   {"role": "user", "content": "Hello!"}
                 ],
+                reasoning_effort="none",
                 logprobs=True,
                 top_logprobs=2
               )
@@ -2580,7 +2582,8 @@ paths:
               async function main() {
                 const completion = await openai.chat.completions.create({
                   messages: [{ role: "user", content: "Hello!" }],
-                  model: "VAR_chat_model_id",
+                  model: "gpt-5.6-sol",
+                  reasoning_effort: "none",
                   logprobs: true,
                   top_logprobs: 2,
                 });
@@ -2596,7 +2599,7 @@ paths:
               using OpenAI.Chat;
 
               ChatClient client = new(
-                  model: "gpt-5.4",
+                  model: "gpt-5.6-sol",
                   apiKey: Environment.GetEnvironmentVariable("OPENAI_API_KEY")
               );
 
@@ -2607,6 +2610,7 @@ paths:
 
               ChatCompletionOptions options = new()
               {
+                  ReasoningEffortLevel = ChatReasoningEffortLevel.None,
                   IncludeLogProbabilities = true,
                   TopLogProbabilityCount = 2
               };
@@ -2619,7 +2623,7 @@ paths:
               "id": "chatcmpl-123",
               "object": "chat.completion",
               "created": 1702685778,
-              "model": "gpt-4o-mini",
+              "model": "gpt-5.6-sol",
               "choices": [
                 {
                   "index": 0,
@@ -2864,7 +2868,7 @@ paths:
             {
               "object": "chat.completion",
               "id": "chatcmpl-abc123",
-              "model": "gpt-4o-2024-08-06",
+              "model": "gpt-5.6-sol",
               "created": 1738960610,
               "request_id": "req_ded8ab984ec4bf840f37566c1011c417",
               "tool_choice": null,
@@ -2953,7 +2957,7 @@ paths:
             {
               "object": "chat.completion",
               "id": "chatcmpl-AyPNinnUqUDYo9SAdA52NobMflmj2",
-              "model": "gpt-4o-2024-08-06",
+              "model": "gpt-5.6-sol",
               "created": 1738960610,
               "request_id": "req_ded8ab984ec4bf840f37566c1011c417",
               "tool_choice": null,
@@ -3152,7 +3156,7 @@ paths:
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -d '{
-                  "model": "VAR_completion_model_id",
+                  "model": "gpt-3.5-turbo-instruct",
                   "prompt": "Say this is a test",
                   "max_tokens": 7,
                   "temperature": 0
@@ -3162,7 +3166,7 @@ paths:
               client = OpenAI()
 
               client.completions.create(
-                model="VAR_completion_model_id",
+                model="gpt-3.5-turbo-instruct",
                 prompt="Say this is a test",
                 max_tokens=7,
                 temperature=0
@@ -3174,7 +3178,7 @@ paths:
 
               async function main() {
                 const completion = await openai.completions.create({
-                  model: "VAR_completion_model_id",
+                  model: "gpt-3.5-turbo-instruct",
                   prompt: "Say this is a test.",
                   max_tokens: 7,
                   temperature: 0,
@@ -3188,7 +3192,7 @@ paths:
               "id": "cmpl-uqkvlQyYK7bGYrRHQ0eXlWi7",
               "object": "text_completion",
               "created": 1589478378,
-              "model": "VAR_completion_model_id",
+              "model": "gpt-3.5-turbo-instruct",
               "system_fingerprint": "fp_44709d6fcb",
               "choices": [
                 {
@@ -3211,7 +3215,7 @@ paths:
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -d '{
-                  "model": "VAR_completion_model_id",
+                  "model": "gpt-3.5-turbo-instruct",
                   "prompt": "Say this is a test",
                   "max_tokens": 7,
                   "temperature": 0,
@@ -3222,7 +3226,7 @@ paths:
               client = OpenAI()
 
               for chunk in client.completions.create(
-                model="VAR_completion_model_id",
+                model="gpt-3.5-turbo-instruct",
                 prompt="Say this is a test",
                 max_tokens=7,
                 temperature=0,
@@ -3236,7 +3240,7 @@ paths:
 
               async function main() {
                 const stream = await openai.completions.create({
-                  model: "VAR_completion_model_id",
+                  model: "gpt-3.5-turbo-instruct",
                   prompt: "Say this is a test.",
                   stream: true,
                 });
@@ -5086,14 +5090,14 @@ paths:
                 -X POST \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -H "Content-Type: application/json" \
-                -d '{"name":"gpt-4o-mini","data_source":{"type":"completions","input_messages":{"type":"template","template":[{"role":"developer","content":"Categorize a given news headline into one of the following topics: Technology, Markets, World, Business, or Sports.\n\n# Steps\n\n1. Analyze the content of the news headline to understand its primary focus.\n2. Extract the subject matter, identifying any key indicators or keywords.\n3. Use the identified indicators to determine the most suitable category out of the five options: Technology, Markets, World, Business, or Sports.\n4. Ensure only one category is selected per headline.\n\n# Output Format\n\nRespond with the chosen category as a single word. For instance: \"Technology\", \"Markets\", \"World\", \"Business\", or \"Sports\".\n\n# Examples\n\n**Input**: \"Apple Unveils New iPhone Model, Featuring Advanced AI Features\"  \n**Output**: \"Technology\"\n\n**Input**: \"Global Stocks Mixed as Investors Await Central Bank Decisions\"  \n**Output**: \"Markets\"\n\n**Input**: \"War in Ukraine: Latest Updates on Negotiation Status\"  \n**Output**: \"World\"\n\n**Input**: \"Microsoft in Talks to Acquire Gaming Company for $2 Billion\"  \n**Output**: \"Business\"\n\n**Input**: \"Manchester United Secures Win in Premier League Football Match\"  \n**Output**: \"Sports\" \n\n# Notes\n\n- If the headline appears to fit into more than one category, choose the most dominant theme.\n- Keywords or phrases such as \"stocks\", \"company acquisition\", \"match\", or technological brands can be good indicators for classification.\n"} , {"role":"user","content":"{{item.input}}"}]} ,"sampling_params":{"temperature":1,"max_completions_tokens":2048,"top_p":1,"seed":42},"model":"gpt-4o-mini","source":{"type":"file_content","content":[{"item":{"input":"Tech Company Launches Advanced Artificial Intelligence Platform","ground_truth":"Technology"}}]}}'
+                -d '{"name":"gpt-5.6-sol","data_source":{"type":"completions","input_messages":{"type":"template","template":[{"role":"developer","content":"Categorize a given news headline into one of the following topics: Technology, Markets, World, Business, or Sports.\n\n# Steps\n\n1. Analyze the content of the news headline to understand its primary focus.\n2. Extract the subject matter, identifying any key indicators or keywords.\n3. Use the identified indicators to determine the most suitable category out of the five options: Technology, Markets, World, Business, or Sports.\n4. Ensure only one category is selected per headline.\n\n# Output Format\n\nRespond with the chosen category as a single word. For instance: \"Technology\", \"Markets\", \"World\", \"Business\", or \"Sports\".\n\n# Examples\n\n**Input**: \"Apple Unveils New iPhone Model, Featuring Advanced AI Features\"  \n**Output**: \"Technology\"\n\n**Input**: \"Global Stocks Mixed as Investors Await Central Bank Decisions\"  \n**Output**: \"Markets\"\n\n**Input**: \"War in Ukraine: Latest Updates on Negotiation Status\"  \n**Output**: \"World\"\n\n**Input**: \"Microsoft in Talks to Acquire Gaming Company for $2 Billion\"  \n**Output**: \"Business\"\n\n**Input**: \"Manchester United Secures Win in Premier League Football Match\"  \n**Output**: \"Sports\" \n\n# Notes\n\n- If the headline appears to fit into more than one category, choose the most dominant theme.\n- Keywords or phrases such as \"stocks\", \"company acquisition\", \"match\", or technological brands can be good indicators for classification.\n"} , {"role":"user","content":"{{item.input}}"}]} ,"sampling_params":{"max_completions_tokens":2048},"model":"gpt-5.6-sol","source":{"type":"file_content","content":[{"item":{"input":"Tech Company Launches Advanced Artificial Intelligence Platform","ground_truth":"Technology"}}]}}}'
             python: |
               from openai import OpenAI
               client = OpenAI()
 
               run = client.evals.runs.create(
                 "eval_67e579652b548190aaa83ada4b125f47",
-                name="gpt-4o-mini",
+                name="gpt-5.6-sol",
                 data_source={
                   "type": "completions",
                   "input_messages": {
@@ -5110,12 +5114,9 @@ paths:
                     ]
                   },
                   "sampling_params": {
-                    "temperature": 1,
-                    "max_completions_tokens": 2048,
-                    "top_p": 1,
-                    "seed": 42
+                    "max_completions_tokens": 2048
                   },
-                  "model": "gpt-4o-mini",
+                  "model": "gpt-5.6-sol",
                   "source": {
                     "type": "file_content",
                     "content": [
@@ -5138,7 +5139,7 @@ paths:
               const run = await openai.evals.runs.create(
                 "eval_67e579652b548190aaa83ada4b125f47",
                 {
-                  name: "gpt-4o-mini",
+                  name: "gpt-5.6-sol",
                   data_source: {
                     type: "completions",
                     input_messages: {
@@ -5155,12 +5156,9 @@ paths:
                       ]
                     },
                     sampling_params: {
-                      temperature: 1,
-                      max_completions_tokens: 2048,
-                      top_p: 1,
-                      seed: 42
+                      max_completions_tokens: 2048
                     },
-                    model: "gpt-4o-mini",
+                    model: "gpt-5.6-sol",
                     source: {
                       type: "file_content",
                       content: [
@@ -5183,8 +5181,8 @@ paths:
               "eval_id": "eval_67e579652b548190aaa83ada4b125f47",
               "report_url": "https://platform.openai.com/evaluations/eval_67e579652b548190aaa83ada4b125f47&run_id=evalrun_67e57965b480819094274e3a32235e4c",
               "status": "queued",
-              "model": "gpt-4o-mini",
-              "name": "gpt-4o-mini",
+              "model": "gpt-5.6-sol",
+              "name": "gpt-5.6-sol",
               "created_at": 1743092069,
               "result_counts": {
                 "total": 0,
@@ -5228,11 +5226,8 @@ paths:
                     }
                   ]
                 },
-                "model": "gpt-4o-mini",
+                "model": "gpt-5.6-sol",
                 "sampling_params": {
-                  "seed": 42,
-                  "temperature": 1.0,
-                  "top_p": 1.0,
                   "max_completions_tokens": 2048
                 }
               },
@@ -5305,8 +5300,8 @@ paths:
               "eval_id": "eval_67abd54d9b0081909a86353f6fb9317a",
               "report_url": "https://platform.openai.com/evaluations/eval_67abd54d9b0081909a86353f6fb9317a?run_id=evalrun_67abd54d60ec8190832b46859da808f7",
               "status": "queued",
-              "model": "gpt-4o-mini",
-              "name": "gpt-4o-mini",
+              "model": "gpt-5.6-sol",
+              "name": "gpt-5.6-sol",
               "created_at": 1743092069,
               "result_counts": {
                 "total": 0,
@@ -5434,11 +5429,8 @@ paths:
                     }
                   ]
                 },
-                "model": "gpt-4o-mini",
+                "model": "gpt-5.6-sol",
                 "sampling_params": {
-                  "seed": 42,
-                  "temperature": 1.0,
-                  "top_p": 1.0,
                   "max_completions_tokens": 2048
                 }
               },
@@ -5511,8 +5503,8 @@ paths:
               "eval_id": "eval_67abd54d9b0081909a86353f6fb9317a",
               "report_url": "https://platform.openai.com/evaluations/eval_67abd54d9b0081909a86353f6fb9317a?run_id=evalrun_67abd54d60ec8190832b46859da808f7",
               "status": "canceled",
-              "model": "gpt-4o-mini",
-              "name": "gpt-4o-mini",
+              "model": "gpt-5.6-sol",
+              "name": "gpt-5.6-sol",
               "created_at": 1743092069,
               "result_counts": {
                 "total": 0,
@@ -5640,11 +5632,8 @@ paths:
                     }
                   ]
                 },
-                "model": "gpt-4o-mini",
+                "model": "gpt-5.6-sol",
                 "sampling_params": {
-                  "seed": 42,
-                  "temperature": 1.0,
-                  "top_p": 1.0,
                   "max_completions_tokens": 2048
                 }
               },
@@ -5876,7 +5865,7 @@ paths:
                       }
                     ],
                     "finish_reason": "stop",
-                    "model": "gpt-4o-mini-2024-07-18",
+                    "model": "gpt-5.6-sol",
                     "usage": {
                       "total_tokens": 325,
                       "completion_tokens": 2,
@@ -6012,7 +6001,7 @@ paths:
                   }
                 ],
                 "finish_reason": "stop",
-                "model": "gpt-4o-mini-2024-07-18",
+                "model": "gpt-5.6-sol",
                 "usage": {
                   "total_tokens": 325,
                   "completion_tokens": 2,
@@ -6522,11 +6511,11 @@ paths:
                   "completion_tokens": 134,
                   "cached_tokens": 0
                 },
-                "sampled_model_name": "gpt-4o-2024-08-06"
+                "sampled_model_name": "gpt-5-mini"
               },
               "sub_rewards": {},
               "model_grader_token_usage_per_model": {
-                "gpt-4o-2024-08-06": {
+                "gpt-5-mini": {
                   "prompt_tokens": 190,
                   "total_tokens": 324,
                   "completion_tokens": 134,
@@ -8268,7 +8257,7 @@ paths:
         required: true
         schema:
           type: string
-          example: gpt-4o-mini
+          example: gpt-5.6-sol
         description: The ID of the model to use for this request
       responses:
         '200':
@@ -8283,20 +8272,20 @@ paths:
         examples:
           request:
             curl: |
-              curl https://api.openai.com/v1/models/VAR_chat_model_id \
+              curl https://api.openai.com/v1/models/gpt-5.6-sol \
                 -H "Authorization: Bearer $OPENAI_API_KEY"
             python: |
               from openai import OpenAI
               client = OpenAI()
 
-              client.models.retrieve("VAR_chat_model_id")
+              client.models.retrieve("gpt-5.6-sol")
             javascript: |-
               import OpenAI from "openai";
 
               const openai = new OpenAI();
 
               async function main() {
-                const model = await openai.models.retrieve("VAR_chat_model_id");
+                const model = await openai.models.retrieve("gpt-5.6-sol");
 
                 console.log(model);
               }
@@ -8316,7 +8305,7 @@ paths:
               Console.WriteLine(model.Value.Id);
           response: |
             {
-              "id": "VAR_chat_model_id",
+              "id": "gpt-5.6-sol",
               "object": "model",
               "created": 1686935002,
               "owned_by": "openai",
@@ -9486,6 +9475,14 @@ paths:
       - name: api_key_ids
         in: query
         description: Return only costs for these API keys.
+        required: false
+        schema:
+          type: array
+          items:
+            type: string
+      - name: line_items
+        in: query
+        description: Return only costs for these exact line item names. Each value must match the complete `line_item` value, for example `gpt-5.6-sol, input_tokens`.
         required: false
         schema:
           type: array
@@ -11672,7 +11669,7 @@ paths:
                 "object": "project.model_permissions",
                 "mode": "allow_list",
                 "model_ids": [
-                    "gpt-4.1",
+                    "gpt-5.6-sol",
                     "o3"
                 ]
             }
@@ -16535,7 +16532,7 @@ paths:
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -d '{
-                  "model": "gpt-5.4",
+                  "model": "gpt-5.6-sol",
                   "input": "Tell me a three sentence bedtime story about a unicorn."
                 }'
             javascript: |
@@ -16544,7 +16541,7 @@ paths:
               const openai = new OpenAI();
 
               const response = await openai.responses.create({
-                  model: "gpt-5.4",
+                  model: "gpt-5.6-sol",
                   input: "Tell me a three sentence bedtime story about a unicorn."
               });
 
@@ -16555,7 +16552,7 @@ paths:
               client = OpenAI()
 
               response = client.responses.create(
-                model="gpt-5.4",
+                model="gpt-5.6-sol",
                 input="Tell me a three sentence bedtime story about a unicorn."
               )
 
@@ -16565,7 +16562,7 @@ paths:
               using OpenAI.Responses;
 
               OpenAIResponseClient client = new(
-                  model: "gpt-5.4",
+                  model: "gpt-5.6-sol",
                   apiKey: Environment.GetEnvironmentVariable("OPENAI_API_KEY")
               );
 
@@ -16583,7 +16580,7 @@ paths:
               "incomplete_details": null,
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-5.4",
+              "model": "gpt-5.6-sol",
               "output": [
                 {
                   "type": "message",
@@ -16638,7 +16635,7 @@ paths:
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -d '{
-                  "model": "gpt-5.4",
+                  "model": "gpt-5.6-sol",
                   "input": [
                     {
                       "role": "user",
@@ -16658,7 +16655,7 @@ paths:
               const openai = new OpenAI();
 
               const response = await openai.responses.create({
-                  model: "gpt-5.4",
+                  model: "gpt-5.6-sol",
                   input: [
                       {
                           role: "user",
@@ -16681,7 +16678,7 @@ paths:
               client = OpenAI()
 
               response = client.responses.create(
-                  model="gpt-5.4",
+                  model="gpt-5.6-sol",
                   input=[
                       {
                           "role": "user",
@@ -16704,7 +16701,7 @@ paths:
               using OpenAI.Responses;
 
               OpenAIResponseClient client = new(
-                  model: "gpt-5.4",
+                  model: "gpt-5.6-sol",
                   apiKey: Environment.GetEnvironmentVariable("OPENAI_API_KEY")
               );
 
@@ -16732,7 +16729,7 @@ paths:
               "incomplete_details": null,
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-5.4",
+              "model": "gpt-5.6-sol",
               "output": [
                 {
                   "type": "message",
@@ -16787,7 +16784,7 @@ paths:
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -d '{
-                  "model": "gpt-5.4",
+                  "model": "gpt-5.6-sol",
                   "input": [
                     {
                       "role": "user",
@@ -16808,7 +16805,7 @@ paths:
               const openai = new OpenAI();
 
               const response = await openai.responses.create({
-                  model: "gpt-5.4",
+                  model: "gpt-5.6-sol",
                   input: [
                       {
                           role: "user",
@@ -16831,7 +16828,7 @@ paths:
               client = OpenAI()
 
               response = client.responses.create(
-                  model="gpt-5.4",
+                  model="gpt-5.6-sol",
                   input=[
                       {
                           "role": "user",
@@ -16861,7 +16858,7 @@ paths:
               "instructions": null,
               "max_output_tokens": null,
               "max_tool_calls": null,
-              "model": "gpt-5.4",
+              "model": "gpt-5.6-sol",
               "output": [
                 {
                   "id": "msg_686eef60d3e081a29283bdcbc4322fd90e34c516d176ff86",
@@ -16919,7 +16916,7 @@ paths:
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -d '{
-                  "model": "gpt-5.4",
+                  "model": "gpt-5.6-sol",
                   "tools": [{ "type": "web_search_preview" }],
                   "input": "What was a positive news story from today?"
                 }'
@@ -16929,7 +16926,7 @@ paths:
               const openai = new OpenAI();
 
               const response = await openai.responses.create({
-                  model: "gpt-5.4",
+                  model: "gpt-5.6-sol",
                   tools: [{ type: "web_search_preview" }],
                   input: "What was a positive news story from today?",
               });
@@ -16941,7 +16938,7 @@ paths:
               client = OpenAI()
 
               response = client.responses.create(
-                  model="gpt-5.4",
+                  model="gpt-5.6-sol",
                   tools=[{ "type": "web_search_preview" }],
                   input="What was a positive news story from today?",
               )
@@ -16953,7 +16950,7 @@ paths:
               using OpenAI.Responses;
 
               OpenAIResponseClient client = new(
-                  model: "gpt-5.4",
+                  model: "gpt-5.6-sol",
                   apiKey: Environment.GetEnvironmentVariable("OPENAI_API_KEY")
               );
 
@@ -16981,7 +16978,7 @@ paths:
               "incomplete_details": null,
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-5.4",
+              "model": "gpt-5.6-sol",
               "output": [
                 {
                   "type": "web_search_call",
@@ -17076,7 +17073,7 @@ paths:
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -d '{
-                  "model": "gpt-5.4",
+                  "model": "gpt-5.6-sol",
                   "tools": [{
                     "type": "file_search",
                     "vector_store_ids": ["vs_1234567890"],
@@ -17090,7 +17087,7 @@ paths:
               const openai = new OpenAI();
 
               const response = await openai.responses.create({
-                  model: "gpt-5.4",
+                  model: "gpt-5.6-sol",
                   tools: [{
                     type: "file_search",
                     vector_store_ids: ["vs_1234567890"],
@@ -17106,7 +17103,7 @@ paths:
               client = OpenAI()
 
               response = client.responses.create(
-                  model="gpt-5.4",
+                  model="gpt-5.6-sol",
                   tools=[{
                     "type": "file_search",
                     "vector_store_ids": ["vs_1234567890"],
@@ -17122,7 +17119,7 @@ paths:
               using OpenAI.Responses;
 
               OpenAIResponseClient client = new(
-                  model: "gpt-5.4",
+                  model: "gpt-5.6-sol",
                   apiKey: Environment.GetEnvironmentVariable("OPENAI_API_KEY")
               );
 
@@ -17153,7 +17150,7 @@ paths:
               "incomplete_details": null,
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-5.4",
+              "model": "gpt-5.6-sol",
               "output": [
                 {
                   "type": "file_search_call",
@@ -17279,7 +17276,7 @@ paths:
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -d '{
-                  "model": "gpt-5.4",
+                  "model": "gpt-5.6-sol",
                   "instructions": "You are a helpful assistant.",
                   "input": "Hello!",
                   "stream": true
@@ -17290,7 +17287,7 @@ paths:
               client = OpenAI()
 
               response = client.responses.create(
-                model="gpt-5.4",
+                model="gpt-5.6-sol",
                 instructions="You are a helpful assistant.",
                 input="Hello!",
                 stream=True
@@ -17304,7 +17301,7 @@ paths:
               const openai = new OpenAI();
 
               const response = await openai.responses.create({
-                  model: "gpt-5.4",
+                  model: "gpt-5.6-sol",
                   instructions: "You are a helpful assistant.",
                   input: "Hello!",
                   stream: true,
@@ -17321,7 +17318,7 @@ paths:
               using OpenAI.Responses;
 
               OpenAIResponseClient client = new(
-                  model: "gpt-5.4",
+                  model: "gpt-5.6-sol",
                   apiKey: Environment.GetEnvironmentVariable("OPENAI_API_KEY")
               );
 
@@ -17343,10 +17340,10 @@ paths:
               }
           response: |
             event: response.created
-            data: {"type":"response.created","response":{"id":"resp_67c9fdcecf488190bdd9a0409de3a1ec07b8b0ad4e5eb654","object":"response","created_at":1741290958,"status":"in_progress","error":null,"incomplete_details":null,"instructions":"You are a helpful assistant.","max_output_tokens":null,"model":"gpt-5.4","output":[],"parallel_tool_calls":true,"previous_response_id":null,"reasoning":{"effort":null,"summary":null},"store":true,"temperature":1.0,"text":{"format":{"type":"text"}},"tool_choice":"auto","tools":[],"top_p":1.0,"truncation":"disabled","usage":null,"user":null,"metadata":{}}}
+            data: {"type":"response.created","response":{"id":"resp_67c9fdcecf488190bdd9a0409de3a1ec07b8b0ad4e5eb654","object":"response","created_at":1741290958,"status":"in_progress","error":null,"incomplete_details":null,"instructions":"You are a helpful assistant.","max_output_tokens":null,"model":"gpt-5.6-sol","output":[],"parallel_tool_calls":true,"previous_response_id":null,"reasoning":{"effort":null,"summary":null},"store":true,"temperature":1.0,"text":{"format":{"type":"text"}},"tool_choice":"auto","tools":[],"top_p":1.0,"truncation":"disabled","usage":null,"user":null,"metadata":{}}}
 
             event: response.in_progress
-            data: {"type":"response.in_progress","response":{"id":"resp_67c9fdcecf488190bdd9a0409de3a1ec07b8b0ad4e5eb654","object":"response","created_at":1741290958,"status":"in_progress","error":null,"incomplete_details":null,"instructions":"You are a helpful assistant.","max_output_tokens":null,"model":"gpt-5.4","output":[],"parallel_tool_calls":true,"previous_response_id":null,"reasoning":{"effort":null,"summary":null},"store":true,"temperature":1.0,"text":{"format":{"type":"text"}},"tool_choice":"auto","tools":[],"top_p":1.0,"truncation":"disabled","usage":null,"user":null,"metadata":{}}}
+            data: {"type":"response.in_progress","response":{"id":"resp_67c9fdcecf488190bdd9a0409de3a1ec07b8b0ad4e5eb654","object":"response","created_at":1741290958,"status":"in_progress","error":null,"incomplete_details":null,"instructions":"You are a helpful assistant.","max_output_tokens":null,"model":"gpt-5.6-sol","output":[],"parallel_tool_calls":true,"previous_response_id":null,"reasoning":{"effort":null,"summary":null},"store":true,"temperature":1.0,"text":{"format":{"type":"text"}},"tool_choice":"auto","tools":[],"top_p":1.0,"truncation":"disabled","usage":null,"user":null,"metadata":{}}}
 
             event: response.output_item.added
             data: {"type":"response.output_item.added","output_index":0,"item":{"id":"msg_67c9fdcf37fc8190ba82116e33fb28c507b8b0ad4e5eb654","type":"message","status":"in_progress","role":"assistant","content":[]}}
@@ -17369,7 +17366,7 @@ paths:
             data: {"type":"response.output_item.done","output_index":0,"item":{"id":"msg_67c9fdcf37fc8190ba82116e33fb28c507b8b0ad4e5eb654","type":"message","status":"completed","role":"assistant","content":[{"type":"output_text","text":"Hi there! How can I assist you today?","annotations":[]}]}}
 
             event: response.completed
-            data: {"type":"response.completed","response":{"id":"resp_67c9fdcecf488190bdd9a0409de3a1ec07b8b0ad4e5eb654","object":"response","created_at":1741290958,"status":"completed","error":null,"incomplete_details":null,"instructions":"You are a helpful assistant.","max_output_tokens":null,"model":"gpt-5.4","output":[{"id":"msg_67c9fdcf37fc8190ba82116e33fb28c507b8b0ad4e5eb654","type":"message","status":"completed","role":"assistant","content":[{"type":"output_text","text":"Hi there! How can I assist you today?","annotations":[]}]}],"parallel_tool_calls":true,"previous_response_id":null,"reasoning":{"effort":null,"summary":null},"store":true,"temperature":1.0,"text":{"format":{"type":"text"}},"tool_choice":"auto","tools":[],"top_p":1.0,"truncation":"disabled","usage":{"input_tokens":37,"output_tokens":11,"output_tokens_details":{"reasoning_tokens":0},"total_tokens":48},"user":null,"metadata":{}}}
+            data: {"type":"response.completed","response":{"id":"resp_67c9fdcecf488190bdd9a0409de3a1ec07b8b0ad4e5eb654","object":"response","created_at":1741290958,"status":"completed","error":null,"incomplete_details":null,"instructions":"You are a helpful assistant.","max_output_tokens":null,"model":"gpt-5.6-sol","output":[{"id":"msg_67c9fdcf37fc8190ba82116e33fb28c507b8b0ad4e5eb654","type":"message","status":"completed","role":"assistant","content":[{"type":"output_text","text":"Hi there! How can I assist you today?","annotations":[]}]}],"parallel_tool_calls":true,"previous_response_id":null,"reasoning":{"effort":null,"summary":null},"store":true,"temperature":1.0,"text":{"format":{"type":"text"}},"tool_choice":"auto","tools":[],"top_p":1.0,"truncation":"disabled","usage":{"input_tokens":37,"output_tokens":11,"output_tokens_details":{"reasoning_tokens":0},"total_tokens":48},"user":null,"metadata":{}}}
         - title: Functions
           request:
             curl: |
@@ -17377,7 +17374,7 @@ paths:
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -d '{
-                  "model": "gpt-5.4",
+                  "model": "gpt-5.6-sol",
                   "input": "What is the weather like in Boston today?",
                   "tools": [
                     {
@@ -17427,7 +17424,7 @@ paths:
               ]
 
               response = client.responses.create(
-                model="gpt-5.4",
+                model="gpt-5.6-sol",
                 tools=tools,
                 input="What is the weather like in Boston today?",
                 tool_choice="auto"
@@ -17459,7 +17456,7 @@ paths:
               ];
 
               const response = await openai.responses.create({
-                  model: "gpt-5.4",
+                  model: "gpt-5.6-sol",
                   tools: tools,
                   input: "What is the weather like in Boston today?",
                   tool_choice: "auto",
@@ -17471,7 +17468,7 @@ paths:
               using OpenAI.Responses;
 
               OpenAIResponseClient client = new(
-                  model: "gpt-5.4",
+                  model: "gpt-5.6-sol",
                   apiKey: Environment.GetEnvironmentVariable("OPENAI_API_KEY")
               );
 
@@ -17517,7 +17514,7 @@ paths:
               "incomplete_details": null,
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-5.4",
+              "model": "gpt-5.6-sol",
               "output": [
                 {
                   "type": "function_call",
@@ -17590,7 +17587,7 @@ paths:
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -d '{
-                  "model": "o3-mini",
+                  "model": "gpt-5.6-sol",
                   "input": "How much wood would a woodchuck chuck?",
                   "reasoning": {
                     "effort": "high"
@@ -17601,7 +17598,7 @@ paths:
               const openai = new OpenAI();
 
               const response = await openai.responses.create({
-                  model: "o3-mini",
+                  model: "gpt-5.6-sol",
                   input: "How much wood would a woodchuck chuck?",
                   reasoning: {
                     effort: "high"
@@ -17614,7 +17611,7 @@ paths:
               client = OpenAI()
 
               response = client.responses.create(
-                  model="o3-mini",
+                  model="gpt-5.6-sol",
                   input="How much wood would a woodchuck chuck?",
                   reasoning={
                       "effort": "high"
@@ -17627,7 +17624,7 @@ paths:
               using OpenAI.Responses;
 
               OpenAIResponseClient client = new(
-                  model: "o3-mini",
+                  model: "gpt-5.6-sol",
                   apiKey: Environment.GetEnvironmentVariable("OPENAI_API_KEY")
               );
 
@@ -17655,7 +17652,7 @@ paths:
               "incomplete_details": null,
               "instructions": null,
               "max_output_tokens": null,
-              "model": "o1-2024-12-17",
+              "model": "gpt-5.6-sol",
               "output": [
                 {
                   "type": "message",
@@ -17802,7 +17799,7 @@ paths:
               "incomplete_details": null,
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-4o-2024-08-06",
+              "model": "gpt-5.6-sol",
               "output": [
                 {
                   "type": "message",
@@ -17967,7 +17964,7 @@ paths:
               "incomplete_details": null,
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-4o-2024-08-06",
+              "model": "gpt-5.6-sol",
               "output": [
                 {
                   "type": "message",
@@ -18318,7 +18315,7 @@ paths:
               "completed_at": null,
               "required_action": null,
               "last_error": null,
-              "model": "gpt-4o",
+              "model": "gpt-5",
               "instructions": "You are a helpful assistant.",
               "tools": [],
               "tool_resources": {},
@@ -18396,13 +18393,13 @@ paths:
             data: {"id":"thread_123","object":"thread","created_at":1710348075,"metadata":{}}
 
             event: thread.run.created
-            data: {"id":"run_123","object":"thread.run","created_at":1710348075,"assistant_id":"asst_123","thread_id":"thread_123","status":"queued","started_at":null,"expires_at":1710348675,"cancelled_at":null,"failed_at":null,"completed_at":null,"required_action":null,"last_error":null,"model":"gpt-4o","instructions":null,"tools":[],"tool_resources":{},"metadata":{},"temperature":1.0,"top_p":1.0,"max_completion_tokens":null,"max_prompt_tokens":null,"truncation_strategy":{"type":"auto","last_messages":null},"incomplete_details":null,"usage":null,"response_format":"auto","tool_choice":"auto","parallel_tool_calls":true}
+            data: {"id":"run_123","object":"thread.run","created_at":1710348075,"assistant_id":"asst_123","thread_id":"thread_123","status":"queued","started_at":null,"expires_at":1710348675,"cancelled_at":null,"failed_at":null,"completed_at":null,"required_action":null,"last_error":null,"model":"gpt-5","instructions":null,"tools":[],"tool_resources":{},"metadata":{},"temperature":1.0,"top_p":1.0,"max_completion_tokens":null,"max_prompt_tokens":null,"truncation_strategy":{"type":"auto","last_messages":null},"incomplete_details":null,"usage":null,"response_format":"auto","tool_choice":"auto","parallel_tool_calls":true}
 
             event: thread.run.queued
-            data: {"id":"run_123","object":"thread.run","created_at":1710348075,"assistant_id":"asst_123","thread_id":"thread_123","status":"queued","started_at":null,"expires_at":1710348675,"cancelled_at":null,"failed_at":null,"completed_at":null,"required_action":null,"last_error":null,"model":"gpt-4o","instructions":null,"tools":[],"tool_resources":{},"metadata":{},"temperature":1.0,"top_p":1.0,"max_completion_tokens":null,"max_prompt_tokens":null,"truncation_strategy":{"type":"auto","last_messages":null},"incomplete_details":null,"usage":null,"response_format":"auto","tool_choice":"auto","parallel_tool_calls":true}
+            data: {"id":"run_123","object":"thread.run","created_at":1710348075,"assistant_id":"asst_123","thread_id":"thread_123","status":"queued","started_at":null,"expires_at":1710348675,"cancelled_at":null,"failed_at":null,"completed_at":null,"required_action":null,"last_error":null,"model":"gpt-5","instructions":null,"tools":[],"tool_resources":{},"metadata":{},"temperature":1.0,"top_p":1.0,"max_completion_tokens":null,"max_prompt_tokens":null,"truncation_strategy":{"type":"auto","last_messages":null},"incomplete_details":null,"usage":null,"response_format":"auto","tool_choice":"auto","parallel_tool_calls":true}
 
             event: thread.run.in_progress
-            data: {"id":"run_123","object":"thread.run","created_at":1710348075,"assistant_id":"asst_123","thread_id":"thread_123","status":"in_progress","started_at":null,"expires_at":1710348675,"cancelled_at":null,"failed_at":null,"completed_at":null,"required_action":null,"last_error":null,"model":"gpt-4o","instructions":null,"tools":[],"tool_resources":{},"metadata":{},"temperature":1.0,"top_p":1.0,"max_completion_tokens":null,"max_prompt_tokens":null,"truncation_strategy":{"type":"auto","last_messages":null},"incomplete_details":null,"usage":null,"response_format":"auto","tool_choice":"auto","parallel_tool_calls":true}
+            data: {"id":"run_123","object":"thread.run","created_at":1710348075,"assistant_id":"asst_123","thread_id":"thread_123","status":"in_progress","started_at":null,"expires_at":1710348675,"cancelled_at":null,"failed_at":null,"completed_at":null,"required_action":null,"last_error":null,"model":"gpt-5","instructions":null,"tools":[],"tool_resources":{},"metadata":{},"temperature":1.0,"top_p":1.0,"max_completion_tokens":null,"max_prompt_tokens":null,"truncation_strategy":{"type":"auto","last_messages":null},"incomplete_details":null,"usage":null,"response_format":"auto","tool_choice":"auto","parallel_tool_calls":true}
 
             event: thread.run.step.created
             data: {"id":"step_001","object":"thread.run.step","created_at":1710348076,"run_id":"run_123","assistant_id":"asst_123","thread_id":"thread_123","type":"message_creation","status":"in_progress","cancelled_at":null,"completed_at":null,"expires_at":1710348675,"failed_at":null,"last_error":null,"step_details":{"type":"message_creation","message_creation":{"message_id":"msg_001"}},"usage":null}
@@ -18434,7 +18431,7 @@ paths:
             data: {"id":"step_001","object":"thread.run.step","created_at":1710348076,"run_id":"run_123","assistant_id":"asst_123","thread_id":"thread_123","type":"message_creation","status":"completed","cancelled_at":null,"completed_at":1710348077,"expires_at":1710348675,"failed_at":null,"last_error":null,"step_details":{"type":"message_creation","message_creation":{"message_id":"msg_001"}},"usage":{"prompt_tokens":20,"completion_tokens":11,"total_tokens":31}}
 
             event: thread.run.completed
-            {"id":"run_123","object":"thread.run","created_at":1710348076,"assistant_id":"asst_123","thread_id":"thread_123","status":"completed","started_at":1713226836,"expires_at":null,"cancelled_at":null,"failed_at":null,"completed_at":1713226837,"required_action":null,"last_error":null,"model":"gpt-4o","instructions":null,"tools":[],"metadata":{},"temperature":1.0,"top_p":1.0,"max_completion_tokens":null,"max_prompt_tokens":null,"truncation_strategy":{"type":"auto","last_messages":null},"incomplete_details":null,"usage":{"prompt_tokens":345,"completion_tokens":11,"total_tokens":356},"response_format":"auto","tool_choice":"auto","parallel_tool_calls":true}
+            {"id":"run_123","object":"thread.run","created_at":1710348076,"assistant_id":"asst_123","thread_id":"thread_123","status":"completed","started_at":1713226836,"expires_at":null,"cancelled_at":null,"failed_at":null,"completed_at":1713226837,"required_action":null,"last_error":null,"model":"gpt-5","instructions":null,"tools":[],"metadata":{},"temperature":1.0,"top_p":1.0,"max_completion_tokens":null,"max_prompt_tokens":null,"truncation_strategy":{"type":"auto","last_messages":null},"incomplete_details":null,"usage":{"prompt_tokens":345,"completion_tokens":11,"total_tokens":356},"response_format":"auto","tool_choice":"auto","parallel_tool_calls":true}
 
             event: done
             data: [DONE]
@@ -18564,13 +18561,13 @@ paths:
             data: {"id":"thread_123","object":"thread","created_at":1710351818,"metadata":{}}
 
             event: thread.run.created
-            data: {"id":"run_123","object":"thread.run","created_at":1710351818,"assistant_id":"asst_123","thread_id":"thread_123","status":"queued","started_at":null,"expires_at":1710352418,"cancelled_at":null,"failed_at":null,"completed_at":null,"required_action":null,"last_error":null,"model":"gpt-4o","instructions":null,"tools":[{"type":"function","function":{"name":"get_current_weather","description":"Get the current weather in a given location","parameters":{"type":"object","properties":{"location":{"type":"string","description":"The city and state, e.g. San Francisco, CA"},"unit":{"type":"string","enum":["celsius","fahrenheit"]}},"required":["location"]}}}],"metadata":{},"temperature":1.0,"top_p":1.0,"max_completion_tokens":null,"max_prompt_tokens":null,"truncation_strategy":{"type":"auto","last_messages":null},"incomplete_details":null,"usage":null,"response_format":"auto","tool_choice":"auto","parallel_tool_calls":true}}
+            data: {"id":"run_123","object":"thread.run","created_at":1710351818,"assistant_id":"asst_123","thread_id":"thread_123","status":"queued","started_at":null,"expires_at":1710352418,"cancelled_at":null,"failed_at":null,"completed_at":null,"required_action":null,"last_error":null,"model":"gpt-5","instructions":null,"tools":[{"type":"function","function":{"name":"get_current_weather","description":"Get the current weather in a given location","parameters":{"type":"object","properties":{"location":{"type":"string","description":"The city and state, e.g. San Francisco, CA"},"unit":{"type":"string","enum":["celsius","fahrenheit"]}},"required":["location"]}}}],"metadata":{},"temperature":1.0,"top_p":1.0,"max_completion_tokens":null,"max_prompt_tokens":null,"truncation_strategy":{"type":"auto","last_messages":null},"incomplete_details":null,"usage":null,"response_format":"auto","tool_choice":"auto","parallel_tool_calls":true}}
 
             event: thread.run.queued
-            data: {"id":"run_123","object":"thread.run","created_at":1710351818,"assistant_id":"asst_123","thread_id":"thread_123","status":"queued","started_at":null,"expires_at":1710352418,"cancelled_at":null,"failed_at":null,"completed_at":null,"required_action":null,"last_error":null,"model":"gpt-4o","instructions":null,"tools":[{"type":"function","function":{"name":"get_current_weather","description":"Get the current weather in a given location","parameters":{"type":"object","properties":{"location":{"type":"string","description":"The city and state, e.g. San Francisco, CA"},"unit":{"type":"string","enum":["celsius","fahrenheit"]}},"required":["location"]}}}],"metadata":{},"temperature":1.0,"top_p":1.0,"max_completion_tokens":null,"max_prompt_tokens":null,"truncation_strategy":{"type":"auto","last_messages":null},"incomplete_details":null,"usage":null,"response_format":"auto","tool_choice":"auto","parallel_tool_calls":true}}
+            data: {"id":"run_123","object":"thread.run","created_at":1710351818,"assistant_id":"asst_123","thread_id":"thread_123","status":"queued","started_at":null,"expires_at":1710352418,"cancelled_at":null,"failed_at":null,"completed_at":null,"required_action":null,"last_error":null,"model":"gpt-5","instructions":null,"tools":[{"type":"function","function":{"name":"get_current_weather","description":"Get the current weather in a given location","parameters":{"type":"object","properties":{"location":{"type":"string","description":"The city and state, e.g. San Francisco, CA"},"unit":{"type":"string","enum":["celsius","fahrenheit"]}},"required":["location"]}}}],"metadata":{},"temperature":1.0,"top_p":1.0,"max_completion_tokens":null,"max_prompt_tokens":null,"truncation_strategy":{"type":"auto","last_messages":null},"incomplete_details":null,"usage":null,"response_format":"auto","tool_choice":"auto","parallel_tool_calls":true}}
 
             event: thread.run.in_progress
-            data: {"id":"run_123","object":"thread.run","created_at":1710351818,"assistant_id":"asst_123","thread_id":"thread_123","status":"in_progress","started_at":1710351818,"expires_at":1710352418,"cancelled_at":null,"failed_at":null,"completed_at":null,"required_action":null,"last_error":null,"model":"gpt-4o","instructions":null,"tools":[{"type":"function","function":{"name":"get_current_weather","description":"Get the current weather in a given location","parameters":{"type":"object","properties":{"location":{"type":"string","description":"The city and state, e.g. San Francisco, CA"},"unit":{"type":"string","enum":["celsius","fahrenheit"]}},"required":["location"]}}}],"metadata":{},"temperature":1.0,"top_p":1.0,"max_completion_tokens":null,"max_prompt_tokens":null,"truncation_strategy":{"type":"auto","last_messages":null},"incomplete_details":null,"usage":null,"response_format":"auto","tool_choice":"auto","parallel_tool_calls":true}}
+            data: {"id":"run_123","object":"thread.run","created_at":1710351818,"assistant_id":"asst_123","thread_id":"thread_123","status":"in_progress","started_at":1710351818,"expires_at":1710352418,"cancelled_at":null,"failed_at":null,"completed_at":null,"required_action":null,"last_error":null,"model":"gpt-5","instructions":null,"tools":[{"type":"function","function":{"name":"get_current_weather","description":"Get the current weather in a given location","parameters":{"type":"object","properties":{"location":{"type":"string","description":"The city and state, e.g. San Francisco, CA"},"unit":{"type":"string","enum":["celsius","fahrenheit"]}},"required":["location"]}}}],"metadata":{},"temperature":1.0,"top_p":1.0,"max_completion_tokens":null,"max_prompt_tokens":null,"truncation_strategy":{"type":"auto","last_messages":null},"incomplete_details":null,"usage":null,"response_format":"auto","tool_choice":"auto","parallel_tool_calls":true}}
 
             event: thread.run.step.created
             data: {"id":"step_001","object":"thread.run.step","created_at":1710351819,"run_id":"run_123","assistant_id":"asst_123","thread_id":"thread_123","type":"tool_calls","status":"in_progress","cancelled_at":null,"completed_at":null,"expires_at":1710352418,"failed_at":null,"last_error":null,"step_details":{"type":"tool_calls","tool_calls":[]},"usage":null}
@@ -18596,7 +18593,7 @@ paths:
             data: {"id":"step_001","object":"thread.run.step.delta","delta":{"step_details":{"type":"tool_calls","tool_calls":[{"index":0,"type":"function","function":{"arguments":"\"}"}}]}}}
 
             event: thread.run.requires_action
-            data: {"id":"run_123","object":"thread.run","created_at":1710351818,"assistant_id":"asst_123","thread_id":"thread_123","status":"requires_action","started_at":1710351818,"expires_at":1710352418,"cancelled_at":null,"failed_at":null,"completed_at":null,"required_action":{"type":"submit_tool_outputs","submit_tool_outputs":{"tool_calls":[{"id":"call_XXNp8YGaFrjrSjgqxtC8JJ1B","type":"function","function":{"name":"get_current_weather","arguments":"{\"location\":\"San Francisco, CA\",\"unit\":\"fahrenheit\"}"}}]}},"last_error":null,"model":"gpt-4o","instructions":null,"tools":[{"type":"function","function":{"name":"get_current_weather","description":"Get the current weather in a given location","parameters":{"type":"object","properties":{"location":{"type":"string","description":"The city and state, e.g. San Francisco, CA"},"unit":{"type":"string","enum":["celsius","fahrenheit"]}},"required":["location"]}}}],"metadata":{},"temperature":1.0,"top_p":1.0,"max_completion_tokens":null,"max_prompt_tokens":null,"truncation_strategy":{"type":"auto","last_messages":null},"incomplete_details":null,"usage":{"prompt_tokens":345,"completion_tokens":11,"total_tokens":356},"response_format":"auto","tool_choice":"auto","parallel_tool_calls":true}}
+            data: {"id":"run_123","object":"thread.run","created_at":1710351818,"assistant_id":"asst_123","thread_id":"thread_123","status":"requires_action","started_at":1710351818,"expires_at":1710352418,"cancelled_at":null,"failed_at":null,"completed_at":null,"required_action":{"type":"submit_tool_outputs","submit_tool_outputs":{"tool_calls":[{"id":"call_XXNp8YGaFrjrSjgqxtC8JJ1B","type":"function","function":{"name":"get_current_weather","arguments":"{\"location\":\"San Francisco, CA\",\"unit\":\"fahrenheit\"}"}}]}},"last_error":null,"model":"gpt-5","instructions":null,"tools":[{"type":"function","function":{"name":"get_current_weather","description":"Get the current weather in a given location","parameters":{"type":"object","properties":{"location":{"type":"string","description":"The city and state, e.g. San Francisco, CA"},"unit":{"type":"string","enum":["celsius","fahrenheit"]}},"required":["location"]}}}],"metadata":{},"temperature":1.0,"top_p":1.0,"max_completion_tokens":null,"max_prompt_tokens":null,"truncation_strategy":{"type":"auto","last_messages":null},"incomplete_details":null,"usage":{"prompt_tokens":345,"completion_tokens":11,"total_tokens":356},"response_format":"auto","tool_choice":"auto","parallel_tool_calls":true}}
 
             event: done
             data: [DONE]
@@ -19396,7 +19393,7 @@ paths:
                   "failed_at": null,
                   "completed_at": 1699075073,
                   "last_error": null,
-                  "model": "gpt-4o",
+                  "model": "gpt-5",
                   "instructions": null,
                   "incomplete_details": null,
                   "tools": [
@@ -19443,7 +19440,7 @@ paths:
                   "failed_at": null,
                   "completed_at": 1699063291,
                   "last_error": null,
-                  "model": "gpt-4o",
+                  "model": "gpt-5",
                   "instructions": null,
                   "incomplete_details": null,
                   "tools": [
@@ -19576,7 +19573,7 @@ paths:
               "failed_at": null,
               "completed_at": 1699063291,
               "last_error": null,
-              "model": "gpt-4o",
+              "model": "gpt-5",
               "instructions": null,
               "incomplete_details": null,
               "tools": [
@@ -19640,13 +19637,13 @@ paths:
               main();
           response: |
             event: thread.run.created
-            data: {"id":"run_123","object":"thread.run","created_at":1710330640,"assistant_id":"asst_123","thread_id":"thread_123","status":"queued","started_at":null,"expires_at":1710331240,"cancelled_at":null,"failed_at":null,"completed_at":null,"required_action":null,"last_error":null,"model":"gpt-4o","instructions":null,"tools":[],"metadata":{},"temperature":1.0,"top_p":1.0,"max_completion_tokens":null,"max_prompt_tokens":null,"truncation_strategy":{"type":"auto","last_messages":null},"incomplete_details":null,"usage":null,"response_format":"auto","tool_choice":"auto","parallel_tool_calls":true}}
+            data: {"id":"run_123","object":"thread.run","created_at":1710330640,"assistant_id":"asst_123","thread_id":"thread_123","status":"queued","started_at":null,"expires_at":1710331240,"cancelled_at":null,"failed_at":null,"completed_at":null,"required_action":null,"last_error":null,"model":"gpt-5","instructions":null,"tools":[],"metadata":{},"temperature":1.0,"top_p":1.0,"max_completion_tokens":null,"max_prompt_tokens":null,"truncation_strategy":{"type":"auto","last_messages":null},"incomplete_details":null,"usage":null,"response_format":"auto","tool_choice":"auto","parallel_tool_calls":true}}
 
             event: thread.run.queued
-            data: {"id":"run_123","object":"thread.run","created_at":1710330640,"assistant_id":"asst_123","thread_id":"thread_123","status":"queued","started_at":null,"expires_at":1710331240,"cancelled_at":null,"failed_at":null,"completed_at":null,"required_action":null,"last_error":null,"model":"gpt-4o","instructions":null,"tools":[],"metadata":{},"temperature":1.0,"top_p":1.0,"max_completion_tokens":null,"max_prompt_tokens":null,"truncation_strategy":{"type":"auto","last_messages":null},"incomplete_details":null,"usage":null,"response_format":"auto","tool_choice":"auto","parallel_tool_calls":true}}
+            data: {"id":"run_123","object":"thread.run","created_at":1710330640,"assistant_id":"asst_123","thread_id":"thread_123","status":"queued","started_at":null,"expires_at":1710331240,"cancelled_at":null,"failed_at":null,"completed_at":null,"required_action":null,"last_error":null,"model":"gpt-5","instructions":null,"tools":[],"metadata":{},"temperature":1.0,"top_p":1.0,"max_completion_tokens":null,"max_prompt_tokens":null,"truncation_strategy":{"type":"auto","last_messages":null},"incomplete_details":null,"usage":null,"response_format":"auto","tool_choice":"auto","parallel_tool_calls":true}}
 
             event: thread.run.in_progress
-            data: {"id":"run_123","object":"thread.run","created_at":1710330640,"assistant_id":"asst_123","thread_id":"thread_123","status":"in_progress","started_at":1710330641,"expires_at":1710331240,"cancelled_at":null,"failed_at":null,"completed_at":null,"required_action":null,"last_error":null,"model":"gpt-4o","instructions":null,"tools":[],"metadata":{},"temperature":1.0,"top_p":1.0,"max_completion_tokens":null,"max_prompt_tokens":null,"truncation_strategy":{"type":"auto","last_messages":null},"incomplete_details":null,"usage":null,"response_format":"auto","tool_choice":"auto","parallel_tool_calls":true}}
+            data: {"id":"run_123","object":"thread.run","created_at":1710330640,"assistant_id":"asst_123","thread_id":"thread_123","status":"in_progress","started_at":1710330641,"expires_at":1710331240,"cancelled_at":null,"failed_at":null,"completed_at":null,"required_action":null,"last_error":null,"model":"gpt-5","instructions":null,"tools":[],"metadata":{},"temperature":1.0,"top_p":1.0,"max_completion_tokens":null,"max_prompt_tokens":null,"truncation_strategy":{"type":"auto","last_messages":null},"incomplete_details":null,"usage":null,"response_format":"auto","tool_choice":"auto","parallel_tool_calls":true}}
 
             event: thread.run.step.created
             data: {"id":"step_001","object":"thread.run.step","created_at":1710330641,"run_id":"run_123","assistant_id":"asst_123","thread_id":"thread_123","type":"message_creation","status":"in_progress","cancelled_at":null,"completed_at":null,"expires_at":1710331240,"failed_at":null,"last_error":null,"step_details":{"type":"message_creation","message_creation":{"message_id":"msg_001"}},"usage":null}
@@ -19678,7 +19675,7 @@ paths:
             data: {"id":"step_001","object":"thread.run.step","created_at":1710330641,"run_id":"run_123","assistant_id":"asst_123","thread_id":"thread_123","type":"message_creation","status":"completed","cancelled_at":null,"completed_at":1710330642,"expires_at":1710331240,"failed_at":null,"last_error":null,"step_details":{"type":"message_creation","message_creation":{"message_id":"msg_001"}},"usage":{"prompt_tokens":20,"completion_tokens":11,"total_tokens":31}}
 
             event: thread.run.completed
-            data: {"id":"run_123","object":"thread.run","created_at":1710330640,"assistant_id":"asst_123","thread_id":"thread_123","status":"completed","started_at":1710330641,"expires_at":null,"cancelled_at":null,"failed_at":null,"completed_at":1710330642,"required_action":null,"last_error":null,"model":"gpt-4o","instructions":null,"tools":[],"metadata":{},"temperature":1.0,"top_p":1.0,"max_completion_tokens":null,"max_prompt_tokens":null,"truncation_strategy":{"type":"auto","last_messages":null},"incomplete_details":null,"usage":{"prompt_tokens":20,"completion_tokens":11,"total_tokens":31},"response_format":"auto","tool_choice":"auto","parallel_tool_calls":true}}
+            data: {"id":"run_123","object":"thread.run","created_at":1710330640,"assistant_id":"asst_123","thread_id":"thread_123","status":"completed","started_at":1710330641,"expires_at":null,"cancelled_at":null,"failed_at":null,"completed_at":1710330642,"required_action":null,"last_error":null,"model":"gpt-5","instructions":null,"tools":[],"metadata":{},"temperature":1.0,"top_p":1.0,"max_completion_tokens":null,"max_prompt_tokens":null,"truncation_strategy":{"type":"auto","last_messages":null},"incomplete_details":null,"usage":{"prompt_tokens":20,"completion_tokens":11,"total_tokens":31},"response_format":"auto","tool_choice":"auto","parallel_tool_calls":true}}
 
             event: done
             data: [DONE]
@@ -19794,13 +19791,13 @@ paths:
               main();
           response: |
             event: thread.run.created
-            data: {"id":"run_123","object":"thread.run","created_at":1710348075,"assistant_id":"asst_123","thread_id":"thread_123","status":"queued","started_at":null,"expires_at":1710348675,"cancelled_at":null,"failed_at":null,"completed_at":null,"required_action":null,"last_error":null,"model":"gpt-4o","instructions":null,"tools":[],"metadata":{},"temperature":1.0,"top_p":1.0,"max_completion_tokens":null,"max_prompt_tokens":null,"truncation_strategy":{"type":"auto","last_messages":null},"incomplete_details":null,"usage":null,"response_format":"auto","tool_choice":"auto","parallel_tool_calls":true}}
+            data: {"id":"run_123","object":"thread.run","created_at":1710348075,"assistant_id":"asst_123","thread_id":"thread_123","status":"queued","started_at":null,"expires_at":1710348675,"cancelled_at":null,"failed_at":null,"completed_at":null,"required_action":null,"last_error":null,"model":"gpt-5","instructions":null,"tools":[],"metadata":{},"temperature":1.0,"top_p":1.0,"max_completion_tokens":null,"max_prompt_tokens":null,"truncation_strategy":{"type":"auto","last_messages":null},"incomplete_details":null,"usage":null,"response_format":"auto","tool_choice":"auto","parallel_tool_calls":true}}
 
             event: thread.run.queued
-            data: {"id":"run_123","object":"thread.run","created_at":1710348075,"assistant_id":"asst_123","thread_id":"thread_123","status":"queued","started_at":null,"expires_at":1710348675,"cancelled_at":null,"failed_at":null,"completed_at":null,"required_action":null,"last_error":null,"model":"gpt-4o","instructions":null,"tools":[],"metadata":{},"temperature":1.0,"top_p":1.0,"max_completion_tokens":null,"max_prompt_tokens":null,"truncation_strategy":{"type":"auto","last_messages":null},"incomplete_details":null,"usage":null,"response_format":"auto","tool_choice":"auto","parallel_tool_calls":true}}
+            data: {"id":"run_123","object":"thread.run","created_at":1710348075,"assistant_id":"asst_123","thread_id":"thread_123","status":"queued","started_at":null,"expires_at":1710348675,"cancelled_at":null,"failed_at":null,"completed_at":null,"required_action":null,"last_error":null,"model":"gpt-5","instructions":null,"tools":[],"metadata":{},"temperature":1.0,"top_p":1.0,"max_completion_tokens":null,"max_prompt_tokens":null,"truncation_strategy":{"type":"auto","last_messages":null},"incomplete_details":null,"usage":null,"response_format":"auto","tool_choice":"auto","parallel_tool_calls":true}}
 
             event: thread.run.in_progress
-            data: {"id":"run_123","object":"thread.run","created_at":1710348075,"assistant_id":"asst_123","thread_id":"thread_123","status":"in_progress","started_at":1710348075,"expires_at":1710348675,"cancelled_at":null,"failed_at":null,"completed_at":null,"required_action":null,"last_error":null,"model":"gpt-4o","instructions":null,"tools":[],"metadata":{},"temperature":1.0,"top_p":1.0,"max_completion_tokens":null,"max_prompt_tokens":null,"truncation_strategy":{"type":"auto","last_messages":null},"incomplete_details":null,"usage":null,"response_format":"auto","tool_choice":"auto","parallel_tool_calls":true}}
+            data: {"id":"run_123","object":"thread.run","created_at":1710348075,"assistant_id":"asst_123","thread_id":"thread_123","status":"in_progress","started_at":1710348075,"expires_at":1710348675,"cancelled_at":null,"failed_at":null,"completed_at":null,"required_action":null,"last_error":null,"model":"gpt-5","instructions":null,"tools":[],"metadata":{},"temperature":1.0,"top_p":1.0,"max_completion_tokens":null,"max_prompt_tokens":null,"truncation_strategy":{"type":"auto","last_messages":null},"incomplete_details":null,"usage":null,"response_format":"auto","tool_choice":"auto","parallel_tool_calls":true}}
 
             event: thread.run.step.created
             data: {"id":"step_001","object":"thread.run.step","created_at":1710348076,"run_id":"run_123","assistant_id":"asst_123","thread_id":"thread_123","type":"message_creation","status":"in_progress","cancelled_at":null,"completed_at":null,"expires_at":1710348675,"failed_at":null,"last_error":null,"step_details":{"type":"message_creation","message_creation":{"message_id":"msg_001"}},"usage":null}
@@ -19832,7 +19829,7 @@ paths:
             data: {"id":"step_001","object":"thread.run.step","created_at":1710348076,"run_id":"run_123","assistant_id":"asst_123","thread_id":"thread_123","type":"message_creation","status":"completed","cancelled_at":null,"completed_at":1710348077,"expires_at":1710348675,"failed_at":null,"last_error":null,"step_details":{"type":"message_creation","message_creation":{"message_id":"msg_001"}},"usage":{"prompt_tokens":20,"completion_tokens":11,"total_tokens":31}}
 
             event: thread.run.completed
-            data: {"id":"run_123","object":"thread.run","created_at":1710348075,"assistant_id":"asst_123","thread_id":"thread_123","status":"completed","started_at":1710348075,"expires_at":null,"cancelled_at":null,"failed_at":null,"completed_at":1710348077,"required_action":null,"last_error":null,"model":"gpt-4o","instructions":null,"tools":[],"metadata":{},"temperature":1.0,"top_p":1.0,"max_completion_tokens":null,"max_prompt_tokens":null,"truncation_strategy":{"type":"auto","last_messages":null},"incomplete_details":null,"usage":{"prompt_tokens":20,"completion_tokens":11,"total_tokens":31},"response_format":"auto","tool_choice":"auto","parallel_tool_calls":true}}
+            data: {"id":"run_123","object":"thread.run","created_at":1710348075,"assistant_id":"asst_123","thread_id":"thread_123","status":"completed","started_at":1710348075,"expires_at":null,"cancelled_at":null,"failed_at":null,"completed_at":1710348077,"required_action":null,"last_error":null,"model":"gpt-5","instructions":null,"tools":[],"metadata":{},"temperature":1.0,"top_p":1.0,"max_completion_tokens":null,"max_prompt_tokens":null,"truncation_strategy":{"type":"auto","last_messages":null},"incomplete_details":null,"usage":{"prompt_tokens":20,"completion_tokens":11,"total_tokens":31},"response_format":"auto","tool_choice":"auto","parallel_tool_calls":true}}
 
             event: done
             data: [DONE]
@@ -19914,7 +19911,7 @@ paths:
               "failed_at": null,
               "completed_at": 1699075073,
               "last_error": null,
-              "model": "gpt-4o",
+              "model": "gpt-5",
               "instructions": null,
               "incomplete_details": null,
               "tools": [
@@ -20035,7 +20032,7 @@ paths:
               "failed_at": null,
               "completed_at": 1699075073,
               "last_error": null,
-              "model": "gpt-4o",
+              "model": "gpt-5",
               "instructions": null,
               "incomplete_details": null,
               "tools": [
@@ -20150,7 +20147,7 @@ paths:
               "failed_at": null,
               "completed_at": null,
               "last_error": null,
-              "model": "gpt-4o",
+              "model": "gpt-5",
               "instructions": "You summarize books.",
               "tools": [
                 {
@@ -20527,7 +20524,7 @@ paths:
               "failed_at": null,
               "completed_at": null,
               "last_error": null,
-              "model": "gpt-4o",
+              "model": "gpt-5",
               "instructions": null,
               "tools": [
                 {
@@ -20630,10 +20627,10 @@ paths:
             data: {"id":"step_001","object":"thread.run.step","created_at":1710352449,"run_id":"run_123","assistant_id":"asst_123","thread_id":"thread_123","type":"tool_calls","status":"completed","cancelled_at":null,"completed_at":1710352475,"expires_at":1710353047,"failed_at":null,"last_error":null,"step_details":{"type":"tool_calls","tool_calls":[{"id":"call_iWr0kQ2EaYMaxNdl0v3KYkx7","type":"function","function":{"name":"get_current_weather","arguments":"{\"location\":\"San Francisco, CA\",\"unit\":\"fahrenheit\"}","output":"70 degrees and sunny."}}]},"usage":{"prompt_tokens":291,"completion_tokens":24,"total_tokens":315}}
 
             event: thread.run.queued
-            data: {"id":"run_123","object":"thread.run","created_at":1710352447,"assistant_id":"asst_123","thread_id":"thread_123","status":"queued","started_at":1710352448,"expires_at":1710353047,"cancelled_at":null,"failed_at":null,"completed_at":null,"required_action":null,"last_error":null,"model":"gpt-4o","instructions":null,"tools":[{"type":"function","function":{"name":"get_current_weather","description":"Get the current weather in a given location","parameters":{"type":"object","properties":{"location":{"type":"string","description":"The city and state, e.g. San Francisco, CA"},"unit":{"type":"string","enum":["celsius","fahrenheit"]}},"required":["location"]}}}],"metadata":{},"temperature":1.0,"top_p":1.0,"max_completion_tokens":null,"max_prompt_tokens":null,"truncation_strategy":{"type":"auto","last_messages":null},"incomplete_details":null,"usage":null,"response_format":"auto","tool_choice":"auto","parallel_tool_calls":true}}
+            data: {"id":"run_123","object":"thread.run","created_at":1710352447,"assistant_id":"asst_123","thread_id":"thread_123","status":"queued","started_at":1710352448,"expires_at":1710353047,"cancelled_at":null,"failed_at":null,"completed_at":null,"required_action":null,"last_error":null,"model":"gpt-5","instructions":null,"tools":[{"type":"function","function":{"name":"get_current_weather","description":"Get the current weather in a given location","parameters":{"type":"object","properties":{"location":{"type":"string","description":"The city and state, e.g. San Francisco, CA"},"unit":{"type":"string","enum":["celsius","fahrenheit"]}},"required":["location"]}}}],"metadata":{},"temperature":1.0,"top_p":1.0,"max_completion_tokens":null,"max_prompt_tokens":null,"truncation_strategy":{"type":"auto","last_messages":null},"incomplete_details":null,"usage":null,"response_format":"auto","tool_choice":"auto","parallel_tool_calls":true}}
 
             event: thread.run.in_progress
-            data: {"id":"run_123","object":"thread.run","created_at":1710352447,"assistant_id":"asst_123","thread_id":"thread_123","status":"in_progress","started_at":1710352475,"expires_at":1710353047,"cancelled_at":null,"failed_at":null,"completed_at":null,"required_action":null,"last_error":null,"model":"gpt-4o","instructions":null,"tools":[{"type":"function","function":{"name":"get_current_weather","description":"Get the current weather in a given location","parameters":{"type":"object","properties":{"location":{"type":"string","description":"The city and state, e.g. San Francisco, CA"},"unit":{"type":"string","enum":["celsius","fahrenheit"]}},"required":["location"]}}}],"metadata":{},"temperature":1.0,"top_p":1.0,"max_completion_tokens":null,"max_prompt_tokens":null,"truncation_strategy":{"type":"auto","last_messages":null},"incomplete_details":null,"usage":null,"response_format":"auto","tool_choice":"auto","parallel_tool_calls":true}}
+            data: {"id":"run_123","object":"thread.run","created_at":1710352447,"assistant_id":"asst_123","thread_id":"thread_123","status":"in_progress","started_at":1710352475,"expires_at":1710353047,"cancelled_at":null,"failed_at":null,"completed_at":null,"required_action":null,"last_error":null,"model":"gpt-5","instructions":null,"tools":[{"type":"function","function":{"name":"get_current_weather","description":"Get the current weather in a given location","parameters":{"type":"object","properties":{"location":{"type":"string","description":"The city and state, e.g. San Francisco, CA"},"unit":{"type":"string","enum":["celsius","fahrenheit"]}},"required":["location"]}}}],"metadata":{},"temperature":1.0,"top_p":1.0,"max_completion_tokens":null,"max_prompt_tokens":null,"truncation_strategy":{"type":"auto","last_messages":null},"incomplete_details":null,"usage":null,"response_format":"auto","tool_choice":"auto","parallel_tool_calls":true}}
 
             event: thread.run.step.created
             data: {"id":"step_002","object":"thread.run.step","created_at":1710352476,"run_id":"run_123","assistant_id":"asst_123","thread_id":"thread_123","type":"message_creation","status":"in_progress","cancelled_at":null,"completed_at":null,"expires_at":1710353047,"failed_at":null,"last_error":null,"step_details":{"type":"message_creation","message_creation":{"message_id":"msg_002"}},"usage":null}
@@ -20671,7 +20668,7 @@ paths:
             data: {"id":"step_002","object":"thread.run.step","created_at":1710352476,"run_id":"run_123","assistant_id":"asst_123","thread_id":"thread_123","type":"message_creation","status":"completed","cancelled_at":null,"completed_at":1710352477,"expires_at":1710353047,"failed_at":null,"last_error":null,"step_details":{"type":"message_creation","message_creation":{"message_id":"msg_002"}},"usage":{"prompt_tokens":329,"completion_tokens":18,"total_tokens":347}}
 
             event: thread.run.completed
-            data: {"id":"run_123","object":"thread.run","created_at":1710352447,"assistant_id":"asst_123","thread_id":"thread_123","status":"completed","started_at":1710352475,"expires_at":null,"cancelled_at":null,"failed_at":null,"completed_at":1710352477,"required_action":null,"last_error":null,"model":"gpt-4o","instructions":null,"tools":[{"type":"function","function":{"name":"get_current_weather","description":"Get the current weather in a given location","parameters":{"type":"object","properties":{"location":{"type":"string","description":"The city and state, e.g. San Francisco, CA"},"unit":{"type":"string","enum":["celsius","fahrenheit"]}},"required":["location"]}}}],"metadata":{},"temperature":1.0,"top_p":1.0,"max_completion_tokens":null,"max_prompt_tokens":null,"truncation_strategy":{"type":"auto","last_messages":null},"incomplete_details":null,"usage":{"prompt_tokens":20,"completion_tokens":11,"total_tokens":31},"response_format":"auto","tool_choice":"auto","parallel_tool_calls":true}}
+            data: {"id":"run_123","object":"thread.run","created_at":1710352447,"assistant_id":"asst_123","thread_id":"thread_123","status":"completed","started_at":1710352475,"expires_at":null,"cancelled_at":null,"failed_at":null,"completed_at":1710352477,"required_action":null,"last_error":null,"model":"gpt-5","instructions":null,"tools":[{"type":"function","function":{"name":"get_current_weather","description":"Get the current weather in a given location","parameters":{"type":"object","properties":{"location":{"type":"string","description":"The city and state, e.g. San Francisco, CA"},"unit":{"type":"string","enum":["celsius","fahrenheit"]}},"required":["location"]}}}],"metadata":{},"temperature":1.0,"top_p":1.0,"max_completion_tokens":null,"max_prompt_tokens":null,"truncation_strategy":{"type":"auto","last_messages":null},"incomplete_details":null,"usage":{"prompt_tokens":20,"completion_tokens":11,"total_tokens":31},"response_format":"auto","tool_choice":"auto","parallel_tool_calls":true}}
 
             event: done
             data: [DONE]
@@ -23559,7 +23556,7 @@ paths:
                   -H "Content-Type: application/json" \
                   -H "Authorization: Bearer $OPENAI_API_KEY" \
                   -d '{
-                    "model": "gpt-5",
+                    "model": "gpt-5.6-sol",
                     "input": "Tell me a joke."
                   }'
             javascript: |
@@ -23568,7 +23565,7 @@ paths:
               const client = new OpenAI();
 
               const response = await client.responses.inputTokens.count({
-                model: "gpt-5",
+                model: "gpt-5.6-sol",
                 input: "Tell me a joke.",
               });
 
@@ -23579,7 +23576,7 @@ paths:
               client = OpenAI()
 
               response = client.responses.input_tokens.count(
-                  model="gpt-5",
+                  model="gpt-5.6-sol",
                   input="Tell me a joke."
               )
               print(response.input_tokens)
@@ -23597,7 +23594,7 @@ paths:
               func main() {
                 client := openai.NewClient()
                 response, err := client.Responses.InputTokens.Count(context.TODO(), responses.InputTokenCountParams{
-                  Model: "gpt-5",
+                  Model: "gpt-5.6-sol",
                   Input: "Tell me a joke.",
                 })
                 if err != nil {
@@ -23610,7 +23607,7 @@ paths:
 
               openai = OpenAI::Client.new
 
-              response = openai.responses.input_tokens.count(model: "gpt-5", input: "Tell me a joke.")
+              response = openai.responses.input_tokens.count(model: "gpt-5.6-sol", input: "Tell me a joke.")
 
               puts(response)
             java: |
@@ -23628,7 +23625,7 @@ paths:
                       OpenAIClient client = OpenAIOkHttpClient.fromEnv();
 
                       InputTokenCountParams params = InputTokenCountParams.builder()
-                          .model("gpt-5")
+                          .model("gpt-5.6-sol")
                           .input("Tell me a joke.")
                           .build();
 
@@ -23673,7 +23670,7 @@ paths:
                   -H "Content-Type: application/json" \
                   -H "Authorization: Bearer $OPENAI_API_KEY" \
                   -d '{
-                    "model": "gpt-5.1-codex-max",
+                    "model": "gpt-5.6-sol",
                     "input": [
                       {
                         "role": "user",
@@ -23702,7 +23699,7 @@ paths:
 
               // Compact the previous response if you are running out of tokens
               const compactedResponse = await openai.responses.compact({
-                model: "gpt-5.1-codex-max",
+                model: "gpt-5.6-sol",
                 input: [
                   {
                     role: "user",
@@ -23734,7 +23731,7 @@ paths:
               client = OpenAI()
 
               compacted_response = client.responses.compact(
-                  model="gpt-5.1-codex-max",
+                  model="gpt-5.6-sol",
                   input=[
                   {
                       "role": "user",
@@ -24924,7 +24921,7 @@ paths:
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -d '{
-                  "model": "gpt-5.4",
+                  "model": "gpt-5.6-sol",
                   "input": "Tell me a three sentence bedtime story about a unicorn."
                 }'
             javascript: |
@@ -24933,7 +24930,7 @@ paths:
               const openai = new OpenAI();
 
               const response = await openai.responses.create({
-                  model: "gpt-5.4",
+                  model: "gpt-5.6-sol",
                   input: "Tell me a three sentence bedtime story about a unicorn."
               });
 
@@ -24944,7 +24941,7 @@ paths:
               client = OpenAI()
 
               response = client.responses.create(
-                model="gpt-5.4",
+                model="gpt-5.6-sol",
                 input="Tell me a three sentence bedtime story about a unicorn."
               )
 
@@ -24954,7 +24951,7 @@ paths:
               using OpenAI.Responses;
 
               OpenAIResponseClient client = new(
-                  model: "gpt-5.4",
+                  model: "gpt-5.6-sol",
                   apiKey: Environment.GetEnvironmentVariable("OPENAI_API_KEY")
               );
 
@@ -24972,7 +24969,7 @@ paths:
               "incomplete_details": null,
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-5.4",
+              "model": "gpt-5.6-sol",
               "output": [
                 {
                   "type": "message",
@@ -25027,7 +25024,7 @@ paths:
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -d '{
-                  "model": "gpt-5.4",
+                  "model": "gpt-5.6-sol",
                   "input": [
                     {
                       "role": "user",
@@ -25047,7 +25044,7 @@ paths:
               const openai = new OpenAI();
 
               const response = await openai.responses.create({
-                  model: "gpt-5.4",
+                  model: "gpt-5.6-sol",
                   input: [
                       {
                           role: "user",
@@ -25070,7 +25067,7 @@ paths:
               client = OpenAI()
 
               response = client.responses.create(
-                  model="gpt-5.4",
+                  model="gpt-5.6-sol",
                   input=[
                       {
                           "role": "user",
@@ -25093,7 +25090,7 @@ paths:
               using OpenAI.Responses;
 
               OpenAIResponseClient client = new(
-                  model: "gpt-5.4",
+                  model: "gpt-5.6-sol",
                   apiKey: Environment.GetEnvironmentVariable("OPENAI_API_KEY")
               );
 
@@ -25121,7 +25118,7 @@ paths:
               "incomplete_details": null,
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-5.4",
+              "model": "gpt-5.6-sol",
               "output": [
                 {
                   "type": "message",
@@ -25176,7 +25173,7 @@ paths:
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -d '{
-                  "model": "gpt-5.4",
+                  "model": "gpt-5.6-sol",
                   "input": [
                     {
                       "role": "user",
@@ -25197,7 +25194,7 @@ paths:
               const openai = new OpenAI();
 
               const response = await openai.responses.create({
-                  model: "gpt-5.4",
+                  model: "gpt-5.6-sol",
                   input: [
                       {
                           role: "user",
@@ -25220,7 +25217,7 @@ paths:
               client = OpenAI()
 
               response = client.responses.create(
-                  model="gpt-5.4",
+                  model="gpt-5.6-sol",
                   input=[
                       {
                           "role": "user",
@@ -25250,7 +25247,7 @@ paths:
               "instructions": null,
               "max_output_tokens": null,
               "max_tool_calls": null,
-              "model": "gpt-5.4",
+              "model": "gpt-5.6-sol",
               "output": [
                 {
                   "id": "msg_686eef60d3e081a29283bdcbc4322fd90e34c516d176ff86",
@@ -25308,7 +25305,7 @@ paths:
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -d '{
-                  "model": "gpt-5.4",
+                  "model": "gpt-5.6-sol",
                   "tools": [{ "type": "web_search_preview" }],
                   "input": "What was a positive news story from today?"
                 }'
@@ -25318,7 +25315,7 @@ paths:
               const openai = new OpenAI();
 
               const response = await openai.responses.create({
-                  model: "gpt-5.4",
+                  model: "gpt-5.6-sol",
                   tools: [{ type: "web_search_preview" }],
                   input: "What was a positive news story from today?",
               });
@@ -25330,7 +25327,7 @@ paths:
               client = OpenAI()
 
               response = client.responses.create(
-                  model="gpt-5.4",
+                  model="gpt-5.6-sol",
                   tools=[{ "type": "web_search_preview" }],
                   input="What was a positive news story from today?",
               )
@@ -25342,7 +25339,7 @@ paths:
               using OpenAI.Responses;
 
               OpenAIResponseClient client = new(
-                  model: "gpt-5.4",
+                  model: "gpt-5.6-sol",
                   apiKey: Environment.GetEnvironmentVariable("OPENAI_API_KEY")
               );
 
@@ -25370,7 +25367,7 @@ paths:
               "incomplete_details": null,
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-5.4",
+              "model": "gpt-5.6-sol",
               "output": [
                 {
                   "type": "web_search_call",
@@ -25465,7 +25462,7 @@ paths:
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -d '{
-                  "model": "gpt-5.4",
+                  "model": "gpt-5.6-sol",
                   "tools": [{
                     "type": "file_search",
                     "vector_store_ids": ["vs_1234567890"],
@@ -25479,7 +25476,7 @@ paths:
               const openai = new OpenAI();
 
               const response = await openai.responses.create({
-                  model: "gpt-5.4",
+                  model: "gpt-5.6-sol",
                   tools: [{
                     type: "file_search",
                     vector_store_ids: ["vs_1234567890"],
@@ -25495,7 +25492,7 @@ paths:
               client = OpenAI()
 
               response = client.responses.create(
-                  model="gpt-5.4",
+                  model="gpt-5.6-sol",
                   tools=[{
                     "type": "file_search",
                     "vector_store_ids": ["vs_1234567890"],
@@ -25511,7 +25508,7 @@ paths:
               using OpenAI.Responses;
 
               OpenAIResponseClient client = new(
-                  model: "gpt-5.4",
+                  model: "gpt-5.6-sol",
                   apiKey: Environment.GetEnvironmentVariable("OPENAI_API_KEY")
               );
 
@@ -25542,7 +25539,7 @@ paths:
               "incomplete_details": null,
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-5.4",
+              "model": "gpt-5.6-sol",
               "output": [
                 {
                   "type": "file_search_call",
@@ -25668,7 +25665,7 @@ paths:
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -d '{
-                  "model": "gpt-5.4",
+                  "model": "gpt-5.6-sol",
                   "instructions": "You are a helpful assistant.",
                   "input": "Hello!",
                   "stream": true
@@ -25679,7 +25676,7 @@ paths:
               client = OpenAI()
 
               response = client.responses.create(
-                model="gpt-5.4",
+                model="gpt-5.6-sol",
                 instructions="You are a helpful assistant.",
                 input="Hello!",
                 stream=True
@@ -25693,7 +25690,7 @@ paths:
               const openai = new OpenAI();
 
               const response = await openai.responses.create({
-                  model: "gpt-5.4",
+                  model: "gpt-5.6-sol",
                   instructions: "You are a helpful assistant.",
                   input: "Hello!",
                   stream: true,
@@ -25710,7 +25707,7 @@ paths:
               using OpenAI.Responses;
 
               OpenAIResponseClient client = new(
-                  model: "gpt-5.4",
+                  model: "gpt-5.6-sol",
                   apiKey: Environment.GetEnvironmentVariable("OPENAI_API_KEY")
               );
 
@@ -25732,10 +25729,10 @@ paths:
               }
           response: |
             event: response.created
-            data: {"type":"response.created","response":{"id":"resp_67c9fdcecf488190bdd9a0409de3a1ec07b8b0ad4e5eb654","object":"response","created_at":1741290958,"status":"in_progress","error":null,"incomplete_details":null,"instructions":"You are a helpful assistant.","max_output_tokens":null,"model":"gpt-5.4","output":[],"parallel_tool_calls":true,"previous_response_id":null,"reasoning":{"effort":null,"summary":null},"store":true,"temperature":1.0,"text":{"format":{"type":"text"}},"tool_choice":"auto","tools":[],"top_p":1.0,"truncation":"disabled","usage":null,"user":null,"metadata":{}}}
+            data: {"type":"response.created","response":{"id":"resp_67c9fdcecf488190bdd9a0409de3a1ec07b8b0ad4e5eb654","object":"response","created_at":1741290958,"status":"in_progress","error":null,"incomplete_details":null,"instructions":"You are a helpful assistant.","max_output_tokens":null,"model":"gpt-5.6-sol","output":[],"parallel_tool_calls":true,"previous_response_id":null,"reasoning":{"effort":null,"summary":null},"store":true,"temperature":1.0,"text":{"format":{"type":"text"}},"tool_choice":"auto","tools":[],"top_p":1.0,"truncation":"disabled","usage":null,"user":null,"metadata":{}}}
 
             event: response.in_progress
-            data: {"type":"response.in_progress","response":{"id":"resp_67c9fdcecf488190bdd9a0409de3a1ec07b8b0ad4e5eb654","object":"response","created_at":1741290958,"status":"in_progress","error":null,"incomplete_details":null,"instructions":"You are a helpful assistant.","max_output_tokens":null,"model":"gpt-5.4","output":[],"parallel_tool_calls":true,"previous_response_id":null,"reasoning":{"effort":null,"summary":null},"store":true,"temperature":1.0,"text":{"format":{"type":"text"}},"tool_choice":"auto","tools":[],"top_p":1.0,"truncation":"disabled","usage":null,"user":null,"metadata":{}}}
+            data: {"type":"response.in_progress","response":{"id":"resp_67c9fdcecf488190bdd9a0409de3a1ec07b8b0ad4e5eb654","object":"response","created_at":1741290958,"status":"in_progress","error":null,"incomplete_details":null,"instructions":"You are a helpful assistant.","max_output_tokens":null,"model":"gpt-5.6-sol","output":[],"parallel_tool_calls":true,"previous_response_id":null,"reasoning":{"effort":null,"summary":null},"store":true,"temperature":1.0,"text":{"format":{"type":"text"}},"tool_choice":"auto","tools":[],"top_p":1.0,"truncation":"disabled","usage":null,"user":null,"metadata":{}}}
 
             event: response.output_item.added
             data: {"type":"response.output_item.added","output_index":0,"item":{"id":"msg_67c9fdcf37fc8190ba82116e33fb28c507b8b0ad4e5eb654","type":"message","status":"in_progress","role":"assistant","content":[]}}
@@ -25758,7 +25755,7 @@ paths:
             data: {"type":"response.output_item.done","output_index":0,"item":{"id":"msg_67c9fdcf37fc8190ba82116e33fb28c507b8b0ad4e5eb654","type":"message","status":"completed","role":"assistant","content":[{"type":"output_text","text":"Hi there! How can I assist you today?","annotations":[]}]}}
 
             event: response.completed
-            data: {"type":"response.completed","response":{"id":"resp_67c9fdcecf488190bdd9a0409de3a1ec07b8b0ad4e5eb654","object":"response","created_at":1741290958,"status":"completed","error":null,"incomplete_details":null,"instructions":"You are a helpful assistant.","max_output_tokens":null,"model":"gpt-5.4","output":[{"id":"msg_67c9fdcf37fc8190ba82116e33fb28c507b8b0ad4e5eb654","type":"message","status":"completed","role":"assistant","content":[{"type":"output_text","text":"Hi there! How can I assist you today?","annotations":[]}]}],"parallel_tool_calls":true,"previous_response_id":null,"reasoning":{"effort":null,"summary":null},"store":true,"temperature":1.0,"text":{"format":{"type":"text"}},"tool_choice":"auto","tools":[],"top_p":1.0,"truncation":"disabled","usage":{"input_tokens":37,"output_tokens":11,"output_tokens_details":{"reasoning_tokens":0},"total_tokens":48},"user":null,"metadata":{}}}
+            data: {"type":"response.completed","response":{"id":"resp_67c9fdcecf488190bdd9a0409de3a1ec07b8b0ad4e5eb654","object":"response","created_at":1741290958,"status":"completed","error":null,"incomplete_details":null,"instructions":"You are a helpful assistant.","max_output_tokens":null,"model":"gpt-5.6-sol","output":[{"id":"msg_67c9fdcf37fc8190ba82116e33fb28c507b8b0ad4e5eb654","type":"message","status":"completed","role":"assistant","content":[{"type":"output_text","text":"Hi there! How can I assist you today?","annotations":[]}]}],"parallel_tool_calls":true,"previous_response_id":null,"reasoning":{"effort":null,"summary":null},"store":true,"temperature":1.0,"text":{"format":{"type":"text"}},"tool_choice":"auto","tools":[],"top_p":1.0,"truncation":"disabled","usage":{"input_tokens":37,"output_tokens":11,"output_tokens_details":{"reasoning_tokens":0},"total_tokens":48},"user":null,"metadata":{}}}
         - title: Functions
           request:
             curl: |
@@ -25766,7 +25763,7 @@ paths:
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -d '{
-                  "model": "gpt-5.4",
+                  "model": "gpt-5.6-sol",
                   "input": "What is the weather like in Boston today?",
                   "tools": [
                     {
@@ -25816,7 +25813,7 @@ paths:
               ]
 
               response = client.responses.create(
-                model="gpt-5.4",
+                model="gpt-5.6-sol",
                 tools=tools,
                 input="What is the weather like in Boston today?",
                 tool_choice="auto"
@@ -25848,7 +25845,7 @@ paths:
               ];
 
               const response = await openai.responses.create({
-                  model: "gpt-5.4",
+                  model: "gpt-5.6-sol",
                   tools: tools,
                   input: "What is the weather like in Boston today?",
                   tool_choice: "auto",
@@ -25860,7 +25857,7 @@ paths:
               using OpenAI.Responses;
 
               OpenAIResponseClient client = new(
-                  model: "gpt-5.4",
+                  model: "gpt-5.6-sol",
                   apiKey: Environment.GetEnvironmentVariable("OPENAI_API_KEY")
               );
 
@@ -25906,7 +25903,7 @@ paths:
               "incomplete_details": null,
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-5.4",
+              "model": "gpt-5.6-sol",
               "output": [
                 {
                   "type": "function_call",
@@ -25979,7 +25976,7 @@ paths:
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -d '{
-                  "model": "o3-mini",
+                  "model": "gpt-5.6-sol",
                   "input": "How much wood would a woodchuck chuck?",
                   "reasoning": {
                     "effort": "high"
@@ -25990,7 +25987,7 @@ paths:
               const openai = new OpenAI();
 
               const response = await openai.responses.create({
-                  model: "o3-mini",
+                  model: "gpt-5.6-sol",
                   input: "How much wood would a woodchuck chuck?",
                   reasoning: {
                     effort: "high"
@@ -26003,7 +26000,7 @@ paths:
               client = OpenAI()
 
               response = client.responses.create(
-                  model="o3-mini",
+                  model="gpt-5.6-sol",
                   input="How much wood would a woodchuck chuck?",
                   reasoning={
                       "effort": "high"
@@ -26016,7 +26013,7 @@ paths:
               using OpenAI.Responses;
 
               OpenAIResponseClient client = new(
-                  model: "o3-mini",
+                  model: "gpt-5.6-sol",
                   apiKey: Environment.GetEnvironmentVariable("OPENAI_API_KEY")
               );
 
@@ -26044,7 +26041,7 @@ paths:
               "incomplete_details": null,
               "instructions": null,
               "max_output_tokens": null,
-              "model": "o1-2024-12-17",
+              "model": "gpt-5.6-sol",
               "output": [
                 {
                   "type": "message",
@@ -26218,7 +26215,7 @@ paths:
               "incomplete_details": null,
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-4o-2024-08-06",
+              "model": "gpt-5.6-sol",
               "output": [
                 {
                   "type": "message",
@@ -26409,7 +26406,7 @@ paths:
               "incomplete_details": null,
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-4o-2024-08-06",
+              "model": "gpt-5.6-sol",
               "output": [
                 {
                   "type": "message",
@@ -26489,7 +26486,7 @@ paths:
                   -H "Content-Type: application/json" \
                   -H "Authorization: Bearer $OPENAI_API_KEY" \
                   -d '{
-                    "model": "gpt-5.1-codex-max",
+                    "model": "gpt-5.6-sol",
                     "input": [
                       {
                         "role": "user",
@@ -26518,7 +26515,7 @@ paths:
 
               // Compact the previous response if you are running out of tokens
               const compactedResponse = await openai.responses.compact({
-                model: "gpt-5.1-codex-max",
+                model: "gpt-5.6-sol",
                 input: [
                   {
                     role: "user",
@@ -26550,7 +26547,7 @@ paths:
               client = OpenAI()
 
               compacted_response = client.responses.compact(
-                  model="gpt-5.1-codex-max",
+                  model="gpt-5.6-sol",
                   input=[
                   {
                       "role": "user",
@@ -26770,7 +26767,7 @@ paths:
                   -H "Content-Type: application/json" \
                   -H "Authorization: Bearer $OPENAI_API_KEY" \
                   -d '{
-                    "model": "gpt-5",
+                    "model": "gpt-5.6-sol",
                     "input": "Tell me a joke."
                   }'
             javascript: |
@@ -26779,7 +26776,7 @@ paths:
               const client = new OpenAI();
 
               const response = await client.responses.inputTokens.count({
-                model: "gpt-5",
+                model: "gpt-5.6-sol",
                 input: "Tell me a joke.",
               });
 
@@ -26790,7 +26787,7 @@ paths:
               client = OpenAI()
 
               response = client.responses.input_tokens.count(
-                  model="gpt-5",
+                  model="gpt-5.6-sol",
                   input="Tell me a joke."
               )
               print(response.input_tokens)
@@ -26808,7 +26805,7 @@ paths:
               func main() {
                 client := openai.NewClient()
                 response, err := client.Responses.InputTokens.Count(context.TODO(), responses.InputTokenCountParams{
-                  Model: "gpt-5",
+                  Model: "gpt-5.6-sol",
                   Input: "Tell me a joke.",
                 })
                 if err != nil {
@@ -26821,7 +26818,7 @@ paths:
 
               openai = OpenAI::Client.new
 
-              response = openai.responses.input_tokens.count(model: "gpt-5", input: "Tell me a joke.")
+              response = openai.responses.input_tokens.count(model: "gpt-5.6-sol", input: "Tell me a joke.")
 
               puts(response)
             java: |
@@ -26839,7 +26836,7 @@ paths:
                       OpenAIClient client = OpenAIOkHttpClient.fromEnv();
 
                       InputTokenCountParams params = InputTokenCountParams.builder()
-                          .model("gpt-5")
+                          .model("gpt-5.6-sol")
                           .input("Tell me a joke.")
                           .build();
 
@@ -27397,7 +27394,7 @@ components:
             "created_at": 1698984975,
             "name": "Math Tutor",
             "description": null,
-            "model": "gpt-4o",
+            "model": "gpt-5",
             "instructions": "You are a personal math tutor. When asked a question, write and run Python code to answer the question.",
             "tools": [
               {
@@ -28771,7 +28768,7 @@ components:
         model:
           type: string
           description: |
-            Model ID used to process the batch, like `gpt-5-2025-08-07`. OpenAI
+            Model ID used to process the batch, like `gpt-5.6-sol`. OpenAI
             offers a wide range of models with different capabilities, performance
             characteristics, and price points. Refer to the [model
             guide](https://platform.openai.com/docs/models) to browse and compare available models.
@@ -28905,8 +28902,8 @@ components:
           {
             "id": "batch_abc123",
             "object": "batch",
-            "endpoint": "/v1/completions",
-            "model": "gpt-5-2025-08-07",
+            "endpoint": "/v1/chat/completions",
+            "model": "gpt-5.6-sol",
             "errors": null,
             "input_file_id": "file-abc123",
             "completion_window": "24h",
@@ -29210,7 +29207,7 @@ components:
               {
                 "object": "chat.completion",
                 "id": "chatcmpl-AyPNinnUqUDYo9SAdA52NobMflmj2",
-                "model": "gpt-4o-2024-08-06",
+                "model": "gpt-5.6-sol",
                 "created": 1738960610,
                 "request_id": "req_ded8ab984ec4bf840f37566c1011c417",
                 "tool_choice": null,
@@ -30467,13 +30464,6 @@ components:
           type: integer
           default: 0
           description: Total number of tokens used in the request (prompt + completion).
-        compute_units:
-          anyOf:
-          - type: integer
-            minimum: 0
-          - type: 'null'
-          description: |
-            Compute units for the request. Currently null when available.
         completion_tokens_details:
           type: object
           description: Breakdown of tokens used in a completion.
@@ -31047,7 +31037,7 @@ components:
                 "value": 0.06,
                 "currency": "usd"
               },
-              "line_item": "input_tokens",
+              "line_item": "gpt-5.6-sol, input_tokens",
               "project_id": "proj_abc",
               "quantity": 10000,
               "quantity_unit": "tokens"
@@ -31059,7 +31049,7 @@ components:
         model:
           description: |
             ID of the model to use. You can use the [List models](https://platform.openai.com/docs/api-reference/models/list) API to see all of your available models, or see our [Model overview](https://platform.openai.com/docs/models) for descriptions of them.
-          example: gpt-4o
+          example: gpt-5
           anyOf:
           - type: string
           - $ref: '#/components/schemas/AssistantSupportedModels'
@@ -31278,7 +31268,7 @@ components:
               $ref: '#/components/schemas/ChatCompletionRequestMessage'
           model:
             description: |
-              Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI
+              Model ID used to generate the response, like `gpt-5.6-sol` or `o3`. OpenAI
               offers a wide range of models with different capabilities, performance
               characteristics, and price points. Refer to the [model guide](https://platform.openai.com/docs/models)
               to browse and compare available models.
@@ -31667,7 +31657,7 @@ components:
             "id": "chatcmpl-B9MHDbslfkBeAs8l4bebGdFOJ6PeG",
             "object": "chat.completion",
             "created": 1741570283,
-            "model": "gpt-4o-2024-08-06",
+            "model": "gpt-5.6-sol",
             "choices": [
               {
                 "index": 0,
@@ -31813,13 +31803,13 @@ components:
         name: The chat completion chunk object
         group: chat
         example: |
-          {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1694268190,"model":"gpt-4o-mini", "system_fingerprint": "fp_44709d6fcb", "choices":[{"index":0,"delta":{"role":"assistant","content":""},"logprobs":null,"finish_reason":null}],"obfuscation":"r4N7vQ2m"}
+          {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1694268190,"model":"gpt-5.6-sol", "system_fingerprint": "fp_44709d6fcb", "choices":[{"index":0,"delta":{"role":"assistant","content":""},"logprobs":null,"finish_reason":null}],"obfuscation":"r4N7vQ2m"}
 
-          {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1694268190,"model":"gpt-4o-mini", "system_fingerprint": "fp_44709d6fcb", "choices":[{"index":0,"delta":{"content":"Hello"},"logprobs":null,"finish_reason":null}],"obfuscation":"p9K3xT6w"}
+          {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1694268190,"model":"gpt-5.6-sol", "system_fingerprint": "fp_44709d6fcb", "choices":[{"index":0,"delta":{"content":"Hello"},"logprobs":null,"finish_reason":null}],"obfuscation":"p9K3xT6w"}
 
           ....
 
-          {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1694268190,"model":"gpt-4o-mini", "system_fingerprint": "fp_44709d6fcb", "choices":[{"index":0,"delta":{},"logprobs":null,"finish_reason":"stop"}],"obfuscation":""}
+          {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1694268190,"model":"gpt-5.6-sol", "system_fingerprint": "fp_44709d6fcb", "choices":[{"index":0,"delta":{},"logprobs":null,"finish_reason":"stop"}],"obfuscation":""}
     CreateCompletionRequest:
       type: object
       properties:
@@ -32094,7 +32084,7 @@ components:
             "id": "cmpl-uqkvlQyYK7bGYrRHQ0eXlWi7",
             "object": "text_completion",
             "created": 1589478378,
-            "model": "gpt-4-turbo",
+            "model": "gpt-3.5-turbo-instruct",
             "choices": [
               {
                 "text": "\n\nThis is indeed a test",
@@ -32391,17 +32381,17 @@ components:
         group: eval runs
         example: |
           {
-            "name": "gpt-4o-mini-2024-07-18",
+            "name": "gpt-5.6-sol",
             "data_source": {
               "type": "completions",
               "input_messages": {
                 "type": "item_reference",
                 "item_reference": "item.input"
               },
-              "model": "gpt-4o-mini-2024-07-18",
+              "model": "gpt-5.6-sol",
               "source": {
                 "type": "stored_completions",
-                "model": "gpt-4o-mini-2024-07-18"
+                "model": "gpt-5.6-sol"
               }
             }
           }
@@ -32752,17 +32742,17 @@ components:
         group: eval runs
         example: |
           {
-            "name": "gpt-4o-mini-2024-07-18",
+            "name": "gpt-5.6-sol",
             "data_source": {
               "type": "responses",
               "input_messages": {
                 "type": "item_reference",
                 "item_reference": "item.input"
               },
-              "model": "gpt-4o-mini-2024-07-18",
+              "model": "gpt-5.6-sol",
               "source": {
                 "type": "responses",
-                "model": "gpt-4o-mini-2024-07-18"
+                "model": "gpt-5.6-sol"
               }
             }
           }
@@ -35633,7 +35623,7 @@ components:
         Like:
          - Improve the quality of my chatbot
          - See how well my chatbot handles customer support
-         - Check if o4-mini is better at my usecase than gpt-4o
+         - Check if o4-mini is better at my usecase than gpt-5.6-sol
       properties:
         object:
           type: string
@@ -36226,9 +36216,7 @@ components:
         example: |
           {
             "type": "responses",
-            "model": "gpt-4o-mini-2024-07-18",
-            "temperature": 0.7,
-            "top_p": 1.0,
+            "model": "gpt-5.6-sol",
             "users": ["user1", "user2"],
             "tools": ["tool1", "tool2"],
             "instructions_search": "You are a coding assistant"
@@ -36381,8 +36369,8 @@ components:
             "eval_id": "eval_67e579652b548190aaa83ada4b125f47",
             "report_url": "https://platform.openai.com/evaluations/eval_67e579652b548190aaa83ada4b125f47?run_id=evalrun_67e57965b480819094274e3a32235e4c",
             "status": "queued",
-            "model": "gpt-4o-mini",
-            "name": "gpt-4o-mini",
+            "model": "gpt-5.6-sol",
+            "name": "gpt-5.6-sol",
             "created_at": 1743092069,
             "result_counts": {
               "total": 0,
@@ -36510,11 +36498,8 @@ components:
                   }
                 ]
               },
-              "model": "gpt-4o-mini",
+              "model": "gpt-5.6-sol",
               "sampling_params": {
-                "seed": 42,
-                "temperature": 1.0,
-                "top_p": 1.0,
                 "max_completions_tokens": 2048
               }
             },
@@ -36799,7 +36784,7 @@ components:
                 }
               ],
               "finish_reason": "stop",
-              "model": "gpt-4o-2024-08-06",
+              "model": "gpt-5.6-sol",
               "usage": {
                 "total_tokens": 521,
                 "completion_tokens": 2,
@@ -36893,7 +36878,7 @@ components:
                     }
                   ],
                   "finish_reason": "stop",
-                  "model": "gpt-4o-2024-08-06",
+                  "model": "gpt-5.6-sol",
                   "usage": {
                     "total_tokens": 521,
                     "completion_tokens": 2,
@@ -37008,7 +36993,7 @@ components:
         model:
           anyOf:
           - type: string
-            description: An optional model to filter by (e.g., 'gpt-4o').
+            description: An optional model to filter by (e.g., 'gpt-5.6-sol').
           - type: 'null'
         created_after:
           anyOf:
@@ -37033,7 +37018,7 @@ components:
         example: |
           {
             "type": "stored_completions",
-            "model": "gpt-4o",
+            "model": "gpt-5.6-sol",
             "created_after": 1668124800,
             "created_before": 1668124900,
             "limit": 100,
@@ -39855,7 +39840,7 @@ components:
                 "created_at": 1698982736,
                 "name": "Coding Tutor",
                 "description": null,
-                "model": "gpt-4o",
+                "model": "gpt-5",
                 "instructions": "You are a helpful assistant designed to make me better at coding!",
                 "tools": [],
                 "tool_resources": {},
@@ -39870,7 +39855,7 @@ components:
                 "created_at": 1698982718,
                 "name": "My Assistant",
                 "description": null,
-                "model": "gpt-4o",
+                "model": "gpt-5",
                 "instructions": "You are a helpful assistant designed to make me better at coding!",
                 "tools": [],
                 "tool_resources": {},
@@ -39885,7 +39870,7 @@ components:
                 "created_at": 1698982643,
                 "name": null,
                 "description": null,
-                "model": "gpt-4o",
+                "model": "gpt-5",
                 "instructions": null,
                 "tools": [],
                 "tool_resources": {},
@@ -41435,7 +41420,7 @@ components:
         name: The model object
         example: |
           {
-            "id": "VAR_chat_model_id",
+            "id": "gpt-5.6-sol",
             "object": "model",
             "created": 1686935002,
             "owned_by": "openai",
@@ -41450,9 +41435,9 @@ components:
       - $ref: '#/components/schemas/ModelIdsResponses'
       - type: string
       - type: 'null'
-      description: Model ID used to generate the response, like `gpt-5` or `o3`. OpenAI offers a wide range of models with different capabilities, performance characteristics, and price points. Refer to the [model guide](https://platform.openai.com/docs/models) to browse and compare available models.
+      description: Model ID used to generate the response, like `gpt-5.6-sol`. OpenAI offers a wide range of models with different capabilities, performance characteristics, and price points. Refer to the [model guide](https://platform.openai.com/docs/models) to browse and compare available models.
     ModelIdsResponses:
-      example: gpt-5.1
+      example: gpt-5.6-sol
       anyOf:
       - $ref: '#/components/schemas/ModelIdsShared'
       - type: string
@@ -41478,7 +41463,7 @@ components:
         - gpt-daybreak-red-latest
         - gpt-5.6-cyber
     ModelIdsShared:
-      example: gpt-5.4
+      example: gpt-5.6-sol
       anyOf:
       - type: string
       - $ref: '#/components/schemas/ChatModel'
@@ -42788,7 +42773,7 @@ components:
               "object": "project.model_permissions",
               "mode": "allow_list",
               "model_ids": [
-                  "gpt-4.1",
+                  "gpt-5.6-sol",
                   "o3"
               ]
           }
@@ -51936,8 +51921,6 @@ components:
     Reasoning:
       type: object
       description: |
-        **gpt-5 and o-series models only**
-
         Configuration options for
         [reasoning models](https://platform.openai.com/docs/guides/reasoning).
       title: Reasoning
@@ -52148,6 +52131,7 @@ components:
                   description: The reason why the response is incomplete.
                   enum:
                   - max_output_tokens
+                  - max_messages
                   - content_filter
             - type: 'null'
           output:
@@ -52580,7 +52564,7 @@ components:
               "input": [],
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-4o-mini-2024-07-18",
+              "model": "gpt-5.6-sol",
               "output": [
                 {
                   "id": "msg_123",
@@ -52766,7 +52750,7 @@ components:
               "incomplete_details": null,
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-4o-2024-08-06",
+              "model": "gpt-5.6-sol",
               "output": [],
               "parallel_tool_calls": true,
               "previous_response_id": null,
@@ -53001,7 +52985,7 @@ components:
               "incomplete_details": null,
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-4o-mini-2024-07-18",
+              "model": "gpt-5.6-sol",
               "output": [],
               "previous_response_id": null,
               "reasoning_effort": null,
@@ -53541,7 +53525,7 @@ components:
               "incomplete_details": null,
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-4o-2024-08-06",
+              "model": "gpt-5.6-sol",
               "output": [],
               "parallel_tool_calls": true,
               "previous_response_id": null,
@@ -53607,7 +53591,7 @@ components:
               },
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-4o-mini-2024-07-18",
+              "model": "gpt-5.6-sol",
               "output": [],
               "previous_response_id": null,
               "reasoning_effort": null,
@@ -54213,7 +54197,7 @@ components:
           - type: 'null'
         model:
           description: |
-            Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI
+            Model ID used to generate the response, like `gpt-5.6-sol`. OpenAI
             offers a wide range of models with different capabilities, performance
             characteristics, and price points. Refer to the [model guide](https://platform.openai.com/docs/models)
             to browse and compare available models.
@@ -54958,13 +54942,6 @@ components:
         total_tokens:
           type: integer
           description: The total number of tokens used.
-        compute_units:
-          anyOf:
-          - type: integer
-            minimum: 0
-          - type: 'null'
-          description: |
-            Compute units for the request. Currently null when available.
       required:
       - input_tokens
       - input_tokens_details
@@ -55173,7 +55150,7 @@ components:
           {
             "type": "response.create",
             "stream_id": "agent_1",
-            "model": "gpt-5.5",
+            "model": "gpt-5.6-sol",
             "input": "Say hello."
           }
     ResponsesServerEvent:
@@ -56438,7 +56415,7 @@ components:
             "failed_at": null,
             "completed_at": 1699073498,
             "last_error": null,
-            "model": "gpt-4o",
+            "model": "gpt-5",
             "instructions": null,
             "tools": [{"type": "file_search"}, {"type": "code_interpreter"}],
             "metadata": {},
@@ -58795,7 +58772,7 @@ components:
               "project_id": "proj_abc",
               "user_id": "user-abc",
               "api_key_id": "key_abc",
-              "model": "gpt-4o-mini-2024-07-18",
+              "model": "gpt-5.6-sol",
               "batch": false,
               "service_tier": "default"
           }
@@ -59149,7 +59126,7 @@ components:
               "project_id": "proj_abc",
               "user_id": "user-abc",
               "api_key_id": "key_abc",
-              "model": "gpt-4o-mini-2024-07-18",
+              "model": "gpt-5.6-sol",
               "context_level": "medium"
           }
     User:
@@ -61355,6 +61332,77 @@ components:
               "id": "resp_abc123"
             }
           }
+    OAuthErrorCode:
+      anyOf:
+      - enum:
+        - invalid_grant
+        - invalid_subject_token
+      - type: string
+    BetaResponseStreamEvent:
+      description: Event emitted while a response is streamed.
+      anyOf:
+      - $ref: '#/components/schemas/BetaResponseAudioDeltaEvent'
+      - $ref: '#/components/schemas/BetaResponseAudioDoneEvent'
+      - $ref: '#/components/schemas/BetaResponseAudioTranscriptDeltaEvent'
+      - $ref: '#/components/schemas/BetaResponseAudioTranscriptDoneEvent'
+      - $ref: '#/components/schemas/BetaResponseCodeInterpreterCallCodeDeltaEvent'
+      - $ref: '#/components/schemas/BetaResponseCodeInterpreterCallCodeDoneEvent'
+      - $ref: '#/components/schemas/BetaResponseCodeInterpreterCallCompletedEvent'
+      - $ref: '#/components/schemas/BetaResponseCodeInterpreterCallInProgressEvent'
+      - $ref: '#/components/schemas/BetaResponseCodeInterpreterCallInterpretingEvent'
+      - $ref: '#/components/schemas/BetaResponseCompletedEvent'
+      - $ref: '#/components/schemas/BetaResponseContentPartAddedEvent'
+      - $ref: '#/components/schemas/BetaResponseContentPartDoneEvent'
+      - $ref: '#/components/schemas/BetaResponseCreatedEvent'
+      - $ref: '#/components/schemas/BetaResponseErrorEvent'
+      - $ref: '#/components/schemas/BetaResponseFileSearchCallCompletedEvent'
+      - $ref: '#/components/schemas/BetaResponseFileSearchCallInProgressEvent'
+      - $ref: '#/components/schemas/BetaResponseFileSearchCallSearchingEvent'
+      - $ref: '#/components/schemas/BetaResponseFunctionCallArgumentsDeltaEvent'
+      - $ref: '#/components/schemas/BetaResponseFunctionCallArgumentsDoneEvent'
+      - $ref: '#/components/schemas/BetaResponseShellCallCommandAddedStreamingEvent'
+      - $ref: '#/components/schemas/BetaResponseShellCallCommandDeltaStreamingEvent'
+      - $ref: '#/components/schemas/BetaResponseShellCallCommandDoneStreamingEvent'
+      - $ref: '#/components/schemas/BetaResponseShellCallOutputContentDeltaStreamingEvent'
+        x-stainless-skip:
+        - go
+      - $ref: '#/components/schemas/BetaResponseShellCallOutputContentDoneStreamingEvent'
+      - $ref: '#/components/schemas/BetaResponseInProgressEvent'
+      - $ref: '#/components/schemas/BetaResponseFailedEvent'
+      - $ref: '#/components/schemas/BetaResponseIncompleteEvent'
+      - $ref: '#/components/schemas/BetaResponseOutputItemAddedEvent'
+      - $ref: '#/components/schemas/BetaResponseOutputItemDoneEvent'
+      - $ref: '#/components/schemas/BetaResponseReasoningSummaryPartAddedEvent'
+      - $ref: '#/components/schemas/BetaResponseReasoningSummaryPartDoneEvent'
+      - $ref: '#/components/schemas/BetaResponseReasoningSummaryTextDeltaEvent'
+      - $ref: '#/components/schemas/BetaResponseReasoningSummaryTextDoneEvent'
+      - $ref: '#/components/schemas/BetaResponseReasoningTextDeltaEvent'
+      - $ref: '#/components/schemas/BetaResponseReasoningTextDoneEvent'
+      - $ref: '#/components/schemas/BetaResponseRefusalDeltaEvent'
+      - $ref: '#/components/schemas/BetaResponseRefusalDoneEvent'
+      - $ref: '#/components/schemas/BetaResponseTextDeltaEvent'
+      - $ref: '#/components/schemas/BetaResponseTextDoneEvent'
+      - $ref: '#/components/schemas/BetaResponseWebSearchCallCompletedEvent'
+      - $ref: '#/components/schemas/BetaResponseWebSearchCallInProgressEvent'
+      - $ref: '#/components/schemas/BetaResponseWebSearchCallSearchingEvent'
+      - $ref: '#/components/schemas/BetaResponseImageGenCallCompletedEvent'
+      - $ref: '#/components/schemas/BetaResponseImageGenCallGeneratingEvent'
+      - $ref: '#/components/schemas/BetaResponseImageGenCallInProgressEvent'
+      - $ref: '#/components/schemas/BetaResponseImageGenCallPartialImageEvent'
+      - $ref: '#/components/schemas/BetaResponseMCPCallArgumentsDeltaEvent'
+      - $ref: '#/components/schemas/BetaResponseMCPCallArgumentsDoneEvent'
+      - $ref: '#/components/schemas/BetaResponseMCPCallCompletedEvent'
+      - $ref: '#/components/schemas/BetaResponseMCPCallFailedEvent'
+      - $ref: '#/components/schemas/BetaResponseMCPCallInProgressEvent'
+      - $ref: '#/components/schemas/BetaResponseMCPListToolsCompletedEvent'
+      - $ref: '#/components/schemas/BetaResponseMCPListToolsFailedEvent'
+      - $ref: '#/components/schemas/BetaResponseMCPListToolsInProgressEvent'
+      - $ref: '#/components/schemas/BetaResponseOutputTextAnnotationAddedEvent'
+      - $ref: '#/components/schemas/BetaResponseQueuedEvent'
+      - $ref: '#/components/schemas/BetaResponseCustomToolCallInputDeltaEvent'
+      - $ref: '#/components/schemas/BetaResponseCustomToolCallInputDoneEvent'
+      discriminator:
+        propertyName: type
     ModerationInputType:
       type: string
       enum:
@@ -67753,8 +67801,6 @@ components:
     BetaReasoning:
       type: object
       description: |
-        **gpt-5 and o-series models only**
-
         Configuration options for
         [reasoning models](https://platform.openai.com/docs/guides/reasoning).
       title: Reasoning
@@ -72559,9 +72605,9 @@ components:
       - $ref: '#/components/schemas/BetaModelIdsResponses'
       - type: string
       - type: 'null'
-      description: Model ID used to generate the response, like `gpt-5` or `o3`. OpenAI offers a wide range of models with different capabilities, performance characteristics, and price points. Refer to the [model guide](https://platform.openai.com/docs/models) to browse and compare available models.
+      description: Model ID used to generate the response, like `gpt-5.6-sol`. OpenAI offers a wide range of models with different capabilities, performance characteristics, and price points. Refer to the [model guide](https://platform.openai.com/docs/models) to browse and compare available models.
     BetaModelIdsResponses:
-      example: gpt-5.1
+      example: gpt-5.6-sol
       anyOf:
       - $ref: '#/components/schemas/BetaModelIdsShared'
       - type: string
@@ -72587,7 +72633,7 @@ components:
         - gpt-daybreak-red-latest
         - gpt-5.6-cyber
     BetaModelIdsShared:
-      example: gpt-5.4
+      example: gpt-5.6-sol
       anyOf:
       - type: string
       - $ref: '#/components/schemas/ChatModel'
@@ -73854,13 +73900,6 @@ components:
         total_tokens:
           type: integer
           description: The total number of tokens used.
-        compute_units:
-          anyOf:
-          - type: integer
-            minimum: 0
-          - type: 'null'
-          description: |
-            Compute units for the request. Currently null when available.
       required:
       - input_tokens
       - input_tokens_details
@@ -74173,6 +74212,7 @@ components:
                   description: The reason why the response is incomplete.
                   enum:
                   - max_output_tokens
+                  - max_messages
                   - content_filter
             - type: 'null'
           output:
@@ -74495,7 +74535,7 @@ components:
           - type: 'null'
         model:
           description: |
-            Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI
+            Model ID used to generate the response, like `gpt-5.6-sol`. OpenAI
             offers a wide range of models with different capabilities, performance
             characteristics, and price points. Refer to the [model guide](https://platform.openai.com/docs/models)
             to browse and compare available models.
@@ -76049,7 +76089,7 @@ components:
               "incomplete_details": null,
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-4o-2024-08-06",
+              "model": "gpt-5.6-sol",
               "output": [],
               "parallel_tool_calls": true,
               "previous_response_id": null,
@@ -76582,7 +76622,7 @@ components:
               "incomplete_details": null,
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-4o-2024-08-06",
+              "model": "gpt-5.6-sol",
               "output": [],
               "parallel_tool_calls": true,
               "previous_response_id": null,
@@ -76774,7 +76814,7 @@ components:
               "input": [],
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-4o-mini-2024-07-18",
+              "model": "gpt-5.6-sol",
               "output": [
                 {
                   "id": "msg_123",
@@ -77207,7 +77247,7 @@ components:
               },
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-4o-mini-2024-07-18",
+              "model": "gpt-5.6-sol",
               "output": [],
               "previous_response_id": null,
               "reasoning_effort": null,
@@ -77275,7 +77315,7 @@ components:
               "incomplete_details": null,
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-4o-mini-2024-07-18",
+              "model": "gpt-5.6-sol",
               "output": [],
               "previous_response_id": null,
               "reasoning_effort": null,
@@ -78594,7 +78634,7 @@ components:
           {
             "type": "response.create",
             "stream_id": "agent_1",
-            "model": "gpt-5.5",
+            "model": "gpt-5.6-sol",
             "input": "Say hello."
           }
     BetaCreateResponse:
@@ -78815,77 +78855,6 @@ components:
             type: integer
             minimum: 0
             maximum: 20
-    BetaResponseStreamEvent:
-      description: Event emitted while a response is streamed.
-      anyOf:
-      - $ref: '#/components/schemas/BetaResponseAudioDeltaEvent'
-      - $ref: '#/components/schemas/BetaResponseAudioDoneEvent'
-      - $ref: '#/components/schemas/BetaResponseAudioTranscriptDeltaEvent'
-      - $ref: '#/components/schemas/BetaResponseAudioTranscriptDoneEvent'
-      - $ref: '#/components/schemas/BetaResponseCodeInterpreterCallCodeDeltaEvent'
-      - $ref: '#/components/schemas/BetaResponseCodeInterpreterCallCodeDoneEvent'
-      - $ref: '#/components/schemas/BetaResponseCodeInterpreterCallCompletedEvent'
-      - $ref: '#/components/schemas/BetaResponseCodeInterpreterCallInProgressEvent'
-      - $ref: '#/components/schemas/BetaResponseCodeInterpreterCallInterpretingEvent'
-      - $ref: '#/components/schemas/BetaResponseCompletedEvent'
-      - $ref: '#/components/schemas/BetaResponseContentPartAddedEvent'
-      - $ref: '#/components/schemas/BetaResponseContentPartDoneEvent'
-      - $ref: '#/components/schemas/BetaResponseCreatedEvent'
-      - $ref: '#/components/schemas/BetaResponseErrorEvent'
-      - $ref: '#/components/schemas/BetaResponseFileSearchCallCompletedEvent'
-      - $ref: '#/components/schemas/BetaResponseFileSearchCallInProgressEvent'
-      - $ref: '#/components/schemas/BetaResponseFileSearchCallSearchingEvent'
-      - $ref: '#/components/schemas/BetaResponseFunctionCallArgumentsDeltaEvent'
-      - $ref: '#/components/schemas/BetaResponseFunctionCallArgumentsDoneEvent'
-      - $ref: '#/components/schemas/BetaResponseShellCallCommandAddedStreamingEvent'
-      - $ref: '#/components/schemas/BetaResponseShellCallCommandDeltaStreamingEvent'
-      - $ref: '#/components/schemas/BetaResponseShellCallCommandDoneStreamingEvent'
-      - $ref: '#/components/schemas/BetaResponseShellCallOutputContentDeltaStreamingEvent'
-        x-stainless-skip:
-        - go
-      - $ref: '#/components/schemas/BetaResponseShellCallOutputContentDoneStreamingEvent'
-      - $ref: '#/components/schemas/BetaResponseInProgressEvent'
-      - $ref: '#/components/schemas/BetaResponseFailedEvent'
-      - $ref: '#/components/schemas/BetaResponseIncompleteEvent'
-      - $ref: '#/components/schemas/BetaResponseOutputItemAddedEvent'
-      - $ref: '#/components/schemas/BetaResponseOutputItemDoneEvent'
-      - $ref: '#/components/schemas/BetaResponseReasoningSummaryPartAddedEvent'
-      - $ref: '#/components/schemas/BetaResponseReasoningSummaryPartDoneEvent'
-      - $ref: '#/components/schemas/BetaResponseReasoningSummaryTextDeltaEvent'
-      - $ref: '#/components/schemas/BetaResponseReasoningSummaryTextDoneEvent'
-      - $ref: '#/components/schemas/BetaResponseReasoningTextDeltaEvent'
-      - $ref: '#/components/schemas/BetaResponseReasoningTextDoneEvent'
-      - $ref: '#/components/schemas/BetaResponseRefusalDeltaEvent'
-      - $ref: '#/components/schemas/BetaResponseRefusalDoneEvent'
-      - $ref: '#/components/schemas/BetaResponseTextDeltaEvent'
-      - $ref: '#/components/schemas/BetaResponseTextDoneEvent'
-      - $ref: '#/components/schemas/BetaResponseWebSearchCallCompletedEvent'
-      - $ref: '#/components/schemas/BetaResponseWebSearchCallInProgressEvent'
-      - $ref: '#/components/schemas/BetaResponseWebSearchCallSearchingEvent'
-      - $ref: '#/components/schemas/BetaResponseImageGenCallCompletedEvent'
-      - $ref: '#/components/schemas/BetaResponseImageGenCallGeneratingEvent'
-      - $ref: '#/components/schemas/BetaResponseImageGenCallInProgressEvent'
-      - $ref: '#/components/schemas/BetaResponseImageGenCallPartialImageEvent'
-      - $ref: '#/components/schemas/BetaResponseMCPCallArgumentsDeltaEvent'
-      - $ref: '#/components/schemas/BetaResponseMCPCallArgumentsDoneEvent'
-      - $ref: '#/components/schemas/BetaResponseMCPCallCompletedEvent'
-      - $ref: '#/components/schemas/BetaResponseMCPCallFailedEvent'
-      - $ref: '#/components/schemas/BetaResponseMCPCallInProgressEvent'
-      - $ref: '#/components/schemas/BetaResponseMCPListToolsCompletedEvent'
-      - $ref: '#/components/schemas/BetaResponseMCPListToolsFailedEvent'
-      - $ref: '#/components/schemas/BetaResponseMCPListToolsInProgressEvent'
-      - $ref: '#/components/schemas/BetaResponseOutputTextAnnotationAddedEvent'
-      - $ref: '#/components/schemas/BetaResponseQueuedEvent'
-      - $ref: '#/components/schemas/BetaResponseCustomToolCallInputDeltaEvent'
-      - $ref: '#/components/schemas/BetaResponseCustomToolCallInputDoneEvent'
-      discriminator:
-        propertyName: type
-    OAuthErrorCode:
-      anyOf:
-      - enum:
-        - invalid_grant
-        - invalid_subject_token
-      - type: string
     RealtimeConnectParams:
       type: object
       properties:
