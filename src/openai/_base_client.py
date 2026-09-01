@@ -907,6 +907,16 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
         custom_query: Mapping[str, object] | None = None,
         _strict_response_validation: bool,
     ) -> None:
+        if (
+            http_client is not None
+            and not is_httpx2_sync_client(http_client)
+            and not is_legacy_httpx_sync_client(http_client)
+        ):
+            raise TypeError(
+                "Invalid `http_client` argument; Expected an instance of `httpx.Client` or `httpx2.Client` "
+                f"but got {type(http_client)}"
+            )
+
         if not is_given(timeout):
             # if the user passed in a custom http client with a non-default
             # timeout set then we use that timeout.
@@ -920,16 +930,6 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
                 timeout = client_timeout
             else:
                 timeout = DEFAULT_TIMEOUT
-
-        if (
-            http_client is not None
-            and not is_httpx2_sync_client(http_client)
-            and not is_legacy_httpx_sync_client(http_client)
-        ):
-            raise TypeError(
-                "Invalid `http_client` argument; Expected an instance of `httpx.Client` or `httpx2.Client` "
-                f"but got {type(http_client)}"
-            )
 
         super().__init__(
             version=version,
@@ -1533,6 +1533,16 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
         custom_headers: Mapping[str, str] | None = None,
         custom_query: Mapping[str, object] | None = None,
     ) -> None:
+        if (
+            http_client is not None
+            and not is_httpx2_async_client(http_client)
+            and not is_legacy_httpx_async_client(http_client)
+        ):
+            raise TypeError(
+                "Invalid `http_client` argument; Expected an instance of `httpx.AsyncClient` or "
+                f"`httpx2.AsyncClient` but got {type(http_client)}"
+            )
+
         if not is_given(timeout):
             # if the user passed in a custom http client with a non-default
             # timeout set then we use that timeout.
@@ -1546,16 +1556,6 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
                 timeout = client_timeout
             else:
                 timeout = DEFAULT_TIMEOUT
-
-        if (
-            http_client is not None
-            and not is_httpx2_async_client(http_client)
-            and not is_legacy_httpx_async_client(http_client)
-        ):
-            raise TypeError(
-                "Invalid `http_client` argument; Expected an instance of `httpx.AsyncClient` or "
-                f"`httpx2.AsyncClient` but got {type(http_client)}"
-            )
 
         super().__init__(
             version=version,

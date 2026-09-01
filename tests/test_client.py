@@ -436,6 +436,19 @@ class TestOpenAI:
                     http_client=cast(Any, http_client),
                 )
 
+        class FalsyInvalidClient:
+            def __bool__(self) -> bool:
+                return False
+
+        with pytest.raises(TypeError, match="Invalid `http_client` arg"):
+            OpenAI(
+                base_url=base_url,
+                api_key=api_key,
+                admin_api_key=admin_api_key,
+                _strict_response_validation=True,
+                http_client=cast(Any, FalsyInvalidClient()),
+            )
+
     def test_default_headers_option(self) -> None:
         test_client = OpenAI(
             base_url=base_url,
@@ -1772,6 +1785,19 @@ class TestAsyncOpenAI:
                     _strict_response_validation=True,
                     http_client=cast(Any, http_client),
                 )
+
+        class FalsyInvalidClient:
+            def __bool__(self) -> bool:
+                return False
+
+        with pytest.raises(TypeError, match="Invalid `http_client` arg"):
+            AsyncOpenAI(
+                base_url=base_url,
+                api_key=api_key,
+                admin_api_key=admin_api_key,
+                _strict_response_validation=True,
+                http_client=cast(Any, FalsyInvalidClient()),
+            )
 
     async def test_default_headers_option(self) -> None:
         test_client = AsyncOpenAI(
