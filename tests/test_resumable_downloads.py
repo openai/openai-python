@@ -375,6 +375,33 @@ class TestResumableDownloads:
         assert rebuilt.encoding == "latin-1"
         assert rebuilt.text == "café"
 
+    def test_rebuilt_response_keeps_explicit_and_detected_encoding(self) -> None:
+        from openai._base_client import _reassembled_download_response
+
+        request = httpx2.Request("GET", "https://example.test/files/abc/content")
+
+        # an encoding pinned explicitly on the interrupted response survives
+        pinned = httpx2.Response(200, request=request, content=b"hello")
+        pinned.encoding = "cp1252"
+        rebuilt = _reassembled_download_response(pinned, b"hello", elapsed_from=pinned)
+        assert rebuilt.encoding == "cp1252"
+
+        # a callable default_encoding detector runs against the assembled body,
+        # not against the unread interrupted response
+        def detect(raw: bytes) -> str | None:
+            return "latin-1" if b"\xe9" in raw else "utf-8"
+
+        interrupted = httpx2.Response(
+            200,
+            request=request,
+            stream=CutOffStream(b"caf\xe9", None),
+            default_encoding=detect,
+        )
+        rebuilt = _reassembled_download_response(interrupted, b"caf\xe9", elapsed_from=interrupted)
+        assert rebuilt.default_encoding is detect
+        assert rebuilt.encoding == "latin-1"
+        assert rebuilt.text == "café"
+
     @pytest.mark.asyncio
     async def test_real_task_cancellation_closes_the_response(self) -> None:
         served: list[httpx2.Response] = []
@@ -469,7 +496,10 @@ class TestResumableDownloads:
 
         assert content == DATA
         assert len(served) == 2
-        assert served[1].content == DATA
+        # the retained response keeps the metadata AND body of its own
+        # exchange: a 206 with the suffix it actually delivered
+        assert served[1].status_code == 206
+        assert served[1].content == DATA[CUT:]
 
     def test_rebuilt_response_reports_completing_request(self) -> None:
         server = RangeServer()

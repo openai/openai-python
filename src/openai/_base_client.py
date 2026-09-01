@@ -228,19 +228,16 @@ def _reassembled_download_response(
         extensions=elapsed_from.extensions,
         history=elapsed_from.history,
     )
-    # the consumed response stays reachable to callers that retained it (for
-    # example through a response event hook), so populate its content too
-    # instead of leaving it unreadable
-    elapsed_from._content = content
-    # keep the encoding state the serving client attached (a custom
-    # `default_encoding` or a hook-set encoding), so `.text` still decodes
-    # the same way it would have on the original response; when the source
-    # derived its encoding from headers, the copied `Content-Type` header
-    # reproduces the same derivation
+    # keep the encoding state the serving client attached: the client-level
+    # `default_encoding` is copied as-is (a plain name, or a detector callable
+    # which then runs against the assembled body), while an encoding that was
+    # explicitly pinned on the interrupted response is preserved verbatim —
+    # a merely header-derived encoding is left to re-derive from the copied
+    # `Content-Type` header so a callable detector sees the full body
     rebuilt.default_encoding = representation.default_encoding
-    effective_encoding = representation.encoding
-    if effective_encoding is not None:
-        rebuilt.encoding = effective_encoding
+    explicit_encoding = getattr(representation, "_encoding", None)
+    if explicit_encoding is not None:
+        rebuilt.encoding = explicit_encoding
     try:
         rebuilt.elapsed = elapsed_from.elapsed
     except RuntimeError:
@@ -248,6 +245,25 @@ def _reassembled_download_response(
         # exactly as an unread response would be
         pass
     return rebuilt
+
+
+def _read_and_release(response: httpx2.Response) -> None:
+    """Read a streamed response to completion, closing it if the read fails."""
+    try:
+        response.read()
+    except BaseException:
+        response.close()
+        raise
+
+
+async def _aread_and_release(response: httpx2.Response) -> None:
+    """Async counterpart of `_read_and_release`."""
+    try:
+        await response.aread()
+    except BaseException:
+        with anyio.CancelScope(shield=True):
+            await response.aclose()
+        raise
 
 
 if TYPE_CHECKING:
@@ -1147,8 +1163,9 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
             assert representation is not None
             if total is not None and total == len(partial.data):
                 # the earlier attempt already received every byte; only the
-                # terminating chunks went missing
-                response.close()
+                # terminating chunks went missing; read the (small) body so a
+                # retained reference sees a normally-consumed response
+                _read_and_release(response)
                 return self._finish_download(partial, elapsed_from=response)
             received = len(partial.data)
             response.close()
@@ -1192,25 +1209,25 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
             partial.clear()
 
         if not accumulate:
-            try:
-                response.read()
-            except BaseException:
-                # includes KeyboardInterrupt and other BaseExceptions — the
-                # stream must not outlive the failed read either way
-                response.close()
-                raise
+            _read_and_release(response)
             return response
 
         # on a 206 the original response stays the representation of the full
         # body (headers, validator, request); a 200 restart already replaced it
+        delivered = bytearray()
         try:
             for chunk in response.iter_bytes():
                 partial.data.extend(chunk)
+                delivered.extend(chunk)
         except BaseException:
             # the stream is left open when the body read fails; release the
             # connection before the retry loop takes over
             response.close()
             raise
+        # exactly what a non-streaming send() would have left on this response:
+        # its own body, so retained references see metadata and content that
+        # agree (a 206 keeps its suffix-sized body, not the assembled one)
+        response._content = bytes(delivered)
         bounds = _content_range_bounds(response)
         if resuming and bounds is not None and (bounds[2] is None or bounds[2] != len(partial.data)):
             response.close()
@@ -1893,8 +1910,9 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
             assert representation is not None
             if total is not None and total == len(partial.data):
                 # the earlier attempt already received every byte; only the
-                # terminating chunks went missing
-                await response.aclose()
+                # terminating chunks went missing; read the (small) body so a
+                # retained reference sees a normally-consumed response
+                await _aread_and_release(response)
                 return await self._afinish_download(partial, elapsed_from=response)
             received = len(partial.data)
             await response.aclose()
@@ -1938,27 +1956,26 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
             partial.clear()
 
         if not accumulate:
-            try:
-                await response.aread()
-            except BaseException:
-                # includes CancelledError; shield the close so a level-triggered
-                # cancellation cannot interrupt the cleanup itself
-                with anyio.CancelScope(shield=True):
-                    await response.aclose()
-                raise
+            await _aread_and_release(response)
             return response
 
         # on a 206 the original response stays the representation of the full
         # body (headers, validator, request); a 200 restart already replaced it
+        delivered = bytearray()
         try:
             async for chunk in response.aiter_bytes():
                 partial.data.extend(chunk)
+                delivered.extend(chunk)
         except BaseException:
             # includes CancelledError; shield the close so a level-triggered
             # cancellation cannot interrupt the cleanup itself
             with anyio.CancelScope(shield=True):
                 await response.aclose()
             raise
+        # exactly what a non-streaming send() would have left on this response:
+        # its own body, so retained references see metadata and content that
+        # agree (a 206 keeps its suffix-sized body, not the assembled one)
+        response._content = bytes(delivered)
         bounds = _content_range_bounds(response)
         if resuming and bounds is not None and (bounds[2] is None or bounds[2] != len(partial.data)):
             await response.aclose()
