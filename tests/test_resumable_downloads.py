@@ -80,6 +80,7 @@ class RangeServer:
         shorten_first_ranged_segment: bool = False,
         unknown_total: bool = False,
         uppercase_units: bool = False,
+        accept_ranges_value: str = "bytes",
     ) -> None:
         self.accept_ranges = accept_ranges
         self.honor_range = honor_range
@@ -90,6 +91,7 @@ class RangeServer:
         self.shorten_first_ranged_segment = shorten_first_ranged_segment
         self.unknown_total = unknown_total
         self.uppercase_units = uppercase_units
+        self.accept_ranges_value = accept_ranges_value
         self.requests: list[httpx2.Request] = []
 
     def _handle(self, request: httpx2.Request, *, is_async: bool) -> httpx2.Response:
@@ -97,7 +99,7 @@ class RangeServer:
         first_attempt = len(self.requests) == 1
         headers = {"content-type": "application/binary"}
         if self.accept_ranges:
-            headers["accept-ranges"] = "bytes"
+            headers["accept-ranges"] = self.accept_ranges_value
         if self.etag:
             headers["etag"] = self.etag
         if self.last_modified:
@@ -413,6 +415,72 @@ class TestResumableDownloads:
         # a real (asyncio-delivered) cancellation must still close the response
         assert len(served) == 1
         assert served[0].is_closed
+
+    def test_accept_ranges_with_multiple_units(self) -> None:
+        server = RangeServer(accept_ranges_value="bytes, example-unit")
+        with _sync_client(server) as client:
+            content = client.files.content("file_abc").content
+
+        assert content == DATA
+        assert len(server.requests) == 2
+        assert server.requests[1].headers.get("range") == f"bytes={CUT}-"
+
+    def test_completing_response_stays_readable(self) -> None:
+        # a response event hook may retain the response the transport handed
+        # out; after a successful resume that object must still expose content
+        served: list[httpx2.Response] = []
+
+        def handler(request: httpx2.Request) -> httpx2.Response:
+            first = len(served) == 0
+            if not first:
+                start = int(request.headers.get("range", "").removeprefix("bytes=").split("-")[0])
+                response = httpx2.Response(
+                    206,
+                    headers={
+                        "content-type": "application/binary",
+                        "accept-ranges": "bytes",
+                        "etag": '"version-1"',
+                        "content-range": f"bytes {start}-{len(DATA) - 1}/{len(DATA)}",
+                    },
+                    request=request,
+                    content=DATA[start:],
+                )
+            else:
+                response = httpx2.Response(
+                    200,
+                    headers={
+                        "content-type": "application/binary",
+                        "accept-ranges": "bytes",
+                        "etag": '"version-1"',
+                    },
+                    request=request,
+                    stream=CutOffStream(DATA, CUT),
+                )
+            served.append(response)
+            return response
+
+        with openai.OpenAI(
+            base_url=base_url,
+            api_key=api_key,
+            max_retries=2,
+            http_client=httpx2.Client(transport=httpx2.MockTransport(handler)),
+        ) as client:
+            content = client.files.content("file_abc").content
+
+        assert content == DATA
+        assert len(served) == 2
+        assert served[1].content == DATA
+
+    def test_rebuilt_response_reports_completing_request(self) -> None:
+        server = RangeServer()
+        with _sync_client(server) as client:
+            response = client.get("/files/file_abc/content", cast_to=httpx2.Response)
+
+        assert response.status_code == 200
+        assert response.content == DATA
+        # the rebuilt response is attributed to the request that completed the
+        # transfer, i.e. the resumed ranged request
+        assert response.request.headers.get("range") == f"bytes={CUT}-"
 
     def test_last_modified_alone_is_not_a_validator(self) -> None:
         server = RangeServer(etag=None, last_modified="Sun, 30 Aug 2026 12:00:00 GMT")

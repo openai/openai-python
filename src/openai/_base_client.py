@@ -124,8 +124,9 @@ _AsyncStreamT = TypeVar("_AsyncStreamT", bound=AsyncStream[Any])
 
 def _accepts_byte_ranges(response: httpx2.Response) -> bool:
     # https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Accept-Ranges
+    # the header is a comma-separated list of supported range units
     value = str(response.headers.get("accept-ranges", ""))
-    return value.strip().lower() == "bytes"
+    return any(unit.strip() == "bytes" for unit in value.lower().split(","))
 
 
 def _is_identity_encoded(response: httpx2.Response) -> bool:
@@ -221,11 +222,16 @@ def _reassembled_download_response(
         200,
         headers=headers,
         content=content,
-        # the request as it was actually sent (post-redirect, post-auth)
-        request=representation.request,
-        extensions=representation.extensions,
-        history=representation.history,
+        # the request/response metadata of the attempt that completed the
+        # transfer (its final URL after redirects, its request id extensions)
+        request=elapsed_from.request,
+        extensions=elapsed_from.extensions,
+        history=elapsed_from.history,
     )
+    # the consumed response stays reachable to callers that retained it (for
+    # example through a response event hook), so populate its content too
+    # instead of leaving it unreadable
+    elapsed_from._content = content
     # keep the encoding state the serving client attached (a custom
     # `default_encoding` or a hook-set encoding), so `.text` still decodes
     # the same way it would have on the original response; when the source
@@ -1143,7 +1149,7 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
                 # the earlier attempt already received every byte; only the
                 # terminating chunks went missing
                 response.close()
-                return self._finish_download(partial, elapsed_from=representation)
+                return self._finish_download(partial, elapsed_from=response)
             received = len(partial.data)
             response.close()
             partial.clear()
@@ -1889,7 +1895,7 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
                 # the earlier attempt already received every byte; only the
                 # terminating chunks went missing
                 await response.aclose()
-                return await self._afinish_download(partial, elapsed_from=representation)
+                return await self._afinish_download(partial, elapsed_from=response)
             received = len(partial.data)
             await response.aclose()
             partial.clear()
