@@ -9,7 +9,7 @@ import asyncio
 import inspect
 import dataclasses
 import tracemalloc
-from typing import Any, Union, TypeVar, Callable, Iterable, Iterator, Optional, Coroutine, cast
+from typing import Any, Union, TypeVar, Callable, Iterable, Iterator, Optional, Coroutine, AsyncIterable, cast
 from unittest import mock
 from typing_extensions import Literal, AsyncIterator, override
 
@@ -112,6 +112,24 @@ async def _make_async_iterator(iterable: Iterable[T], counter: Optional[Counter]
         if counter:
             counter.value += 1
         yield item
+
+
+class _OneShotIterable(Iterable[T]):
+    def __init__(self, iterable: Iterable[T]) -> None:
+        self._iterator = iter(iterable)
+
+    @override
+    def __iter__(self) -> Iterator[T]:
+        return self._iterator
+
+
+class _OneShotAsyncIterable(AsyncIterable[T]):
+    def __init__(self, iterable: Iterable[T]) -> None:
+        self._iterator = _make_async_iterator(iterable)
+
+    @override
+    def __aiter__(self) -> AsyncIterator[T]:
+        return self._iterator
 
 
 def _get_open_connections(client: OpenAI | AsyncOpenAI) -> int:
@@ -808,9 +826,12 @@ class TestOpenAI:
             assert response.content == file_content
             assert counter.value == 1
 
+    @pytest.mark.parametrize("content_factory", [_make_sync_iterator, _OneShotIterable])
     @pytest.mark.parametrize("failure_mode", ["status", "timeout", "connection"])
-    def test_binary_content_retry_does_not_reuse_iterator(
-        self, failure_mode: Literal["status", "timeout", "connection"]
+    def test_binary_content_retry_does_not_reuse_one_shot_iterable(
+        self,
+        content_factory: Callable[[Iterable[bytes]], Iterable[bytes]],
+        failure_mode: Literal["status", "timeout", "connection"],
     ) -> None:
         file_content = b"Hello, this is a test file."
         request_bodies: list[bytes] = []
@@ -840,11 +861,38 @@ class TestOpenAI:
             with pytest.raises(expected_error):
                 client.post(
                     "/upload",
-                    content=_make_sync_iterator([file_content]),
+                    content=content_factory([file_content]),
                     cast_to=httpx2.Response,
                 )
 
         assert request_bodies == [file_content]
+
+    @pytest.mark.parametrize("content_type", [list, tuple])
+    @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    def test_binary_content_retry_reuses_known_repeatable_iterable(
+        self, content_type: type[list[bytes]] | type[tuple[bytes, ...]]
+    ) -> None:
+        file_content = b"Hello, this is a test file."
+        request_bodies: list[bytes] = []
+
+        def mock_handler(request: httpx2.Request) -> httpx2.Response:
+            request_bodies.append(request.read())
+            return httpx2.Response(500 if len(request_bodies) == 1 else 200, json={"error": {}})
+
+        with OpenAI(
+            base_url=base_url,
+            api_key=api_key,
+            max_retries=1,
+            http_client=httpx2.Client(transport=MockTransport(handler=mock_handler)),
+        ) as client:
+            response = client.post(
+                "/upload",
+                content=content_type([file_content]),
+                cast_to=httpx2.Response,
+            )
+
+        assert response.status_code == 200
+        assert request_bodies == [file_content, file_content]
 
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     def test_binary_content_retry_rewinds_seekable_stream(self) -> None:
@@ -2174,9 +2222,12 @@ class TestAsyncOpenAI:
             assert response.content == file_content
             assert counter.value == 1
 
+    @pytest.mark.parametrize("content_factory", [_make_async_iterator, _OneShotAsyncIterable])
     @pytest.mark.parametrize("failure_mode", ["status", "timeout", "connection"])
-    async def test_binary_content_retry_does_not_reuse_asynciterator(
-        self, failure_mode: Literal["status", "timeout", "connection"]
+    async def test_binary_content_retry_does_not_reuse_one_shot_asynciterable(
+        self,
+        content_factory: Callable[[Iterable[bytes]], AsyncIterable[bytes]],
+        failure_mode: Literal["status", "timeout", "connection"],
     ) -> None:
         file_content = b"Hello, this is a test file."
         request_bodies: list[bytes] = []
@@ -2206,7 +2257,7 @@ class TestAsyncOpenAI:
             with pytest.raises(expected_error):
                 await client.post(
                     "/upload",
-                    content=_make_async_iterator([file_content]),
+                    content=content_factory([file_content]),
                     cast_to=httpx2.Response,
                 )
 

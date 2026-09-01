@@ -138,7 +138,10 @@ class _RequestContentReplay:
                 self._replayable = False
             return
 
-        self._replayable = not isinstance(content, (Iterator, AsyncIterator))
+        # The iterable protocols do not guarantee a fresh iterator for each iteration. An object
+        # can return the same stored generator from __iter__ or __aiter__ without being an iterator
+        # itself, so only retry concrete containers whose repeatability is known here.
+        self._replayable = type(content) in (list, tuple)
 
     def rewind(self) -> bool:
         if not self._replayable:
