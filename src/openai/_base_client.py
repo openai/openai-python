@@ -226,6 +226,15 @@ def _reassembled_download_response(
         extensions=representation.extensions,
         history=representation.history,
     )
+    # keep the encoding state the serving client attached (a custom
+    # `default_encoding` or a hook-set encoding), so `.text` still decodes
+    # the same way it would have on the original response; when the source
+    # derived its encoding from headers, the copied `Content-Type` header
+    # reproduces the same derivation
+    rebuilt.default_encoding = representation.default_encoding
+    effective_encoding = representation.encoding
+    if effective_encoding is not None:
+        rebuilt.encoding = effective_encoding
     try:
         rebuilt.elapsed = elapsed_from.elapsed
     except RuntimeError:
@@ -1218,8 +1227,13 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
     def _finish_download(self, partial: _PartialDownload, *, elapsed_from: httpx2.Response) -> httpx2.Response:
         representation = partial.representation
         assert representation is not None
-        content = bytes(partial.data)
-        partial.clear()  # release the mutable buffer before response processing
+        # hand off the buffer instead of emptying it in place, so the mutable
+        # copy stops being reachable the moment the immutable one exists
+        buffer = partial.data
+        partial.data = bytearray()
+        partial.representation = None
+        content = bytes(buffer)
+        del buffer
         return _reassembled_download_response(representation, content, elapsed_from=elapsed_from)
 
     @overload
@@ -1921,9 +1935,10 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
             try:
                 await response.aread()
             except BaseException:
-                # includes CancelledError and other BaseExceptions — the stream
-                # must not outlive the failed read either way
-                await response.aclose()
+                # includes CancelledError; shield the close so a level-triggered
+                # cancellation cannot interrupt the cleanup itself
+                with anyio.CancelScope(shield=True):
+                    await response.aclose()
                 raise
             return response
 
@@ -1933,9 +1948,10 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
             async for chunk in response.aiter_bytes():
                 partial.data.extend(chunk)
         except BaseException:
-            # the stream is left open when the body read fails or the task is
-            # cancelled; release the connection before propagating
-            await response.aclose()
+            # includes CancelledError; shield the close so a level-triggered
+            # cancellation cannot interrupt the cleanup itself
+            with anyio.CancelScope(shield=True):
+                await response.aclose()
             raise
         bounds = _content_range_bounds(response)
         if resuming and bounds is not None and (bounds[2] is None or bounds[2] != len(partial.data)):
@@ -1959,8 +1975,13 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
     async def _afinish_download(self, partial: _PartialDownload, *, elapsed_from: httpx2.Response) -> httpx2.Response:
         representation = partial.representation
         assert representation is not None
-        content = bytes(partial.data)
-        partial.clear()  # release the mutable buffer before response processing
+        # hand off the buffer instead of emptying it in place, so the mutable
+        # copy stops being reachable the moment the immutable one exists
+        buffer = partial.data
+        partial.data = bytearray()
+        partial.representation = None
+        content = bytes(buffer)
+        del buffer
         return _reassembled_download_response(representation, content, elapsed_from=elapsed_from)
 
     @overload

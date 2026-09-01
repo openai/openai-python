@@ -361,6 +361,59 @@ class TestResumableDownloads:
 
         assert rebuilt.elapsed == timedelta(seconds=1.5)
 
+    def test_rebuilt_response_preserves_encoding_state(self) -> None:
+        from openai._base_client import _reassembled_download_response
+
+        request = httpx2.Request("GET", "https://example.test/files/abc/content")
+        representation = httpx2.Response(200, request=request, content=b"caf\xe9", default_encoding="latin-1")
+
+        rebuilt = _reassembled_download_response(representation, b"caf\xe9", elapsed_from=representation)
+
+        assert rebuilt.default_encoding == "latin-1"
+        assert rebuilt.encoding == "latin-1"
+        assert rebuilt.text == "café"
+
+    @pytest.mark.asyncio
+    async def test_real_task_cancellation_closes_the_response(self) -> None:
+        served: list[httpx2.Response] = []
+        reading = asyncio.Event()
+
+        class SlowStream(AsyncByteStream):
+            async def __aiter__(self) -> AsyncIterator[bytes]:
+                yield DATA[:64]
+                reading.set()
+                await asyncio.sleep(30)  # the cancellation lands here
+                yield DATA[64:]
+
+        async def handler(request: httpx2.Request) -> httpx2.Response:
+            response = httpx2.Response(
+                200,
+                headers={
+                    "content-type": "application/binary",
+                    "accept-ranges": "bytes",
+                    "etag": '"version-1"',
+                },
+                request=request,
+                stream=SlowStream(),
+            )
+            served.append(response)
+            return response
+
+        async with openai.AsyncOpenAI(
+            base_url=base_url,
+            api_key=api_key,
+            http_client=httpx2.AsyncClient(transport=httpx2.MockTransport(handler)),
+        ) as client:
+            task = asyncio.create_task(client.files.content("file_abc"))
+            await reading.wait()
+            task.cancel()
+            with pytest.raises(asyncio.CancelledError):
+                await task
+
+        # a real (asyncio-delivered) cancellation must still close the response
+        assert len(served) == 1
+        assert served[0].is_closed
+
     def test_last_modified_alone_is_not_a_validator(self) -> None:
         server = RangeServer(etag=None, last_modified="Sun, 30 Aug 2026 12:00:00 GMT")
         with _sync_client(server) as client:
@@ -472,3 +525,132 @@ class TestResumableDownloads:
             page = client.models.list()
 
         assert page.data == []
+
+
+# Large-payload regression probes, mirroring tests/test_large_payload_contract.py:
+# the resume path targets real Batch API result files (200-300 MB in
+# production), so the fixture must be large enough to catch payload-size
+# dependent buffering regressions. High memory use is intentional — keep this
+# above 32 MiB and do not shrink it to make the test pass. Data is generated
+# in memory and the cases run sequentially inside a single test to bound peak
+# memory under pytest-xdist.
+LARGE_SIZE = 32 * 1024 * 1024 + 1
+LARGE_CHUNK = 1024 * 1024
+
+
+def _large_data() -> bytes:
+    block = bytes(range(256)) * 256  # 64 KiB
+    return (block * (LARGE_SIZE // len(block) + 1))[:LARGE_SIZE]
+
+
+class ChunkedCutStream(SyncByteStream):
+    """Streams a large body in bounded chunks, optionally dying mid-transfer."""
+
+    def __init__(self, data: bytes, cut_at: int | None) -> None:
+        self.data = data
+        self.cut_at = cut_at
+
+    def __iter__(self) -> Iterator[bytes]:
+        for start in range(0, len(self.data), LARGE_CHUNK):
+            end = min(start + LARGE_CHUNK, len(self.data))
+            if self.cut_at is not None and end > self.cut_at:
+                yield self.data[start : self.cut_at]
+                raise httpx2.RemoteProtocolError("peer closed connection without sending complete message body")
+            yield self.data[start:end]
+
+
+class AsyncChunkedCutStream(AsyncByteStream):
+    def __init__(self, data: bytes, cut_at: int | None) -> None:
+        self.data = data
+        self.cut_at = cut_at
+
+    async def __aiter__(self) -> AsyncIterator[bytes]:
+        for start in range(0, len(self.data), LARGE_CHUNK):
+            end = min(start + LARGE_CHUNK, len(self.data))
+            if self.cut_at is not None and end > self.cut_at:
+                yield self.data[start : self.cut_at]
+                raise httpx2.RemoteProtocolError("peer closed connection without sending complete message body")
+            yield self.data[start:end]
+
+
+class LargeRangeServer:
+    """Serves a 32 MiB+ body through the interrupted-then-resumed flow."""
+
+    def __init__(self, data: bytes) -> None:
+        self.data = data
+        self.request_count = 0
+
+    def _chunked(self, data: bytes, cut_at: int | None, is_async: bool) -> AsyncByteStream | SyncByteStream:
+        if is_async:
+            return AsyncChunkedCutStream(data, cut_at)
+        return ChunkedCutStream(data, cut_at)
+
+    def _handle(self, request: httpx2.Request, *, is_async: bool) -> httpx2.Response:
+        self.request_count += 1
+        headers = {
+            "content-type": "application/binary",
+            "accept-ranges": "bytes",
+            "etag": '"large-version-1"',
+        }
+        range_header = request.headers.get("range")
+        if range_header:
+            start = int(range_header.removeprefix("bytes=").split("-")[0])
+            headers["content-range"] = f"bytes {start}-{len(self.data) - 1}/{len(self.data)}"
+            return httpx2.Response(
+                206,
+                headers=headers,
+                request=request,
+                stream=self._chunked(self.data[start:], None, is_async),
+            )
+        cut = len(self.data) // 2 if self.request_count == 1 else None
+        return httpx2.Response(
+            200,
+            headers=headers,
+            request=request,
+            stream=self._chunked(self.data, cut, is_async),
+        )
+
+    def handle(self, request: httpx2.Request) -> httpx2.Response:
+        return self._handle(request, is_async=False)
+
+    async def handle_async(self, request: httpx2.Request) -> httpx2.Response:
+        return self._handle(request, is_async=True)
+
+
+def check_large_resume_sync() -> None:
+    data = _large_data()
+    server = LargeRangeServer(data)
+    with openai.OpenAI(
+        base_url=base_url,
+        api_key=api_key,
+        max_retries=2,
+        http_client=httpx2.Client(transport=httpx2.MockTransport(server.handle)),
+    ) as client:
+        content = client.files.content("file_large").content
+
+    # keep the 32 MiB payload out of pytest's assertion diagnostics
+    intact = content == data
+    assert intact, "the large resumed download was truncated or corrupted"
+    assert server.request_count == 2
+
+
+async def check_large_resume_async() -> None:
+    data = _large_data()
+    server = LargeRangeServer(data)
+    async with openai.AsyncOpenAI(
+        base_url=base_url,
+        api_key=api_key,
+        max_retries=2,
+        http_client=httpx2.AsyncClient(transport=httpx2.MockTransport(server.handle_async)),
+    ) as client:
+        content = (await client.files.content("file_large")).content
+
+    intact = content == data
+    assert intact, "the large resumed download was truncated or corrupted"
+    assert server.request_count == 2
+
+
+async def test_large_resumable_download() -> None:
+    # One test prevents pytest-xdist from running the high-memory cases together.
+    check_large_resume_sync()
+    await check_large_resume_async()
