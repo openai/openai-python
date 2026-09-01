@@ -366,7 +366,7 @@ class TestResumableDownloads:
     def test_rebuilt_response_preserves_elapsed(self) -> None:
         from datetime import timedelta
 
-        from openai._base_client import _reassembled_download_response
+        from openai.lib._resumable import _reassembled_download_response
 
         request = httpx2.Request("GET", "https://example.test/files/abc/content")
         representation = httpx2.Response(200, request=request, content=b"hello")
@@ -377,7 +377,7 @@ class TestResumableDownloads:
         assert rebuilt.elapsed == timedelta(seconds=1.5)
 
     def test_rebuilt_response_preserves_encoding_state(self) -> None:
-        from openai._base_client import _reassembled_download_response
+        from openai.lib._resumable import _reassembled_download_response
 
         request = httpx2.Request("GET", "https://example.test/files/abc/content")
         representation = httpx2.Response(200, request=request, content=b"caf\xe9", default_encoding="latin-1")
@@ -389,7 +389,7 @@ class TestResumableDownloads:
         assert rebuilt.text == "café"
 
     def test_rebuilt_response_keeps_explicit_and_detected_encoding(self) -> None:
-        from openai._base_client import _reassembled_download_response
+        from openai.lib._resumable import _reassembled_download_response
 
         request = httpx2.Request("GET", "https://example.test/files/abc/content")
 
