@@ -42,10 +42,8 @@ def poll_vector_store_file(
 
         file = response.parse()
         if file.status == "in_progress":
-            if not is_given(poll_interval_ms):
-                poll_interval_ms = _get_poll_interval_ms(response.headers)
-
-            resource._sleep(poll_interval_ms / 1000)
+            interval_ms = poll_interval_ms if is_given(poll_interval_ms) else _get_poll_interval_ms(response.headers)
+            resource._sleep(interval_ms / 1000)
         elif file.status == "cancelled" or file.status == "completed" or file.status == "failed":
             return file
         else:
@@ -76,10 +74,8 @@ async def async_poll_vector_store_file(
 
         file = response.parse()
         if file.status == "in_progress":
-            if not is_given(poll_interval_ms):
-                poll_interval_ms = _get_poll_interval_ms(response.headers)
-
-            await resource._sleep(poll_interval_ms / 1000)
+            interval_ms = poll_interval_ms if is_given(poll_interval_ms) else _get_poll_interval_ms(response.headers)
+            await resource._sleep(interval_ms / 1000)
         elif file.status == "cancelled" or file.status == "completed" or file.status == "failed":
             return file
         else:
@@ -110,10 +106,8 @@ def poll_vector_store_file_batch(
 
         batch = response.parse()
         if batch.file_counts.in_progress > 0:
-            if not is_given(poll_interval_ms):
-                poll_interval_ms = _get_poll_interval_ms(response.headers)
-
-            resource._sleep(poll_interval_ms / 1000)
+            interval_ms = poll_interval_ms if is_given(poll_interval_ms) else _get_poll_interval_ms(response.headers)
+            resource._sleep(interval_ms / 1000)
             continue
 
         return batch
@@ -140,10 +134,8 @@ async def async_poll_vector_store_file_batch(
 
         batch = response.parse()
         if batch.file_counts.in_progress > 0:
-            if not is_given(poll_interval_ms):
-                poll_interval_ms = _get_poll_interval_ms(response.headers)
-
-            await resource._sleep(poll_interval_ms / 1000)
+            interval_ms = poll_interval_ms if is_given(poll_interval_ms) else _get_poll_interval_ms(response.headers)
+            await resource._sleep(interval_ms / 1000)
             continue
 
         return batch
