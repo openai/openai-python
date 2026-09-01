@@ -736,7 +736,7 @@ class OpenAI(SyncAPIClient):
         elif set_default_query is not None:
             params = set_default_query
 
-        http_client = http_client or self._client
+        http_client = http_client if http_client is not None else self._client
 
         next_provider = self._provider if isinstance(provider, NotGiven) else provider
         explicit_base_url = base_url is not None and not isinstance(base_url, NotGiven)
@@ -1491,7 +1491,7 @@ class AsyncOpenAI(AsyncAPIClient):
         elif set_default_query is not None:
             params = set_default_query
 
-        http_client = http_client or self._client
+        http_client = http_client if http_client is not None else self._client
         next_provider = self._provider if isinstance(provider, NotGiven) else provider
         explicit_base_url = base_url is not None and not isinstance(base_url, NotGiven)
         next_workload_identity = workload_identity if workload_identity is not None else self.workload_identity

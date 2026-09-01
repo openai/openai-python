@@ -155,6 +155,17 @@ class TestOpenAI:
         assert copied.admin_api_key == "another My Admin API Key"
         assert client.admin_api_key == "My Admin API Key"
 
+    def test_copy_falsy_http_client(self, client: OpenAI) -> None:
+        class FalsyHttpClient(httpx2.Client):
+            def __bool__(self) -> bool:
+                return False
+
+        with FalsyHttpClient() as http_client:
+            copied = client.copy(http_client=http_client)
+
+            assert copied._client is http_client
+            copied.close()
+
     def test_copy_default_options(self, client: OpenAI) -> None:
         # options that have a default are overridden correctly
         copied = client.copy(max_retries=7)
@@ -1502,6 +1513,17 @@ class TestAsyncOpenAI:
         copied = async_client.copy(admin_api_key="another My Admin API Key")
         assert copied.admin_api_key == "another My Admin API Key"
         assert async_client.admin_api_key == "My Admin API Key"
+
+    async def test_copy_falsy_http_client(self, async_client: AsyncOpenAI) -> None:
+        class FalsyHttpClient(httpx2.AsyncClient):
+            def __bool__(self) -> bool:
+                return False
+
+        async with FalsyHttpClient() as http_client:
+            copied = async_client.copy(http_client=http_client)
+
+            assert copied._client is http_client
+            await copied.close()
 
     def test_copy_default_options(self, async_client: AsyncOpenAI) -> None:
         # options that have a default are overridden correctly
