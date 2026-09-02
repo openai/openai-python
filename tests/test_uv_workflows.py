@@ -83,7 +83,7 @@ def test_required_ci_checks_fail_when_dependency_locks_fail() -> None:
     guard = (
         "    if: >-\n"
         "      !cancelled() &&\n"
-        "      (github.event_name == 'push' || github.event_name == 'merge_group' || github.event.pull_request.head.repo.fork)\n"
+        "      (github.event_name == 'push' || github.event_name == 'merge_group' || github.event.pull_request.head.repo.fork || needs.dependency-locks.result == 'failure')\n"
     )
     failure_step = (
         "      - name: Fail if dependency lock validation failed\n"
@@ -100,6 +100,11 @@ def test_required_ci_checks_fail_when_dependency_locks_fail() -> None:
         assert failure_step in job, f"{job_name} must fail when dependency-locks fails"
         steps = job.split("    steps:\n", 1)[1]
         assert steps.startswith(failure_step), f"{job_name} must fail before checkout or other executable steps"
+
+    # A same-repository pull request normally has a false fork predicate. The
+    # dependency failure branch is what makes each required check run and fail
+    # instead of being skipped when that pull request's lock validation fails.
+    assert "github.event.pull_request.head.repo.fork || needs.dependency-locks.result == 'failure'" in guard
 
 
 def dependency_lock_source_command() -> str:
