@@ -176,7 +176,7 @@ class TranscriptionSessionUpdate(BaseModel):
     session: Session
     """Realtime transcription session object configuration."""
 
-    type: Literal["transcription_session.update"]
+    type: Literal["transcription_session.update"] = "transcription_session.update"
     """The event type, must be `transcription_session.update`."""
 
     event_id: Optional[str] = None

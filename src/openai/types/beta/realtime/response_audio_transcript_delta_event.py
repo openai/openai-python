@@ -24,5 +24,5 @@ class ResponseAudioTranscriptDeltaEvent(BaseModel):
     response_id: str
     """The ID of the response."""
 
-    type: Literal["response.audio_transcript.delta"]
+    type: Literal["response.audio_transcript.delta"] = "response.audio_transcript.delta"
     """The event type, must be `response.audio_transcript.delta`."""
