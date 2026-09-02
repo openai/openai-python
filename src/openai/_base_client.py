@@ -1157,9 +1157,9 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
     ) -> None:
         remaining_retries = max_retries - retries_taken
         if remaining_retries == 1:
-            log.debug("1 retry left")
+            log.info("1 retry left")
         else:
-            log.debug("%i retries left", remaining_retries)
+            log.info("%i retries left", remaining_retries)
 
         timeout = self._calculate_retry_timeout(remaining_retries, options, response.headers if response else None)
         log.info("Retrying request in %f seconds", timeout)
@@ -1780,9 +1780,9 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
     ) -> None:
         remaining_retries = max_retries - retries_taken
         if remaining_retries == 1:
-            log.debug("1 retry left")
+            log.info("1 retry left")
         else:
-            log.debug("%i retries left", remaining_retries)
+            log.info("%i retries left", remaining_retries)
 
         timeout = self._calculate_retry_timeout(remaining_retries, options, response.headers if response else None)
         log.info("Retrying request in %f seconds", timeout)
