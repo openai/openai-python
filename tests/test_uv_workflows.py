@@ -75,6 +75,31 @@ def test_dependabot_delays_only_ordinary_version_updates() -> None:
         assert "open-pull-requests-limit: 0" not in entry
 
 
+def test_required_ci_checks_fail_when_dependency_locks_fail() -> None:
+    path = ROOT / ".github/workflows/ci.yml"
+    if not path.exists():
+        pytest.skip("GitHub workflows are not included in source distributions")
+    workflow = path.read_text()
+    guard = (
+        "    if: >-\n"
+        "      always() &&\n"
+        "      (github.event_name == 'push' || github.event_name == 'merge_group' || github.event.pull_request.head.repo.fork)\n"
+    )
+    failure_step = (
+        "      - name: Fail if dependency lock validation failed\n"
+        "        if: needs.dependency-locks.result != 'success'\n"
+        "        run: |\n"
+        '          echo "dependency-locks did not pass; refusing to run this required check as green"\n'
+        "          exit 1\n"
+    )
+    for job_name in ("lint", "build", "test", "test-httpx2"):
+        match = re.search(rf"^  {re.escape(job_name)}:\n(.*?)(?=^  [A-Za-z0-9_-]+:\n|\Z)", workflow, re.M | re.S)
+        assert match is not None, f"Missing CI job: {job_name}"
+        job = match.group(1)
+        assert guard in job, f"{job_name} must remain visible when dependency-locks fails"
+        assert failure_step in job, f"{job_name} must fail when dependency-locks fails"
+
+
 def dependency_lock_source_command() -> str:
     path = ROOT / ".github/workflows/ci.yml"
     if not path.exists():
