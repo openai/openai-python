@@ -82,7 +82,7 @@ def test_required_ci_checks_fail_when_dependency_locks_fail() -> None:
     workflow = path.read_text()
     guard = (
         "    if: >-\n"
-        "      always() &&\n"
+        "      !cancelled() &&\n"
         "      (github.event_name == 'push' || github.event_name == 'merge_group' || github.event.pull_request.head.repo.fork)\n"
     )
     failure_step = (
@@ -98,6 +98,8 @@ def test_required_ci_checks_fail_when_dependency_locks_fail() -> None:
         job = match.group(1)
         assert guard in job, f"{job_name} must remain visible when dependency-locks fails"
         assert failure_step in job, f"{job_name} must fail when dependency-locks fails"
+        steps = job.split("    steps:\n", 1)[1]
+        assert steps.startswith(failure_step), f"{job_name} must fail before checkout or other executable steps"
 
 
 def dependency_lock_source_command() -> str:
