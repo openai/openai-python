@@ -19,7 +19,7 @@ class Logprobs(BaseModel):
 
 
 class CompletionChoice(BaseModel):
-    finish_reason: Literal["stop", "length", "content_filter"]
+    finish_reason: Optional[Literal["stop", "length", "content_filter"]] = None
     """The reason the model stopped generating tokens.
 
     This will be `stop` if the model hit a natural stop point or a provided stop
