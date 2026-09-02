@@ -29,6 +29,7 @@ from ._utils import (
     get_async_library as get_async_library,
     maybe_coerce_float as maybe_coerce_float,
     get_required_header as get_required_header,
+    sanitize_proxy_env_vars as sanitize_proxy_env_vars,
     maybe_coerce_boolean as maybe_coerce_boolean,
     maybe_coerce_integer as maybe_coerce_integer,
     is_async_azure_client as is_async_azure_client,
