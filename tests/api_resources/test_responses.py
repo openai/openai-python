@@ -75,6 +75,8 @@ class TestResponses:
             store=True,
             stream=False,
             stream_options={"include_obfuscation": True},
+            frequency_penalty=-2,
+            presence_penalty=-2,
             temperature=1,
             text={
                 "format": {"type": "text"},
@@ -177,6 +179,8 @@ class TestResponses:
             service_tier="auto",
             store=True,
             stream_options={"include_obfuscation": True},
+            frequency_penalty=-2,
+            presence_penalty=-2,
             temperature=1,
             text={
                 "format": {"type": "text"},
@@ -511,6 +515,8 @@ class TestAsyncResponses:
             store=True,
             stream=False,
             stream_options={"include_obfuscation": True},
+            frequency_penalty=-2,
+            presence_penalty=-2,
             temperature=1,
             text={
                 "format": {"type": "text"},
@@ -613,6 +619,8 @@ class TestAsyncResponses:
             service_tier="auto",
             store=True,
             stream_options={"include_obfuscation": True},
+            frequency_penalty=-2,
+            presence_penalty=-2,
             temperature=1,
             text={
                 "format": {"type": "text"},
