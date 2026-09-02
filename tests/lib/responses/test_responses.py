@@ -72,6 +72,60 @@ def test_parse_response_preserves_program_items(item: dict[str, object]) -> None
     assert parsed.output[0].to_dict() == item
 
 
+def test_parse_response_with_null_output() -> None:
+    # Regression test for https://github.com/openai/openai-python/issues/3325
+    # Some backends (e.g. the chatgpt.com Codex backend) can send `output: null`
+    # in the `response.completed` event, even though the schema declares `output`
+    # as a non-nullable list. `parse_response` should not crash in this case.
+    response = construct_type_unchecked(type_=Response, value={"output": None})
+
+    parsed = parse_response(text_format=omit, input_tools=omit, response=response)
+
+    assert parsed.output == []
+
+
+def test_response_stream_state_preserves_accumulated_output_on_null_completion() -> None:
+    # Regression test for https://github.com/openai/openai-python/issues/3325
+    # A `response.completed` event with a null/empty `output` should not discard
+    # output already accumulated from prior `response.output_item.added` events.
+    from openai.types.responses import ResponseStreamEvent as RawResponseStreamEvent
+    from openai.lib.streaming.responses._responses import ResponseStreamState
+
+    state: ResponseStreamState[object] = ResponseStreamState(input_tools=omit, text_format=omit)
+
+    def make_event(value: dict[str, object]) -> RawResponseStreamEvent:
+        return construct_type_unchecked(type_=RawResponseStreamEvent, value=value)
+
+    created_response = {"id": "resp_123", "output": [], "status": "in_progress"}
+    state.handle_event(make_event({"type": "response.created", "response": created_response, "sequence_number": 0}))
+
+    message_item = {
+        "id": "msg_123",
+        "type": "message",
+        "role": "assistant",
+        "status": "in_progress",
+        "content": [],
+    }
+    state.handle_event(
+        make_event(
+            {
+                "type": "response.output_item.added",
+                "output_index": 0,
+                "item": message_item,
+                "sequence_number": 1,
+            }
+        )
+    )
+
+    completed_response = {"id": "resp_123", "output": None, "status": "completed"}
+    state.handle_event(make_event({"type": "response.completed", "response": completed_response, "sequence_number": 2}))
+
+    final = state._completed_response
+    assert final is not None
+    assert len(final.output) == 1
+    assert final.output[0].id == "msg_123"
+
+
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
 def test_stream_method_definition_in_sync(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
     checking_client: OpenAI | AsyncOpenAI = client if sync else async_client

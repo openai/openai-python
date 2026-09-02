@@ -357,9 +357,15 @@ class ResponseStreamState(Generic[TextFormatT]):
             if output.type == "function_call":
                 output.arguments += event.delta
         elif event.type == "response.completed":
+            response = event.response
+            if not response.output and snapshot.output:
+                # Some backends send `response.completed` with a null/empty `output`
+                # even though prior `response.output_item.added` / delta events already
+                # populated it on the snapshot; prefer the accumulated snapshot in that case.
+                response = response.model_copy(update={"output": snapshot.output})
             self._completed_response = parse_response(
                 text_format=self._text_format,
-                response=event.response,
+                response=response,
                 input_tools=self._input_tools,
             )
 
