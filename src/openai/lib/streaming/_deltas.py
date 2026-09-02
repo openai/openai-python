@@ -6,13 +6,24 @@ from ..._utils import is_dict, is_list
 def accumulate_delta(acc: dict[object, object], delta: dict[object, object]) -> dict[object, object]:
     for key, delta_value in delta.items():
         if key not in acc:
-            acc[key] = delta_value
-            continue
+            # delta lists of dicts can contain multiple entries with the same
+            # `index`, so we initialise to [] and let the merge loop handle it
+            if is_list(delta_value) and delta_value and is_dict(delta_value[0]):
+                acc_delta_value: list[object] = []
+                acc[key] = acc_delta_value
+            else:
+                acc[key] = delta_value
+                continue
 
         acc_value = acc[key]
         if acc_value is None:
-            acc[key] = delta_value
-            continue
+            if is_list(delta_value) and delta_value and is_dict(delta_value[0]):
+                acc_delta_value: list[object] = []  # type: ignore[no-redef]
+                acc_value = acc_delta_value
+                acc[key] = acc_value
+            else:
+                acc[key] = delta_value
+                continue
 
         # the `index` property is used in arrays of objects so it should
         # not be accumulated like other values e.g.
@@ -33,7 +44,7 @@ def accumulate_delta(acc: dict[object, object], delta: dict[object, object]) -> 
         elif is_list(acc_value) and is_list(delta_value):
             # for lists of non-dictionary items we'll only ever get new entries
             # in the array, existing entries will never be changed
-            if all(isinstance(x, (str, int, float)) for x in acc_value):
+            if acc_value and all(isinstance(x, (str, int, float)) for x in acc_value):
                 acc_value.extend(delta_value)
                 continue
 
