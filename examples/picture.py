@@ -1,4 +1,10 @@
 #!/usr/bin/env python
+"""
+Example script demonstrating image generation using DALL-E 3.
+
+This script generates an image from a text prompt using OpenAI's DALL-E 3 model
+and prints the response containing a URL to the generated image.
+"""
 
 from openai import OpenAI
 
