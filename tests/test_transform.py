@@ -154,6 +154,18 @@ class Bar7(TypedDict):
     foo: str
 
 
+class Foo7BareDict(TypedDict):
+    metadata: dict
+
+
+@parametrize
+@pytest.mark.asyncio
+async def test_bare_dict_typeddict_field(use_async: bool) -> None:
+    data = {"metadata": {"key": "value"}}
+
+    assert await transform(data, Foo7BareDict, use_async) == data
+
+
 @parametrize
 @pytest.mark.asyncio
 async def test_ignores_invalid_input(use_async: bool) -> None:
