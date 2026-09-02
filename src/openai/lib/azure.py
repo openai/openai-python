@@ -56,6 +56,13 @@ def _has_auth_header(headers: Headers) -> bool:
     return _has_header(headers, "Authorization") or _has_header(headers, "api-key")
 
 
+def _is_jwt(token: str) -> bool:
+    """Check if a token looks like a JWT (used for Azure AD tokens)."""
+    # JWT tokens have three parts separated by dots: header.payload.signature
+    # The header is base64-encoded and typically starts with "eyJ" for RS256/HS256 tokens
+    return token.startswith("eyJ") and token.count(".") == 2
+
+
 _AZURE_AUTH_ORIGIN = "openai.azure_auth_origin"
 
 
@@ -459,6 +466,9 @@ class AzureOpenAI(BaseAzureClient[httpx2.Client, Stream[Any]], OpenAI):
             return {"Authorization": f"Bearer {self._azure_ad_token}"}
 
         if self.api_key and self.api_key != API_KEY_SENTINEL:
+            # If api_key looks like a JWT (Azure AD token), send as Bearer
+            if _is_jwt(self.api_key):
+                return {"Authorization": f"Bearer {self.api_key}"}
             return {"api-key": self.api_key}
 
         return {}
@@ -813,6 +823,9 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx2.AsyncClient, AsyncStream[Any]], As
             return {"Authorization": f"Bearer {self._azure_ad_token}"}
 
         if self.api_key and self.api_key != API_KEY_SENTINEL:
+            # If api_key looks like a JWT (Azure AD token), send as Bearer
+            if _is_jwt(self.api_key):
+                return {"Authorization": f"Bearer {self.api_key}"}
             return {"api-key": self.api_key}
 
         return {}
