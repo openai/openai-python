@@ -1015,3 +1015,33 @@ def test_iterable_construction_str_falls_back_to_list() -> None:
     # falls back to list of chars rather than calling str(["h", "e", "l", "l", "o"])
     assert m.data["items"] == ["h", "e", "l", "l", "o"]
     assert m.model_dump()["data"]["items"] == ["h", "e", "l", "l", "o"]
+
+
+# Regression tests for https://github.com/openai/openai-python/issues/3338 and #3341
+# Tests for bare dict/list type annotations in construct_type
+
+
+def test_construct_type_bare_dict() -> None:
+    """Test that construct_type handles bare `dict` annotation without crashing (issue #3341)."""
+    # This used to raise: ValueError: not enough values to unpack (expected 2, got 0)
+    result = construct_type(value={"key": "value", "nested": {"a": 1}}, type_=dict)
+    assert result == {"key": "value", "nested": {"a": 1}}
+
+
+def test_construct_type_bare_list() -> None:
+    """Test that construct_type handles bare `list` annotation without crashing."""
+    # This used to raise: IndexError: tuple index out of range
+    result = construct_type(value=[1, "two", {"three": 3}], type_=list)
+    assert result == [1, "two", {"three": 3}]
+
+
+def test_construct_type_bare_dict_empty() -> None:
+    """Test that construct_type handles empty dict."""
+    result = construct_type(value={}, type_=dict)
+    assert result == {}
+
+
+def test_construct_type_bare_list_empty() -> None:
+    """Test that construct_type handles empty list."""
+    result = construct_type(value=[], type_=list)
+    assert result == []
