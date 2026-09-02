@@ -16,7 +16,7 @@ This file governs coordinated disclosure and what reporters should include. The
 canonical repository threat model, trust boundaries, reportability guidance,
 and severity calibration for Codex Security scans are maintained in
 [`docs/architecture/security-model.md`](docs/architecture/security-model.md).
-Use that document from the scanned revision as the authority for security
+Follow that document's own trusted-revision resolution rule for security
 analysis; do not duplicate or infer a competing threat model from this
 disclosure policy.
 
