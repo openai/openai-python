@@ -122,7 +122,7 @@ class ResponseCompactParams(TypedDict, total=False):
             None,
         ]
     ]
-    """Model ID used to generate the response, like `gpt-5` or `o3`.
+    """Model ID used to generate the response, like `gpt-5.6-sol`.
 
     OpenAI offers a wide range of models with different capabilities, performance
     characteristics, and price points. Refer to the

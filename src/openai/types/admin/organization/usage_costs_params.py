@@ -39,6 +39,13 @@ class UsageCostsParams(TypedDict, total=False):
     Limit can range between 1 and 180, and the default is 7.
     """
 
+    line_items: SequenceNotStr[str]
+    """Return only costs for these exact line item names.
+
+    Each value must match the complete `line_item` value, for example
+    `gpt-5.6-sol, input_tokens`.
+    """
+
     page: str
     """A cursor for use in pagination.
 

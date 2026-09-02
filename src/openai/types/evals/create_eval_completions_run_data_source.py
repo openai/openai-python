@@ -84,7 +84,7 @@ class SourceStoredCompletions(BaseModel):
     """
 
     model: Optional[str] = None
-    """An optional model to filter by (e.g., 'gpt-4o')."""
+    """An optional model to filter by (e.g., 'gpt-5.6-sol')."""
 
 
 Source: TypeAlias = Annotated[

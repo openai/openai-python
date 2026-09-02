@@ -44,7 +44,7 @@ __all__ = [
 class IncompleteDetails(BaseModel):
     """Details about why the response is incomplete."""
 
-    reason: Optional[Literal["max_output_tokens", "content_filter"]] = None
+    reason: Optional[Literal["max_output_tokens", "max_messages", "content_filter"]] = None
     """The reason why the response is incomplete."""
 
 
@@ -194,8 +194,7 @@ class PromptCacheOptions(BaseModel):
 
 
 class Reasoning(BaseModel):
-    """**gpt-5 and o-series models only**
-
+    """
     Configuration options for
     [reasoning models](https://platform.openai.com/docs/guides/reasoning).
     """
@@ -384,7 +383,7 @@ class BetaResponse(BaseModel):
         ],
         str,
     ]
-    """Model ID used to generate the response, like `gpt-4o` or `o3`.
+    """Model ID used to generate the response, like `gpt-5.6-sol`.
 
     OpenAI offers a wide range of models with different capabilities, performance
     characteristics, and price points. Refer to the
@@ -543,8 +542,7 @@ class BetaResponse(BaseModel):
     """
 
     reasoning: Optional[Reasoning] = None
-    """**gpt-5 and o-series models only**
-
+    """
     Configuration options for
     [reasoning models](https://platform.openai.com/docs/guides/reasoning).
     """
