@@ -37,6 +37,7 @@ from ....lib._parsing import (
     ResponseFormatT,
     validate_input_tools as _validate_input_tools,
     parse_chat_completion as _parse_chat_completion,
+    materialize_input_tools as _materialize_input_tools,
     type_to_response_format_param as _type_to_response_format,
 )
 from ....lib.streaming.chat import ChatCompletionStreamManager, AsyncChatCompletionStreamManager
@@ -1612,7 +1613,7 @@ class Completions(SyncAPIResource):
         When the context manager exits, the response will be closed, however the `stream` instance is still available outside
         the context manager.
         """
-        chat_completion_tools = _validate_input_tools(tools)
+        chat_completion_tools = _materialize_input_tools(tools)
 
         extra_headers = {
             "X-Stainless-Helper-Method": "chat.completions.stream",

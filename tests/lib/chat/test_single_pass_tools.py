@@ -138,13 +138,24 @@ def test_stream_preserves_single_pass_tools(client: OpenAI, respx2_mock: MockRou
     assert_request_and_parsed_tool(respx2_mock, tool_calls[0].function.parsed_arguments)
 
 
-def test_stream_rejects_non_strict_tools(client: OpenAI) -> None:
-    with pytest.raises(ValueError, match="Only `strict` function tools can be auto-parsed"):
-        client.chat.completions.stream(
-            model="gpt-test",
-            messages=[{"role": "user", "content": "weather"}],
-            tools=non_strict_tools(),
-        )
+@pytest.mark.respx2(base_url=base_url)
+def test_stream_preserves_non_strict_single_pass_tools(client: OpenAI, respx2_mock: MockRouter) -> None:
+    respx2_mock.post("/chat/completions").mock(
+        return_value=httpx2.Response(200, text=STREAM_RESPONSE, headers={"content-type": "text/event-stream"})
+    )
+
+    with client.chat.completions.stream(
+        model="gpt-test",
+        messages=[{"role": "user", "content": "weather"}],
+        tools=non_strict_tools(),
+    ) as stream:
+        completion = stream.get_final_completion()
+
+    tool_calls = completion.choices[0].message.tool_calls
+    assert tool_calls is not None
+    body = json.loads(cast("list[MockRequestCall]", respx2_mock.calls)[0].request.content)
+    assert body["tools"] == list(non_strict_tools())
+    assert tool_calls[0].function.parsed_arguments is None
 
 
 @pytest.mark.respx2(base_url=base_url)
