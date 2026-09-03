@@ -30,7 +30,7 @@ class TestCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-5.6-sol",
+            model="gpt-6-astra",
         )
         assert_matches_type(ChatCompletion, completion, path=["response"])
 
@@ -44,7 +44,7 @@ class TestCompletions:
                     "name": "name",
                 }
             ],
-            model="gpt-5.6-sol",
+            model="gpt-6-astra",
             audio={
                 "format": "wav",
                 "voice": "alloy",
@@ -137,7 +137,7 @@ class TestCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-5.6-sol",
+            model="gpt-6-astra",
         )
 
         assert response.is_closed is True
@@ -154,7 +154,7 @@ class TestCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-5.6-sol",
+            model="gpt-6-astra",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -173,7 +173,7 @@ class TestCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-5.6-sol",
+            model="gpt-6-astra",
             stream=True,
         )
         completion_stream.response.close()
@@ -188,7 +188,7 @@ class TestCompletions:
                     "name": "name",
                 }
             ],
-            model="gpt-5.6-sol",
+            model="gpt-6-astra",
             stream=True,
             audio={
                 "format": "wav",
@@ -281,7 +281,7 @@ class TestCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-5.6-sol",
+            model="gpt-6-astra",
             stream=True,
         )
 
@@ -298,7 +298,7 @@ class TestCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-5.6-sol",
+            model="gpt-6-astra",
             stream=True,
         ) as response:
             assert not response.is_closed
@@ -478,7 +478,7 @@ class TestAsyncCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-5.6-sol",
+            model="gpt-6-astra",
         )
         assert_matches_type(ChatCompletion, completion, path=["response"])
 
@@ -492,7 +492,7 @@ class TestAsyncCompletions:
                     "name": "name",
                 }
             ],
-            model="gpt-5.6-sol",
+            model="gpt-6-astra",
             audio={
                 "format": "wav",
                 "voice": "alloy",
@@ -585,7 +585,7 @@ class TestAsyncCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-5.6-sol",
+            model="gpt-6-astra",
         )
 
         assert response.is_closed is True
@@ -602,7 +602,7 @@ class TestAsyncCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-5.6-sol",
+            model="gpt-6-astra",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -621,7 +621,7 @@ class TestAsyncCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-5.6-sol",
+            model="gpt-6-astra",
             stream=True,
         )
         await completion_stream.response.aclose()
@@ -636,7 +636,7 @@ class TestAsyncCompletions:
                     "name": "name",
                 }
             ],
-            model="gpt-5.6-sol",
+            model="gpt-6-astra",
             stream=True,
             audio={
                 "format": "wav",
@@ -729,7 +729,7 @@ class TestAsyncCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-5.6-sol",
+            model="gpt-6-astra",
             stream=True,
         )
 
@@ -746,7 +746,7 @@ class TestAsyncCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-5.6-sol",
+            model="gpt-6-astra",
             stream=True,
         ) as response:
             assert not response.is_closed

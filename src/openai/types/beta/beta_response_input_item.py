@@ -25,6 +25,7 @@ from .beta_response_code_interpreter_tool_call import BetaResponseCodeInterprete
 from .beta_response_input_message_content_list import BetaResponseInputMessageContentList
 from .beta_response_tool_search_output_item_param import BetaResponseToolSearchOutputItemParam
 from .beta_response_function_call_output_item_list import BetaResponseFunctionCallOutputItemList
+from .beta_response_configuration_update_item_param import BetaResponseConfigurationUpdateItemParam
 from .beta_response_function_shell_call_output_content import BetaResponseFunctionShellCallOutputContent
 from .beta_response_computer_tool_call_output_screenshot import BetaResponseComputerToolCallOutputScreenshot
 
@@ -1148,6 +1149,7 @@ BetaResponseInputItem: TypeAlias = Annotated[
         ToolSearchCall,
         BetaResponseToolSearchOutputItemParam,
         AdditionalTools,
+        BetaResponseConfigurationUpdateItemParam,
         BetaResponseReasoningItem,
         BetaResponseCompactionItemParam,
         ImageGenerationCall,
