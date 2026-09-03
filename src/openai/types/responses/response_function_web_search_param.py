@@ -85,7 +85,7 @@ class ResponseFunctionWebSearchParam(TypedDict, total=False):
     details on how the model used the web (search, open_page, find_in_page).
     """
 
-    status: Required[Literal["in_progress", "searching", "completed", "failed"]]
+    status: Required[Literal["in_progress", "searching", "completed", "failed", "incomplete"]]
     """The status of the web search tool call."""
 
     type: Required[Literal["web_search_call"]]
