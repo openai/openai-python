@@ -439,7 +439,7 @@ class Usage(SyncAPIResource):
               180, and the default is 7.
 
           line_items: Return only costs for these exact line item names. Each value must match the
-              complete `line_item` value, for example `gpt-5.6-sol, input_tokens`.
+              complete `line_item` value, for example `gpt-6-astra, input_tokens`.
 
           page: A cursor for use in pagination. Corresponding to the `next_page` field from the
               previous response.
@@ -1399,7 +1399,7 @@ class AsyncUsage(AsyncAPIResource):
               180, and the default is 7.
 
           line_items: Return only costs for these exact line item names. Each value must match the
-              complete `line_item` value, for example `gpt-5.6-sol, input_tokens`.
+              complete `line_item` value, for example `gpt-6-astra, input_tokens`.
 
           page: A cursor for use in pagination. Corresponding to the `next_page` field from the
               previous response.

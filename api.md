@@ -427,6 +427,20 @@ Methods:
 - <code title="post /vector_stores/{vector_store_id}/file_batches/{batch_id}/cancel">client.vector_stores.file_batches.<a href="./src/openai/resources/vector_stores/file_batches.py">cancel</a>(batch_id, \*, vector_store_id) -> <a href="./src/openai/types/vector_stores/vector_store_file_batch.py">VectorStoreFileBatch</a></code>
 - <code title="get /vector_stores/{vector_store_id}/file_batches/{batch_id}/files">client.vector_stores.file_batches.<a href="./src/openai/resources/vector_stores/file_batches.py">list_files</a>(batch_id, \*, vector_store_id, \*\*<a href="src/openai/types/vector_stores/file_batch_list_files_params.py">params</a>) -> <a href="./src/openai/types/vector_stores/vector_store_file.py">SyncCursorPage[VectorStoreFile]</a></code>
 
+# Safety
+
+## Alerts
+
+Types:
+
+```python
+from openai.types.safety import SafetyAlert
+```
+
+Methods:
+
+- <code title="get /safety/alerts/{id}">client.safety.alerts.<a href="./src/openai/resources/safety/alerts.py">retrieve</a>(id) -> <a href="./src/openai/types/safety/safety_alert.py">SafetyAlert</a></code>
+
 # [Webhooks](src/openai/resources/webhooks/api.md)
 
 # Beta
@@ -479,6 +493,8 @@ from openai.types.beta import (
     BetaResponseComputerToolCall,
     BetaResponseComputerToolCallOutputItem,
     BetaResponseComputerToolCallOutputScreenshot,
+    BetaResponseConfigurationUpdateItem,
+    BetaResponseConfigurationUpdateItemParam,
     BetaResponseContainerReference,
     BetaResponseContent,
     BetaResponseContentPartAddedEvent,
@@ -568,6 +584,15 @@ from openai.types.beta import (
     BetaResponseShellCallOutputContentDeltaEvent,
     BetaResponseShellCallOutputContentDoneEvent,
     BetaResponseStatus,
+    BetaResponseSteerAcceptedEvent,
+    BetaResponseSteerErrorCode,
+    BetaResponseSteerEvent,
+    BetaResponseSteerFailedEvent,
+    BetaResponseSteerInput,
+    BetaResponseSteerInputContent,
+    BetaResponseSteerPendingEvent,
+    BetaResponseSteerPendingReason,
+    BetaResponseSteerRequiredInput,
     BetaResponseStreamEvent,
     BetaResponseTextConfig,
     BetaResponseTextDeltaEvent,

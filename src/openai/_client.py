@@ -48,6 +48,7 @@ if TYPE_CHECKING:
         files,
         images,
         models,
+        safety,
         skills,
         videos,
         batches,
@@ -76,6 +77,7 @@ if TYPE_CHECKING:
     from .resources.completions import Completions, AsyncCompletions
     from .resources.evals.evals import Evals, AsyncEvals
     from .resources.moderations import Moderations, AsyncModerations
+    from .resources.safety.safety import Safety, AsyncSafety
     from .resources.skills.skills import Skills, AsyncSkills
     from .resources.uploads.uploads import Uploads, AsyncUploads
     from .resources.realtime.realtime import Realtime, AsyncRealtime
@@ -273,6 +275,12 @@ class OpenAI(SyncAPIClient):
         from .resources.vector_stores import VectorStores
 
         return VectorStores(self)
+
+    @cached_property
+    def safety(self) -> Safety:
+        from .resources.safety import Safety
+
+        return Safety(self)
 
     @cached_property
     def webhooks(self) -> Webhooks:
@@ -692,6 +700,12 @@ class AsyncOpenAI(AsyncAPIClient):
         return AsyncVectorStores(self)
 
     @cached_property
+    def safety(self) -> AsyncSafety:
+        from .resources.safety import AsyncSafety
+
+        return AsyncSafety(self)
+
+    @cached_property
     def webhooks(self) -> AsyncWebhooks:
         from .resources.webhooks import AsyncWebhooks
 
@@ -1011,6 +1025,12 @@ class OpenAIWithRawResponse:
         return VectorStoresWithRawResponse(self._client.vector_stores)
 
     @cached_property
+    def safety(self) -> safety.SafetyWithRawResponse:
+        from .resources.safety import SafetyWithRawResponse
+
+        return SafetyWithRawResponse(self._client.safety)
+
+    @cached_property
     def beta(self) -> beta.BetaWithRawResponse:
         from .resources.beta import BetaWithRawResponse
 
@@ -1166,6 +1186,12 @@ class AsyncOpenAIWithRawResponse:
         from .resources.vector_stores import AsyncVectorStoresWithRawResponse
 
         return AsyncVectorStoresWithRawResponse(self._client.vector_stores)
+
+    @cached_property
+    def safety(self) -> safety.AsyncSafetyWithRawResponse:
+        from .resources.safety import AsyncSafetyWithRawResponse
+
+        return AsyncSafetyWithRawResponse(self._client.safety)
 
     @cached_property
     def beta(self) -> beta.AsyncBetaWithRawResponse:
@@ -1325,6 +1351,12 @@ class OpenAIWithStreamedResponse:
         return VectorStoresWithStreamingResponse(self._client.vector_stores)
 
     @cached_property
+    def safety(self) -> safety.SafetyWithStreamingResponse:
+        from .resources.safety import SafetyWithStreamingResponse
+
+        return SafetyWithStreamingResponse(self._client.safety)
+
+    @cached_property
     def beta(self) -> beta.BetaWithStreamingResponse:
         from .resources.beta import BetaWithStreamingResponse
 
@@ -1480,6 +1512,12 @@ class AsyncOpenAIWithStreamedResponse:
         from .resources.vector_stores import AsyncVectorStoresWithStreamingResponse
 
         return AsyncVectorStoresWithStreamingResponse(self._client.vector_stores)
+
+    @cached_property
+    def safety(self) -> safety.AsyncSafetyWithStreamingResponse:
+        from .resources.safety import AsyncSafetyWithStreamingResponse
+
+        return AsyncSafetyWithStreamingResponse(self._client.safety)
 
     @cached_property
     def beta(self) -> beta.AsyncBetaWithStreamingResponse:
