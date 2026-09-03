@@ -83,7 +83,7 @@ def test_required_ci_checks_fail_when_dependency_locks_fail() -> None:
     guard = (
         "    if: >-\n"
         "      !cancelled() &&\n"
-        "      (github.event_name == 'push' || github.event_name == 'merge_group' || github.event.pull_request.head.repo.fork || needs.dependency-locks.result == 'failure')\n"
+        "      (github.event_name == 'push' || github.event_name == 'merge_group' || github.event.pull_request.head.repo.fork || needs.dependency-locks.result != 'success')\n"
     )
     failure_step = (
         "      - name: Fail if dependency lock validation failed\n"
@@ -104,7 +104,7 @@ def test_required_ci_checks_fail_when_dependency_locks_fail() -> None:
     # A same-repository pull request normally has a false fork predicate. The
     # dependency failure branch is what makes each required check run and fail
     # instead of being skipped when that pull request's lock validation fails.
-    assert "github.event.pull_request.head.repo.fork || needs.dependency-locks.result == 'failure'" in guard
+    assert "github.event.pull_request.head.repo.fork || needs.dependency-locks.result != 'success'" in guard
 
 
 def dependency_lock_source_command() -> str:

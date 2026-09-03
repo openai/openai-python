@@ -75,7 +75,7 @@ jobs:
     # failure instead of being skipped and accidentally satisfying branch rules.
     if: >-
       !cancelled() &&
-      (github.event_name == 'push' || github.event_name == 'merge_group' || github.event.pull_request.head.repo.fork || needs.dependency-locks.result == 'failure')
+      (github.event_name == 'push' || github.event_name == 'merge_group' || github.event.pull_request.head.repo.fork || needs.dependency-locks.result != 'success')
     steps:
       - name: Fail if dependency lock validation failed
         if: needs.dependency-locks.result != 'success'
@@ -105,7 +105,7 @@ jobs:
     needs: dependency-locks
     if: >-
       !cancelled() &&
-      (github.event_name == 'push' || github.event_name == 'merge_group' || github.event.pull_request.head.repo.fork || needs.dependency-locks.result == 'failure')
+      (github.event_name == 'push' || github.event_name == 'merge_group' || github.event.pull_request.head.repo.fork || needs.dependency-locks.result != 'success')
     timeout-minutes: 10
     name: build
     permissions:
@@ -168,7 +168,7 @@ jobs:
     needs: dependency-locks
     if: >-
       !cancelled() &&
-      (github.event_name == 'push' || github.event_name == 'merge_group' || github.event.pull_request.head.repo.fork || needs.dependency-locks.result == 'failure')
+      (github.event_name == 'push' || github.event_name == 'merge_group' || github.event.pull_request.head.repo.fork || needs.dependency-locks.result != 'success')
     strategy:
       fail-fast: false
       matrix:
@@ -213,7 +213,7 @@ jobs:
     needs: dependency-locks
     if: >-
       !cancelled() &&
-      (github.event_name == 'push' || github.event_name == 'merge_group' || github.event.pull_request.head.repo.fork || needs.dependency-locks.result == 'failure')
+      (github.event_name == 'push' || github.event_name == 'merge_group' || github.event.pull_request.head.repo.fork || needs.dependency-locks.result != 'success')
     steps:
       - name: Fail if dependency lock validation failed
         if: needs.dependency-locks.result != 'success'
