@@ -32,6 +32,7 @@ def test_resolve_ref_decodes_fragment_before_splitting_tokens() -> None:
     }
 
     assert resolve_ref(root=schema, ref="#/$defs%2FGroup%2FItem") == {"type": "string"}
+    assert resolve_ref(root=schema, ref="#%2F$defs%2FGroup%2FItem") == {"type": "string"}
 
 
 def test_strict_schema_inlines_escaped_ref() -> None:
