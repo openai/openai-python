@@ -1,6 +1,7 @@
 # Steady source and the runtime used to execute it.
 STEADY_REPOSITORY=https://github.com/openai-oss-forks/steady.git
 STEADY_REVISION=195de4e71f6f87282110b044b454582e7fbc34bb
+STEADY_SOURCE_SHA256=755931a91126dca657813a3116411e7f02c501e3c510aa1c315cb22ed898104c
 DENO_VERSION=2.7.11
 
 case "$(uname -s):$(uname -m)" in
@@ -40,9 +41,9 @@ steady_sha256() {
 
 steady_verify() {
   [[ -d "$STEADY_CACHE" && "$(cd "$STEADY_CACHE" && pwd -P)" == "$STEADY_CACHE" ]] || steady_fail 'Missing or linked Steady cache.'
-  [[ -d "$STEADY_SOURCE/.git" && ! -L "$STEADY_SOURCE" && ! -L "$STEADY_SOURCE/.git" ]] || steady_fail 'Missing local Steady source.'
-  [[ "$(git -C "$STEADY_SOURCE" rev-parse HEAD)" == "$STEADY_REVISION" ]] || steady_fail 'Unexpected Steady revision.'
-  [[ -z "$(git -C "$STEADY_SOURCE" status --porcelain --untracked-files=all --ignored)" ]] || steady_fail 'Steady source has local changes; remove its cache directory before reinstalling.'
+  [[ -d "$STEADY_SOURCE" && ! -L "$STEADY_SOURCE" ]] || steady_fail 'Missing local Steady source.'
+  # Hash bytes directly; cached Git metadata must never execute hooks or filters.
+  [[ "$(node "$STEADY_ROOT/scripts/steady/source-sha256.cjs" "$STEADY_SOURCE")" == "$STEADY_SOURCE_SHA256" ]] || steady_fail 'Steady source has local changes; remove its cache directory before reinstalling.'
   [[ -f "$DENO_DIRECTORY/deno.zip" && -x "$DENO_DIRECTORY/$DENO_BINARY" && ! -L "$DENO_DIRECTORY" && ! -L "$DENO_DIRECTORY/$DENO_BINARY" ]] || steady_runtime_fail 'Missing or invalid local Deno runtime.'
   [[ "$(steady_sha256 < "$DENO_DIRECTORY/deno.zip")" == "$DENO_SHA256" ]] || steady_runtime_fail 'Deno archive checksum mismatch.'
   [[ "$(unzip -p "$DENO_DIRECTORY/deno.zip" "$DENO_BINARY" | steady_sha256)" == "$(steady_sha256 < "$DENO_DIRECTORY/$DENO_BINARY")" ]] || steady_runtime_fail 'Deno executable checksum mismatch.'

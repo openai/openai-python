@@ -22,7 +22,7 @@ publish_directory() {
 if [[ ! -e "$STEADY_SOURCE" ]]; then
   git init --quiet "$temporary/source" >&2
   git -C "$temporary/source" fetch --quiet --no-tags "$STEADY_REPOSITORY" "$STEADY_REVISION" >&2
-  git -C "$temporary/source" -c advice.detachedHead=false checkout --quiet --detach "$STEADY_REVISION" >&2
+  git -C "$temporary/source" -c advice.detachedHead=false -c core.autocrlf=false -c core.eol=lf checkout --quiet --detach "$STEADY_REVISION" >&2
   # Atomic publication also handles concurrent bootstraps.
   publish_directory "$temporary/source" "$STEADY_SOURCE"
 fi

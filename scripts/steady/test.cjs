@@ -38,7 +38,7 @@ function health(port) {
 
 async function main() {
   fs.mkdirSync(path.join(fixture, 'scripts/steady'), { recursive: true });
-  for (const file of ['scripts/run-steady', 'scripts/steady/settings']) {
+  for (const file of ['scripts/run-steady', 'scripts/steady/settings', 'scripts/steady/source-sha256.cjs']) {
     fs.copyFileSync(path.join(root, file), path.join(fixture, file));
   }
   rejects(/Missing/);
@@ -54,6 +54,17 @@ async function main() {
   const cache = path.join(fixture, 'scripts/steady/.cache');
   const source = path.join(cache, fs.readdirSync(cache).find((name) => name.startsWith('source-')));
   const runtime = path.join(cache, fs.readdirSync(cache).find((name) => name.startsWith('deno-')));
+  const gitConfig = path.join(source, '.git/config');
+  const originalConfig = fs.readFileSync(gitConfig);
+  const marker = path.join(temporary, 'hook-ran');
+  const hook = path.join(source, '.git/test-fsmonitor');
+  fs.writeFileSync(hook, `#!/bin/sh\nprintf called > "${marker}"\n`, { mode: 0o755 });
+  fs.appendFileSync(gitConfig, `\n[core]\n\tfsmonitor = ${JSON.stringify(hook)}\n`);
+  assert.equal(run().status, 0, 'Cached Git metadata must not affect verification');
+  assert.equal(fs.existsSync(marker), false, 'Verification must not execute cached Git hooks');
+  fs.writeFileSync(gitConfig, originalConfig);
+  fs.unlinkSync(hook);
+
   const entry = path.join(source, 'cmd/steady.ts');
   const original = fs.readFileSync(entry);
   fs.appendFileSync(entry, '\nthrow new Error("unexpected source execution");\n');
