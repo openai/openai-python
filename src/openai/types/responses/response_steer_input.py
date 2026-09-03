@@ -94,9 +94,9 @@ class ResponseSteerInputItemListFunctionCallOutput(BaseModel):
     """
 
 
-ResponseSteerInputItemList: TypeAlias = Annotated[
-    Union[ResponseSteerInputItemListMessage, ResponseSteerInputItemListFunctionCallOutput],
-    PropertyInfo(discriminator="type"),
+ResponseSteerInputItemList: TypeAlias = Union[
+    ResponseSteerInputItemListMessage,
+    ResponseSteerInputItemListFunctionCallOutput,
 ]
 
 ResponseSteerInput: TypeAlias = Union[str, List[ResponseSteerInputItemList]]
