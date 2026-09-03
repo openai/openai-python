@@ -34,6 +34,17 @@ def single_pass_tools() -> Iterator[ChatCompletionToolUnionParam]:
     }
 
 
+def non_strict_tools() -> Iterator[ChatCompletionToolUnionParam]:
+    yield {
+        "type": "function",
+        "function": {
+            "name": "get_weather",
+            "parameters": {"type": "object", "properties": {"city": {"type": "string"}}},
+            "strict": False,
+        },
+    }
+
+
 TOOL_CALL = {
     "id": "call-test",
     "type": "function",
@@ -125,6 +136,15 @@ def test_stream_preserves_single_pass_tools(client: OpenAI, respx2_mock: MockRou
     tool_calls = completion.choices[0].message.tool_calls
     assert tool_calls is not None
     assert_request_and_parsed_tool(respx2_mock, tool_calls[0].function.parsed_arguments)
+
+
+def test_stream_rejects_non_strict_tools(client: OpenAI) -> None:
+    with pytest.raises(ValueError, match="Only `strict` function tools can be auto-parsed"):
+        client.chat.completions.stream(
+            model="gpt-test",
+            messages=[{"role": "user", "content": "weather"}],
+            tools=non_strict_tools(),
+        )
 
 
 @pytest.mark.respx2(base_url=base_url)
