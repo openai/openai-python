@@ -173,17 +173,18 @@ $ pip install ./path-to-wheel-file.whl
 ## Running tests
 
 The mock server uses [the OpenAI Steady fork](https://github.com/openai-oss-forks/steady).
-`scripts/steady/settings` pins its full Git commit, source digest, and Deno 2.7.11 runtime
-checksums. `./scripts/steady/install` fetches that source, verifies the runtime,
+`scripts/steady/manifest.json` is the single source of dependency pins: the
+Steady Git commit and source digest, plus the Deno version and runtime checksums. `./scripts/steady/install` fetches that source, verifies the runtime,
 and caches dependencies using the fork's frozen Deno lockfile. It requires
 Git, Node.js, curl, unzip, and sha256sum or shasum. The installation supports
 macOS and Linux on x64/ARM64, and Windows x64 through Git Bash.
 
 `./scripts/run-steady` verifies the local source and runtime, then runs without
 downloading dependencies. Pass a local OpenAPI specification path. To update
-Steady, review the fork commit and change `STEADY_REVISION`; review the release
-checksums when changing Deno. When changing Steady, recompute the source digest
-with `node scripts/steady/source-sha256.cjs <clean-source-directory>`.
+Steady, review the fork commit and run
+`node scripts/steady/update.cjs <full-commit-sha>`. This updates the manifest
+with the commit and its source digest; no launcher or test edits are needed.
+Then run `./scripts/steady/install`. Review the release checksums when changing Deno.
 Run `node scripts/steady/test.cjs` to check the
 installation, integrity checks, and mock-server lifecycle.
 

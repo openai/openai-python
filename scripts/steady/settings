@@ -1,17 +1,21 @@
-# Steady source and the runtime used to execute it.
-STEADY_REPOSITORY=https://github.com/openai-oss-forks/steady.git
-STEADY_REVISION=195de4e71f6f87282110b044b454582e7fbc34bb
-STEADY_SOURCE_SHA256=755931a91126dca657813a3116411e7f02c501e3c510aa1c315cb22ed898104c
-DENO_VERSION=2.7.11
-
 case "$(uname -s):$(uname -m)" in
-  Darwin:arm64) DENO_TARGET=aarch64-apple-darwin; DENO_SHA256=2da6fd51ad6af3b8711ff327b448b76b1dc8ee75678842aff637b6827205d8bd ;;
-  Darwin:x86_64) DENO_TARGET=x86_64-apple-darwin; DENO_SHA256=a01abae36024b9a6cfa9ffa5fa8325d71993e115fb7a8ab79f2720fe83b7fb5b ;;
-  Linux:aarch64|Linux:arm64) DENO_TARGET=aarch64-unknown-linux-gnu; DENO_SHA256=1c9024937e711d17c20bc0fd510147aba6d5315ed6cfbe0fa0e6d3cee8a681b7 ;;
-  Linux:x86_64) DENO_TARGET=x86_64-unknown-linux-gnu; DENO_SHA256=16990cd4f3728b82b0f1432b233214fe793a0e03c27d77a2ee89f27b3e984097 ;;
-  MINGW*:x86_64|MSYS*:x86_64) DENO_TARGET=x86_64-pc-windows-msvc; DENO_SHA256=8bd617ed5d999115eaa249edba493ab313afb32be94fcb2c71db1828a8376eb8 ;;
+  Darwin:arm64) DENO_TARGET=aarch64-apple-darwin ;;
+  Darwin:x86_64) DENO_TARGET=x86_64-apple-darwin ;;
+  Linux:aarch64|Linux:arm64) DENO_TARGET=aarch64-unknown-linux-gnu ;;
+  Linux:x86_64) DENO_TARGET=x86_64-unknown-linux-gnu ;;
+  MINGW*:x86_64|MSYS*:x86_64) DENO_TARGET=x86_64-pc-windows-msvc ;;
   *) echo 'Unsupported platform for the Steady development tool.' >&2; exit 1 ;;
 esac
+
+# Keep dependency pins in the data manifest, separate from launcher code.
+read -r STEADY_REPOSITORY STEADY_REVISION STEADY_SOURCE_SHA256 DENO_VERSION DENO_SHA256 < <(
+  node -e '
+    const { steady, deno } = require(process.argv[1]);
+    const checksum = deno.sha256[process.argv[2]];
+    if (!checksum) throw new Error("Missing Deno checksum for this platform");
+    console.log(steady.repository, steady.revision, steady.sha256, deno.version, checksum);
+  ' "$STEADY_ROOT/scripts/steady/manifest.json" "$DENO_TARGET"
+)
 
 STEADY_CACHE="$STEADY_ROOT/scripts/steady/.cache"
 STEADY_SOURCE="$STEADY_CACHE/source-$STEADY_REVISION"

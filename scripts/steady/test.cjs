@@ -38,7 +38,7 @@ function health(port) {
 
 async function main() {
   fs.mkdirSync(path.join(fixture, 'scripts/steady'), { recursive: true });
-  for (const file of ['scripts/run-steady', 'scripts/steady/settings', 'scripts/steady/source-sha256.cjs']) {
+  for (const file of ['scripts/run-steady', 'scripts/steady/settings', 'scripts/steady/source-sha256.cjs', 'scripts/steady/manifest.json']) {
     fs.copyFileSync(path.join(root, file), path.join(fixture, file));
   }
   rejects(/Missing/);
@@ -49,11 +49,15 @@ async function main() {
   assert.equal(copied.status, 0);
   const version = run();
   assert.equal(version.status, 0, version.stderr);
-  assert.match(version.stdout, /^steady 0\.22\.2\s*$/);
+  assert.match(version.stdout, /^steady \d+\.\d+\.\d+\s*$/);
 
-  const cache = path.join(fixture, 'scripts/steady/.cache');
-  const source = path.join(cache, fs.readdirSync(cache).find((name) => name.startsWith('source-')));
-  const runtime = path.join(cache, fs.readdirSync(cache).find((name) => name.startsWith('deno-')));
+  const configured = spawnSync('bash', [
+    '-c',
+    'STEADY_ROOT="$1"; source "$STEADY_ROOT/scripts/steady/settings"; printf "%s\\n%s\\n" "$STEADY_SOURCE" "$DENO_DIRECTORY"',
+    'steady-settings', fixture,
+  ], { encoding: 'utf-8' });
+  assert.equal(configured.status, 0, configured.stderr);
+  const [source, runtime] = configured.stdout.trim().split('\n');
   const gitConfig = path.join(source, '.git/config');
   const originalConfig = fs.readFileSync(gitConfig);
   const marker = path.join(temporary, 'hook-ran');
