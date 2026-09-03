@@ -47,7 +47,7 @@ realtime = ["websockets >= 13, < 16"]
 datalib = ["numpy >= 1", "pandas >= 1.2.3"]
 voice_helpers = ["sounddevice>=0.5.1", "numpy>=2.0.2"]
 bedrock = [
-  "botocore>=1.40.0,<2",
+  "botocore<2,>=1.40.0",
   "urllib3>=2.7.0,<3",
 ]
 
@@ -60,7 +60,7 @@ dev = [
     "rich>=13.7.1",
     "inline-snapshot>=0.28.0",
     "azure-identity >=1.14.1",
-    "botocore==1.42.97",
+    "botocore==1.43.81",
     "pandas-stubs >= 1.1.0.11",
     "trio >=0.22.2",
     "pytest-xdist>=3.6.1",
@@ -70,7 +70,7 @@ pydantic-v1 = ["pydantic>=1.10.26,<2"]
 pydantic-v2 = ["pydantic>=2,<3"]
 # Isolated build requirements are exported with hashes by scripts/build.
 build = [
-    "hatchling==1.27.0",
+    "hatchling==1.32.0",
     "packaging==26.3",
     "pathspec==1.1.1",
     "pluggy==1.6.0",
@@ -96,7 +96,7 @@ constraint-dependencies = [
 ]
 # Also constrain editable/source builds performed by uv sync.
 build-constraint-dependencies = [
-    "hatchling==1.27.0",
+    "hatchling==1.32.0",
     "packaging==26.3",
     "pathspec==1.1.1",
     "pluggy==1.6.0",
@@ -106,7 +106,7 @@ build-constraint-dependencies = [
 
 
 [build-system]
-requires = ["hatchling==1.27.0"]
+requires = ["hatchling==1.32.0"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build]
