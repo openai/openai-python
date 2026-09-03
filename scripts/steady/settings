@@ -1,0 +1,44 @@
+# Steady source and the runtime used to execute it.
+STEADY_REPOSITORY=https://github.com/openai-oss-forks/steady.git
+STEADY_REVISION=195de4e71f6f87282110b044b454582e7fbc34bb
+DENO_VERSION=2.7.11
+
+case "$(uname -s):$(uname -m)" in
+  Darwin:arm64) DENO_TARGET=aarch64-apple-darwin; DENO_SHA256=2da6fd51ad6af3b8711ff327b448b76b1dc8ee75678842aff637b6827205d8bd ;;
+  Darwin:x86_64) DENO_TARGET=x86_64-apple-darwin; DENO_SHA256=a01abae36024b9a6cfa9ffa5fa8325d71993e115fb7a8ab79f2720fe83b7fb5b ;;
+  Linux:aarch64|Linux:arm64) DENO_TARGET=aarch64-unknown-linux-gnu; DENO_SHA256=1c9024937e711d17c20bc0fd510147aba6d5315ed6cfbe0fa0e6d3cee8a681b7 ;;
+  Linux:x86_64) DENO_TARGET=x86_64-unknown-linux-gnu; DENO_SHA256=16990cd4f3728b82b0f1432b233214fe793a0e03c27d77a2ee89f27b3e984097 ;;
+  MINGW*:x86_64|MSYS*:x86_64) DENO_TARGET=x86_64-pc-windows-msvc; DENO_SHA256=8bd617ed5d999115eaa249edba493ab313afb32be94fcb2c71db1828a8376eb8 ;;
+  *) echo 'Unsupported platform for the Steady development tool.' >&2; exit 1 ;;
+esac
+
+STEADY_CACHE="$STEADY_ROOT/scripts/steady/.cache"
+STEADY_SOURCE="$STEADY_CACHE/source-$STEADY_REVISION"
+DENO_DIRECTORY="$STEADY_CACHE/deno-$DENO_VERSION-$DENO_TARGET"
+DENO_BINARY=deno
+[[ "$DENO_TARGET" != *windows* ]] || DENO_BINARY=deno.exe
+export DENO_DIR="$STEADY_CACHE/deps-$STEADY_REVISION-$DENO_VERSION"
+export DENO_NO_UPDATE_CHECK=1
+
+steady_fail() {
+  echo "$* Run ./scripts/steady/install to install the pinned mock tool." >&2
+  exit 1
+}
+
+steady_sha256() {
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum | cut -d ' ' -f 1
+  else
+    shasum -a 256 | cut -d ' ' -f 1
+  fi
+}
+
+steady_verify() {
+  [[ -d "$STEADY_CACHE" && "$(cd "$STEADY_CACHE" && pwd -P)" == "$STEADY_CACHE" ]] || steady_fail 'Missing or linked Steady cache.'
+  [[ -d "$STEADY_SOURCE/.git" && ! -L "$STEADY_SOURCE" && ! -L "$STEADY_SOURCE/.git" ]] || steady_fail 'Missing local Steady source.'
+  [[ "$(git -C "$STEADY_SOURCE" rev-parse HEAD)" == "$STEADY_REVISION" ]] || steady_fail 'Unexpected Steady revision.'
+  [[ -z "$(git -C "$STEADY_SOURCE" status --porcelain --untracked-files=all --ignored)" ]] || steady_fail 'Steady source has local changes; remove its cache directory before reinstalling.'
+  [[ -f "$DENO_DIRECTORY/deno.zip" && -x "$DENO_DIRECTORY/$DENO_BINARY" && ! -L "$DENO_DIRECTORY" && ! -L "$DENO_DIRECTORY/$DENO_BINARY" ]] || steady_fail 'Missing local Deno runtime.'
+  [[ "$(steady_sha256 < "$DENO_DIRECTORY/deno.zip")" == "$DENO_SHA256" ]] || steady_fail 'Deno archive checksum mismatch.'
+  [[ "$(unzip -p "$DENO_DIRECTORY/deno.zip" "$DENO_BINARY" | steady_sha256)" == "$(steady_sha256 < "$DENO_DIRECTORY/$DENO_BINARY")" ]] || steady_fail 'Deno executable checksum mismatch.'
+}

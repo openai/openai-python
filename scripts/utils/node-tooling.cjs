@@ -20,7 +20,6 @@ const [tool, ...args] = process.argv.slice(2);
 if (tool === '--check-node') process.exit(0);
 const tools = {
   pyright: { package: 'pyright', entry: 'index.js' },
-  steady: { package: '@stdy/cli', entry: 'steady.js' },
 };
 if (!Object.hasOwn(tools, tool)) fail(`Unknown repository tool: ${tool}`);
 const selected = tools[tool];
@@ -37,14 +36,7 @@ if (installed.version !== manifest.devDependencies[selected.package]) {
 }
 const entry = path.join(directory, selected.entry);
 if (!fs.existsSync(entry)) fail(`Missing local ${tool} executable.`);
-if (tool === 'steady') {
-  // The upstream wrapper owns its native child and forwards termination signals.
-  // Run it in this process so mock-server cleanup reaches that child.
-  process.argv = [process.execPath, entry, ...args];
-  require(entry);
-} else {
-  // Calling Node explicitly also avoids upstream 1.1.399's CRLF shebang issue.
-  const result = spawnSync(process.execPath, [entry, ...args], { stdio: 'inherit' });
-  if (result.error) fail(`Could not start ${tool}: ${result.error.message}`);
-  process.exit(result.status ?? 1);
-}
+// Calling Node explicitly also avoids upstream 1.1.399's CRLF shebang issue.
+const result = spawnSync(process.execPath, [entry, ...args], { stdio: 'inherit' });
+if (result.error) fail(`Could not start ${tool}: ${result.error.message}`);
+process.exit(result.status ?? 1);
