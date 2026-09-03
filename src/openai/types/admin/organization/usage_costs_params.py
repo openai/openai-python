@@ -43,7 +43,7 @@ class UsageCostsParams(TypedDict, total=False):
     """Return only costs for these exact line item names.
 
     Each value must match the complete `line_item` value, for example
-    `gpt-5.6-sol, input_tokens`.
+    `gpt-6-astra, input_tokens`.
     """
 
     page: str

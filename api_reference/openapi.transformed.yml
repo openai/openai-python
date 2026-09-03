@@ -1941,7 +1941,7 @@ paths:
                 {
                   "object": "chat.completion",
                   "id": "chatcmpl-AyPNinnUqUDYo9SAdA52NobMflmj2",
-                  "model": "gpt-5.6-sol",
+                  "model": "gpt-6-astra",
                   "created": 1738960610,
                   "request_id": "req_ded8ab984ec4bf840f37566c1011c417",
                   "tool_choice": null,
@@ -2018,7 +2018,7 @@ paths:
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -d '{
-                  "model": "gpt-5.6-sol",
+                  "model": "gpt-6-astra",
                   "messages": [
                     {
                       "role": "developer",
@@ -2035,7 +2035,7 @@ paths:
               client = OpenAI()
 
               completion = client.chat.completions.create(
-                model="gpt-5.6-sol",
+                model="gpt-6-astra",
                 messages=[
                   {"role": "developer", "content": "You are a helpful assistant."},
                   {"role": "user", "content": "Hello!"}
@@ -2051,7 +2051,7 @@ paths:
               async function main() {
                 const completion = await openai.chat.completions.create({
                   messages: [{ role: "developer", content: "You are a helpful assistant." }],
-                  model: "gpt-5.6-sol",
+                  model: "gpt-6-astra",
                   store: true,
                 });
 
@@ -2066,7 +2066,7 @@ paths:
               using OpenAI.Chat;
 
               ChatClient client = new(
-                  model: "gpt-5.6-sol",
+                  model: "gpt-6-astra",
                   apiKey: Environment.GetEnvironmentVariable("OPENAI_API_KEY")
               );
 
@@ -2084,7 +2084,7 @@ paths:
               "id": "chatcmpl-B9MBs8CjcvOU2jLn4n570S5qMJKcT",
               "object": "chat.completion",
               "created": 1741569952,
-              "model": "gpt-5.6-sol",
+              "model": "gpt-6-astra",
               "choices": [
                 {
                   "index": 0,
@@ -2122,7 +2122,7 @@ paths:
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -d '{
-                  "model": "gpt-5.6-sol",
+                  "model": "gpt-6-astra",
                   "messages": [
                     {
                       "role": "user",
@@ -2148,7 +2148,7 @@ paths:
               client = OpenAI()
 
               response = client.chat.completions.create(
-                  model="gpt-5.6-sol",
+                  model="gpt-6-astra",
                   messages=[
                       {
                           "role": "user",
@@ -2174,7 +2174,7 @@ paths:
 
               async function main() {
                 const response = await openai.chat.completions.create({
-                  model: "gpt-5.6-sol",
+                  model: "gpt-6-astra",
                   messages: [
                     {
                       role: "user",
@@ -2200,7 +2200,7 @@ paths:
               using OpenAI.Chat;
 
               ChatClient client = new(
-                  model: "gpt-5.6-sol",
+                  model: "gpt-6-astra",
                   apiKey: Environment.GetEnvironmentVariable("OPENAI_API_KEY")
               );
 
@@ -2221,7 +2221,7 @@ paths:
               "id": "chatcmpl-B9MHDbslfkBeAs8l4bebGdFOJ6PeG",
               "object": "chat.completion",
               "created": 1741570283,
-              "model": "gpt-5.6-sol",
+              "model": "gpt-6-astra",
               "choices": [
                 {
                   "index": 0,
@@ -2259,7 +2259,7 @@ paths:
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -d '{
-                  "model": "gpt-5.6-sol",
+                  "model": "gpt-6-astra",
                   "messages": [
                     {
                       "role": "developer",
@@ -2277,7 +2277,7 @@ paths:
               client = OpenAI()
 
               completion = client.chat.completions.create(
-                model="gpt-5.6-sol",
+                model="gpt-6-astra",
                 messages=[
                   {"role": "developer", "content": "You are a helpful assistant."},
                   {"role": "user", "content": "Hello!"}
@@ -2294,7 +2294,7 @@ paths:
 
               async function main() {
                 const completion = await openai.chat.completions.create({
-                  model: "gpt-5.6-sol",
+                  model: "gpt-6-astra",
                   messages: [
                     {"role": "developer", "content": "You are a helpful assistant."},
                     {"role": "user", "content": "Hello!"}
@@ -2317,7 +2317,7 @@ paths:
               using OpenAI.Chat;
 
               ChatClient client = new(
-                  model: "gpt-5.6-sol",
+                  model: "gpt-6-astra",
                   apiKey: Environment.GetEnvironmentVariable("OPENAI_API_KEY")
               );
 
@@ -2337,13 +2337,13 @@ paths:
                   }
               }
           response: |
-            {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1694268190,"model":"gpt-5.6-sol", "system_fingerprint": "fp_44709d6fcb", "choices":[{"index":0,"delta":{"role":"assistant","content":""},"logprobs":null,"finish_reason":null}]}
+            {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1694268190,"model":"gpt-6-astra", "system_fingerprint": "fp_44709d6fcb", "choices":[{"index":0,"delta":{"role":"assistant","content":""},"logprobs":null,"finish_reason":null}]}
 
-            {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1694268190,"model":"gpt-5.6-sol", "system_fingerprint": "fp_44709d6fcb", "choices":[{"index":0,"delta":{"content":"Hello"},"logprobs":null,"finish_reason":null}]}
+            {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1694268190,"model":"gpt-6-astra", "system_fingerprint": "fp_44709d6fcb", "choices":[{"index":0,"delta":{"content":"Hello"},"logprobs":null,"finish_reason":null}]}
 
             ....
 
-            {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1694268190,"model":"gpt-5.6-sol", "system_fingerprint": "fp_44709d6fcb", "choices":[{"index":0,"delta":{},"logprobs":null,"finish_reason":"stop"}]}
+            {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1694268190,"model":"gpt-6-astra", "system_fingerprint": "fp_44709d6fcb", "choices":[{"index":0,"delta":{},"logprobs":null,"finish_reason":"stop"}]}
         - title: Functions
           request:
             curl: |
@@ -2351,7 +2351,7 @@ paths:
               -H "Content-Type: application/json" \
               -H "Authorization: Bearer $OPENAI_API_KEY" \
               -d '{
-                "model": "gpt-5.6-sol",
+                "model": "gpt-6-astra",
                 "messages": [
                   {
                     "role": "user",
@@ -2409,7 +2409,7 @@ paths:
               ]
               messages = [{"role": "user", "content": "What's the weather like in Boston today?"}]
               completion = client.chat.completions.create(
-                model="gpt-5.6-sol",
+                model="gpt-6-astra",
                 messages=messages,
                 tools=tools,
                 tool_choice="auto"
@@ -2445,7 +2445,7 @@ paths:
                 ];
 
                 const response = await openai.chat.completions.create({
-                  model: "gpt-5.6-sol",
+                  model: "gpt-6-astra",
                   messages: messages,
                   tools: tools,
                   tool_choice: "auto",
@@ -2462,7 +2462,7 @@ paths:
               using OpenAI.Chat;
 
               ChatClient client = new(
-                  model: "gpt-5.6-sol",
+                  model: "gpt-6-astra",
                   apiKey: Environment.GetEnvironmentVariable("OPENAI_API_KEY")
               );
 
@@ -2507,7 +2507,7 @@ paths:
               "id": "chatcmpl-abc123",
               "object": "chat.completion",
               "created": 1699896916,
-              "model": "gpt-5.6-sol",
+              "model": "gpt-6-astra",
               "choices": [
                 {
                   "index": 0,
@@ -2547,7 +2547,7 @@ paths:
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -d '{
-                  "model": "gpt-5.6-sol",
+                  "model": "gpt-6-astra",
                   "messages": [
                     {
                       "role": "user",
@@ -2563,7 +2563,7 @@ paths:
               client = OpenAI()
 
               completion = client.chat.completions.create(
-                model="gpt-5.6-sol",
+                model="gpt-6-astra",
                 messages=[
                   {"role": "user", "content": "Hello!"}
                 ],
@@ -2582,7 +2582,7 @@ paths:
               async function main() {
                 const completion = await openai.chat.completions.create({
                   messages: [{ role: "user", content: "Hello!" }],
-                  model: "gpt-5.6-sol",
+                  model: "gpt-6-astra",
                   reasoning_effort: "none",
                   logprobs: true,
                   top_logprobs: 2,
@@ -2599,7 +2599,7 @@ paths:
               using OpenAI.Chat;
 
               ChatClient client = new(
-                  model: "gpt-5.6-sol",
+                  model: "gpt-6-astra",
                   apiKey: Environment.GetEnvironmentVariable("OPENAI_API_KEY")
               );
 
@@ -2623,7 +2623,7 @@ paths:
               "id": "chatcmpl-123",
               "object": "chat.completion",
               "created": 1702685778,
-              "model": "gpt-5.6-sol",
+              "model": "gpt-6-astra",
               "choices": [
                 {
                   "index": 0,
@@ -2868,7 +2868,7 @@ paths:
             {
               "object": "chat.completion",
               "id": "chatcmpl-abc123",
-              "model": "gpt-5.6-sol",
+              "model": "gpt-6-astra",
               "created": 1738960610,
               "request_id": "req_ded8ab984ec4bf840f37566c1011c417",
               "tool_choice": null,
@@ -2957,7 +2957,7 @@ paths:
             {
               "object": "chat.completion",
               "id": "chatcmpl-AyPNinnUqUDYo9SAdA52NobMflmj2",
-              "model": "gpt-5.6-sol",
+              "model": "gpt-6-astra",
               "created": 1738960610,
               "request_id": "req_ded8ab984ec4bf840f37566c1011c417",
               "tool_choice": null,
@@ -5090,14 +5090,14 @@ paths:
                 -X POST \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -H "Content-Type: application/json" \
-                -d '{"name":"gpt-5.6-sol","data_source":{"type":"completions","input_messages":{"type":"template","template":[{"role":"developer","content":"Categorize a given news headline into one of the following topics: Technology, Markets, World, Business, or Sports.\n\n# Steps\n\n1. Analyze the content of the news headline to understand its primary focus.\n2. Extract the subject matter, identifying any key indicators or keywords.\n3. Use the identified indicators to determine the most suitable category out of the five options: Technology, Markets, World, Business, or Sports.\n4. Ensure only one category is selected per headline.\n\n# Output Format\n\nRespond with the chosen category as a single word. For instance: \"Technology\", \"Markets\", \"World\", \"Business\", or \"Sports\".\n\n# Examples\n\n**Input**: \"Apple Unveils New iPhone Model, Featuring Advanced AI Features\"  \n**Output**: \"Technology\"\n\n**Input**: \"Global Stocks Mixed as Investors Await Central Bank Decisions\"  \n**Output**: \"Markets\"\n\n**Input**: \"War in Ukraine: Latest Updates on Negotiation Status\"  \n**Output**: \"World\"\n\n**Input**: \"Microsoft in Talks to Acquire Gaming Company for $2 Billion\"  \n**Output**: \"Business\"\n\n**Input**: \"Manchester United Secures Win in Premier League Football Match\"  \n**Output**: \"Sports\" \n\n# Notes\n\n- If the headline appears to fit into more than one category, choose the most dominant theme.\n- Keywords or phrases such as \"stocks\", \"company acquisition\", \"match\", or technological brands can be good indicators for classification.\n"} , {"role":"user","content":"{{item.input}}"}]} ,"sampling_params":{"max_completions_tokens":2048},"model":"gpt-5.6-sol","source":{"type":"file_content","content":[{"item":{"input":"Tech Company Launches Advanced Artificial Intelligence Platform","ground_truth":"Technology"}}]}}}'
+                -d '{"name":"gpt-6-astra","data_source":{"type":"completions","input_messages":{"type":"template","template":[{"role":"developer","content":"Categorize a given news headline into one of the following topics: Technology, Markets, World, Business, or Sports.\n\n# Steps\n\n1. Analyze the content of the news headline to understand its primary focus.\n2. Extract the subject matter, identifying any key indicators or keywords.\n3. Use the identified indicators to determine the most suitable category out of the five options: Technology, Markets, World, Business, or Sports.\n4. Ensure only one category is selected per headline.\n\n# Output Format\n\nRespond with the chosen category as a single word. For instance: \"Technology\", \"Markets\", \"World\", \"Business\", or \"Sports\".\n\n# Examples\n\n**Input**: \"Apple Unveils New iPhone Model, Featuring Advanced AI Features\"  \n**Output**: \"Technology\"\n\n**Input**: \"Global Stocks Mixed as Investors Await Central Bank Decisions\"  \n**Output**: \"Markets\"\n\n**Input**: \"War in Ukraine: Latest Updates on Negotiation Status\"  \n**Output**: \"World\"\n\n**Input**: \"Microsoft in Talks to Acquire Gaming Company for $2 Billion\"  \n**Output**: \"Business\"\n\n**Input**: \"Manchester United Secures Win in Premier League Football Match\"  \n**Output**: \"Sports\" \n\n# Notes\n\n- If the headline appears to fit into more than one category, choose the most dominant theme.\n- Keywords or phrases such as \"stocks\", \"company acquisition\", \"match\", or technological brands can be good indicators for classification.\n"} , {"role":"user","content":"{{item.input}}"}]} ,"sampling_params":{"max_completions_tokens":2048},"model":"gpt-6-astra","source":{"type":"file_content","content":[{"item":{"input":"Tech Company Launches Advanced Artificial Intelligence Platform","ground_truth":"Technology"}}]}}}'
             python: |
               from openai import OpenAI
               client = OpenAI()
 
               run = client.evals.runs.create(
                 "eval_67e579652b548190aaa83ada4b125f47",
-                name="gpt-5.6-sol",
+                name="gpt-6-astra",
                 data_source={
                   "type": "completions",
                   "input_messages": {
@@ -5116,7 +5116,7 @@ paths:
                   "sampling_params": {
                     "max_completions_tokens": 2048
                   },
-                  "model": "gpt-5.6-sol",
+                  "model": "gpt-6-astra",
                   "source": {
                     "type": "file_content",
                     "content": [
@@ -5139,7 +5139,7 @@ paths:
               const run = await openai.evals.runs.create(
                 "eval_67e579652b548190aaa83ada4b125f47",
                 {
-                  name: "gpt-5.6-sol",
+                  name: "gpt-6-astra",
                   data_source: {
                     type: "completions",
                     input_messages: {
@@ -5158,7 +5158,7 @@ paths:
                     sampling_params: {
                       max_completions_tokens: 2048
                     },
-                    model: "gpt-5.6-sol",
+                    model: "gpt-6-astra",
                     source: {
                       type: "file_content",
                       content: [
@@ -5181,8 +5181,8 @@ paths:
               "eval_id": "eval_67e579652b548190aaa83ada4b125f47",
               "report_url": "https://platform.openai.com/evaluations/eval_67e579652b548190aaa83ada4b125f47&run_id=evalrun_67e57965b480819094274e3a32235e4c",
               "status": "queued",
-              "model": "gpt-5.6-sol",
-              "name": "gpt-5.6-sol",
+              "model": "gpt-6-astra",
+              "name": "gpt-6-astra",
               "created_at": 1743092069,
               "result_counts": {
                 "total": 0,
@@ -5226,7 +5226,7 @@ paths:
                     }
                   ]
                 },
-                "model": "gpt-5.6-sol",
+                "model": "gpt-6-astra",
                 "sampling_params": {
                   "max_completions_tokens": 2048
                 }
@@ -5300,8 +5300,8 @@ paths:
               "eval_id": "eval_67abd54d9b0081909a86353f6fb9317a",
               "report_url": "https://platform.openai.com/evaluations/eval_67abd54d9b0081909a86353f6fb9317a?run_id=evalrun_67abd54d60ec8190832b46859da808f7",
               "status": "queued",
-              "model": "gpt-5.6-sol",
-              "name": "gpt-5.6-sol",
+              "model": "gpt-6-astra",
+              "name": "gpt-6-astra",
               "created_at": 1743092069,
               "result_counts": {
                 "total": 0,
@@ -5429,7 +5429,7 @@ paths:
                     }
                   ]
                 },
-                "model": "gpt-5.6-sol",
+                "model": "gpt-6-astra",
                 "sampling_params": {
                   "max_completions_tokens": 2048
                 }
@@ -5503,8 +5503,8 @@ paths:
               "eval_id": "eval_67abd54d9b0081909a86353f6fb9317a",
               "report_url": "https://platform.openai.com/evaluations/eval_67abd54d9b0081909a86353f6fb9317a?run_id=evalrun_67abd54d60ec8190832b46859da808f7",
               "status": "canceled",
-              "model": "gpt-5.6-sol",
-              "name": "gpt-5.6-sol",
+              "model": "gpt-6-astra",
+              "name": "gpt-6-astra",
               "created_at": 1743092069,
               "result_counts": {
                 "total": 0,
@@ -5632,7 +5632,7 @@ paths:
                     }
                   ]
                 },
-                "model": "gpt-5.6-sol",
+                "model": "gpt-6-astra",
                 "sampling_params": {
                   "max_completions_tokens": 2048
                 }
@@ -5865,7 +5865,7 @@ paths:
                       }
                     ],
                     "finish_reason": "stop",
-                    "model": "gpt-5.6-sol",
+                    "model": "gpt-6-astra",
                     "usage": {
                       "total_tokens": 325,
                       "completion_tokens": 2,
@@ -6001,7 +6001,7 @@ paths:
                   }
                 ],
                 "finish_reason": "stop",
-                "model": "gpt-5.6-sol",
+                "model": "gpt-6-astra",
                 "usage": {
                   "total_tokens": 325,
                   "completion_tokens": 2,
@@ -8257,7 +8257,7 @@ paths:
         required: true
         schema:
           type: string
-          example: gpt-5.6-sol
+          example: gpt-6-astra
         description: The ID of the model to use for this request
       responses:
         '200':
@@ -8272,20 +8272,20 @@ paths:
         examples:
           request:
             curl: |
-              curl https://api.openai.com/v1/models/gpt-5.6-sol \
+              curl https://api.openai.com/v1/models/gpt-6-astra \
                 -H "Authorization: Bearer $OPENAI_API_KEY"
             python: |
               from openai import OpenAI
               client = OpenAI()
 
-              client.models.retrieve("gpt-5.6-sol")
+              client.models.retrieve("gpt-6-astra")
             javascript: |-
               import OpenAI from "openai";
 
               const openai = new OpenAI();
 
               async function main() {
-                const model = await openai.models.retrieve("gpt-5.6-sol");
+                const model = await openai.models.retrieve("gpt-6-astra");
 
                 console.log(model);
               }
@@ -8305,7 +8305,7 @@ paths:
               Console.WriteLine(model.Value.Id);
           response: |
             {
-              "id": "gpt-5.6-sol",
+              "id": "gpt-6-astra",
               "object": "model",
               "created": 1686935002,
               "owned_by": "openai",
@@ -9482,7 +9482,7 @@ paths:
             type: string
       - name: line_items
         in: query
-        description: Return only costs for these exact line item names. Each value must match the complete `line_item` value, for example `gpt-5.6-sol, input_tokens`.
+        description: Return only costs for these exact line item names. Each value must match the complete `line_item` value, for example `gpt-6-astra, input_tokens`.
         required: false
         schema:
           type: array
@@ -11669,7 +11669,7 @@ paths:
                 "object": "project.model_permissions",
                 "mode": "allow_list",
                 "model_ids": [
-                    "gpt-5.6-sol",
+                    "gpt-6-astra",
                     "o3"
                 ]
             }
@@ -16532,7 +16532,7 @@ paths:
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -d '{
-                  "model": "gpt-5.6-sol",
+                  "model": "gpt-6-astra",
                   "input": "Tell me a three sentence bedtime story about a unicorn."
                 }'
             javascript: |
@@ -16541,7 +16541,7 @@ paths:
               const openai = new OpenAI();
 
               const response = await openai.responses.create({
-                  model: "gpt-5.6-sol",
+                  model: "gpt-6-astra",
                   input: "Tell me a three sentence bedtime story about a unicorn."
               });
 
@@ -16552,7 +16552,7 @@ paths:
               client = OpenAI()
 
               response = client.responses.create(
-                model="gpt-5.6-sol",
+                model="gpt-6-astra",
                 input="Tell me a three sentence bedtime story about a unicorn."
               )
 
@@ -16562,7 +16562,7 @@ paths:
               using OpenAI.Responses;
 
               OpenAIResponseClient client = new(
-                  model: "gpt-5.6-sol",
+                  model: "gpt-6-astra",
                   apiKey: Environment.GetEnvironmentVariable("OPENAI_API_KEY")
               );
 
@@ -16580,7 +16580,7 @@ paths:
               "incomplete_details": null,
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-5.6-sol",
+              "model": "gpt-6-astra",
               "output": [
                 {
                   "type": "message",
@@ -16635,7 +16635,7 @@ paths:
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -d '{
-                  "model": "gpt-5.6-sol",
+                  "model": "gpt-6-astra",
                   "input": [
                     {
                       "role": "user",
@@ -16655,7 +16655,7 @@ paths:
               const openai = new OpenAI();
 
               const response = await openai.responses.create({
-                  model: "gpt-5.6-sol",
+                  model: "gpt-6-astra",
                   input: [
                       {
                           role: "user",
@@ -16678,7 +16678,7 @@ paths:
               client = OpenAI()
 
               response = client.responses.create(
-                  model="gpt-5.6-sol",
+                  model="gpt-6-astra",
                   input=[
                       {
                           "role": "user",
@@ -16701,7 +16701,7 @@ paths:
               using OpenAI.Responses;
 
               OpenAIResponseClient client = new(
-                  model: "gpt-5.6-sol",
+                  model: "gpt-6-astra",
                   apiKey: Environment.GetEnvironmentVariable("OPENAI_API_KEY")
               );
 
@@ -16729,7 +16729,7 @@ paths:
               "incomplete_details": null,
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-5.6-sol",
+              "model": "gpt-6-astra",
               "output": [
                 {
                   "type": "message",
@@ -16784,7 +16784,7 @@ paths:
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -d '{
-                  "model": "gpt-5.6-sol",
+                  "model": "gpt-6-astra",
                   "input": [
                     {
                       "role": "user",
@@ -16805,7 +16805,7 @@ paths:
               const openai = new OpenAI();
 
               const response = await openai.responses.create({
-                  model: "gpt-5.6-sol",
+                  model: "gpt-6-astra",
                   input: [
                       {
                           role: "user",
@@ -16828,7 +16828,7 @@ paths:
               client = OpenAI()
 
               response = client.responses.create(
-                  model="gpt-5.6-sol",
+                  model="gpt-6-astra",
                   input=[
                       {
                           "role": "user",
@@ -16858,7 +16858,7 @@ paths:
               "instructions": null,
               "max_output_tokens": null,
               "max_tool_calls": null,
-              "model": "gpt-5.6-sol",
+              "model": "gpt-6-astra",
               "output": [
                 {
                   "id": "msg_686eef60d3e081a29283bdcbc4322fd90e34c516d176ff86",
@@ -16916,7 +16916,7 @@ paths:
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -d '{
-                  "model": "gpt-5.6-sol",
+                  "model": "gpt-6-astra",
                   "tools": [{ "type": "web_search_preview" }],
                   "input": "What was a positive news story from today?"
                 }'
@@ -16926,7 +16926,7 @@ paths:
               const openai = new OpenAI();
 
               const response = await openai.responses.create({
-                  model: "gpt-5.6-sol",
+                  model: "gpt-6-astra",
                   tools: [{ type: "web_search_preview" }],
                   input: "What was a positive news story from today?",
               });
@@ -16938,7 +16938,7 @@ paths:
               client = OpenAI()
 
               response = client.responses.create(
-                  model="gpt-5.6-sol",
+                  model="gpt-6-astra",
                   tools=[{ "type": "web_search_preview" }],
                   input="What was a positive news story from today?",
               )
@@ -16950,7 +16950,7 @@ paths:
               using OpenAI.Responses;
 
               OpenAIResponseClient client = new(
-                  model: "gpt-5.6-sol",
+                  model: "gpt-6-astra",
                   apiKey: Environment.GetEnvironmentVariable("OPENAI_API_KEY")
               );
 
@@ -16978,7 +16978,7 @@ paths:
               "incomplete_details": null,
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-5.6-sol",
+              "model": "gpt-6-astra",
               "output": [
                 {
                   "type": "web_search_call",
@@ -17073,7 +17073,7 @@ paths:
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -d '{
-                  "model": "gpt-5.6-sol",
+                  "model": "gpt-6-astra",
                   "tools": [{
                     "type": "file_search",
                     "vector_store_ids": ["vs_1234567890"],
@@ -17087,7 +17087,7 @@ paths:
               const openai = new OpenAI();
 
               const response = await openai.responses.create({
-                  model: "gpt-5.6-sol",
+                  model: "gpt-6-astra",
                   tools: [{
                     type: "file_search",
                     vector_store_ids: ["vs_1234567890"],
@@ -17103,7 +17103,7 @@ paths:
               client = OpenAI()
 
               response = client.responses.create(
-                  model="gpt-5.6-sol",
+                  model="gpt-6-astra",
                   tools=[{
                     "type": "file_search",
                     "vector_store_ids": ["vs_1234567890"],
@@ -17119,7 +17119,7 @@ paths:
               using OpenAI.Responses;
 
               OpenAIResponseClient client = new(
-                  model: "gpt-5.6-sol",
+                  model: "gpt-6-astra",
                   apiKey: Environment.GetEnvironmentVariable("OPENAI_API_KEY")
               );
 
@@ -17150,7 +17150,7 @@ paths:
               "incomplete_details": null,
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-5.6-sol",
+              "model": "gpt-6-astra",
               "output": [
                 {
                   "type": "file_search_call",
@@ -17276,7 +17276,7 @@ paths:
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -d '{
-                  "model": "gpt-5.6-sol",
+                  "model": "gpt-6-astra",
                   "instructions": "You are a helpful assistant.",
                   "input": "Hello!",
                   "stream": true
@@ -17287,7 +17287,7 @@ paths:
               client = OpenAI()
 
               response = client.responses.create(
-                model="gpt-5.6-sol",
+                model="gpt-6-astra",
                 instructions="You are a helpful assistant.",
                 input="Hello!",
                 stream=True
@@ -17301,7 +17301,7 @@ paths:
               const openai = new OpenAI();
 
               const response = await openai.responses.create({
-                  model: "gpt-5.6-sol",
+                  model: "gpt-6-astra",
                   instructions: "You are a helpful assistant.",
                   input: "Hello!",
                   stream: true,
@@ -17318,7 +17318,7 @@ paths:
               using OpenAI.Responses;
 
               OpenAIResponseClient client = new(
-                  model: "gpt-5.6-sol",
+                  model: "gpt-6-astra",
                   apiKey: Environment.GetEnvironmentVariable("OPENAI_API_KEY")
               );
 
@@ -17340,10 +17340,10 @@ paths:
               }
           response: |
             event: response.created
-            data: {"type":"response.created","response":{"id":"resp_67c9fdcecf488190bdd9a0409de3a1ec07b8b0ad4e5eb654","object":"response","created_at":1741290958,"status":"in_progress","error":null,"incomplete_details":null,"instructions":"You are a helpful assistant.","max_output_tokens":null,"model":"gpt-5.6-sol","output":[],"parallel_tool_calls":true,"previous_response_id":null,"reasoning":{"effort":null,"summary":null},"store":true,"temperature":1.0,"text":{"format":{"type":"text"}},"tool_choice":"auto","tools":[],"top_p":1.0,"truncation":"disabled","usage":null,"user":null,"metadata":{}}}
+            data: {"type":"response.created","response":{"id":"resp_67c9fdcecf488190bdd9a0409de3a1ec07b8b0ad4e5eb654","object":"response","created_at":1741290958,"status":"in_progress","error":null,"incomplete_details":null,"instructions":"You are a helpful assistant.","max_output_tokens":null,"model":"gpt-6-astra","output":[],"parallel_tool_calls":true,"previous_response_id":null,"reasoning":{"effort":null,"summary":null},"store":true,"temperature":1.0,"text":{"format":{"type":"text"}},"tool_choice":"auto","tools":[],"top_p":1.0,"truncation":"disabled","usage":null,"user":null,"metadata":{}}}
 
             event: response.in_progress
-            data: {"type":"response.in_progress","response":{"id":"resp_67c9fdcecf488190bdd9a0409de3a1ec07b8b0ad4e5eb654","object":"response","created_at":1741290958,"status":"in_progress","error":null,"incomplete_details":null,"instructions":"You are a helpful assistant.","max_output_tokens":null,"model":"gpt-5.6-sol","output":[],"parallel_tool_calls":true,"previous_response_id":null,"reasoning":{"effort":null,"summary":null},"store":true,"temperature":1.0,"text":{"format":{"type":"text"}},"tool_choice":"auto","tools":[],"top_p":1.0,"truncation":"disabled","usage":null,"user":null,"metadata":{}}}
+            data: {"type":"response.in_progress","response":{"id":"resp_67c9fdcecf488190bdd9a0409de3a1ec07b8b0ad4e5eb654","object":"response","created_at":1741290958,"status":"in_progress","error":null,"incomplete_details":null,"instructions":"You are a helpful assistant.","max_output_tokens":null,"model":"gpt-6-astra","output":[],"parallel_tool_calls":true,"previous_response_id":null,"reasoning":{"effort":null,"summary":null},"store":true,"temperature":1.0,"text":{"format":{"type":"text"}},"tool_choice":"auto","tools":[],"top_p":1.0,"truncation":"disabled","usage":null,"user":null,"metadata":{}}}
 
             event: response.output_item.added
             data: {"type":"response.output_item.added","output_index":0,"item":{"id":"msg_67c9fdcf37fc8190ba82116e33fb28c507b8b0ad4e5eb654","type":"message","status":"in_progress","role":"assistant","content":[]}}
@@ -17366,7 +17366,7 @@ paths:
             data: {"type":"response.output_item.done","output_index":0,"item":{"id":"msg_67c9fdcf37fc8190ba82116e33fb28c507b8b0ad4e5eb654","type":"message","status":"completed","role":"assistant","content":[{"type":"output_text","text":"Hi there! How can I assist you today?","annotations":[]}]}}
 
             event: response.completed
-            data: {"type":"response.completed","response":{"id":"resp_67c9fdcecf488190bdd9a0409de3a1ec07b8b0ad4e5eb654","object":"response","created_at":1741290958,"status":"completed","error":null,"incomplete_details":null,"instructions":"You are a helpful assistant.","max_output_tokens":null,"model":"gpt-5.6-sol","output":[{"id":"msg_67c9fdcf37fc8190ba82116e33fb28c507b8b0ad4e5eb654","type":"message","status":"completed","role":"assistant","content":[{"type":"output_text","text":"Hi there! How can I assist you today?","annotations":[]}]}],"parallel_tool_calls":true,"previous_response_id":null,"reasoning":{"effort":null,"summary":null},"store":true,"temperature":1.0,"text":{"format":{"type":"text"}},"tool_choice":"auto","tools":[],"top_p":1.0,"truncation":"disabled","usage":{"input_tokens":37,"output_tokens":11,"output_tokens_details":{"reasoning_tokens":0},"total_tokens":48},"user":null,"metadata":{}}}
+            data: {"type":"response.completed","response":{"id":"resp_67c9fdcecf488190bdd9a0409de3a1ec07b8b0ad4e5eb654","object":"response","created_at":1741290958,"status":"completed","error":null,"incomplete_details":null,"instructions":"You are a helpful assistant.","max_output_tokens":null,"model":"gpt-6-astra","output":[{"id":"msg_67c9fdcf37fc8190ba82116e33fb28c507b8b0ad4e5eb654","type":"message","status":"completed","role":"assistant","content":[{"type":"output_text","text":"Hi there! How can I assist you today?","annotations":[]}]}],"parallel_tool_calls":true,"previous_response_id":null,"reasoning":{"effort":null,"summary":null},"store":true,"temperature":1.0,"text":{"format":{"type":"text"}},"tool_choice":"auto","tools":[],"top_p":1.0,"truncation":"disabled","usage":{"input_tokens":37,"output_tokens":11,"output_tokens_details":{"reasoning_tokens":0},"total_tokens":48},"user":null,"metadata":{}}}
         - title: Functions
           request:
             curl: |
@@ -17374,7 +17374,7 @@ paths:
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -d '{
-                  "model": "gpt-5.6-sol",
+                  "model": "gpt-6-astra",
                   "input": "What is the weather like in Boston today?",
                   "tools": [
                     {
@@ -17424,7 +17424,7 @@ paths:
               ]
 
               response = client.responses.create(
-                model="gpt-5.6-sol",
+                model="gpt-6-astra",
                 tools=tools,
                 input="What is the weather like in Boston today?",
                 tool_choice="auto"
@@ -17456,7 +17456,7 @@ paths:
               ];
 
               const response = await openai.responses.create({
-                  model: "gpt-5.6-sol",
+                  model: "gpt-6-astra",
                   tools: tools,
                   input: "What is the weather like in Boston today?",
                   tool_choice: "auto",
@@ -17468,7 +17468,7 @@ paths:
               using OpenAI.Responses;
 
               OpenAIResponseClient client = new(
-                  model: "gpt-5.6-sol",
+                  model: "gpt-6-astra",
                   apiKey: Environment.GetEnvironmentVariable("OPENAI_API_KEY")
               );
 
@@ -17514,7 +17514,7 @@ paths:
               "incomplete_details": null,
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-5.6-sol",
+              "model": "gpt-6-astra",
               "output": [
                 {
                   "type": "function_call",
@@ -17587,7 +17587,7 @@ paths:
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -d '{
-                  "model": "gpt-5.6-sol",
+                  "model": "gpt-6-astra",
                   "input": "How much wood would a woodchuck chuck?",
                   "reasoning": {
                     "effort": "high"
@@ -17598,7 +17598,7 @@ paths:
               const openai = new OpenAI();
 
               const response = await openai.responses.create({
-                  model: "gpt-5.6-sol",
+                  model: "gpt-6-astra",
                   input: "How much wood would a woodchuck chuck?",
                   reasoning: {
                     effort: "high"
@@ -17611,7 +17611,7 @@ paths:
               client = OpenAI()
 
               response = client.responses.create(
-                  model="gpt-5.6-sol",
+                  model="gpt-6-astra",
                   input="How much wood would a woodchuck chuck?",
                   reasoning={
                       "effort": "high"
@@ -17624,7 +17624,7 @@ paths:
               using OpenAI.Responses;
 
               OpenAIResponseClient client = new(
-                  model: "gpt-5.6-sol",
+                  model: "gpt-6-astra",
                   apiKey: Environment.GetEnvironmentVariable("OPENAI_API_KEY")
               );
 
@@ -17652,7 +17652,7 @@ paths:
               "incomplete_details": null,
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-5.6-sol",
+              "model": "gpt-6-astra",
               "output": [
                 {
                   "type": "message",
@@ -17799,7 +17799,7 @@ paths:
               "incomplete_details": null,
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-5.6-sol",
+              "model": "gpt-6-astra",
               "output": [
                 {
                   "type": "message",
@@ -17964,7 +17964,7 @@ paths:
               "incomplete_details": null,
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-5.6-sol",
+              "model": "gpt-6-astra",
               "output": [
                 {
                   "type": "message",
@@ -22478,6 +22478,48 @@ paths:
               "metadata": {"topic": "project-x"}
             }
       description: Update a conversation
+  /safety/alerts/{id}:
+    get:
+      summary: Retrieve a safety alert
+      operationId: Getprojectsafetyalert
+      parameters:
+      - name: id
+        in: path
+        description: Project safety alert ID
+        required: true
+        schema:
+          description: Project safety alert ID
+          type: string
+          maxLength: 38
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SafetyAlertResource'
+      x-oaiMeta:
+        name: Retrieve a safety alert
+        group: safety-alerts
+        path: retrieve
+        examples:
+          request:
+            curl: |
+              curl https://api.openai.com/v1/safety/alerts/alert_0123456789abcdef0123456789abcdef \
+                -H "Authorization: Bearer $OPENAI_API_KEY"
+          response: |
+            {
+              "id": "alert_0123456789abcdef0123456789abcdef",
+              "object": "safety.alert",
+              "created_at": 1787659200,
+              "request_id": "req_123",
+              "response_id": "resp_123",
+              "model": "gpt-6-astra",
+              "request_paused": true,
+              "error_type": "potentially_unintended_data_access",
+              "reason": "Potentially unintended data access."
+            }
+      description: Get a safety alert belonging to the authenticated API project.
   /organization/spend_limit:
     get:
       summary: Retrieve organization spend limit
@@ -23556,7 +23598,7 @@ paths:
                   -H "Content-Type: application/json" \
                   -H "Authorization: Bearer $OPENAI_API_KEY" \
                   -d '{
-                    "model": "gpt-5.6-sol",
+                    "model": "gpt-6-astra",
                     "input": "Tell me a joke."
                   }'
             javascript: |
@@ -23565,7 +23607,7 @@ paths:
               const client = new OpenAI();
 
               const response = await client.responses.inputTokens.count({
-                model: "gpt-5.6-sol",
+                model: "gpt-6-astra",
                 input: "Tell me a joke.",
               });
 
@@ -23576,7 +23618,7 @@ paths:
               client = OpenAI()
 
               response = client.responses.input_tokens.count(
-                  model="gpt-5.6-sol",
+                  model="gpt-6-astra",
                   input="Tell me a joke."
               )
               print(response.input_tokens)
@@ -23594,7 +23636,7 @@ paths:
               func main() {
                 client := openai.NewClient()
                 response, err := client.Responses.InputTokens.Count(context.TODO(), responses.InputTokenCountParams{
-                  Model: "gpt-5.6-sol",
+                  Model: "gpt-6-astra",
                   Input: "Tell me a joke.",
                 })
                 if err != nil {
@@ -23607,7 +23649,7 @@ paths:
 
               openai = OpenAI::Client.new
 
-              response = openai.responses.input_tokens.count(model: "gpt-5.6-sol", input: "Tell me a joke.")
+              response = openai.responses.input_tokens.count(model: "gpt-6-astra", input: "Tell me a joke.")
 
               puts(response)
             java: |
@@ -23625,7 +23667,7 @@ paths:
                       OpenAIClient client = OpenAIOkHttpClient.fromEnv();
 
                       InputTokenCountParams params = InputTokenCountParams.builder()
-                          .model("gpt-5.6-sol")
+                          .model("gpt-6-astra")
                           .input("Tell me a joke.")
                           .build();
 
@@ -23670,7 +23712,7 @@ paths:
                   -H "Content-Type: application/json" \
                   -H "Authorization: Bearer $OPENAI_API_KEY" \
                   -d '{
-                    "model": "gpt-5.6-sol",
+                    "model": "gpt-6-astra",
                     "input": [
                       {
                         "role": "user",
@@ -23699,7 +23741,7 @@ paths:
 
               // Compact the previous response if you are running out of tokens
               const compactedResponse = await openai.responses.compact({
-                model: "gpt-5.6-sol",
+                model: "gpt-6-astra",
                 input: [
                   {
                     role: "user",
@@ -23731,7 +23773,7 @@ paths:
               client = OpenAI()
 
               compacted_response = client.responses.compact(
-                  model="gpt-5.6-sol",
+                  model="gpt-6-astra",
                   input=[
                   {
                       "role": "user",
@@ -24921,7 +24963,7 @@ paths:
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -d '{
-                  "model": "gpt-5.6-sol",
+                  "model": "gpt-6-astra",
                   "input": "Tell me a three sentence bedtime story about a unicorn."
                 }'
             javascript: |
@@ -24930,7 +24972,7 @@ paths:
               const openai = new OpenAI();
 
               const response = await openai.responses.create({
-                  model: "gpt-5.6-sol",
+                  model: "gpt-6-astra",
                   input: "Tell me a three sentence bedtime story about a unicorn."
               });
 
@@ -24941,7 +24983,7 @@ paths:
               client = OpenAI()
 
               response = client.responses.create(
-                model="gpt-5.6-sol",
+                model="gpt-6-astra",
                 input="Tell me a three sentence bedtime story about a unicorn."
               )
 
@@ -24951,7 +24993,7 @@ paths:
               using OpenAI.Responses;
 
               OpenAIResponseClient client = new(
-                  model: "gpt-5.6-sol",
+                  model: "gpt-6-astra",
                   apiKey: Environment.GetEnvironmentVariable("OPENAI_API_KEY")
               );
 
@@ -24969,7 +25011,7 @@ paths:
               "incomplete_details": null,
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-5.6-sol",
+              "model": "gpt-6-astra",
               "output": [
                 {
                   "type": "message",
@@ -25024,7 +25066,7 @@ paths:
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -d '{
-                  "model": "gpt-5.6-sol",
+                  "model": "gpt-6-astra",
                   "input": [
                     {
                       "role": "user",
@@ -25044,7 +25086,7 @@ paths:
               const openai = new OpenAI();
 
               const response = await openai.responses.create({
-                  model: "gpt-5.6-sol",
+                  model: "gpt-6-astra",
                   input: [
                       {
                           role: "user",
@@ -25067,7 +25109,7 @@ paths:
               client = OpenAI()
 
               response = client.responses.create(
-                  model="gpt-5.6-sol",
+                  model="gpt-6-astra",
                   input=[
                       {
                           "role": "user",
@@ -25090,7 +25132,7 @@ paths:
               using OpenAI.Responses;
 
               OpenAIResponseClient client = new(
-                  model: "gpt-5.6-sol",
+                  model: "gpt-6-astra",
                   apiKey: Environment.GetEnvironmentVariable("OPENAI_API_KEY")
               );
 
@@ -25118,7 +25160,7 @@ paths:
               "incomplete_details": null,
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-5.6-sol",
+              "model": "gpt-6-astra",
               "output": [
                 {
                   "type": "message",
@@ -25173,7 +25215,7 @@ paths:
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -d '{
-                  "model": "gpt-5.6-sol",
+                  "model": "gpt-6-astra",
                   "input": [
                     {
                       "role": "user",
@@ -25194,7 +25236,7 @@ paths:
               const openai = new OpenAI();
 
               const response = await openai.responses.create({
-                  model: "gpt-5.6-sol",
+                  model: "gpt-6-astra",
                   input: [
                       {
                           role: "user",
@@ -25217,7 +25259,7 @@ paths:
               client = OpenAI()
 
               response = client.responses.create(
-                  model="gpt-5.6-sol",
+                  model="gpt-6-astra",
                   input=[
                       {
                           "role": "user",
@@ -25247,7 +25289,7 @@ paths:
               "instructions": null,
               "max_output_tokens": null,
               "max_tool_calls": null,
-              "model": "gpt-5.6-sol",
+              "model": "gpt-6-astra",
               "output": [
                 {
                   "id": "msg_686eef60d3e081a29283bdcbc4322fd90e34c516d176ff86",
@@ -25305,7 +25347,7 @@ paths:
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -d '{
-                  "model": "gpt-5.6-sol",
+                  "model": "gpt-6-astra",
                   "tools": [{ "type": "web_search_preview" }],
                   "input": "What was a positive news story from today?"
                 }'
@@ -25315,7 +25357,7 @@ paths:
               const openai = new OpenAI();
 
               const response = await openai.responses.create({
-                  model: "gpt-5.6-sol",
+                  model: "gpt-6-astra",
                   tools: [{ type: "web_search_preview" }],
                   input: "What was a positive news story from today?",
               });
@@ -25327,7 +25369,7 @@ paths:
               client = OpenAI()
 
               response = client.responses.create(
-                  model="gpt-5.6-sol",
+                  model="gpt-6-astra",
                   tools=[{ "type": "web_search_preview" }],
                   input="What was a positive news story from today?",
               )
@@ -25339,7 +25381,7 @@ paths:
               using OpenAI.Responses;
 
               OpenAIResponseClient client = new(
-                  model: "gpt-5.6-sol",
+                  model: "gpt-6-astra",
                   apiKey: Environment.GetEnvironmentVariable("OPENAI_API_KEY")
               );
 
@@ -25367,7 +25409,7 @@ paths:
               "incomplete_details": null,
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-5.6-sol",
+              "model": "gpt-6-astra",
               "output": [
                 {
                   "type": "web_search_call",
@@ -25462,7 +25504,7 @@ paths:
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -d '{
-                  "model": "gpt-5.6-sol",
+                  "model": "gpt-6-astra",
                   "tools": [{
                     "type": "file_search",
                     "vector_store_ids": ["vs_1234567890"],
@@ -25476,7 +25518,7 @@ paths:
               const openai = new OpenAI();
 
               const response = await openai.responses.create({
-                  model: "gpt-5.6-sol",
+                  model: "gpt-6-astra",
                   tools: [{
                     type: "file_search",
                     vector_store_ids: ["vs_1234567890"],
@@ -25492,7 +25534,7 @@ paths:
               client = OpenAI()
 
               response = client.responses.create(
-                  model="gpt-5.6-sol",
+                  model="gpt-6-astra",
                   tools=[{
                     "type": "file_search",
                     "vector_store_ids": ["vs_1234567890"],
@@ -25508,7 +25550,7 @@ paths:
               using OpenAI.Responses;
 
               OpenAIResponseClient client = new(
-                  model: "gpt-5.6-sol",
+                  model: "gpt-6-astra",
                   apiKey: Environment.GetEnvironmentVariable("OPENAI_API_KEY")
               );
 
@@ -25539,7 +25581,7 @@ paths:
               "incomplete_details": null,
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-5.6-sol",
+              "model": "gpt-6-astra",
               "output": [
                 {
                   "type": "file_search_call",
@@ -25665,7 +25707,7 @@ paths:
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -d '{
-                  "model": "gpt-5.6-sol",
+                  "model": "gpt-6-astra",
                   "instructions": "You are a helpful assistant.",
                   "input": "Hello!",
                   "stream": true
@@ -25676,7 +25718,7 @@ paths:
               client = OpenAI()
 
               response = client.responses.create(
-                model="gpt-5.6-sol",
+                model="gpt-6-astra",
                 instructions="You are a helpful assistant.",
                 input="Hello!",
                 stream=True
@@ -25690,7 +25732,7 @@ paths:
               const openai = new OpenAI();
 
               const response = await openai.responses.create({
-                  model: "gpt-5.6-sol",
+                  model: "gpt-6-astra",
                   instructions: "You are a helpful assistant.",
                   input: "Hello!",
                   stream: true,
@@ -25707,7 +25749,7 @@ paths:
               using OpenAI.Responses;
 
               OpenAIResponseClient client = new(
-                  model: "gpt-5.6-sol",
+                  model: "gpt-6-astra",
                   apiKey: Environment.GetEnvironmentVariable("OPENAI_API_KEY")
               );
 
@@ -25729,10 +25771,10 @@ paths:
               }
           response: |
             event: response.created
-            data: {"type":"response.created","response":{"id":"resp_67c9fdcecf488190bdd9a0409de3a1ec07b8b0ad4e5eb654","object":"response","created_at":1741290958,"status":"in_progress","error":null,"incomplete_details":null,"instructions":"You are a helpful assistant.","max_output_tokens":null,"model":"gpt-5.6-sol","output":[],"parallel_tool_calls":true,"previous_response_id":null,"reasoning":{"effort":null,"summary":null},"store":true,"temperature":1.0,"text":{"format":{"type":"text"}},"tool_choice":"auto","tools":[],"top_p":1.0,"truncation":"disabled","usage":null,"user":null,"metadata":{}}}
+            data: {"type":"response.created","response":{"id":"resp_67c9fdcecf488190bdd9a0409de3a1ec07b8b0ad4e5eb654","object":"response","created_at":1741290958,"status":"in_progress","error":null,"incomplete_details":null,"instructions":"You are a helpful assistant.","max_output_tokens":null,"model":"gpt-6-astra","output":[],"parallel_tool_calls":true,"previous_response_id":null,"reasoning":{"effort":null,"summary":null},"store":true,"temperature":1.0,"text":{"format":{"type":"text"}},"tool_choice":"auto","tools":[],"top_p":1.0,"truncation":"disabled","usage":null,"user":null,"metadata":{}}}
 
             event: response.in_progress
-            data: {"type":"response.in_progress","response":{"id":"resp_67c9fdcecf488190bdd9a0409de3a1ec07b8b0ad4e5eb654","object":"response","created_at":1741290958,"status":"in_progress","error":null,"incomplete_details":null,"instructions":"You are a helpful assistant.","max_output_tokens":null,"model":"gpt-5.6-sol","output":[],"parallel_tool_calls":true,"previous_response_id":null,"reasoning":{"effort":null,"summary":null},"store":true,"temperature":1.0,"text":{"format":{"type":"text"}},"tool_choice":"auto","tools":[],"top_p":1.0,"truncation":"disabled","usage":null,"user":null,"metadata":{}}}
+            data: {"type":"response.in_progress","response":{"id":"resp_67c9fdcecf488190bdd9a0409de3a1ec07b8b0ad4e5eb654","object":"response","created_at":1741290958,"status":"in_progress","error":null,"incomplete_details":null,"instructions":"You are a helpful assistant.","max_output_tokens":null,"model":"gpt-6-astra","output":[],"parallel_tool_calls":true,"previous_response_id":null,"reasoning":{"effort":null,"summary":null},"store":true,"temperature":1.0,"text":{"format":{"type":"text"}},"tool_choice":"auto","tools":[],"top_p":1.0,"truncation":"disabled","usage":null,"user":null,"metadata":{}}}
 
             event: response.output_item.added
             data: {"type":"response.output_item.added","output_index":0,"item":{"id":"msg_67c9fdcf37fc8190ba82116e33fb28c507b8b0ad4e5eb654","type":"message","status":"in_progress","role":"assistant","content":[]}}
@@ -25755,7 +25797,7 @@ paths:
             data: {"type":"response.output_item.done","output_index":0,"item":{"id":"msg_67c9fdcf37fc8190ba82116e33fb28c507b8b0ad4e5eb654","type":"message","status":"completed","role":"assistant","content":[{"type":"output_text","text":"Hi there! How can I assist you today?","annotations":[]}]}}
 
             event: response.completed
-            data: {"type":"response.completed","response":{"id":"resp_67c9fdcecf488190bdd9a0409de3a1ec07b8b0ad4e5eb654","object":"response","created_at":1741290958,"status":"completed","error":null,"incomplete_details":null,"instructions":"You are a helpful assistant.","max_output_tokens":null,"model":"gpt-5.6-sol","output":[{"id":"msg_67c9fdcf37fc8190ba82116e33fb28c507b8b0ad4e5eb654","type":"message","status":"completed","role":"assistant","content":[{"type":"output_text","text":"Hi there! How can I assist you today?","annotations":[]}]}],"parallel_tool_calls":true,"previous_response_id":null,"reasoning":{"effort":null,"summary":null},"store":true,"temperature":1.0,"text":{"format":{"type":"text"}},"tool_choice":"auto","tools":[],"top_p":1.0,"truncation":"disabled","usage":{"input_tokens":37,"output_tokens":11,"output_tokens_details":{"reasoning_tokens":0},"total_tokens":48},"user":null,"metadata":{}}}
+            data: {"type":"response.completed","response":{"id":"resp_67c9fdcecf488190bdd9a0409de3a1ec07b8b0ad4e5eb654","object":"response","created_at":1741290958,"status":"completed","error":null,"incomplete_details":null,"instructions":"You are a helpful assistant.","max_output_tokens":null,"model":"gpt-6-astra","output":[{"id":"msg_67c9fdcf37fc8190ba82116e33fb28c507b8b0ad4e5eb654","type":"message","status":"completed","role":"assistant","content":[{"type":"output_text","text":"Hi there! How can I assist you today?","annotations":[]}]}],"parallel_tool_calls":true,"previous_response_id":null,"reasoning":{"effort":null,"summary":null},"store":true,"temperature":1.0,"text":{"format":{"type":"text"}},"tool_choice":"auto","tools":[],"top_p":1.0,"truncation":"disabled","usage":{"input_tokens":37,"output_tokens":11,"output_tokens_details":{"reasoning_tokens":0},"total_tokens":48},"user":null,"metadata":{}}}
         - title: Functions
           request:
             curl: |
@@ -25763,7 +25805,7 @@ paths:
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -d '{
-                  "model": "gpt-5.6-sol",
+                  "model": "gpt-6-astra",
                   "input": "What is the weather like in Boston today?",
                   "tools": [
                     {
@@ -25813,7 +25855,7 @@ paths:
               ]
 
               response = client.responses.create(
-                model="gpt-5.6-sol",
+                model="gpt-6-astra",
                 tools=tools,
                 input="What is the weather like in Boston today?",
                 tool_choice="auto"
@@ -25845,7 +25887,7 @@ paths:
               ];
 
               const response = await openai.responses.create({
-                  model: "gpt-5.6-sol",
+                  model: "gpt-6-astra",
                   tools: tools,
                   input: "What is the weather like in Boston today?",
                   tool_choice: "auto",
@@ -25857,7 +25899,7 @@ paths:
               using OpenAI.Responses;
 
               OpenAIResponseClient client = new(
-                  model: "gpt-5.6-sol",
+                  model: "gpt-6-astra",
                   apiKey: Environment.GetEnvironmentVariable("OPENAI_API_KEY")
               );
 
@@ -25903,7 +25945,7 @@ paths:
               "incomplete_details": null,
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-5.6-sol",
+              "model": "gpt-6-astra",
               "output": [
                 {
                   "type": "function_call",
@@ -25976,7 +26018,7 @@ paths:
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -d '{
-                  "model": "gpt-5.6-sol",
+                  "model": "gpt-6-astra",
                   "input": "How much wood would a woodchuck chuck?",
                   "reasoning": {
                     "effort": "high"
@@ -25987,7 +26029,7 @@ paths:
               const openai = new OpenAI();
 
               const response = await openai.responses.create({
-                  model: "gpt-5.6-sol",
+                  model: "gpt-6-astra",
                   input: "How much wood would a woodchuck chuck?",
                   reasoning: {
                     effort: "high"
@@ -26000,7 +26042,7 @@ paths:
               client = OpenAI()
 
               response = client.responses.create(
-                  model="gpt-5.6-sol",
+                  model="gpt-6-astra",
                   input="How much wood would a woodchuck chuck?",
                   reasoning={
                       "effort": "high"
@@ -26013,7 +26055,7 @@ paths:
               using OpenAI.Responses;
 
               OpenAIResponseClient client = new(
-                  model: "gpt-5.6-sol",
+                  model: "gpt-6-astra",
                   apiKey: Environment.GetEnvironmentVariable("OPENAI_API_KEY")
               );
 
@@ -26041,7 +26083,7 @@ paths:
               "incomplete_details": null,
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-5.6-sol",
+              "model": "gpt-6-astra",
               "output": [
                 {
                   "type": "message",
@@ -26215,7 +26257,7 @@ paths:
               "incomplete_details": null,
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-5.6-sol",
+              "model": "gpt-6-astra",
               "output": [
                 {
                   "type": "message",
@@ -26406,7 +26448,7 @@ paths:
               "incomplete_details": null,
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-5.6-sol",
+              "model": "gpt-6-astra",
               "output": [
                 {
                   "type": "message",
@@ -26486,7 +26528,7 @@ paths:
                   -H "Content-Type: application/json" \
                   -H "Authorization: Bearer $OPENAI_API_KEY" \
                   -d '{
-                    "model": "gpt-5.6-sol",
+                    "model": "gpt-6-astra",
                     "input": [
                       {
                         "role": "user",
@@ -26515,7 +26557,7 @@ paths:
 
               // Compact the previous response if you are running out of tokens
               const compactedResponse = await openai.responses.compact({
-                model: "gpt-5.6-sol",
+                model: "gpt-6-astra",
                 input: [
                   {
                     role: "user",
@@ -26547,7 +26589,7 @@ paths:
               client = OpenAI()
 
               compacted_response = client.responses.compact(
-                  model="gpt-5.6-sol",
+                  model="gpt-6-astra",
                   input=[
                   {
                       "role": "user",
@@ -26767,7 +26809,7 @@ paths:
                   -H "Content-Type: application/json" \
                   -H "Authorization: Bearer $OPENAI_API_KEY" \
                   -d '{
-                    "model": "gpt-5.6-sol",
+                    "model": "gpt-6-astra",
                     "input": "Tell me a joke."
                   }'
             javascript: |
@@ -26776,7 +26818,7 @@ paths:
               const client = new OpenAI();
 
               const response = await client.responses.inputTokens.count({
-                model: "gpt-5.6-sol",
+                model: "gpt-6-astra",
                 input: "Tell me a joke.",
               });
 
@@ -26787,7 +26829,7 @@ paths:
               client = OpenAI()
 
               response = client.responses.input_tokens.count(
-                  model="gpt-5.6-sol",
+                  model="gpt-6-astra",
                   input="Tell me a joke."
               )
               print(response.input_tokens)
@@ -26805,7 +26847,7 @@ paths:
               func main() {
                 client := openai.NewClient()
                 response, err := client.Responses.InputTokens.Count(context.TODO(), responses.InputTokenCountParams{
-                  Model: "gpt-5.6-sol",
+                  Model: "gpt-6-astra",
                   Input: "Tell me a joke.",
                 })
                 if err != nil {
@@ -26818,7 +26860,7 @@ paths:
 
               openai = OpenAI::Client.new
 
-              response = openai.responses.input_tokens.count(model: "gpt-5.6-sol", input: "Tell me a joke.")
+              response = openai.responses.input_tokens.count(model: "gpt-6-astra", input: "Tell me a joke.")
 
               puts(response)
             java: |
@@ -26836,7 +26878,7 @@ paths:
                       OpenAIClient client = OpenAIOkHttpClient.fromEnv();
 
                       InputTokenCountParams params = InputTokenCountParams.builder()
-                          .model("gpt-5.6-sol")
+                          .model("gpt-6-astra")
                           .input("Tell me a joke.")
                           .build();
 
@@ -27033,6 +27075,28 @@ webhooks:
           application/json:
             schema:
               $ref: '#/components/schemas/WebhookResponseIncomplete'
+  safety_alert_created:
+    post:
+      responses:
+        '200':
+          description: Return any 2xx status code to acknowledge receipt. A 410 Gone response also stops retries; other non-2xx responses are retried.
+      requestBody:
+        description: The event payload sent by the API.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookSafetyAlertCreated'
+  safety_org_alert_created:
+    post:
+      responses:
+        '200':
+          description: Return any 2xx status code to acknowledge receipt. A 410 Gone response also stops retries; other non-2xx responses are retried.
+      requestBody:
+        description: The event payload sent by the API.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookSafetyOrgAlertCreated'
 components:
   schemas:
     AddUploadPartRequest:
@@ -28768,7 +28832,7 @@ components:
         model:
           type: string
           description: |
-            Model ID used to process the batch, like `gpt-5.6-sol`. OpenAI
+            Model ID used to process the batch, like `gpt-6-astra`. OpenAI
             offers a wide range of models with different capabilities, performance
             characteristics, and price points. Refer to the [model
             guide](https://platform.openai.com/docs/models) to browse and compare available models.
@@ -28903,7 +28967,7 @@ components:
             "id": "batch_abc123",
             "object": "batch",
             "endpoint": "/v1/chat/completions",
-            "model": "gpt-5.6-sol",
+            "model": "gpt-6-astra",
             "errors": null,
             "input_file_id": "file-abc123",
             "completion_window": "24h",
@@ -29207,7 +29271,7 @@ components:
               {
                 "object": "chat.completion",
                 "id": "chatcmpl-AyPNinnUqUDYo9SAdA52NobMflmj2",
-                "model": "gpt-5.6-sol",
+                "model": "gpt-6-astra",
                 "created": 1738960610,
                 "request_id": "req_ded8ab984ec4bf840f37566c1011c417",
                 "tool_choice": null,
@@ -30913,6 +30977,7 @@ components:
       - $ref: '#/components/schemas/ToolSearchCall'
       - $ref: '#/components/schemas/ToolSearchOutput'
       - $ref: '#/components/schemas/AdditionalTools'
+      - $ref: '#/components/schemas/ResponseConfigurationUpdate'
       - $ref: '#/components/schemas/ReasoningItem'
       - $ref: '#/components/schemas/Program'
       - $ref: '#/components/schemas/ProgramOutput'
@@ -31037,7 +31102,7 @@ components:
                 "value": 0.06,
                 "currency": "usd"
               },
-              "line_item": "gpt-5.6-sol, input_tokens",
+              "line_item": "gpt-6-astra, input_tokens",
               "project_id": "proj_abc",
               "quantity": 10000,
               "quantity_unit": "tokens"
@@ -31268,7 +31333,7 @@ components:
               $ref: '#/components/schemas/ChatCompletionRequestMessage'
           model:
             description: |
-              Model ID used to generate the response, like `gpt-5.6-sol` or `o3`. OpenAI
+              Model ID used to generate the response, like `gpt-6-astra` or `o3`. OpenAI
               offers a wide range of models with different capabilities, performance
               characteristics, and price points. Refer to the [model guide](https://platform.openai.com/docs/models)
               to browse and compare available models.
@@ -31657,7 +31722,7 @@ components:
             "id": "chatcmpl-B9MHDbslfkBeAs8l4bebGdFOJ6PeG",
             "object": "chat.completion",
             "created": 1741570283,
-            "model": "gpt-5.6-sol",
+            "model": "gpt-6-astra",
             "choices": [
               {
                 "index": 0,
@@ -31803,13 +31868,13 @@ components:
         name: The chat completion chunk object
         group: chat
         example: |
-          {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1694268190,"model":"gpt-5.6-sol", "system_fingerprint": "fp_44709d6fcb", "choices":[{"index":0,"delta":{"role":"assistant","content":""},"logprobs":null,"finish_reason":null}],"obfuscation":"r4N7vQ2m"}
+          {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1694268190,"model":"gpt-6-astra", "system_fingerprint": "fp_44709d6fcb", "choices":[{"index":0,"delta":{"role":"assistant","content":""},"logprobs":null,"finish_reason":null}],"obfuscation":"r4N7vQ2m"}
 
-          {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1694268190,"model":"gpt-5.6-sol", "system_fingerprint": "fp_44709d6fcb", "choices":[{"index":0,"delta":{"content":"Hello"},"logprobs":null,"finish_reason":null}],"obfuscation":"p9K3xT6w"}
+          {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1694268190,"model":"gpt-6-astra", "system_fingerprint": "fp_44709d6fcb", "choices":[{"index":0,"delta":{"content":"Hello"},"logprobs":null,"finish_reason":null}],"obfuscation":"p9K3xT6w"}
 
           ....
 
-          {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1694268190,"model":"gpt-5.6-sol", "system_fingerprint": "fp_44709d6fcb", "choices":[{"index":0,"delta":{},"logprobs":null,"finish_reason":"stop"}],"obfuscation":""}
+          {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1694268190,"model":"gpt-6-astra", "system_fingerprint": "fp_44709d6fcb", "choices":[{"index":0,"delta":{},"logprobs":null,"finish_reason":"stop"}],"obfuscation":""}
     CreateCompletionRequest:
       type: object
       properties:
@@ -32381,17 +32446,17 @@ components:
         group: eval runs
         example: |
           {
-            "name": "gpt-5.6-sol",
+            "name": "gpt-6-astra",
             "data_source": {
               "type": "completions",
               "input_messages": {
                 "type": "item_reference",
                 "item_reference": "item.input"
               },
-              "model": "gpt-5.6-sol",
+              "model": "gpt-6-astra",
               "source": {
                 "type": "stored_completions",
-                "model": "gpt-5.6-sol"
+                "model": "gpt-6-astra"
               }
             }
           }
@@ -32742,17 +32807,17 @@ components:
         group: eval runs
         example: |
           {
-            "name": "gpt-5.6-sol",
+            "name": "gpt-6-astra",
             "data_source": {
               "type": "responses",
               "input_messages": {
                 "type": "item_reference",
                 "item_reference": "item.input"
               },
-              "model": "gpt-5.6-sol",
+              "model": "gpt-6-astra",
               "source": {
                 "type": "responses",
-                "model": "gpt-5.6-sol"
+                "model": "gpt-6-astra"
               }
             }
           }
@@ -34987,6 +35052,10 @@ components:
           type: string
           description: |
             The input for the custom tool call generated by the model.
+        async:
+          type: boolean
+          description: |
+            Whether the custom tool call runs asynchronously.
       required:
       - type
       - call_id
@@ -35586,6 +35655,8 @@ components:
           - type: 'null'
         type:
           type: string
+        misalignment:
+          $ref: '#/components/schemas/MisalignmentErrorDetailsResource'
       required:
       - type
       - message
@@ -35623,7 +35694,7 @@ components:
         Like:
          - Improve the quality of my chatbot
          - See how well my chatbot handles customer support
-         - Check if o4-mini is better at my usecase than gpt-5.6-sol
+         - Check if o4-mini is better at my usecase than gpt-6-astra
       properties:
         object:
           type: string
@@ -36216,7 +36287,7 @@ components:
         example: |
           {
             "type": "responses",
-            "model": "gpt-5.6-sol",
+            "model": "gpt-6-astra",
             "users": ["user1", "user2"],
             "tools": ["tool1", "tool2"],
             "instructions_search": "You are a coding assistant"
@@ -36369,8 +36440,8 @@ components:
             "eval_id": "eval_67e579652b548190aaa83ada4b125f47",
             "report_url": "https://platform.openai.com/evaluations/eval_67e579652b548190aaa83ada4b125f47?run_id=evalrun_67e57965b480819094274e3a32235e4c",
             "status": "queued",
-            "model": "gpt-5.6-sol",
-            "name": "gpt-5.6-sol",
+            "model": "gpt-6-astra",
+            "name": "gpt-6-astra",
             "created_at": 1743092069,
             "result_counts": {
               "total": 0,
@@ -36498,7 +36569,7 @@ components:
                   }
                 ]
               },
-              "model": "gpt-5.6-sol",
+              "model": "gpt-6-astra",
               "sampling_params": {
                 "max_completions_tokens": 2048
               }
@@ -36784,7 +36855,7 @@ components:
                 }
               ],
               "finish_reason": "stop",
-              "model": "gpt-5.6-sol",
+              "model": "gpt-6-astra",
               "usage": {
                 "total_tokens": 521,
                 "completion_tokens": 2,
@@ -36878,7 +36949,7 @@ components:
                     }
                   ],
                   "finish_reason": "stop",
-                  "model": "gpt-5.6-sol",
+                  "model": "gpt-6-astra",
                   "usage": {
                     "total_tokens": 521,
                     "completion_tokens": 2,
@@ -36993,7 +37064,7 @@ components:
         model:
           anyOf:
           - type: string
-            description: An optional model to filter by (e.g., 'gpt-5.6-sol').
+            description: An optional model to filter by (e.g., 'gpt-6-astra').
           - type: 'null'
         created_after:
           anyOf:
@@ -37018,7 +37089,7 @@ components:
         example: |
           {
             "type": "stored_completions",
-            "model": "gpt-5.6-sol",
+            "model": "gpt-6-astra",
             "created_after": 1668124800,
             "created_before": 1668124900,
             "limit": 100,
@@ -37897,6 +37968,10 @@ components:
           - in_progress
           - completed
           - incomplete
+        async:
+          type: boolean
+          description: |
+            Whether the function tool call runs asynchronously.
       required:
       - type
       - call_id
@@ -39751,6 +39826,7 @@ components:
       - $ref: '#/components/schemas/ToolSearchCallItemParam'
       - $ref: '#/components/schemas/ToolSearchOutputItemParam'
       - $ref: '#/components/schemas/AdditionalToolsItemParam'
+      - $ref: '#/components/schemas/ResponseConfigurationUpdateItemParam'
       - $ref: '#/components/schemas/ReasoningItem'
       - $ref: '#/components/schemas/CompactionSummaryItemParam'
       - $ref: '#/components/schemas/ImageGenToolCall'
@@ -39784,6 +39860,7 @@ components:
       - $ref: '#/components/schemas/ToolSearchCall'
       - $ref: '#/components/schemas/ToolSearchOutput'
       - $ref: '#/components/schemas/AdditionalTools'
+      - $ref: '#/components/schemas/ResponseConfigurationUpdate'
       - $ref: '#/components/schemas/ReasoningItem'
       - $ref: '#/components/schemas/Program'
       - $ref: '#/components/schemas/ProgramOutput'
@@ -41420,7 +41497,7 @@ components:
         name: The model object
         example: |
           {
-            "id": "gpt-5.6-sol",
+            "id": "gpt-6-astra",
             "object": "model",
             "created": 1686935002,
             "owned_by": "openai",
@@ -41435,9 +41512,9 @@ components:
       - $ref: '#/components/schemas/ModelIdsResponses'
       - type: string
       - type: 'null'
-      description: Model ID used to generate the response, like `gpt-5.6-sol`. OpenAI offers a wide range of models with different capabilities, performance characteristics, and price points. Refer to the [model guide](https://platform.openai.com/docs/models) to browse and compare available models.
+      description: Model ID used to generate the response, like `gpt-6-astra`. OpenAI offers a wide range of models with different capabilities, performance characteristics, and price points. Refer to the [model guide](https://platform.openai.com/docs/models) to browse and compare available models.
     ModelIdsResponses:
-      example: gpt-5.6-sol
+      example: gpt-6-astra
       anyOf:
       - $ref: '#/components/schemas/ModelIdsShared'
       - type: string
@@ -41463,7 +41540,7 @@ components:
         - gpt-daybreak-red-latest
         - gpt-5.6-cyber
     ModelIdsShared:
-      example: gpt-5.6-sol
+      example: gpt-6-astra
       anyOf:
       - type: string
       - $ref: '#/components/schemas/ChatModel'
@@ -42773,7 +42850,7 @@ components:
               "object": "project.model_permissions",
               "mode": "allow_list",
               "model_ids": [
-                  "gpt-5.6-sol",
+                  "gpt-6-astra",
                   "o3"
               ]
           }
@@ -52128,11 +52205,16 @@ components:
               properties:
                 reason:
                   type: string
-                  description: The reason why the response is incomplete.
+                  description: |
+                    The reason why the response is incomplete. `steered` means
+                    the response stopped at a safe output boundary after a
+                    WebSocket `response.steer` event. The server can then create
+                    a successor response automatically with the queued input.
                   enum:
                   - max_output_tokens
                   - max_messages
                   - content_filter
+                  - steered
             - type: 'null'
           output:
             type: array
@@ -52564,7 +52646,7 @@ components:
               "input": [],
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-5.6-sol",
+              "model": "gpt-6-astra",
               "output": [
                 {
                   "id": "msg_123",
@@ -52605,6 +52687,66 @@ components:
             },
             "sequence_number": 1
           }
+    ResponseConfigurationUpdate:
+      type: object
+      description: |
+        A configuration update that applies to subsequent responses until it is
+        replaced by another configuration update.
+      properties:
+        id:
+          type: string
+          description: The unique ID of the configuration update item.
+          example: cnfu_123
+        type:
+          type: string
+          enum:
+          - configuration_update
+          description: The item type. Always `configuration_update`.
+          default: configuration_update
+          x-stainless-const: true
+        reasoning:
+          type: object
+          description: The reasoning configuration applied by this update.
+          properties:
+            effort:
+              $ref: '#/components/schemas/ReasoningEffort'
+              description: |
+                The reasoning effort used for subsequent responses until another
+                configuration update replaces it.
+      required:
+      - id
+      - type
+    ResponseConfigurationUpdateItemParam:
+      type: object
+      description: |
+        An update to the conversation's response configuration. The configuration
+        remains in effect for subsequent responses until it is replaced by another
+        configuration update.
+      properties:
+        id:
+          anyOf:
+          - type: string
+            description: The unique ID of the configuration update item.
+            example: cnfu_123
+          - type: 'null'
+        type:
+          type: string
+          enum:
+          - configuration_update
+          description: The item type. Always `configuration_update`.
+          default: configuration_update
+          x-stainless-const: true
+        reasoning:
+          type: object
+          description: Updates to reasoning configuration. Only effort is supported.
+          properties:
+            effort:
+              $ref: '#/components/schemas/ReasoningEffort'
+              description: |
+                The reasoning effort to use for subsequent responses until another
+                configuration update replaces it.
+      required:
+      - type
     ResponseContentPartAddedEvent:
       type: object
       description: Emitted when a new content part is added.
@@ -52750,7 +52892,7 @@ components:
               "incomplete_details": null,
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-5.6-sol",
+              "model": "gpt-6-astra",
               "output": [],
               "parallel_tool_calls": true,
               "previous_response_id": null,
@@ -52867,6 +53009,8 @@ components:
             type: string
             description: |
               A human-readable description of the error.
+          misalignment:
+            $ref: '#/components/schemas/MisalignmentErrorDetailsResource'
         required:
         - code
         - message
@@ -52881,6 +53025,7 @@ components:
       - invalid_prompt
       - data_residency_mismatch
       - bio_policy
+      - misalignment_policy_violation
       - vector_store_timeout
       - invalid_image
       - invalid_image_format
@@ -52985,7 +53130,7 @@ components:
               "incomplete_details": null,
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-5.6-sol",
+              "model": "gpt-6-astra",
               "output": [],
               "previous_response_id": null,
               "reasoning_effort": null,
@@ -53525,7 +53670,7 @@ components:
               "incomplete_details": null,
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-5.6-sol",
+              "model": "gpt-6-astra",
               "output": [],
               "parallel_tool_calls": true,
               "previous_response_id": null,
@@ -53554,6 +53699,10 @@ components:
       type: object
       description: |
         An event that is emitted when a response finishes as incomplete.
+
+        Over WebSocket, steering can finish a response with
+        `response.incomplete_details.reason` set to `steered`, followed automatically
+        by a successor `response.created` that commits the queued steering input.
       properties:
         type:
           type: string
@@ -53591,7 +53740,7 @@ components:
               },
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-5.6-sol",
+              "model": "gpt-6-astra",
               "output": [],
               "previous_response_id": null,
               "reasoning_effort": null,
@@ -54197,7 +54346,7 @@ components:
           - type: 'null'
         model:
           description: |
-            Model ID used to generate the response, like `gpt-5.6-sol`. OpenAI
+            Model ID used to generate the response, like `gpt-6-astra`. OpenAI
             offers a wide range of models with different capabilities, performance
             characteristics, and price points. Refer to the [model guide](https://platform.openai.com/docs/models)
             to browse and compare available models.
@@ -54699,6 +54848,519 @@ components:
             "refusal": "final refusal text",
             "sequence_number": 1
           }
+    ResponseSteerAcceptedEvent:
+      type: object
+      title: ResponseSteerAcceptedEvent
+      description: |
+        Emitted when steering input has been validated and queued. Acceptance means
+        the server owns the input, not that it has been applied. The successor's
+        `response.created` event is the commit point. If accepted input cannot be
+        committed, `response.steer.failed` returns it with the same steering ID.
+
+        When the response stops for client-owned tool output or approval, the input
+        remains queued and `response.steer.pending` is emitted after
+        `response.completed`. Fill the pending event's `required_input` stubs with
+        saved results and send one matching explicit `response.create` per parent.
+        Do not resend accepted input while it is still queued.
+      properties:
+        type:
+          type: string
+          enum:
+          - response.steer.accepted
+          description: The event discriminator. Always `response.steer.accepted`.
+          x-stainless-const: true
+        sequence_number:
+          type: integer
+          description: The sequence number for this event.
+        steer:
+          type: object
+          description: The accepted steering submission.
+          properties:
+            id:
+              type: string
+              description: The ID assigned to the steering submission.
+            previous_response_id:
+              type: string
+              description: The ID of the response being steered.
+          required:
+          - id
+          - previous_response_id
+        stream_id:
+          type: string
+          description: |
+            The WebSocket lane that emitted this event. This field is present when
+            the target response's `response.create` event supplied a `stream_id`.
+      required:
+      - type
+      - sequence_number
+      - steer
+      x-oaiMeta:
+        name: response.steer.accepted
+        group: responses
+        example: |
+          {
+            "type": "response.steer.accepted",
+            "sequence_number": 2,
+            "steer": {
+              "id": "steer_456",
+              "previous_response_id": "resp_123"
+            }
+          }
+    ResponseSteerErrorCode:
+      title: ResponseSteerErrorCode
+      description: |
+        A machine-readable steering error code. Clients should handle unknown
+        values because additional codes may be introduced. Known values include:
+        - `response_not_found`: The target response is not available on this connection.
+        - `invalid_input`: The event or input failed validation.
+        - `steering_not_supported`: The model or response execution mode does not support steering.
+        - `too_many_pending_steers`: Too much steering input is pending for the response.
+        - `response_already_completed`: The response completed and is no longer accepting steering input.
+        - `response_not_active`: The response is no longer accepting steering input.
+        - `successor_creation_failed`: The successor response could not be created.
+      anyOf:
+      - type: string
+        enum:
+        - response_not_found
+        - invalid_input
+        - steering_not_supported
+        - too_many_pending_steers
+        - response_already_completed
+        - response_not_active
+        - successor_creation_failed
+      - type: string
+    ResponseSteerEvent:
+      type: object
+      title: ResponseSteerEvent
+      additionalProperties: false
+      description: |
+        Queues user input to steer a response on this WebSocket connection. Input
+        can contain text, images, and files. Steering is supported only for
+        single-agent responses on models and execution modes that support steering.
+        Responses bound to a conversation or using automatic compaction do not
+        support steering.
+
+        A `response.steer.accepted` event acknowledges that the server owns the
+        queued input, not that it has been applied. The successor's `response.created`
+        event is the commit point. Input that cannot be committed is returned in
+        `response.steer.failed`.
+
+        Steering may cause the active response to finish at a safe output boundary
+        with `response.incomplete` and `incomplete_details.reason` set to `steered`,
+        followed automatically by a successor `response.created`. Normal completion
+        can also be followed by an automatic successor. Automatic successors inherit
+        the previous response's settings and continue from it with the queued input.
+
+        If the response stops for client-owned tool output or approval, accepted
+        steering input remains queued and `response.steer.pending` is emitted after
+        `response.completed`. Fill the `required_input` stubs from that event with
+        saved tool results or approval decisions, and send one explicit
+        `response.create` per parent with the same `previous_response_id` and
+        WebSocket lane. Do not rerun tools or resend accepted steering input. The
+        queued input is prepended in submission order to that request's input, and
+        the explicit request retains its own settings.
+
+        This event accepts only `type`, `previous_response_id`, and `input`. Do not
+        send `stream_id`; the target response determines the WebSocket lane.
+      properties:
+        type:
+          type: string
+          enum:
+          - response.steer
+          description: The event discriminator. Always `response.steer`.
+          x-stainless-const: true
+        previous_response_id:
+          type: string
+          description: The ID of the response to steer on this WebSocket connection.
+        input:
+          $ref: '#/components/schemas/ResponseSteerInput'
+      required:
+      - type
+      - previous_response_id
+      - input
+      x-oaiMeta:
+        name: response.steer
+        group: responses
+        example: |
+          {
+            "type": "response.steer",
+            "previous_response_id": "resp_123",
+            "input": [
+              {
+                "type": "message",
+                "role": "user",
+                "content": [
+                  {
+                    "type": "input_text",
+                    "text": "Prioritize the database rollout."
+                  }
+                ]
+              }
+            ]
+          }
+    ResponseSteerFailedEvent:
+      type: object
+      title: ResponseSteerFailedEvent
+      description: |
+        Emitted when steering input is rejected or cannot be committed to a
+        successor response. Returns the original, uncommitted input so the client
+        can carry it into `response.create` when appropriate. Invalid input must
+        be corrected before retrying.
+
+        Failures after acceptance include the same steering ID. Failures before an
+        ID is allocated omit `steer.id`. A lost connection or missing acknowledgement
+        leaves the outcome unknown; it is not proof that the input was rejected.
+      properties:
+        type:
+          type: string
+          enum:
+          - response.steer.failed
+          description: The event discriminator. Always `response.steer.failed`.
+          x-stainless-const: true
+        sequence_number:
+          type: integer
+          description: The sequence number for this event.
+        steer:
+          type: object
+          description: The steering submission that could not be committed.
+          properties:
+            id:
+              type: string
+              description: |
+                The ID assigned to the steering submission, if one was allocated.
+            previous_response_id:
+              type: string
+              description: The ID of the response that was targeted for steering.
+            input:
+              $ref: '#/components/schemas/ResponseSteerInput'
+          required:
+          - previous_response_id
+          - input
+        error:
+          type: object
+          description: Information about why the input could not be committed.
+          properties:
+            type:
+              type: string
+              enum:
+              - invalid_request_error
+              description: The error type. Always `invalid_request_error`.
+              x-stainless-const: true
+            code:
+              $ref: '#/components/schemas/ResponseSteerErrorCode'
+            message:
+              type: string
+              description: A human-readable description of the error.
+          required:
+          - type
+          - code
+          - message
+        stream_id:
+          type: string
+          description: |
+            The WebSocket lane that emitted this event, when the target response is
+            available and its `response.create` event supplied a `stream_id`.
+      required:
+      - type
+      - sequence_number
+      - steer
+      - error
+      x-oaiMeta:
+        name: response.steer.failed
+        group: responses
+        example: |
+          {
+            "type": "response.steer.failed",
+            "sequence_number": 5,
+            "steer": {
+              "id": "steer_456",
+              "previous_response_id": "resp_123",
+              "input": [
+                {
+                  "type": "message",
+                  "role": "user",
+                  "content": [
+                    {
+                      "type": "input_text",
+                      "text": "Prioritize the database rollout."
+                    }
+                  ]
+                }
+              ]
+            },
+            "error": {
+              "type": "invalid_request_error",
+              "code": "successor_creation_failed",
+              "message": "We couldn't start the next response. Send this steering input again with response.create."
+            }
+          }
+    ResponseSteerInput:
+      title: ResponseSteerInput
+      description: |
+        Input to queue for a continuation of the response. Uses the same string or
+        input-item shape as `response.create.input`, with a non-empty array when
+        supplying input items.
+
+        Steering accepts only messages with the `user` role. Each message may
+        contain only `type`, `role`, and `content`, with `content` as a string or an
+        array of `input_text`, `input_image`, and `input_file` parts. The optional
+        `type` must be `message`. Other roles, tool outputs, and item types are not
+        supported for steering.
+      anyOf:
+      - type: string
+        title: Text input
+        description: A text input, equivalent to a message with the `user` role.
+      - $ref: '#/components/schemas/ResponseSteerInputItemList'
+    ResponseSteerInputItem:
+      title: Response steer input item
+      anyOf:
+      - $ref: '#/components/schemas/UserMessageItemParam'
+      - $ref: '#/components/schemas/FunctionCallOutputItemParam'
+      discriminator:
+        propertyName: type
+    ResponseSteerInputItemList:
+      type: array
+      title: Response steer input item list
+      description: A non-empty list of message inputs to queue for the response.
+      minItems: 1
+      items:
+        $ref: '#/components/schemas/ResponseSteerInputItem'
+    ResponseSteerPendingEvent:
+      type: object
+      title: ResponseSteerPendingEvent
+      description: |
+        Emitted when accepted steering input remains queued after the target
+        response completes. The server still owns the input. Do not resend it.
+        The successor's `response.created` event is the commit point.
+
+        When `reason` is `waiting_for_required_input`, this event follows
+        `response.completed` while the response waits for the tool results or
+        approval decisions identified by `required_input`. Copy those stubs, fill
+        their result fields using the ordinary `response.create` input schemas,
+        and submit one continuation per parent with the same `previous_response_id`
+        and WebSocket lane. Use saved results without rerunning tools. The queued
+        steering input is prepended in submission order to the continuation's
+        input. That explicit request retains its own settings.
+
+        This notification is emitted at most once per steering submission. Multiple
+        submissions for the same parent can report the same required inputs; they
+        do not each require a separate continuation.
+      properties:
+        type:
+          type: string
+          enum:
+          - response.steer.pending
+          description: The event discriminator. Always `response.steer.pending`.
+          x-stainless-const: true
+        sequence_number:
+          type: integer
+          description: The sequence number for this event.
+        steer:
+          type: object
+          description: The steering submission that remains queued.
+          properties:
+            id:
+              type: string
+              description: The ID assigned to the steering submission.
+            previous_response_id:
+              type: string
+              description: The ID of the response being steered.
+          required:
+          - id
+          - previous_response_id
+        reason:
+          $ref: '#/components/schemas/ResponseSteerPendingReason'
+        required_input:
+          type: array
+          minItems: 1
+          description: |
+            Input stubs identifying outstanding client-owned tool results or
+            approval decisions. Each stub contains identifying fields only; the
+            client supplies the result before including it in `response.create`.
+          items:
+            $ref: '#/components/schemas/ResponseSteerRequiredInput'
+        stream_id:
+          type: string
+          description: |
+            The WebSocket lane that emitted this event. This field is present when
+            the target response's `response.create` event supplied a `stream_id`.
+      required:
+      - type
+      - sequence_number
+      - steer
+      - reason
+      - required_input
+      x-oaiMeta:
+        name: response.steer.pending
+        group: responses
+        example: |
+          {
+            "type": "response.steer.pending",
+            "sequence_number": 10,
+            "steer": {
+              "id": "steer_456",
+              "previous_response_id": "resp_123"
+            },
+            "reason": "waiting_for_required_input",
+            "required_input": [
+              {
+                "type": "function_call_output",
+                "call_id": "call_789",
+                "name": "lookup"
+              }
+            ]
+          }
+    ResponseSteerPendingReason:
+      title: ResponseSteerPendingReason
+      description: |
+        An extensible enum describing why accepted steering input is still queued.
+        Clients should handle unknown values because additional reasons may be
+        introduced. Known values include:
+        - `waiting_for_required_input`: The response is waiting for the tool results or approval decisions identified by `required_input`.
+      anyOf:
+      - type: string
+        enum:
+        - waiting_for_required_input
+      - type: string
+    ResponseSteerRequiredInput:
+      title: ResponseSteerRequiredInput
+      description: |
+        An input stub identifying an outstanding client-owned tool result or
+        approval decision. Copy the stub and fill the result fields using the
+        corresponding `response.create` input schema. Use saved results without
+        rerunning the tool. The server does not supply results, approval decisions,
+        or safety acknowledgements in these stubs.
+      discriminator:
+        propertyName: type
+      anyOf:
+      - type: object
+        title: Required function tool call output
+        additionalProperties: false
+        description: |
+          Supply `output` using the function tool call output input schema.
+        properties:
+          type:
+            type: string
+            enum:
+            - function_call_output
+            x-stainless-const: true
+          call_id:
+            type: string
+          name:
+            type: string
+        required:
+        - type
+        - call_id
+        - name
+      - type: object
+        title: Required custom tool call output
+        additionalProperties: false
+        description: |
+          Supply `output` using the custom tool call output input schema. The
+          original custom tool call supplies the tool's name.
+        properties:
+          type:
+            type: string
+            enum:
+            - custom_tool_call_output
+            x-stainless-const: true
+          call_id:
+            type: string
+        required:
+        - type
+        - call_id
+      - type: object
+        title: Required computer tool call output
+        additionalProperties: false
+        description: |
+          Supply `output` using the computer tool call output input schema,
+          including any required `acknowledged_safety_checks`.
+        properties:
+          type:
+            type: string
+            enum:
+            - computer_call_output
+            x-stainless-const: true
+          call_id:
+            type: string
+        required:
+        - type
+        - call_id
+      - type: object
+        title: Required shell tool call output
+        additionalProperties: false
+        description: |
+          Supply `output` using the shell tool call output input schema. Each
+          output entry includes `stdout`, `stderr`, and `outcome`.
+        properties:
+          type:
+            type: string
+            enum:
+            - shell_call_output
+            x-stainless-const: true
+          call_id:
+            type: string
+        required:
+        - type
+        - call_id
+      - type: object
+        title: Required apply patch tool call output
+        additionalProperties: false
+        description: |
+          Supply `status` and optional `output` using the apply patch tool call
+          output input schema.
+        properties:
+          type:
+            type: string
+            enum:
+            - apply_patch_call_output
+            x-stainless-const: true
+          call_id:
+            type: string
+        required:
+        - type
+        - call_id
+      - type: object
+        title: Required tool search output
+        additionalProperties: false
+        description: |
+          Supply `tools` using the tool search output input schema, retaining
+          `execution: "client"`.
+        properties:
+          type:
+            type: string
+            enum:
+            - tool_search_output
+            x-stainless-const: true
+          call_id:
+            type: string
+          execution:
+            type: string
+            enum:
+            - client
+            x-stainless-const: true
+        required:
+        - type
+        - call_id
+        - execution
+      - type: object
+        title: Required MCP approval response
+        additionalProperties: false
+        description: |
+          Supply `approve` using the MCP approval response input schema. An
+          optional `reason` can be supplied when denying the request. The original
+          approval request identifies the tool and server.
+        properties:
+          type:
+            type: string
+            enum:
+            - mcp_approval_response
+            x-stainless-const: true
+          approval_request_id:
+            type: string
+        required:
+        - type
+        - approval_request_id
     ResponseStreamEvent:
       description: Event emitted while a response is streamed.
       anyOf:
@@ -55109,6 +55771,7 @@ components:
         Client events accepted by the Responses WebSocket server.
       anyOf:
       - $ref: '#/components/schemas/ResponsesClientEventResponseCreate'
+      - $ref: '#/components/schemas/ResponseSteerEvent'
     ResponsesClientEventResponseCreate:
       allOf:
       - type: object
@@ -55150,7 +55813,7 @@ components:
           {
             "type": "response.create",
             "stream_id": "agent_1",
-            "model": "gpt-5.6-sol",
+            "model": "gpt-6-astra",
             "input": "Say hello."
           }
     ResponsesServerEvent:
@@ -55466,6 +56129,10 @@ components:
       - title: ResponseWsIncomplete
         description: |
           An event that is emitted when a response finishes as incomplete.
+
+          Over WebSocket, steering can finish a response with
+          `response.incomplete_details.reason` set to `steered`, followed automatically
+          by a successor `response.created` that commits the queued steering input.
         allOf:
         - $ref: '#/components/schemas/ResponseIncompleteEvent'
         - type: object
@@ -55865,6 +56532,9 @@ components:
                 when the originating `response.create` event supplied a
                 `stream_id`.
       - $ref: '#/components/schemas/ResponseWsError'
+      - $ref: '#/components/schemas/ResponseSteerAcceptedEvent'
+      - $ref: '#/components/schemas/ResponseSteerPendingEvent'
+      - $ref: '#/components/schemas/ResponseSteerFailedEvent'
     ResponsesWebSocketStreamEvent:
       allOf:
       - anyOf:
@@ -58772,7 +59442,7 @@ components:
               "project_id": "proj_abc",
               "user_id": "user-abc",
               "api_key_id": "key_abc",
-              "model": "gpt-5.6-sol",
+              "model": "gpt-6-astra",
               "batch": false,
               "service_tier": "default"
           }
@@ -59126,7 +59796,7 @@ components:
               "project_id": "proj_abc",
               "user_id": "user-abc",
               "api_key_id": "key_abc",
-              "model": "gpt-5.6-sol",
+              "model": "gpt-6-astra",
               "context_level": "medium"
           }
     User:
@@ -61332,77 +62002,108 @@ components:
               "id": "resp_abc123"
             }
           }
-    OAuthErrorCode:
-      anyOf:
-      - enum:
-        - invalid_grant
-        - invalid_subject_token
-      - type: string
-    BetaResponseStreamEvent:
-      description: Event emitted while a response is streamed.
-      anyOf:
-      - $ref: '#/components/schemas/BetaResponseAudioDeltaEvent'
-      - $ref: '#/components/schemas/BetaResponseAudioDoneEvent'
-      - $ref: '#/components/schemas/BetaResponseAudioTranscriptDeltaEvent'
-      - $ref: '#/components/schemas/BetaResponseAudioTranscriptDoneEvent'
-      - $ref: '#/components/schemas/BetaResponseCodeInterpreterCallCodeDeltaEvent'
-      - $ref: '#/components/schemas/BetaResponseCodeInterpreterCallCodeDoneEvent'
-      - $ref: '#/components/schemas/BetaResponseCodeInterpreterCallCompletedEvent'
-      - $ref: '#/components/schemas/BetaResponseCodeInterpreterCallInProgressEvent'
-      - $ref: '#/components/schemas/BetaResponseCodeInterpreterCallInterpretingEvent'
-      - $ref: '#/components/schemas/BetaResponseCompletedEvent'
-      - $ref: '#/components/schemas/BetaResponseContentPartAddedEvent'
-      - $ref: '#/components/schemas/BetaResponseContentPartDoneEvent'
-      - $ref: '#/components/schemas/BetaResponseCreatedEvent'
-      - $ref: '#/components/schemas/BetaResponseErrorEvent'
-      - $ref: '#/components/schemas/BetaResponseFileSearchCallCompletedEvent'
-      - $ref: '#/components/schemas/BetaResponseFileSearchCallInProgressEvent'
-      - $ref: '#/components/schemas/BetaResponseFileSearchCallSearchingEvent'
-      - $ref: '#/components/schemas/BetaResponseFunctionCallArgumentsDeltaEvent'
-      - $ref: '#/components/schemas/BetaResponseFunctionCallArgumentsDoneEvent'
-      - $ref: '#/components/schemas/BetaResponseShellCallCommandAddedStreamingEvent'
-      - $ref: '#/components/schemas/BetaResponseShellCallCommandDeltaStreamingEvent'
-      - $ref: '#/components/schemas/BetaResponseShellCallCommandDoneStreamingEvent'
-      - $ref: '#/components/schemas/BetaResponseShellCallOutputContentDeltaStreamingEvent'
-        x-stainless-skip:
-        - go
-      - $ref: '#/components/schemas/BetaResponseShellCallOutputContentDoneStreamingEvent'
-      - $ref: '#/components/schemas/BetaResponseInProgressEvent'
-      - $ref: '#/components/schemas/BetaResponseFailedEvent'
-      - $ref: '#/components/schemas/BetaResponseIncompleteEvent'
-      - $ref: '#/components/schemas/BetaResponseOutputItemAddedEvent'
-      - $ref: '#/components/schemas/BetaResponseOutputItemDoneEvent'
-      - $ref: '#/components/schemas/BetaResponseReasoningSummaryPartAddedEvent'
-      - $ref: '#/components/schemas/BetaResponseReasoningSummaryPartDoneEvent'
-      - $ref: '#/components/schemas/BetaResponseReasoningSummaryTextDeltaEvent'
-      - $ref: '#/components/schemas/BetaResponseReasoningSummaryTextDoneEvent'
-      - $ref: '#/components/schemas/BetaResponseReasoningTextDeltaEvent'
-      - $ref: '#/components/schemas/BetaResponseReasoningTextDoneEvent'
-      - $ref: '#/components/schemas/BetaResponseRefusalDeltaEvent'
-      - $ref: '#/components/schemas/BetaResponseRefusalDoneEvent'
-      - $ref: '#/components/schemas/BetaResponseTextDeltaEvent'
-      - $ref: '#/components/schemas/BetaResponseTextDoneEvent'
-      - $ref: '#/components/schemas/BetaResponseWebSearchCallCompletedEvent'
-      - $ref: '#/components/schemas/BetaResponseWebSearchCallInProgressEvent'
-      - $ref: '#/components/schemas/BetaResponseWebSearchCallSearchingEvent'
-      - $ref: '#/components/schemas/BetaResponseImageGenCallCompletedEvent'
-      - $ref: '#/components/schemas/BetaResponseImageGenCallGeneratingEvent'
-      - $ref: '#/components/schemas/BetaResponseImageGenCallInProgressEvent'
-      - $ref: '#/components/schemas/BetaResponseImageGenCallPartialImageEvent'
-      - $ref: '#/components/schemas/BetaResponseMCPCallArgumentsDeltaEvent'
-      - $ref: '#/components/schemas/BetaResponseMCPCallArgumentsDoneEvent'
-      - $ref: '#/components/schemas/BetaResponseMCPCallCompletedEvent'
-      - $ref: '#/components/schemas/BetaResponseMCPCallFailedEvent'
-      - $ref: '#/components/schemas/BetaResponseMCPCallInProgressEvent'
-      - $ref: '#/components/schemas/BetaResponseMCPListToolsCompletedEvent'
-      - $ref: '#/components/schemas/BetaResponseMCPListToolsFailedEvent'
-      - $ref: '#/components/schemas/BetaResponseMCPListToolsInProgressEvent'
-      - $ref: '#/components/schemas/BetaResponseOutputTextAnnotationAddedEvent'
-      - $ref: '#/components/schemas/BetaResponseQueuedEvent'
-      - $ref: '#/components/schemas/BetaResponseCustomToolCallInputDeltaEvent'
-      - $ref: '#/components/schemas/BetaResponseCustomToolCallInputDoneEvent'
-      discriminator:
-        propertyName: type
+    WebhookSafetyAlertCreated:
+      type: object
+      title: safety.alert.created
+      description: Sent when an approved safety alert is available for an API project.
+      required:
+      - id
+      - object
+      - created_at
+      - type
+      - data
+      properties:
+        id:
+          type: string
+          description: The unique ID of the webhook event.
+        object:
+          type: string
+          enum:
+          - event
+          x-stainless-const: true
+          description: Always `event`.
+        created_at:
+          type: integer
+          format: unixtime
+          description: The Unix timestamp in seconds when the event was created.
+        type:
+          type: string
+          enum:
+          - safety.alert.created
+          x-stainless-const: true
+          description: Always `safety.alert.created`.
+        data:
+          type: object
+          additionalProperties: false
+          required:
+          - id
+          properties:
+            id:
+              type: string
+              pattern: ^alert_[0-9a-f]{32}$
+              description: The safety alert ID to pass to `GET /v1/safety/alerts/{id}`.
+      x-oaiMeta:
+        name: safety.alert.created
+        group: webhook-events
+        example: |
+          {
+            "id": "evt_123",
+            "object": "event",
+            "created_at": 1787659200,
+            "type": "safety.alert.created",
+            "data": {"id": "alert_0123456789abcdef0123456789abcdef"}
+          }
+    WebhookSafetyOrgAlertCreated:
+      type: object
+      title: safety.org_alert.created
+      description: Sent when an approved safety alert is available for an enterprise workspace.
+      required:
+      - id
+      - object
+      - created_at
+      - type
+      - data
+      properties:
+        id:
+          type: string
+          description: The unique ID of the webhook event.
+        object:
+          type: string
+          enum:
+          - event
+          x-stainless-const: true
+          description: Always `event`.
+        created_at:
+          type: integer
+          format: unixtime
+          description: The Unix timestamp in seconds when the event was created.
+        type:
+          type: string
+          enum:
+          - safety.org_alert.created
+          x-stainless-const: true
+          description: Always `safety.org_alert.created`.
+        data:
+          type: object
+          additionalProperties: false
+          required:
+          - id
+          properties:
+            id:
+              type: string
+              pattern: ^alert_[0-9a-f]{32}$
+              description: The safety alert ID to pass to `GET /v1/safety/alerts/{id}`.
+      x-oaiMeta:
+        name: safety.org_alert.created
+        group: webhook-events
+        example: |
+          {
+            "id": "evt_123",
+            "object": "event",
+            "created_at": 1787659200,
+            "type": "safety.org_alert.created",
+            "data": {"id": "alert_0123456789abcdef0123456789abcdef"}
+          }
     ModerationInputType:
       type: string
       enum:
@@ -62551,6 +63252,8 @@ components:
         name:
           type: string
           description: The name of the function to call.
+        async:
+          type: boolean
         description:
           anyOf:
           - type: string
@@ -62939,6 +63642,9 @@ components:
         name:
           type: string
           description: The name of the custom tool, used to identify it in tool calls.
+        async:
+          type: boolean
+          description: Whether the tool response can be returned asynchronously versus immediately returned on next response creation.
         description:
           type: string
           description: Optional description of the custom tool, used to provide more context.
@@ -62996,6 +63702,9 @@ components:
           - function
           default: function
           x-stainless-const: true
+        async:
+          type: boolean
+          description: Whether the tool response can be returned asynchronously versus immediately returned on next response creation.
         output_schema:
           anyOf:
           - additionalProperties: {}
@@ -64773,6 +65482,36 @@ components:
       - object
       - metadata
       - created_at
+    _MisalignmentErrorType:
+      anyOf:
+      - type: string
+      - type: string
+        enum:
+        - potentially_unintended_data_transfer
+        - potentially_unintended_data_access
+        - potentially_unintended_destructive_activity
+        - other
+    _MisalignmentSteer:
+      properties:
+        message:
+          type: string
+          description: The public continuation instruction.
+      type: object
+      required:
+      - message
+    MisalignmentErrorDetailsResource:
+      properties:
+        error_type:
+          $ref: '#/components/schemas/_MisalignmentErrorType'
+          description: An optional classification; clients must accept additional values.
+        detailed_explanation:
+          type: string
+          description: The public explanation for this block.
+        steer:
+          $ref: '#/components/schemas/_MisalignmentSteer'
+          description: An optional public continuation instruction.
+      type: object
+      required: []
     ImageGenOutputTokensDetails:
       properties:
         image_tokens:
@@ -65200,6 +65939,53 @@ components:
       - object
       - deleted
       - id
+    SafetyAlertErrorType:
+      type: string
+      enum:
+      - potentially_unintended_data_transfer
+      - potentially_unintended_data_access
+      - potentially_unintended_destructive_activity
+      - other
+    SafetyAlertResource:
+      properties:
+        id:
+          type: string
+        object:
+          type: string
+          enum:
+          - safety.alert
+          default: safety.alert
+          x-stainless-const: true
+        created_at:
+          type: integer
+          format: unixtime
+        request_id:
+          type: string
+        response_id:
+          type: string
+        model:
+          type: string
+        request_paused:
+          type: boolean
+          description: Whether block registration succeeded for this request. This does not confirm that response execution stopped.
+        error_type:
+          $ref: '#/components/schemas/SafetyAlertErrorType'
+        reason:
+          anyOf:
+          - type: string
+            description: A customer-safe description derived from error_type, or null for zero data retention requests.
+          - type: 'null'
+      type: object
+      required:
+      - id
+      - object
+      - created_at
+      - request_id
+      - response_id
+      - model
+      - request_paused
+      - error_type
+      - reason
     SpendLimitCurrency:
       anyOf:
       - type: string
@@ -65562,6 +66348,8 @@ components:
         message:
           type: string
           description: A human-readable description of the error that was returned.
+        misalignment:
+          $ref: '#/components/schemas/MisalignmentErrorDetailsResource'
       type: object
       required:
       - code
@@ -67432,6 +68220,48 @@ components:
       - y
       title: Coordinate
       description: 'An x/y coordinate pair, e.g. `{ x: 100, y: 200 }`.'
+    UserMessageItemParam:
+      properties:
+        id:
+          anyOf:
+          - type: string
+            description: The unique ID of this message item.
+            example: msg_123
+          - type: 'null'
+        type:
+          type: string
+          enum:
+          - message
+          description: The item type. Always `message`.
+          default: message
+          x-stainless-const: true
+        role:
+          type: string
+          enum:
+          - user
+          description: The message role. Always `user`.
+          default: user
+          x-stainless-const: true
+        content:
+          description: The message content, as an array of content parts.
+          anyOf:
+          - items:
+              $ref: '#/components/schemas/ResponseSteerInputContent'
+              description: A piece of message content, such as text, an image, or a file.
+            type: array
+          - type: string
+            maxLength: 10485760
+            description: The message content, as a single string.
+        status:
+          anyOf:
+          - type: string
+            description: The status of the message item.
+          - type: 'null'
+      type: object
+      required:
+      - type
+      - role
+      - content
     ErrorPayload:
       properties:
         type:
@@ -67457,6 +68287,8 @@ components:
           type: object
           description: The response headers that were emitted with the error, if any.
           x-oaiTypeLabel: map
+        misalignment:
+          $ref: '#/components/schemas/MisalignmentErrorDetailsResource'
       type: object
       required:
       - type
@@ -68200,6 +69032,9 @@ components:
         name:
           type: string
           description: The name of the custom tool, used to identify it in tool calls.
+        async:
+          type: boolean
+          description: Whether the tool response can be returned asynchronously versus immediately returned on next response creation.
         description:
           type: string
           description: Optional description of the custom tool, used to provide more context.
@@ -68294,6 +69129,9 @@ components:
           - function
           default: function
           x-stainless-const: true
+        async:
+          type: boolean
+          description: Whether the tool response can be returned asynchronously versus immediately returned on next response creation.
         output_schema:
           anyOf:
           - additionalProperties: {}
@@ -69240,6 +70078,8 @@ components:
         name:
           type: string
           description: The name of the function to call.
+        async:
+          type: boolean
         description:
           anyOf:
           - type: string
@@ -69452,6 +70292,7 @@ components:
       - $ref: '#/components/schemas/BetaToolSearchCallItemParam'
       - $ref: '#/components/schemas/BetaToolSearchOutputItemParam'
       - $ref: '#/components/schemas/BetaAdditionalToolsItemParam'
+      - $ref: '#/components/schemas/BetaResponseConfigurationUpdateItemParam'
       - $ref: '#/components/schemas/BetaReasoningItem'
       - $ref: '#/components/schemas/BetaCompactionSummaryItemParam'
       - $ref: '#/components/schemas/BetaImageGenToolCall'
@@ -69510,6 +70351,10 @@ components:
           type: string
           description: |
             The input for the custom tool call generated by the model.
+        async:
+          type: boolean
+          description: |
+            Whether the custom tool call runs asynchronously.
       required:
       - type
       - call_id
@@ -70817,6 +71662,42 @@ components:
       - text
       title: Summary text
       description: A summary text from the model.
+    BetaResponseConfigurationUpdateItemParam:
+      type: object
+      description: |
+        An update to the conversation's response configuration. The configuration
+        remains in effect for subsequent responses until it is replaced by another
+        configuration update.
+      properties:
+        agent:
+          anyOf:
+          - $ref: '#/components/schemas/Beta_AgentTagParam'
+            description: The agent that produced this item.
+          - type: 'null'
+        id:
+          anyOf:
+          - type: string
+            description: The unique ID of the configuration update item.
+            example: cnfu_123
+          - type: 'null'
+        type:
+          type: string
+          enum:
+          - configuration_update
+          description: The item type. Always `configuration_update`.
+          default: configuration_update
+          x-stainless-const: true
+        reasoning:
+          type: object
+          description: Updates to reasoning configuration. Only effort is supported.
+          properties:
+            effort:
+              $ref: '#/components/schemas/BetaReasoningEffort'
+              description: |
+                The reasoning effort to use for subsequent responses until another
+                configuration update replaces it.
+      required:
+      - type
     BetaAdditionalToolsItemParam:
       properties:
         agent:
@@ -71473,6 +72354,10 @@ components:
           - in_progress
           - completed
           - incomplete
+        async:
+          type: boolean
+          description: |
+            Whether the function tool call runs asynchronously.
       required:
       - type
       - call_id
@@ -72605,9 +73490,9 @@ components:
       - $ref: '#/components/schemas/BetaModelIdsResponses'
       - type: string
       - type: 'null'
-      description: Model ID used to generate the response, like `gpt-5.6-sol`. OpenAI offers a wide range of models with different capabilities, performance characteristics, and price points. Refer to the [model guide](https://platform.openai.com/docs/models) to browse and compare available models.
+      description: Model ID used to generate the response, like `gpt-6-astra`. OpenAI offers a wide range of models with different capabilities, performance characteristics, and price points. Refer to the [model guide](https://platform.openai.com/docs/models) to browse and compare available models.
     BetaModelIdsResponses:
-      example: gpt-5.6-sol
+      example: gpt-6-astra
       anyOf:
       - $ref: '#/components/schemas/BetaModelIdsShared'
       - type: string
@@ -72633,7 +73518,7 @@ components:
         - gpt-daybreak-red-latest
         - gpt-5.6-cyber
     BetaModelIdsShared:
-      example: gpt-5.6-sol
+      example: gpt-6-astra
       anyOf:
       - type: string
       - $ref: '#/components/schemas/ChatModel'
@@ -72652,11 +73537,43 @@ components:
           - type: 'null'
         type:
           type: string
+        misalignment:
+          $ref: '#/components/schemas/BetaMisalignmentErrorDetailsResource'
       required:
       - type
       - message
       - param
       - code
+    BetaMisalignmentErrorDetailsResource:
+      properties:
+        error_type:
+          $ref: '#/components/schemas/Beta_MisalignmentErrorType'
+          description: An optional classification; clients must accept additional values.
+        detailed_explanation:
+          type: string
+          description: The public explanation for this block.
+        steer:
+          $ref: '#/components/schemas/Beta_MisalignmentSteer'
+          description: An optional public continuation instruction.
+      type: object
+      required: []
+    Beta_MisalignmentSteer:
+      properties:
+        message:
+          type: string
+          description: The public continuation instruction.
+      type: object
+      required:
+      - message
+    Beta_MisalignmentErrorType:
+      anyOf:
+      - type: string
+      - type: string
+        enum:
+        - potentially_unintended_data_transfer
+        - potentially_unintended_data_access
+        - potentially_unintended_destructive_activity
+        - other
     BetaResponseItemList:
       type: object
       description: A list of Response items.
@@ -72728,6 +73645,7 @@ components:
       - $ref: '#/components/schemas/BetaToolSearchCall'
       - $ref: '#/components/schemas/BetaToolSearchOutput'
       - $ref: '#/components/schemas/BetaAdditionalTools'
+      - $ref: '#/components/schemas/BetaResponseConfigurationUpdate'
       - $ref: '#/components/schemas/BetaReasoningItem'
       - $ref: '#/components/schemas/BetaProgram'
       - $ref: '#/components/schemas/BetaProgramOutput'
@@ -73324,6 +74242,38 @@ components:
       - call_id
       - code
       - fingerprint
+    BetaResponseConfigurationUpdate:
+      type: object
+      description: |
+        A configuration update that applies to subsequent responses until it is
+        replaced by another configuration update.
+      properties:
+        agent:
+          $ref: '#/components/schemas/BetaAgentTag'
+          description: The agent that produced this item.
+        id:
+          type: string
+          description: The unique ID of the configuration update item.
+          example: cnfu_123
+        type:
+          type: string
+          enum:
+          - configuration_update
+          description: The item type. Always `configuration_update`.
+          default: configuration_update
+          x-stainless-const: true
+        reasoning:
+          type: object
+          description: The reasoning configuration applied by this update.
+          properties:
+            effort:
+              $ref: '#/components/schemas/BetaReasoningEffort'
+              description: |
+                The reasoning effort used for subsequent responses until another
+                configuration update replaces it.
+      required:
+      - id
+      - type
     BetaAdditionalTools:
       properties:
         agent:
@@ -74209,11 +75159,16 @@ components:
               properties:
                 reason:
                   type: string
-                  description: The reason why the response is incomplete.
+                  description: |
+                    The reason why the response is incomplete. `steered` means
+                    the response stopped at a safe output boundary after a
+                    WebSocket `response.steer` event. The server can then create
+                    a successor response automatically with the queued input.
                   enum:
                   - max_output_tokens
                   - max_messages
                   - content_filter
+                  - steered
             - type: 'null'
           output:
             type: array
@@ -74470,6 +75425,8 @@ components:
             type: string
             description: |
               A human-readable description of the error.
+          misalignment:
+            $ref: '#/components/schemas/BetaMisalignmentErrorDetailsResource'
         required:
         - code
         - message
@@ -74484,6 +75441,7 @@ components:
       - invalid_prompt
       - data_residency_mismatch
       - bio_policy
+      - misalignment_policy_violation
       - vector_store_timeout
       - invalid_image
       - invalid_image_format
@@ -74535,7 +75493,7 @@ components:
           - type: 'null'
         model:
           description: |
-            Model ID used to generate the response, like `gpt-5.6-sol`. OpenAI
+            Model ID used to generate the response, like `gpt-6-astra`. OpenAI
             offers a wide range of models with different capabilities, performance
             characteristics, and price points. Refer to the [model guide](https://platform.openai.com/docs/models)
             to browse and compare available models.
@@ -76089,7 +77047,7 @@ components:
               "incomplete_details": null,
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-5.6-sol",
+              "model": "gpt-6-astra",
               "output": [],
               "parallel_tool_calls": true,
               "previous_response_id": null,
@@ -76622,7 +77580,7 @@ components:
               "incomplete_details": null,
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-5.6-sol",
+              "model": "gpt-6-astra",
               "output": [],
               "parallel_tool_calls": true,
               "previous_response_id": null,
@@ -76814,7 +77772,7 @@ components:
               "input": [],
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-5.6-sol",
+              "model": "gpt-6-astra",
               "output": [
                 {
                   "id": "msg_123",
@@ -77205,6 +78163,10 @@ components:
       type: object
       description: |
         An event that is emitted when a response finishes as incomplete.
+
+        Over WebSocket, steering can finish a response with
+        `response.incomplete_details.reason` set to `steered`, followed automatically
+        by a successor `response.created` that commits the queued steering input.
       properties:
         agent:
           anyOf:
@@ -77247,7 +78209,7 @@ components:
               },
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-5.6-sol",
+              "model": "gpt-6-astra",
               "output": [],
               "previous_response_id": null,
               "reasoning_effort": null,
@@ -77315,7 +78277,7 @@ components:
               "incomplete_details": null,
               "instructions": null,
               "max_output_tokens": null,
-              "model": "gpt-5.6-sol",
+              "model": "gpt-6-astra",
               "output": [],
               "previous_response_id": null,
               "reasoning_effort": null,
@@ -77460,6 +78422,566 @@ components:
             "output_index": 0,
             "item_id": "ws_123",
             "sequence_number": 0
+          }
+    BetaResponseSteerFailedEvent:
+      type: object
+      title: ResponseSteerFailedEvent
+      description: |
+        Emitted when steering input is rejected or cannot be committed to a
+        successor response. Returns the original, uncommitted input so the client
+        can carry it into `response.create` when appropriate. Invalid input must
+        be corrected before retrying.
+
+        Failures after acceptance include the same steering ID. Failures before an
+        ID is allocated omit `steer.id`. A lost connection or missing acknowledgement
+        leaves the outcome unknown; it is not proof that the input was rejected.
+      properties:
+        type:
+          type: string
+          enum:
+          - response.steer.failed
+          description: The event discriminator. Always `response.steer.failed`.
+          x-stainless-const: true
+        sequence_number:
+          type: integer
+          description: The sequence number for this event.
+        steer:
+          type: object
+          description: The steering submission that could not be committed.
+          properties:
+            id:
+              type: string
+              description: |
+                The ID assigned to the steering submission, if one was allocated.
+            previous_response_id:
+              type: string
+              description: The ID of the response that was targeted for steering.
+            input:
+              $ref: '#/components/schemas/BetaResponseSteerInput'
+          required:
+          - previous_response_id
+          - input
+        error:
+          type: object
+          description: Information about why the input could not be committed.
+          properties:
+            type:
+              type: string
+              enum:
+              - invalid_request_error
+              description: The error type. Always `invalid_request_error`.
+              x-stainless-const: true
+            code:
+              $ref: '#/components/schemas/BetaResponseSteerErrorCode'
+            message:
+              type: string
+              description: A human-readable description of the error.
+          required:
+          - type
+          - code
+          - message
+        stream_id:
+          type: string
+          description: |
+            The WebSocket lane that emitted this event, when the target response is
+            available and its `response.create` event supplied a `stream_id`.
+      required:
+      - type
+      - sequence_number
+      - steer
+      - error
+      x-oaiMeta:
+        name: response.steer.failed
+        group: responses
+        example: |
+          {
+            "type": "response.steer.failed",
+            "sequence_number": 5,
+            "steer": {
+              "id": "steer_456",
+              "previous_response_id": "resp_123",
+              "input": [
+                {
+                  "type": "message",
+                  "role": "user",
+                  "content": [
+                    {
+                      "type": "input_text",
+                      "text": "Prioritize the database rollout."
+                    }
+                  ]
+                }
+              ]
+            },
+            "error": {
+              "type": "invalid_request_error",
+              "code": "successor_creation_failed",
+              "message": "We couldn't start the next response. Send this steering input again with response.create."
+            }
+          }
+    BetaResponseSteerErrorCode:
+      title: ResponseSteerErrorCode
+      description: |
+        A machine-readable steering error code. Clients should handle unknown
+        values because additional codes may be introduced. Known values include:
+        - `response_not_found`: The target response is not available on this connection.
+        - `invalid_input`: The event or input failed validation.
+        - `steering_not_supported`: The model or response execution mode does not support steering.
+        - `too_many_pending_steers`: Too much steering input is pending for the response.
+        - `response_already_completed`: The response completed and is no longer accepting steering input.
+        - `response_not_active`: The response is no longer accepting steering input.
+        - `successor_creation_failed`: The successor response could not be created.
+      anyOf:
+      - type: string
+        enum:
+        - response_not_found
+        - invalid_input
+        - steering_not_supported
+        - too_many_pending_steers
+        - response_already_completed
+        - response_not_active
+        - successor_creation_failed
+      - type: string
+    BetaResponseSteerInput:
+      title: ResponseSteerInput
+      description: |
+        Input to queue for a continuation of the response. Uses the same string or
+        input-item shape as `response.create.input`, with a non-empty array when
+        supplying input items.
+
+        Steering accepts only messages with the `user` role. Each message may
+        contain only `type`, `role`, and `content`, with `content` as a string or an
+        array of `input_text`, `input_image`, and `input_file` parts. The optional
+        `type` must be `message`. Other roles, tool outputs, and item types are not
+        supported for steering.
+      anyOf:
+      - type: string
+        title: Text input
+        description: A text input, equivalent to a message with the `user` role.
+      - $ref: '#/components/schemas/BetaResponseSteerInputItemList'
+    BetaResponseSteerInputItemList:
+      type: array
+      title: Response steer input item list
+      description: A non-empty list of message inputs to queue for the response.
+      minItems: 1
+      items:
+        $ref: '#/components/schemas/BetaResponseSteerInputItem'
+    BetaResponseSteerInputItem:
+      title: Response steer input item
+      anyOf:
+      - $ref: '#/components/schemas/BetaUserMessageItemParam'
+      - $ref: '#/components/schemas/BetaFunctionCallOutputItemParam'
+      discriminator:
+        propertyName: type
+    BetaUserMessageItemParam:
+      properties:
+        agent:
+          anyOf:
+          - $ref: '#/components/schemas/Beta_AgentTagParam'
+            description: The agent that produced this item.
+          - type: 'null'
+        id:
+          anyOf:
+          - type: string
+            description: The unique ID of this message item.
+            example: msg_123
+          - type: 'null'
+        type:
+          type: string
+          enum:
+          - message
+          description: The item type. Always `message`.
+          default: message
+          x-stainless-const: true
+        role:
+          type: string
+          enum:
+          - user
+          description: The message role. Always `user`.
+          default: user
+          x-stainless-const: true
+        content:
+          description: The message content, as an array of content parts.
+          anyOf:
+          - items:
+              $ref: '#/components/schemas/BetaResponseSteerInputContent'
+              description: A piece of message content, such as text, an image, or a file.
+            type: array
+          - type: string
+            maxLength: 10485760
+            description: The message content, as a single string.
+        status:
+          anyOf:
+          - type: string
+            description: The status of the message item.
+          - type: 'null'
+      type: object
+      required:
+      - type
+      - role
+      - content
+    BetaResponseSteerPendingEvent:
+      type: object
+      title: ResponseSteerPendingEvent
+      description: |
+        Emitted when accepted steering input remains queued after the target
+        response completes. The server still owns the input. Do not resend it.
+        The successor's `response.created` event is the commit point.
+
+        When `reason` is `waiting_for_required_input`, this event follows
+        `response.completed` while the response waits for the tool results or
+        approval decisions identified by `required_input`. Copy those stubs, fill
+        their result fields using the ordinary `response.create` input schemas,
+        and submit one continuation per parent with the same `previous_response_id`
+        and WebSocket lane. Use saved results without rerunning tools. The queued
+        steering input is prepended in submission order to the continuation's
+        input. That explicit request retains its own settings.
+
+        This notification is emitted at most once per steering submission. Multiple
+        submissions for the same parent can report the same required inputs; they
+        do not each require a separate continuation.
+      properties:
+        type:
+          type: string
+          enum:
+          - response.steer.pending
+          description: The event discriminator. Always `response.steer.pending`.
+          x-stainless-const: true
+        sequence_number:
+          type: integer
+          description: The sequence number for this event.
+        steer:
+          type: object
+          description: The steering submission that remains queued.
+          properties:
+            id:
+              type: string
+              description: The ID assigned to the steering submission.
+            previous_response_id:
+              type: string
+              description: The ID of the response being steered.
+          required:
+          - id
+          - previous_response_id
+        reason:
+          $ref: '#/components/schemas/BetaResponseSteerPendingReason'
+        required_input:
+          type: array
+          minItems: 1
+          description: |
+            Input stubs identifying outstanding client-owned tool results or
+            approval decisions. Each stub contains identifying fields only; the
+            client supplies the result before including it in `response.create`.
+          items:
+            $ref: '#/components/schemas/BetaResponseSteerRequiredInput'
+        stream_id:
+          type: string
+          description: |
+            The WebSocket lane that emitted this event. This field is present when
+            the target response's `response.create` event supplied a `stream_id`.
+      required:
+      - type
+      - sequence_number
+      - steer
+      - reason
+      - required_input
+      x-oaiMeta:
+        name: response.steer.pending
+        group: responses
+        example: |
+          {
+            "type": "response.steer.pending",
+            "sequence_number": 10,
+            "steer": {
+              "id": "steer_456",
+              "previous_response_id": "resp_123"
+            },
+            "reason": "waiting_for_required_input",
+            "required_input": [
+              {
+                "type": "function_call_output",
+                "call_id": "call_789",
+                "name": "lookup"
+              }
+            ]
+          }
+    BetaResponseSteerRequiredInput:
+      title: ResponseSteerRequiredInput
+      description: |
+        An input stub identifying an outstanding client-owned tool result or
+        approval decision. Copy the stub and fill the result fields using the
+        corresponding `response.create` input schema. Use saved results without
+        rerunning the tool. The server does not supply results, approval decisions,
+        or safety acknowledgements in these stubs.
+      discriminator:
+        propertyName: type
+      anyOf:
+      - type: object
+        title: Required function tool call output
+        additionalProperties: false
+        description: |
+          Supply `output` using the function tool call output input schema.
+        properties:
+          type:
+            type: string
+            enum:
+            - function_call_output
+            x-stainless-const: true
+          call_id:
+            type: string
+          name:
+            type: string
+        required:
+        - type
+        - call_id
+        - name
+      - type: object
+        title: Required custom tool call output
+        additionalProperties: false
+        description: |
+          Supply `output` using the custom tool call output input schema. The
+          original custom tool call supplies the tool's name.
+        properties:
+          type:
+            type: string
+            enum:
+            - custom_tool_call_output
+            x-stainless-const: true
+          call_id:
+            type: string
+        required:
+        - type
+        - call_id
+      - type: object
+        title: Required computer tool call output
+        additionalProperties: false
+        description: |
+          Supply `output` using the computer tool call output input schema,
+          including any required `acknowledged_safety_checks`.
+        properties:
+          type:
+            type: string
+            enum:
+            - computer_call_output
+            x-stainless-const: true
+          call_id:
+            type: string
+        required:
+        - type
+        - call_id
+      - type: object
+        title: Required shell tool call output
+        additionalProperties: false
+        description: |
+          Supply `output` using the shell tool call output input schema. Each
+          output entry includes `stdout`, `stderr`, and `outcome`.
+        properties:
+          type:
+            type: string
+            enum:
+            - shell_call_output
+            x-stainless-const: true
+          call_id:
+            type: string
+        required:
+        - type
+        - call_id
+      - type: object
+        title: Required apply patch tool call output
+        additionalProperties: false
+        description: |
+          Supply `status` and optional `output` using the apply patch tool call
+          output input schema.
+        properties:
+          type:
+            type: string
+            enum:
+            - apply_patch_call_output
+            x-stainless-const: true
+          call_id:
+            type: string
+        required:
+        - type
+        - call_id
+      - type: object
+        title: Required tool search output
+        additionalProperties: false
+        description: |
+          Supply `tools` using the tool search output input schema, retaining
+          `execution: "client"`.
+        properties:
+          type:
+            type: string
+            enum:
+            - tool_search_output
+            x-stainless-const: true
+          call_id:
+            type: string
+          execution:
+            type: string
+            enum:
+            - client
+            x-stainless-const: true
+        required:
+        - type
+        - call_id
+        - execution
+      - type: object
+        title: Required MCP approval response
+        additionalProperties: false
+        description: |
+          Supply `approve` using the MCP approval response input schema. An
+          optional `reason` can be supplied when denying the request. The original
+          approval request identifies the tool and server.
+        properties:
+          type:
+            type: string
+            enum:
+            - mcp_approval_response
+            x-stainless-const: true
+          approval_request_id:
+            type: string
+        required:
+        - type
+        - approval_request_id
+    BetaResponseSteerPendingReason:
+      title: ResponseSteerPendingReason
+      description: |
+        An extensible enum describing why accepted steering input is still queued.
+        Clients should handle unknown values because additional reasons may be
+        introduced. Known values include:
+        - `waiting_for_required_input`: The response is waiting for the tool results or approval decisions identified by `required_input`.
+      anyOf:
+      - type: string
+        enum:
+        - waiting_for_required_input
+      - type: string
+    BetaResponseSteerAcceptedEvent:
+      type: object
+      title: ResponseSteerAcceptedEvent
+      description: |
+        Emitted when steering input has been validated and queued. Acceptance means
+        the server owns the input, not that it has been applied. The successor's
+        `response.created` event is the commit point. If accepted input cannot be
+        committed, `response.steer.failed` returns it with the same steering ID.
+
+        When the response stops for client-owned tool output or approval, the input
+        remains queued and `response.steer.pending` is emitted after
+        `response.completed`. Fill the pending event's `required_input` stubs with
+        saved results and send one matching explicit `response.create` per parent.
+        Do not resend accepted input while it is still queued.
+      properties:
+        type:
+          type: string
+          enum:
+          - response.steer.accepted
+          description: The event discriminator. Always `response.steer.accepted`.
+          x-stainless-const: true
+        sequence_number:
+          type: integer
+          description: The sequence number for this event.
+        steer:
+          type: object
+          description: The accepted steering submission.
+          properties:
+            id:
+              type: string
+              description: The ID assigned to the steering submission.
+            previous_response_id:
+              type: string
+              description: The ID of the response being steered.
+          required:
+          - id
+          - previous_response_id
+        stream_id:
+          type: string
+          description: |
+            The WebSocket lane that emitted this event. This field is present when
+            the target response's `response.create` event supplied a `stream_id`.
+      required:
+      - type
+      - sequence_number
+      - steer
+      x-oaiMeta:
+        name: response.steer.accepted
+        group: responses
+        example: |
+          {
+            "type": "response.steer.accepted",
+            "sequence_number": 2,
+            "steer": {
+              "id": "steer_456",
+              "previous_response_id": "resp_123"
+            }
+          }
+    BetaResponseSteerEvent:
+      type: object
+      title: ResponseSteerEvent
+      additionalProperties: false
+      description: |
+        Queues user input to steer a response on this WebSocket connection. Input
+        can contain text, images, and files. Steering is supported only for
+        single-agent responses on models and execution modes that support steering.
+        Responses bound to a conversation or using automatic compaction do not
+        support steering.
+
+        A `response.steer.accepted` event acknowledges that the server owns the
+        queued input, not that it has been applied. The successor's `response.created`
+        event is the commit point. Input that cannot be committed is returned in
+        `response.steer.failed`.
+
+        Steering may cause the active response to finish at a safe output boundary
+        with `response.incomplete` and `incomplete_details.reason` set to `steered`,
+        followed automatically by a successor `response.created`. Normal completion
+        can also be followed by an automatic successor. Automatic successors inherit
+        the previous response's settings and continue from it with the queued input.
+
+        If the response stops for client-owned tool output or approval, accepted
+        steering input remains queued and `response.steer.pending` is emitted after
+        `response.completed`. Fill the `required_input` stubs from that event with
+        saved tool results or approval decisions, and send one explicit
+        `response.create` per parent with the same `previous_response_id` and
+        WebSocket lane. Do not rerun tools or resend accepted steering input. The
+        queued input is prepended in submission order to that request's input, and
+        the explicit request retains its own settings.
+
+        This event accepts only `type`, `previous_response_id`, and `input`. Do not
+        send `stream_id`; the target response determines the WebSocket lane.
+      properties:
+        type:
+          type: string
+          enum:
+          - response.steer
+          description: The event discriminator. Always `response.steer`.
+          x-stainless-const: true
+        previous_response_id:
+          type: string
+          description: The ID of the response to steer on this WebSocket connection.
+        input:
+          $ref: '#/components/schemas/BetaResponseSteerInput'
+      required:
+      - type
+      - previous_response_id
+      - input
+      x-oaiMeta:
+        name: response.steer
+        group: responses
+        example: |
+          {
+            "type": "response.steer",
+            "previous_response_id": "resp_123",
+            "input": [
+              {
+                "type": "message",
+                "role": "user",
+                "content": [
+                  {
+                    "type": "input_text",
+                    "text": "Prioritize the database rollout."
+                  }
+                ]
+              }
+            ]
           }
     BetaOutputAudio:
       type: object
@@ -77885,6 +79407,10 @@ components:
       - title: BetaResponseWsIncomplete
         description: |
           An event that is emitted when a response finishes as incomplete.
+
+          Over WebSocket, steering can finish a response with
+          `response.incomplete_details.reason` set to `steered`, followed automatically
+          by a successor `response.created` that commits the queued steering input.
         allOf:
         - $ref: '#/components/schemas/BetaResponseIncompleteEvent'
         - type: object
@@ -78284,6 +79810,9 @@ components:
                 when the originating `response.create` event supplied a
                 `stream_id`.
       - $ref: '#/components/schemas/BetaResponseWsError'
+      - $ref: '#/components/schemas/BetaResponseSteerAcceptedEvent'
+      - $ref: '#/components/schemas/BetaResponseSteerPendingEvent'
+      - $ref: '#/components/schemas/BetaResponseSteerFailedEvent'
       - $ref: '#/components/schemas/BetaResponseInjectCreatedEvent'
       - $ref: '#/components/schemas/BetaResponseInjectFailedEvent'
     BetaResponseInjectFailedEvent:
@@ -78466,6 +79995,8 @@ components:
           type: object
           description: The response headers that were emitted with the error, if any.
           x-oaiTypeLabel: map
+        misalignment:
+          $ref: '#/components/schemas/BetaMisalignmentErrorDetailsResource'
       type: object
       required:
       - type
@@ -78551,6 +80082,7 @@ components:
         Client events accepted by the Responses WebSocket server.
       anyOf:
       - $ref: '#/components/schemas/BetaResponsesClientEventResponseCreate'
+      - $ref: '#/components/schemas/BetaResponseSteerEvent'
       - $ref: '#/components/schemas/BetaResponseInjectEvent'
     BetaResponseInjectEvent:
       type: object
@@ -78634,7 +80166,7 @@ components:
           {
             "type": "response.create",
             "stream_id": "agent_1",
-            "model": "gpt-5.6-sol",
+            "model": "gpt-6-astra",
             "input": "Say hello."
           }
     BetaCreateResponse:
@@ -78855,6 +80387,93 @@ components:
             type: integer
             minimum: 0
             maximum: 20
+    BetaResponseStreamEvent:
+      description: Event emitted while a response is streamed.
+      anyOf:
+      - $ref: '#/components/schemas/BetaResponseAudioDeltaEvent'
+      - $ref: '#/components/schemas/BetaResponseAudioDoneEvent'
+      - $ref: '#/components/schemas/BetaResponseAudioTranscriptDeltaEvent'
+      - $ref: '#/components/schemas/BetaResponseAudioTranscriptDoneEvent'
+      - $ref: '#/components/schemas/BetaResponseCodeInterpreterCallCodeDeltaEvent'
+      - $ref: '#/components/schemas/BetaResponseCodeInterpreterCallCodeDoneEvent'
+      - $ref: '#/components/schemas/BetaResponseCodeInterpreterCallCompletedEvent'
+      - $ref: '#/components/schemas/BetaResponseCodeInterpreterCallInProgressEvent'
+      - $ref: '#/components/schemas/BetaResponseCodeInterpreterCallInterpretingEvent'
+      - $ref: '#/components/schemas/BetaResponseCompletedEvent'
+      - $ref: '#/components/schemas/BetaResponseContentPartAddedEvent'
+      - $ref: '#/components/schemas/BetaResponseContentPartDoneEvent'
+      - $ref: '#/components/schemas/BetaResponseCreatedEvent'
+      - $ref: '#/components/schemas/BetaResponseErrorEvent'
+      - $ref: '#/components/schemas/BetaResponseFileSearchCallCompletedEvent'
+      - $ref: '#/components/schemas/BetaResponseFileSearchCallInProgressEvent'
+      - $ref: '#/components/schemas/BetaResponseFileSearchCallSearchingEvent'
+      - $ref: '#/components/schemas/BetaResponseFunctionCallArgumentsDeltaEvent'
+      - $ref: '#/components/schemas/BetaResponseFunctionCallArgumentsDoneEvent'
+      - $ref: '#/components/schemas/BetaResponseShellCallCommandAddedStreamingEvent'
+      - $ref: '#/components/schemas/BetaResponseShellCallCommandDeltaStreamingEvent'
+      - $ref: '#/components/schemas/BetaResponseShellCallCommandDoneStreamingEvent'
+      - $ref: '#/components/schemas/BetaResponseShellCallOutputContentDeltaStreamingEvent'
+        x-stainless-skip:
+        - go
+      - $ref: '#/components/schemas/BetaResponseShellCallOutputContentDoneStreamingEvent'
+      - $ref: '#/components/schemas/BetaResponseInProgressEvent'
+      - $ref: '#/components/schemas/BetaResponseFailedEvent'
+      - $ref: '#/components/schemas/BetaResponseIncompleteEvent'
+      - $ref: '#/components/schemas/BetaResponseOutputItemAddedEvent'
+      - $ref: '#/components/schemas/BetaResponseOutputItemDoneEvent'
+      - $ref: '#/components/schemas/BetaResponseReasoningSummaryPartAddedEvent'
+      - $ref: '#/components/schemas/BetaResponseReasoningSummaryPartDoneEvent'
+      - $ref: '#/components/schemas/BetaResponseReasoningSummaryTextDeltaEvent'
+      - $ref: '#/components/schemas/BetaResponseReasoningSummaryTextDoneEvent'
+      - $ref: '#/components/schemas/BetaResponseReasoningTextDeltaEvent'
+      - $ref: '#/components/schemas/BetaResponseReasoningTextDoneEvent'
+      - $ref: '#/components/schemas/BetaResponseRefusalDeltaEvent'
+      - $ref: '#/components/schemas/BetaResponseRefusalDoneEvent'
+      - $ref: '#/components/schemas/BetaResponseTextDeltaEvent'
+      - $ref: '#/components/schemas/BetaResponseTextDoneEvent'
+      - $ref: '#/components/schemas/BetaResponseWebSearchCallCompletedEvent'
+      - $ref: '#/components/schemas/BetaResponseWebSearchCallInProgressEvent'
+      - $ref: '#/components/schemas/BetaResponseWebSearchCallSearchingEvent'
+      - $ref: '#/components/schemas/BetaResponseImageGenCallCompletedEvent'
+      - $ref: '#/components/schemas/BetaResponseImageGenCallGeneratingEvent'
+      - $ref: '#/components/schemas/BetaResponseImageGenCallInProgressEvent'
+      - $ref: '#/components/schemas/BetaResponseImageGenCallPartialImageEvent'
+      - $ref: '#/components/schemas/BetaResponseMCPCallArgumentsDeltaEvent'
+      - $ref: '#/components/schemas/BetaResponseMCPCallArgumentsDoneEvent'
+      - $ref: '#/components/schemas/BetaResponseMCPCallCompletedEvent'
+      - $ref: '#/components/schemas/BetaResponseMCPCallFailedEvent'
+      - $ref: '#/components/schemas/BetaResponseMCPCallInProgressEvent'
+      - $ref: '#/components/schemas/BetaResponseMCPListToolsCompletedEvent'
+      - $ref: '#/components/schemas/BetaResponseMCPListToolsFailedEvent'
+      - $ref: '#/components/schemas/BetaResponseMCPListToolsInProgressEvent'
+      - $ref: '#/components/schemas/BetaResponseOutputTextAnnotationAddedEvent'
+      - $ref: '#/components/schemas/BetaResponseQueuedEvent'
+      - $ref: '#/components/schemas/BetaResponseCustomToolCallInputDeltaEvent'
+      - $ref: '#/components/schemas/BetaResponseCustomToolCallInputDoneEvent'
+      discriminator:
+        propertyName: type
+    OAuthErrorCode:
+      anyOf:
+      - enum:
+        - invalid_grant
+        - invalid_subject_token
+      - type: string
+    ResponseSteerInputContent:
+      discriminator:
+        propertyName: type
+      description: A piece of message content, such as text, an image, or a file.
+      anyOf:
+      - $ref: '#/components/schemas/InputTextContentParam'
+      - $ref: '#/components/schemas/InputImageContentParamAutoParam'
+      - $ref: '#/components/schemas/InputFileContentParam'
+    BetaResponseSteerInputContent:
+      discriminator:
+        propertyName: type
+      description: A piece of message content, such as text, an image, or a file.
+      anyOf:
+      - $ref: '#/components/schemas/BetaInputTextContentParam'
+      - $ref: '#/components/schemas/BetaInputImageContentParamAutoParam'
+      - $ref: '#/components/schemas/BetaInputFileContentParam'
     RealtimeConnectParams:
       type: object
       properties:
@@ -78984,6 +80603,7 @@ components:
     ChatModel:
       type: string
       enum:
+      - gpt-6-astra
       - gpt-5.6-sol
       - gpt-5.6-terra
       - gpt-5.6-luna
@@ -79608,11 +81228,24 @@ x-oaiMeta:
     - type: object
       key: ResponsesClientEventResponseCreate
       path: <auto>
+    - type: object
+      key: ResponseSteerEvent
+      path: <auto>
   - id: responses-websocket-server-events
     title: Server events (WebSocket only)
     description: |
       Events emitted only over a Responses API WebSocket connection.
     navigationGroup: responses
+    sections:
+    - type: object
+      key: ResponseSteerAcceptedEvent
+      path: <auto>
+    - type: object
+      key: ResponseSteerPendingEvent
+      path: <auto>
+    - type: object
+      key: ResponseSteerFailedEvent
+      path: <auto>
   - id: responses-websocket-shared-events
     title: Server events
     description: |
@@ -79767,6 +81400,19 @@ x-oaiMeta:
     - type: object
       key: ResponseErrorEvent
       path: <auto>
+  - id: safety-alerts
+    title: Safety Alerts
+    description: |
+      Retrieve approved safety alerts with an API key. Project keys require
+      `api.safety.alerts.read` and can read alerts from their project.
+    navigationGroup: endpoints
+    sections:
+    - type: endpoint
+      key: Getprojectsafetyalert
+      path: retrieve
+    - type: object
+      key: SafetyAlertResource
+      path: object
   - id: webhook-events
     title: Webhook Events
     description: |
@@ -79823,6 +81469,12 @@ x-oaiMeta:
       path: <auto>
     - type: object
       key: WebhookLiveCallIncoming
+      path: <auto>
+    - type: object
+      key: WebhookSafetyAlertCreated
+      path: <auto>
+    - type: object
+      key: WebhookSafetyOrgAlertCreated
       path: <auto>
   - id: images-streaming
     title: Image Streaming

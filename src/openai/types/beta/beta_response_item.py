@@ -26,6 +26,7 @@ from .beta_response_file_search_tool_call import BetaResponseFileSearchToolCall
 from .beta_response_function_tool_call_item import BetaResponseFunctionToolCallItem
 from .beta_response_tool_search_output_item import BetaResponseToolSearchOutputItem
 from .beta_response_function_shell_tool_call import BetaResponseFunctionShellToolCall
+from .beta_response_configuration_update_item import BetaResponseConfigurationUpdateItem
 from .beta_response_code_interpreter_tool_call import BetaResponseCodeInterpreterToolCall
 from .beta_response_apply_patch_tool_call_output import BetaResponseApplyPatchToolCallOutput
 from .beta_response_custom_tool_call_output_item import BetaResponseCustomToolCallOutputItem
@@ -598,6 +599,7 @@ BetaResponseItem: TypeAlias = Annotated[
         BetaResponseToolSearchCall,
         BetaResponseToolSearchOutputItem,
         AdditionalTools,
+        BetaResponseConfigurationUpdateItem,
         BetaResponseReasoningItem,
         Program,
         ProgramOutput,

@@ -26,6 +26,7 @@ from .beta_response_code_interpreter_tool_call_param import BetaResponseCodeInte
 from .beta_response_input_message_content_list_param import BetaResponseInputMessageContentListParam
 from .beta_response_tool_search_output_item_param_param import BetaResponseToolSearchOutputItemParamParam
 from .beta_response_function_call_output_item_list_param import BetaResponseFunctionCallOutputItemListParam
+from .beta_response_configuration_update_item_param_param import BetaResponseConfigurationUpdateItemParamParam
 from .beta_response_function_shell_call_output_content_param import BetaResponseFunctionShellCallOutputContentParam
 from .beta_response_computer_tool_call_output_screenshot_param import BetaResponseComputerToolCallOutputScreenshotParam
 
@@ -1136,6 +1137,7 @@ BetaResponseInputItemParam: TypeAlias = Union[
     ToolSearchCall,
     BetaResponseToolSearchOutputItemParamParam,
     AdditionalTools,
+    BetaResponseConfigurationUpdateItemParamParam,
     BetaResponseReasoningItemParam,
     BetaResponseCompactionItemParamParam,
     ImageGenerationCall,

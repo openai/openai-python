@@ -128,6 +128,7 @@ class ResponseCreateParamsBase(TypedDict, total=False):
 
     model: Union[
         Literal[
+            "gpt-6-astra",
             "gpt-5.6-sol",
             "gpt-5.6-terra",
             "gpt-5.6-luna",
@@ -233,7 +234,7 @@ class ResponseCreateParamsBase(TypedDict, total=False):
         ],
         str,
     ]
-    """Model ID used to generate the response, like `gpt-5.6-sol`.
+    """Model ID used to generate the response, like `gpt-6-astra`.
 
     OpenAI offers a wide range of models with different capabilities, performance
     characteristics, and price points. Refer to the
