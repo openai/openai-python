@@ -1,7 +1,7 @@
 from openai._compat import model_parse
 from openai.types.beta.beta_response_function_web_search import BetaResponseFunctionWebSearch
-from openai.types.responses.response_function_web_search import ResponseFunctionWebSearch
 from openai.types.beta.beta_response_function_web_search_param import ActionFindInPage as BetaActionFindParam
+from openai.types.responses.response_function_web_search import ResponseFunctionWebSearch
 from openai.types.responses.response_function_web_search_param import ActionFind as ActionFindParam
 
 
