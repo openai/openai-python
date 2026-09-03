@@ -95,8 +95,14 @@ def _reassembled_download_response(
     headers = [
         (key, value)
         for key, value in representation.headers.raw
-        if key.decode("latin-1").lower() not in ("content-range", "content-length", "transfer-encoding")
+        if key.decode("latin-1").lower() not in ("content-range", "content-length", "transfer-encoding", "x-request-id")
     ]
+    # the request id belongs to the exchange that completed the transfer, so
+    # it must agree with the request/extensions/elapsed taken from that
+    # attempt below rather than with the interrupted one
+    headers.extend(
+        (key, value) for key, value in elapsed_from.headers.raw if key.decode("latin-1").lower() == "x-request-id"
+    )
     # keep the response class of the client that actually served the request
     # (legacy `httpx` clients produce legacy `httpx.Response` objects)
     response_cls = httpx2.Response if isinstance(representation, httpx2.Response) else type(representation)
@@ -217,25 +223,23 @@ def read_resumable_body(
         return response
 
     # on a 206 the original response stays the representation of the full
-    # body (headers, validator, request); a 200 restart already replaced it
-    delivered = bytearray()
+    # body (headers, validator, request); a 200 restart already replaced it.
+    # chunks are accumulated exactly once, into the shared partial buffer —
+    # per-response copies only happen once the assembled body exists
+    offset = len(partial.data)
     try:
         for chunk in response.iter_bytes():
             partial.data.extend(chunk)
-            delivered.extend(chunk)
     except BaseException:
         # the stream is left open when the body read fails; release the
         # connection before the retry loop takes over
         response.close()
         raise
-    # exactly what a non-streaming send() would have left on this response:
-    # its own body, so retained references see metadata and content that
-    # agree (a 206 keeps its suffix-sized body, not the assembled one)
-    response._content = bytes(delivered)
+    delivered_len = len(partial.data) - offset
     bounds = _content_range_bounds(response)
     if resuming and bounds is not None:
         start, end, total = bounds
-        if end is not None and len(delivered) != end - start + 1:
+        if end is not None and delivered_len != end - start + 1:
             # the delivered body contradicts the advertised range extent
             response.close()
             partial.clear()
@@ -259,7 +263,13 @@ def read_resumable_body(
                 f"Partial response ended at byte {len(partial.data)} of {total}; resuming",
                 request=response.request,
             )
-    return finish_download(partial, elapsed_from=response)
+    rebuilt = finish_download(partial, elapsed_from=response)
+    # exactly what a non-streaming send() would have left on this response:
+    # its own body, so retained references see metadata and content that
+    # agree. a fresh 200 restart shares the assembled body zero-copy; a 206
+    # keeps its suffix-sized body, not the assembled one
+    response._content = rebuilt.content if offset == 0 else rebuilt.content[offset:]
+    return rebuilt
 
 
 def finish_download(partial: _PartialDownload, *, elapsed_from: httpx2.Response) -> httpx2.Response:
@@ -337,26 +347,24 @@ async def aread_resumable_body(
         return response
 
     # on a 206 the original response stays the representation of the full
-    # body (headers, validator, request); a 200 restart already replaced it
-    delivered = bytearray()
+    # body (headers, validator, request); a 200 restart already replaced it.
+    # chunks are accumulated exactly once, into the shared partial buffer —
+    # per-response copies only happen once the assembled body exists
+    offset = len(partial.data)
     try:
         async for chunk in response.aiter_bytes():
             partial.data.extend(chunk)
-            delivered.extend(chunk)
     except BaseException:
         # includes CancelledError; shield the close so a level-triggered
         # cancellation cannot interrupt the cleanup itself
         with anyio.CancelScope(shield=True):
             await response.aclose()
         raise
-    # exactly what a non-streaming send() would have left on this response:
-    # its own body, so retained references see metadata and content that
-    # agree (a 206 keeps its suffix-sized body, not the assembled one)
-    response._content = bytes(delivered)
+    delivered_len = len(partial.data) - offset
     bounds = _content_range_bounds(response)
     if resuming and bounds is not None:
         start, end, total = bounds
-        if end is not None and len(delivered) != end - start + 1:
+        if end is not None and delivered_len != end - start + 1:
             # the delivered body contradicts the advertised range extent
             await response.aclose()
             partial.clear()
@@ -380,7 +388,13 @@ async def aread_resumable_body(
                 f"Partial response ended at byte {len(partial.data)} of {total}; resuming",
                 request=response.request,
             )
-    return await afinish_download(partial, elapsed_from=response)
+    rebuilt = await afinish_download(partial, elapsed_from=response)
+    # exactly what a non-streaming send() would have left on this response:
+    # its own body, so retained references see metadata and content that
+    # agree. a fresh 200 restart shares the assembled body zero-copy; a 206
+    # keeps its suffix-sized body, not the assembled one
+    response._content = rebuilt.content if offset == 0 else rebuilt.content[offset:]
+    return rebuilt
 
 
 async def afinish_download(partial: _PartialDownload, *, elapsed_from: httpx2.Response) -> httpx2.Response:

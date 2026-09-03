@@ -525,6 +525,77 @@ class TestResumableDownloads:
         # transfer, i.e. the resumed ranged request
         assert response.request.headers.get("range") == f"bytes={CUT}-"
 
+    def test_rebuilt_response_reports_completing_request_id(self) -> None:
+        def handler(request: httpx2.Request) -> httpx2.Response:
+            first = not request.headers.get("range")
+            if first:
+                return httpx2.Response(
+                    200,
+                    headers={
+                        "content-type": "application/binary",
+                        "accept-ranges": "bytes",
+                        "etag": '"version-1"',
+                        "x-request-id": "req_interrupted",
+                    },
+                    request=request,
+                    stream=CutOffStream(DATA, CUT),
+                )
+            start = int(request.headers["range"].removeprefix("bytes=").split("-")[0])
+            return httpx2.Response(
+                206,
+                headers={
+                    "content-type": "application/binary",
+                    "accept-ranges": "bytes",
+                    "etag": '"version-1"',
+                    "content-range": f"bytes {start}-{len(DATA) - 1}/{len(DATA)}",
+                    "x-request-id": "req_completing",
+                },
+                request=request,
+                content=DATA[start:],
+            )
+
+        with openai.OpenAI(
+            base_url=base_url,
+            api_key=api_key,
+            max_retries=2,
+            http_client=httpx2.Client(transport=httpx2.MockTransport(handler)),
+        ) as client:
+            response = client.get("/files/file_abc/content", cast_to=httpx2.Response)
+
+        # the request id must agree with the request/elapsed metadata, which
+        # both come from the completing attempt
+        assert response.headers.get("x-request-id") == "req_completing"
+
+    def test_full_download_body_is_not_duplicated(self) -> None:
+        # a successful range-capable 200 that never fails must not hold a
+        # second full-body copy: the retained response shares the assembled
+        # body zero-copy instead of copying it
+        served: list[httpx2.Response] = []
+
+        def handler(request: httpx2.Request) -> httpx2.Response:
+            response = httpx2.Response(
+                200,
+                headers={
+                    "content-type": "application/binary",
+                    "accept-ranges": "bytes",
+                    "etag": '"version-1"',
+                },
+                request=request,
+                stream=CutOffStream(DATA, None),
+            )
+            served.append(response)
+            return response
+
+        with openai.OpenAI(
+            base_url=base_url,
+            api_key=api_key,
+            http_client=httpx2.Client(transport=httpx2.MockTransport(handler)),
+        ) as client:
+            response = client.get("/files/file_abc/content", cast_to=httpx2.Response)
+
+        assert response.content == DATA
+        assert served[0].content is response.content
+
     def test_content_range_body_mismatch_restarts(self) -> None:
         server = RangeServer(lie_about_range_end=True)
         with _sync_client(server) as client:
