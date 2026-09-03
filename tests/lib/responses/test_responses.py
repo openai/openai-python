@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import json
 from typing_extensions import TypeVar
 
+import httpx2
 import pytest
 from inline_snapshot import snapshot
 
@@ -10,7 +12,7 @@ from tests.respx2 import MockRouter
 from openai._types import omit
 from openai._utils import assert_signatures_in_sync
 from openai._models import construct_type_unchecked
-from openai.types.responses import Response
+from openai.types.responses import Response, ResponseFunctionCallArgumentsDoneEvent
 from openai.lib._parsing._responses import parse_response
 
 from ...conftest import base_url
@@ -103,3 +105,41 @@ def test_parse_method_definition_in_sync(sync: bool, client: OpenAI, async_clien
         checking_client.responses.parse,
         exclude_params={"tools"},
     )
+
+
+@pytest.mark.respx2(base_url=base_url)
+@pytest.mark.parametrize("client,async_client", [(True, True)], indirect=True)
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+async def test_stream_function_call_done_without_name(
+    sync: bool, client: OpenAI, async_client: AsyncOpenAI, respx2_mock: MockRouter
+) -> None:
+    done = {
+        "type": "response.function_call_arguments.done",
+        "item_id": "fc_123",
+        "output_index": 0,
+        "sequence_number": 1,
+        "arguments": '{"city":"Paris"}',
+    }
+    sentinel = {**done, "item_id": "fc_sentinel", "sequence_number": 2, "name": "sentinel"}
+    body = "".join(f"event: {event['type']}\ndata: {json.dumps(event)}\n\n" for event in (done, sentinel))
+    respx2_mock.post("/responses").mock(
+        return_value=httpx2.Response(
+            200, headers={"content-type": "text/event-stream"}, content=body + "data: [DONE]\n\n"
+        )
+    )
+
+    if sync:
+        with client.responses.create(model="gpt-4o", input="test", stream=True) as stream:
+            events = list(stream)
+    else:
+        async with await async_client.responses.create(model="gpt-4o", input="test", stream=True) as async_stream:
+            events = [event async for event in async_stream]
+
+    first, following = events
+    assert isinstance(first, ResponseFunctionCallArgumentsDoneEvent)
+    assert first.name is None
+    assert first.item_id == "fc_123"
+    assert first.arguments == '{"city":"Paris"}'
+    assert isinstance(following, ResponseFunctionCallArgumentsDoneEvent)
+    assert following.item_id == "fc_sentinel"
+    assert following.name == "sentinel"

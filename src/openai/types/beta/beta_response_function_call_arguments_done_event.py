@@ -24,9 +24,6 @@ class BetaResponseFunctionCallArgumentsDoneEvent(BaseModel):
     item_id: str
     """The ID of the item."""
 
-    name: str
-    """The name of the function that was called."""
-
     output_index: int
     """The index of the output item."""
 
@@ -37,3 +34,6 @@ class BetaResponseFunctionCallArgumentsDoneEvent(BaseModel):
 
     agent: Optional[Agent] = None
     """The agent that owns this multi-agent streaming event."""
+
+    name: Optional[str] = None
+    """The name of the function that was called."""
