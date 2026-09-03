@@ -1,6 +1,7 @@
+from openai._compat import model_parse
 from openai.types.beta.beta_response_function_web_search import BetaResponseFunctionWebSearch
-from openai.types.beta.beta_response_function_web_search_param import ActionFindInPage as BetaActionFindParam
 from openai.types.responses.response_function_web_search import ResponseFunctionWebSearch
+from openai.types.beta.beta_response_function_web_search_param import ActionFindInPage as BetaActionFindParam
 from openai.types.responses.response_function_web_search_param import ActionFind as ActionFindParam
 
 
@@ -14,7 +15,7 @@ def _find_payload() -> dict[str, object]:
 
 
 def test_find_in_page_action_allows_missing_url() -> None:
-    item = ResponseFunctionWebSearch.model_validate(_find_payload())
+    item = model_parse(ResponseFunctionWebSearch, _find_payload())
 
     assert item.action.type == "find_in_page"
     assert item.action.url is None
@@ -22,7 +23,7 @@ def test_find_in_page_action_allows_missing_url() -> None:
 
 
 def test_beta_find_in_page_action_allows_missing_url() -> None:
-    item = BetaResponseFunctionWebSearch.model_validate(_find_payload())
+    item = model_parse(BetaResponseFunctionWebSearch, _find_payload())
 
     assert item.action.type == "find_in_page"
     assert item.action.url is None
