@@ -25,6 +25,11 @@ steady_fail() {
   exit 1
 }
 
+steady_runtime_fail() {
+  echo "$* Remove '$DENO_DIRECTORY', then run ./scripts/steady/install to reinstall the pinned runtime." >&2
+  exit 1
+}
+
 steady_sha256() {
   if command -v sha256sum >/dev/null 2>&1; then
     sha256sum | cut -d ' ' -f 1
@@ -38,7 +43,7 @@ steady_verify() {
   [[ -d "$STEADY_SOURCE/.git" && ! -L "$STEADY_SOURCE" && ! -L "$STEADY_SOURCE/.git" ]] || steady_fail 'Missing local Steady source.'
   [[ "$(git -C "$STEADY_SOURCE" rev-parse HEAD)" == "$STEADY_REVISION" ]] || steady_fail 'Unexpected Steady revision.'
   [[ -z "$(git -C "$STEADY_SOURCE" status --porcelain --untracked-files=all --ignored)" ]] || steady_fail 'Steady source has local changes; remove its cache directory before reinstalling.'
-  [[ -f "$DENO_DIRECTORY/deno.zip" && -x "$DENO_DIRECTORY/$DENO_BINARY" && ! -L "$DENO_DIRECTORY" && ! -L "$DENO_DIRECTORY/$DENO_BINARY" ]] || steady_fail 'Missing local Deno runtime.'
-  [[ "$(steady_sha256 < "$DENO_DIRECTORY/deno.zip")" == "$DENO_SHA256" ]] || steady_fail 'Deno archive checksum mismatch.'
-  [[ "$(unzip -p "$DENO_DIRECTORY/deno.zip" "$DENO_BINARY" | steady_sha256)" == "$(steady_sha256 < "$DENO_DIRECTORY/$DENO_BINARY")" ]] || steady_fail 'Deno executable checksum mismatch.'
+  [[ -f "$DENO_DIRECTORY/deno.zip" && -x "$DENO_DIRECTORY/$DENO_BINARY" && ! -L "$DENO_DIRECTORY" && ! -L "$DENO_DIRECTORY/$DENO_BINARY" ]] || steady_runtime_fail 'Missing or invalid local Deno runtime.'
+  [[ "$(steady_sha256 < "$DENO_DIRECTORY/deno.zip")" == "$DENO_SHA256" ]] || steady_runtime_fail 'Deno archive checksum mismatch.'
+  [[ "$(unzip -p "$DENO_DIRECTORY/deno.zip" "$DENO_BINARY" | steady_sha256)" == "$(steady_sha256 < "$DENO_DIRECTORY/$DENO_BINARY")" ]] || steady_runtime_fail 'Deno executable checksum mismatch.'
 }
