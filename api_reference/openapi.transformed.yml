@@ -60845,6 +60845,7 @@ components:
             The pattern or text to search for within the page.
       required:
       - type
+      - url
       - pattern
     WebSearchActionOpenPage:
       type: object
@@ -72432,6 +72433,7 @@ components:
             The pattern or text to search for within the page.
       required:
       - type
+      - url
       - pattern
     BetaWebSearchActionOpenPage:
       type: object
