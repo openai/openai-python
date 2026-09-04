@@ -37,6 +37,8 @@ function health(port) {
 }
 
 async function main() {
+  const publication = spawnSync(process.execPath, [path.join(__dirname, 'publication.test.cjs')], { stdio: 'inherit' });
+  assert.equal(publication.status, 0, 'Concurrent publication must succeed');
   fs.mkdirSync(path.join(fixture, 'scripts/steady'), { recursive: true });
   for (const file of ['scripts/run-steady', 'scripts/steady/settings', 'scripts/steady/source-sha256.cjs', 'scripts/steady/manifest.json']) {
     fs.copyFileSync(path.join(root, file), path.join(fixture, file));
@@ -57,7 +59,7 @@ async function main() {
     'steady-settings', fixture,
   ], { encoding: 'utf-8' });
   assert.equal(configured.status, 0, configured.stderr);
-  const [source, runtime] = configured.stdout.trim().split('\n');
+  const [source, runtime] = configured.stdout.trim().split(/\r?\n/);
   const gitConfig = path.join(source, '.git/config');
   const originalConfig = fs.readFileSync(gitConfig);
   const marker = path.join(temporary, 'hook-ran');
