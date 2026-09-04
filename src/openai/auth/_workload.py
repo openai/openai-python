@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 import time
 import threading
 from typing import Any, Generic, TypeVar, Callable, TypedDict, cast
@@ -305,9 +306,20 @@ class _WorkloadIdentityAuth(Generic[_WorkloadIdentityT]):
         )
 
     def _validate_expires_in(self, expires_in: object) -> float:
-        if not isinstance(expires_in, (int, float)):
+        # `bool` is a subclass of `int`, so guard against it explicitly to avoid
+        # treating `true`/`false` as a `1`/`0` second lifetime.
+        if isinstance(expires_in, bool) or not isinstance(expires_in, (int, float)):
             raise OpenAIError("Token exchange response did not include a valid expires_in")
-        return float(expires_in)
+        try:
+            expires_in_value = float(expires_in)
+        except OverflowError:
+            raise OpenAIError("Token exchange response did not include a valid expires_in") from None
+        # A non-positive lifetime yields an already-expired token, while a
+        # non-finite one (e.g. `inf`) would never trigger a refresh, leaving the
+        # client to reuse a token indefinitely after it has expired server-side.
+        if not math.isfinite(expires_in_value) or expires_in_value <= 0:
+            raise OpenAIError("Token exchange response did not include a valid expires_in")
+        return expires_in_value
 
     def _token_unusable(self) -> bool:
         return self._cached_token is None or self._token_expired()

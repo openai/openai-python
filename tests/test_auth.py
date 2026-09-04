@@ -7,7 +7,7 @@ import pytest
 from inline_snapshot import snapshot
 
 from tests import respx2
-from openai import OpenAI, OAuthError
+from openai import OpenAI, OAuthError, AsyncOpenAI, OpenAIError
 from openai.auth import WorkloadIdentity, WorkloadIdentityAuth, SubjectTokenWorkloadIdentity
 from tests.respx2.models import Call
 from openai.auth._workload import (
@@ -15,6 +15,20 @@ from openai.auth._workload import (
     k8s_service_account_token_provider,
     azure_managed_identity_token_provider,
 )
+
+
+def token_exchange_response(*, expires_in: object | None = None, raw_expires_in: str | None = None) -> httpx2.Response:
+    body = {
+        "access_token": "fake_access_token",
+        "issued_token_type": "urn:ietf:params:oauth:token-type:access_token",
+        "token_type": "Bearer",
+    }
+    if raw_expires_in is None:
+        body["expires_in"] = expires_in
+        return httpx2.Response(200, json=body)
+
+    body_json = json.dumps(body, separators=(",", ":"))
+    return httpx2.Response(200, content=body_json[:-1] + f',"expires_in":{raw_expires_in}' + "}")
 
 
 def test_workload_identity_preserves_callable_typed_dict_api() -> None:
@@ -162,6 +176,79 @@ def test_workload_identity_exchange_error() -> None:
     assert exc.value.message == "No service account mapping found for the provided service_account_id."
     assert exc.value.error == "invalid_grant"
     assert exc.value.status_code == 401
+    assert exchange_route.call_count == 1
+    assert api_route.call_count == 0
+
+
+@respx2.mock
+@pytest.mark.parametrize(
+    ("expires_in", "raw_expires_in"),
+    [
+        (0, None),
+        (-1, None),
+        (True, None),
+        ("3600", None),
+        (None, None),
+        (10**400, None),
+        (None, "NaN"),
+        (None, "Infinity"),
+        (None, "-Infinity"),
+    ],
+)
+def test_workload_identity_rejects_nonpositive_or_nonnumeric_expiration(
+    expires_in: object | None, raw_expires_in: str | None
+) -> None:
+    exchange_route = respx2.post("https://auth.openai.com/oauth/token").mock(
+        return_value=token_exchange_response(expires_in=expires_in, raw_expires_in=raw_expires_in)
+    )
+    api_route = respx2.get("https://api.openai.com/v1/models").mock(
+        return_value=httpx2.Response(200, json={"data": [], "object": "list"})
+    )
+
+    client = OpenAI(
+        max_retries=0,
+        workload_identity={
+            "identity_provider_id": "idp_123",
+            "service_account_id": "sa_123",
+            "provider": {
+                "get_token": lambda: "fake_subject_token",
+                "token_type": "jwt",
+            },
+        },
+    )
+
+    with pytest.raises(OpenAIError, match="expires_in"):
+        client.models.list()
+
+    assert exchange_route.call_count == 1
+    assert api_route.call_count == 0
+
+
+@respx2.mock
+@pytest.mark.parametrize("raw_expires_in", ["NaN", "Infinity", "-Infinity"])
+async def test_async_workload_identity_rejects_nonfinite_expiration(raw_expires_in: str) -> None:
+    exchange_route = respx2.post("https://auth.openai.com/oauth/token").mock(
+        return_value=token_exchange_response(raw_expires_in=raw_expires_in)
+    )
+    api_route = respx2.get("https://api.openai.com/v1/models").mock(
+        return_value=httpx2.Response(200, json={"data": [], "object": "list"})
+    )
+
+    client = AsyncOpenAI(
+        max_retries=0,
+        workload_identity={
+            "identity_provider_id": "idp_123",
+            "service_account_id": "sa_123",
+            "provider": {
+                "get_token": lambda: "fake_subject_token",
+                "token_type": "jwt",
+            },
+        },
+    )
+
+    with pytest.raises(OpenAIError, match="expires_in"):
+        await client.models.list()
+
     assert exchange_route.call_count == 1
     assert api_route.call_count == 0
 
