@@ -458,3 +458,16 @@ async def test_strips_notgiven(use_async: bool) -> None:
 async def test_strips_omit(use_async: bool) -> None:
     assert await transform({"foo_bar": "bar"}, Foo1, use_async) == {"fooBar": "bar"}
     assert await transform({"foo_bar": omit}, Foo1, use_async) == {}
+
+
+class BareDict(TypedDict, total=False):
+    metadata: dict  # bare dict, no type parameters
+
+
+@parametrize
+@pytest.mark.asyncio
+async def test_bare_dict_annotation(use_async: bool) -> None:
+    # Regression: bare `dict` TypedDict field crashed with IndexError because
+    # get_args(dict) returns () and the old code did get_args(dict)[1].
+    result = await transform({"metadata": {"key": "value"}}, BareDict, use_async)
+    assert result == {"metadata": {"key": "value"}}
