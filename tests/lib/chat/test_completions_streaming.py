@@ -1060,6 +1060,80 @@ def test_stream_obfuscation_stays_on_raw_chunks(padding: tuple[str | None, str |
     assert "obfuscation" not in completion.to_json()
 
 
+def test_metadata_only_tool_call_delta_does_not_abort_stream() -> None:
+    """A raw delta entry with type='function' but no function payload must
+    not abort the stream (regression for #3201).
+
+    When duplicate entries split a tool call's fields — one index-0 entry
+    carries function.arguments, a later index-0 entry carries only id and
+    type — coalescing merges them into one snapshot entry, but the raw
+    metadata-only delta still reaches _build_events with function=None.
+    The arguments-delta event must be skipped, not asserted on.
+    """
+    state = ChatCompletionStreamState()
+
+    # Chunk 1: index-0 entry with the function payload.
+    chunk1 = model_parse(
+        ChatCompletionChunk,
+        {
+            "id": "chatcmpl-test",
+            "object": "chat.completion.chunk",
+            "created": 0,
+            "model": "gpt-test",
+            "choices": [
+                {
+                    "index": 0,
+                    "delta": {
+                        "role": "assistant",
+                        "tool_calls": [
+                            {
+                                "index": 0,
+                                "id": "call_abc",
+                                "type": "function",
+                                "function": {"name": "list_files", "arguments": ' {"'},
+                            }
+                        ],
+                    },
+                    "finish_reason": None,
+                    "logprobs": None,
+                }
+            ],
+        },
+    )
+    list(state.handle_chunk(chunk1))
+
+    # Chunk 2: duplicate index-0 entry with only id/type — no function payload.
+    chunk2 = model_parse(
+        ChatCompletionChunk,
+        {
+            "id": "chatcmpl-test",
+            "object": "chat.completion.chunk",
+            "created": 0,
+            "model": "gpt-test",
+            "choices": [
+                {
+                    "index": 0,
+                    "delta": {
+                        "tool_calls": [
+                            {
+                                "index": 0,
+                                "id": "call_abc",
+                                "type": "function",
+                            }
+                        ],
+                    },
+                    "finish_reason": None,
+                    "logprobs": None,
+                }
+            ],
+        },
+    )
+    # Must not raise AssertionError.
+    events = list(state.handle_chunk(chunk2))
+    assert events, "expected at least the chunk event"
+    assert all(e.type != "tool_calls.function.arguments.delta" for e in events)
+
+
 @pytest.mark.respx2(base_url=base_url)
 def test_chat_completion_state_helper(client: OpenAI, respx2_mock: MockRouter, monkeypatch: pytest.MonkeyPatch) -> None:
     state = ChatCompletionStreamState()
