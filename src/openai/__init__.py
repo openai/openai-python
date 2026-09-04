@@ -108,10 +108,27 @@ from .version import VERSION as VERSION
 from .lib.azure import AzureOpenAI as AzureOpenAI, AsyncAzureOpenAI as AsyncAzureOpenAI
 from .lib.bedrock import BedrockOpenAI as BedrockOpenAI, AsyncBedrockOpenAI as AsyncBedrockOpenAI
 from .lib._old_api import *
-from .lib.streaming import (
-    AssistantEventHandler as AssistantEventHandler,
-    AsyncAssistantEventHandler as AsyncAssistantEventHandler,
-)
+
+if _t.TYPE_CHECKING:
+    from .lib.streaming import (
+        AssistantEventHandler as AssistantEventHandler,
+        AsyncAssistantEventHandler as AsyncAssistantEventHandler,
+    )
+else:
+    # `openai.lib.streaming` reaches `openai.types.beta`, which is 318 modules
+    # and about a third of the cost of `import openai`, for the Assistants API.
+    # Deferring the module keeps the names available on `openai` while leaving
+    # them -- and their annotations -- fully resolvable once anything asks.
+    _STREAMING_EXPORTS = ("AssistantEventHandler", "AsyncAssistantEventHandler")
+
+    def __getattr__(__name: str) -> _t.Any:
+        if __name in _STREAMING_EXPORTS:
+            import importlib
+
+            value = getattr(importlib.import_module("openai.lib.streaming"), __name)
+            globals()[__name] = value
+            return value
+        raise AttributeError(f"module {__name__!r} has no attribute {__name!r}")
 
 _setup_logging()
 
