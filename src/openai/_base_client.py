@@ -888,7 +888,9 @@ class SyncHttpxClientWrapper(DefaultHttpxClient):
         try:
             self.close()
         except Exception:
-            pass
+            # Suppress destructor cleanup errors; object finalizers should not raise
+            # during garbage collection or interpreter shutdown.
+            log.debug("Failed to close sync HTTP client during object finalization", exc_info=True)
 
 
 class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
@@ -1510,7 +1512,9 @@ class AsyncHttpxClientWrapper(DefaultAsyncHttpxClient):
             # TODO(someday): support non asyncio runtimes here
             asyncio.get_running_loop().create_task(self.aclose())
         except Exception:
-            pass
+            # Suppress destructor cleanup errors; object finalizers should not raise
+            # during garbage collection or interpreter shutdown.
+            log.debug("Failed to close async HTTP client during object finalization", exc_info=True)
 
 
 class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
