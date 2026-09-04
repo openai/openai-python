@@ -110,6 +110,29 @@ class Embeddings(SyncAPIResource):
         if not is_given(encoding_format):
             params["encoding_format"] = "base64"
 
+        def parser(obj: CreateEmbeddingResponse) -> CreateEmbeddingResponse:
+            if is_given(encoding_format):
+                # don't modify the response object if a user explicitly asked for a format
+                return obj
+
+            if not obj.data:
+                raise ValueError("No embedding data received")
+
+            for embedding in obj.data:
+                data = cast(object, embedding.embedding)
+                if not isinstance(data, str):
+                    continue
+                if not has_numpy():
+                    # use array for base64 optimisation
+                    values = array.array("f", base64.b64decode(data)).tolist()
+                else:
+                    values = np.frombuffer(  # type: ignore[no-untyped-call]
+                        base64.b64decode(data), dtype="float32"
+                    ).tolist()
+                embedding.embedding = [float(f"{value:.9g}") for value in values]
+
+            return obj
+
         return self._post(
             "/embeddings",
             body=maybe_transform(params, embedding_create_params.EmbeddingCreateParams),
@@ -211,6 +234,29 @@ class AsyncEmbeddings(AsyncAPIResource):
         }
         if not is_given(encoding_format):
             params["encoding_format"] = "base64"
+
+        def parser(obj: CreateEmbeddingResponse) -> CreateEmbeddingResponse:
+            if is_given(encoding_format):
+                # don't modify the response object if a user explicitly asked for a format
+                return obj
+
+            if not obj.data:
+                raise ValueError("No embedding data received")
+
+            for embedding in obj.data:
+                data = cast(object, embedding.embedding)
+                if not isinstance(data, str):
+                    continue
+                if not has_numpy():
+                    # use array for base64 optimisation
+                    values = array.array("f", base64.b64decode(data)).tolist()
+                else:
+                    values = np.frombuffer(  # type: ignore[no-untyped-call]
+                        base64.b64decode(data), dtype="float32"
+                    ).tolist()
+                embedding.embedding = [float(f"{value:.9g}") for value in values]
+
+            return obj
 
         return await self._post(
             "/embeddings",
