@@ -5,7 +5,7 @@ from typing import Iterator, AsyncIterator
 import httpx2
 import pytest
 
-from openai import OpenAI, AsyncOpenAI
+from openai import OpenAI, APIError, AsyncOpenAI
 from openai._streaming import Stream, AsyncStream, ServerSentEvent
 
 
@@ -216,6 +216,44 @@ async def test_multi_byte_character_multiple_chunks(
     assert sse.json() == {"content": "известни"}
 
 
+@pytest.mark.asyncio
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+async def test_response_error_event_raises_api_error(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
+    # Per https://platform.openai.com/docs/api-reference/responses-streaming/error, the
+    # Responses API's `error` event carries its fields directly on the event body, e.g.
+    # {"type": "error", "code": "...", "message": "...", "param": null, "sequence_number": 1}
+    # -- there is no nested "error" key.
+    def body() -> Iterator[bytes]:
+        yield b"event: error\n"
+        yield b'data: {"type":"error","code":"server_error","message":"boom","param":null,"sequence_number":1}\n'
+        yield b"\n"
+
+    stream = make_stream(content=body(), sync=sync, client=client, async_client=async_client)
+
+    with pytest.raises(APIError) as exc_info:
+        await stream_next(stream, sync=sync)
+
+    assert exc_info.value.message == "boom"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+async def test_response_error_event_without_message_uses_default(
+    sync: bool, client: OpenAI, async_client: AsyncOpenAI
+) -> None:
+    def body() -> Iterator[bytes]:
+        yield b"event: error\n"
+        yield b'data: {"type":"error","code":"server_error","param":null,"sequence_number":1}\n'
+        yield b"\n"
+
+    stream = make_stream(content=body(), sync=sync, client=client, async_client=async_client)
+
+    with pytest.raises(APIError) as exc_info:
+        await stream_next(stream, sync=sync)
+
+    assert exc_info.value.message == "An error occurred during streaming"
+
+
 async def to_aiter(iter: Iterator[bytes]) -> AsyncIterator[bytes]:
     for chunk in iter:
         yield chunk
@@ -246,3 +284,31 @@ def make_event_iterator(
     return AsyncStream(
         cast_to=object, client=async_client, response=httpx2.Response(200, content=to_aiter(content))
     )._iter_events()
+
+
+def make_stream(
+    content: Iterator[bytes],
+    *,
+    sync: bool,
+    client: OpenAI,
+    async_client: AsyncOpenAI,
+) -> Stream[object] | AsyncStream[object]:
+    request = httpx.Request("POST", "http://localhost")
+
+    if sync:
+        return Stream(cast_to=object, client=client, response=httpx.Response(200, content=content, request=request))
+
+    return AsyncStream(
+        cast_to=object,
+        client=async_client,
+        response=httpx.Response(200, content=to_aiter(content), request=request),
+    )
+
+
+async def stream_next(stream: Stream[object] | AsyncStream[object], *, sync: bool) -> object:
+    if sync:
+        assert isinstance(stream, Stream)
+        return next(stream)
+
+    assert isinstance(stream, AsyncStream)
+    return await stream.__anext__()

@@ -85,9 +85,12 @@ class Stream(Generic[_T]):
                     yield process_data(data={"data": data, "event": sse.event}, cast_to=cast_to, response=response)
                 else:
                     data = sse.json()
-                    if is_mapping(data) and data.get("error"):
+                    if is_mapping(data) and (data.get("error") or sse.event == "error"):
                         message = None
-                        error = data.get("error")
+                        # some events (e.g. the Responses API's `response.error` event) carry
+                        # the error fields directly on the event body instead of nesting them
+                        # under an "error" key, so fall back to the top-level body in that case.
+                        error = data.get("error") if is_mapping(data.get("error")) else data
                         if is_mapping(error):
                             message = error.get("message")
                         if not message or not isinstance(message, str):
@@ -96,7 +99,7 @@ class Stream(Generic[_T]):
                         raise APIError(
                             message=message,
                             request=self.response.request,
-                            body=data["error"],
+                            body=data.get("error") if data.get("error") is not None else data,
                         )
 
                     yield process_data(
@@ -195,9 +198,12 @@ class AsyncStream(Generic[_T]):
                     yield process_data(data={"data": data, "event": sse.event}, cast_to=cast_to, response=response)
                 else:
                     data = sse.json()
-                    if is_mapping(data) and data.get("error"):
+                    if is_mapping(data) and (data.get("error") or sse.event == "error"):
                         message = None
-                        error = data.get("error")
+                        # some events (e.g. the Responses API's `response.error` event) carry
+                        # the error fields directly on the event body instead of nesting them
+                        # under an "error" key, so fall back to the top-level body in that case.
+                        error = data.get("error") if is_mapping(data.get("error")) else data
                         if is_mapping(error):
                             message = error.get("message")
                         if not message or not isinstance(message, str):
@@ -206,7 +212,7 @@ class AsyncStream(Generic[_T]):
                         raise APIError(
                             message=message,
                             request=self.response.request,
-                            body=data["error"],
+                            body=data.get("error") if data.get("error") is not None else data,
                         )
 
                     yield process_data(
