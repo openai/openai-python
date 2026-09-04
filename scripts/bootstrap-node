@@ -27,3 +27,5 @@ fi
 
 echo '==> Installing locked Node tooling…'
 pnpm install --frozen-lockfile --ignore-scripts
+
+./scripts/steady/install

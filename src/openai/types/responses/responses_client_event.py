@@ -1,9 +1,10 @@
 # File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import List, Union, Optional
-from typing_extensions import Literal, TypeAlias
+from typing_extensions import Literal, Annotated, TypeAlias
 
 from .tool import Tool
+from ..._utils import PropertyInfo
 from ..._models import BaseModel
 from .service_tier import ServiceTier
 from .response_input import ResponseInput
@@ -17,6 +18,7 @@ from .tool_choice_custom import ToolChoiceCustom
 from .response_includable import ResponseIncludable
 from .tool_choice_allowed import ToolChoiceAllowed
 from .tool_choice_options import ToolChoiceOptions
+from .response_steer_event import ResponseSteerEvent
 from .response_text_config import ResponseTextConfig
 from .tool_choice_function import ToolChoiceFunction
 from ..shared.responses_model import ResponsesModel
@@ -25,6 +27,21 @@ from .response_conversation_param import ResponseConversationParam
 
 __all__ = [
     "ResponsesClientEvent",
+    "ResponseCreate",
+    "ResponseCreateContextManagement",
+    "ResponseCreateConversation",
+    "ResponseCreateModeration",
+    "ResponseCreateModerationPolicy",
+    "ResponseCreateModerationPolicyInput",
+    "ResponseCreateModerationPolicyOutput",
+    "ResponseCreatePromptCacheOptions",
+    "ResponseCreateStreamOptions",
+    "ResponseCreateToolChoice",
+    "ResponseCreateToolChoiceSpecificProgrammaticToolCallingParam",
+]
+
+# custom code for back compat exports
+__all__ += [
     "ContextManagement",
     "Conversation",
     "Moderation",
@@ -36,9 +53,10 @@ __all__ = [
     "ToolChoice",
     "ToolChoiceSpecificProgrammaticToolCallingParam",
 ]
+# end custom code for back compat exports
 
 
-class ContextManagement(BaseModel):
+class ResponseCreateContextManagement(BaseModel):
     type: str
     """The context management entry type. Currently only 'compaction' is supported."""
 
@@ -46,32 +64,32 @@ class ContextManagement(BaseModel):
     """Token threshold at which compaction should be triggered for this entry."""
 
 
-Conversation: TypeAlias = Union[str, ResponseConversationParam, None]
+ResponseCreateConversation: TypeAlias = Union[str, ResponseConversationParam, None]
 
 
-class ModerationPolicyInput(BaseModel):
+class ResponseCreateModerationPolicyInput(BaseModel):
     """The moderation policy for the response input."""
 
     mode: Literal["score", "block"]
 
 
-class ModerationPolicyOutput(BaseModel):
+class ResponseCreateModerationPolicyOutput(BaseModel):
     """The moderation policy for the response output."""
 
     mode: Literal["score", "block"]
 
 
-class ModerationPolicy(BaseModel):
+class ResponseCreateModerationPolicy(BaseModel):
     """The policy to apply to moderated response input and output."""
 
-    input: Optional[ModerationPolicyInput] = None
+    input: Optional[ResponseCreateModerationPolicyInput] = None
     """The moderation policy for the response input."""
 
-    output: Optional[ModerationPolicyOutput] = None
+    output: Optional[ResponseCreateModerationPolicyOutput] = None
     """The moderation policy for the response output."""
 
 
-class Moderation(BaseModel):
+class ResponseCreateModeration(BaseModel):
     """Configuration for running moderation on the input and output of this response."""
 
     model: str
@@ -80,11 +98,11 @@ class Moderation(BaseModel):
     'omni-moderation-latest'.
     """
 
-    policy: Optional[ModerationPolicy] = None
+    policy: Optional[ResponseCreateModerationPolicy] = None
     """The policy to apply to moderated response input and output."""
 
 
-class PromptCacheOptions(BaseModel):
+class ResponseCreatePromptCacheOptions(BaseModel):
     """Options for prompt caching.
 
     Supported for `gpt-5.6` and later models. By default, OpenAI automatically chooses one implicit cache breakpoint. You can add explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each request can write up to four breakpoints. For cache matching, OpenAI considers up to the latest 80 breakpoints in the conversation, without a content-block lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The `ttl` defaults to `30m`, which is currently the only supported value. See the [prompt caching guide](https://platform.openai.com/docs/guides/prompt-caching) for current details.
@@ -108,7 +126,7 @@ class PromptCacheOptions(BaseModel):
     """
 
 
-class StreamOptions(BaseModel):
+class ResponseCreateStreamOptions(BaseModel):
     """Options for streaming responses. Only set this when you set `stream: true`."""
 
     include_obfuscation: Optional[bool] = None
@@ -123,25 +141,36 @@ class StreamOptions(BaseModel):
     """
 
 
-class ToolChoiceSpecificProgrammaticToolCallingParam(BaseModel):
+class ResponseCreateToolChoiceSpecificProgrammaticToolCallingParam(BaseModel):
     type: Literal["programmatic_tool_calling"]
     """The tool to call. Always `programmatic_tool_calling`."""
 
 
-ToolChoice: TypeAlias = Union[
+ResponseCreateToolChoice: TypeAlias = Union[
     ToolChoiceOptions,
     ToolChoiceAllowed,
     ToolChoiceTypes,
     ToolChoiceFunction,
     ToolChoiceMcp,
     ToolChoiceCustom,
-    ToolChoiceSpecificProgrammaticToolCallingParam,
+    ResponseCreateToolChoiceSpecificProgrammaticToolCallingParam,
     ToolChoiceApplyPatch,
     ToolChoiceShell,
 ]
 
 
-class ResponsesClientEvent(BaseModel):
+class ResponseCreate(BaseModel):
+    """
+    Client event for creating a response over a persistent WebSocket connection.
+    This payload uses the same top-level fields as `POST /v1/responses`, plus
+    WebSocket-only envelope metadata.
+
+    Notes:
+    - `stream` is implicit over WebSocket and should not be sent.
+    - `background` is not supported over WebSocket.
+    - `stream_id` is WebSocket-only and is not part of `POST /v1/responses`.
+    """
+
     type: Literal["response.create"]
     """The type of the client event. Always `response.create`."""
 
@@ -151,10 +180,10 @@ class ResponsesClientEvent(BaseModel):
     [Learn more](https://platform.openai.com/docs/guides/background).
     """
 
-    context_management: Optional[List[ContextManagement]] = None
+    context_management: Optional[List[ResponseCreateContextManagement]] = None
     """Context management configuration for this request."""
 
-    conversation: Optional[Conversation] = None
+    conversation: Optional[ResponseCreateConversation] = None
     """The conversation that this response belongs to.
 
     Items from this conversation are prepended to `input_items` for this response
@@ -230,7 +259,7 @@ class ResponsesClientEvent(BaseModel):
     """
 
     model: Optional[ResponsesModel] = None
-    """Model ID used to generate the response, like `gpt-5.6-sol`.
+    """Model ID used to generate the response, like `gpt-6-astra`.
 
     OpenAI offers a wide range of models with different capabilities, performance
     characteristics, and price points. Refer to the
@@ -238,7 +267,7 @@ class ResponsesClientEvent(BaseModel):
     available models.
     """
 
-    moderation: Optional[Moderation] = None
+    moderation: Optional[ResponseCreateModeration] = None
     """Configuration for running moderation on the input and output of this response."""
 
     parallel_tool_calls: Optional[bool] = None
@@ -265,7 +294,7 @@ class ResponsesClientEvent(BaseModel):
     [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
     """
 
-    prompt_cache_options: Optional[PromptCacheOptions] = None
+    prompt_cache_options: Optional[ResponseCreatePromptCacheOptions] = None
     """Options for prompt caching.
 
     Supported for `gpt-5.6` and later models. By default, OpenAI automatically
@@ -365,7 +394,7 @@ class ResponsesClientEvent(BaseModel):
     lineage, so a new lane can fork from a response created on another lane.
     """
 
-    stream_options: Optional[StreamOptions] = None
+    stream_options: Optional[ResponseCreateStreamOptions] = None
     """Options for streaming responses. Only set this when you set `stream: true`."""
 
     temperature: Optional[float] = None
@@ -385,7 +414,7 @@ class ResponsesClientEvent(BaseModel):
     - [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs)
     """
 
-    tool_choice: Optional[ToolChoice] = None
+    tool_choice: Optional[ResponseCreateToolChoice] = None
     """
     How the model should select which tool (or tools) to use when generating a
     response. See the `tools` parameter to see how to specify which tools the model
@@ -449,3 +478,23 @@ class ResponsesClientEvent(BaseModel):
     similar requests and to help OpenAI detect and prevent abuse.
     [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
     """
+
+
+ResponsesClientEvent: TypeAlias = Annotated[
+    Union[ResponseCreate, ResponseSteerEvent], PropertyInfo(discriminator="type")
+]
+
+
+# custom code for back compat aliases
+# Preserve the names exposed before ResponsesClientEvent became a union.
+ContextManagement: TypeAlias = ResponseCreateContextManagement
+Conversation: TypeAlias = ResponseCreateConversation
+Moderation: TypeAlias = ResponseCreateModeration
+ModerationPolicy: TypeAlias = ResponseCreateModerationPolicy
+ModerationPolicyInput: TypeAlias = ResponseCreateModerationPolicyInput
+ModerationPolicyOutput: TypeAlias = ResponseCreateModerationPolicyOutput
+PromptCacheOptions: TypeAlias = ResponseCreatePromptCacheOptions
+StreamOptions: TypeAlias = ResponseCreateStreamOptions
+ToolChoice: TypeAlias = ResponseCreateToolChoice
+ToolChoiceSpecificProgrammaticToolCallingParam: TypeAlias = ResponseCreateToolChoiceSpecificProgrammaticToolCallingParam
+# end custom code for back compat aliases

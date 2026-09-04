@@ -1,0 +1,17 @@
+{
+  "steady": {
+    "repository": "https://github.com/openai-oss-forks/steady.git",
+    "revision": "195de4e71f6f87282110b044b454582e7fbc34bb",
+    "sha256": "755931a91126dca657813a3116411e7f02c501e3c510aa1c315cb22ed898104c"
+  },
+  "deno": {
+    "version": "2.7.11",
+    "sha256": {
+      "aarch64-apple-darwin": "2da6fd51ad6af3b8711ff327b448b76b1dc8ee75678842aff637b6827205d8bd",
+      "x86_64-apple-darwin": "a01abae36024b9a6cfa9ffa5fa8325d71993e115fb7a8ab79f2720fe83b7fb5b",
+      "aarch64-unknown-linux-gnu": "1c9024937e711d17c20bc0fd510147aba6d5315ed6cfbe0fa0e6d3cee8a681b7",
+      "x86_64-unknown-linux-gnu": "16990cd4f3728b82b0f1432b233214fe793a0e03c27d77a2ee89f27b3e984097",
+      "x86_64-pc-windows-msvc": "8bd617ed5d999115eaa249edba493ab313afb32be94fcb2c71db1828a8376eb8"
+    }
+  }
+}

@@ -61,6 +61,7 @@ from ....types.beta.beta_response_stream_event import BetaResponseStreamEvent
 from ....types.beta.beta_responses_client_event import BetaResponsesClientEvent
 from ....types.beta.beta_responses_server_event import BetaResponseWsError, BetaResponsesServerEvent
 from ....types.beta.beta_response_input_item_param import BetaResponseInputItemParam
+from ....types.beta.beta_response_steer_input_param import BetaResponseSteerInputParam
 from ....types.beta.beta_response_text_config_param import BetaResponseTextConfigParam
 from ....types.beta.beta_responses_client_event_param import BetaResponsesClientEventParam
 
@@ -118,6 +119,7 @@ class Responses(SyncAPIResource):
         metadata: Optional[Dict[str, str]] | Omit = omit,
         model: Union[
             Literal[
+                "gpt-6-astra",
                 "gpt-5.6-sol",
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",
@@ -330,7 +332,7 @@ class Responses(SyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: Model ID used to generate the response, like `gpt-5.6-sol`. OpenAI offers a wide
+          model: Model ID used to generate the response, like `gpt-6-astra`. OpenAI offers a wide
               range of models with different capabilities, performance characteristics, and
               price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
@@ -513,6 +515,7 @@ class Responses(SyncAPIResource):
         metadata: Optional[Dict[str, str]] | Omit = omit,
         model: Union[
             Literal[
+                "gpt-6-astra",
                 "gpt-5.6-sol",
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",
@@ -731,7 +734,7 @@ class Responses(SyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: Model ID used to generate the response, like `gpt-5.6-sol`. OpenAI offers a wide
+          model: Model ID used to generate the response, like `gpt-6-astra`. OpenAI offers a wide
               range of models with different capabilities, performance characteristics, and
               price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
@@ -907,6 +910,7 @@ class Responses(SyncAPIResource):
         metadata: Optional[Dict[str, str]] | Omit = omit,
         model: Union[
             Literal[
+                "gpt-6-astra",
                 "gpt-5.6-sol",
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",
@@ -1125,7 +1129,7 @@ class Responses(SyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: Model ID used to generate the response, like `gpt-5.6-sol`. OpenAI offers a wide
+          model: Model ID used to generate the response, like `gpt-6-astra`. OpenAI offers a wide
               range of models with different capabilities, performance characteristics, and
               price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
@@ -1299,6 +1303,7 @@ class Responses(SyncAPIResource):
         metadata: Optional[Dict[str, str]] | Omit = omit,
         model: Union[
             Literal[
+                "gpt-6-astra",
                 "gpt-5.6-sol",
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",
@@ -1780,6 +1785,7 @@ class Responses(SyncAPIResource):
         *,
         model: Union[
             Literal[
+                "gpt-6-astra",
                 "gpt-5.6-sol",
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",
@@ -1911,7 +1917,7 @@ class Responses(SyncAPIResource):
         [Compaction (advanced)](https://platform.openai.com/docs/guides/conversation-state#compaction-advanced).
 
         Args:
-          model: Model ID used to generate the response, like `gpt-5.6-sol`. OpenAI offers a wide
+          model: Model ID used to generate the response, like `gpt-6-astra`. OpenAI offers a wide
               range of models with different capabilities, performance characteristics, and
               price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
@@ -2009,7 +2015,7 @@ class Responses(SyncAPIResource):
     ) -> ResponsesConnectionManager:
         """Connect to a persistent Responses API WebSocket.
 
-        Send `response.create` events and receive response stream events over the socket.
+        Send `response.create` events to create responses and `response.steer` events to queue user input containing text, images, or files for a continuation. Receive response stream events and steering acceptance, pending, or failure events over the socket.
         """
         return ResponsesConnectionManager(
             client=self._client,
@@ -2067,6 +2073,7 @@ class AsyncResponses(AsyncAPIResource):
         metadata: Optional[Dict[str, str]] | Omit = omit,
         model: Union[
             Literal[
+                "gpt-6-astra",
                 "gpt-5.6-sol",
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",
@@ -2279,7 +2286,7 @@ class AsyncResponses(AsyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: Model ID used to generate the response, like `gpt-5.6-sol`. OpenAI offers a wide
+          model: Model ID used to generate the response, like `gpt-6-astra`. OpenAI offers a wide
               range of models with different capabilities, performance characteristics, and
               price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
@@ -2462,6 +2469,7 @@ class AsyncResponses(AsyncAPIResource):
         metadata: Optional[Dict[str, str]] | Omit = omit,
         model: Union[
             Literal[
+                "gpt-6-astra",
                 "gpt-5.6-sol",
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",
@@ -2680,7 +2688,7 @@ class AsyncResponses(AsyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: Model ID used to generate the response, like `gpt-5.6-sol`. OpenAI offers a wide
+          model: Model ID used to generate the response, like `gpt-6-astra`. OpenAI offers a wide
               range of models with different capabilities, performance characteristics, and
               price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
@@ -2856,6 +2864,7 @@ class AsyncResponses(AsyncAPIResource):
         metadata: Optional[Dict[str, str]] | Omit = omit,
         model: Union[
             Literal[
+                "gpt-6-astra",
                 "gpt-5.6-sol",
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",
@@ -3074,7 +3083,7 @@ class AsyncResponses(AsyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: Model ID used to generate the response, like `gpt-5.6-sol`. OpenAI offers a wide
+          model: Model ID used to generate the response, like `gpt-6-astra`. OpenAI offers a wide
               range of models with different capabilities, performance characteristics, and
               price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
@@ -3248,6 +3257,7 @@ class AsyncResponses(AsyncAPIResource):
         metadata: Optional[Dict[str, str]] | Omit = omit,
         model: Union[
             Literal[
+                "gpt-6-astra",
                 "gpt-5.6-sol",
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",
@@ -3729,6 +3739,7 @@ class AsyncResponses(AsyncAPIResource):
         *,
         model: Union[
             Literal[
+                "gpt-6-astra",
                 "gpt-5.6-sol",
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",
@@ -3860,7 +3871,7 @@ class AsyncResponses(AsyncAPIResource):
         [Compaction (advanced)](https://platform.openai.com/docs/guides/conversation-state#compaction-advanced).
 
         Args:
-          model: Model ID used to generate the response, like `gpt-5.6-sol`. OpenAI offers a wide
+          model: Model ID used to generate the response, like `gpt-6-astra`. OpenAI offers a wide
               range of models with different capabilities, performance characteristics, and
               price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
@@ -3958,7 +3969,7 @@ class AsyncResponses(AsyncAPIResource):
     ) -> AsyncResponsesConnectionManager:
         """Connect to a persistent Responses API WebSocket.
 
-        Send `response.create` events and receive response stream events over the socket.
+        Send `response.create` events to create responses and `response.steer` events to queue user input containing text, images, or files for a continuation. Receive response stream events and steering acceptance, pending, or failure events over the socket.
         """
         return AsyncResponsesConnectionManager(
             client=self._client,
@@ -4301,11 +4312,11 @@ class AsyncResponsesConnection:
 
         Can be used as a method (returns ``self`` for chaining)::
 
-            connection.on("response.inject.created", my_handler)
+            connection.on("response.steer.accepted", my_handler)
 
         Or as a decorator::
 
-            @connection.on("response.inject.created")
+            @connection.on("response.steer.accepted")
             async def my_handler(event): ...
         """
         if handler is not None:
@@ -4752,11 +4763,11 @@ class ResponsesConnection:
 
         Can be used as a method (returns ``self`` for chaining)::
 
-            connection.on("response.inject.created", my_handler)
+            connection.on("response.steer.accepted", my_handler)
 
         Or as a decorator::
 
-            @connection.on("response.inject.created")
+            @connection.on("response.steer.accepted")
             def my_handler(event): ...
         """
         if handler is not None:
@@ -5005,6 +5016,40 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
         """
         self._connection.send({"type": "response.inject", "input": input, "response_id": response_id})
 
+    def steer(self, *, input: BetaResponseSteerInputParam, previous_response_id: str) -> None:
+        """Queues user input to steer a response on this WebSocket connection.
+
+        Input
+        can contain text, images, and files. Steering is supported only for
+        single-agent responses on models and execution modes that support steering.
+        Responses bound to a conversation or using automatic compaction do not
+        support steering.
+
+        A `response.steer.accepted` event acknowledges that the server owns the
+        queued input, not that it has been applied. The successor's `response.created`
+        event is the commit point. Input that cannot be committed is returned in
+        `response.steer.failed`.
+
+        Steering may cause the active response to finish at a safe output boundary
+        with `response.incomplete` and `incomplete_details.reason` set to `steered`,
+        followed automatically by a successor `response.created`. Normal completion
+        can also be followed by an automatic successor. Automatic successors inherit
+        the previous response's settings and continue from it with the queued input.
+
+        If the response stops for client-owned tool output or approval, accepted
+        steering input remains queued and `response.steer.pending` is emitted after
+        `response.completed`. Fill the `required_input` stubs from that event with
+        saved tool results or approval decisions, and send one explicit
+        `response.create` per parent with the same `previous_response_id` and
+        WebSocket lane. Do not rerun tools or resend accepted steering input. The
+        queued input is prepended in submission order to that request's input, and
+        the explicit request retains its own settings.
+
+        This event accepts only `type`, `previous_response_id`, and `input`. Do not
+        send `stream_id`; the target response determines the WebSocket lane.
+        """
+        self._connection.send({"type": "response.steer", "input": input, "previous_response_id": previous_response_id})
+
     def create(
         self,
         *,
@@ -5020,6 +5065,7 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
         metadata: Optional[Dict[str, str]] | Omit = omit,
         model: Union[
             Literal[
+                "gpt-6-astra",
                 "gpt-5.6-sol",
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",
@@ -5219,6 +5265,42 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
         """
         await self._connection.send({"type": "response.inject", "input": input, "response_id": response_id})
 
+    async def steer(self, *, input: BetaResponseSteerInputParam, previous_response_id: str) -> None:
+        """Queues user input to steer a response on this WebSocket connection.
+
+        Input
+        can contain text, images, and files. Steering is supported only for
+        single-agent responses on models and execution modes that support steering.
+        Responses bound to a conversation or using automatic compaction do not
+        support steering.
+
+        A `response.steer.accepted` event acknowledges that the server owns the
+        queued input, not that it has been applied. The successor's `response.created`
+        event is the commit point. Input that cannot be committed is returned in
+        `response.steer.failed`.
+
+        Steering may cause the active response to finish at a safe output boundary
+        with `response.incomplete` and `incomplete_details.reason` set to `steered`,
+        followed automatically by a successor `response.created`. Normal completion
+        can also be followed by an automatic successor. Automatic successors inherit
+        the previous response's settings and continue from it with the queued input.
+
+        If the response stops for client-owned tool output or approval, accepted
+        steering input remains queued and `response.steer.pending` is emitted after
+        `response.completed`. Fill the `required_input` stubs from that event with
+        saved tool results or approval decisions, and send one explicit
+        `response.create` per parent with the same `previous_response_id` and
+        WebSocket lane. Do not rerun tools or resend accepted steering input. The
+        queued input is prepended in submission order to that request's input, and
+        the explicit request retains its own settings.
+
+        This event accepts only `type`, `previous_response_id`, and `input`. Do not
+        send `stream_id`; the target response determines the WebSocket lane.
+        """
+        await self._connection.send(
+            {"type": "response.steer", "input": input, "previous_response_id": previous_response_id}
+        )
+
     async def create(
         self,
         *,
@@ -5234,6 +5316,7 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
         metadata: Optional[Dict[str, str]] | Omit = omit,
         model: Union[
             Literal[
+                "gpt-6-astra",
                 "gpt-5.6-sol",
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",

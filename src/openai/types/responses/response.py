@@ -46,8 +46,13 @@ __all__ = [
 class IncompleteDetails(BaseModel):
     """Details about why the response is incomplete."""
 
-    reason: Optional[Literal["max_output_tokens", "max_messages", "content_filter"]] = None
-    """The reason why the response is incomplete."""
+    reason: Optional[Literal["max_output_tokens", "max_messages", "content_filter", "steered"]] = None
+    """The reason why the response is incomplete.
+
+    `steered` means the response stopped at a safe output boundary after a WebSocket
+    `response.steer` event. The server can then create a successor response
+    automatically with the queued input.
+    """
 
 
 class ToolChoiceSpecificProgrammaticToolCallingParam(BaseModel):
@@ -227,7 +232,7 @@ class Response(BaseModel):
     """
 
     model: ResponsesModel
-    """Model ID used to generate the response, like `gpt-5.6-sol`.
+    """Model ID used to generate the response, like `gpt-6-astra`.
 
     OpenAI offers a wide range of models with different capabilities, performance
     characteristics, and price points. Refer to the

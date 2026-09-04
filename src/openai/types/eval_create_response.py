@@ -98,7 +98,7 @@ class EvalCreateResponse(BaseModel):
     Like:
      - Improve the quality of my chatbot
      - See how well my chatbot handles customer support
-     - Check if o4-mini is better at my usecase than gpt-5.6-sol
+     - Check if o4-mini is better at my usecase than gpt-6-astra
     """
 
     id: str

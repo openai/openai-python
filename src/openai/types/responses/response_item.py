@@ -20,6 +20,7 @@ from .response_file_search_tool_call import ResponseFileSearchToolCall
 from .response_function_tool_call_item import ResponseFunctionToolCallItem
 from .response_tool_search_output_item import ResponseToolSearchOutputItem
 from .response_function_shell_tool_call import ResponseFunctionShellToolCall
+from .response_configuration_update_item import ResponseConfigurationUpdateItem
 from .response_code_interpreter_tool_call import ResponseCodeInterpreterToolCall
 from .response_apply_patch_tool_call_output import ResponseApplyPatchToolCallOutput
 from .response_custom_tool_call_output_item import ResponseCustomToolCallOutputItem
@@ -289,6 +290,7 @@ ResponseItem: TypeAlias = Annotated[
         ResponseToolSearchCall,
         ResponseToolSearchOutputItem,
         AdditionalTools,
+        ResponseConfigurationUpdateItem,
         ResponseReasoningItem,
         Program,
         ProgramOutput,

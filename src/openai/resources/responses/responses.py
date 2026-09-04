@@ -87,6 +87,7 @@ from ...types.responses.response_stream_event import ResponseStreamEvent
 from ...types.responses.responses_client_event import ResponsesClientEvent
 from ...types.responses.responses_server_event import ResponseWsError, ResponsesServerEvent
 from ...types.responses.response_input_item_param import ResponseInputItemParam
+from ...types.responses.response_steer_input_param import ResponseSteerInputParam
 from ...types.responses.response_text_config_param import ResponseTextConfigParam
 from ...types.responses.responses_client_event_param import ResponsesClientEventParam
 
@@ -247,7 +248,7 @@ class Responses(SyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: Model ID used to generate the response, like `gpt-5.6-sol`. OpenAI offers a wide
+          model: Model ID used to generate the response, like `gpt-6-astra`. OpenAI offers a wide
               range of models with different capabilities, performance characteristics, and
               price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
@@ -537,7 +538,7 @@ class Responses(SyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: Model ID used to generate the response, like `gpt-5.6-sol`. OpenAI offers a wide
+          model: Model ID used to generate the response, like `gpt-6-astra`. OpenAI offers a wide
               range of models with different capabilities, performance characteristics, and
               price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
@@ -820,7 +821,7 @@ class Responses(SyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: Model ID used to generate the response, like `gpt-5.6-sol`. OpenAI offers a wide
+          model: Model ID used to generate the response, like `gpt-6-astra`. OpenAI offers a wide
               range of models with different capabilities, performance characteristics, and
               price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
@@ -1724,6 +1725,7 @@ class Responses(SyncAPIResource):
         *,
         model: Union[
             Literal[
+                "gpt-6-astra",
                 "gpt-5.6-sol",
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",
@@ -1854,7 +1856,7 @@ class Responses(SyncAPIResource):
         [Compaction (advanced)](https://platform.openai.com/docs/guides/conversation-state#compaction-advanced).
 
         Args:
-          model: Model ID used to generate the response, like `gpt-5.6-sol`. OpenAI offers a wide
+          model: Model ID used to generate the response, like `gpt-6-astra`. OpenAI offers a wide
               range of models with different capabilities, performance characteristics, and
               price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
@@ -1948,7 +1950,7 @@ class Responses(SyncAPIResource):
     ) -> ResponsesConnectionManager:
         """Connect to a persistent Responses API WebSocket.
 
-        Send `response.create` events and receive response stream events over the socket.
+        Send `response.create` events to create responses and `response.steer` events to queue user input containing text, images, or files for a continuation. Receive response stream events and steering acceptance, pending, or failure events over the socket.
         """
         return ResponsesConnectionManager(
             client=self._client,
@@ -2109,7 +2111,7 @@ class AsyncResponses(AsyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: Model ID used to generate the response, like `gpt-5.6-sol`. OpenAI offers a wide
+          model: Model ID used to generate the response, like `gpt-6-astra`. OpenAI offers a wide
               range of models with different capabilities, performance characteristics, and
               price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
@@ -2399,7 +2401,7 @@ class AsyncResponses(AsyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: Model ID used to generate the response, like `gpt-5.6-sol`. OpenAI offers a wide
+          model: Model ID used to generate the response, like `gpt-6-astra`. OpenAI offers a wide
               range of models with different capabilities, performance characteristics, and
               price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
@@ -2682,7 +2684,7 @@ class AsyncResponses(AsyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: Model ID used to generate the response, like `gpt-5.6-sol`. OpenAI offers a wide
+          model: Model ID used to generate the response, like `gpt-6-astra`. OpenAI offers a wide
               range of models with different capabilities, performance characteristics, and
               price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
@@ -3585,6 +3587,7 @@ class AsyncResponses(AsyncAPIResource):
         *,
         model: Union[
             Literal[
+                "gpt-6-astra",
                 "gpt-5.6-sol",
                 "gpt-5.6-terra",
                 "gpt-5.6-luna",
@@ -3715,7 +3718,7 @@ class AsyncResponses(AsyncAPIResource):
         [Compaction (advanced)](https://platform.openai.com/docs/guides/conversation-state#compaction-advanced).
 
         Args:
-          model: Model ID used to generate the response, like `gpt-5.6-sol`. OpenAI offers a wide
+          model: Model ID used to generate the response, like `gpt-6-astra`. OpenAI offers a wide
               range of models with different capabilities, performance characteristics, and
               price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
@@ -3809,7 +3812,7 @@ class AsyncResponses(AsyncAPIResource):
     ) -> AsyncResponsesConnectionManager:
         """Connect to a persistent Responses API WebSocket.
 
-        Send `response.create` events and receive response stream events over the socket.
+        Send `response.create` events to create responses and `response.steer` events to queue user input containing text, images, or files for a continuation. Receive response stream events and steering acceptance, pending, or failure events over the socket.
         """
         return AsyncResponsesConnectionManager(
             client=self._client,
@@ -4196,11 +4199,11 @@ class AsyncResponsesConnection:
 
         Can be used as a method (returns ``self`` for chaining)::
 
-            connection.on("error", my_handler)
+            connection.on("response.steer.accepted", my_handler)
 
         Or as a decorator::
 
-            @connection.on("error")
+            @connection.on("response.steer.accepted")
             async def my_handler(event): ...
         """
         if handler is not None:
@@ -4647,11 +4650,11 @@ class ResponsesConnection:
 
         Can be used as a method (returns ``self`` for chaining)::
 
-            connection.on("error", my_handler)
+            connection.on("response.steer.accepted", my_handler)
 
         Or as a decorator::
 
-            @connection.on("error")
+            @connection.on("response.steer.accepted")
             def my_handler(event): ...
         """
         if handler is not None:
@@ -4892,12 +4895,47 @@ class BaseResponsesConnectionResource:
 
 
 class ResponsesResponseResource(BaseResponsesConnectionResource):
+    def steer(self, *, input: ResponseSteerInputParam, previous_response_id: str) -> None:
+        """Queues user input to steer a response on this WebSocket connection.
+
+        Input
+        can contain text, images, and files. Steering is supported only for
+        single-agent responses on models and execution modes that support steering.
+        Responses bound to a conversation or using automatic compaction do not
+        support steering.
+
+        A `response.steer.accepted` event acknowledges that the server owns the
+        queued input, not that it has been applied. The successor's `response.created`
+        event is the commit point. Input that cannot be committed is returned in
+        `response.steer.failed`.
+
+        Steering may cause the active response to finish at a safe output boundary
+        with `response.incomplete` and `incomplete_details.reason` set to `steered`,
+        followed automatically by a successor `response.created`. Normal completion
+        can also be followed by an automatic successor. Automatic successors inherit
+        the previous response's settings and continue from it with the queued input.
+
+        If the response stops for client-owned tool output or approval, accepted
+        steering input remains queued and `response.steer.pending` is emitted after
+        `response.completed`. Fill the `required_input` stubs from that event with
+        saved tool results or approval decisions, and send one explicit
+        `response.create` per parent with the same `previous_response_id` and
+        WebSocket lane. Do not rerun tools or resend accepted steering input. The
+        queued input is prepended in submission order to that request's input, and
+        the explicit request retains its own settings.
+
+        This event accepts only `type`, `previous_response_id`, and `input`. Do not
+        send `stream_id`; the target response determines the WebSocket lane.
+        """
+        self._connection.send({"type": "response.steer", "input": input, "previous_response_id": previous_response_id})
+
     def create(
         self,
         *,
         background: Optional[bool] | Omit = omit,
-        context_management: Optional[Iterable[responses_client_event_param.ContextManagement]] | Omit = omit,
-        conversation: Optional[responses_client_event_param.Conversation] | Omit = omit,
+        context_management: Optional[Iterable[responses_client_event_param.ResponseCreateContextManagement]]
+        | Omit = omit,
+        conversation: Optional[responses_client_event_param.ResponseCreateConversation] | Omit = omit,
         include: Optional[List[ResponseIncludable]] | Omit = omit,
         input: Union[str, ResponseInputParam] | Omit = omit,
         instructions: Optional[str] | Omit = omit,
@@ -4905,12 +4943,12 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
         max_tool_calls: Optional[int] | Omit = omit,
         metadata: Optional[Metadata] | Omit = omit,
         model: ResponsesModel | Omit = omit,
-        moderation: Optional[responses_client_event_param.Moderation] | Omit = omit,
+        moderation: Optional[responses_client_event_param.ResponseCreateModeration] | Omit = omit,
         parallel_tool_calls: Optional[bool] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
         prompt_cache_key: Optional[str] | Omit = omit,
-        prompt_cache_options: responses_client_event_param.PromptCacheOptions | Omit = omit,
+        prompt_cache_options: responses_client_event_param.ResponseCreatePromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
@@ -4918,16 +4956,26 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
         store: Optional[bool] | Omit = omit,
         stream: Optional[bool] | Omit = omit,
         stream_id: str | Omit = omit,
-        stream_options: Optional[responses_client_event_param.StreamOptions] | Omit = omit,
+        stream_options: Optional[responses_client_event_param.ResponseCreateStreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
         text: ResponseTextConfigParam | Omit = omit,
-        tool_choice: responses_client_event_param.ToolChoice | Omit = omit,
+        tool_choice: responses_client_event_param.ResponseCreateToolChoice | Omit = omit,
         tools: Iterable[ToolParam] | Omit = omit,
         top_logprobs: Optional[int] | Omit = omit,
         top_p: Optional[float] | Omit = omit,
         truncation: Optional[Literal["auto", "disabled"]] | Omit = omit,
         user: str | Omit = omit,
     ) -> None:
+        """
+        Client event for creating a response over a persistent WebSocket connection.
+        This payload uses the same top-level fields as `POST /v1/responses`, plus
+        WebSocket-only envelope metadata.
+
+        Notes:
+        - `stream` is implicit over WebSocket and should not be sent.
+        - `background` is not supported over WebSocket.
+        - `stream_id` is WebSocket-only and is not part of `POST /v1/responses`.
+        """
         self._connection.send(
             cast(
                 ResponsesClientEventParam,
@@ -4978,12 +5026,49 @@ class BaseAsyncResponsesConnectionResource:
 
 
 class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
+    async def steer(self, *, input: ResponseSteerInputParam, previous_response_id: str) -> None:
+        """Queues user input to steer a response on this WebSocket connection.
+
+        Input
+        can contain text, images, and files. Steering is supported only for
+        single-agent responses on models and execution modes that support steering.
+        Responses bound to a conversation or using automatic compaction do not
+        support steering.
+
+        A `response.steer.accepted` event acknowledges that the server owns the
+        queued input, not that it has been applied. The successor's `response.created`
+        event is the commit point. Input that cannot be committed is returned in
+        `response.steer.failed`.
+
+        Steering may cause the active response to finish at a safe output boundary
+        with `response.incomplete` and `incomplete_details.reason` set to `steered`,
+        followed automatically by a successor `response.created`. Normal completion
+        can also be followed by an automatic successor. Automatic successors inherit
+        the previous response's settings and continue from it with the queued input.
+
+        If the response stops for client-owned tool output or approval, accepted
+        steering input remains queued and `response.steer.pending` is emitted after
+        `response.completed`. Fill the `required_input` stubs from that event with
+        saved tool results or approval decisions, and send one explicit
+        `response.create` per parent with the same `previous_response_id` and
+        WebSocket lane. Do not rerun tools or resend accepted steering input. The
+        queued input is prepended in submission order to that request's input, and
+        the explicit request retains its own settings.
+
+        This event accepts only `type`, `previous_response_id`, and `input`. Do not
+        send `stream_id`; the target response determines the WebSocket lane.
+        """
+        await self._connection.send(
+            {"type": "response.steer", "input": input, "previous_response_id": previous_response_id}
+        )
+
     async def create(
         self,
         *,
         background: Optional[bool] | Omit = omit,
-        context_management: Optional[Iterable[responses_client_event_param.ContextManagement]] | Omit = omit,
-        conversation: Optional[responses_client_event_param.Conversation] | Omit = omit,
+        context_management: Optional[Iterable[responses_client_event_param.ResponseCreateContextManagement]]
+        | Omit = omit,
+        conversation: Optional[responses_client_event_param.ResponseCreateConversation] | Omit = omit,
         include: Optional[List[ResponseIncludable]] | Omit = omit,
         input: Union[str, ResponseInputParam] | Omit = omit,
         instructions: Optional[str] | Omit = omit,
@@ -4991,12 +5076,12 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
         max_tool_calls: Optional[int] | Omit = omit,
         metadata: Optional[Metadata] | Omit = omit,
         model: ResponsesModel | Omit = omit,
-        moderation: Optional[responses_client_event_param.Moderation] | Omit = omit,
+        moderation: Optional[responses_client_event_param.ResponseCreateModeration] | Omit = omit,
         parallel_tool_calls: Optional[bool] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
         prompt_cache_key: Optional[str] | Omit = omit,
-        prompt_cache_options: responses_client_event_param.PromptCacheOptions | Omit = omit,
+        prompt_cache_options: responses_client_event_param.ResponseCreatePromptCacheOptions | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: Optional[str] | Omit = omit,
@@ -5004,16 +5089,26 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
         store: Optional[bool] | Omit = omit,
         stream: Optional[bool] | Omit = omit,
         stream_id: str | Omit = omit,
-        stream_options: Optional[responses_client_event_param.StreamOptions] | Omit = omit,
+        stream_options: Optional[responses_client_event_param.ResponseCreateStreamOptions] | Omit = omit,
         temperature: Optional[float] | Omit = omit,
         text: ResponseTextConfigParam | Omit = omit,
-        tool_choice: responses_client_event_param.ToolChoice | Omit = omit,
+        tool_choice: responses_client_event_param.ResponseCreateToolChoice | Omit = omit,
         tools: Iterable[ToolParam] | Omit = omit,
         top_logprobs: Optional[int] | Omit = omit,
         top_p: Optional[float] | Omit = omit,
         truncation: Optional[Literal["auto", "disabled"]] | Omit = omit,
         user: str | Omit = omit,
     ) -> None:
+        """
+        Client event for creating a response over a persistent WebSocket connection.
+        This payload uses the same top-level fields as `POST /v1/responses`, plus
+        WebSocket-only envelope metadata.
+
+        Notes:
+        - `stream` is implicit over WebSocket and should not be sent.
+        - `background` is not supported over WebSocket.
+        - `stream_id` is WebSocket-only and is not part of `POST /v1/responses`.
+        """
         await self._connection.send(
             cast(
                 ResponsesClientEventParam,

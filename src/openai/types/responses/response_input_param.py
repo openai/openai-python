@@ -24,6 +24,7 @@ from .response_code_interpreter_tool_call_param import ResponseCodeInterpreterTo
 from .response_input_message_content_list_param import ResponseInputMessageContentListParam
 from .response_tool_search_output_item_param_param import ResponseToolSearchOutputItemParamParam
 from .response_function_call_output_item_list_param import ResponseFunctionCallOutputItemListParam
+from .response_configuration_update_item_param_param import ResponseConfigurationUpdateItemParamParam
 from .response_function_shell_call_output_content_param import ResponseFunctionShellCallOutputContentParam
 from .response_computer_tool_call_output_screenshot_param import ResponseComputerToolCallOutputScreenshotParam
 
@@ -725,6 +726,7 @@ ResponseInputItemParam: TypeAlias = Union[
     ToolSearchCall,
     ResponseToolSearchOutputItemParamParam,
     AdditionalTools,
+    ResponseConfigurationUpdateItemParamParam,
     ResponseReasoningItemParam,
     ResponseCompactionItemParamParam,
     ImageGenerationCall,
