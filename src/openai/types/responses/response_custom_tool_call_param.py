@@ -22,7 +22,16 @@ class CallerProgram(TypedDict, total=False):
 Caller: TypeAlias = Union[CallerDirect, CallerProgram]
 
 
-class ResponseCustomToolCallParam(TypedDict, total=False):
+_ResponseCustomToolCallParamReservedKeywords = TypedDict(
+    "_ResponseCustomToolCallParamReservedKeywords",
+    {
+        "async": bool,
+    },
+    total=False,
+)
+
+
+class ResponseCustomToolCallParam(_ResponseCustomToolCallParamReservedKeywords, total=False):
     """A call to a custom tool created by the model."""
 
     call_id: Required[str]

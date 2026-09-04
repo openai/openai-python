@@ -20,6 +20,8 @@ from openai.types.webhooks import (
     ResponseCompletedWebhookEvent,
     ResponseFailedWebhookEvent,
     ResponseIncompleteWebhookEvent,
+    SafetyAlertCreatedWebhookEvent,
+    SafetyOrgAlertCreatedWebhookEvent,
     UnwrapWebhookEvent,
 )
 ```

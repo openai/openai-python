@@ -7,8 +7,16 @@ from typing_extensions import Literal, Required, TypedDict
 
 __all__ = ["FunctionToolParam"]
 
+_FunctionToolParamReservedKeywords = TypedDict(
+    "_FunctionToolParamReservedKeywords",
+    {
+        "async": bool,
+    },
+    total=False,
+)
 
-class FunctionToolParam(TypedDict, total=False):
+
+class FunctionToolParam(_FunctionToolParamReservedKeywords, total=False):
     """Defines a function in your own code the model can choose to call.
 
     Learn more about [function calling](https://platform.openai.com/docs/guides/function-calling).

@@ -22,7 +22,16 @@ class CallerProgram(TypedDict, total=False):
 Caller: TypeAlias = Union[CallerDirect, CallerProgram]
 
 
-class ResponseFunctionToolCallParam(TypedDict, total=False):
+_ResponseFunctionToolCallParamReservedKeywords = TypedDict(
+    "_ResponseFunctionToolCallParamReservedKeywords",
+    {
+        "async": bool,
+    },
+    total=False,
+)
+
+
+class ResponseFunctionToolCallParam(_ResponseFunctionToolCallParamReservedKeywords, total=False):
     """A tool call to run a function.
 
     See the

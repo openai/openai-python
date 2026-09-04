@@ -29,7 +29,16 @@ class CallerProgram(TypedDict, total=False):
 Caller: TypeAlias = Union[CallerDirect, CallerProgram]
 
 
-class BetaResponseFunctionToolCallParam(TypedDict, total=False):
+_BetaResponseFunctionToolCallParamReservedKeywords = TypedDict(
+    "_BetaResponseFunctionToolCallParamReservedKeywords",
+    {
+        "async": bool,
+    },
+    total=False,
+)
+
+
+class BetaResponseFunctionToolCallParam(_BetaResponseFunctionToolCallParamReservedKeywords, total=False):
     """A tool call to run a function.
 
     See the

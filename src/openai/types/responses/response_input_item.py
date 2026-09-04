@@ -23,6 +23,7 @@ from .response_code_interpreter_tool_call import ResponseCodeInterpreterToolCall
 from .response_input_message_content_list import ResponseInputMessageContentList
 from .response_tool_search_output_item_param import ResponseToolSearchOutputItemParam
 from .response_function_call_output_item_list import ResponseFunctionCallOutputItemList
+from .response_configuration_update_item_param import ResponseConfigurationUpdateItemParam
 from .response_function_shell_call_output_content import ResponseFunctionShellCallOutputContent
 from .response_computer_tool_call_output_screenshot import ResponseComputerToolCallOutputScreenshot
 
@@ -737,6 +738,7 @@ ResponseInputItem: TypeAlias = Annotated[
         ToolSearchCall,
         ResponseToolSearchOutputItemParam,
         AdditionalTools,
+        ResponseConfigurationUpdateItemParam,
         ResponseReasoningItem,
         ResponseCompactionItemParam,
         ImageGenerationCall,

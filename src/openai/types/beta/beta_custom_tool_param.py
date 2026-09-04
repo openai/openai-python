@@ -31,7 +31,16 @@ class FormatGrammar(TypedDict, total=False):
 Format: TypeAlias = Union[FormatText, FormatGrammar]
 
 
-class BetaCustomToolParam(TypedDict, total=False):
+_BetaCustomToolParamReservedKeywords = TypedDict(
+    "_BetaCustomToolParamReservedKeywords",
+    {
+        "async": bool,
+    },
+    total=False,
+)
+
+
+class BetaCustomToolParam(_BetaCustomToolParamReservedKeywords, total=False):
     """A custom tool that processes input using a specified format.
 
     Learn more about   [custom tools](https://platform.openai.com/docs/guides/function-calling#custom-tools)

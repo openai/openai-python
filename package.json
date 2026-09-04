@@ -6,7 +6,6 @@
     "node": "22.22.3"
   },
   "devDependencies": {
-    "@stdy/cli": "0.22.2",
     "pyright": "1.1.413"
   }
 }
