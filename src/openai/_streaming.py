@@ -62,6 +62,14 @@ class Stream(Generic[_T]):
         try:
             for sse in iterator:
                 if sse.data.startswith("[DONE]"):
+                    # Drain remaining bytes so h11 fully parses the chunked terminator
+                    # before close(), allowing the connection to be returned to the pool.
+                    # Errors are suppressed — the stream is done at [DONE] regardless.
+                    try:
+                        for _ in iterator:
+                            pass
+                    except Exception:
+                        pass
                     break
 
                 # we have to special case the Assistants `thread.` events since we won't have an "event" key in the data
@@ -172,6 +180,14 @@ class AsyncStream(Generic[_T]):
         try:
             async for sse in iterator:
                 if sse.data.startswith("[DONE]"):
+                    # Drain remaining bytes so h11 fully parses the chunked terminator
+                    # before aclose(), allowing the connection to be returned to the pool.
+                    # Errors are suppressed — the stream is done at [DONE] regardless.
+                    try:
+                        async for _ in iterator:
+                            pass
+                    except Exception:
+                        pass
                     break
 
                 # we have to special case the Assistants `thread.` events since we won't have an "event" key in the data
