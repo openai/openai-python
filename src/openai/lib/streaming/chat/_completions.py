@@ -317,7 +317,7 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
         response_format: type[ResponseFormatT] | ResponseFormatParam | Omit = omit,
     ) -> None:
         self.__current_completion_snapshot: ParsedChatCompletionSnapshot | None = None
-        self.__choice_event_states: list[ChoiceEventState] = []
+        self.__choice_event_states: dict[int, ChoiceEventState] = {}
 
         self._input_tools = [tool for tool in input_tools] if is_given(input_tools) else []
         self._response_format = response_format
@@ -350,12 +350,11 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
         )
 
     def _get_choice_state(self, choice: ChoiceChunk) -> ChoiceEventState:
-        try:
-            return self.__choice_event_states[choice.index]
-        except IndexError:
+        choice_state = self.__choice_event_states.get(choice.index)
+        if choice_state is None:
             choice_state = ChoiceEventState(input_tools=self._input_tools)
-            self.__choice_event_states.append(choice_state)
-            return choice_state
+            self.__choice_event_states[choice.index] = choice_state
+        return choice_state
 
     def _accumulate_chunk(self, chunk: ChatCompletionChunk) -> ParsedChatCompletionSnapshot:
         completion_snapshot = self.__current_completion_snapshot
@@ -365,7 +364,9 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
 
         for choice in chunk.choices:
             try:
-                choice_snapshot = completion_snapshot.choices[choice.index]
+                choice_snapshot = completion_snapshot.choices[
+                    _choice_position(completion_snapshot.choices, choice.index)
+                ]
                 previous_tool_calls = choice_snapshot.message.tool_calls or []
 
                 choice_snapshot.message = cast(
@@ -420,6 +421,7 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
                     ),
                 )
                 completion_snapshot.choices.append(choice_snapshot)
+                completion_snapshot.choices.sort(key=lambda snapshot: snapshot.index)
 
             if choice.finish_reason:
                 choice_snapshot.finish_reason = choice.finish_reason
@@ -504,7 +506,7 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
 
         for choice in chunk.choices:
             choice_state = self._get_choice_state(choice)
-            choice_snapshot = completion_snapshot.choices[choice.index]
+            choice_snapshot = completion_snapshot.choices[_choice_position(completion_snapshot.choices, choice.index)]
 
             if choice.delta.content is not None and choice_snapshot.message.content is not None:
                 events_to_fire.append(
@@ -737,13 +739,20 @@ class ChoiceEventState:
             assert_never(tool_call_snapshot)
 
 
+def _choice_position(choices: list[ParsedChoiceSnapshot], choice_index: int) -> int:
+    for position, choice in enumerate(choices):
+        if choice.index == choice_index:
+            return position
+    raise IndexError(f"Choice with index {choice_index} not found")
+
+
 def _convert_initial_chunk_into_snapshot(chunk: ChatCompletionChunk) -> ParsedChatCompletionSnapshot:
     data = chunk.to_dict()
     data.pop("obfuscation", None)
     choices = cast("list[object]", data["choices"])
 
-    for choice in chunk.choices:
-        choices[choice.index] = {
+    for position, choice in enumerate(sorted(chunk.choices, key=lambda choice: choice.index)):
+        choices[position] = {
             **choice.model_dump(exclude_unset=True, exclude={"delta"}),
             "message": choice.delta.to_dict(),
         }
