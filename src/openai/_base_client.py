@@ -759,24 +759,24 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         if response_headers is None:
             return None
 
-        # First, try the non-standard `retry-after-ms` header for milliseconds,
-        # which is more precise than integer-seconds `retry-after`
-        try:
-            retry_ms_header = response_headers.get("retry-after-ms", None)
-            return float(retry_ms_header) / 1000
-        except (TypeError, ValueError):
-            pass
-
-        # Next, try parsing `retry-after` header as seconds (allowing nonstandard floats).
-        retry_header = response_headers.get("retry-after")
-        try:
-            # note: the spec indicates that this should only ever be an integer
-            # but if someone sends a float there's no reason for us to not respect it
-            return float(retry_header)
-        except (TypeError, ValueError):
-            pass
+        # Prefer milliseconds, then seconds (allowing nonstandard floats).
+        for header, divisor in (("retry-after-ms", 1000), ("retry-after", 1)):
+            value = response_headers.get(header)
+            if value is None:
+                continue
+            try:
+                delay = float(value)
+            except ValueError:
+                continue
+            if delay == math.inf and value.strip().lower() not in ("inf", "+inf", "infinity", "+infinity"):
+                # Numeric overflow is an excessive server delay, not a malformed
+                # infinity literal. Keep a finite sentinel so retry eligibility
+                # refuses it instead of falling back to a shorter wait.
+                return MAX_RETRY_AFTER_DELAY + 1
+            return delay / divisor
 
         # Last, try parsing `retry-after` as a date.
+        retry_header = response_headers.get("retry-after")
         try:
             retry_date_tuple = email.utils.parsedate_tz(retry_header)
             if retry_date_tuple is None:
