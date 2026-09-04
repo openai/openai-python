@@ -15,9 +15,14 @@ from ._events import (
 )
 from ...._types import Omit, omit
 from ...._utils import is_given, consume_sync_iterator, consume_async_iterator
+from ...._compat import PYDANTIC_V1
 from ...._models import build, construct_type_unchecked
 from ...._streaming import Stream, AsyncStream
-from ....types.responses import ParsedResponse, ResponseStreamEvent as RawResponseStreamEvent
+from ....types.responses import (
+    Response,
+    ParsedResponse,
+    ResponseStreamEvent as RawResponseStreamEvent,
+)
 from ..._parsing._responses import TextFormatT, parse_text, parse_response
 from ....types.responses.tool_param import ToolParam
 from ....types.responses.parsed_response import (
@@ -330,22 +335,18 @@ class ResponseStreamState(Generic[TextFormatT]):
         if event.type == "response.output_item.added":
             if event.item.type == "function_call":
                 snapshot.output.append(
-                    construct_type_unchecked(
-                        type_=cast(Any, ParsedResponseFunctionToolCall), value=event.item.to_dict()
-                    )
+                    construct_type_unchecked(type_=cast(Any, ParsedResponseFunctionToolCall), value=event.item)
                 )
             elif event.item.type == "message":
                 snapshot.output.append(
-                    construct_type_unchecked(type_=cast(Any, ParsedResponseOutputMessage), value=event.item.to_dict())
+                    construct_type_unchecked(type_=cast(Any, ParsedResponseOutputMessage), value=event.item)
                 )
             else:
                 snapshot.output.append(event.item)
         elif event.type == "response.content_part.added":
             output = snapshot.output[event.output_index]
             if output.type == "message":
-                output.content.append(
-                    construct_type_unchecked(type_=cast(Any, ParsedContent), value=event.part.to_dict())
-                )
+                output.content.append(construct_type_unchecked(type_=cast(Any, ParsedContent), value=event.part))
         elif event.type == "response.output_text.delta":
             output = snapshot.output[event.output_index]
             if output.type == "message":
@@ -356,12 +357,131 @@ class ResponseStreamState(Generic[TextFormatT]):
             output = snapshot.output[event.output_index]
             if output.type == "function_call":
                 output.arguments += event.delta
+        elif event.type == "response.output_text.done":
+            output = snapshot.output[event.output_index]
+            if output.type == "message":
+                content = output.content[event.content_index]
+                assert content.type == "output_text"
+                content.text = event.text
+        elif event.type == "response.output_item.done":
+            # Replace the item in the snapshot with the finalized item from the
+            # done event. The server sends the authoritative item payload here,
+            # which may include final fields like `results`/`outputs` on tool
+            # items, or a final `status` of `failed`/`incomplete`. Simply
+            # setting `status = "completed"` would discard those fields and
+            # produce a stale final response in the null-output fallback path.
+            #
+            # Use event.item directly instead of event.item.to_dict() —
+            # construct_type_unchecked is shallow, so round-tripping through
+            # to_dict() would leave nested content parts as plain dicts,
+            # causing parse_response() to crash on output.content[].type.
+            if event.output_index < len(snapshot.output):
+                snapshot.output[event.output_index] = construct_type_unchecked(
+                    type_=type(snapshot.output[event.output_index]),
+                    value=event.item,
+                )
+        elif event.type == "response.content_part.done":
+            # Replace the content part in the snapshot with the finalized part
+            # from the done event. The server sends the authoritative part
+            # payload here, which may include metadata like annotations,
+            # logprobs, or finalized text/refusal content that the delta
+            # accumulation may not fully capture.
+            #
+            # Use event.part directly instead of event.part.to_dict() for the
+            # same shallow-construction reason as output_item.done above.
+            output = snapshot.output[event.output_index]
+            if output.type == "message" and event.content_index < len(output.content):
+                output.content[event.content_index] = construct_type_unchecked(
+                    type_=type(output.content[event.content_index]),
+                    value=event.part,
+                )
+        elif event.type == "response.function_call_arguments.done":
+            # Apply the finalized arguments string from the done event.
+            # The server sends the authoritative arguments payload here, which
+            # may differ from the accumulated deltas. Using the finalized
+            # arguments ensures `parse_response()` can correctly parse
+            # `parsed_arguments` in the null-output fallback path.
+            output = snapshot.output[event.output_index]
+            if output.type == "function_call":
+                output.arguments = event.arguments
+                if hasattr(output, "status"):
+                    output.status = "completed"
         elif event.type == "response.completed":
-            self._completed_response = parse_response(
-                text_format=self._text_format,
-                response=event.response,
-                input_tools=self._input_tools,
-            )
+            # The chatgpt.com Codex backend sometimes sends `response.output: null`
+            # in the consolidated `response.completed` event even when valid
+            # `output_item.done` events were streamed earlier (see issue #3325).
+            # `parse_response()` guards against `None` with `response.output or []`,
+            # but that would discard the already-accumulated `snapshot.output` and
+            # emit an empty final response.  When the completed event has no
+            # output but the snapshot has accumulated items, inject the streamed
+            # items into a shallow copy of the response so `parse_response()` can
+            # still run its text_format / parsed_arguments logic on them.
+            #
+            # `output` is typed as non-nullable but the wire value can violate
+            # that contract; the `pyright: ignore` on the None check makes the
+            # runtime guard explicit without weakening the model contract.
+            #
+            # In the default streaming path, SSE data is converted through
+            # `construct_type(...)`.  For a `response.completed` payload whose
+            # nested `response.output` is `null`, validation of the nested
+            # `Response` can fail and the discriminator fallback
+            # shallow-constructs the event, leaving `event.response` as the
+            # raw dict.  Normalize it to a `Response` model before
+            # dereferencing `.output` so the guard doesn't raise
+            # `AttributeError` before the fallback can run.
+            response = event.response
+            # The discriminator fallback can shallow-construct the event,
+            # leaving `event.response` as a raw dict despite the type
+            # annotation saying `Response`.  Normalize it before
+            # dereferencing `.output` so the guard doesn't raise
+            # `AttributeError` before the fallback can run.
+            if not hasattr(response, "output"):
+                response = construct_type_unchecked(type_=Response, value=response)
+            # `response.output` is typed as non-nullable but the wire value can
+            # be `null` (the Codex backend sends `response.output: null` in the
+            # consolidated `response.completed` event even when valid
+            # `output_item.done` events were streamed earlier).  Use `getattr`
+            # so Pyright sees `Any` instead of the non-nullable list type,
+            # avoiding the unreachable-comparison diagnostic entirely.  The
+            # actual value comes from the wire at runtime, not from the
+            # model annotation.
+            if getattr(response, "output", None) is None and snapshot.output:
+                # Build a copy of the response with the accumulated output
+                # items injected.  Use warnings=False on Pydantic v2 to suppress
+                # the serializer warning from dumping the invalid null output
+                # field (the repo's pytest config treats warnings as errors).
+                # On Pydantic v1, warnings=False is not supported, so we build
+                # the dict without dumping the invalid field — exclude_unset
+                # skips the null output entirely.
+                if PYDANTIC_V1:
+                    base_dict = response.to_dict()
+                else:
+                    base_dict = response.to_dict(warnings=False)  # type: ignore[call-arg]
+                response_with_output = construct_type_unchecked(
+                    type_=type(response),
+                    value=cast(
+                        Any,
+                        {
+                            **base_dict,
+                            # Preserve the accumulated model objects directly
+                            # instead of converting to dicts — construct_type_unchecked
+                            # is shallow, so dicts would stay dicts and
+                            # parse_response() would crash on `output.type`.
+                            "output": list(snapshot.output),
+                        },
+                    ),
+                )
+                self._completed_response = parse_response(
+                    text_format=self._text_format,
+                    response=response_with_output,
+                    input_tools=self._input_tools,
+                )
+            else:
+                self._completed_response = parse_response(
+                    text_format=self._text_format,
+                    response=response,
+                    input_tools=self._input_tools,
+                )
 
         return snapshot
 
