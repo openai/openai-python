@@ -867,7 +867,7 @@ _no_proxy_sanitizer_lock = threading.Lock()
 
 
 @contextlib.contextmanager
-def _sanitized_no_proxy() -> Iterator[None]:
+def _sanitized_no_proxy() -> Generator[None, None, None]:
     """Temporarily normalize line separators in NO_PROXY/no_proxy for the
     duration of a httpx client construction.
 
