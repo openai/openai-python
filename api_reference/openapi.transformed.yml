@@ -61056,14 +61056,9 @@ components:
             The type of the web search tool call. Always `web_search_call`.
           x-stainless-const: true
         status:
-          type: string
           description: |
             The status of the web search tool call.
-          enum:
-          - in_progress
-          - searching
-          - completed
-          - failed
+          $ref: '#/components/schemas/WebSearchCallStatus'
         action:
           type: object
           description: |
@@ -62916,6 +62911,14 @@ components:
       enum:
       - in_progress
       - completed
+      - incomplete
+    WebSearchCallStatus:
+      type: string
+      enum:
+      - in_progress
+      - searching
+      - completed
+      - failed
       - incomplete
     ClickButtonType:
       type: string
@@ -72387,14 +72390,9 @@ components:
             The type of the web search tool call. Always `web_search_call`.
           x-stainless-const: true
         status:
-          type: string
           description: |
             The status of the web search tool call.
-          enum:
-          - in_progress
-          - searching
-          - completed
-          - failed
+          $ref: '#/components/schemas/BetaWebSearchCallStatus'
         action:
           type: object
           description: |
@@ -72514,6 +72512,14 @@ components:
             - url
       required:
       - type
+    BetaWebSearchCallStatus:
+      type: string
+      enum:
+      - in_progress
+      - searching
+      - completed
+      - failed
+      - incomplete
     BetaComputerCallOutputItemParam:
       properties:
         agent:
