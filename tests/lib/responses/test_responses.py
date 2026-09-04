@@ -9,6 +9,7 @@ from openai import OpenAI, AsyncOpenAI
 from tests.respx2 import MockRouter
 from openai._types import omit
 from openai._utils import assert_signatures_in_sync
+from openai._compat import parse_obj
 from openai._models import BaseModel, construct_type_unchecked
 from openai.types.beta import BetaResponseFunctionWebSearch
 from openai.types.responses import Response, ResponseFunctionWebSearch
@@ -79,13 +80,14 @@ def test_parse_response_preserves_program_items(item: dict[str, object]) -> None
     ids=["responses", "beta"],
 )
 def test_find_in_page_action_allows_missing_url(response_model: type[BaseModel]) -> None:
-    response = response_model.model_validate(
+    response = parse_obj(
+        response_model,
         {
             "id": "ws_redacted",
             "type": "web_search_call",
             "status": "completed",
             "action": {"type": "find_in_page", "pattern": "og:image"},
-        }
+        },
     )
 
     assert response.action.type == "find_in_page"
