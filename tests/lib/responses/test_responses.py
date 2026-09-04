@@ -9,8 +9,9 @@ from openai import OpenAI, AsyncOpenAI
 from tests.respx2 import MockRouter
 from openai._types import omit
 from openai._utils import assert_signatures_in_sync
-from openai._models import construct_type_unchecked
-from openai.types.responses import Response
+from openai._models import BaseModel, construct_type_unchecked
+from openai.types.beta import BetaResponseFunctionWebSearch
+from openai.types.responses import Response, ResponseFunctionWebSearch
 from openai.lib._parsing._responses import parse_response
 
 from ...conftest import base_url
@@ -70,6 +71,25 @@ def test_parse_response_preserves_program_items(item: dict[str, object]) -> None
     parsed = parse_response(text_format=omit, input_tools=omit, response=response)
 
     assert parsed.output[0].to_dict() == item
+
+
+@pytest.mark.parametrize(
+    "response_model",
+    [ResponseFunctionWebSearch, BetaResponseFunctionWebSearch],
+    ids=["responses", "beta"],
+)
+def test_find_in_page_action_allows_missing_url(response_model: type[BaseModel]) -> None:
+    response = response_model.model_validate(
+        {
+            "id": "ws_redacted",
+            "type": "web_search_call",
+            "status": "completed",
+            "action": {"type": "find_in_page", "pattern": "og:image"},
+        }
+    )
+
+    assert response.action.type == "find_in_page"
+    assert getattr(response.action, "url", None) is None
 
 
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
