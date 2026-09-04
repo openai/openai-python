@@ -20,11 +20,15 @@ __all__ = [
 class ActionSearchSource(TypedDict, total=False):
     """A source used in the search."""
 
-    type: Required[Literal["url"]]
-    """The type of source. Always `url`."""
+    type: Required[Literal["url", "api"]]
+    """The type of source. `url` for a web page, `api` for a built-in OpenAI data source."""
 
-    url: Required[str]
-    """The URL of the source."""
+    url: str
+    """The URL of the source. Required when type is `url`."""
+
+    name: str
+    """The name of the built-in data source (e.g. `oai-weather`, `oai-sports`, `oai-finance`).
+    Required when type is `api`."""
 
 
 class ActionSearch(TypedDict, total=False):
