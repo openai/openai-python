@@ -16,6 +16,7 @@ from .beta_tool_choice_custom import BetaToolChoiceCustom
 from .beta_response_includable import BetaResponseIncludable
 from .beta_tool_choice_allowed import BetaToolChoiceAllowed
 from .beta_tool_choice_options import BetaToolChoiceOptions
+from .beta_response_steer_event import BetaResponseSteerEvent
 from .beta_response_text_config import BetaResponseTextConfig
 from .beta_tool_choice_function import BetaToolChoiceFunction
 from .beta_response_inject_event import BetaResponseInjectEvent
@@ -128,8 +129,7 @@ class ResponseCreatePromptCacheOptions(BaseModel):
 
 
 class ResponseCreateReasoning(BaseModel):
-    """**gpt-5 and o-series models only**
-
+    """
     Configuration options for
     [reasoning models](https://platform.openai.com/docs/guides/reasoning).
     """
@@ -314,6 +314,7 @@ class ResponseCreate(BaseModel):
 
     model: Union[
         Literal[
+            "gpt-6-astra",
             "gpt-5.6-sol",
             "gpt-5.6-terra",
             "gpt-5.6-luna",
@@ -420,7 +421,7 @@ class ResponseCreate(BaseModel):
         str,
         None,
     ] = None
-    """Model ID used to generate the response, like `gpt-4o` or `o3`.
+    """Model ID used to generate the response, like `gpt-6-astra`.
 
     OpenAI offers a wide range of models with different capabilities, performance
     characteristics, and price points. Refer to the
@@ -493,8 +494,7 @@ class ResponseCreate(BaseModel):
     """
 
     reasoning: Optional[ResponseCreateReasoning] = None
-    """**gpt-5 and o-series models only**
-
+    """
     Configuration options for
     [reasoning models](https://platform.openai.com/docs/guides/reasoning).
     """
@@ -646,5 +646,5 @@ class ResponseCreate(BaseModel):
 
 
 BetaResponsesClientEvent: TypeAlias = Annotated[
-    Union[ResponseCreate, BetaResponseInjectEvent], PropertyInfo(discriminator="type")
+    Union[ResponseCreate, BetaResponseSteerEvent, BetaResponseInjectEvent], PropertyInfo(discriminator="type")
 ]

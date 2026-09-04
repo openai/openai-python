@@ -3,6 +3,8 @@
 from typing import Dict, List, Optional
 from typing_extensions import Literal
 
+from pydantic import Field as FieldInfo
+
 from ..._models import BaseModel
 
 __all__ = ["FunctionTool"]
@@ -28,6 +30,8 @@ class FunctionTool(BaseModel):
 
     allowed_callers: Optional[List[Literal["direct", "programmatic"]]] = None
     """The tool invocation context(s)."""
+
+    async_: Optional[bool] = FieldInfo(alias="async", default=None)
 
     defer_loading: Optional[bool] = None
     """Whether this function is deferred and loaded via tool search."""

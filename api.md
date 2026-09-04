@@ -435,6 +435,20 @@ Methods:
 - <code>client.vector_stores.file_batches.<a href="./src/openai/resources/vector_stores/file_batches.py">poll</a>(\*args) -> VectorStoreFileBatch</code>
 - <code>client.vector_stores.file_batches.<a href="./src/openai/resources/vector_stores/file_batches.py">upload_and_poll</a>(\*args) -> VectorStoreFileBatch</code>
 
+# Safety
+
+## Alerts
+
+Types:
+
+```python
+from openai.types.safety import SafetyAlert
+```
+
+Methods:
+
+- <code title="get /safety/alerts/{id}">client.safety.alerts.<a href="./src/openai/resources/safety/alerts.py">retrieve</a>(id) -> <a href="./src/openai/types/safety/safety_alert.py">SafetyAlert</a></code>
+
 # [Webhooks](src/openai/resources/webhooks/api.md)
 
 Methods:
@@ -492,6 +506,8 @@ from openai.types.beta import (
     BetaResponseComputerToolCall,
     BetaResponseComputerToolCallOutputItem,
     BetaResponseComputerToolCallOutputScreenshot,
+    BetaResponseConfigurationUpdateItem,
+    BetaResponseConfigurationUpdateItemParam,
     BetaResponseContainerReference,
     BetaResponseContent,
     BetaResponseContentPartAddedEvent,
@@ -581,6 +597,15 @@ from openai.types.beta import (
     BetaResponseShellCallOutputContentDeltaEvent,
     BetaResponseShellCallOutputContentDoneEvent,
     BetaResponseStatus,
+    BetaResponseSteerAcceptedEvent,
+    BetaResponseSteerErrorCode,
+    BetaResponseSteerEvent,
+    BetaResponseSteerFailedEvent,
+    BetaResponseSteerInput,
+    BetaResponseSteerInputContent,
+    BetaResponseSteerPendingEvent,
+    BetaResponseSteerPendingReason,
+    BetaResponseSteerRequiredInput,
     BetaResponseStreamEvent,
     BetaResponseTextConfig,
     BetaResponseTextDeltaEvent,

@@ -16,6 +16,7 @@ from .beta_tool_choice_shell_param import BetaToolChoiceShellParam
 from .beta_tool_choice_types_param import BetaToolChoiceTypesParam
 from .beta_tool_choice_custom_param import BetaToolChoiceCustomParam
 from .beta_tool_choice_allowed_param import BetaToolChoiceAllowedParam
+from .beta_response_steer_event_param import BetaResponseSteerEventParam
 from .beta_response_text_config_param import BetaResponseTextConfigParam
 from .beta_tool_choice_function_param import BetaToolChoiceFunctionParam
 from .beta_response_inject_event_param import BetaResponseInjectEventParam
@@ -128,8 +129,7 @@ class ResponseCreatePromptCacheOptions(TypedDict, total=False):
 
 
 class ResponseCreateReasoning(TypedDict, total=False):
-    """**gpt-5 and o-series models only**
-
+    """
     Configuration options for
     [reasoning models](https://platform.openai.com/docs/guides/reasoning).
     """
@@ -314,6 +314,7 @@ class ResponseCreate(TypedDict, total=False):
 
     model: Union[
         Literal[
+            "gpt-6-astra",
             "gpt-5.6-sol",
             "gpt-5.6-terra",
             "gpt-5.6-luna",
@@ -419,7 +420,7 @@ class ResponseCreate(TypedDict, total=False):
         ],
         str,
     ]
-    """Model ID used to generate the response, like `gpt-4o` or `o3`.
+    """Model ID used to generate the response, like `gpt-6-astra`.
 
     OpenAI offers a wide range of models with different capabilities, performance
     characteristics, and price points. Refer to the
@@ -492,8 +493,7 @@ class ResponseCreate(TypedDict, total=False):
     """
 
     reasoning: Optional[ResponseCreateReasoning]
-    """**gpt-5 and o-series models only**
-
+    """
     Configuration options for
     [reasoning models](https://platform.openai.com/docs/guides/reasoning).
     """
@@ -644,4 +644,6 @@ class ResponseCreate(TypedDict, total=False):
     """
 
 
-BetaResponsesClientEventParam: TypeAlias = Union[ResponseCreate, BetaResponseInjectEventParam]
+BetaResponsesClientEventParam: TypeAlias = Union[
+    ResponseCreate, BetaResponseSteerEventParam, BetaResponseInjectEventParam
+]

@@ -10,6 +10,16 @@ This policy applies to the source code in this repository and the official
 [`openai` Python package](https://pypi.org/project/openai/), including its
 published source distributions and wheels.
 
+## Threat model authority
+
+This file governs coordinated disclosure and what reporters should include. The
+canonical repository threat model, trust boundaries, reportability guidance,
+and severity calibration for Codex Security scans are maintained in
+[`docs/architecture/security-model.md`](docs/architecture/security-model.md).
+Follow that document's own trusted-revision resolution rule for security
+analysis; do not duplicate or infer a competing threat model from this
+disclosure policy.
+
 Do not report security vulnerabilities through public GitHub issues, pull requests, or discussions.
 
 ## What to include

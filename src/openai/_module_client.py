@@ -19,6 +19,7 @@ if TYPE_CHECKING:
     from .resources.completions import Completions
     from .resources.evals.evals import Evals
     from .resources.moderations import Moderations
+    from .resources.safety.safety import Safety
     from .resources.skills.skills import Skills
     from .resources.uploads.uploads import Uploads
     from .resources.realtime.realtime import Realtime
@@ -80,6 +81,12 @@ class ModelsProxy(LazyProxy["Models"]):
     @override
     def __load__(self) -> Models:
         return _load_client().models
+
+
+class SafetyProxy(LazyProxy["Safety"]):
+    @override
+    def __load__(self) -> Safety:
+        return _load_client().safety
 
 
 class SkillsProxy(LazyProxy["Skills"]):
@@ -180,6 +187,7 @@ admin: Admin = AdminProxy().__as_proxied__()
 evals: Evals = EvalsProxy().__as_proxied__()
 images: Images = ImagesProxy().__as_proxied__()
 models: Models = ModelsProxy().__as_proxied__()
+safety: Safety = SafetyProxy().__as_proxied__()
 skills: Skills = SkillsProxy().__as_proxied__()
 videos: Videos = VideosProxy().__as_proxied__()
 batches: Batches = BatchesProxy().__as_proxied__()
