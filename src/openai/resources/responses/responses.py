@@ -1897,12 +1897,13 @@ class Responses(SyncAPIResource):
               request will be processed with the Flex Processing service tier. - To opt-in to
               [Fast mode](/api/docs/guides/fast-mode) at the request level, include the
               `service_tier=fast` or `service_tier=priority` parameter for Responses or Chat
-              Completions. The response will show `service_tier=priority` regardless of if you
-              specify `service_tier=fast` or `priority` in your request. - When not set, the
-              default behavior is 'auto'. When the `service_tier` parameter is set, the
-              response body will include the `service_tier` value based on the processing mode
-              actually used to serve the request. This response value may be different from
-              the value set in the parameter.
+              Completions. For models with a dedicated Fast tier, either value resolves to
+              `service_tier=fast`; for other models, either value resolves to
+              `service_tier=priority`. - When not set, the default behavior is 'auto'. When
+              the `service_tier` parameter is set, the response body will include the
+              `service_tier` value based on the processing mode actually used to serve the
+              request. This response value may be different from the value set in the
+              parameter.
 
           extra_headers: Send extra headers
 
@@ -3759,12 +3760,13 @@ class AsyncResponses(AsyncAPIResource):
               request will be processed with the Flex Processing service tier. - To opt-in to
               [Fast mode](/api/docs/guides/fast-mode) at the request level, include the
               `service_tier=fast` or `service_tier=priority` parameter for Responses or Chat
-              Completions. The response will show `service_tier=priority` regardless of if you
-              specify `service_tier=fast` or `priority` in your request. - When not set, the
-              default behavior is 'auto'. When the `service_tier` parameter is set, the
-              response body will include the `service_tier` value based on the processing mode
-              actually used to serve the request. This response value may be different from
-              the value set in the parameter.
+              Completions. For models with a dedicated Fast tier, either value resolves to
+              `service_tier=fast`; for other models, either value resolves to
+              `service_tier=priority`. - When not set, the default behavior is 'auto'. When
+              the `service_tier` parameter is set, the response body will include the
+              `service_tier` value based on the processing mode actually used to serve the
+              request. This response value may be different from the value set in the
+              parameter.
 
           extra_headers: Send extra headers
 
