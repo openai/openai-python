@@ -36,6 +36,11 @@ __all__ = [
     "ModerationOutput",
     "ModerationOutputModerationResult",
     "ModerationOutputError",
+    "PromptCacheDiagnostics",
+    "PromptCacheDiagnosticsCacheMiss",
+    "PromptCacheDiagnosticsCacheHit",
+    "PromptCacheDiagnosticsComparisonResponseNotFound",
+    "PromptCacheDiagnosticsUnavailable",
     "PromptCacheOptions",
     "Reasoning",
 ]
@@ -185,6 +190,55 @@ class Moderation(BaseModel):
     """Moderation for the response output."""
 
 
+class PromptCacheDiagnosticsCacheMiss(BaseModel):
+    cache_missed_tokens: int
+    """
+    The estimated number of input tokens affected after the first detected
+    divergence.
+    """
+
+    reason: Literal[
+        "model_changed",
+        "prompt_cache_key_changed",
+        "tools_changed",
+        "text_format_changed",
+        "reasoning_effort_changed",
+        "verbosity_changed",
+        "context_compacted",
+        "input_changed",
+        "service_tier_changed",
+    ]
+    """The reason prompt cache reuse did not occur."""
+
+    type: Literal["cache_miss"]
+
+    comparison_reusable_tokens: Optional[int] = None
+    """The raw token count of the reusable prefix in the compared response."""
+
+
+class PromptCacheDiagnosticsCacheHit(BaseModel):
+    type: Literal["cache_hit"]
+
+
+class PromptCacheDiagnosticsComparisonResponseNotFound(BaseModel):
+    type: Literal["comparison_response_not_found"]
+
+
+class PromptCacheDiagnosticsUnavailable(BaseModel):
+    type: Literal["unavailable"]
+
+
+PromptCacheDiagnostics: TypeAlias = Annotated[
+    Union[
+        PromptCacheDiagnosticsCacheMiss,
+        PromptCacheDiagnosticsCacheHit,
+        PromptCacheDiagnosticsComparisonResponseNotFound,
+        PromptCacheDiagnosticsUnavailable,
+    ],
+    PropertyInfo(discriminator="type"),
+]
+
+
 class PromptCacheOptions(BaseModel):
     """The prompt-caching options that were applied to the response.
 
@@ -196,6 +250,9 @@ class PromptCacheOptions(BaseModel):
 
     ttl: Literal["30m"]
     """The minimum lifetime applied to each cache breakpoint."""
+
+    comparison_response_id: Optional[str] = None
+    """The response ID supplied as the prompt cache diagnostics comparison."""
 
 
 class Reasoning(BaseModel):
@@ -513,6 +570,9 @@ class BetaResponse(BaseModel):
     Reference to a prompt template and its variables.
     [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
     """
+
+    prompt_cache_diagnostics: Optional[PromptCacheDiagnostics] = None
+    """Prompt cache diagnostics requested for this response."""
 
     prompt_cache_key: Optional[str] = None
     """

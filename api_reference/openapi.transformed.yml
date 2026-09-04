@@ -604,7 +604,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/CreateSpeechResponseStreamEvent'
         '429':
-          $ref: '#/components/responses/TooManyRequests'
+          $ref: '#/components/responses/InferenceRateLimited'
+        '503':
+          $ref: '#/components/responses/InferenceServiceUnavailable'
       x-oaiMeta:
         name: Create speech
         group: audio
@@ -716,7 +718,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/CreateTranscriptionResponseStreamEvent'
         '429':
-          $ref: '#/components/responses/TooManyRequests'
+          $ref: '#/components/responses/InferenceRateLimited'
+        '503':
+          $ref: '#/components/responses/InferenceServiceUnavailable'
       x-oaiMeta:
         name: Create transcription
         group: audio
@@ -1272,7 +1276,9 @@ paths:
                   x-stainless-skip:
                   - go
         '429':
-          $ref: '#/components/responses/TooManyRequests'
+          $ref: '#/components/responses/InferenceRateLimited'
+        '503':
+          $ref: '#/components/responses/InferenceServiceUnavailable'
       x-oaiMeta:
         name: Create translation
         group: audio
@@ -2005,7 +2011,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/CreateChatCompletionStreamResponse'
         '429':
-          $ref: '#/components/responses/TooManyRequests'
+          $ref: '#/components/responses/InferenceRateLimited'
+        '503':
+          $ref: '#/components/responses/InferenceServiceUnavailable'
       x-oaiMeta:
         name: Create chat completion
         group: chat
@@ -3143,7 +3151,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/CreateCompletionResponse'
         '429':
-          $ref: '#/components/responses/TooManyRequests'
+          $ref: '#/components/responses/InferenceRateLimited'
+        '503':
+          $ref: '#/components/responses/InferenceServiceUnavailable'
       x-oaiMeta:
         name: Create completion
         group: completions
@@ -4199,7 +4209,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/CreateEmbeddingResponse'
         '429':
-          $ref: '#/components/responses/TooManyRequests'
+          $ref: '#/components/responses/InferenceRateLimited'
+        '503':
+          $ref: '#/components/responses/InferenceServiceUnavailable'
       x-oaiMeta:
         name: Create embeddings
         group: embeddings
@@ -7797,6 +7809,10 @@ paths:
             text/event-stream:
               schema:
                 $ref: '#/components/schemas/ImageEditStreamEvent'
+        '429':
+          $ref: '#/components/responses/InferenceRateLimited'
+        '503':
+          $ref: '#/components/responses/InferenceServiceUnavailable'
       x-oaiMeta:
         name: Create image edit
         group: images
@@ -7969,6 +7985,10 @@ paths:
             text/event-stream:
               schema:
                 $ref: '#/components/schemas/ImageGenStreamEvent'
+        '429':
+          $ref: '#/components/responses/InferenceRateLimited'
+        '503':
+          $ref: '#/components/responses/InferenceServiceUnavailable'
       x-oaiMeta:
         name: Create image
         group: images
@@ -8385,6 +8405,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CreateModerationResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
         name: Create moderation
         group: moderations
@@ -16519,7 +16541,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/ResponseStreamEvent'
         '429':
-          $ref: '#/components/responses/TooManyRequests'
+          $ref: '#/components/responses/InferenceRateLimited'
+        '503':
+          $ref: '#/components/responses/InferenceServiceUnavailable'
       x-oaiMeta:
         name: Create a model response
         group: responses
@@ -22856,6 +22880,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/VideoResource'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       deprecated: true
       x-oaiMeta:
         name: Create video
@@ -23126,6 +23152,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/VideoResource'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       deprecated: true
       description: Create a new video generation job by editing a source video or existing generated video.
   /videos/extensions:
@@ -23147,6 +23175,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/VideoResource'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       deprecated: true
       description: Create an extension of a completed video.
   /videos/{video_id}:
@@ -23472,6 +23502,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/VideoResource'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
       deprecated: true
       x-oaiMeta:
         name: Remix video
@@ -23701,7 +23733,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/CompactResource'
         '429':
-          $ref: '#/components/responses/TooManyRequests'
+          $ref: '#/components/responses/InferenceRateLimited'
+        '503':
+          $ref: '#/components/responses/InferenceServiceUnavailable'
       x-oaiMeta:
         name: Compact a response
         group: responses
@@ -24950,7 +24984,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/BetaResponseStreamEvent'
         '429':
-          $ref: '#/components/responses/TooManyRequests'
+          $ref: '#/components/responses/InferenceRateLimited'
+        '503':
+          $ref: '#/components/responses/InferenceServiceUnavailable'
       x-oaiMeta:
         name: Create a model response
         group: responses
@@ -26517,7 +26553,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/BetaCompactResource'
         '429':
-          $ref: '#/components/responses/TooManyRequests'
+          $ref: '#/components/responses/InferenceRateLimited'
+        '503':
+          $ref: '#/components/responses/InferenceServiceUnavailable'
       x-oaiMeta:
         name: Compact a response
         group: responses
@@ -33947,6 +33985,8 @@ components:
       - $ref: '#/components/schemas/ResponseProperties'
       - type: object
         properties:
+          prompt_cache_options:
+            $ref: '#/components/schemas/ResponsePromptCacheOptionsParam'
           service_tier:
             $ref: '#/components/schemas/ServiceTierResponses'
           truncation:
@@ -52270,6 +52310,8 @@ components:
             $ref: '#/components/schemas/ResponseUsage'
           prompt_cache_options:
             $ref: '#/components/schemas/PromptCacheOptions'
+          prompt_cache_diagnostics:
+            $ref: '#/components/schemas/PromptCacheDiagnostics'
           moderation:
             anyOf:
             - $ref: '#/components/schemas/Moderation'
@@ -65621,6 +65663,24 @@ components:
       - type
       title: Specific shell tool choice
       description: Forces the model to call the shell tool when a tool call is required.
+    ResponsePromptCacheOptionsParam:
+      properties:
+        ttl:
+          $ref: '#/components/schemas/PromptCacheTTLEnum'
+          description: The minimum lifetime applied to every implicit and explicit cache breakpoint written by the request. Defaults to `30m`, which is currently the only supported value. The backend may retain cache entries for longer.
+        mode:
+          $ref: '#/components/schemas/PromptCacheModeEnum'
+          description: Controls whether OpenAI automatically creates an implicit cache breakpoint. Defaults to `implicit`. With `implicit`, OpenAI creates one implicit breakpoint and writes up to the latest three explicit breakpoints in the request. With `explicit`, OpenAI does not create an implicit breakpoint and writes up to the latest four explicit breakpoints. If there are no explicit breakpoints, the request does not use prompt caching.
+        comparison_response_id:
+          anyOf:
+          - type: string
+            description: The ID of a response to compare when diagnosing prompt cache reuse. Supplying this field requests prompt cache diagnostics when the feature is enabled.
+            example: resp_123
+          - type: 'null'
+      type: object
+      required: []
+      title: Prompt cache options
+      description: Options for prompt caching. Supported for `gpt-5.6` and later models. By default, OpenAI automatically chooses one implicit cache breakpoint. You can add explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each request can write up to four breakpoints. For cache matching, OpenAI considers up to the latest 80 breakpoints in the conversation, without a content-block lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The `ttl` defaults to `30m`, which is currently the only supported value. See the [prompt caching guide](https://platform.openai.com/docs/guides/prompt-caching) for current details.
     ReasoningModeEnum:
       anyOf:
       - type: string
@@ -65661,12 +65721,93 @@ components:
         mode:
           $ref: '#/components/schemas/PromptCacheModeEnum'
           description: Whether implicit prompt-cache breakpoints were enabled.
+        comparison_response_id:
+          anyOf:
+          - type: string
+            description: The response ID supplied as the prompt cache diagnostics comparison.
+          - type: 'null'
       type: object
       required:
       - ttl
       - mode
       title: Prompt cache options
       description: The prompt-caching options that were applied to the response. Supported for `gpt-5.6` and later models.
+    CacheMissReasonTypeEnum:
+      type: string
+      enum:
+      - model_changed
+      - prompt_cache_key_changed
+      - tools_changed
+      - text_format_changed
+      - reasoning_effort_changed
+      - verbosity_changed
+      - context_compacted
+      - input_changed
+      - service_tier_changed
+    PromptCacheMissDiagnosticsBody:
+      properties:
+        type:
+          type: string
+          enum:
+          - cache_miss
+          default: cache_miss
+          x-stainless-const: true
+        reason:
+          $ref: '#/components/schemas/CacheMissReasonTypeEnum'
+          description: The reason prompt cache reuse did not occur.
+        cache_missed_tokens:
+          type: integer
+          description: The estimated number of input tokens affected after the first detected divergence.
+        comparison_reusable_tokens:
+          type: integer
+          description: The raw token count of the reusable prefix in the compared response.
+      type: object
+      required:
+      - type
+      - reason
+      - cache_missed_tokens
+    PromptCacheHitDiagnosticsBody:
+      properties:
+        type:
+          type: string
+          enum:
+          - cache_hit
+          default: cache_hit
+          x-stainless-const: true
+      type: object
+      required:
+      - type
+    PromptCacheComparisonResponseNotFoundDiagnosticsBody:
+      properties:
+        type:
+          type: string
+          enum:
+          - comparison_response_not_found
+          default: comparison_response_not_found
+          x-stainless-const: true
+      type: object
+      required:
+      - type
+    PromptCacheUnavailableDiagnosticsBody:
+      properties:
+        type:
+          type: string
+          enum:
+          - unavailable
+          default: unavailable
+          x-stainless-const: true
+      type: object
+      required:
+      - type
+    PromptCacheDiagnostics:
+      discriminator:
+        propertyName: type
+      description: Prompt cache diagnostics requested for this response.
+      anyOf:
+      - $ref: '#/components/schemas/PromptCacheMissDiagnosticsBody'
+      - $ref: '#/components/schemas/PromptCacheHitDiagnosticsBody'
+      - $ref: '#/components/schemas/PromptCacheComparisonResponseNotFoundDiagnosticsBody'
+      - $ref: '#/components/schemas/PromptCacheUnavailableDiagnosticsBody'
     ModerationErrorBody:
       properties:
         type:
@@ -66869,7 +67010,7 @@ components:
           anyOf:
           - $ref: '#/components/schemas/ServiceTierEnum'
             description: |-
-              Specifies the processing type used for serving the request.   - If set to 'auto', then the request will be processed with the service tier configured in the Project settings. Unless otherwise configured, the Project will use 'default'.   - If set to 'default', then the request will be processed with the standard pricing and performance for the selected model.   - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)', then the request will be processed with the Flex Processing service tier.   - To opt-in to [Fast mode](/api/docs/guides/fast-mode) at the request level, include the `service_tier=fast` or `service_tier=priority` parameter for Responses or Chat Completions. The response will show `service_tier=priority` regardless of if you specify `service_tier=fast` or `priority` in your request.   - When not set, the default behavior is 'auto'.
+              Specifies the processing type used for serving the request.   - If set to 'auto', then the request will be processed with the service tier configured in the Project settings. Unless otherwise configured, the Project will use 'default'.   - If set to 'default', then the request will be processed with the standard pricing and performance for the selected model.   - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)', then the request will be processed with the Flex Processing service tier.   - To opt-in to [Fast mode](/api/docs/guides/fast-mode) at the request level, include the `service_tier=fast` or `service_tier=priority` parameter for Responses or Chat Completions. For models with a dedicated Fast tier, either value resolves to `service_tier=fast`; for other models, either value resolves to `service_tier=priority`.   - When not set, the default behavior is 'auto'.
                 When the `service_tier` parameter is set, the response body will include the `service_tier` value based on the processing mode actually used to serve the request. This response value may be different from the value set in the parameter.
           - type: 'null'
       type: object
@@ -73451,7 +73592,7 @@ components:
           anyOf:
           - $ref: '#/components/schemas/BetaServiceTierEnum'
             description: |-
-              Specifies the processing type used for serving the request.   - If set to 'auto', then the request will be processed with the service tier configured in the Project settings. Unless otherwise configured, the Project will use 'default'.   - If set to 'default', then the request will be processed with the standard pricing and performance for the selected model.   - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)', then the request will be processed with the Flex Processing service tier.   - To opt-in to [Fast mode](/api/docs/guides/fast-mode) at the request level, include the `service_tier=fast` or `service_tier=priority` parameter for Responses or Chat Completions. The response will show `service_tier=priority` regardless of if you specify `service_tier=fast` or `priority` in your request.   - When not set, the default behavior is 'auto'.
+              Specifies the processing type used for serving the request.   - If set to 'auto', then the request will be processed with the service tier configured in the Project settings. Unless otherwise configured, the Project will use 'default'.   - If set to 'default', then the request will be processed with the standard pricing and performance for the selected model.   - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)', then the request will be processed with the Flex Processing service tier.   - To opt-in to [Fast mode](/api/docs/guides/fast-mode) at the request level, include the `service_tier=fast` or `service_tier=priority` parameter for Responses or Chat Completions. For models with a dedicated Fast tier, either value resolves to `service_tier=fast`; for other models, either value resolves to `service_tier=priority`.   - When not set, the default behavior is 'auto'.
                 When the `service_tier` parameter is set, the response body will include the `service_tier` value based on the processing mode actually used to serve the request. This response value may be different from the value set in the parameter.
           - type: 'null'
       type: object
@@ -75230,6 +75371,8 @@ components:
             $ref: '#/components/schemas/BetaResponseUsage'
           prompt_cache_options:
             $ref: '#/components/schemas/BetaPromptCacheOptions'
+          prompt_cache_diagnostics:
+            $ref: '#/components/schemas/BetaPromptCacheDiagnostics'
           moderation:
             anyOf:
             - $ref: '#/components/schemas/BetaModeration'
@@ -75370,6 +75513,82 @@ components:
       enum:
       - text
       - image
+    BetaPromptCacheDiagnostics:
+      discriminator:
+        propertyName: type
+      description: Prompt cache diagnostics requested for this response.
+      anyOf:
+      - $ref: '#/components/schemas/BetaPromptCacheMissDiagnosticsBody'
+      - $ref: '#/components/schemas/BetaPromptCacheHitDiagnosticsBody'
+      - $ref: '#/components/schemas/BetaPromptCacheComparisonResponseNotFoundDiagnosticsBody'
+      - $ref: '#/components/schemas/BetaPromptCacheUnavailableDiagnosticsBody'
+    BetaPromptCacheUnavailableDiagnosticsBody:
+      properties:
+        type:
+          type: string
+          enum:
+          - unavailable
+          default: unavailable
+          x-stainless-const: true
+      type: object
+      required:
+      - type
+    BetaPromptCacheComparisonResponseNotFoundDiagnosticsBody:
+      properties:
+        type:
+          type: string
+          enum:
+          - comparison_response_not_found
+          default: comparison_response_not_found
+          x-stainless-const: true
+      type: object
+      required:
+      - type
+    BetaPromptCacheHitDiagnosticsBody:
+      properties:
+        type:
+          type: string
+          enum:
+          - cache_hit
+          default: cache_hit
+          x-stainless-const: true
+      type: object
+      required:
+      - type
+    BetaPromptCacheMissDiagnosticsBody:
+      properties:
+        type:
+          type: string
+          enum:
+          - cache_miss
+          default: cache_miss
+          x-stainless-const: true
+        reason:
+          $ref: '#/components/schemas/BetaCacheMissReasonTypeEnum'
+          description: The reason prompt cache reuse did not occur.
+        cache_missed_tokens:
+          type: integer
+          description: The estimated number of input tokens affected after the first detected divergence.
+        comparison_reusable_tokens:
+          type: integer
+          description: The raw token count of the reusable prefix in the compared response.
+      type: object
+      required:
+      - type
+      - reason
+      - cache_missed_tokens
+    BetaCacheMissReasonTypeEnum:
+      type: string
+      enum:
+      - model_changed
+      - prompt_cache_key_changed
+      - tools_changed
+      - text_format_changed
+      - reasoning_effort_changed
+      - verbosity_changed
+      - context_compacted
+      - input_changed
+      - service_tier_changed
     BetaPromptCacheOptions:
       properties:
         ttl:
@@ -75378,6 +75597,11 @@ components:
         mode:
           $ref: '#/components/schemas/BetaPromptCacheModeEnum'
           description: Whether implicit prompt-cache breakpoints were enabled.
+        comparison_response_id:
+          anyOf:
+          - type: string
+            description: The response ID supplied as the prompt cache diagnostics comparison.
+          - type: 'null'
       type: object
       required:
       - ttl
@@ -80181,6 +80405,8 @@ components:
       - $ref: '#/components/schemas/BetaResponseProperties'
       - type: object
         properties:
+          prompt_cache_options:
+            $ref: '#/components/schemas/BetaResponsePromptCacheOptionsParam'
           service_tier:
             $ref: '#/components/schemas/BetaServiceTierResponses'
           truncation:
@@ -80377,6 +80603,24 @@ components:
       enum:
       - score
       - block
+    BetaResponsePromptCacheOptionsParam:
+      properties:
+        ttl:
+          $ref: '#/components/schemas/BetaPromptCacheTTLEnum'
+          description: The minimum lifetime applied to every implicit and explicit cache breakpoint written by the request. Defaults to `30m`, which is currently the only supported value. The backend may retain cache entries for longer.
+        mode:
+          $ref: '#/components/schemas/BetaPromptCacheModeEnum'
+          description: Controls whether OpenAI automatically creates an implicit cache breakpoint. Defaults to `implicit`. With `implicit`, OpenAI creates one implicit breakpoint and writes up to the latest three explicit breakpoints in the request. With `explicit`, OpenAI does not create an implicit breakpoint and writes up to the latest four explicit breakpoints. If there are no explicit breakpoints, the request does not use prompt caching.
+        comparison_response_id:
+          anyOf:
+          - type: string
+            description: The ID of a response to compare when diagnosing prompt cache reuse. Supplying this field requests prompt cache diagnostics when the feature is enabled.
+            example: resp_123
+          - type: 'null'
+      type: object
+      required: []
+      title: Prompt cache options
+      description: Options for prompt caching. Supported for `gpt-5.6` and later models. By default, OpenAI automatically chooses one implicit cache breakpoint. You can add explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each request can write up to four breakpoints. For cache matching, OpenAI considers up to the latest 80 breakpoints in the conversation, without a content-block lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The `ttl` defaults to `30m`, which is currently the only supported value. See the [prompt caching guide](https://platform.openai.com/docs/guides/prompt-caching) for current details.
     BetaCreateModelResponseProperties:
       allOf:
       - $ref: '#/components/schemas/BetaModelResponseProperties'
@@ -81033,6 +81277,48 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
+    InferenceRateLimited:
+      description: The request was rejected because a rate limit was exceeded. A slow_down error means traffic increased too quickly; reduce your request rate, then increase it gradually.
+      headers:
+        Retry-After:
+          description: The minimum number of seconds to wait before retrying. This header is returned when the server has computed a retry delay and may be omitted.
+          schema:
+            type: integer
+            minimum: 1
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            slowDown:
+              summary: Traffic increased too quickly
+              value:
+                error:
+                  message: Your request rate increased too quickly. Please reduce the request rate and gradually increase it again.
+                  type: rate_limit_error
+                  param: null
+                  code: slow_down
+    InferenceServiceUnavailable:
+      description: The service is temporarily unavailable. A server_is_overloaded error means the requested model is temporarily overloaded; retry after a brief delay.
+      headers:
+        Retry-After:
+          description: The minimum number of seconds to wait before retrying. This header is returned when the server has computed a retry delay and may be omitted.
+          schema:
+            type: integer
+            minimum: 1
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          examples:
+            serverOverloaded:
+              summary: The requested model is temporarily overloaded
+              value:
+                error:
+                  message: The model is temporarily overloaded. Please retry your request after a brief delay.
+                  type: service_unavailable_error
+                  param: null
+                  code: server_is_overloaded
   securitySchemes:
     ApiKeyAuth:
       type: http
