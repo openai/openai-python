@@ -586,9 +586,14 @@ class OpenAI(SyncAPIClient):
         request: httpx2.Request,
         *,
         stream: bool,
+        body_reader: Callable[[httpx2.Response], httpx2.Response] | None = None,
         **kwargs: Unpack[HttpxSendArgs],
     ) -> httpx2.Response:
         response = self._send_with_auth_retry(request, stream=stream, **kwargs)
+        if body_reader is not None:
+            # consume the streamed body before provider normalisation so the
+            # callback sees the same read response a non-streaming send gives it
+            response = body_reader(response)
         if self._provider_runtime is not None and self._provider_runtime.normalize_response is not None:
             response = self._provider_runtime.normalize_response(response)
         return response
@@ -1334,9 +1339,14 @@ class AsyncOpenAI(AsyncAPIClient):
         request: httpx2.Request,
         *,
         stream: bool,
+        body_reader: Callable[[httpx2.Response], Awaitable[httpx2.Response]] | None = None,
         **kwargs: Unpack[HttpxSendArgs],
     ) -> httpx2.Response:
         response = await self._send_with_auth_retry(request, stream=stream, **kwargs)
+        if body_reader is not None:
+            # consume the streamed body before provider normalisation so the
+            # callback sees the same read response a non-streaming send gives it
+            response = await body_reader(response)
         if self._provider_runtime is not None:
             if self._provider_runtime.normalize_async_response is not None:
                 response = await self._provider_runtime.normalize_async_response(response)
