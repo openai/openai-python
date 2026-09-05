@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from enum import Enum
 
-from pydantic import Field, BaseModel
+from pydantic import Field, BaseModel, ConfigDict
 from inline_snapshot import snapshot
 
 import openai
@@ -409,3 +409,21 @@ def test_nested_inline_ref_expansion() -> None:
                 "additionalProperties": False,
             }
         )
+
+
+class ModelWithExtraAllowed(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    name: str = Field(description="The name field.")
+
+
+def test_additional_properties_is_forced_false_even_when_extra_allow() -> None:
+    """A Pydantic model with `extra="allow"` produces `additionalProperties: True` from
+    Pydantic itself, but the API requires `additionalProperties: false` on every object with
+    no exceptions - so `to_strict_json_schema` must override it rather than leave it alone.
+    """
+    if PYDANTIC_V1:
+        pytest.skip("extra='allow' schema generation differs on Pydantic v1")
+
+    schema = to_strict_json_schema(ModelWithExtraAllowed)
+    assert schema["additionalProperties"] is False
