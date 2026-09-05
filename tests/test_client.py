@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import gc
+import io
 import os
 import sys
 import json
@@ -8,7 +9,7 @@ import asyncio
 import inspect
 import dataclasses
 import tracemalloc
-from typing import Any, Union, TypeVar, Callable, Iterable, Iterator, Optional, Coroutine, cast
+from typing import Any, Union, TypeVar, Callable, Iterable, Iterator, Optional, Coroutine, AsyncIterable, cast
 from unittest import mock
 from typing_extensions import Literal, AsyncIterator, override
 
@@ -23,7 +24,7 @@ from openai._types import Omit
 from openai._utils import asyncify
 from openai._models import BaseModel, FinalRequestOptions
 from openai._streaming import Stream, AsyncStream
-from openai._exceptions import APIStatusError, APITimeoutError, APIResponseValidationError
+from openai._exceptions import APIStatusError, APITimeoutError, APIConnectionError, APIResponseValidationError
 from openai._base_client import (
     DEFAULT_TIMEOUT,
     HTTPX_DEFAULT_TIMEOUT,
@@ -111,6 +112,29 @@ async def _make_async_iterator(iterable: Iterable[T], counter: Optional[Counter]
         if counter:
             counter.value += 1
         yield item
+
+
+class _OneShotIterable(Iterable[T]):
+    def __init__(self, iterable: Iterable[T]) -> None:
+        self._iterator = iter(iterable)
+
+    @override
+    def __iter__(self) -> Iterator[T]:
+        return self._iterator
+
+
+class _OneShotAsyncIterable(AsyncIterable[T]):
+    def __init__(self, iterable: Iterable[T]) -> None:
+        self._iterator = _make_async_iterator(iterable)
+
+    @override
+    def __aiter__(self) -> AsyncIterator[T]:
+        return self._iterator
+
+
+class _NonSeekableBytesIO(io.BytesIO):
+    def seekable(self) -> bool:
+        return False
 
 
 def _get_open_connections(client: OpenAI | AsyncOpenAI) -> int:
@@ -806,6 +830,148 @@ class TestOpenAI:
             assert response.request.headers["Content-Type"] == "application/octet-stream"
             assert response.content == file_content
             assert counter.value == 1
+
+    @pytest.mark.parametrize("content_factory", [_make_sync_iterator, _OneShotIterable])
+    @pytest.mark.parametrize("failure_mode", ["status", "timeout", "connection"])
+    def test_binary_content_retry_does_not_reuse_one_shot_iterable(
+        self,
+        content_factory: Callable[[Iterable[bytes]], Iterable[bytes]],
+        failure_mode: Literal["status", "timeout", "connection"],
+    ) -> None:
+        file_content = b"Hello, this is a test file."
+        request_bodies: list[bytes] = []
+
+        def mock_handler(request: httpx2.Request) -> httpx2.Response:
+            request_bodies.append(request.read())
+            if len(request_bodies) > 1:
+                return httpx2.Response(200)
+            if failure_mode == "timeout":
+                raise httpx2.ReadTimeout("timed out", request=request)
+            if failure_mode == "connection":
+                raise httpx2.ConnectError("connection failed", request=request)
+            return httpx2.Response(500, json={"error": {}})
+
+        expected_error = {
+            "status": APIStatusError,
+            "timeout": APITimeoutError,
+            "connection": APIConnectionError,
+        }[failure_mode]
+
+        with OpenAI(
+            base_url=base_url,
+            api_key=api_key,
+            max_retries=1,
+            http_client=httpx2.Client(transport=MockTransport(handler=mock_handler)),
+        ) as client:
+            with pytest.raises(expected_error):
+                client.post(
+                    "/upload",
+                    content=content_factory([file_content]),
+                    cast_to=httpx2.Response,
+                )
+
+        assert request_bodies == [file_content]
+
+    @pytest.mark.parametrize("content_type", [list, tuple])
+    @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    def test_binary_content_retry_reuses_known_repeatable_iterable(
+        self, content_type: type[list[bytes]] | type[tuple[bytes, ...]]
+    ) -> None:
+        file_content = b"Hello, this is a test file."
+        request_bodies: list[bytes] = []
+
+        def mock_handler(request: httpx2.Request) -> httpx2.Response:
+            request_bodies.append(request.read())
+            return httpx2.Response(500 if len(request_bodies) == 1 else 200, json={"error": {}})
+
+        with OpenAI(
+            base_url=base_url,
+            api_key=api_key,
+            max_retries=1,
+            http_client=httpx2.Client(transport=MockTransport(handler=mock_handler)),
+        ) as client:
+            response = client.post(
+                "/upload",
+                content=content_type([file_content]),
+                cast_to=httpx2.Response,
+            )
+
+        assert response.status_code == 200
+        assert request_bodies == [file_content, file_content]
+
+    def test_multipart_retry_does_not_reuse_non_seekable_file(self) -> None:
+        file_content = b"Hello, this multipart file must not be replayed."
+        request_bodies: list[bytes] = []
+
+        def mock_handler(request: httpx2.Request) -> httpx2.Response:
+            request_bodies.append(request.read())
+            return httpx2.Response(500, json={"error": {}})
+
+        with OpenAI(
+            base_url=base_url,
+            api_key=api_key,
+            max_retries=1,
+            http_client=httpx2.Client(transport=MockTransport(handler=mock_handler)),
+        ) as client:
+            with pytest.raises(APIStatusError):
+                client.post(
+                    "/upload",
+                    files={"file": ("upload.txt", _NonSeekableBytesIO(file_content), "text/plain")},
+                    cast_to=httpx2.Response,
+                )
+
+        assert len(request_bodies) == 1
+        assert file_content in request_bodies[0]
+
+    def test_multipart_retry_rewinds_seekable_file(self) -> None:
+        file_content = b"Hello, this multipart file can be replayed."
+        request_bodies: list[bytes] = []
+
+        def mock_handler(request: httpx2.Request) -> httpx2.Response:
+            request_bodies.append(request.read())
+            return httpx2.Response(500 if len(request_bodies) == 1 else 200)
+
+        with OpenAI(
+            base_url=base_url,
+            api_key=api_key,
+            max_retries=1,
+            http_client=httpx2.Client(transport=MockTransport(handler=mock_handler)),
+        ) as client:
+            response = client.post(
+                "/upload",
+                files={"file": ("upload.txt", io.BytesIO(file_content), "text/plain")},
+                cast_to=httpx2.Response,
+            )
+
+        assert response.status_code == 200
+        assert len(request_bodies) == 2
+        assert all(file_content in body for body in request_bodies)
+
+    @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    def test_binary_content_retry_rewinds_seekable_stream(self) -> None:
+        file_content = b"Hello, this is a test file."
+        request_bodies: list[bytes] = []
+
+        def mock_handler(request: httpx2.Request) -> httpx2.Response:
+            request_bodies.append(request.read())
+            return httpx2.Response(500 if len(request_bodies) == 1 else 200, json={"error": {}})
+
+        with OpenAI(
+            base_url=base_url,
+            api_key=api_key,
+            max_retries=1,
+            http_client=httpx2.Client(transport=MockTransport(handler=mock_handler)),
+        ) as client:
+            content = io.BytesIO(b"prefix" + file_content)
+            content.seek(len(b"prefix"))
+            response = client.post(
+                "/upload",
+                content=content,
+                cast_to=httpx2.Response,
+            )
+
+        assert response.status_code == 200
+        assert request_bodies == [file_content, file_content]
 
     @pytest.mark.respx2(base_url=base_url)
     def test_binary_content_upload_with_body_is_deprecated(self, respx2_mock: MockRouter, client: OpenAI) -> None:
@@ -2108,6 +2274,95 @@ class TestAsyncOpenAI:
             assert response.request.headers["Content-Type"] == "application/octet-stream"
             assert response.content == file_content
             assert counter.value == 1
+
+    @pytest.mark.parametrize("content_factory", [_make_async_iterator, _OneShotAsyncIterable])
+    @pytest.mark.parametrize("failure_mode", ["status", "timeout", "connection"])
+    async def test_binary_content_retry_does_not_reuse_one_shot_asynciterable(
+        self,
+        content_factory: Callable[[Iterable[bytes]], AsyncIterable[bytes]],
+        failure_mode: Literal["status", "timeout", "connection"],
+    ) -> None:
+        file_content = b"Hello, this is a test file."
+        request_bodies: list[bytes] = []
+
+        async def mock_handler(request: httpx2.Request) -> httpx2.Response:
+            request_bodies.append(await request.aread())
+            if len(request_bodies) > 1:
+                return httpx2.Response(200)
+            if failure_mode == "timeout":
+                raise httpx2.ReadTimeout("timed out", request=request)
+            if failure_mode == "connection":
+                raise httpx2.ConnectError("connection failed", request=request)
+            return httpx2.Response(500, json={"error": {}})
+
+        expected_error = {
+            "status": APIStatusError,
+            "timeout": APITimeoutError,
+            "connection": APIConnectionError,
+        }[failure_mode]
+
+        async with AsyncOpenAI(
+            base_url=base_url,
+            api_key=api_key,
+            max_retries=1,
+            http_client=httpx2.AsyncClient(transport=MockTransport(handler=mock_handler)),
+        ) as client:
+            with pytest.raises(expected_error):
+                await client.post(
+                    "/upload",
+                    content=content_factory([file_content]),
+                    cast_to=httpx2.Response,
+                )
+
+        assert request_bodies == [file_content]
+
+    async def test_multipart_retry_does_not_reuse_non_seekable_file(self) -> None:
+        file_content = b"Hello, this multipart file must not be replayed."
+        request_bodies: list[bytes] = []
+
+        async def mock_handler(request: httpx2.Request) -> httpx2.Response:
+            request_bodies.append(await request.aread())
+            return httpx2.Response(500, json={"error": {}})
+
+        async with AsyncOpenAI(
+            base_url=base_url,
+            api_key=api_key,
+            max_retries=1,
+            http_client=httpx2.AsyncClient(transport=MockTransport(handler=mock_handler)),
+        ) as client:
+            with pytest.raises(APIStatusError):
+                await client.post(
+                    "/upload",
+                    files={"file": ("upload.txt", _NonSeekableBytesIO(file_content), "text/plain")},
+                    cast_to=httpx2.Response,
+                )
+
+        assert len(request_bodies) == 1
+        assert file_content in request_bodies[0]
+
+    async def test_multipart_retry_rewinds_seekable_file(self) -> None:
+        file_content = b"Hello, this multipart file can be replayed."
+        request_bodies: list[bytes] = []
+
+        async def mock_handler(request: httpx2.Request) -> httpx2.Response:
+            request_bodies.append(await request.aread())
+            return httpx2.Response(500 if len(request_bodies) == 1 else 200)
+
+        async with AsyncOpenAI(
+            base_url=base_url,
+            api_key=api_key,
+            max_retries=1,
+            http_client=httpx2.AsyncClient(transport=MockTransport(handler=mock_handler)),
+        ) as client:
+            response = await client.post(
+                "/upload",
+                files={"file": ("upload.txt", io.BytesIO(file_content), "text/plain")},
+                cast_to=httpx2.Response,
+            )
+
+        assert response.status_code == 200
+        assert len(request_bodies) == 2
+        assert all(file_content in body for body in request_bodies)
 
     @pytest.mark.respx2(base_url=base_url)
     async def test_binary_content_upload_with_body_is_deprecated(
