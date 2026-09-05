@@ -184,6 +184,43 @@ class Completions(SyncAPIResource):
         }
 
         def parser(raw_completion: ChatCompletion) -> ParsedChatCompletion[ResponseFormatT]:
+            """Post-process a raw ``ChatCompletion`` into a ``ParsedChatCompletion``.
+
+            This callback is passed as ``post_parser`` to the underlying HTTP request
+            helper.  It is called once the API response has been deserialised into a
+            ``ChatCompletion`` object and converts it into the richer
+            ``ParsedChatCompletion`` type, including structured-output parsing of
+            ``response_format`` and automatic argument parsing for any tool calls that
+            were constructed with :func:`openai.pydantic_function_tool` or marked with
+            ``"strict": True``.
+
+            Args:
+                raw_completion: The deserialised ``ChatCompletion`` returned by the
+                    Chat Completions API before structured-output post-processing.
+
+            Returns:
+                A ``ParsedChatCompletion[ResponseFormatT]`` whose
+                ``choices[*].message.parsed`` field holds the decoded
+                ``ResponseFormatT`` instance (when a ``response_format`` was
+                supplied), and whose tool-call ``function.parsed_arguments``
+                fields hold decoded pydantic models where applicable.
+
+            Example::
+
+                from pydantic import BaseModel
+                from openai import OpenAI
+
+                class Answer(BaseModel):
+                    value: str
+
+                client = OpenAI()
+                completion = client.chat.completions.parse(
+                    model="gpt-4o-2024-08-06",
+                    messages=[{"role": "user", "content": "What is 1 + 1?"}],
+                    response_format=Answer,
+                )
+                print(completion.choices[0].message.parsed)
+            """
             return _parse_chat_completion(
                 response_format=response_format,
                 chat_completion=raw_completion,
@@ -1795,6 +1832,43 @@ class AsyncCompletions(AsyncAPIResource):
         }
 
         def parser(raw_completion: ChatCompletion) -> ParsedChatCompletion[ResponseFormatT]:
+            """Post-process a raw ``ChatCompletion`` into a ``ParsedChatCompletion``.
+
+            This callback is passed as ``post_parser`` to the underlying HTTP request
+            helper.  It is called once the API response has been deserialised into a
+            ``ChatCompletion`` object and converts it into the richer
+            ``ParsedChatCompletion`` type, including structured-output parsing of
+            ``response_format`` and automatic argument parsing for any tool calls that
+            were constructed with :func:`openai.pydantic_function_tool` or marked with
+            ``"strict": True``.
+
+            Args:
+                raw_completion: The deserialised ``ChatCompletion`` returned by the
+                    Chat Completions API before structured-output post-processing.
+
+            Returns:
+                A ``ParsedChatCompletion[ResponseFormatT]`` whose
+                ``choices[*].message.parsed`` field holds the decoded
+                ``ResponseFormatT`` instance (when a ``response_format`` was
+                supplied), and whose tool-call ``function.parsed_arguments``
+                fields hold decoded pydantic models where applicable.
+
+            Example::
+
+                from pydantic import BaseModel
+                from openai import AsyncOpenAI
+
+                class Answer(BaseModel):
+                    value: str
+
+                client = AsyncOpenAI()
+                completion = await client.chat.completions.parse(
+                    model="gpt-4o-2024-08-06",
+                    messages=[{"role": "user", "content": "What is 1 + 1?"}],
+                    response_format=Answer,
+                )
+                print(completion.choices[0].message.parsed)
+            """
             return _parse_chat_completion(
                 response_format=response_format,
                 chat_completion=raw_completion,
