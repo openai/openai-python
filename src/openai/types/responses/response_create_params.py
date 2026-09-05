@@ -240,7 +240,12 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     """
 
     store: Optional[bool]
-    """Whether to store the generated model response for later retrieval via API."""
+    """Whether to store the generated model response for later retrieval via API.
+
+    Defaults to true when omitted. If set to true, response data will be stored for
+    at least 30 days, subject to the
+    [data retention exceptions](/api/docs/guides/your-data#v1responses).
+    """
 
     stream_options: Optional[StreamOptions]
     """Options for streaming responses. Only set this when you set `stream: true`."""

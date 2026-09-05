@@ -1,5 +1,6 @@
 # File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
+from typing import Optional
 from typing_extensions import Literal
 
 from ......_models import BaseModel
@@ -22,3 +23,9 @@ class APIKeyCreateResponse(BaseModel):
 
     value: str
     """The unredacted API key value."""
+
+    expires_at: Optional[int] = None
+    """
+    The Unix timestamp (in seconds) when the API key expires, or null if it does not
+    expire.
+    """
