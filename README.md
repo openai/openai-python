@@ -552,7 +552,7 @@ response = client.responses.create(
 
 ## File uploads
 
-Request parameters that correspond to file uploads can be passed as `bytes`, or a [`PathLike`](https://docs.python.org/3/library/os.html#os.PathLike) instance or a tuple of `(filename, contents, media type)`.
+Request parameters that correspond to file uploads can be passed as `bytes`, a file-like object, a [`PathLike`](https://docs.python.org/3/library/os.html#os.PathLike) instance, or a tuple of `(filename, contents, media type)`.
 
 ```python
 from pathlib import Path
@@ -565,6 +565,20 @@ client.files.create(
     purpose="fine-tune",
 )
 ```
+
+When uploading an in-memory file-like object such as `io.BytesIO`, include a filename when the API needs the file extension to determine its format. Passing a tuple is the most explicit option:
+
+```python
+import io
+
+audio = io.BytesIO(audio_bytes)
+transcription = client.audio.transcriptions.create(
+    model="gpt-4o-transcribe",
+    file=("audio.wav", audio, "audio/wav"),
+)
+```
+
+You can also set a `.name` attribute such as `audio.name = "audio.wav"` on a mutable file-like object before passing it directly. Without a filename, multipart transports may use a generic name such as `upload`, which does not provide an audio extension for format detection.
 
 The async client uses the exact same interface. If you pass a [`PathLike`](https://docs.python.org/3/library/os.html#os.PathLike) instance, the file contents will be read asynchronously automatically.
 
