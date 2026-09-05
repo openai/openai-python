@@ -19,6 +19,7 @@ from ...._models import build, construct_type_unchecked
 from ...._streaming import Stream, AsyncStream
 from ....types.responses import ParsedResponse, ResponseStreamEvent as RawResponseStreamEvent
 from ..._parsing._responses import TextFormatT, parse_text, parse_response
+from ....types.responses.response import Response
 from ....types.responses.tool_param import ToolParam
 from ....types.responses.parsed_response import (
     ParsedContent,
@@ -352,14 +353,59 @@ class ResponseStreamState(Generic[TextFormatT]):
                 content = output.content[event.content_index]
                 assert content.type == "output_text"
                 content.text += event.delta
+        elif event.type == "response.content_part.done":
+            # the done event carries the authoritative part payload, including
+            # anything the deltas do not convey such as annotations or logprobs
+            output = snapshot.output[event.output_index]
+            if output.type == "message":
+                output.content[event.content_index] = construct_type_unchecked(
+                    type_=cast(Any, ParsedContent), value=event.part.to_dict()
+                )
+        elif event.type == "response.output_item.done":
+            # likewise for the item itself: `added` delivers it as in_progress,
+            # and only this event carries the final status and content
+            if event.item.type == "function_call":
+                snapshot.output[event.output_index] = construct_type_unchecked(
+                    type_=cast(Any, ParsedResponseFunctionToolCall), value=event.item.to_dict()
+                )
+            elif event.item.type == "message":
+                snapshot.output[event.output_index] = construct_type_unchecked(
+                    type_=cast(Any, ParsedResponseOutputMessage), value=event.item.to_dict()
+                )
+            else:
+                snapshot.output[event.output_index] = event.item
         elif event.type == "response.function_call_arguments.delta":
             output = snapshot.output[event.output_index]
             if output.type == "function_call":
                 output.arguments += event.delta
         elif event.type == "response.completed":
+            # Some backends (e.g. the chatgpt.com Codex backend) send
+            # `output: null` in the final `response.completed` event even when
+            # valid output items were already delivered by earlier events and
+            # accumulated into `snapshot.output`. In that case we must not let
+            # parse_response iterate over null and produce an empty output list;
+            # instead we patch the completed event's response with the
+            # accumulated snapshot output before parsing. The done events handled
+            # above mean that snapshot holds the authoritative payloads rather
+            # than the in-progress ones.
+            completed_response: Response = event.response
+            # `output` is generated as non-optional, so both type checkers treat
+            # `is None` as impossible. Some backends do send null here, which is the
+            # case this branch exists for, so read it through getattr rather than
+            # silencing mypy and pyright separately. `snapshot` is already known to
+            # be non-None by this point.
+            completed_output = getattr(completed_response, "output", None)
+            if completed_output is None:
+                # to_dict() gives dict[str, object], so the ** spread cannot be
+                # checked field by field against Response.
+                patched: dict[str, Any] = {
+                    **completed_response.to_dict(),
+                    "output": [item.to_dict() for item in snapshot.output],
+                }
+                completed_response = build(type(completed_response), **patched)
             self._completed_response = parse_response(
                 text_format=self._text_format,
-                response=event.response,
+                response=completed_response,
                 input_tools=self._input_tools,
             )
 
