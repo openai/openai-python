@@ -23,7 +23,7 @@ from openai._types import Omit
 from openai._utils import asyncify
 from openai._models import BaseModel, FinalRequestOptions
 from openai._streaming import Stream, AsyncStream
-from openai._exceptions import APIStatusError, APITimeoutError, APIResponseValidationError
+from openai._exceptions import APIStatusError, APITimeoutError, APIConnectionError, APIResponseValidationError
 from openai._base_client import (
     DEFAULT_TIMEOUT,
     HTTPX_DEFAULT_TIMEOUT,
@@ -1208,7 +1208,7 @@ class TestOpenAI:
             if nb_retries < failures_before_success:
                 nb_retries += 1
                 if failure_mode == "exception":
-                    raise RuntimeError("oops")
+                    raise httpx2.ConnectError("oops")
                 return httpx2.Response(500)
             return httpx2.Response(200)
 
@@ -1226,6 +1226,40 @@ class TestOpenAI:
 
         assert response.retries_taken == failures_before_success
         assert int(response.http_request.headers.get("x-stainless-retry-count")) == failures_before_success
+
+    @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @pytest.mark.respx2(base_url=base_url)
+    def test_non_transport_exceptions_are_not_retried(self, client: OpenAI, respx2_mock: MockRouter) -> None:
+        # Exceptions that aren't raised by the transport layer (connection failures, timeouts,
+        # protocol errors, ...) must propagate immediately, unmodified, and without being
+        # retried. Previously a bare `except Exception` treated *any* error - including ones
+        # unrelated to the HTTP request, such as Celery's `SoftTimeLimitExceeded` - as a
+        # retryable connection error, which silently discarded the original exception and any
+        # cleanup logic relying on it.
+        client = client.with_options(max_retries=4)
+
+        nb_calls = 0
+
+        def raise_non_transport_error(_request: httpx2.Request) -> httpx2.Response:
+            nonlocal nb_calls
+            nb_calls += 1
+            raise RuntimeError("not a transport error")
+
+        respx2_mock.post("/chat/completions").mock(side_effect=raise_non_transport_error)
+
+        with pytest.raises(RuntimeError, match="not a transport error") as exc_info:
+            client.chat.completions.create(
+                messages=[
+                    {
+                        "content": "string",
+                        "role": "developer",
+                    }
+                ],
+                model="gpt-5.4",
+            )
+
+        assert not isinstance(exc_info.value, APIConnectionError)
+        assert nb_calls == 1
 
     @pytest.mark.parametrize("failures_before_success", [0, 2, 4])
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
@@ -2505,7 +2539,7 @@ class TestAsyncOpenAI:
             if nb_retries < failures_before_success:
                 nb_retries += 1
                 if failure_mode == "exception":
-                    raise RuntimeError("oops")
+                    raise httpx2.ConnectError("oops")
                 return httpx2.Response(500)
             return httpx2.Response(200)
 
@@ -2523,6 +2557,38 @@ class TestAsyncOpenAI:
 
         assert response.retries_taken == failures_before_success
         assert int(response.http_request.headers.get("x-stainless-retry-count")) == failures_before_success
+
+    @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @pytest.mark.respx2(base_url=base_url)
+    async def test_non_transport_exceptions_are_not_retried(
+        self, async_client: AsyncOpenAI, respx2_mock: MockRouter
+    ) -> None:
+        # See the sync counterpart above for context: a non-transport exception must propagate
+        # immediately, unmodified, and without being retried.
+        client = async_client.with_options(max_retries=4)
+
+        nb_calls = 0
+
+        def raise_non_transport_error(_request: httpx2.Request) -> httpx2.Response:
+            nonlocal nb_calls
+            nb_calls += 1
+            raise RuntimeError("not a transport error")
+
+        respx2_mock.post("/chat/completions").mock(side_effect=raise_non_transport_error)
+
+        with pytest.raises(RuntimeError, match="not a transport error") as exc_info:
+            await client.chat.completions.create(
+                messages=[
+                    {
+                        "content": "string",
+                        "role": "developer",
+                    }
+                ],
+                model="gpt-5.4",
+            )
+
+        assert not isinstance(exc_info.value, APIConnectionError)
+        assert nb_calls == 1
 
     @pytest.mark.parametrize("failures_before_success", [0, 2, 4])
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)

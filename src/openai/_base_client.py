@@ -65,6 +65,7 @@ from ._utils import SensitiveHeadersFilter, is_dict, is_list, asyncify, is_given
 from ._compat import PYDANTIC_V1, model_copy
 from ._httpx2 import (
     status_exceptions,
+    request_exceptions,
     timeout_exceptions,
     http_response_types,
     normalize_httpx_url,
@@ -1095,7 +1096,7 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
             except OpenAIError as err:
                 # Propagate OpenAIErrors as-is, without retrying or wrapping in APIConnectionError
                 raise err
-            except Exception as err:
+            except request_exceptions() as err:
                 log.debug("Encountered exception: %s", type(err).__name__)
 
                 if remaining_retries > 0:
@@ -1718,7 +1719,7 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
             except OpenAIError as err:
                 # Propagate OpenAIErrors as-is, without retrying or wrapping in APIConnectionError
                 raise err
-            except Exception as err:
+            except request_exceptions() as err:
                 log.debug("Encountered exception: %s", type(err).__name__)
 
                 if remaining_retries > 0:
