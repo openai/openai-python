@@ -155,6 +155,17 @@ class TestOpenAI:
         assert copied.admin_api_key == "another My Admin API Key"
         assert client.admin_api_key == "My Admin API Key"
 
+    def test_copy_falsy_http_client(self, client: OpenAI) -> None:
+        class FalsyHttpClient(httpx2.Client):
+            def __bool__(self) -> bool:
+                return False
+
+        with FalsyHttpClient() as http_client:
+            copied = client.copy(http_client=http_client)
+
+            assert copied._client is http_client
+            copied.close()
+
     def test_copy_default_options(self, client: OpenAI) -> None:
         # options that have a default are overridden correctly
         copied = client.copy(max_retries=7)
@@ -404,6 +415,27 @@ class TestOpenAI:
 
             client.close()
 
+    def test_falsy_http_client_option(self) -> None:
+        class FalsyHttpClient(httpx2.Client):
+            def __bool__(self) -> bool:
+                return False
+
+        with FalsyHttpClient(timeout=None) as http_client:
+            client = OpenAI(
+                base_url=base_url,
+                api_key=api_key,
+                admin_api_key=admin_api_key,
+                _strict_response_validation=True,
+                http_client=http_client,
+            )
+
+            assert client._client is http_client
+            request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
+            timeout = httpx2.Timeout(**request.extensions["timeout"])  # type: ignore
+            assert timeout == httpx2.Timeout(None)
+
+            client.close()
+
     async def test_invalid_http_client(self) -> None:
         with pytest.raises(TypeError, match="Invalid `http_client` arg"):
             async with httpx2.AsyncClient() as http_client:
@@ -414,6 +446,19 @@ class TestOpenAI:
                     _strict_response_validation=True,
                     http_client=cast(Any, http_client),
                 )
+
+        class FalsyInvalidClient:
+            def __bool__(self) -> bool:
+                return False
+
+        with pytest.raises(TypeError, match="Invalid `http_client` arg"):
+            OpenAI(
+                base_url=base_url,
+                api_key=api_key,
+                admin_api_key=admin_api_key,
+                _strict_response_validation=True,
+                http_client=cast(Any, FalsyInvalidClient()),
+            )
 
     def test_default_headers_option(self) -> None:
         test_client = OpenAI(
@@ -1469,6 +1514,17 @@ class TestAsyncOpenAI:
         assert copied.admin_api_key == "another My Admin API Key"
         assert async_client.admin_api_key == "My Admin API Key"
 
+    async def test_copy_falsy_http_client(self, async_client: AsyncOpenAI) -> None:
+        class FalsyHttpClient(httpx2.AsyncClient):
+            def __bool__(self) -> bool:
+                return False
+
+        async with FalsyHttpClient() as http_client:
+            copied = async_client.copy(http_client=http_client)
+
+            assert copied._client is http_client
+            await copied.close()
+
     def test_copy_default_options(self, async_client: AsyncOpenAI) -> None:
         # options that have a default are overridden correctly
         copied = async_client.copy(max_retries=7)
@@ -1720,6 +1776,27 @@ class TestAsyncOpenAI:
 
             await client.close()
 
+    async def test_falsy_http_client_option(self) -> None:
+        class FalsyHttpClient(httpx2.AsyncClient):
+            def __bool__(self) -> bool:
+                return False
+
+        async with FalsyHttpClient(timeout=None) as http_client:
+            client = AsyncOpenAI(
+                base_url=base_url,
+                api_key=api_key,
+                admin_api_key=admin_api_key,
+                _strict_response_validation=True,
+                http_client=http_client,
+            )
+
+            assert client._client is http_client
+            request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
+            timeout = httpx2.Timeout(**request.extensions["timeout"])  # type: ignore
+            assert timeout == httpx2.Timeout(None)
+
+            await client.close()
+
     def test_invalid_http_client(self) -> None:
         with pytest.raises(TypeError, match="Invalid `http_client` arg"):
             with httpx2.Client() as http_client:
@@ -1730,6 +1807,19 @@ class TestAsyncOpenAI:
                     _strict_response_validation=True,
                     http_client=cast(Any, http_client),
                 )
+
+        class FalsyInvalidClient:
+            def __bool__(self) -> bool:
+                return False
+
+        with pytest.raises(TypeError, match="Invalid `http_client` arg"):
+            AsyncOpenAI(
+                base_url=base_url,
+                api_key=api_key,
+                admin_api_key=admin_api_key,
+                _strict_response_validation=True,
+                http_client=cast(Any, FalsyInvalidClient()),
+            )
 
     async def test_default_headers_option(self) -> None:
         test_client = AsyncOpenAI(
