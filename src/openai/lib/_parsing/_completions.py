@@ -62,13 +62,23 @@ def select_strict_chat_completion_tools(
     return [t for t in tools if is_strict_chat_completion_tool_param(t)]
 
 
-def validate_input_tools(
+def materialize_input_tools(
     tools: Iterable[ChatCompletionToolUnionParam] | Omit = omit,
-) -> Iterable[ChatCompletionFunctionToolParam] | Omit:
+) -> list[ChatCompletionToolUnionParam] | Omit:
     if not is_given(tools):
         return omit
 
-    for tool in tools:
+    return list(tools)
+
+
+def validate_input_tools(
+    tools: Iterable[ChatCompletionToolUnionParam] | Omit = omit,
+) -> list[ChatCompletionFunctionToolParam] | Omit:
+    input_tools = materialize_input_tools(tools)
+    if not is_given(input_tools):
+        return omit
+
+    for tool in input_tools:
         if tool["type"] != "function":
             raise ValueError(
                 f"Currently only `function` tool types support auto-parsing; Received `{tool['type']}`",
@@ -80,7 +90,7 @@ def validate_input_tools(
                 f"`{tool['function']['name']}` is not strict. Only `strict` function tools can be auto-parsed"
             )
 
-    return cast(Iterable[ChatCompletionFunctionToolParam], tools)
+    return cast(list[ChatCompletionFunctionToolParam], input_tools)
 
 
 def parse_chat_completion(

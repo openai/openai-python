@@ -37,6 +37,7 @@ from ....lib._parsing import (
     ResponseFormatT,
     validate_input_tools as _validate_input_tools,
     parse_chat_completion as _parse_chat_completion,
+    materialize_input_tools as _materialize_input_tools,
     type_to_response_format_param as _type_to_response_format,
 )
 from ....lib.streaming.chat import ChatCompletionStreamManager, AsyncChatCompletionStreamManager
@@ -225,7 +226,7 @@ class Completions(SyncAPIResource):
                     "stream_options": stream_options,
                     "temperature": temperature,
                     "tool_choice": tool_choice,
-                    "tools": tools,
+                    "tools": chat_completion_tools,
                     "top_logprobs": top_logprobs,
                     "top_p": top_p,
                     "user": user,
@@ -1612,6 +1613,8 @@ class Completions(SyncAPIResource):
         When the context manager exits, the response will be closed, however the `stream` instance is still available outside
         the context manager.
         """
+        chat_completion_tools = _materialize_input_tools(tools)
+
         extra_headers = {
             "X-Stainless-Helper-Method": "chat.completions.stream",
             **(extra_headers or {}),
@@ -1650,7 +1653,7 @@ class Completions(SyncAPIResource):
             stream_options=stream_options,
             temperature=temperature,
             tool_choice=tool_choice,
-            tools=tools,
+            tools=chat_completion_tools,
             top_logprobs=top_logprobs,
             top_p=top_p,
             user=user,
@@ -1664,7 +1667,7 @@ class Completions(SyncAPIResource):
         return ChatCompletionStreamManager(
             api_request,
             response_format=response_format,
-            input_tools=tools,
+            input_tools=chat_completion_tools,
         )
 
 
@@ -1787,7 +1790,7 @@ class AsyncCompletions(AsyncAPIResource):
             print("answer: ", message.parsed.final_answer)
         ```
         """
-        _validate_input_tools(tools)
+        chat_completion_tools = _validate_input_tools(tools)
 
         extra_headers = {
             "X-Stainless-Helper-Method": "chat.completions.parse",
@@ -1798,7 +1801,7 @@ class AsyncCompletions(AsyncAPIResource):
             return _parse_chat_completion(
                 response_format=response_format,
                 chat_completion=raw_completion,
-                input_tools=tools,
+                input_tools=chat_completion_tools,
             )
 
         return await self._post(
@@ -1836,7 +1839,7 @@ class AsyncCompletions(AsyncAPIResource):
                     "stream_options": stream_options,
                     "temperature": temperature,
                     "tool_choice": tool_choice,
-                    "tools": tools,
+                    "tools": chat_completion_tools,
                     "top_logprobs": top_logprobs,
                     "top_p": top_p,
                     "user": user,
@@ -3223,7 +3226,7 @@ class AsyncCompletions(AsyncAPIResource):
         When the context manager exits, the response will be closed, however the `stream` instance is still available outside
         the context manager.
         """
-        _validate_input_tools(tools)
+        chat_completion_tools = _materialize_input_tools(tools)
 
         extra_headers = {
             "X-Stainless-Helper-Method": "chat.completions.stream",
@@ -3262,7 +3265,7 @@ class AsyncCompletions(AsyncAPIResource):
             stream_options=stream_options,
             temperature=temperature,
             tool_choice=tool_choice,
-            tools=tools,
+            tools=chat_completion_tools,
             top_logprobs=top_logprobs,
             top_p=top_p,
             user=user,
@@ -3276,7 +3279,7 @@ class AsyncCompletions(AsyncAPIResource):
         return AsyncChatCompletionStreamManager(
             api_request,
             response_format=response_format,
-            input_tools=tools,
+            input_tools=chat_completion_tools,
         )
 
 
