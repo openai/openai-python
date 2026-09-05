@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Optional, cast
+from typing import TYPE_CHECKING, Optional, cast
 from typing_extensions import Literal
 
 import httpx2
 
 from ._utils import is_dict
-from ._models import construct_type
 from .types.shared.oauth_error_code import OAuthErrorCode
 
 if TYPE_CHECKING:
@@ -69,9 +68,17 @@ class APIError(OpenAIError):
         self.body = body
 
         if is_dict(body):
-            self.code = cast(Any, construct_type(type_=Optional[str], value=body.get("code")))
-            self.param = cast(Any, construct_type(type_=Optional[str], value=body.get("param")))
-            self.type = cast(Any, construct_type(type_=str, value=body.get("type")))
+            code = body.get("code")
+            param = body.get("param")
+            error_type = body.get("type")
+
+            # The API documents `error.code`, `error.param` and `error.type` as
+            # strings, but some servers (including api.openai.com under load, and
+            # OpenAI-compatible gateways) send integer codes. Coerce to `str` so
+            # the runtime value always matches the annotation.
+            self.code = str(code) if code is not None else None
+            self.param = str(param) if param is not None else None
+            self.type = str(error_type) if error_type is not None else None
         else:
             self.code = None
             self.param = None
