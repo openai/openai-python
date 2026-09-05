@@ -46,8 +46,13 @@ def _ensure_strict_json_schema(
         for definition_name, definition_schema in definitions.items():
             _ensure_strict_json_schema(definition_schema, path=(*path, "definitions", definition_name), root=root)
 
+    # The API requires `additionalProperties: false` on every object, with no exceptions -
+    # so this is set unconditionally, overriding any existing value. Pydantic models with
+    # `extra="allow"` (or a `Dict[str, ...]`-shaped field) otherwise produce a schema with
+    # `additionalProperties` set to `True` or to a nested schema, either of which the API
+    # rejects with a 400 (`'additionalProperties' is required to be supplied and to be false`).
     typ = json_schema.get("type")
-    if typ == "object" and "additionalProperties" not in json_schema:
+    if typ == "object":
         json_schema["additionalProperties"] = False
 
     # object types
