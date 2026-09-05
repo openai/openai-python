@@ -34039,6 +34039,8 @@ components:
               description: |
                 Whether to store the generated model response for later retrieval via
                 API.
+                Defaults to true when omitted.
+                If set to true, response data will be stored for at least 30 days, subject to the [data retention exceptions](/api/docs/guides/your-data#v1responses).
               default: true
             - type: 'null'
           instructions:
@@ -66300,6 +66302,13 @@ components:
             description: API key scope.
           type: array
           description: API key scopes.
+        expires_in_seconds:
+          anyOf:
+          - type: integer
+            maximum: 31536000
+            minimum: 1
+            description: Number of seconds until the API key expires.
+          - type: 'null'
       type: object
       required: []
       description: The service account API key create request payload.
@@ -66322,6 +66331,12 @@ components:
           type: integer
           format: unixtime
           description: The Unix timestamp (in seconds) when the API key was created.
+        expires_at:
+          anyOf:
+          - type: integer
+            format: unixtime
+            description: The Unix timestamp (in seconds) when the API key expires, or null if it does not expire.
+          - type: 'null'
         id:
           type: string
           description: The identifier of the API key.
@@ -80449,6 +80464,8 @@ components:
               description: |
                 Whether to store the generated model response for later retrieval via
                 API.
+                Defaults to true when omitted.
+                If set to true, response data will be stored for at least 30 days, subject to the [data retention exceptions](/api/docs/guides/your-data#v1responses).
               default: true
             - type: 'null'
           instructions:
