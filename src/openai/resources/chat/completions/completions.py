@@ -175,6 +175,91 @@ class Completions(SyncAPIResource):
             print(message.parsed.steps)
             print("answer: ", message.parsed.final_answer)
         ```
+
+        Args:
+          messages: A list of messages comprising the conversation so far. Depending on the
+              [model](https://platform.openai.com/docs/models) you use, different message
+              types (modalities) are supported, like text, images, and audio.
+
+          model: Model ID used to generate the response, like `gpt-4o` or `o3`. Refer to the
+              [model guide](https://platform.openai.com/docs/models) to browse available
+              models.
+
+          response_format: A Pydantic model class or other type that the response content should be
+              parsed into. When provided, the method automatically constructs the JSON schema
+              from the type and sends it to the API as a `json_schema` response format, then
+              deserialises the returned JSON into an instance of that type. Omit this
+              argument (or pass `openai.NOT_GIVEN`) to receive a plain
+              `ParsedChatCompletion` without automatic deserialisation.
+
+          tools: A list of tools the model may call. Pass tool schemas created with
+              `openai.pydantic_function_tool()` to enable automatic parsing of tool-call
+              arguments into the corresponding Pydantic model instances.
+
+          audio: Parameters for audio output. Required when audio output is requested with
+              `modalities: ["audio"]`.
+
+          frequency_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on
+              their existing frequency in the text so far, decreasing the model's likelihood
+              to repeat the same line verbatim.
+
+          logit_bias: Modify the likelihood of specified tokens appearing in the completion.
+
+          logprobs: Whether to return log probabilities of the output tokens or not.
+
+          max_completion_tokens: An upper bound for the number of tokens that can be generated for a
+              completion, including visible output tokens and reasoning tokens.
+
+          max_tokens: The maximum number of tokens that can be generated in the chat completion.
+              Deprecated in favour of `max_completion_tokens`.
+
+          n: How many chat completion choices to generate for each input message. Note that
+              you will be charged based on the number of generated tokens across all of the
+              choices. Keep `n` as `1` to minimise costs.
+
+          parallel_tool_calls: Whether to enable parallel function calling during tool use.
+
+          presence_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on
+              whether they appear in the text so far, increasing the model's likelihood to
+              talk about new topics.
+
+          reasoning_effort: Constrains effort on reasoning for reasoning models. Supported values are
+              `low`, `medium`, and `high`.
+
+          seed: If specified, the system will make a best effort to sample deterministically.
+
+          service_tier: Specifies the processing type used for serving the request.
+
+          stop: Up to 4 sequences where the API will stop generating further tokens.
+
+          store: Whether to store the output of this chat completion request for use in model
+              distillation or evals products.
+
+          temperature: Sampling temperature between 0 and 2.
+
+          tool_choice: Controls which (if any) tool is called by the model.
+
+          top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
+              return at each token position. `logprobs` must be `true` when used.
+
+          top_p: Nucleus sampling probability mass.
+
+          user: A stable identifier for your end-users.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+
+        Returns:
+          A `ParsedChatCompletion[ResponseFormatT]` object. When `response_format` is
+          provided the `.choices[i].message.parsed` attribute contains the deserialised
+          response as an instance of `ResponseFormatT`. Tool calls made with
+          `pydantic_function_tool()` will have their `.function.parsed_arguments`
+          attribute populated with the corresponding Pydantic model instance.
         """
         chat_completion_tools = _validate_input_tools(tools)
 
@@ -1786,6 +1871,91 @@ class AsyncCompletions(AsyncAPIResource):
             print(message.parsed.steps)
             print("answer: ", message.parsed.final_answer)
         ```
+
+        Args:
+          messages: A list of messages comprising the conversation so far. Depending on the
+              [model](https://platform.openai.com/docs/models) you use, different message
+              types (modalities) are supported, like text, images, and audio.
+
+          model: Model ID used to generate the response, like `gpt-4o` or `o3`. Refer to the
+              [model guide](https://platform.openai.com/docs/models) to browse available
+              models.
+
+          response_format: A Pydantic model class or other type that the response content should be
+              parsed into. When provided, the method automatically constructs the JSON schema
+              from the type and sends it to the API as a `json_schema` response format, then
+              deserialises the returned JSON into an instance of that type. Omit this
+              argument (or pass `openai.NOT_GIVEN`) to receive a plain
+              `ParsedChatCompletion` without automatic deserialisation.
+
+          tools: A list of tools the model may call. Pass tool schemas created with
+              `openai.pydantic_function_tool()` to enable automatic parsing of tool-call
+              arguments into the corresponding Pydantic model instances.
+
+          audio: Parameters for audio output. Required when audio output is requested with
+              `modalities: ["audio"]`.
+
+          frequency_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on
+              their existing frequency in the text so far, decreasing the model's likelihood
+              to repeat the same line verbatim.
+
+          logit_bias: Modify the likelihood of specified tokens appearing in the completion.
+
+          logprobs: Whether to return log probabilities of the output tokens or not.
+
+          max_completion_tokens: An upper bound for the number of tokens that can be generated for a
+              completion, including visible output tokens and reasoning tokens.
+
+          max_tokens: The maximum number of tokens that can be generated in the chat completion.
+              Deprecated in favour of `max_completion_tokens`.
+
+          n: How many chat completion choices to generate for each input message. Note that
+              you will be charged based on the number of generated tokens across all of the
+              choices. Keep `n` as `1` to minimise costs.
+
+          parallel_tool_calls: Whether to enable parallel function calling during tool use.
+
+          presence_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on
+              whether they appear in the text so far, increasing the model's likelihood to
+              talk about new topics.
+
+          reasoning_effort: Constrains effort on reasoning for reasoning models. Supported values are
+              `low`, `medium`, and `high`.
+
+          seed: If specified, the system will make a best effort to sample deterministically.
+
+          service_tier: Specifies the processing type used for serving the request.
+
+          stop: Up to 4 sequences where the API will stop generating further tokens.
+
+          store: Whether to store the output of this chat completion request for use in model
+              distillation or evals products.
+
+          temperature: Sampling temperature between 0 and 2.
+
+          tool_choice: Controls which (if any) tool is called by the model.
+
+          top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
+              return at each token position. `logprobs` must be `true` when used.
+
+          top_p: Nucleus sampling probability mass.
+
+          user: A stable identifier for your end-users.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+
+        Returns:
+          A `ParsedChatCompletion[ResponseFormatT]` object. When `response_format` is
+          provided the `.choices[i].message.parsed` attribute contains the deserialised
+          response as an instance of `ResponseFormatT`. Tool calls made with
+          `pydantic_function_tool()` will have their `.function.parsed_arguments`
+          attribute populated with the corresponding Pydantic model instance.
         """
         _validate_input_tools(tools)
 
