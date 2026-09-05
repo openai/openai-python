@@ -62,8 +62,8 @@ class ActionFind(TypedDict, total=False):
     type: Required[Literal["find_in_page"]]
     """The action type."""
 
-    url: Required[str]
-    """The URL of the page searched for the pattern."""
+    url: Optional[str]
+    """The URL of the page searched for the pattern, when provided."""
 
 
 Action: TypeAlias = Union[ActionSearch, ActionOpenPage, ActionFind]
