@@ -4,14 +4,18 @@ import io
 import json
 import logging
 import importlib
-from typing import Any, AsyncIterator
+from datetime import datetime, date
+from typing import Any, AsyncIterator, Annotated
 from unittest.mock import Mock, AsyncMock, patch
 
 import httpx2
 import pytest
+from pydantic import BaseModel, Field
 
-from openai import OpenAI, AsyncOpenAI, APIStatusError, APITimeoutError, APIConnectionError
+from openai import OpenAI, AsyncOpenAI, APIStatusError, APITimeoutError, \
+    APIConnectionError, APIResponse
 from openai._models import FinalRequestOptions
+from openai.lib._parsing._completions import SCHEMA_DATE_WARNING
 
 FAKE_SECRET = "fake-private-value-for-logging-tests"
 BASE_URL = "https://example.test/v1"
@@ -398,3 +402,68 @@ async def test_sdk_log_switch_does_not_enable_transport_payloads(
                 assert client.request(object, request_options("json")) == {"result": FAKE_SECRET}
         assert logging.getLogger("httpx2").level == logging.NOTSET
     assert not any(FAKE_SECRET in record.getMessage() or FAKE_SECRET in repr(record.args) for record in caplog.records)
+
+class PlainDate(BaseModel):
+    date_field: date
+
+class PlainDateTime(BaseModel):
+    date_field: datetime
+
+class AnnotatedDate(BaseModel):
+    date_field: Annotated[date, Field(alias="date")]
+
+class AnnotatedDateTime(BaseModel):
+    date_field: Annotated[datetime, Field(alias="date")]
+
+class DateWithField(BaseModel):
+    date_field: date = Field(alias="date")
+
+class DatetimeWithField(BaseModel):
+    date_field: datetime = Field(alias="date")
+
+class NestedDate(BaseModel):
+    date_field: PlainDate
+
+class NestedDateTime(BaseModel):
+    date_field: PlainDateTime
+
+class ListDate(BaseModel):
+    date_field: list[date]
+
+class ListDateTime(BaseModel):
+    date_field: list[datetime]
+
+class ListPlainDate(BaseModel):
+    date_field: list[PlainDate]
+
+class ListPlainDateTime(BaseModel):
+    date_field: list[PlainDateTime]
+
+
+@pytest.mark.parametrize(
+    "pydantic_model",
+    [
+        PlainDate,
+        PlainDateTime,
+        AnnotatedDate,
+        AnnotatedDateTime,
+        DateWithField,
+        DatetimeWithField,
+        ListDate,
+        ListDateTime,
+        ListPlainDate,
+        ListPlainDateTime,
+    ],
+)
+def test_date_warning(pydantic_model: BaseModel, caplog: pytest.LogCaptureFixture) -> None:
+    with caplog.at_level(logging.WARNING, logger="openai"), OpenAI(
+            api_key="fake-api-key",
+            base_url=BASE_URL,
+            http_client=httpx2.Client(
+                transport=httpx2.MockTransport(lambda _: httpx2.Response(
+        200,
+    ))
+            ),
+        ) as client, patch.object(APIResponse, APIResponse.parse.__name__):
+            client.chat.completions.parse(model="fake-model", messages=[{"role": "user", "content": "Hello"}], response_format=pydantic_model)
+    assert SCHEMA_DATE_WARNING in caplog.text

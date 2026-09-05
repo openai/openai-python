@@ -253,6 +253,33 @@ def _parse_content(response_format: type[ResponseFormatT], content: str) -> Resp
     raise TypeError(f"Unable to automatically parse response format type {response_format}")
 
 
+def _is_date_format(json_schema: object) -> bool:
+    if not isinstance(json_schema, dict) or not json_schema:
+        return False
+    return json_schema.get("format") in {"date", "date-time"} or any(
+        map(
+            _is_date_format,
+            (json_schema.get("properties") or {}).values(),
+        )
+    ) or any(
+        map(
+            _is_date_format,
+            (json_schema.get("$defs") or {}).values(),
+        )
+    ) or _is_date_format(json_schema.get("items") or {})
+
+SCHEMA_DATE_WARNING = ("response_format contains a `date`/`datetime` field. Models are known to "
+        "occasionally mis-transcribe ambiguous date strings (e.g. splicing digits "
+        "from the day/month into the year); consider validating parsed date values.")
+
+def _warn_if_schema_has_date_field(json_schema: dict[str, Any]) -> None:
+    if not _is_date_format(json_schema):
+        return
+    log.warning(
+        SCHEMA_DATE_WARNING
+    )
+
+
 def type_to_response_format_param(
     response_format: type | completion_create_params.ResponseFormat | Omit,
 ) -> ResponseFormatParam | Omit:
@@ -263,11 +290,11 @@ def type_to_response_format_param(
         return response_format
 
     # type checkers don't narrow the negation of a `TypeGuard` as it isn't
-    # a safe default behaviour but we know that at this point the `response_format`
+    # a safe default behavior but we know that at this point the `response_format`
     # can only be a `type`
     response_format = cast(type, response_format)
 
-    json_schema_type: type[pydantic.BaseModel] | pydantic.TypeAdapter[Any] | None = None
+    json_schema_type: type[pydantic.BaseModel] | pydantic.TypeAdapter[Any] | None
 
     if is_basemodel_type(response_format):
         name = response_format.__name__
@@ -278,10 +305,13 @@ def type_to_response_format_param(
     else:
         raise TypeError(f"Unsupported response_format type - {response_format}")
 
+    json_schema = to_strict_json_schema(json_schema_type)
+    _warn_if_schema_has_date_field(json_schema)
+
     return {
         "type": "json_schema",
         "json_schema": {
-            "schema": to_strict_json_schema(json_schema_type),
+            "schema": json_schema,
             "name": name,
             "strict": True,
         },
