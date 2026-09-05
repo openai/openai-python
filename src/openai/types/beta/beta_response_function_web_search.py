@@ -62,7 +62,7 @@ class ActionFindInPage(BaseModel):
     type: Literal["find_in_page"]
     """The action type."""
 
-    url: str
+    url: Optional[str] = None
     """The URL of the page searched for the pattern."""
 
 
