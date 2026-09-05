@@ -359,6 +359,36 @@ def test_union_of_lists() -> None:
     assert cast(Any, m.items[1]) == 156
 
 
+def test_bare_dict_annotation() -> None:
+    # a bare `dict` has no type arguments so the values are left as-is
+    class Model(BaseModel):
+        metadata: dict  # type: ignore[type-arg]
+
+    m = Model.construct(metadata={"key": "value"})
+    assert m.metadata == {"key": "value"}  # pyright: ignore[reportUnknownMemberType]
+
+    assert construct_type(value={"key": "value"}, type_=dict) == {"key": "value"}
+    assert construct_type(value={"key": "value"}, type_=Dict) == {"key": "value"}
+
+    # non-mapping values are still passed through unchanged
+    assert construct_type(value="not a dict", type_=dict) == "not a dict"
+
+
+def test_bare_list_annotation() -> None:
+    # a bare `list` has no type arguments so the entries are left as-is
+    class Model(BaseModel):
+        items: list  # type: ignore[type-arg]
+
+    m = Model.construct(items=[{"key": "value"}, 1])
+    assert m.items == [{"key": "value"}, 1]  # pyright: ignore[reportUnknownMemberType]
+
+    assert construct_type(value=[1, 2], type_=list) == [1, 2]
+    assert construct_type(value=[1, 2], type_=List) == [1, 2]
+
+    # non-list values are still passed through unchanged
+    assert construct_type(value="not a list", type_=list) == "not a list"
+
+
 def test_dict_of_union() -> None:
     class SubModel1(BaseModel):
         name: str

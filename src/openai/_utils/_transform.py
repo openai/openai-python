@@ -23,7 +23,6 @@ from ._compat import get_origin, is_typeddict
 from ._typing import (
     is_list_type,
     is_union_type,
-    extract_type_arg,
     is_iterable_type,
     is_required_type,
     is_sequence_type,
@@ -151,6 +150,20 @@ def _no_transform_needed(annotation: type) -> bool:
     return annotation == float or annotation == int
 
 
+def _extract_container_arg(typ: type, index: int) -> type:
+    """Return the type argument at the given index for a container type.
+
+    Bare, unparameterised containers, e.g. `dict` instead of `dict[str, int]`, don't have
+    any type arguments, in which case the contained values are treated as if they were
+    annotated with `Any`.
+    """
+    args = get_args(typ)
+    if index >= len(args):
+        return cast(type, object)
+
+    return cast(type, args[index])
+
+
 def _transform_recursive(
     data: object,
     *,
@@ -180,7 +193,7 @@ def _transform_recursive(
         return _transform_typeddict(data, stripped_type)
 
     if origin == dict and is_mapping(data):
-        items_type = get_args(stripped_type)[1]
+        items_type = _extract_container_arg(stripped_type, 1)
         return {key: _transform_recursive(value, annotation=items_type) for key, value in data.items()}
 
     if (
@@ -196,7 +209,7 @@ def _transform_recursive(
         if isinstance(data, dict):
             return cast(object, data)
 
-        inner_type = extract_type_arg(stripped_type, 0)
+        inner_type = _extract_container_arg(stripped_type, 0)
         if _no_transform_needed(inner_type):
             # for some types there is no need to transform anything, so we can get a small
             # perf boost from skipping that work.
@@ -346,7 +359,7 @@ async def _async_transform_recursive(
         return await _async_transform_typeddict(data, stripped_type)
 
     if origin == dict and is_mapping(data):
-        items_type = get_args(stripped_type)[1]
+        items_type = _extract_container_arg(stripped_type, 1)
         return {key: _transform_recursive(value, annotation=items_type) for key, value in data.items()}
 
     if (
@@ -362,7 +375,7 @@ async def _async_transform_recursive(
         if isinstance(data, dict):
             return cast(object, data)
 
-        inner_type = extract_type_arg(stripped_type, 0)
+        inner_type = _extract_container_arg(stripped_type, 0)
         if _no_transform_needed(inner_type):
             # for some types there is no need to transform anything, so we can get a small
             # perf boost from skipping that work.
