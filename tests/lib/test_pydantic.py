@@ -4,7 +4,7 @@ from enum import Enum
 from typing import Any, Dict
 
 import pytest
-from pydantic import Field, BaseModel, RootModel, ConfigDict
+from pydantic import Field, BaseModel, ConfigDict
 from inline_snapshot import snapshot
 
 import openai
@@ -458,8 +458,32 @@ def test_dict_any_field_raises_instead_of_silently_allowing_only_empty_object() 
     `{}` instead of the arbitrary mapping the field was declared as, so this must raise just
     like the schema-valued case above.
     """
+    if PYDANTIC_V1:
+        pytest.skip("Pydantic v1 omits `additionalProperties` entirely for `Dict[str, Any]`")
+
     with pytest.raises(TypeError, match="additionalProperties"):
         to_strict_json_schema(ModelWithDictAnyField)
+
+
+class ModelWithTypedExtra(BaseModel):
+    model_config = ConfigDict(extra="allow")
+    __pydantic_extra__: Dict[str, int]  # type: ignore[misc]
+
+    name: str = Field(description="A declared field.")
+
+
+def test_typed_extra_is_forced_false_just_like_untyped_extra_allow() -> None:
+    """A Pydantic v2 model with `extra="allow"` and a typed `__pydantic_extra__` produces a
+    schema-valued `additionalProperties` (e.g. `{"type": "integer"}`) instead of `True`, but it
+    still has declared properties to close the object around, exactly like the untyped
+    `extra="allow"` case - so it must be forced to `False` too, not rejected just because the
+    value happens to be a schema rather than a boolean.
+    """
+    if PYDANTIC_V1:
+        pytest.skip("typed `__pydantic_extra__` is not available on Pydantic v1")
+
+    schema = to_strict_json_schema(ModelWithTypedExtra)
+    assert schema["additionalProperties"] is False
 
 
 class EmptyModelWithExtraAllowed(BaseModel):
@@ -487,6 +511,11 @@ def test_mapping_root_model_raises_instead_of_silently_dropping_value_schema() -
     """
     if PYDANTIC_V1:
         pytest.skip("RootModel is not available on Pydantic v1")
+
+    # Imported locally: `pydantic.RootModel` doesn't exist on Pydantic v1, and a module-level
+    # import would raise `ImportError` during test collection - before the `PYDANTIC_V1` skip
+    # above ever gets a chance to run - breaking collection for the entire file on that lane.
+    from pydantic import RootModel
 
     class MappingRootModel(RootModel[Dict[str, str]]):
         pass

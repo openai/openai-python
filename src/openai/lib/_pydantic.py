@@ -48,17 +48,18 @@ def _ensure_strict_json_schema(
 
     # The API requires `additionalProperties: false` on every object, with no exceptions.
     #
-    # A Pydantic model with `extra="allow"` produces `additionalProperties: True` here. When
-    # the model also has at least one declared field, closing the object to exactly those
-    # fields is the closest representable approximation, and doesn't change what the
-    # *declared* fields accept - so that case is corrected to `False`.
+    # A Pydantic model with at least one declared property has a fixed shape to close the
+    # object around, so any non-`False` `additionalProperties` there - `True` for a plain
+    # `extra="allow"` model, or a schema for one with typed extras (`__pydantic_extra__`
+    # annotated to validate them) - is corrected to `False`. That only forbids keys beyond
+    # the ones already declared; it doesn't change what the *declared* fields accept.
     #
-    # But `additionalProperties` can also describe a genuine arbitrary-key mapping that has no
-    # fixed shape at all: a `Dict[str, ...]`-shaped field or mapping `RootModel` produces a
-    # schema-valued `additionalProperties` (e.g. `{"type": "string"}`) describing the values'
-    # type; a `Dict[str, Any]`-shaped field, an `Any`-valued mapping `RootModel`, or a bare
-    # `extra="allow"` model with zero declared fields all produce `additionalProperties: True`
-    # with no (or no non-empty) `properties`. Overwriting any of these with `False` would
+    # But `additionalProperties` can also describe a genuine arbitrary-key mapping with no
+    # fixed shape at all - no declared properties for it to be closed around: a
+    # `Dict[str, ...]`-shaped field or mapping `RootModel` produces a schema-valued
+    # `additionalProperties` describing the values' type; a `Dict[str, Any]`-shaped field, an
+    # `Any`-valued mapping `RootModel`, or a bare `extra="allow"` model with zero declared
+    # fields produce `additionalProperties: True`. Overwriting any of these with `False` would
     # silently turn the object into one that only accepts `{}`, rather than the mapping it was
     # declared as - so the API has no way to represent it in a strict schema, and we raise
     # instead of silently producing a broken one.
@@ -68,7 +69,7 @@ def _ensure_strict_json_schema(
         properties = json_schema.get("properties")
         has_declared_properties = is_dict(properties) and len(properties) > 0
 
-        if additional_properties is not False and not (additional_properties is True and has_declared_properties):
+        if additional_properties is not False and not has_declared_properties:
             raise TypeError(
                 "Objects that accept arbitrary keys (e.g. a `Dict[str, ...]`-shaped field, a "
                 'mapping `RootModel`, or a bare `extra="allow"` model with no declared fields) '
