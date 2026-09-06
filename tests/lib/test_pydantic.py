@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Dict
+from typing import Any, Dict
 
 import pytest
-from pydantic import Field, BaseModel, ConfigDict
+from pydantic import Field, BaseModel, RootModel, ConfigDict
 from inline_snapshot import snapshot
 
 import openai
@@ -445,3 +445,51 @@ def test_dict_field_raises_instead_of_silently_dropping_value_schema() -> None:
     """
     with pytest.raises(TypeError, match="additionalProperties"):
         to_strict_json_schema(ModelWithDictField)
+
+
+class ModelWithDictAnyField(BaseModel):
+    data: Dict[str, Any] = Field(description="An unconstrained mapping field.")
+
+
+def test_dict_any_field_raises_instead_of_silently_allowing_only_empty_object() -> None:
+    """A `Dict[str, Any]`-shaped field produces `additionalProperties: True` with no declared
+    `properties` - the same boolean Pydantic uses for `extra="allow"`, but here there are no
+    declared fields to close the object around. Forcing `False` would silently accept only
+    `{}` instead of the arbitrary mapping the field was declared as, so this must raise just
+    like the schema-valued case above.
+    """
+    with pytest.raises(TypeError, match="additionalProperties"):
+        to_strict_json_schema(ModelWithDictAnyField)
+
+
+class EmptyModelWithExtraAllowed(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+
+def test_empty_extra_allow_model_raises_instead_of_forcing_empty_object() -> None:
+    """An `extra="allow"` model with zero declared fields behaves like an unconstrained
+    mapping - any keys are allowed - unlike the with-declared-fields case above, where closing
+    the object to the declared fields is a reasonable strict-schema approximation. With no
+    fields to close around, this must raise instead of silently accepting only `{}`.
+    """
+    if PYDANTIC_V1:
+        pytest.skip("extra='allow' schema generation differs on Pydantic v1")
+
+    with pytest.raises(TypeError, match="additionalProperties"):
+        to_strict_json_schema(EmptyModelWithExtraAllowed)
+
+
+def test_mapping_root_model_raises_instead_of_silently_dropping_value_schema() -> None:
+    """A mapping `RootModel` (e.g. `RootModel[Dict[str, str]]`) produces the same
+    schema-valued `additionalProperties` as a `Dict[str, ...]`-shaped field, just at the top
+    level of the schema instead of nested under a field - so it must raise for the same
+    reason.
+    """
+    if PYDANTIC_V1:
+        pytest.skip("RootModel is not available on Pydantic v1")
+
+    class MappingRootModel(RootModel[Dict[str, str]]):
+        pass
+
+    with pytest.raises(TypeError, match="additionalProperties"):
+        to_strict_json_schema(MappingRootModel)

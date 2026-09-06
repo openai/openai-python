@@ -47,22 +47,33 @@ def _ensure_strict_json_schema(
             _ensure_strict_json_schema(definition_schema, path=(*path, "definitions", definition_name), root=root)
 
     # The API requires `additionalProperties: false` on every object, with no exceptions.
-    # Pydantic models with `extra="allow"` produce `additionalProperties: True` here, which
-    # we can safely correct to `False` since that's the only value the API accepts. But a
-    # `Dict[str, ...]`-shaped field (or a mapping `RootModel`) produces a schema-valued
-    # `additionalProperties` describing the values' type - overwriting that with `False`
-    # would silently turn the field into an object that only accepts `{}`, rather than the
-    # mapping type it was declared as. Since the API has no way to represent an arbitrary-key
-    # mapping in a strict schema, we raise instead of silently producing a broken one.
+    #
+    # A Pydantic model with `extra="allow"` produces `additionalProperties: True` here. When
+    # the model also has at least one declared field, closing the object to exactly those
+    # fields is the closest representable approximation, and doesn't change what the
+    # *declared* fields accept - so that case is corrected to `False`.
+    #
+    # But `additionalProperties` can also describe a genuine arbitrary-key mapping that has no
+    # fixed shape at all: a `Dict[str, ...]`-shaped field or mapping `RootModel` produces a
+    # schema-valued `additionalProperties` (e.g. `{"type": "string"}`) describing the values'
+    # type; a `Dict[str, Any]`-shaped field, an `Any`-valued mapping `RootModel`, or a bare
+    # `extra="allow"` model with zero declared fields all produce `additionalProperties: True`
+    # with no (or no non-empty) `properties`. Overwriting any of these with `False` would
+    # silently turn the object into one that only accepts `{}`, rather than the mapping it was
+    # declared as - so the API has no way to represent it in a strict schema, and we raise
+    # instead of silently producing a broken one.
     typ = json_schema.get("type")
     if typ == "object":
         additional_properties = json_schema.get("additionalProperties", False)
-        if additional_properties not in (False, True):
+        properties = json_schema.get("properties")
+        has_declared_properties = is_dict(properties) and len(properties) > 0
+
+        if additional_properties is not False and not (additional_properties is True and has_declared_properties):
             raise TypeError(
-                "Objects with a typed `additionalProperties` value (e.g. from a "
-                "`Dict[str, ...]`-shaped field or a mapping `RootModel`) are not supported in "
-                f"strict schemas, since the API requires `additionalProperties: false` on "
-                f"every object; path={path}"
+                "Objects that accept arbitrary keys (e.g. a `Dict[str, ...]`-shaped field, a "
+                'mapping `RootModel`, or a bare `extra="allow"` model with no declared fields) '
+                "are not supported in strict schemas, since the API requires "
+                f"`additionalProperties: false` on every object; path={path}"
             )
         json_schema["additionalProperties"] = False
 
