@@ -1060,6 +1060,84 @@ def test_stream_obfuscation_stays_on_raw_chunks(padding: tuple[str | None, str |
     assert "obfuscation" not in completion.to_json()
 
 
+_MODERATION_RESULT = {
+    "categories": {"violence": False},
+    "category_applied_input_types": {"violence": ["text"]},
+    "category_scores": {"violence": 0.01},
+    "flagged": False,
+    "model": "omni-moderation-latest",
+    "type": "moderation_result",
+}
+_MODERATION = {
+    "input": {"type": "moderation_results", "model": "omni-moderation-latest", "results": [_MODERATION_RESULT]},
+    "output": {"type": "moderation_results", "model": "omni-moderation-latest", "results": [_MODERATION_RESULT]},
+}
+_MODERATION_CONTENT_CHOICE = {
+    "index": 0,
+    "delta": {"role": "assistant", "content": "Hello"},
+    "finish_reason": "stop",
+    "logprobs": None,
+}
+
+
+def _moderation_test_chunk(**extra: Any) -> ChatCompletionChunk:
+    return model_parse(
+        ChatCompletionChunk,
+        {
+            "id": "chatcmpl-test",
+            "object": "chat.completion.chunk",
+            "created": 0,
+            "model": "gpt-test",
+            "choices": [],
+            **extra,
+        },
+    )
+
+
+def test_stream_snapshot_keeps_moderation_from_a_later_chunk() -> None:
+    state = ChatCompletionStreamState()
+    state.handle_chunk(_moderation_test_chunk(choices=[_MODERATION_CONTENT_CHOICE]))
+    state.handle_chunk(
+        _moderation_test_chunk(
+            moderation=_MODERATION,
+            system_fingerprint="fp_test",
+            usage={"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2},
+        )
+    )
+
+    completion = state.get_final_completion()
+    assert completion.choices[0].message.content == "Hello"
+    assert completion.system_fingerprint == "fp_test"
+    assert completion.usage is not None
+    assert completion.moderation is not None
+    assert completion.moderation.input.type == "moderation_results"
+    assert completion.moderation.output.type == "moderation_results"
+    assert completion.to_dict()["moderation"] == _MODERATION
+
+
+def test_stream_snapshot_keeps_moderation_from_the_first_chunk() -> None:
+    state = ChatCompletionStreamState()
+    state.handle_chunk(_moderation_test_chunk(moderation=_MODERATION, choices=[_MODERATION_CONTENT_CHOICE]))
+
+    assert state.current_completion_snapshot.moderation is not None
+    assert state.get_final_completion().moderation is not None
+
+
+def test_stream_snapshot_moderation_survives_a_later_chunk_without_moderation() -> None:
+    state = ChatCompletionStreamState()
+    state.handle_chunk(_moderation_test_chunk(moderation=_MODERATION, choices=[_MODERATION_CONTENT_CHOICE]))
+    state.handle_chunk(_moderation_test_chunk(usage={"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2}))
+
+    assert state.get_final_completion().moderation is not None
+
+
+def test_stream_snapshot_has_no_moderation_when_the_stream_has_none() -> None:
+    state = ChatCompletionStreamState()
+    state.handle_chunk(_moderation_test_chunk(choices=[_MODERATION_CONTENT_CHOICE]))
+
+    assert state.get_final_completion().moderation is None
+
+
 @pytest.mark.respx2(base_url=base_url)
 def test_chat_completion_state_helper(client: OpenAI, respx2_mock: MockRouter, monkeypatch: pytest.MonkeyPatch) -> None:
     state = ChatCompletionStreamState()
