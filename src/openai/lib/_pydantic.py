@@ -46,13 +46,24 @@ def _ensure_strict_json_schema(
         for definition_name, definition_schema in definitions.items():
             _ensure_strict_json_schema(definition_schema, path=(*path, "definitions", definition_name), root=root)
 
-    # The API requires `additionalProperties: false` on every object, with no exceptions -
-    # so this is set unconditionally, overriding any existing value. Pydantic models with
-    # `extra="allow"` (or a `Dict[str, ...]`-shaped field) otherwise produce a schema with
-    # `additionalProperties` set to `True` or to a nested schema, either of which the API
-    # rejects with a 400 (`'additionalProperties' is required to be supplied and to be false`).
+    # The API requires `additionalProperties: false` on every object, with no exceptions.
+    # Pydantic models with `extra="allow"` produce `additionalProperties: True` here, which
+    # we can safely correct to `False` since that's the only value the API accepts. But a
+    # `Dict[str, ...]`-shaped field (or a mapping `RootModel`) produces a schema-valued
+    # `additionalProperties` describing the values' type - overwriting that with `False`
+    # would silently turn the field into an object that only accepts `{}`, rather than the
+    # mapping type it was declared as. Since the API has no way to represent an arbitrary-key
+    # mapping in a strict schema, we raise instead of silently producing a broken one.
     typ = json_schema.get("type")
     if typ == "object":
+        additional_properties = json_schema.get("additionalProperties", False)
+        if additional_properties not in (False, True):
+            raise TypeError(
+                "Objects with a typed `additionalProperties` value (e.g. from a "
+                "`Dict[str, ...]`-shaped field or a mapping `RootModel`) are not supported in "
+                f"strict schemas, since the API requires `additionalProperties: false` on "
+                f"every object; path={path}"
+            )
         json_schema["additionalProperties"] = False
 
     # object types

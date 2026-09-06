@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from enum import Enum
+from typing import Dict
 
+import pytest
 from pydantic import Field, BaseModel, ConfigDict
 from inline_snapshot import snapshot
 
@@ -427,3 +429,19 @@ def test_additional_properties_is_forced_false_even_when_extra_allow() -> None:
 
     schema = to_strict_json_schema(ModelWithExtraAllowed)
     assert schema["additionalProperties"] is False
+
+
+class ModelWithDictField(BaseModel):
+    data: Dict[str, str] = Field(description="A mapping field.")
+
+
+def test_dict_field_raises_instead_of_silently_dropping_value_schema() -> None:
+    """A `Dict[str, ...]`-shaped field produces a schema-valued `additionalProperties`
+    describing the values' type (e.g. `{"type": "string"}`), not a boolean. The API can't
+    represent an arbitrary-key mapping in a strict schema, so `to_strict_json_schema` must
+    raise rather than silently overwrite that value with `False` - which would turn the field
+    into an object that only accepts `{}`, changing its meaning instead of reporting the
+    actual limitation.
+    """
+    with pytest.raises(TypeError, match="additionalProperties"):
+        to_strict_json_schema(ModelWithDictField)
