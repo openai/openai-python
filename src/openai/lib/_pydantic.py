@@ -36,6 +36,11 @@ def _ensure_strict_json_schema(
     if not is_dict(json_schema):
         raise TypeError(f"Expected {json_schema} to be a dictionary; path={path}")
 
+    # `examples` is valid JSON Schema metadata but is not accepted by the
+    # API's strict structured-output schema dialect. It has no validation
+    # semantics, so removing it preserves the model contract.
+    json_schema.pop("examples", None)
+
     defs = json_schema.get("$defs")
     if is_dict(defs):
         for def_name, def_schema in defs.items():
