@@ -638,11 +638,13 @@ async def test_assistant_stream_timeout_callbacks_preserve_httpx2_family() -> No
         with sync_client.beta.threads.runs.stream(  # pyright: ignore[reportDeprecated]
             assistant_id="asst_test", thread_id="thread_test", event_handler=sync_handler
         ) as stream:
-            with pytest.raises(httpx2.ReadTimeout, match="assistant stream timeout"):
+            with pytest.raises(APITimeoutError) as sync_exc_info:
                 stream.until_done()
 
+    assert isinstance(sync_exc_info.value.__cause__, httpx2.ReadTimeout)
     assert sync_handler.timed_out
-    assert isinstance(sync_handler.exception, httpx2.ReadTimeout)
+    assert isinstance(sync_handler.exception, APITimeoutError)
+    assert isinstance(sync_handler.exception.__cause__, httpx2.ReadTimeout)
 
     async_handler = AsyncHandler()
     async with AsyncOpenAI(
@@ -654,11 +656,13 @@ async def test_assistant_stream_timeout_callbacks_preserve_httpx2_family() -> No
         async with async_client.beta.threads.runs.stream(  # pyright: ignore[reportDeprecated]
             assistant_id="asst_test", thread_id="thread_test", event_handler=async_handler
         ) as async_stream:
-            with pytest.raises(httpx2.ReadTimeout, match="assistant stream timeout"):
+            with pytest.raises(APITimeoutError) as async_exc_info:
                 await async_stream.until_done()
 
+    assert isinstance(async_exc_info.value.__cause__, httpx2.ReadTimeout)
     assert async_handler.timed_out
-    assert isinstance(async_handler.exception, httpx2.ReadTimeout)
+    assert isinstance(async_handler.exception, APITimeoutError)
+    assert isinstance(async_handler.exception.__cause__, httpx2.ReadTimeout)
 
 
 async def test_sigv4_provider_preserves_httpx2_family_and_rejects_one_shot_bodies() -> None:

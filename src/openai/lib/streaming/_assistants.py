@@ -11,6 +11,7 @@ from ..._httpx2 import timeout_exceptions
 from ..._models import construct_type
 from ..._streaming import Stream, AsyncStream
 from ...types.beta import AssistantStreamEvent
+from ..._exceptions import APITimeoutError
 from ...types.beta.threads import (
     Run,
     Text,
@@ -25,7 +26,7 @@ from ...types.beta.threads.runs import RunStep, ToolCall, RunStepDelta, ToolCall
 
 
 def _timeout_exceptions() -> tuple[type[Exception], ...]:
-    return (*timeout_exceptions(), asyncio.TimeoutError)
+    return (*timeout_exceptions(), asyncio.TimeoutError, APITimeoutError)
 
 
 class AssistantEventHandler:

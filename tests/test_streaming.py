@@ -5,7 +5,7 @@ from typing import Iterator, AsyncIterator
 import httpx2
 import pytest
 
-from openai import OpenAI, AsyncOpenAI
+from openai import OpenAI, APIError, AsyncOpenAI, APITimeoutError, APIConnectionError
 from openai._streaming import Stream, AsyncStream, ServerSentEvent
 
 
@@ -216,6 +216,35 @@ async def test_multi_byte_character_multiple_chunks(
     assert sse.json() == {"content": "известни"}
 
 
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+@pytest.mark.parametrize(
+    "failure,expected",
+    [
+        (httpx2.ReadTimeout("timed out while reading the stream"), APITimeoutError),
+        (httpx2.RemoteProtocolError("peer closed connection"), APIConnectionError),
+    ],
+    ids=["timeout", "connection"],
+)
+async def test_transport_error_mid_stream(
+    sync: bool,
+    failure: httpx2.TransportError,
+    expected: type[APIError],
+    client: OpenAI,
+    async_client: AsyncOpenAI,
+) -> None:
+    def body() -> Iterator[bytes]:
+        yield b'data: {"foo":true}\n'
+        yield b"\n"
+        raise failure
+
+    stream = make_stream(content=body(), sync=sync, client=client, async_client=async_client)
+
+    with pytest.raises(expected) as exc_info:
+        await consume_stream(stream)
+
+    assert exc_info.value.__cause__ is failure
+
+
 async def to_aiter(iter: Iterator[bytes]) -> AsyncIterator[bytes]:
     for chunk in iter:
         yield chunk
@@ -246,3 +275,30 @@ def make_event_iterator(
     return AsyncStream(
         cast_to=object, client=async_client, response=httpx2.Response(200, content=to_aiter(content))
     )._iter_events()
+
+
+def make_stream(
+    content: Iterator[bytes],
+    *,
+    sync: bool,
+    client: OpenAI,
+    async_client: AsyncOpenAI,
+) -> Stream[object] | AsyncStream[object]:
+    request = httpx2.Request("POST", "https://example.test/v1/chat/completions")
+
+    if sync:
+        return Stream(cast_to=object, client=client, response=httpx2.Response(200, content=content, request=request))
+
+    return AsyncStream(
+        cast_to=object, client=async_client, response=httpx2.Response(200, content=to_aiter(content), request=request)
+    )
+
+
+async def consume_stream(stream: Stream[object] | AsyncStream[object]) -> None:
+    if isinstance(stream, AsyncStream):
+        async for _ in stream:
+            pass
+        return
+
+    for _ in stream:
+        pass
