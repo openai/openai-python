@@ -591,7 +591,8 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
             elif not files:
                 # Don't set content when JSON is sent as multipart/form-data,
                 # since httpx's content param overrides other body arguments
-                kwargs["content"] = openapi_dumps(json_data) if is_given(json_data) and json_data is not None else None
+                if is_given(json_data) and json_data is not None:
+                    kwargs["content"] = self._serialize_json_data(json_data)
             kwargs["files"] = files
         else:
             headers.pop("Content-Type", None)
@@ -1617,6 +1618,114 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
     ) -> httpx2.Response:
         return await self._client.send(request, stream=stream, **kwargs)
 
+    async def _build_request_async(
+        self,
+        options: FinalRequestOptions,
+        *,
+        retries_taken: int = 0,
+    ) -> httpx2.Request:
+        """Async-safe version of _build_request that runs JSON serialization in a thread pool."""
+        # Request bodies, files, URLs, and custom options can contain private data.
+        log.debug(
+            "Building HTTP request: method=%s retries_taken=%i",
+            get_http_method_for_logging(options.method),
+            retries_taken,
+        )
+        kwargs: dict[str, Any] = {}
+
+        json_data = options.json_data
+        if options.extra_json is not None:
+            if json_data is None:
+                json_data = cast(Body, options.extra_json)
+            elif is_mapping(json_data):
+                json_data = _merge_mappings(json_data, options.extra_json)
+            else:
+                raise RuntimeError(f"Unexpected JSON data type, {type(json_data)}, cannot merge with `extra_body`")
+
+        headers = self._build_headers(options, retries_taken=retries_taken)
+        params = _merge_mappings({**self._auth_query(options.security), **self.default_query}, options.params)
+        content_type = headers.get("Content-Type")
+        files = options.files
+
+        # If the given Content-Type header is multipart/form-data then it
+        # has to be removed so that httpx can generate the header with
+        # additional information for us as it has to be in this form
+        # for the server to be able to correctly parse the request:
+        # multipart/form-data; boundary=---abc--
+        if content_type is not None and content_type.startswith("multipart/form-data"):
+            if "boundary" not in content_type:
+                # only remove the header if the boundary hasn't been explicitly set
+                # as the caller doesn't want httpx to come up with their own boundary
+                headers.pop("Content-Type")
+
+            # As we are now sending multipart/form-data instead of application/json
+            # we need to tell httpx to use it, https://www.python-httpx.org/advanced/clients/#multipart-file-encoding
+            if json_data:
+                if not is_dict(json_data):
+                    raise TypeError(
+                        f"Expected query input to be a dictionary for multipart requests but got {type(json_data)} instead."
+                    )
+                kwargs["data"] = self._serialize_multipartform(json_data)
+
+            # httpx determines whether or not to send a "multipart/form-data"
+            # request based on the truthiness of the "files" argument.
+            # This gets around that issue by generating a dict value that
+            # evaluates to true.
+            #
+            # https://github.com/encode/httpx/discussions/2399#discussioncomment-3814186
+            if not files:
+                files = cast(HttpxRequestFiles, ForceMultipartDict())
+
+        prepared_url = self._prepare_url(options.url)
+        # preserve hard-coded query params from the url
+        if params and prepared_url.query:
+            params = {**dict(prepared_url.params.items()), **params}
+            prepared_url = prepared_url.copy_with(raw_path=prepared_url.raw_path.split(b"?", 1)[0])
+
+        is_body_allowed = options.method.lower() != "get"
+
+        if is_body_allowed:
+            if options.content is not None and json_data is not None:
+                raise TypeError("Passing both `content` and `json_data` is not supported")
+            if options.content is not None and files is not None:
+                raise TypeError("Passing both `content` and `files` is not supported")
+            if options.content is not None:
+                kwargs["content"] = options.content
+            elif isinstance(json_data, bytes):
+                kwargs["content"] = json_data
+            elif not files:
+                # Don't set content when JSON is sent as multipart/form-data,
+                # since httpx's content param overrides other body arguments
+                if is_given(json_data) and json_data is not None:
+                    # Use async serialization to avoid blocking the event loop
+                    kwargs["content"] = await asyncify(openapi_dumps)(json_data)
+            kwargs["files"] = files
+        else:
+            headers.pop("Content-Type", None)
+            kwargs.pop("data", None)
+
+        timeout = self.timeout if isinstance(options.timeout, NotGiven) else options.timeout
+        request_url = str(prepared_url)
+        request_headers = list(headers.multi_items())
+        if is_legacy_httpx_sync_client(self._client) or is_legacy_httpx_async_client(self._client):
+            timeout = normalize_legacy_httpx_timeout(timeout)
+        else:
+            timeout = normalize_httpx2_timeout(timeout)
+
+        # TODO: report this error to httpx
+        return self._client.build_request(  # pyright: ignore[reportUnknownMemberType]
+            headers=request_headers,
+            timeout=timeout,
+            method=options.method,
+            url=request_url,
+            # the `Query` type that we use is incompatible with qs'
+            # `Params` type as it needs to be typed as `Mapping[str, object]`
+            # so that passing a `TypedDict` doesn't cause an error.
+            # https://github.com/microsoft/pyright/issues/3526#event-6715453066
+            params=self.qs.stringify(cast(Mapping[str, Any], params)) if params else None,
+            **kwargs,
+        )
+
     @overload
     async def request(
         self,
@@ -1678,7 +1787,7 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
             options = await self._prepare_options(options)
 
             remaining_retries = max_retries - retries_taken
-            request = self._build_request(options, retries_taken=retries_taken)
+            request = await self._build_request_async(options, retries_taken=retries_taken)
             await self._prepare_request(request)
 
             kwargs: HttpxSendArgs = {}
