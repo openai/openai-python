@@ -592,7 +592,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
                 # Don't set content when JSON is sent as multipart/form-data,
                 # since httpx's content param overrides other body arguments
                 if is_given(json_data) and json_data is not None:
-                    kwargs["content"] = self._serialize_json_data(json_data)
+                    kwargs["content"] = openapi_dumps(json_data)
             kwargs["files"] = files
         else:
             headers.pop("Content-Type", None)
