@@ -11,6 +11,7 @@ from ..._httpx2 import timeout_exceptions
 from ..._models import construct_type
 from ..._streaming import Stream, AsyncStream
 from ...types.beta import AssistantStreamEvent
+from ..._exceptions import APITimeoutError, APIConnectionError
 from ...types.beta.threads import (
     Run,
     Text,
@@ -410,6 +411,15 @@ class AssistantEventHandler:
                 self._emit_sse_event(event)
 
                 yield event
+        except APITimeoutError as exc:
+            cause = exc.__cause__ if isinstance(exc.__cause__, _timeout_exceptions()) else exc
+            self.on_timeout()
+            self.on_exception(cause)
+            raise cause from None
+        except APIConnectionError as exc:
+            cause = exc.__cause__ if isinstance(exc.__cause__, Exception) else exc
+            self.on_exception(cause)
+            raise cause from None
         except _timeout_exceptions() as exc:
             self.on_timeout()
             self.on_exception(exc)
@@ -842,6 +852,15 @@ class AsyncAssistantEventHandler:
                 await self._emit_sse_event(event)
 
                 yield event
+        except APITimeoutError as exc:
+            cause = exc.__cause__ if isinstance(exc.__cause__, _timeout_exceptions()) else exc
+            await self.on_timeout()
+            await self.on_exception(cause)
+            raise cause from None
+        except APIConnectionError as exc:
+            cause = exc.__cause__ if isinstance(exc.__cause__, Exception) else exc
+            await self.on_exception(cause)
+            raise cause from None
         except _timeout_exceptions() as exc:
             await self.on_timeout()
             await self.on_exception(exc)

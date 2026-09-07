@@ -710,3 +710,105 @@ async def test_sigv4_provider_preserves_httpx2_family_and_rejects_one_shot_bodie
     assert "Credential=fixture-access-key/" in async_requests[0].headers["authorization"]
     assert sync_requests[0].headers["x-amz-security-token"] == "fixture-session-token"
     assert async_requests[0].headers["x-amz-security-token"] == "fixture-session-token"
+
+
+class _DiesMidStreamSync(httpx2.SyncByteStream):
+    @override
+    def __iter__(self):  # type: ignore[no-untyped-def]
+        yield b'data: {"id":"c1","object":"chat.completion.chunk","created":0,"model":"x","choices":[{"index":0,"delta":{"role":"assistant","content":"hi"},"finish_reason":null}]}\n\n'
+        raise httpx2.ReadTimeout("timed out while reading the stream")
+
+
+class _DiesMidStreamAsync(httpx2.AsyncByteStream):
+    @override
+    async def __aiter__(self):  # type: ignore[no-untyped-def]
+        yield b'data: {"id":"c1","object":"chat.completion.chunk","created":0,"model":"x","choices":[{"index":0,"delta":{"role":"assistant","content":"hi"},"finish_reason":null}]}\n\n'
+        raise httpx2.RemoteProtocolError("peer closed connection without sending complete message body")
+
+
+def test_chat_stream_midstream_timeout_wrapped() -> None:
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(
+            200, headers={"content-type": "text/event-stream"}, stream=_DiesMidStreamSync(), request=request
+        )
+
+    with OpenAI(
+        api_key="test",
+        base_url="https://example.test/v1",
+        http_client=httpx2.Client(transport=httpx2.MockTransport(handler), trust_env=False),
+        max_retries=0,
+    ) as client:
+        with pytest.raises(APITimeoutError) as exc_info:
+            for _ in client.chat.completions.create(
+                model="x", messages=[{"role": "user", "content": "hi"}], stream=True
+            ):
+                pass
+        assert isinstance(exc_info.value.__cause__, httpx2.ReadTimeout)
+
+
+async def test_chat_stream_midstream_connection_error_wrapped() -> None:
+    async def handler(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(
+            200, headers={"content-type": "text/event-stream"}, stream=_DiesMidStreamAsync(), request=request
+        )
+
+    async with AsyncOpenAI(
+        api_key="test",
+        base_url="https://example.test/v1",
+        http_client=httpx2.AsyncClient(transport=httpx2.MockTransport(handler), trust_env=False),
+        max_retries=0,
+    ) as client:
+        with pytest.raises(APIConnectionError) as exc_info:
+            async for _ in await client.chat.completions.create(
+                model="x", messages=[{"role": "user", "content": "hi"}], stream=True
+            ):
+                pass
+        assert isinstance(exc_info.value.__cause__, httpx2.RemoteProtocolError)
+
+
+def test_chat_stream_midstream_connection_error_wrapped_sync() -> None:
+    class _DiesSync(httpx2.SyncByteStream):
+        @override
+        def __iter__(self):  # type: ignore[no-untyped-def]
+            yield b'data: {"id":"c1","object":"chat.completion.chunk","created":0,"model":"x","choices":[{"index":0,"delta":{"role":"assistant","content":"hi"},"finish_reason":null}]}\n\n'
+            raise httpx2.RemoteProtocolError("peer closed connection without sending complete message body")
+
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(200, headers={"content-type": "text/event-stream"}, stream=_DiesSync(), request=request)
+
+    with OpenAI(
+        api_key="test",
+        base_url="https://example.test/v1",
+        http_client=httpx2.Client(transport=httpx2.MockTransport(handler), trust_env=False),
+        max_retries=0,
+    ) as client:
+        with pytest.raises(APIConnectionError) as exc_info:
+            for _ in client.chat.completions.create(
+                model="x", messages=[{"role": "user", "content": "hi"}], stream=True
+            ):
+                pass
+        assert isinstance(exc_info.value.__cause__, httpx2.RemoteProtocolError)
+
+
+async def test_chat_stream_midstream_timeout_wrapped_async() -> None:
+    class _DiesAsync(httpx2.AsyncByteStream):
+        @override
+        async def __aiter__(self):  # type: ignore[no-untyped-def]
+            yield b'data: {"id":"c1","object":"chat.completion.chunk","created":0,"model":"x","choices":[{"index":0,"delta":{"role":"assistant","content":"hi"},"finish_reason":null}]}\n\n'
+            raise httpx2.ReadTimeout("timed out while reading the stream")
+
+    async def handler(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(200, headers={"content-type": "text/event-stream"}, stream=_DiesAsync(), request=request)
+
+    async with AsyncOpenAI(
+        api_key="test",
+        base_url="https://example.test/v1",
+        http_client=httpx2.AsyncClient(transport=httpx2.MockTransport(handler), trust_env=False),
+        max_retries=0,
+    ) as client:
+        with pytest.raises(APITimeoutError) as exc_info:
+            async for _ in await client.chat.completions.create(
+                model="x", messages=[{"role": "user", "content": "hi"}], stream=True
+            ):
+                pass
+        assert isinstance(exc_info.value.__cause__, httpx2.ReadTimeout)

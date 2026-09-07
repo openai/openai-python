@@ -11,7 +11,16 @@ from typing_extensions import Self, Protocol, TypeGuard, override, get_origin, r
 import httpx2
 
 from ._utils import is_mapping, extract_type_var_from_base
-from ._exceptions import APIError
+from ._httpx2 import timeout_exceptions, _loaded_legacy_httpx
+from ._exceptions import APIError, APITimeoutError, APIConnectionError
+
+
+def _transport_exceptions() -> tuple[type[BaseException], ...]:
+    module = _loaded_legacy_httpx()
+    if module is None:
+        return (httpx2.TransportError,)
+    return (httpx2.TransportError, module.TransportError)
+
 
 if TYPE_CHECKING:
     from ._client import OpenAI, AsyncOpenAI
@@ -59,6 +68,7 @@ class Stream(Generic[_T]):
         process_data = self._client._process_response_data
         iterator = self._iter_events()
 
+        request = response.request
         try:
             for sse in iterator:
                 if sse.data.startswith("[DONE]"):
@@ -106,6 +116,10 @@ class Stream(Generic[_T]):
                         cast_to=cast_to,
                         response=response,
                     )
+        except timeout_exceptions() as err:
+            raise APITimeoutError(request=request) from err
+        except _transport_exceptions() as err:
+            raise APIConnectionError(request=request) from err
         finally:
             # Ensure the response is closed even if the consumer doesn't read all data
             response.close()
@@ -169,6 +183,7 @@ class AsyncStream(Generic[_T]):
         process_data = self._client._process_response_data
         iterator = self._iter_events()
 
+        request = response.request
         try:
             async for sse in iterator:
                 if sse.data.startswith("[DONE]"):
@@ -216,6 +231,10 @@ class AsyncStream(Generic[_T]):
                         cast_to=cast_to,
                         response=response,
                     )
+        except timeout_exceptions() as err:
+            raise APITimeoutError(request=request) from err
+        except _transport_exceptions() as err:
+            raise APIConnectionError(request=request) from err
         finally:
             # Ensure the response is closed even if the consumer doesn't read all data
             await response.aclose()
