@@ -22,9 +22,10 @@ class Data(BaseModel):
     """Event data payload."""
 
     session_id: str
-    """The Transceiver `rtc_...` ID of the pending SIP session.
+    """The `live_...` ID of the pending SIP session.
 
-    The same value appears as `call_id` in `realtime.call.incoming`.
+    Forward this value unchanged when accepting or rejecting the call through the
+    Live API.
     """
 
     sip_headers: List[DataSipHeader]
