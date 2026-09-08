@@ -5,8 +5,59 @@ from typing import Iterator, AsyncIterator
 import httpx2
 import pytest
 
-from openai import OpenAI, AsyncOpenAI
+from openai import OpenAI, AsyncOpenAI, APITimeoutError
 from openai._streaming import Stream, AsyncStream, ServerSentEvent
+
+FIRST_CHUNK = (
+    b'data: {"id":"c1","object":"chat.completion.chunk","created":0,"model":"gpt-5.2",'
+    b'"choices":[{"index":0,"delta":{"role":"assistant","content":"hi"},"finish_reason":null}]}\n\n'
+)
+
+
+class _DiesMidStream(httpx2.SyncByteStream):
+    def __iter__(self) -> Iterator[bytes]:
+        yield FIRST_CHUNK
+        raise httpx2.ReadTimeout("timed out while reading the stream")
+
+
+class _AsyncDiesMidStream(httpx2.AsyncByteStream):
+    async def __aiter__(self) -> AsyncIterator[bytes]:
+        yield FIRST_CHUNK
+        raise httpx2.ReadTimeout("timed out while reading the stream")
+
+
+def test_sync_stream_wraps_mid_stream_transport_error() -> None:
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(200, headers={"content-type": "text/event-stream"}, stream=_DiesMidStream())
+
+    client = OpenAI(
+        api_key="My API Key",
+        http_client=httpx2.Client(transport=httpx2.MockTransport(handler)),
+        max_retries=0,
+    )
+
+    with pytest.raises(APITimeoutError):
+        for _ in client.chat.completions.create(
+            model="gpt-5.2", messages=[{"role": "user", "content": "hi"}], stream=True
+        ):
+            pass
+
+
+async def test_async_stream_wraps_mid_stream_transport_error() -> None:
+    async def handler(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(200, headers={"content-type": "text/event-stream"}, stream=_AsyncDiesMidStream())
+
+    client = AsyncOpenAI(
+        api_key="My API Key",
+        http_client=httpx2.AsyncClient(transport=httpx2.MockTransport(handler)),
+        max_retries=0,
+    )
+
+    with pytest.raises(APITimeoutError):
+        async for _ in await client.chat.completions.create(
+            model="gpt-5.2", messages=[{"role": "user", "content": "hi"}], stream=True
+        ):
+            pass
 
 
 @pytest.mark.asyncio

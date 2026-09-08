@@ -11,7 +11,8 @@ from typing_extensions import Self, Protocol, TypeGuard, override, get_origin, r
 import httpx2
 
 from ._utils import is_mapping, extract_type_var_from_base
-from ._exceptions import APIError
+from ._httpx2 import timeout_exceptions
+from ._exceptions import APIError, OpenAIError, APITimeoutError, APIConnectionError
 
 if TYPE_CHECKING:
     from ._client import OpenAI, AsyncOpenAI
@@ -106,6 +107,12 @@ class Stream(Generic[_T]):
                         cast_to=cast_to,
                         response=response,
                     )
+        except timeout_exceptions() as err:
+            raise APITimeoutError(request=response.request) from err
+        except OpenAIError:
+            raise
+        except Exception as err:
+            raise APIConnectionError(request=response.request) from err
         finally:
             # Ensure the response is closed even if the consumer doesn't read all data
             response.close()
@@ -216,6 +223,12 @@ class AsyncStream(Generic[_T]):
                         cast_to=cast_to,
                         response=response,
                     )
+        except timeout_exceptions() as err:
+            raise APITimeoutError(request=response.request) from err
+        except OpenAIError:
+            raise
+        except Exception as err:
+            raise APIConnectionError(request=response.request) from err
         finally:
             # Ensure the response is closed even if the consumer doesn't read all data
             await response.aclose()
