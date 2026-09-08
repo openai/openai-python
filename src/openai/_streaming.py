@@ -10,7 +10,7 @@ from typing_extensions import Self, Protocol, TypeGuard, override, get_origin, r
 
 import httpx2
 
-from ._utils import is_mapping, extract_type_var_from_base
+from ._utils import is_mapping, drain_async_iterator, extract_type_var_from_base
 from ._exceptions import APIError
 
 if TYPE_CHECKING:
@@ -150,6 +150,8 @@ class AsyncStream(Generic[_T]):
         self._client = client
         self._options = options
         self._decoder = client._make_sse_decoder()
+        self._byte_iterator: AsyncIterator[bytes] | None = None
+        self._done_seen = False
         self._iterator = self.__stream__()
 
     async def __anext__(self) -> _T:
@@ -160,18 +162,22 @@ class AsyncStream(Generic[_T]):
             yield item
 
     async def _iter_events(self) -> AsyncIterator[ServerSentEvent]:
-        async for sse in self._decoder.aiter_bytes(self.response.aiter_bytes()):
+        if self._byte_iterator is None:
+            self._byte_iterator = self.response.aiter_bytes()
+        async for sse in self._decoder.aiter_bytes(self._byte_iterator):
             yield sse
 
     async def __stream__(self) -> AsyncIterator[_T]:
         cast_to = cast(Any, self._cast_to)
         response = self.response
         process_data = self._client._process_response_data
+        self._byte_iterator = response.aiter_bytes()
         iterator = self._iter_events()
 
         try:
             async for sse in iterator:
                 if sse.data.startswith("[DONE]"):
+                    self._done_seen = True
                     break
 
                 # we have to special case the Assistants `thread.` events since we won't have an "event" key in the data
@@ -217,8 +223,13 @@ class AsyncStream(Generic[_T]):
                         response=response,
                     )
         finally:
-            # Ensure the response is closed even if the consumer doesn't read all data
-            await response.aclose()
+            # Bounds cancellation-cooperative async drain for connection reuse.
+            if self._done_seen:
+                await drain_async_iterator(self._byte_iterator, response=response, timeout_ms=50)
+            try:
+                await response.aclose()
+            except Exception:
+                pass
 
     async def __aenter__(self) -> Self:
         return self
