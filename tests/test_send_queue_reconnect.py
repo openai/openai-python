@@ -52,6 +52,7 @@ def test_reconnect_retries_bounded_send_queue(
     assert connection._reconnect(RuntimeError("fake disconnect"))
     assert sent == ["aaa", "b"]
     assert q._bytes == 0
+    assert not connection._reconnect(RuntimeError("retry budget exhausted"))
 
 
 @pytest.mark.parametrize(
@@ -97,3 +98,4 @@ async def test_async_reconnect_retries_bounded_send_queue(
     assert await connection._reconnect(RuntimeError("fake disconnect"))
     assert sent == ["aaa", "b"]
     assert q._bytes == 0
+    assert not await connection._reconnect(RuntimeError("retry budget exhausted"))

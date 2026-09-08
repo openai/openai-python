@@ -7792,7 +7792,7 @@ paths:
       tags:
       - Images
       summary: Create image edit
-      description: Creates an edited or extended image given one or more source images and a prompt. This endpoint supports GPT Image models (`gpt-image-1.5`, `gpt-image-1`, `gpt-image-1-mini`, and `chatgpt-image-latest`) and `dall-e-2`.
+      description: Creates an edited or extended image given one or more source images and a prompt. This endpoint supports GPT Image models and `dall-e-2`.
       requestBody:
         required: true
         content:
@@ -33170,13 +33170,15 @@ components:
           description: |
             The image(s) to edit. Must be a supported image file or an array of images.
 
-            For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`,
-            `gpt-image-1.5`, `gpt-image-2`, `gpt-image-2-2026-04-21`, and
-            `chatgpt-image-latest`), each image should be a `png`, `webp`, or
-            `jpg` file less than 50MB. You can provide up to 16 images.
+            For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`,
+            `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
+            `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`,
+            `gpt-image-2.5-flare-2026-09-08`, and `chatgpt-image-latest`), each image
+            should be a `png`, `webp`, or `jpg` file less than 50MB. You can provide up to
+            16 images.
 
-            For `dall-e-2`, you can only provide one image, and it should be a
-            square `png` file less than 4MB.
+            For `dall-e-2`, you can only provide one image, and it should be a square
+            `png` file less than 4MB.
           x-oaiMeta:
             exampleFilePath: otter.png
         prompt:
@@ -33199,15 +33201,16 @@ components:
           example: transparent
           nullable: true
           description: |
-            Allows to set transparency for the background of the generated image(s).
-            Must be one of `transparent`, `opaque`, or `auto` (default value). When
-            `auto` is used, the model will automatically determine the best
-            background for the image.
+            Allows to set transparency for the background of the generated image(s). Must
+            be one of `transparent`, `opaque`, or `auto` (default value). When `auto` is
+            used, the model will automatically determine the best background for the
+            image.
 
-            Transparent backgrounds are available for supported GPT Image models.
-            For `gpt-image-2` and `gpt-image-2-2026-04-21`, this support is in
-            preview. When using `transparent`, set the output format to `png` or
-            `webp`.
+            `gpt-image-2.5-sunburst` and `gpt-image-2.5-flare`, including their
+            `2026-09-08` snapshots, support `opaque` and `transparent` backgrounds.
+            Transparent backgrounds are available for supported GPT Image models. For
+            `gpt-image-2` and `gpt-image-2-2026-04-21`, this support is in preview. When
+            using `transparent`, set the output format to `png` or `webp`.
         model:
           anyOf:
           - type: string
@@ -33217,12 +33220,16 @@ components:
             - gpt-image-1-mini
             - gpt-image-2
             - gpt-image-2-2026-04-21
+            - gpt-image-2.5-sunburst
+            - gpt-image-2.5-sunburst-2026-09-08
+            - gpt-image-2.5-flare
+            - gpt-image-2.5-flare-2026-09-08
             - gpt-image-1.5
             - chatgpt-image-latest
             - dall-e-2
             x-stainless-const: true
           x-oaiTypeLabel: string
-          description: The model to use for image generation. One of `dall-e-2` or a GPT image model (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`, `gpt-image-2-2026-04-21`, or `chatgpt-image-latest`). Defaults to `gpt-image-1.5`.
+          description: The model to use for image generation. One of `dall-e-2` or a GPT image model (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, `gpt-image-2.5-flare-2026-09-08`, or `chatgpt-image-latest`). Defaults to `gpt-image-1.5`.
           nullable: true
           example: gpt-image-2
         n:
@@ -33244,7 +33251,7 @@ components:
             - 1536x1024
             - 1024x1536
             - auto
-          description: The size of the generated images. For `gpt-image-2` and `gpt-image-2-2026-04-21`, arbitrary resolutions are supported as `WIDTHxHEIGHT` strings, for example `1536x864`. Width and height must both be divisible by 16 and the requested aspect ratio must be between 1:3 and 3:1. Resolutions above `2560x1440` are experimental, and the maximum supported resolution is `3840x2160`. The requested size must also satisfy the model's current pixel and edge limits. The standard sizes `1024x1024`, `1536x1024`, and `1024x1536` are supported by the GPT image models; `auto` is supported for models that allow automatic sizing. For `dall-e-2`, use one of `256x256`, `512x512`, or `1024x1024`. For `dall-e-3`, use one of `1024x1024`, `1792x1024`, or `1024x1792`.
+          description: The size of the generated images. For `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, and `gpt-image-2.5-flare-2026-09-08`, arbitrary resolutions are supported as `WIDTHxHEIGHT` strings, for example `1536x864`. Width and height must both be divisible by 16 and the requested aspect ratio must be between 1:3 and 3:1. Resolutions above `2560x1440` are experimental, and the maximum supported resolution is `3840x2160`. The requested size must also satisfy the model's current pixel and edge limits. The standard sizes `1024x1024`, `1536x1024`, and `1024x1536` are supported by the GPT image models; `auto` is supported for models that allow automatic sizing. For `dall-e-2`, use one of `256x256`, `512x512`, or `1024x1024`. For `dall-e-3`, use one of `1024x1024`, `1792x1024`, or `1024x1792`.
           nullable: true
         response_format:
           type: string
@@ -33303,12 +33310,14 @@ components:
           - low
           - medium
           - high
+          - xhigh
+          - max
           - auto
           default: auto
           example: high
           nullable: true
           description: |
-            The quality of the image that will be generated for GPT image models. Defaults to `auto`.
+            The quality of the image that will be generated for GPT image models. The GPT image models support `low`, `medium`, and `high`. `gpt-image-2.5-sunburst` and `gpt-image-2.5-flare`, including their `2026-09-08` snapshots, also support `xhigh` and `max`. Defaults to `auto`.
       required:
       - prompt
       - image
@@ -33328,13 +33337,17 @@ components:
             - gpt-image-1-mini
             - gpt-image-2
             - gpt-image-2-2026-04-21
+            - gpt-image-2.5-sunburst
+            - gpt-image-2.5-sunburst-2026-09-08
+            - gpt-image-2.5-flare
+            - gpt-image-2.5-flare-2026-09-08
             - gpt-image-1.5
             - chatgpt-image-latest
             - dall-e-2
             - dall-e-3
             x-stainless-nominal: false
           x-oaiTypeLabel: string
-          description: The model to use for image generation. One of `dall-e-2`, `dall-e-3`, or a GPT image model (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`, or `gpt-image-2-2026-04-21`). Defaults to `dall-e-2` unless a parameter specific to the GPT image models is used.
+          description: The model to use for image generation. One of `dall-e-2`, `dall-e-3`, or a GPT image model (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, `gpt-image-2.5-flare-2026-09-08`). Defaults to `dall-e-2` unless a parameter specific to the GPT image models is used.
           nullable: true
           example: gpt-image-2
         n:
@@ -33353,6 +33366,8 @@ components:
           - low
           - medium
           - high
+          - xhigh
+          - max
           - auto
           default: auto
           example: medium
@@ -33360,8 +33375,11 @@ components:
           description: |
             The quality of the image that will be generated.
 
-            - `auto` (default value) will automatically select the best quality for the given model.
+            - `auto` (default value) will automatically select the best quality for the given
+              model.
             - `high`, `medium` and `low` are supported for the GPT image models.
+            - `gpt-image-2.5-sunburst` and `gpt-image-2.5-flare`, including their `2026-09-08`
+              snapshots, also support `xhigh` and `max`.
             - `hd` and `standard` are supported for `dall-e-3`.
             - `standard` is the only option for `dall-e-2`.
         response_format:
@@ -33413,7 +33431,7 @@ components:
             - 512x512
             - 1792x1024
             - 1024x1792
-          description: The size of the generated images. For `gpt-image-2` and `gpt-image-2-2026-04-21`, arbitrary resolutions are supported as `WIDTHxHEIGHT` strings, for example `1536x864`. Width and height must both be divisible by 16 and the requested aspect ratio must be between 1:3 and 3:1. Resolutions above `2560x1440` are experimental, and the maximum supported resolution is `3840x2160`. The requested size must also satisfy the model's current pixel and edge limits. The standard sizes `1024x1024`, `1536x1024`, and `1024x1536` are supported by the GPT image models; `auto` is supported for models that allow automatic sizing. For `dall-e-2`, use one of `256x256`, `512x512`, or `1024x1024`. For `dall-e-3`, use one of `1024x1024`, `1792x1024`, or `1024x1792`.
+          description: The size of the generated images. For `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, and `gpt-image-2.5-flare-2026-09-08`, arbitrary resolutions are supported as `WIDTHxHEIGHT` strings, for example `1536x864`. Width and height must both be divisible by 16 and the requested aspect ratio must be between 1:3 and 3:1. Resolutions above `2560x1440` are experimental, and the maximum supported resolution is `3840x2160`. The requested size must also satisfy the model's current pixel and edge limits. The standard sizes `1024x1024`, `1536x1024`, and `1024x1536` are supported by the GPT image models; `auto` is supported for models that allow automatic sizing. For `dall-e-2`, use one of `256x256`, `512x512`, or `1024x1024`. For `dall-e-3`, use one of `1024x1024`, `1792x1024`, or `1024x1792`.
           nullable: true
         moderation:
           type: string
@@ -33434,15 +33452,16 @@ components:
           example: transparent
           nullable: true
           description: |
-            Allows to set transparency for the background of the generated image(s).
-            Must be one of `transparent`, `opaque`, or `auto` (default value). When
-            `auto` is used, the model will automatically determine the best
-            background for the image.
+            Allows to set transparency for the background of the generated image(s). Must
+            be one of `transparent`, `opaque`, or `auto` (default value). When `auto` is
+            used, the model will automatically determine the best background for the
+            image.
 
-            Transparent backgrounds are available for supported GPT Image models.
-            For `gpt-image-2` and `gpt-image-2-2026-04-21`, this support is in
-            preview. When using `transparent`, set the output format to `png` or
-            `webp`.
+            `gpt-image-2.5-sunburst` and `gpt-image-2.5-flare`, including their
+            `2026-09-08` snapshots, support `opaque` and `transparent` backgrounds.
+            Transparent backgrounds are available for supported GPT Image models. For
+            `gpt-image-2` and `gpt-image-2-2026-04-21`, this support is in preview. When
+            using `transparent`, set the output format to `png` or `webp`.
         style:
           type: string
           enum:
@@ -35529,6 +35548,10 @@ components:
             - gpt-image-1.5
             - gpt-image-2
             - gpt-image-2-2026-04-21
+            - gpt-image-2.5-sunburst
+            - gpt-image-2.5-sunburst-2026-09-08
+            - gpt-image-2.5-flare
+            - gpt-image-2.5-flare-2026-09-08
             - gpt-image-1
             - gpt-image-1-mini
             - chatgpt-image-latest
@@ -35536,7 +35559,7 @@ components:
           x-oaiTypeLabel: string
           default: gpt-image-1.5
           example: gpt-image-1.5
-          description: The GPT image model to use for image editing, including `gpt-image-2` and its dated snapshot `gpt-image-2-2026-04-21`.
+          description: The GPT image model to use for image editing, including `gpt-image-2`, its dated snapshot `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, and `gpt-image-2.5-flare-2026-09-08`.
         images:
           type: array
           minItems: 1
@@ -35570,12 +35593,16 @@ components:
             - low
             - medium
             - high
+            - xhigh
+            - max
             - auto
           - type: 'null'
           default: auto
           example: high
           description: |
-            Output quality for GPT image models.
+            Output quality for GPT image models. The GPT image models support `low`, `medium`,
+            and `high`. `gpt-image-2.5-sunburst` and `gpt-image-2.5-flare`, including their
+            `2026-09-08` snapshots, also support `xhigh` and `max`. Defaults to `auto`.
         input_fidelity:
           anyOf:
           - type: string
@@ -35587,6 +35614,7 @@ components:
         size:
           anyOf:
           - type: string
+          - type: string
             enum:
             - auto
             - 1024x1024
@@ -35595,7 +35623,7 @@ components:
           - type: 'null'
           default: auto
           example: 1024x1024
-          description: Requested output image size.
+          description: The size of the generated images. For `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, and `gpt-image-2.5-flare-2026-09-08`, arbitrary resolutions are supported as `WIDTHxHEIGHT` strings, for example `1536x864`. Width and height must both be divisible by 16 and the requested aspect ratio must be between 1:3 and 3:1. Resolutions above `2560x1440` are experimental, and the maximum supported resolution is `3840x2160`. The requested size must also satisfy the model's current pixel and edge limits. The standard sizes `1024x1024`, `1536x1024`, and `1024x1536` are supported by the GPT image models; `auto` is supported for models that allow automatic sizing.
         user:
           type: string
           example: user-1234
@@ -35641,7 +35669,7 @@ components:
           - type: 'null'
           default: auto
           example: transparent
-          description: Set the background of the generated image output. Transparent backgrounds are available for supported GPT Image models. For `gpt-image-2` and `gpt-image-2-2026-04-21`, this support is in preview. When using `transparent`, set the output format to `png` or `webp`.
+          description: Set the background of the generated image output. `gpt-image-2.5-sunburst` and `gpt-image-2.5-flare`, including their `2026-09-08` snapshots, support `opaque` and `transparent` backgrounds. Transparent backgrounds are available for supported GPT Image models. For `gpt-image-2` and `gpt-image-2-2026-04-21`, this support is in preview. When using `transparent`, set the output format to `png` or `webp`.
         stream:
           anyOf:
           - type: boolean
@@ -38912,14 +38940,15 @@ components:
           description: |
             The Unix timestamp when the event was created.
         size:
-          type: string
-          description: |
-            The size of the edited image.
-          enum:
-          - 1024x1024
-          - 1024x1536
-          - 1536x1024
-          - auto
+          anyOf:
+          - type: string
+          - type: string
+            enum:
+            - 1024x1024
+            - 1024x1536
+            - 1536x1024
+            - auto
+          description: The image dimensions as a `WIDTHxHEIGHT` string, for example `1536x864`.
         quality:
           type: string
           description: |
@@ -38928,6 +38957,8 @@ components:
           - low
           - medium
           - high
+          - xhigh
+          - max
           - auto
         background:
           type: string
@@ -39000,14 +39031,15 @@ components:
           description: |
             The Unix timestamp when the event was created.
         size:
-          type: string
-          description: |
-            The size of the requested edited image.
-          enum:
-          - 1024x1024
-          - 1024x1536
-          - 1536x1024
-          - auto
+          anyOf:
+          - type: string
+          - type: string
+            enum:
+            - 1024x1024
+            - 1024x1536
+            - 1536x1024
+            - auto
+          description: The image dimensions as a `WIDTHxHEIGHT` string, for example `1536x864`.
         quality:
           type: string
           description: |
@@ -39016,6 +39048,8 @@ components:
           - low
           - medium
           - high
+          - xhigh
+          - max
           - auto
         background:
           type: string
@@ -39088,14 +39122,15 @@ components:
           description: |
             The Unix timestamp when the event was created.
         size:
-          type: string
-          description: |
-            The size of the generated image.
-          enum:
-          - 1024x1024
-          - 1024x1536
-          - 1536x1024
-          - auto
+          anyOf:
+          - type: string
+          - type: string
+            enum:
+            - 1024x1024
+            - 1024x1536
+            - 1536x1024
+            - auto
+          description: The image dimensions as a `WIDTHxHEIGHT` string, for example `1536x864`.
         quality:
           type: string
           description: |
@@ -39104,6 +39139,8 @@ components:
           - low
           - medium
           - high
+          - xhigh
+          - max
           - auto
         background:
           type: string
@@ -39176,14 +39213,15 @@ components:
           description: |
             The Unix timestamp when the event was created.
         size:
-          type: string
-          description: |
-            The size of the requested image.
-          enum:
-          - 1024x1024
-          - 1024x1536
-          - 1536x1024
-          - auto
+          anyOf:
+          - type: string
+          - type: string
+            enum:
+            - 1024x1024
+            - 1024x1536
+            - 1536x1024
+            - auto
+          description: The image dimensions as a `WIDTHxHEIGHT` string, for example `1536x864`.
         quality:
           type: string
           description: |
@@ -39192,6 +39230,8 @@ components:
           - low
           - medium
           - high
+          - xhigh
+          - max
           - auto
         background:
           type: string
@@ -39264,12 +39304,18 @@ components:
             - gpt-image-1-mini
             - gpt-image-2
             - gpt-image-2-2026-04-21
+            - gpt-image-2.5-sunburst
+            - gpt-image-2.5-sunburst-2026-09-08
+            - gpt-image-2.5-flare
+            - gpt-image-2.5-flare-2026-09-08
             - gpt-image-1.5
             - chatgpt-image-latest
             description: |
               The image generation model to use. One of `gpt-image-1`,
               `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
-              `gpt-image-2-2026-04-21`, or `chatgpt-image-latest`. Default:
+              `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
+              `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`,
+              `gpt-image-2.5-flare-2026-09-08`, or `chatgpt-image-latest`. Default:
               `gpt-image-1`.
             default: gpt-image-1
         quality:
@@ -39278,10 +39324,14 @@ components:
           - low
           - medium
           - high
+          - xhigh
+          - max
           - auto
           description: |
-            The quality of the generated image. One of `low`, `medium`, `high`,
-            or `auto`. Default: `auto`.
+            The quality of the generated image. The GPT image models support `low`,
+            `medium`, and `high`. `gpt-image-2.5-sunburst` and `gpt-image-2.5-flare`,
+            including their `2026-09-08` snapshots, also support `xhigh` and `max`.
+            Default: `auto`.
           default: auto
         size:
           anyOf:
@@ -39292,7 +39342,7 @@ components:
             - 1024x1536
             - 1536x1024
             - auto
-          description: The size of the generated images. For `gpt-image-2` and `gpt-image-2-2026-04-21`, arbitrary resolutions are supported as `WIDTHxHEIGHT` strings, for example `1536x864`. Width and height must both be divisible by 16 and the requested aspect ratio must be between 1:3 and 3:1. Resolutions above `2560x1440` are experimental, and the maximum supported resolution is `3840x2160`. The requested size must also satisfy the model's current pixel and edge limits. The standard sizes `1024x1024`, `1536x1024`, and `1024x1536` are supported by the GPT image models; `auto` is supported for models that allow automatic sizing. For `dall-e-2`, use one of `256x256`, `512x512`, or `1024x1024`. For `dall-e-3`, use one of `1024x1024`, `1792x1024`, or `1024x1792`.
+          description: The size of the generated images. For `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, and `gpt-image-2.5-flare-2026-09-08`, arbitrary resolutions are supported as `WIDTHxHEIGHT` strings, for example `1536x864`. Width and height must both be divisible by 16 and the requested aspect ratio must be between 1:3 and 3:1. Resolutions above `2560x1440` are experimental, and the maximum supported resolution is `3840x2160`. The requested size must also satisfy the model's current pixel and edge limits. The standard sizes `1024x1024`, `1536x1024`, and `1024x1536` are supported by the GPT image models; `auto` is supported for models that allow automatic sizing. For `dall-e-2`, use one of `256x256`, `512x512`, or `1024x1024`. For `dall-e-3`, use one of `1024x1024`, `1792x1024`, or `1024x1792`.
           default: auto
         output_format:
           type: string
@@ -39326,15 +39376,16 @@ components:
           - opaque
           - auto
           description: |
-            Allows to set transparency for the background of the generated image(s).
-            Must be one of `transparent`, `opaque`, or `auto` (default value). When
-            `auto` is used, the model will automatically determine the best
-            background for the image.
+            Allows to set transparency for the background of the generated image(s). Must
+            be one of `transparent`, `opaque`, or `auto` (default value). When `auto` is
+            used, the model will automatically determine the best background for the
+            image.
 
-            Transparent backgrounds are available for supported GPT Image models.
-            For `gpt-image-2` and `gpt-image-2-2026-04-21`, this support is in
-            preview. When using `transparent`, set the output format to `png` or
-            `webp`.
+            `gpt-image-2.5-sunburst` and `gpt-image-2.5-flare`, including their
+            `2026-09-08` snapshots, support `opaque` and `transparent` backgrounds.
+            Transparent backgrounds are available for supported GPT Image models. For
+            `gpt-image-2` and `gpt-image-2-2026-04-21`, this support is in preview. When
+            using `transparent`, set the output format to `png` or `webp`.
           default: auto
         input_fidelity:
           anyOf:
@@ -39402,6 +39453,28 @@ components:
             description: |
               The generated image encoded in base64.
           - type: 'null'
+        size:
+          anyOf:
+          - type: string
+          - type: string
+            enum:
+            - 1024x1024
+            - 1024x1536
+            - 1536x1024
+          - type: 'null'
+          description: The image dimensions as a `WIDTHxHEIGHT` string, for example `1536x864`.
+        quality:
+          anyOf:
+          - type: string
+            enum:
+            - low
+            - medium
+            - high
+            - xhigh
+            - max
+            - auto
+          - type: 'null'
+          description: The quality of the image generated by the image generation tool call. One of `low`, `medium`, `high`, `xhigh`, `max`, or `auto`.
       required:
       - type
       - id
@@ -39461,19 +39534,23 @@ components:
           - webp
           - jpeg
         size:
-          type: string
-          description: The size of the image generated. Either `1024x1024`, `1024x1536`, or `1536x1024`.
-          enum:
-          - 1024x1024
-          - 1024x1536
-          - 1536x1024
+          anyOf:
+          - type: string
+          - type: string
+            enum:
+            - 1024x1024
+            - 1024x1536
+            - 1536x1024
+          description: The image dimensions as a `WIDTHxHEIGHT` string, for example `1536x864`.
         quality:
           type: string
-          description: The quality of the image generated. Either `low`, `medium`, or `high`.
+          description: The quality of the image generated. One of `low`, `medium`, `high`, `xhigh`, or `max`.
           enum:
           - low
           - medium
           - high
+          - xhigh
+          - max
         usage:
           $ref: '#/components/schemas/ImageGenUsage'
       required:
@@ -61679,8 +61756,8 @@ components:
             session_id:
               type: string
               description: |
-                The Transceiver `rtc_...` ID of the pending SIP session. The same
-                value appears as `call_id` in `realtime.call.incoming`.
+                The `live_...` ID of the pending SIP session. Forward this value
+                unchanged when accepting or rejecting the call through the Live API.
             sip_headers:
               type: array
               description: |
@@ -61724,7 +61801,7 @@ components:
             "type": "live.call.incoming",
             "created_at": 1719168000,
             "data": {
-              "session_id": "rtc_479a275623b54bdb9b6fbae2f7cbd408",
+              "session_id": "live_u0_479a275623b54bdb9b6fbae2f7cbd408",
               "sip_headers": [
                 {"name": "Max-Forwards", "value": "63"},
                 {"name": "CSeq", "value": "851287 INVITE"},
@@ -61765,8 +61842,10 @@ components:
             call_id:
               type: string
               description: |
-                The Transceiver `rtc_...` ID of the pending SIP session. The same
-                value appears as `session_id` in `live.call.incoming`.
+                The Transceiver `rtc_...` ID of the pending SIP session. The paired
+                `live.call.incoming` event derives its `session_id` by replacing the
+                `rtc_` prefix with `live_`. Use the ID returned by the event with the
+                corresponding Realtime or Live API.
             sip_headers:
               type: array
               description: |
@@ -66896,6 +66975,7 @@ components:
             - items:
                 $ref: '#/components/schemas/InputItem'
               type: array
+              maxItems: 131072
               description: A list of one or many input items to the model, containing different content types.
           - type: 'null'
         previous_response_id:
@@ -66995,6 +67075,7 @@ components:
             - items:
                 $ref: '#/components/schemas/InputItem'
               type: array
+              maxItems: 131072
               description: A list of one or many input items to the model, containing different content types.
           - type: 'null'
         previous_response_id:
@@ -68496,6 +68577,7 @@ components:
             - items:
                 $ref: '#/components/schemas/BetaInputItem'
               type: array
+              maxItems: 131072
               description: A list of one or many input items to the model, containing different content types.
           - type: 'null'
         previous_response_id:
@@ -69613,12 +69695,18 @@ components:
             - gpt-image-1-mini
             - gpt-image-2
             - gpt-image-2-2026-04-21
+            - gpt-image-2.5-sunburst
+            - gpt-image-2.5-sunburst-2026-09-08
+            - gpt-image-2.5-flare
+            - gpt-image-2.5-flare-2026-09-08
             - gpt-image-1.5
             - chatgpt-image-latest
             description: |
               The image generation model to use. One of `gpt-image-1`,
               `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
-              `gpt-image-2-2026-04-21`, or `chatgpt-image-latest`. Default:
+              `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
+              `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`,
+              `gpt-image-2.5-flare-2026-09-08`, or `chatgpt-image-latest`. Default:
               `gpt-image-1`.
             default: gpt-image-1
         quality:
@@ -69627,10 +69715,14 @@ components:
           - low
           - medium
           - high
+          - xhigh
+          - max
           - auto
           description: |
-            The quality of the generated image. One of `low`, `medium`, `high`,
-            or `auto`. Default: `auto`.
+            The quality of the generated image. The GPT image models support `low`,
+            `medium`, and `high`. `gpt-image-2.5-sunburst` and `gpt-image-2.5-flare`,
+            including their `2026-09-08` snapshots, also support `xhigh` and `max`.
+            Default: `auto`.
           default: auto
         size:
           anyOf:
@@ -69641,7 +69733,7 @@ components:
             - 1024x1536
             - 1536x1024
             - auto
-          description: The size of the generated images. For `gpt-image-2` and `gpt-image-2-2026-04-21`, arbitrary resolutions are supported as `WIDTHxHEIGHT` strings, for example `1536x864`. Width and height must both be divisible by 16 and the requested aspect ratio must be between 1:3 and 3:1. Resolutions above `2560x1440` are experimental, and the maximum supported resolution is `3840x2160`. The requested size must also satisfy the model's current pixel and edge limits. The standard sizes `1024x1024`, `1536x1024`, and `1024x1536` are supported by the GPT image models; `auto` is supported for models that allow automatic sizing. For `dall-e-2`, use one of `256x256`, `512x512`, or `1024x1024`. For `dall-e-3`, use one of `1024x1024`, `1792x1024`, or `1024x1792`.
+          description: The size of the generated images. For `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, and `gpt-image-2.5-flare-2026-09-08`, arbitrary resolutions are supported as `WIDTHxHEIGHT` strings, for example `1536x864`. Width and height must both be divisible by 16 and the requested aspect ratio must be between 1:3 and 3:1. Resolutions above `2560x1440` are experimental, and the maximum supported resolution is `3840x2160`. The requested size must also satisfy the model's current pixel and edge limits. The standard sizes `1024x1024`, `1536x1024`, and `1024x1536` are supported by the GPT image models; `auto` is supported for models that allow automatic sizing. For `dall-e-2`, use one of `256x256`, `512x512`, or `1024x1024`. For `dall-e-3`, use one of `1024x1024`, `1792x1024`, or `1024x1792`.
           default: auto
         output_format:
           type: string
@@ -69675,15 +69767,16 @@ components:
           - opaque
           - auto
           description: |
-            Allows to set transparency for the background of the generated image(s).
-            Must be one of `transparent`, `opaque`, or `auto` (default value). When
-            `auto` is used, the model will automatically determine the best
-            background for the image.
+            Allows to set transparency for the background of the generated image(s). Must
+            be one of `transparent`, `opaque`, or `auto` (default value). When `auto` is
+            used, the model will automatically determine the best background for the
+            image.
 
-            Transparent backgrounds are available for supported GPT Image models.
-            For `gpt-image-2` and `gpt-image-2-2026-04-21`, this support is in
-            preview. When using `transparent`, set the output format to `png` or
-            `webp`.
+            `gpt-image-2.5-sunburst` and `gpt-image-2.5-flare`, including their
+            `2026-09-08` snapshots, support `opaque` and `transparent` backgrounds.
+            Transparent backgrounds are available for supported GPT Image models. For
+            `gpt-image-2` and `gpt-image-2-2026-04-21`, this support is in preview. When
+            using `transparent`, set the output format to `png` or `webp`.
           default: auto
         input_fidelity:
           anyOf:
@@ -71691,6 +71784,28 @@ components:
             description: |
               The generated image encoded in base64.
           - type: 'null'
+        size:
+          anyOf:
+          - type: string
+          - type: string
+            enum:
+            - 1024x1024
+            - 1024x1536
+            - 1536x1024
+          - type: 'null'
+          description: The image dimensions as a `WIDTHxHEIGHT` string, for example `1536x864`.
+        quality:
+          anyOf:
+          - type: string
+            enum:
+            - low
+            - medium
+            - high
+            - xhigh
+            - max
+            - auto
+          - type: 'null'
+          description: The quality of the image generated by the image generation tool call. One of `low`, `medium`, `high`, `xhigh`, `max`, or `auto`.
       required:
       - type
       - id
@@ -73577,6 +73692,7 @@ components:
             - items:
                 $ref: '#/components/schemas/BetaInputItem'
               type: array
+              maxItems: 131072
               description: A list of one or many input items to the model, containing different content types.
           - type: 'null'
         previous_response_id:

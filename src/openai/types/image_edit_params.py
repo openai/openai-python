@@ -16,9 +16,11 @@ class ImageEditParamsBase(TypedDict, total=False):
     """The image(s) to edit. Must be a supported image file or an array of images.
 
     For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`,
-    `gpt-image-2`, `gpt-image-2-2026-04-21`, and `chatgpt-image-latest`), each image
-    should be a `png`, `webp`, or `jpg` file less than 50MB. You can provide up to
-    16 images.
+    `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
+    `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`,
+    `gpt-image-2.5-flare-2026-09-08`, and `chatgpt-image-latest`), each image should
+    be a `png`, `webp`, or `jpg` file less than 50MB. You can provide up to 16
+    images.
 
     For `dall-e-2`, you can only provide one image, and it should be a square `png`
     file less than 4MB.
@@ -32,14 +34,17 @@ class ImageEditParamsBase(TypedDict, total=False):
     """
 
     background: Optional[Literal["transparent", "opaque", "auto"]]
-    """
-    Allows to set transparency for the background of the generated image(s). Must be
-    one of `transparent`, `opaque`, or `auto` (default value). When `auto` is used,
-    the model will automatically determine the best background for the image.
+    """Allows to set transparency for the background of the generated image(s).
 
-    Transparent backgrounds are available for supported GPT Image models. For
-    `gpt-image-2` and `gpt-image-2-2026-04-21`, this support is in preview. When
-    using `transparent`, set the output format to `png` or `webp`.
+    Must be one of `transparent`, `opaque`, or `auto` (default value). When `auto`
+    is used, the model will automatically determine the best background for the
+    image.
+
+    `gpt-image-2.5-sunburst` and `gpt-image-2.5-flare`, including their `2026-09-08`
+    snapshots, support `opaque` and `transparent` backgrounds. Transparent
+    backgrounds are available for supported GPT Image models. For `gpt-image-2` and
+    `gpt-image-2-2026-04-21`, this support is in preview. When using `transparent`,
+    set the output format to `png` or `webp`.
     """
 
     input_fidelity: Optional[Literal["high", "low"]]
@@ -62,7 +67,9 @@ class ImageEditParamsBase(TypedDict, total=False):
     """The model to use for image generation.
 
     One of `dall-e-2` or a GPT image model (`gpt-image-1`, `gpt-image-1-mini`,
-    `gpt-image-1.5`, `gpt-image-2`, `gpt-image-2-2026-04-21`, or
+    `gpt-image-1.5`, `gpt-image-2`, `gpt-image-2-2026-04-21`,
+    `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`,
+    `gpt-image-2.5-flare`, `gpt-image-2.5-flare-2026-09-08`, or
     `chatgpt-image-latest`). Defaults to `gpt-image-1.5`.
     """
 
@@ -94,10 +101,12 @@ class ImageEditParamsBase(TypedDict, total=False):
     are generated if the full image is generated more quickly.
     """
 
-    quality: Optional[Literal["standard", "low", "medium", "high", "auto"]]
+    quality: Optional[Literal["standard", "low", "medium", "high", "xhigh", "max", "auto"]]
     """The quality of the image that will be generated for GPT image models.
 
-    Defaults to `auto`.
+    The GPT image models support `low`, `medium`, and `high`.
+    `gpt-image-2.5-sunburst` and `gpt-image-2.5-flare`, including their `2026-09-08`
+    snapshots, also support `xhigh` and `max`. Defaults to `auto`.
     """
 
     response_format: Optional[Literal["url", "b64_json"]]
@@ -112,16 +121,18 @@ class ImageEditParamsBase(TypedDict, total=False):
     size: Union[str, Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"], None]
     """The size of the generated images.
 
-    For `gpt-image-2` and `gpt-image-2-2026-04-21`, arbitrary resolutions are
-    supported as `WIDTHxHEIGHT` strings, for example `1536x864`. Width and height
-    must both be divisible by 16 and the requested aspect ratio must be between 1:3
-    and 3:1. Resolutions above `2560x1440` are experimental, and the maximum
-    supported resolution is `3840x2160`. The requested size must also satisfy the
-    model's current pixel and edge limits. The standard sizes `1024x1024`,
-    `1536x1024`, and `1024x1536` are supported by the GPT image models; `auto` is
-    supported for models that allow automatic sizing. For `dall-e-2`, use one of
-    `256x256`, `512x512`, or `1024x1024`. For `dall-e-3`, use one of `1024x1024`,
-    `1792x1024`, or `1024x1792`.
+    For `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
+    `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, and
+    `gpt-image-2.5-flare-2026-09-08`, arbitrary resolutions are supported as
+    `WIDTHxHEIGHT` strings, for example `1536x864`. Width and height must both be
+    divisible by 16 and the requested aspect ratio must be between 1:3 and 3:1.
+    Resolutions above `2560x1440` are experimental, and the maximum supported
+    resolution is `3840x2160`. The requested size must also satisfy the model's
+    current pixel and edge limits. The standard sizes `1024x1024`, `1536x1024`, and
+    `1024x1536` are supported by the GPT image models; `auto` is supported for
+    models that allow automatic sizing. For `dall-e-2`, use one of `256x256`,
+    `512x512`, or `1024x1024`. For `dall-e-3`, use one of `1024x1024`, `1792x1024`,
+    or `1024x1792`.
     """
 
     user: str
