@@ -334,6 +334,9 @@ class Responses(SyncAPIResource):
               parameter.
 
           store: Whether to store the generated model response for later retrieval via API.
+              Defaults to true when omitted. If set to true, response data will be stored for
+              at least 30 days, subject to the
+              [data retention exceptions](/api/docs/guides/your-data#v1responses).
 
           stream: If set to true, the model response data will be streamed to the client as it is
               generated using
@@ -624,6 +627,9 @@ class Responses(SyncAPIResource):
               parameter.
 
           store: Whether to store the generated model response for later retrieval via API.
+              Defaults to true when omitted. If set to true, response data will be stored for
+              at least 30 days, subject to the
+              [data retention exceptions](/api/docs/guides/your-data#v1responses).
 
           stream_options: Options for streaming responses. Only set this when you set `stream: true`.
 
@@ -907,6 +913,9 @@ class Responses(SyncAPIResource):
               parameter.
 
           store: Whether to store the generated model response for later retrieval via API.
+              Defaults to true when omitted. If set to true, response data will be stored for
+              at least 30 days, subject to the
+              [data retention exceptions](/api/docs/guides/your-data#v1responses).
 
           stream_options: Options for streaming responses. Only set this when you set `stream: true`.
 
@@ -2198,6 +2207,9 @@ class AsyncResponses(AsyncAPIResource):
               parameter.
 
           store: Whether to store the generated model response for later retrieval via API.
+              Defaults to true when omitted. If set to true, response data will be stored for
+              at least 30 days, subject to the
+              [data retention exceptions](/api/docs/guides/your-data#v1responses).
 
           stream: If set to true, the model response data will be streamed to the client as it is
               generated using
@@ -2488,6 +2500,9 @@ class AsyncResponses(AsyncAPIResource):
               parameter.
 
           store: Whether to store the generated model response for later retrieval via API.
+              Defaults to true when omitted. If set to true, response data will be stored for
+              at least 30 days, subject to the
+              [data retention exceptions](/api/docs/guides/your-data#v1responses).
 
           stream_options: Options for streaming responses. Only set this when you set `stream: true`.
 
@@ -2771,6 +2786,9 @@ class AsyncResponses(AsyncAPIResource):
               parameter.
 
           store: Whether to store the generated model response for later retrieval via API.
+              Defaults to true when omitted. If set to true, response data will be stored for
+              at least 30 days, subject to the
+              [data retention exceptions](/api/docs/guides/your-data#v1responses).
 
           stream_options: Options for streaming responses. Only set this when you set `stream: true`.
 
@@ -4013,6 +4031,7 @@ class AsyncResponsesConnection:
         self._make_ws = make_ws
         self._on_reconnecting = on_reconnecting
         self._max_retries = max_retries
+        self._reconnect_attempt = 0
         self._initial_delay = initial_delay
         self._max_delay = max_delay
         self._extra_query = extra_query
@@ -4052,7 +4071,17 @@ class AsyncResponsesConnection:
 
         Canceling this method is safe. There's no risk of losing data.
         """
-        return self.parse_event(await self.recv_bytes())
+        event = self.parse_event(await self.recv_bytes())
+        event_type = (
+            cast("dict[str, object]", event).get("type")
+            if isinstance(cast(object, event), dict)
+            else getattr(event, "type", None)
+        )
+        # A successful upgrade can still be followed by an admission error.
+        # Reset the budget only after receiving a non-error application event.
+        if isinstance(event_type, str) and event_type and event_type != "error":
+            self._reconnect_attempt = 0
+        return event
 
     async def recv_bytes(self) -> bytes:
         """Receive the next message from the connection as raw bytes.
@@ -4125,7 +4154,8 @@ class AsyncResponsesConnection:
 
         self._is_reconnecting = True
 
-        for attempt in range(1, self._max_retries + 1):
+        for attempt in range(self._reconnect_attempt + 1, self._max_retries + 1):
+            self._reconnect_attempt = attempt
             base_delay = min(self._initial_delay * (2 ** (attempt - 1)), self._max_delay)
             jitter = 0.75 + random.random() * 0.25
             delay = base_delay * jitter
@@ -4470,6 +4500,7 @@ class ResponsesConnection:
         self._make_ws = make_ws
         self._on_reconnecting = on_reconnecting
         self._max_retries = max_retries
+        self._reconnect_attempt = 0
         self._initial_delay = initial_delay
         self._max_delay = max_delay
         self._extra_query = extra_query
@@ -4509,7 +4540,17 @@ class ResponsesConnection:
 
         Canceling this method is safe. There's no risk of losing data.
         """
-        return self.parse_event(self.recv_bytes())
+        event = self.parse_event(self.recv_bytes())
+        event_type = (
+            cast("dict[str, object]", event).get("type")
+            if isinstance(cast(object, event), dict)
+            else getattr(event, "type", None)
+        )
+        # A successful upgrade can still be followed by an admission error.
+        # Reset the budget only after receiving a non-error application event.
+        if isinstance(event_type, str) and event_type and event_type != "error":
+            self._reconnect_attempt = 0
+        return event
 
     def recv_bytes(self) -> bytes:
         """Receive the next message from the connection as raw bytes.
@@ -4580,7 +4621,8 @@ class ResponsesConnection:
 
         self._is_reconnecting = True
 
-        for attempt in range(1, self._max_retries + 1):
+        for attempt in range(self._reconnect_attempt + 1, self._max_retries + 1):
+            self._reconnect_attempt = attempt
             base_delay = min(self._initial_delay * (2 ** (attempt - 1)), self._max_delay)
             jitter = 0.75 + random.random() * 0.25
             delay = base_delay * jitter
