@@ -352,6 +352,15 @@ class AsyncRealtimeConnection:
         """
         message = await self._connection.recv(decode=False)
         log.debug("Received WebSocket message: %i bytes", len(message))
+        if self._reconnect_attempt:
+            # Account for raw application progress without changing frame delivery.
+            try:
+                event_data: object = json.loads(message)
+            except (ValueError, RecursionError):
+                return message
+            event_type = cast("dict[str, object]", event_data).get("type") if isinstance(event_data, dict) else None
+            if isinstance(event_type, str) and event_type and event_type != "error":
+                self._reconnect_attempt = 0
         return message
 
     async def send(self, event: RealtimeClientEvent | RealtimeClientEventParam) -> None:
@@ -846,6 +855,15 @@ class RealtimeConnection:
         """
         message = self._connection.recv(decode=False)
         log.debug("Received WebSocket message: %i bytes", len(message))
+        if self._reconnect_attempt:
+            # Account for raw application progress without changing frame delivery.
+            try:
+                event_data: object = json.loads(message)
+            except (ValueError, RecursionError):
+                return message
+            event_type = cast("dict[str, object]", event_data).get("type") if isinstance(event_data, dict) else None
+            if isinstance(event_type, str) and event_type and event_type != "error":
+                self._reconnect_attempt = 0
         return message
 
     def send(self, event: RealtimeClientEvent | RealtimeClientEventParam) -> None:
