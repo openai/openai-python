@@ -8406,7 +8406,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/CreateModerationResponse'
         '429':
-          $ref: '#/components/responses/TooManyRequests'
+          $ref: '#/components/responses/InferenceRateLimited'
+        '503':
+          $ref: '#/components/responses/InferenceServiceUnavailable'
       x-oaiMeta:
         name: Create moderation
         group: moderations
@@ -22881,7 +22883,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/VideoResource'
         '429':
-          $ref: '#/components/responses/TooManyRequests'
+          $ref: '#/components/responses/InferenceRateLimited'
+        '503':
+          $ref: '#/components/responses/InferenceServiceUnavailable'
       deprecated: true
       x-oaiMeta:
         name: Create video
@@ -23153,7 +23157,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/VideoResource'
         '429':
-          $ref: '#/components/responses/TooManyRequests'
+          $ref: '#/components/responses/InferenceRateLimited'
+        '503':
+          $ref: '#/components/responses/InferenceServiceUnavailable'
       deprecated: true
       description: Create a new video generation job by editing a source video or existing generated video.
   /videos/extensions:
@@ -23176,7 +23182,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/VideoResource'
         '429':
-          $ref: '#/components/responses/TooManyRequests'
+          $ref: '#/components/responses/InferenceRateLimited'
+        '503':
+          $ref: '#/components/responses/InferenceServiceUnavailable'
       deprecated: true
       description: Create an extension of a completed video.
   /videos/{video_id}:
@@ -23503,7 +23511,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/VideoResource'
         '429':
-          $ref: '#/components/responses/TooManyRequests'
+          $ref: '#/components/responses/InferenceRateLimited'
+        '503':
+          $ref: '#/components/responses/InferenceServiceUnavailable'
       deprecated: true
       x-oaiMeta:
         name: Remix video
