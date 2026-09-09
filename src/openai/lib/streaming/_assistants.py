@@ -11,7 +11,7 @@ from ..._httpx2 import request_exceptions, timeout_exceptions
 from ..._models import construct_type
 from ..._streaming import Stream, AsyncStream
 from ...types.beta import AssistantStreamEvent
-from ..._exceptions import APITimeoutError, APIConnectionError
+from ..._exceptions import APIConnectionError
 from ...types.beta.threads import (
     Run,
     Text,
@@ -415,27 +415,21 @@ class AssistantEventHandler:
             raise RuntimeError("Stream has not been started yet")
 
         try:
-            for event in stream:
+            while True:
+                try:
+                    event = next(stream)
+                except StopIteration:
+                    break
+                except APIConnectionError as exc:
+                    error = _request_error_from_api_error(exc)
+
+                    if error is None:
+                        raise
+
+                    raise error from None
+
                 self._emit_sse_event(event)
-
                 yield event
-        except APITimeoutError as exc:
-            error = _request_error_from_api_error(exc)
-            self.on_timeout()
-            self.on_exception(error or exc)
-
-            if error is None:
-                raise
-
-            raise error from None
-        except APIConnectionError as exc:
-            error = _request_error_from_api_error(exc)
-            self.on_exception(error or exc)
-
-            if error is None:
-                raise
-
-            raise error from None
         except _timeout_exceptions() as exc:
             self.on_timeout()
             self.on_exception(exc)
@@ -864,27 +858,21 @@ class AsyncAssistantEventHandler:
             raise RuntimeError("Stream has not been started yet")
 
         try:
-            async for event in stream:
+            while True:
+                try:
+                    event = await stream.__anext__()
+                except StopAsyncIteration:
+                    break
+                except APIConnectionError as exc:
+                    error = _request_error_from_api_error(exc)
+
+                    if error is None:
+                        raise
+
+                    raise error from None
+
                 await self._emit_sse_event(event)
-
                 yield event
-        except APITimeoutError as exc:
-            error = _request_error_from_api_error(exc)
-            await self.on_timeout()
-            await self.on_exception(error or exc)
-
-            if error is None:
-                raise
-
-            raise error from None
-        except APIConnectionError as exc:
-            error = _request_error_from_api_error(exc)
-            await self.on_exception(error or exc)
-
-            if error is None:
-                raise
-
-            raise error from None
         except _timeout_exceptions() as exc:
             await self.on_timeout()
             await self.on_exception(exc)

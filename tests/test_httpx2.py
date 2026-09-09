@@ -21,6 +21,7 @@ from openai import (
 from openai._response import StreamAlreadyConsumed
 from openai.providers import bedrock
 from openai._constants import DEFAULT_TIMEOUT
+from openai.types.beta import AssistantStreamEvent
 
 
 def model_list(request: httpx2.Request) -> httpx2.Response:
@@ -659,6 +660,129 @@ async def test_assistant_stream_timeout_callbacks_preserve_httpx2_family() -> No
 
     assert async_handler.timed_out
     assert isinstance(async_handler.exception, httpx2.ReadTimeout)
+
+
+@pytest.mark.filterwarnings(
+    "ignore:The Assistants API is deprecated in favor of the Responses API:DeprecationWarning"
+)
+@pytest.mark.asyncio
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+@pytest.mark.parametrize("timeout", [True, False], ids=["timeout", "connection"])
+async def test_assistant_stream_hook_api_errors_are_not_unwrapped(sync: bool, timeout: bool) -> None:
+    hook_request = httpx2.Request("GET", "https://example.test/hook")
+
+    if timeout:
+        cause: httpx2.RequestError = httpx2.ReadTimeout("hook timeout")
+        hook_error: APIConnectionError = APITimeoutError(hook_request)
+    else:
+        cause = httpx2.RemoteProtocolError("hook connection error")
+        hook_error = APIConnectionError(request=hook_request)
+
+    hook_error.__cause__ = cause
+
+    class SyncHandler(openai.AssistantEventHandler):
+        def __init__(self) -> None:
+            super().__init__()
+            self.timed_out = False
+            self.exception: Exception | None = None
+
+        @override
+        def on_event(self, event: AssistantStreamEvent) -> None:
+            raise hook_error
+
+        @override
+        def on_timeout(self) -> None:
+            self.timed_out = True
+
+        @override
+        def on_exception(self, exception: Exception) -> None:
+            self.exception = exception
+
+    class AsyncHandler(openai.AsyncAssistantEventHandler):
+        def __init__(self) -> None:
+            super().__init__()
+            self.timed_out = False
+            self.exception: Exception | None = None
+
+        @override
+        async def on_event(self, event: AssistantStreamEvent) -> None:
+            raise hook_error
+
+        @override
+        async def on_timeout(self) -> None:
+            self.timed_out = True
+
+        @override
+        async def on_exception(self, exception: Exception) -> None:
+            self.exception = exception
+
+    content = b'event: thread.created\ndata: {"id":"thread_test","created_at":0,"object":"thread"}\n\n'
+
+    def sync_response(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(
+            200,
+            headers={"content-type": "text/event-stream"},
+            content=content,
+            request=request,
+        )
+
+    async def async_response(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(
+            200,
+            headers={"content-type": "text/event-stream"},
+            content=content,
+            request=request,
+        )
+
+    if sync:
+        handler = SyncHandler()
+
+        with OpenAI(
+            api_key="test",
+            base_url="https://example.test/v1",
+            http_client=openai.DefaultHttpx2Client(
+                transport=httpx2.MockTransport(sync_response),
+                trust_env=False,
+            ),
+            max_retries=0,
+        ) as client:
+            with client.beta.threads.runs.stream(  # pyright: ignore[reportDeprecated]
+                assistant_id="asst_test",
+                thread_id="thread_test",
+                event_handler=handler,
+            ) as stream:
+                with pytest.raises(APIConnectionError) as exc_info:
+                    stream.until_done()
+
+        assert exc_info.value is hook_error
+        assert handler.exception is hook_error
+        assert not handler.timed_out
+        assert hook_error.__cause__ is cause
+
+    else:
+        handler = AsyncHandler()
+
+        async with AsyncOpenAI(
+            api_key="test",
+            base_url="https://example.test/v1",
+            http_client=openai.DefaultAsyncHttpx2Client(
+                transport=httpx2.MockTransport(async_response),
+                trust_env=False,
+            ),
+            max_retries=0,
+        ) as client:
+            async with client.beta.threads.runs.stream(  # pyright: ignore[reportDeprecated]
+                assistant_id="asst_test",
+                thread_id="thread_test",
+                event_handler=handler,
+            ) as stream:
+                with pytest.raises(APIConnectionError) as exc_info:
+                    await stream.until_done()
+
+        assert exc_info.value is hook_error
+        assert handler.exception is hook_error
+        assert not handler.timed_out
+        assert hook_error.__cause__ is cause
 
 
 async def test_sigv4_provider_preserves_httpx2_family_and_rejects_one_shot_bodies() -> None:
