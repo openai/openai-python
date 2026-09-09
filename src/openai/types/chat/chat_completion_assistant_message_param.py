@@ -15,7 +15,7 @@ __all__ = ["ChatCompletionAssistantMessageParam", "Audio", "ContentArrayOfConten
 class Audio(TypedDict, total=False):
     """
     Data about a previous audio response from the model.
-    [Learn more](https://platform.openai.com/docs/guides/audio).
+    [Learn more](https://developers.openai.com/api/docs/guides/audio).
     """
 
     id: Required[str]
@@ -52,7 +52,7 @@ class ChatCompletionAssistantMessageParam(TypedDict, total=False):
     audio: Optional[Audio]
     """
     Data about a previous audio response from the model.
-    [Learn more](https://platform.openai.com/docs/guides/audio).
+    [Learn more](https://developers.openai.com/api/docs/guides/audio).
     """
 
     content: Union[str, Iterable[ContentArrayOfContentPart], None]

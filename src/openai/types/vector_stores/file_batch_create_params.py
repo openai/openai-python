@@ -30,12 +30,12 @@ class FileBatchCreateParams(TypedDict, total=False):
 
     file_ids: SequenceNotStr[str]
     """
-    A list of [File](https://platform.openai.com/docs/api-reference/files) IDs that
-    the vector store should use. Useful for tools like `file_search` that can access
-    files. If `attributes` or `chunking_strategy` are provided, they will be applied
-    to all files in the batch. The maximum batch size is 2000 files. This endpoint
-    is recommended for multi-file ingestion and helps reduce per-vector-store write
-    request pressure. Mutually exclusive with `files`.
+    A list of [File](https://developers.openai.com/api/reference/resources/files)
+    IDs that the vector store should use. Useful for tools like `file_search` that
+    can access files. If `attributes` or `chunking_strategy` are provided, they will
+    be applied to all files in the batch. The maximum batch size is 2000 files. This
+    endpoint is recommended for multi-file ingestion and helps reduce
+    per-vector-store write request pressure. Mutually exclusive with `files`.
     """
 
     files: Iterable[File]
@@ -52,10 +52,10 @@ class FileBatchCreateParams(TypedDict, total=False):
 class File(TypedDict, total=False):
     file_id: Required[str]
     """
-    A [File](https://platform.openai.com/docs/api-reference/files) ID that the
-    vector store should use. Useful for tools like `file_search` that can access
+    A [File](https://developers.openai.com/api/reference/resources/files) ID that
+    the vector store should use. Useful for tools like `file_search` that can access
     files. For multi-file ingestion, we recommend
-    [`file_batches`](https://platform.openai.com/docs/api-reference/vector-stores-file-batches/createBatch)
+    [`file_batches`](https://developers.openai.com/api/reference/resources/vector_stores/subresources/file_batches/methods/create)
     to minimize per-vector-store write requests.
     """
 
