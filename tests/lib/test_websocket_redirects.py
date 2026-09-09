@@ -134,6 +134,28 @@ async def test_async_websocket_redirects(
     assert all(uri.host == "origin.test" for uri, _ in handshakes.sent)
 
 
+@pytest.mark.parametrize("name", ["realtime", "beta.realtime"])
+async def test_async_realtime_websocket_includes_default_headers(monkeypatch: pytest.MonkeyPatch, name: str) -> None:
+    handshakes = Handshakes(monkeypatch, [None])
+    async with AsyncOpenAI(
+        api_key="fake-key",
+        websocket_base_url="wss://origin.test",
+        default_headers={
+            "X-Proxy-Auth": "proxy-token",
+            "X-Custom": "default-value",
+        },
+        http_client=async_http_client(),
+    ) as client:
+        async with resource(client, name).connect(**options(name)):
+            pass
+
+    assert len(handshakes.attempts) == 1
+    headers = handshakes.attempts[0][1]
+    assert headers["X-Proxy-Auth"] == "proxy-token"
+    assert headers["X-Custom"] == EXTRA_HEADERS["X-Custom"]
+    assert headers["Authorization"] == "Bearer fake-key"
+
+
 @pytest.mark.skipif(not FOLLOWS_REDIRECTS, reason="No automatic handshake redirects")
 @pytest.mark.parametrize("name", RESOURCES)
 async def test_later_cross_origin_redirect_is_rejected(monkeypatch: pytest.MonkeyPatch, name: str) -> None:
@@ -218,6 +240,29 @@ def test_sync_websocket_connector_is_unchanged(monkeypatch: pytest.MonkeyPatch, 
         assert caught.value is error
     assert connect_mock.call_count == 2
     assert connect_mock.call_args.kwargs["additional_headers"]["Authorization"] == "Bearer fake-key"
+
+
+@pytest.mark.parametrize("name", ["realtime", "beta.realtime"])
+def test_sync_realtime_websocket_includes_default_headers(monkeypatch: pytest.MonkeyPatch, name: str) -> None:
+    websocket = Mock()
+    connect_mock = Mock(return_value=websocket)
+    monkeypatch.setattr("websockets.sync.client.connect", connect_mock)
+    with OpenAI(
+        api_key="fake-key",
+        websocket_base_url="wss://origin.test",
+        default_headers={
+            "X-Proxy-Auth": "proxy-token",
+            "X-Custom": "default-value",
+        },
+        http_client=httpx2.Client(transport=httpx2.MockTransport(unexpected_http)),
+    ) as client:
+        with resource(client, name).connect(**options(name)):
+            pass
+
+    headers = connect_mock.call_args.kwargs["additional_headers"]
+    assert headers["X-Proxy-Auth"] == "proxy-token"
+    assert headers["X-Custom"] == EXTRA_HEADERS["X-Custom"]
+    assert headers["Authorization"] == "Bearer fake-key"
 
 
 @pytest.mark.skipif(not FOLLOWS_REDIRECTS, reason="No automatic handshake redirects")

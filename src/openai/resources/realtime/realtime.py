@@ -736,6 +736,7 @@ class AsyncRealtimeConnectionManager:
             user_agent_header=self.__client.user_agent,
             additional_headers=_merge_mappings(
                 {
+                    **self.__client._custom_headers,
                     **auth_headers,
                 },
                 extra_headers,
@@ -1225,6 +1226,7 @@ class RealtimeConnectionManager:
             user_agent_header=self.__client.user_agent,
             additional_headers=_merge_mappings(
                 {
+                    **self.__client._custom_headers,
                     **auth_headers,
                 },
                 extra_headers,
