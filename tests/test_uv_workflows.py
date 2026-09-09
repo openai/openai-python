@@ -1517,6 +1517,10 @@ def run_security_dependency_floor_check(
         patch.chdir(tmp_path)
         patch.setenv("BASE_SHA", sha)
         patch.setattr(subprocess, "run", run_git)
+        if sys.version_info < (3, 11):
+            # The compatibility prelude writes this alias into sys.modules.
+            # Register it with MonkeyPatch so it cannot leak into later tests.
+            patch.setitem(sys.modules, "tomllib", tomllib)
         try:
             exec(compiled_security_dependency_floor_program(), {"__name__": "__main__"})
         except SystemExit as error:
@@ -1545,8 +1549,11 @@ def run_security_dependency_floor_check(
     ],
 )
 def test_security_policy_in_process_matches_cli(
-    tmp_path: Path, minimum: str, sha: str, origin: str, accepted: bool
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, minimum: str, sha: str, origin: str, accepted: bool
 ) -> None:
+    if sys.version_info < (3, 11):
+        monkeypatch.delitem(sys.modules, "tomllib", raising=False)
+    original_tomllib = sys.modules.get("tomllib")
     results = [
         run_security_dependency_floor_check(
             tmp_path,
@@ -1563,6 +1570,7 @@ def test_security_policy_in_process_matches_cli(
     assert results[0].returncode == results[1].returncode == (0 if accepted else 1)
     assert results[0].stdout == results[1].stdout
     assert results[0].stderr == results[1].stderr
+    assert sys.modules.get("tomllib") is original_tomllib
 
 
 @pytest.mark.parametrize(
