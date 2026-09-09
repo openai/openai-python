@@ -18,7 +18,9 @@ from openai._types import omit
 from openai._models import construct_type_unchecked
 from openai.types.responses import (
     Response,
+    ResponseOutputText,
     ResponseStreamEvent as RawResponseStreamEvent,
+    ResponseOutputMessage,
 )
 from openai.types.responses.parsed_response import (
     ParsedResponseOutputText,
@@ -28,11 +30,17 @@ from openai.types.responses.parsed_response import (
 from openai.lib.streaming.responses._responses import ResponseStreamState
 from openai.types.responses.response_created_event import ResponseCreatedEvent
 from openai.types.responses.response_completed_event import ResponseCompletedEvent
+from openai.types.responses.response_text_delta_event import (
+    ResponseTextDeltaEvent,
+)
 from openai.types.responses.response_output_item_done_event import (
     ResponseOutputItemDoneEvent,
 )
 from openai.types.responses.response_output_item_added_event import (
     ResponseOutputItemAddedEvent,
+)
+from openai.types.responses.response_content_part_added_event import (
+    ResponseContentPartAddedEvent,
 )
 from openai.types.responses.response_function_call_arguments_done_event import (
     ResponseFunctionCallArgumentsDoneEvent,
@@ -420,3 +428,95 @@ class TestFunctionCallArgumentsDone:
         assert fc.type == "function_call"
         assert fc.arguments == '{"city": "SF"}'
         assert fc.name == "get_weather"
+
+
+class TestEventPayloadIsolation:
+    """Retained streamed events must not be mutated by later accumulation.
+
+    The snapshot stores copies of `output_item.added` items and
+    `content_part.added` parts; subsequent delta events update the snapshot
+    in place, so a caller that retained the already-yielded event must not
+    observe its payload changing as the stream progresses.
+    """
+
+    def test_retained_output_item_added_event_not_mutated(self):
+        state = _make_state()
+        state.handle_event(_make_created_event())
+        added_event = cast(ResponseOutputItemAddedEvent, _make_output_item_added_message())
+        state.handle_event(added_event)
+        # Stream a content part and a text delta into the accumulated message
+        # without a done event, so the snapshot item is the same object the
+        # added event carried (or a copy of it).
+        state.handle_event(
+            construct_type_unchecked(
+                type_=ResponseContentPartAddedEvent,
+                value={
+                    "type": "response.content_part.added",
+                    "sequence_number": 2,
+                    "output_index": 0,
+                    "content_index": 0,
+                    "part": {
+                        "type": "output_text",
+                        "text": "",
+                        "annotations": [],
+                        "logprobs": [],
+                    },
+                },
+            )
+        )
+        state.handle_event(
+            construct_type_unchecked(
+                type_=ResponseTextDeltaEvent,
+                value={
+                    "type": "response.output_text.delta",
+                    "sequence_number": 3,
+                    "output_index": 0,
+                    "content_index": 0,
+                    "delta": "Hello",
+                },
+            )
+        )
+
+        # The retained added event must still show the original in-progress
+        # message with no content, not the accumulated text.
+        item = cast(ResponseOutputMessage, added_event.item)
+        assert item.status == "in_progress"
+        assert item.content == []
+
+    def test_retained_content_part_added_event_not_mutated(self):
+        state = _make_state()
+        state.handle_event(_make_created_event())
+        state.handle_event(_make_output_item_added_message())
+        part_added_event = construct_type_unchecked(
+            type_=ResponseContentPartAddedEvent,
+            value={
+                "type": "response.content_part.added",
+                "sequence_number": 2,
+                "output_index": 0,
+                "content_index": 0,
+                "part": {
+                    "type": "output_text",
+                    "text": "Hello",
+                    "annotations": [],
+                    "logprobs": [],
+                },
+            },
+        )
+        state.handle_event(part_added_event)
+        state.handle_event(
+            construct_type_unchecked(
+                type_=ResponseTextDeltaEvent,
+                value={
+                    "type": "response.output_text.delta",
+                    "sequence_number": 3,
+                    "output_index": 0,
+                    "content_index": 0,
+                    "delta": " world",
+                },
+            )
+        )
+
+        # The retained part must still show the original text, not the
+        # accumulated "Hello world".
+        part = cast(ResponseOutputText, part_added_event.part)
+        assert part.text == "Hello"

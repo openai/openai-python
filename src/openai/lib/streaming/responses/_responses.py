@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import inspect
 from types import TracebackType
 from typing import Any, List, Generic, Iterable, Awaitable, cast
@@ -333,20 +334,36 @@ class ResponseStreamState(Generic[TextFormatT]):
             return self._create_initial_response(event)
 
         if event.type == "response.output_item.added":
+            # Copy the item before storing it in the snapshot.  Later delta
+            # events mutate the accumulated output in place, and a caller that
+            # retained the already-yielded `output_item.added` event must not
+            # observe its payload changing as the stream progresses.
             if event.item.type == "function_call":
                 snapshot.output.append(
-                    construct_type_unchecked(type_=cast(Any, ParsedResponseFunctionToolCall), value=event.item)
+                    construct_type_unchecked(
+                        type_=cast(Any, ParsedResponseFunctionToolCall),
+                        value=copy.deepcopy(event.item),
+                    )
                 )
             elif event.item.type == "message":
                 snapshot.output.append(
-                    construct_type_unchecked(type_=cast(Any, ParsedResponseOutputMessage), value=event.item)
+                    construct_type_unchecked(
+                        type_=cast(Any, ParsedResponseOutputMessage),
+                        value=copy.deepcopy(event.item),
+                    )
                 )
             else:
-                snapshot.output.append(event.item)
+                snapshot.output.append(copy.deepcopy(event.item))
         elif event.type == "response.content_part.added":
             output = snapshot.output[event.output_index]
             if output.type == "message":
-                output.content.append(construct_type_unchecked(type_=cast(Any, ParsedContent), value=event.part))
+                # Copy the part for the same reason as output_item.added above:
+                # later `output_text.delta` events mutate the accumulated part
+                # in place, and retained `content_part.added` events must not
+                # change as the stream progresses.
+                output.content.append(
+                    construct_type_unchecked(type_=cast(Any, ParsedContent), value=copy.deepcopy(event.part))
+                )
         elif event.type == "response.output_text.delta":
             output = snapshot.output[event.output_index]
             if output.type == "message":
