@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+STEADY_ROOT="$(cd "$(dirname "$0")/.." && pwd -P)"
+source "$STEADY_ROOT/scripts/steady/settings"
+steady_verify
+
+# Keep the caller's working directory so relative spec paths keep working.
+exec "$DENO_DIRECTORY/$DENO_BINARY" run --cached-only --frozen \
+  --config "$STEADY_SOURCE/deno.json" \
+  --allow-read --allow-net --allow-env --allow-write \
+  "$STEADY_SOURCE/cmd/steady.ts" "$@"

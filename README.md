@@ -3,11 +3,11 @@
 <!-- prettier-ignore -->
 [![PyPI version](https://img.shields.io/pypi/v/openai.svg?label=pypi%20(stable))](https://pypi.org/project/openai/)
 
-The OpenAI Python library provides convenient access to the OpenAI REST API from any Python 3.9+
+The OpenAI Python library provides convenient access to the OpenAI REST API from any Python 3.10+
 application. The library includes type definitions for all request params and response fields,
-and offers both synchronous and asynchronous clients powered by [httpx](https://github.com/encode/httpx).
+and offers both synchronous and asynchronous clients powered by [HTTPX2](https://httpx2.pydantic.dev/).
 
-It is generated from our [OpenAPI specification](https://github.com/openai/openai-openapi) with [Stainless](https://stainlessapi.com/).
+It is generated from our [OpenAPI specification](https://github.com/openai/openai-openapi).
 
 ## Documentation
 
@@ -167,6 +167,65 @@ client = OpenAI(
 )
 ```
 
+#### X.509 workload identity (mutual TLS)
+
+For X.509 workload identity federation, configure the client certificate and
+server trust on an HTTPX2 client, then pass only the identity-provider and
+service-account IDs to the SDK:
+
+```python
+import os
+import ssl
+
+from openai import OpenAI, DefaultHttpx2Client
+from openai.auth import x509_workload_identity
+
+tls_context = ssl.create_default_context(
+    cafile=os.getenv("OPENAI_MTLS_CA_BUNDLE"),
+)
+tls_context.load_cert_chain(
+    certfile=os.environ["OPENAI_MTLS_CERTIFICATE_CHAIN"],
+    keyfile=os.environ["OPENAI_MTLS_PRIVATE_KEY"],
+    password=os.getenv("OPENAI_MTLS_PRIVATE_KEY_PASSWORD"),
+)
+
+client = OpenAI(
+    workload_identity=x509_workload_identity(
+        identity_provider_id=os.environ["OPENAI_IDENTITY_PROVIDER_ID"],
+        service_account_id=os.environ["OPENAI_SERVICE_ACCOUNT_ID"],
+        # refresh_buffer_seconds=120.0,
+    ),
+    http_client=DefaultHttpx2Client(
+        verify=tls_context,
+        follow_redirects=False,
+    ),
+)
+```
+
+X.509 mode defaults to `https://mtls.api.openai.com/v1` when neither `base_url`
+nor `OPENAI_BASE_URL` is set. The same configured HTTP client presents its
+certificate to the fixed mTLS token-exchange endpoint and to the API. Tokens
+are exchanged lazily, cached, and refreshed automatically. Certificate files,
+private keys, passwords, server trust, proxies, and rotation remain application
+and transport concerns.
+
+X.509 API requests require HTTPS and must stay on the configured API origin.
+The effective HTTP Host authority must match that origin.
+Provider API-key and proxy-only headers cannot be sent to the API alongside
+X.509 authentication.
+Token exchanges do not inherit API request hooks, authentication, or cookies.
+Identity settings are captured when the client is constructed; create a new
+client to change the identity. Azure clients do not support X.509 workload
+identity.
+
+For asynchronous requests, use `AsyncOpenAI` with
+`DefaultAsyncHttpx2Client`. See the complete [sync rollout-toggle
+example](examples/x509_workload_identity.py) and [async rollout-toggle
+example](examples/x509_workload_identity_async.py), which select API-key or
+X.509 authentication with the application-owned `OPENAI_AUTH_MODE`
+environment variable. X.509 workload identity currently supports HTTP APIs;
+Realtime and WebSockets are not included.
+
 ### Vision
 
 With an image URL:
@@ -244,7 +303,7 @@ Functionality between the synchronous and asynchronous clients is otherwise iden
 
 ### With aiohttp
 
-By default, the async client uses `httpx` for HTTP requests. However, for improved concurrency performance you may also use `aiohttp` as the HTTP backend.
+By default, the async client uses HTTPX2. For improved concurrency performance, you may also use `aiohttp` as the HTTPX2 transport.
 
 You can enable this by installing `aiohttp`:
 
@@ -280,6 +339,10 @@ async def main() -> None:
 
 asyncio.run(main())
 ```
+
+### HTTPX2 migration
+
+HTTPX2 is the default HTTP client. If you configure a custom HTTP client, transport, timeout, authentication handler, event hook, or request mock, see the [HTTPX2 migration guide](httpx2.md).
 
 ## Streaming responses
 
@@ -607,7 +670,7 @@ try:
     )
 except openai.APIConnectionError as e:
     print("The server could not be reached")
-    print(e.__cause__)  # an underlying Exception, likely raised within httpx.
+    print(e.__cause__)  # an underlying Exception, likely raised within HTTPX2.
 except openai.RateLimitError as e:
     print("A 429 status code was received; we should back off a bit.")
 except openai.APIStatusError as e:
@@ -694,9 +757,10 @@ client.with_options(max_retries=5).chat.completions.create(
 ## Timeouts
 
 By default requests time out after 10 minutes. You can configure this with a `timeout` option,
-which accepts a float or an [`httpx.Timeout`](https://www.python-httpx.org/advanced/timeouts/#fine-tuning-the-configuration) object:
+which accepts a float or an [`httpx2.Timeout`](https://httpx2.pydantic.dev/) object:
 
 ```python
+import httpx2
 from openai import OpenAI
 
 # Configure the default for all requests:
@@ -707,7 +771,7 @@ client = OpenAI(
 
 # More granular control:
 client = OpenAI(
-    timeout=httpx.Timeout(60.0, read=5.0, write=10.0, connect=2.0),
+    timeout=httpx2.Timeout(60.0, read=5.0, write=10.0, connect=2.0),
 )
 
 # Override per-request:
@@ -820,11 +884,11 @@ To make requests to undocumented endpoints, you can make requests using `client.
 http verbs. Options on the client will be respected (such as retries) when making this request.
 
 ```py
-import httpx
+import httpx2
 
 response = client.post(
     "/foo",
-    cast_to=httpx.Response,
+    cast_to=httpx2.Response,
     body={"my_param": True},
 )
 
@@ -844,22 +908,18 @@ can also get all the extra fields on the Pydantic model as a dict with
 
 ### Configuring the HTTP client
 
-You can directly override the [httpx client](https://www.python-httpx.org/api/#client) to customize it for your use case, including:
-
-- Support for [proxies](https://www.python-httpx.org/advanced/proxies/)
-- Custom [transports](https://www.python-httpx.org/advanced/transports/)
-- Additional [advanced](https://www.python-httpx.org/advanced/clients/) functionality
+You can override the [HTTPX2 client](https://httpx2.pydantic.dev/) to customize proxies, transports, authentication, event hooks, and other advanced HTTP behavior. See the [HTTPX2 migration guide](httpx2.md) when updating an existing custom client.
 
 ```python
-import httpx
-from openai import OpenAI, DefaultHttpxClient
+import httpx2
+from openai import OpenAI, DefaultHttpx2Client
 
 client = OpenAI(
     # Or use the `OPENAI_BASE_URL` env var
     base_url="http://my.test.server.example.com:8083/v1",
-    http_client=DefaultHttpxClient(
+    http_client=DefaultHttpx2Client(
         proxy="http://my.test.proxy.example.com",
-        transport=httpx.HTTPTransport(local_address="0.0.0.0"),
+        transport=httpx2.HTTPTransport(local_address="0.0.0.0"),
     ),
 )
 ```
@@ -867,8 +927,112 @@ client = OpenAI(
 You can also customize the client on a per-request basis by using `with_options()`:
 
 ```python
-client.with_options(http_client=DefaultHttpxClient(...))
+client.with_options(http_client=DefaultHttpx2Client(...))
 ```
+
+#### Mutual TLS
+
+Before configuring a client, review the
+[OpenAI Mutual TLS Beta Program](https://help.openai.com/en/articles/10876024-openai-mutual-tls-beta-program)
+for enrollment, currently supported endpoints, and certificate requirements.
+
+For API-key authenticated HTTP requests that require mutual TLS (mTLS), configure
+a native [`ssl.SSLContext`](https://docs.python.org/3/library/ssl.html#ssl.SSLContext)
+and pass it through the custom HTTP client:
+
+```python
+import os
+import ssl
+
+from openai import OpenAI, DefaultHttpx2Client
+
+# Server trust is configured independently. Without `cafile`, this uses the
+# operating system's normal trusted certificate authorities.
+ssl_context = ssl.create_default_context(
+    cafile=os.environ.get("OPENAI_MTLS_CA_BUNDLE"),
+)
+ssl_context.load_cert_chain(
+    # This PEM must contain the leaf certificate first, followed by every
+    # intermediate certificate needed to reach the server's trust anchor.
+    certfile=os.environ["OPENAI_MTLS_CERTIFICATE_CHAIN"],
+    keyfile=os.environ["OPENAI_MTLS_PRIVATE_KEY"],
+    password=os.environ.get("OPENAI_MTLS_PRIVATE_KEY_PASSWORD"),
+)
+
+client = OpenAI(
+    api_key=os.environ["OPENAI_API_KEY"],
+    # A custom HTTP client does not tell the SDK that mTLS is configured, so
+    # select the mTLS endpoint explicitly. Preserve an EU or custom override.
+    base_url=os.environ.get(
+        "OPENAI_BASE_URL",
+        "https://mtls.api.openai.com/v1",
+    ),
+    # A client certificate belongs to the HTTP client, not the base URL.
+    # Disable redirects so it cannot follow a response to another origin.
+    http_client=DefaultHttpx2Client(
+        verify=ssl_context,
+        follow_redirects=False,
+    ),
+)
+```
+
+The async configuration is equivalent:
+
+```python
+import os
+import ssl
+
+from openai import AsyncOpenAI, DefaultAsyncHttpx2Client
+
+ssl_context = ssl.create_default_context(
+    cafile=os.environ.get("OPENAI_MTLS_CA_BUNDLE"),
+)
+ssl_context.load_cert_chain(
+    certfile=os.environ["OPENAI_MTLS_CERTIFICATE_CHAIN"],
+    keyfile=os.environ["OPENAI_MTLS_PRIVATE_KEY"],
+    password=os.environ.get("OPENAI_MTLS_PRIVATE_KEY_PASSWORD"),
+)
+
+client = AsyncOpenAI(
+    api_key=os.environ["OPENAI_API_KEY"],
+    base_url=os.environ.get(
+        "OPENAI_BASE_URL",
+        "https://mtls.api.openai.com/v1",
+    ),
+    http_client=DefaultAsyncHttpx2Client(
+        verify=ssl_context,
+        follow_redirects=False,
+    ),
+)
+```
+
+See the complete [sync HTTPX2](examples/mtls_httpx2.py) and
+[async HTTPX2](examples/mtls_httpx2_async.py) examples.
+
+The certificate-bearing HTTP client is transport-wide. For API-key mTLS,
+dedicate it to the selected API origin; X.509 workload identity also uses the
+fixed OpenAI mTLS token-exchange origin. Do not reuse the client for unrelated
+services or pass it through `with_options()` with a different `base_url`.
+If redirects are required for API-key mTLS, add an
+HTTPX2 request hook that rejects requests whose scheme, host, or port differs
+from the configured mTLS origin before enabling `follow_redirects`.
+
+`SSLContext.load_cert_chain()` raises during setup for unreadable or malformed
+files and for a private key that does not match the leaf certificate. Certificate
+expiry, key usage, extended key usage, SAN, and trust policy remain TLS server
+decisions. OpenAI does not fetch missing intermediates through AIA, so provide a
+complete, leaf-first client-chain PEM. Intermediate-chain support is currently
+enabled by request. Until it is enabled for your organization, use a client leaf
+certificate directly signed by the uploaded CA.
+
+For certificate rotation, build a new `SSLContext`, HTTP client, and `OpenAI` or
+`AsyncOpenAI` client. This creates a fresh connection pool; close the old SDK
+client after its in-flight requests finish. Do not assume existing TLS
+connections will renegotiate.
+
+This recipe applies to ordinary API-key HTTP traffic. For certificate-backed
+token exchange, use the X.509 workload identity configuration described above.
+Realtime WebSocket mTLS is not included.
 
 ### Managing HTTP resources
 
@@ -926,6 +1090,82 @@ In addition to the options provided in the base `OpenAI` client, the following o
 
 An example of using the client with Microsoft Entra ID (formerly known as Azure Active Directory) can be found [here](https://github.com/openai/openai-python/blob/main/examples/azure_ad.py).
 
+## Amazon Bedrock
+
+To use this library with [Amazon Bedrock's OpenAI-compatible API](https://docs.aws.amazon.com/bedrock/latest/userguide/models-api-compatibility.html), configure the standard `OpenAI` client with the Bedrock provider.
+
+Install the optional Bedrock dependencies to use the standard AWS credential chain and SigV4 authentication:
+
+```sh
+pip install 'openai[bedrock]'
+```
+
+```py
+from openai import OpenAI
+from openai.providers import bedrock
+
+# Uses your normal AWS credentials. You can omit region when it is
+# configured through AWS_REGION, AWS_DEFAULT_REGION, or your AWS profile.
+client = OpenAI(
+    provider=bedrock(
+        region="us-west-2",
+    )
+)
+
+response = client.responses.create(
+    model="openai.gpt-5.4",
+    input="Say hello!",
+)
+
+print(response.output_text)
+```
+
+The provider configures AWS authentication and the Bedrock Mantle endpoint while retaining the normal SDK resources, retries, streaming, and error handling. AWS controls which endpoints and features are supported; unsupported calls surface the provider's normal HTTP errors through the SDK.
+
+The default AWS credential chain supports environment credentials, shared credentials and config files, named profiles, SSO and assume-role profiles, and workload credentials such as ECS, EKS, and EC2 metadata. To select a named profile:
+
+```py
+client = OpenAI(
+    provider=bedrock(
+        profile="my-profile",
+    )
+)
+```
+
+You can also pass `access_key_id` and `secret_access_key`, with an optional `session_token`, or a refreshable `credential_provider` that returns botocore-compatible credentials. Explicit bearer and AWS credential options are mutually exclusive.
+
+Pass `base_url` to `bedrock(...)` or set `AWS_BEDROCK_BASE_URL` to override the derived `https://bedrock-mantle.<region>.api.aws/openai/v1` endpoint. Custom URLs retain Mantle signing by default; pass `endpoint="runtime"` to use Runtime signing.
+
+SigV4 requests require replayable, fully serialized request bodies. Standard JSON requests already meet this requirement, and response streaming is unaffected. Low-level one-shot request streams must be buffered before sending, or sent with bearer authentication and retries disabled.
+
+Bearer tokens remain available as a compatibility or manual authentication mode. Set `AWS_BEARER_TOKEN_BEDROCK` to an [Amazon Bedrock API key](https://docs.aws.amazon.com/bedrock/latest/userguide/api-keys.html), pass `api_key`, or provide a refresh callback:
+
+```py
+client = OpenAI(
+    provider=bedrock(
+        region="us-west-2",
+        token_provider=lambda: refresh_bedrock_token(),
+    )
+)
+```
+
+Without explicit authentication, `AWS_BEARER_TOKEN_BEDROCK` takes precedence over the default AWS credential chain for backwards compatibility.
+
+### Legacy `BedrockOpenAI` client
+
+`BedrockOpenAI` and `AsyncBedrockOpenAI` remain available for existing applications and delegate to the same provider implementation. New applications should prefer `OpenAI(provider=bedrock(...))`.
+
+```py
+from openai import BedrockOpenAI
+
+client = BedrockOpenAI(
+    aws_region="us-west-2",
+    aws_profile="my-profile",
+)
+```
+
+The legacy module client also continues to support `openai.api_type = "amazon-bedrock"` or `OPENAI_API_TYPE=amazon-bedrock`.
+
 ## Versioning
 
 This package generally follows [SemVer](https://semver.org/spec/v2.0.0.html) conventions, though certain backwards-incompatible changes may be released as minor versions:
@@ -933,6 +1173,8 @@ This package generally follows [SemVer](https://semver.org/spec/v2.0.0.html) con
 1. Changes that only affect static types, without breaking runtime behavior.
 2. Changes to library internals which are technically public but not intended or documented for external use. _(Please open a GitHub issue to let us know if you are relying on such internals.)_
 3. Changes that we do not expect to impact the vast majority of users in practice.
+
+Minimum supported Python version increases are released as minor versions, not patches, when package metadata can keep users on the final compatible SDK release. See the [Python version support policy](./PYTHON_VERSION_POLICY.md) for the support window, release treatment, and compatibility history.
 
 We take backwards-compatibility seriously and work hard to ensure you can rely on a smooth upgrade experience.
 
@@ -951,7 +1193,7 @@ print(openai.__version__)
 
 ## Requirements
 
-Python 3.9 or higher.
+Python 3.10 or higher.
 
 ## Contributing
 

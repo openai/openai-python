@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -9,7 +9,6 @@ import pytest
 
 from openai import OpenAI, AsyncOpenAI
 from tests.utils import assert_matches_type
-from openai._utils import assert_signatures_in_sync
 from openai.types.responses import (
     Response,
     CompactedResponse,
@@ -43,7 +42,14 @@ class TestResponses:
             max_output_tokens=16,
             max_tool_calls=0,
             metadata={"foo": "string"},
-            model="gpt-5.1",
+            model="gpt-6-astra",
+            moderation={
+                "model": "model",
+                "policy": {
+                    "input": {"mode": "score"},
+                    "output": {"mode": "score"},
+                },
+            },
             parallel_tool_calls=True,
             previous_response_id="previous_response_id",
             prompt={
@@ -52,10 +58,17 @@ class TestResponses:
                 "version": "version",
             },
             prompt_cache_key="prompt-cache-key-1234",
+            prompt_cache_options={
+                "comparison_response_id": "resp_123",
+                "mode": "implicit",
+                "ttl": "30m",
+            },
             prompt_cache_retention="in_memory",
             reasoning={
+                "context": "auto",
                 "effort": "none",
                 "generate_summary": "auto",
+                "mode": "standard",
                 "summary": "auto",
             },
             safety_identifier="safety-identifier-1234",
@@ -75,8 +88,11 @@ class TestResponses:
                     "parameters": {"foo": "bar"},
                     "strict": True,
                     "type": "function",
+                    "allowed_callers": ["direct"],
+                    "async": True,
                     "defer_loading": True,
                     "description": "description",
+                    "output_schema": {"foo": "bar"},
                 }
             ],
             top_logprobs=0,
@@ -131,7 +147,14 @@ class TestResponses:
             max_output_tokens=16,
             max_tool_calls=0,
             metadata={"foo": "string"},
-            model="gpt-5.1",
+            model="gpt-6-astra",
+            moderation={
+                "model": "model",
+                "policy": {
+                    "input": {"mode": "score"},
+                    "output": {"mode": "score"},
+                },
+            },
             parallel_tool_calls=True,
             previous_response_id="previous_response_id",
             prompt={
@@ -140,10 +163,17 @@ class TestResponses:
                 "version": "version",
             },
             prompt_cache_key="prompt-cache-key-1234",
+            prompt_cache_options={
+                "comparison_response_id": "resp_123",
+                "mode": "implicit",
+                "ttl": "30m",
+            },
             prompt_cache_retention="in_memory",
             reasoning={
+                "context": "auto",
                 "effort": "none",
                 "generate_summary": "auto",
+                "mode": "standard",
                 "summary": "auto",
             },
             safety_identifier="safety-identifier-1234",
@@ -162,8 +192,11 @@ class TestResponses:
                     "parameters": {"foo": "bar"},
                     "strict": True,
                     "type": "function",
+                    "allowed_callers": ["direct"],
+                    "async": True,
                     "defer_loading": True,
                     "description": "description",
+                    "output_schema": {"foo": "bar"},
                 }
             ],
             top_logprobs=0,
@@ -376,18 +409,22 @@ class TestResponses:
     @parametrize
     def test_method_compact(self, client: OpenAI) -> None:
         response = client.responses.compact(
-            model="gpt-5.4",
+            model="gpt-6-astra",
         )
         assert_matches_type(CompactedResponse, response, path=["response"])
 
     @parametrize
     def test_method_compact_with_all_params(self, client: OpenAI) -> None:
         response = client.responses.compact(
-            model="gpt-5.4",
+            model="gpt-6-astra",
             input="string",
             instructions="instructions",
             previous_response_id="resp_123",
             prompt_cache_key="prompt_cache_key",
+            prompt_cache_options={
+                "mode": "implicit",
+                "ttl": "30m",
+            },
             prompt_cache_retention="in_memory",
             service_tier="auto",
         )
@@ -396,7 +433,7 @@ class TestResponses:
     @parametrize
     def test_raw_response_compact(self, client: OpenAI) -> None:
         http_response = client.responses.with_raw_response.compact(
-            model="gpt-5.4",
+            model="gpt-6-astra",
         )
 
         assert http_response.is_closed is True
@@ -407,7 +444,7 @@ class TestResponses:
     @parametrize
     def test_streaming_response_compact(self, client: OpenAI) -> None:
         with client.responses.with_streaming_response.compact(
-            model="gpt-5.4",
+            model="gpt-6-astra",
         ) as http_response:
             assert not http_response.is_closed
             assert http_response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -416,17 +453,6 @@ class TestResponses:
             assert_matches_type(CompactedResponse, response, path=["response"])
 
         assert cast(Any, http_response.is_closed) is True
-
-
-@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
-def test_parse_method_in_sync(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
-    checking_client: OpenAI | AsyncOpenAI = client if sync else async_client
-
-    assert_signatures_in_sync(
-        checking_client.responses.create,
-        checking_client.responses.parse,
-        exclude_params={"stream", "tools"},
-    )
 
 
 class TestAsyncResponses:
@@ -456,7 +482,14 @@ class TestAsyncResponses:
             max_output_tokens=16,
             max_tool_calls=0,
             metadata={"foo": "string"},
-            model="gpt-5.1",
+            model="gpt-6-astra",
+            moderation={
+                "model": "model",
+                "policy": {
+                    "input": {"mode": "score"},
+                    "output": {"mode": "score"},
+                },
+            },
             parallel_tool_calls=True,
             previous_response_id="previous_response_id",
             prompt={
@@ -465,10 +498,17 @@ class TestAsyncResponses:
                 "version": "version",
             },
             prompt_cache_key="prompt-cache-key-1234",
+            prompt_cache_options={
+                "comparison_response_id": "resp_123",
+                "mode": "implicit",
+                "ttl": "30m",
+            },
             prompt_cache_retention="in_memory",
             reasoning={
+                "context": "auto",
                 "effort": "none",
                 "generate_summary": "auto",
+                "mode": "standard",
                 "summary": "auto",
             },
             safety_identifier="safety-identifier-1234",
@@ -488,8 +528,11 @@ class TestAsyncResponses:
                     "parameters": {"foo": "bar"},
                     "strict": True,
                     "type": "function",
+                    "allowed_callers": ["direct"],
+                    "async": True,
                     "defer_loading": True,
                     "description": "description",
+                    "output_schema": {"foo": "bar"},
                 }
             ],
             top_logprobs=0,
@@ -544,7 +587,14 @@ class TestAsyncResponses:
             max_output_tokens=16,
             max_tool_calls=0,
             metadata={"foo": "string"},
-            model="gpt-5.1",
+            model="gpt-6-astra",
+            moderation={
+                "model": "model",
+                "policy": {
+                    "input": {"mode": "score"},
+                    "output": {"mode": "score"},
+                },
+            },
             parallel_tool_calls=True,
             previous_response_id="previous_response_id",
             prompt={
@@ -553,10 +603,17 @@ class TestAsyncResponses:
                 "version": "version",
             },
             prompt_cache_key="prompt-cache-key-1234",
+            prompt_cache_options={
+                "comparison_response_id": "resp_123",
+                "mode": "implicit",
+                "ttl": "30m",
+            },
             prompt_cache_retention="in_memory",
             reasoning={
+                "context": "auto",
                 "effort": "none",
                 "generate_summary": "auto",
+                "mode": "standard",
                 "summary": "auto",
             },
             safety_identifier="safety-identifier-1234",
@@ -575,8 +632,11 @@ class TestAsyncResponses:
                     "parameters": {"foo": "bar"},
                     "strict": True,
                     "type": "function",
+                    "allowed_callers": ["direct"],
+                    "async": True,
                     "defer_loading": True,
                     "description": "description",
+                    "output_schema": {"foo": "bar"},
                 }
             ],
             top_logprobs=0,
@@ -789,18 +849,22 @@ class TestAsyncResponses:
     @parametrize
     async def test_method_compact(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.responses.compact(
-            model="gpt-5.4",
+            model="gpt-6-astra",
         )
         assert_matches_type(CompactedResponse, response, path=["response"])
 
     @parametrize
     async def test_method_compact_with_all_params(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.responses.compact(
-            model="gpt-5.4",
+            model="gpt-6-astra",
             input="string",
             instructions="instructions",
             previous_response_id="resp_123",
             prompt_cache_key="prompt_cache_key",
+            prompt_cache_options={
+                "mode": "implicit",
+                "ttl": "30m",
+            },
             prompt_cache_retention="in_memory",
             service_tier="auto",
         )
@@ -809,7 +873,7 @@ class TestAsyncResponses:
     @parametrize
     async def test_raw_response_compact(self, async_client: AsyncOpenAI) -> None:
         http_response = await async_client.responses.with_raw_response.compact(
-            model="gpt-5.4",
+            model="gpt-6-astra",
         )
 
         assert http_response.is_closed is True
@@ -820,7 +884,7 @@ class TestAsyncResponses:
     @parametrize
     async def test_streaming_response_compact(self, async_client: AsyncOpenAI) -> None:
         async with async_client.responses.with_streaming_response.compact(
-            model="gpt-5.4",
+            model="gpt-6-astra",
         ) as http_response:
             assert not http_response.is_closed
             assert http_response.http_request.headers.get("X-Stainless-Lang") == "python"

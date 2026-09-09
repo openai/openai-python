@@ -1,11 +1,11 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 from typing import List
 from typing_extensions import Literal
 
-import httpx
+import httpx2
 
 from .... import _legacy_response
 from ...._types import Body, Omit, Query, Headers, NotGiven, SequenceNotStr, omit, not_given
@@ -80,7 +80,7 @@ class Usage(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageAudioSpeechesResponse:
         """
         Get audio speeches usage details for the organization.
@@ -166,7 +166,7 @@ class Usage(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageAudioTranscriptionsResponse:
         """
         Get audio transcriptions usage details for the organization.
@@ -249,7 +249,7 @@ class Usage(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageCodeInterpreterSessionsResponse:
         """
         Get code interpreter sessions usage details for the organization.
@@ -327,7 +327,7 @@ class Usage(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageCompletionsResponse:
         """
         Get completions usage details for the organization.
@@ -409,6 +409,7 @@ class Usage(SyncAPIResource):
         end_time: int | Omit = omit,
         group_by: List[Literal["project_id", "line_item", "api_key_id"]] | Omit = omit,
         limit: int | Omit = omit,
+        line_items: SequenceNotStr[str] | Omit = omit,
         page: str | Omit = omit,
         project_ids: SequenceNotStr[str] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -416,7 +417,7 @@ class Usage(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageCostsResponse:
         """
         Get costs details for the organization.
@@ -436,6 +437,9 @@ class Usage(SyncAPIResource):
 
           limit: A limit on the number of buckets to be returned. Limit can range between 1 and
               180, and the default is 7.
+
+          line_items: Return only costs for these exact line item names. Each value must match the
+              complete `line_item` value, for example `gpt-6-astra, input_tokens`.
 
           page: A cursor for use in pagination. Corresponding to the `next_page` field from the
               previous response.
@@ -465,6 +469,7 @@ class Usage(SyncAPIResource):
                         "end_time": end_time,
                         "group_by": group_by,
                         "limit": limit,
+                        "line_items": line_items,
                         "page": page,
                         "project_ids": project_ids,
                     },
@@ -493,7 +498,7 @@ class Usage(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageEmbeddingsResponse:
         """
         Get embeddings usage details for the organization.
@@ -579,7 +584,7 @@ class Usage(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageFileSearchCallsResponse:
         """
         Get file search calls usage details for the organization.
@@ -668,7 +673,7 @@ class Usage(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageImagesResponse:
         """
         Get images usage details for the organization.
@@ -763,7 +768,7 @@ class Usage(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageModerationsResponse:
         """
         Get moderations usage details for the organization.
@@ -846,7 +851,7 @@ class Usage(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageVectorStoresResponse:
         """
         Get vector stores usage details for the organization.
@@ -924,7 +929,7 @@ class Usage(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageWebSearchCallsResponse:
         """
         Get web search calls usage details for the organization.
@@ -1035,7 +1040,7 @@ class AsyncUsage(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageAudioSpeechesResponse:
         """
         Get audio speeches usage details for the organization.
@@ -1121,7 +1126,7 @@ class AsyncUsage(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageAudioTranscriptionsResponse:
         """
         Get audio transcriptions usage details for the organization.
@@ -1204,7 +1209,7 @@ class AsyncUsage(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageCodeInterpreterSessionsResponse:
         """
         Get code interpreter sessions usage details for the organization.
@@ -1282,7 +1287,7 @@ class AsyncUsage(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageCompletionsResponse:
         """
         Get completions usage details for the organization.
@@ -1364,6 +1369,7 @@ class AsyncUsage(AsyncAPIResource):
         end_time: int | Omit = omit,
         group_by: List[Literal["project_id", "line_item", "api_key_id"]] | Omit = omit,
         limit: int | Omit = omit,
+        line_items: SequenceNotStr[str] | Omit = omit,
         page: str | Omit = omit,
         project_ids: SequenceNotStr[str] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -1371,7 +1377,7 @@ class AsyncUsage(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageCostsResponse:
         """
         Get costs details for the organization.
@@ -1391,6 +1397,9 @@ class AsyncUsage(AsyncAPIResource):
 
           limit: A limit on the number of buckets to be returned. Limit can range between 1 and
               180, and the default is 7.
+
+          line_items: Return only costs for these exact line item names. Each value must match the
+              complete `line_item` value, for example `gpt-6-astra, input_tokens`.
 
           page: A cursor for use in pagination. Corresponding to the `next_page` field from the
               previous response.
@@ -1420,6 +1429,7 @@ class AsyncUsage(AsyncAPIResource):
                         "end_time": end_time,
                         "group_by": group_by,
                         "limit": limit,
+                        "line_items": line_items,
                         "page": page,
                         "project_ids": project_ids,
                     },
@@ -1448,7 +1458,7 @@ class AsyncUsage(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageEmbeddingsResponse:
         """
         Get embeddings usage details for the organization.
@@ -1534,7 +1544,7 @@ class AsyncUsage(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageFileSearchCallsResponse:
         """
         Get file search calls usage details for the organization.
@@ -1623,7 +1633,7 @@ class AsyncUsage(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageImagesResponse:
         """
         Get images usage details for the organization.
@@ -1718,7 +1728,7 @@ class AsyncUsage(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageModerationsResponse:
         """
         Get moderations usage details for the organization.
@@ -1801,7 +1811,7 @@ class AsyncUsage(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageVectorStoresResponse:
         """
         Get vector stores usage details for the organization.
@@ -1879,7 +1889,7 @@ class AsyncUsage(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageWebSearchCallsResponse:
         """
         Get web search calls usage details for the organization.

@@ -1,11 +1,11 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 from typing import Union, Iterable, Optional
 from typing_extensions import Literal
 
-import httpx
+import httpx2
 
 from ... import _legacy_response
 from ..._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
@@ -51,6 +51,7 @@ class InputTokens(SyncAPIResource):
         instructions: Optional[str] | Omit = omit,
         model: Optional[str] | Omit = omit,
         parallel_tool_calls: Optional[bool] | Omit = omit,
+        personality: Union[str, Literal["friendly", "pragmatic"]] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         text: Optional[input_token_count_params.Text] | Omit = omit,
@@ -62,7 +63,7 @@ class InputTokens(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> InputTokenCountResponse:
         """
         Returns input token counts of the request.
@@ -86,24 +87,28 @@ class InputTokens(SyncAPIResource):
           model: Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI offers a
               wide range of models with different capabilities, performance characteristics,
               and price points. Refer to the
-              [model guide](https://platform.openai.com/docs/models) to browse and compare
-              available models.
+              [model guide](https://developers.openai.com/api/docs/models) to browse and
+              compare available models.
 
           parallel_tool_calls: Whether to allow the model to run tool calls in parallel.
 
+          personality: A model-owned style preset to apply to this request. Omit this parameter to use
+              the model's default style. Supported values may expand over time. Values must be
+              at most 64 characters.
+
           previous_response_id: The unique ID of the previous response to the model. Use this to create
               multi-turn conversations. Learn more about
-              [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+              [conversation state](https://developers.openai.com/api/docs/guides/conversation-state).
               Cannot be used in conjunction with `conversation`.
 
           reasoning: **gpt-5 and o-series models only** Configuration options for
-              [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+              [reasoning models](https://developers.openai.com/api/docs/guides/reasoning).
 
           text: Configuration options for a text response from the model. Can be plain text or
               structured JSON data. Learn more:
 
-              - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
-              - [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs)
+              - [Text inputs and outputs](https://developers.openai.com/api/docs/guides/text)
+              - [Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs)
 
           tool_choice: Controls which tool the model should use, if any.
 
@@ -133,6 +138,7 @@ class InputTokens(SyncAPIResource):
                     "instructions": instructions,
                     "model": model,
                     "parallel_tool_calls": parallel_tool_calls,
+                    "personality": personality,
                     "previous_response_id": previous_response_id,
                     "reasoning": reasoning,
                     "text": text,
@@ -181,6 +187,7 @@ class AsyncInputTokens(AsyncAPIResource):
         instructions: Optional[str] | Omit = omit,
         model: Optional[str] | Omit = omit,
         parallel_tool_calls: Optional[bool] | Omit = omit,
+        personality: Union[str, Literal["friendly", "pragmatic"]] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         text: Optional[input_token_count_params.Text] | Omit = omit,
@@ -192,7 +199,7 @@ class AsyncInputTokens(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> InputTokenCountResponse:
         """
         Returns input token counts of the request.
@@ -216,24 +223,28 @@ class AsyncInputTokens(AsyncAPIResource):
           model: Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI offers a
               wide range of models with different capabilities, performance characteristics,
               and price points. Refer to the
-              [model guide](https://platform.openai.com/docs/models) to browse and compare
-              available models.
+              [model guide](https://developers.openai.com/api/docs/models) to browse and
+              compare available models.
 
           parallel_tool_calls: Whether to allow the model to run tool calls in parallel.
 
+          personality: A model-owned style preset to apply to this request. Omit this parameter to use
+              the model's default style. Supported values may expand over time. Values must be
+              at most 64 characters.
+
           previous_response_id: The unique ID of the previous response to the model. Use this to create
               multi-turn conversations. Learn more about
-              [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+              [conversation state](https://developers.openai.com/api/docs/guides/conversation-state).
               Cannot be used in conjunction with `conversation`.
 
           reasoning: **gpt-5 and o-series models only** Configuration options for
-              [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+              [reasoning models](https://developers.openai.com/api/docs/guides/reasoning).
 
           text: Configuration options for a text response from the model. Can be plain text or
               structured JSON data. Learn more:
 
-              - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
-              - [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs)
+              - [Text inputs and outputs](https://developers.openai.com/api/docs/guides/text)
+              - [Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs)
 
           tool_choice: Controls which tool the model should use, if any.
 
@@ -263,6 +274,7 @@ class AsyncInputTokens(AsyncAPIResource):
                     "instructions": instructions,
                     "model": model,
                     "parallel_tool_calls": parallel_tool_calls,
+                    "personality": personality,
                     "previous_response_id": previous_response_id,
                     "reasoning": reasoning,
                     "text": text,

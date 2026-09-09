@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -23,6 +23,6 @@ class StepRetrieveParams(TypedDict, total=False):
     search result content.
 
     See the
-    [file search tool documentation](https://platform.openai.com/docs/assistants/tools/file-search#customizing-file-search-settings)
+    [file search tool documentation](https://developers.openai.com/api/docs/guides/tools-file-search#retrieval-customization)
     for more information.
     """

@@ -324,9 +324,9 @@ class ModelNestedObjects(BaseModel):
 @parametrize
 @pytest.mark.asyncio
 async def test_pydantic_nested_objects(use_async: bool) -> None:
-    model = ModelNestedObjects.construct(nested={"foo": "stainless"})
+    model = ModelNestedObjects.construct(nested={"foo": "openai"})
     assert isinstance(model.nested, MyModel)
-    assert cast(Any, await transform(model, Any, use_async)) == {"nested": {"foo": "stainless"}}
+    assert cast(Any, await transform(model, Any, use_async)) == {"nested": {"foo": "openai"}}
 
 
 class ModelWithDefaultField(BaseModel):

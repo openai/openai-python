@@ -1,11 +1,9 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
-
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Optional, cast
 from typing_extensions import Literal
 
-import httpx
+import httpx2
 
 from ._utils import is_dict
 from ._models import construct_type
@@ -38,16 +36,16 @@ class OpenAIError(Exception):
 
 
 class SubjectTokenProviderError(OpenAIError):
-    response: httpx.Response | None
+    response: httpx2.Response | None
 
-    def __init__(self, message: str, *, response: httpx.Response | None = None) -> None:
+    def __init__(self, message: str, *, response: httpx2.Response | None = None) -> None:
         super().__init__(message)
         self.response = response
 
 
 class APIError(OpenAIError):
     message: str
-    request: httpx.Request
+    request: httpx2.Request
 
     body: object | None
     """The API response body.
@@ -64,7 +62,7 @@ class APIError(OpenAIError):
     param: Optional[str] = None
     type: Optional[str]
 
-    def __init__(self, message: str, request: httpx.Request, *, body: object | None) -> None:
+    def __init__(self, message: str, request: httpx2.Request, *, body: object | None) -> None:
         super().__init__(message)
         self.request = request
         self.message = message
@@ -81,10 +79,10 @@ class APIError(OpenAIError):
 
 
 class APIResponseValidationError(APIError):
-    response: httpx.Response
+    response: httpx2.Response
     status_code: int
 
-    def __init__(self, response: httpx.Response, body: object | None, *, message: str | None = None) -> None:
+    def __init__(self, response: httpx2.Response, body: object | None, *, message: str | None = None) -> None:
         super().__init__(message or "Data returned by API invalid for expected schema.", response.request, body=body)
         self.response = response
         self.status_code = response.status_code
@@ -93,11 +91,11 @@ class APIResponseValidationError(APIError):
 class APIStatusError(APIError):
     """Raised when an API response has a status code of 4xx or 5xx."""
 
-    response: httpx.Response
+    response: httpx2.Response
     status_code: int
     request_id: str | None
 
-    def __init__(self, message: str, *, response: httpx.Response, body: object | None) -> None:
+    def __init__(self, message: str, *, response: httpx2.Response, body: object | None) -> None:
         super().__init__(message, response.request, body=body)
         self.response = response
         self.status_code = response.status_code
@@ -105,12 +103,12 @@ class APIStatusError(APIError):
 
 
 class APIConnectionError(APIError):
-    def __init__(self, *, message: str = "Connection error.", request: httpx.Request) -> None:
+    def __init__(self, *, message: str = "Connection error.", request: httpx2.Request) -> None:
         super().__init__(message, request, body=None)
 
 
 class APITimeoutError(APIConnectionError):
-    def __init__(self, request: httpx.Request) -> None:
+    def __init__(self, request: httpx2.Request) -> None:
         super().__init__(message="Request timed out.", request=request)
 
 
@@ -125,7 +123,7 @@ class AuthenticationError(APIStatusError):
 class OAuthError(AuthenticationError):
     error: Optional[OAuthErrorCode]
 
-    def __init__(self, *, response: httpx.Response, body: object | None) -> None:
+    def __init__(self, *, response: httpx2.Response, body: object | None) -> None:
         message = "OAuth authentication error."
         error = None
 

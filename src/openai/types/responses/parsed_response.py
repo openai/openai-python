@@ -1,5 +1,3 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
-
 from typing import TYPE_CHECKING, List, Union, Generic, TypeVar, Optional
 from typing_extensions import Annotated, TypeAlias
 
@@ -8,8 +6,11 @@ from .response import Response
 from ..._models import GenericModel
 from .response_output_item import (
     McpCall,
+    Program,
     McpListTools,
+    ProgramOutput,
     LocalShellCall,
+    AdditionalTools,
     McpApprovalRequest,
     ImageGenerationCall,
     McpApprovalResponse,
@@ -80,7 +81,10 @@ ParsedResponseOutputItem: TypeAlias = Annotated[
         ResponseComputerToolCallOutputItem,
         ResponseToolSearchCall,
         ResponseToolSearchOutputItem,
+        AdditionalTools,
         ResponseReasoningItem,
+        Program,
+        ProgramOutput,
         McpCall,
         McpApprovalRequest,
         McpApprovalResponse,

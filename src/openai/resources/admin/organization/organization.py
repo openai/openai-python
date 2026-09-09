@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -34,6 +34,14 @@ from .audit_logs import (
     AsyncAuditLogsWithRawResponse,
     AuditLogsWithStreamingResponse,
     AsyncAuditLogsWithStreamingResponse,
+)
+from .spend_limit import (
+    SpendLimit,
+    AsyncSpendLimit,
+    SpendLimitWithRawResponse,
+    AsyncSpendLimitWithRawResponse,
+    SpendLimitWithStreamingResponse,
+    AsyncSpendLimitWithStreamingResponse,
 )
 from .users.users import (
     Users,
@@ -131,6 +139,10 @@ class Organization(SyncAPIResource):
         return DataRetention(self._client)
 
     @cached_property
+    def spend_limit(self) -> SpendLimit:
+        return SpendLimit(self._client)
+
+    @cached_property
     def spend_alerts(self) -> SpendAlerts:
         return SpendAlerts(self._client)
 
@@ -195,6 +207,10 @@ class AsyncOrganization(AsyncAPIResource):
     @cached_property
     def data_retention(self) -> AsyncDataRetention:
         return AsyncDataRetention(self._client)
+
+    @cached_property
+    def spend_limit(self) -> AsyncSpendLimit:
+        return AsyncSpendLimit(self._client)
 
     @cached_property
     def spend_alerts(self) -> AsyncSpendAlerts:
@@ -266,6 +282,10 @@ class OrganizationWithRawResponse:
         return DataRetentionWithRawResponse(self._organization.data_retention)
 
     @cached_property
+    def spend_limit(self) -> SpendLimitWithRawResponse:
+        return SpendLimitWithRawResponse(self._organization.spend_limit)
+
+    @cached_property
     def spend_alerts(self) -> SpendAlertsWithRawResponse:
         return SpendAlertsWithRawResponse(self._organization.spend_alerts)
 
@@ -314,6 +334,10 @@ class AsyncOrganizationWithRawResponse:
     @cached_property
     def data_retention(self) -> AsyncDataRetentionWithRawResponse:
         return AsyncDataRetentionWithRawResponse(self._organization.data_retention)
+
+    @cached_property
+    def spend_limit(self) -> AsyncSpendLimitWithRawResponse:
+        return AsyncSpendLimitWithRawResponse(self._organization.spend_limit)
 
     @cached_property
     def spend_alerts(self) -> AsyncSpendAlertsWithRawResponse:
@@ -366,6 +390,10 @@ class OrganizationWithStreamingResponse:
         return DataRetentionWithStreamingResponse(self._organization.data_retention)
 
     @cached_property
+    def spend_limit(self) -> SpendLimitWithStreamingResponse:
+        return SpendLimitWithStreamingResponse(self._organization.spend_limit)
+
+    @cached_property
     def spend_alerts(self) -> SpendAlertsWithStreamingResponse:
         return SpendAlertsWithStreamingResponse(self._organization.spend_alerts)
 
@@ -414,6 +442,10 @@ class AsyncOrganizationWithStreamingResponse:
     @cached_property
     def data_retention(self) -> AsyncDataRetentionWithStreamingResponse:
         return AsyncDataRetentionWithStreamingResponse(self._organization.data_retention)
+
+    @cached_property
+    def spend_limit(self) -> AsyncSpendLimitWithStreamingResponse:
+        return AsyncSpendLimitWithStreamingResponse(self._organization.spend_limit)
 
     @cached_property
     def spend_alerts(self) -> AsyncSpendAlertsWithStreamingResponse:

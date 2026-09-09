@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ class VideoEditParams(TypedDict, total=False):
 
 
 class VideoVideoReferenceInputParam(TypedDict, total=False):
-    """Reference to the completed video."""
+    """Reference to the completed video to edit."""
 
     id: Required[str]
     """The identifier of the completed video."""

@@ -1,19 +1,35 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
+from typing import Optional
 from typing_extensions import Literal
 
 from ..._models import BaseModel
 
-__all__ = ["ChatCompletionContentPartText"]
+__all__ = ["ChatCompletionContentPartText", "PromptCacheBreakpoint"]
+
+
+class PromptCacheBreakpoint(BaseModel):
+    """Marks the exact end of a reusable prompt prefix.
+
+    The breakpoint inherits its TTL from the request's `prompt_cache_options.ttl`; the boundary is not rounded to a token block.
+    """
+
+    mode: Literal["explicit"]
+    """The breakpoint mode. Always `explicit`."""
 
 
 class ChatCompletionContentPartText(BaseModel):
-    """
-    Learn about [text inputs](https://platform.openai.com/docs/guides/text-generation).
-    """
+    """Learn about [text inputs](https://developers.openai.com/api/docs/guides/text)."""
 
     text: str
     """The text content."""
 
     type: Literal["text"]
     """The type of the content part."""
+
+    prompt_cache_breakpoint: Optional[PromptCacheBreakpoint] = None
+    """Marks the exact end of a reusable prompt prefix.
+
+    The breakpoint inherits its TTL from the request's `prompt_cache_options.ttl`;
+    the boundary is not rounded to a token block.
+    """

@@ -1,9 +1,10 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import List, Optional
 from typing_extensions import Literal
 
 from ..._models import BaseModel
+from .transcription_language import TranscriptionLanguage
 
 __all__ = ["TranscriptionTextDoneEvent", "Logprob", "Usage", "UsageInputTokenDetails"]
 
@@ -51,7 +52,7 @@ class Usage(BaseModel):
 class TranscriptionTextDoneEvent(BaseModel):
     """Emitted when the transcription is complete.
 
-    Contains the complete transcription text. Only emitted when you [create a transcription](https://platform.openai.com/docs/api-reference/audio/create-transcription) with the `Stream` parameter set to `true`.
+    Contains the complete transcription text. Only emitted when you [create a transcription](https://developers.openai.com/api/reference/resources/audio/subresources/transcriptions/methods/create) with the `Stream` parameter set to `true`.
     """
 
     text: str
@@ -60,11 +61,18 @@ class TranscriptionTextDoneEvent(BaseModel):
     type: Literal["transcript.text.done"]
     """The type of the event. Always `transcript.text.done`."""
 
+    languages: Optional[List[TranscriptionLanguage]] = None
+    """The languages detected in the audio.
+
+    Returned by `gpt-transcribe`. An empty array indicates that no language could be
+    reliably detected.
+    """
+
     logprobs: Optional[List[Logprob]] = None
     """The log probabilities of the individual tokens in the transcription.
 
     Only included if you
-    [create a transcription](https://platform.openai.com/docs/api-reference/audio/create-transcription)
+    [create a transcription](https://developers.openai.com/api/reference/resources/audio/subresources/transcriptions/methods/create)
     with the `include[]` parameter set to `logprobs`.
     """
 

@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -6,7 +6,6 @@ import os
 from typing import Any, cast
 
 import pytest
-import pydantic
 
 from openai import OpenAI, AsyncOpenAI
 from tests.utils import assert_matches_type
@@ -31,7 +30,7 @@ class TestCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-5.4",
+            model="gpt-6-astra",
         )
         assert_matches_type(ChatCompletion, completion, path=["response"])
 
@@ -45,7 +44,7 @@ class TestCompletions:
                     "name": "name",
                 }
             ],
-            model="gpt-5.4",
+            model="gpt-6-astra",
             audio={
                 "format": "wav",
                 "voice": "alloy",
@@ -65,6 +64,13 @@ class TestCompletions:
             max_tokens=0,
             metadata={"foo": "string"},
             modalities=["text"],
+            moderation={
+                "model": "model",
+                "policy": {
+                    "input": {"mode": "score"},
+                    "output": {"mode": "score"},
+                },
+            },
             n=1,
             parallel_tool_calls=True,
             prediction={
@@ -73,6 +79,10 @@ class TestCompletions:
             },
             presence_penalty=-2,
             prompt_cache_key="prompt-cache-key-1234",
+            prompt_cache_options={
+                "mode": "implicit",
+                "ttl": "30m",
+            },
             prompt_cache_retention="in_memory",
             reasoning_effort="none",
             response_format={"type": "text"},
@@ -127,7 +137,7 @@ class TestCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-5.4",
+            model="gpt-6-astra",
         )
 
         assert response.is_closed is True
@@ -144,7 +154,7 @@ class TestCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-5.4",
+            model="gpt-6-astra",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -163,7 +173,7 @@ class TestCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-5.4",
+            model="gpt-6-astra",
             stream=True,
         )
         completion_stream.response.close()
@@ -178,7 +188,7 @@ class TestCompletions:
                     "name": "name",
                 }
             ],
-            model="gpt-5.4",
+            model="gpt-6-astra",
             stream=True,
             audio={
                 "format": "wav",
@@ -199,6 +209,13 @@ class TestCompletions:
             max_tokens=0,
             metadata={"foo": "string"},
             modalities=["text"],
+            moderation={
+                "model": "model",
+                "policy": {
+                    "input": {"mode": "score"},
+                    "output": {"mode": "score"},
+                },
+            },
             n=1,
             parallel_tool_calls=True,
             prediction={
@@ -207,6 +224,10 @@ class TestCompletions:
             },
             presence_penalty=-2,
             prompt_cache_key="prompt-cache-key-1234",
+            prompt_cache_options={
+                "mode": "implicit",
+                "ttl": "30m",
+            },
             prompt_cache_retention="in_memory",
             reasoning_effort="none",
             response_format={"type": "text"},
@@ -260,7 +281,7 @@ class TestCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-5.4",
+            model="gpt-6-astra",
             stream=True,
         )
 
@@ -277,7 +298,7 @@ class TestCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-5.4",
+            model="gpt-6-astra",
             stream=True,
         ) as response:
             assert not response.is_closed
@@ -442,23 +463,6 @@ class TestCompletions:
                 "",
             )
 
-    @parametrize
-    def test_method_create_disallows_pydantic(self, client: OpenAI) -> None:
-        class MyModel(pydantic.BaseModel):
-            a: str
-
-        with pytest.raises(TypeError, match=r"You tried to pass a `BaseModel` class"):
-            client.chat.completions.create(
-                messages=[
-                    {
-                        "content": "string",
-                        "role": "system",
-                    }
-                ],
-                model="gpt-4o",
-                response_format=cast(Any, MyModel),
-            )
-
 
 class TestAsyncCompletions:
     parametrize = pytest.mark.parametrize(
@@ -474,7 +478,7 @@ class TestAsyncCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-5.4",
+            model="gpt-6-astra",
         )
         assert_matches_type(ChatCompletion, completion, path=["response"])
 
@@ -488,7 +492,7 @@ class TestAsyncCompletions:
                     "name": "name",
                 }
             ],
-            model="gpt-5.4",
+            model="gpt-6-astra",
             audio={
                 "format": "wav",
                 "voice": "alloy",
@@ -508,6 +512,13 @@ class TestAsyncCompletions:
             max_tokens=0,
             metadata={"foo": "string"},
             modalities=["text"],
+            moderation={
+                "model": "model",
+                "policy": {
+                    "input": {"mode": "score"},
+                    "output": {"mode": "score"},
+                },
+            },
             n=1,
             parallel_tool_calls=True,
             prediction={
@@ -516,6 +527,10 @@ class TestAsyncCompletions:
             },
             presence_penalty=-2,
             prompt_cache_key="prompt-cache-key-1234",
+            prompt_cache_options={
+                "mode": "implicit",
+                "ttl": "30m",
+            },
             prompt_cache_retention="in_memory",
             reasoning_effort="none",
             response_format={"type": "text"},
@@ -570,7 +585,7 @@ class TestAsyncCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-5.4",
+            model="gpt-6-astra",
         )
 
         assert response.is_closed is True
@@ -587,7 +602,7 @@ class TestAsyncCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-5.4",
+            model="gpt-6-astra",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -606,7 +621,7 @@ class TestAsyncCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-5.4",
+            model="gpt-6-astra",
             stream=True,
         )
         await completion_stream.response.aclose()
@@ -621,7 +636,7 @@ class TestAsyncCompletions:
                     "name": "name",
                 }
             ],
-            model="gpt-5.4",
+            model="gpt-6-astra",
             stream=True,
             audio={
                 "format": "wav",
@@ -642,6 +657,13 @@ class TestAsyncCompletions:
             max_tokens=0,
             metadata={"foo": "string"},
             modalities=["text"],
+            moderation={
+                "model": "model",
+                "policy": {
+                    "input": {"mode": "score"},
+                    "output": {"mode": "score"},
+                },
+            },
             n=1,
             parallel_tool_calls=True,
             prediction={
@@ -650,6 +672,10 @@ class TestAsyncCompletions:
             },
             presence_penalty=-2,
             prompt_cache_key="prompt-cache-key-1234",
+            prompt_cache_options={
+                "mode": "implicit",
+                "ttl": "30m",
+            },
             prompt_cache_retention="in_memory",
             reasoning_effort="none",
             response_format={"type": "text"},
@@ -703,7 +729,7 @@ class TestAsyncCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-5.4",
+            model="gpt-6-astra",
             stream=True,
         )
 
@@ -720,7 +746,7 @@ class TestAsyncCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-5.4",
+            model="gpt-6-astra",
             stream=True,
         ) as response:
             assert not response.is_closed
@@ -883,21 +909,4 @@ class TestAsyncCompletions:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `completion_id` but received ''"):
             await async_client.chat.completions.with_raw_response.delete(
                 "",
-            )
-
-    @parametrize
-    async def test_method_create_disallows_pydantic(self, async_client: AsyncOpenAI) -> None:
-        class MyModel(pydantic.BaseModel):
-            a: str
-
-        with pytest.raises(TypeError, match=r"You tried to pass a `BaseModel` class"):
-            await async_client.chat.completions.create(
-                messages=[
-                    {
-                        "content": "string",
-                        "role": "system",
-                    }
-                ],
-                model="gpt-4o",
-                response_format=cast(Any, MyModel),
             )

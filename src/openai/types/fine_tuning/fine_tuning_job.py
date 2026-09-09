@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import List, Union, Optional
 from typing_extensions import Literal
@@ -121,7 +121,7 @@ class FineTuningJob(BaseModel):
     """The compiled results file ID(s) for the fine-tuning job.
 
     You can retrieve the results with the
-    [Files API](https://platform.openai.com/docs/api-reference/files/retrieve-contents).
+    [Files API](https://developers.openai.com/api/reference/resources/files/methods/content).
     """
 
     seed: int
@@ -143,14 +143,14 @@ class FineTuningJob(BaseModel):
     """The file ID used for training.
 
     You can retrieve the training data with the
-    [Files API](https://platform.openai.com/docs/api-reference/files/retrieve-contents).
+    [Files API](https://developers.openai.com/api/reference/resources/files/methods/content).
     """
 
     validation_file: Optional[str] = None
     """The file ID used for validation.
 
     You can retrieve the validation results with the
-    [Files API](https://platform.openai.com/docs/api-reference/files/retrieve-contents).
+    [Files API](https://developers.openai.com/api/reference/resources/files/methods/content).
     """
 
     estimated_finish: Optional[int] = None

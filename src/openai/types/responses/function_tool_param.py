@@ -1,17 +1,25 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 from typing_extensions import Literal, Required, TypedDict
 
 __all__ = ["FunctionToolParam"]
 
+_FunctionToolParamReservedKeywords = TypedDict(
+    "_FunctionToolParamReservedKeywords",
+    {
+        "async": bool,
+    },
+    total=False,
+)
 
-class FunctionToolParam(TypedDict, total=False):
+
+class FunctionToolParam(_FunctionToolParamReservedKeywords, total=False):
     """Defines a function in your own code the model can choose to call.
 
-    Learn more about [function calling](https://platform.openai.com/docs/guides/function-calling).
+    Learn more about [function calling](https://developers.openai.com/api/docs/guides/function-calling).
     """
 
     name: Required[str]
@@ -21,10 +29,13 @@ class FunctionToolParam(TypedDict, total=False):
     """A JSON schema object describing the parameters of the function."""
 
     strict: Required[Optional[bool]]
-    """Whether to enforce strict parameter validation. Default `true`."""
+    """Whether strict parameter validation is enforced for this function tool."""
 
     type: Required[Literal["function"]]
     """The type of the function tool. Always `function`."""
+
+    allowed_callers: Optional[List[Literal["direct", "programmatic"]]]
+    """The tool invocation context(s)."""
 
     defer_loading: bool
     """Whether this function is deferred and loaded via tool search."""
@@ -33,4 +44,10 @@ class FunctionToolParam(TypedDict, total=False):
     """A description of the function.
 
     Used by the model to determine whether or not to call the function.
+    """
+
+    output_schema: Optional[Dict[str, object]]
+    """
+    A JSON schema object describing the JSON value encoded in string outputs for
+    this function.
     """
