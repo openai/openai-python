@@ -22,6 +22,7 @@ def source_run(head: str, event: str = "pull_request") -> dict[str, Any]:
         "head_sha": head,
         "head_branch": "gh-readonly-queue/main/pr-7-example" if event == "merge_group" else "sdk",
         "repository": {"full_name": "openai/example"},
+        "head_repository": {"owner": {"login": "contributor"}},
         "path": ".github/workflows/castiron-custom-code.yml",
         "status": "completed",
         "run_attempt": 1,
@@ -309,6 +310,7 @@ class StatusPublisherTests(unittest.TestCase):
         base_changed: bool = False,
         no_result: bool = False,
         failed_budget: bool = False,
+        fallback_pulls: list[dict[str, int]] | None = None,
         run_overrides: dict[str, Any] | None = None,
     ) -> list[dict[str, Any]]:
         path = (
@@ -321,6 +323,7 @@ class StatusPublisherTests(unittest.TestCase):
         base, head = "a" * 40, "b" * 40
         payload = {
             "script": script,
+            "fallback_pulls": fallback_pulls,
             "context": {
                 "eventName": "workflow_run",
                 "repo": {"owner": "openai", "repo": "example"},
@@ -352,10 +355,16 @@ class StatusPublisherTests(unittest.TestCase):
           const data = JSON.parse(fs.readFileSync(0, 'utf8'));
           const published = [];
           const github = {rest: {
-            pulls: {get: async () => ({data: data.current})},
+            pulls: {get: async () => ({data: data.current}), list: 'pulls.list'},
             actions: {getWorkflowRun: async () => ({data: data.run})},
             git: {getRef: async () => ({data: {object: {sha: data.current.base.sha}}})},
-            repos: {createCommitStatus: async value => published.push(value)},
+            repos: {createCommitStatus: async value => published.push(value),
+              listPullRequestsAssociatedWithCommit: 'commits.pulls'},
+          }, paginate: async (method, params) => {
+            if (method === 'commits.pulls') return [];
+            if (method !== 'pulls.list' || params.head !== 'contributor:sdk' || params.state !== 'open')
+              throw new Error('Unexpected fallback lookup');
+            return data.fallback_pulls;
           }};
           const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
           new AsyncFunction('github','context','process', data.script)(github, data.context, {env:data.env})
@@ -379,6 +388,23 @@ class StatusPublisherTests(unittest.TestCase):
                 self.assertTrue(
                     all(r["sha"] == "b" * 40 and r["state"] == "success" for r in results)
                 )
+
+    def test_fork_statuses_with_no_commit_association(self) -> None:
+        options: dict[str, Any] = {"run_overrides": {"pull_requests": []}, "fallback_pulls": [{"number": 3}]}
+        results = self.publish(**options)
+        self.assertEqual(len(results), 2)
+        self.assertTrue(all(r["sha"] == "b" * 40 and r["state"] == "success" for r in results))
+        self.assertEqual(self.publish(**options, head_changed=True), [])
+        self.assertTrue(
+            all(r["state"] == "failure" for r in self.publish(**options, no_result=True))
+        )
+        self.assertEqual(self.publish(run_overrides={"pull_requests": []}, fallback_pulls=[]), [])
+        self.assertEqual(
+            self.publish(
+                run_overrides={"pull_requests": []}, fallback_pulls=[{"number": 3}, {"number": 4}]
+            ),
+            [],
+        )
 
     def test_stale_pr_head_is_not_published(self) -> None:
         self.assertEqual(self.publish(head_changed=True), [])
@@ -568,10 +594,12 @@ class GitHubBudgetTests(unittest.TestCase):
             "head": {"sha": head},
             "base": {"sha": base, "ref": "main", "repo": {"full_name": "openai/example"}},
         }
-        responses = [
+        responses: list[Any] = [
             {"default_branch": "main", "private": False},
             {"object": {"sha": base}},
-            source_run(head),
+            {**source_run(head), "pull_requests": []},
+            [],
+            [{"number": 3}],
             pull,
             [{"type": "merge_queue"}],
         ]
@@ -622,7 +650,9 @@ class GitHubBudgetTests(unittest.TestCase):
                     side_effect=[
                         {"default_branch": "main"},
                         {"object": {"sha": base}},
-                        source_run(head),
+                        {**source_run(head), "pull_requests": []},
+                        [],
+                        [{"number": 3}],
                         pull,
                     ],
                 ):
