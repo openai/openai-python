@@ -99,6 +99,18 @@ def timeout_exceptions() -> tuple[type[httpx2.TimeoutException], ...]:
     return (httpx2.TimeoutException,) if module is None else (httpx2.TimeoutException, module.TimeoutException)
 
 
+def request_exceptions() -> tuple[type[Exception], ...]:
+    module = _loaded_legacy_httpx()
+    if module is None:
+        return (httpx2.RequestError,)
+
+    legacy_request_error = cast(
+        type[Exception],
+        getattr(module, "RequestError", httpx2.RequestError),
+    )
+    return (httpx2.RequestError, legacy_request_error)
+
+
 def status_exceptions() -> tuple[type[httpx2.HTTPStatusError], ...]:
     module = _loaded_legacy_httpx()
     return (httpx2.HTTPStatusError,) if module is None else (httpx2.HTTPStatusError, module.HTTPStatusError)

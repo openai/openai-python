@@ -1,12 +1,85 @@
 from __future__ import annotations
 
 from typing import Iterator, AsyncIterator
+from typing_extensions import override
 
 import httpx2
 import pytest
 
-from openai import OpenAI, AsyncOpenAI
+from openai import OpenAI, AsyncOpenAI, APITimeoutError, APIConnectionError
 from openai._streaming import Stream, AsyncStream, ServerSentEvent
+
+
+class FailingSyncByteStream(httpx2.SyncByteStream):
+    def __init__(self, error: Exception) -> None:
+        self.error = error
+
+    @override
+    def __iter__(self) -> Iterator[bytes]:
+        yield b'data: {"foo":'
+        raise self.error
+
+
+class FailingAsyncByteStream(httpx2.AsyncByteStream):
+    def __init__(self, error: Exception) -> None:
+        self.error = error
+
+    @override
+    async def __aiter__(self) -> AsyncIterator[bytes]:
+        yield b'data: {"foo":'
+        raise self.error
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+@pytest.mark.parametrize(
+    ("error_type", "expected_error"),
+    [
+        (httpx2.ReadTimeout, APITimeoutError),
+        (httpx2.RemoteProtocolError, APIConnectionError),
+        (httpx2.DecodingError, APIConnectionError),
+    ],
+)
+async def test_request_errors_are_wrapped(
+    sync: bool,
+    error_type: type[Exception],
+    expected_error: type[Exception],
+    client: OpenAI,
+    async_client: AsyncOpenAI,
+) -> None:
+    error = error_type("stream request failure")
+    request = httpx2.Request("POST", "https://example.com")
+
+    if sync:
+        response = httpx2.Response(
+            200,
+            request=request,
+            stream=FailingSyncByteStream(error),
+        )
+        stream = Stream(
+            cast_to=object,
+            client=client,
+            response=response,
+        )
+
+        with pytest.raises(expected_error) as exc_info:
+            next(stream)
+    else:
+        response = httpx2.Response(
+            200,
+            request=request,
+            stream=FailingAsyncByteStream(error),
+        )
+        stream = AsyncStream(
+            cast_to=object,
+            client=async_client,
+            response=response,
+        )
+
+        with pytest.raises(expected_error) as exc_info:
+            await stream.__anext__()
+
+    assert exc_info.value.__cause__ is error
 
 
 @pytest.mark.asyncio

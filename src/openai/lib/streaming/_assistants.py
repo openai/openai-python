@@ -7,10 +7,11 @@ from typing_extensions import Awaitable, AsyncIterable, AsyncIterator, assert_ne
 
 from ..._utils import is_dict, is_list, consume_sync_iterator, consume_async_iterator
 from ..._compat import model_dump
-from ..._httpx2 import timeout_exceptions
+from ..._httpx2 import request_exceptions, timeout_exceptions
 from ..._models import construct_type
 from ..._streaming import Stream, AsyncStream
 from ...types.beta import AssistantStreamEvent
+from ..._exceptions import APITimeoutError, APIConnectionError
 from ...types.beta.threads import (
     Run,
     Text,
@@ -26,6 +27,14 @@ from ...types.beta.threads.runs import RunStep, ToolCall, RunStepDelta, ToolCall
 
 def _timeout_exceptions() -> tuple[type[Exception], ...]:
     return (*timeout_exceptions(), asyncio.TimeoutError)
+
+
+def _request_error_from_api_error(error: APIConnectionError) -> Exception | None:
+    cause = error.__cause__
+    if isinstance(cause, request_exceptions()):
+        return cause
+
+    return None
 
 
 class AssistantEventHandler:
@@ -410,6 +419,23 @@ class AssistantEventHandler:
                 self._emit_sse_event(event)
 
                 yield event
+        except APITimeoutError as exc:
+            error = _request_error_from_api_error(exc)
+            self.on_timeout()
+            self.on_exception(error or exc)
+
+            if error is None:
+                raise
+
+            raise error from None
+        except APIConnectionError as exc:
+            error = _request_error_from_api_error(exc)
+            self.on_exception(error or exc)
+
+            if error is None:
+                raise
+
+            raise error from None
         except _timeout_exceptions() as exc:
             self.on_timeout()
             self.on_exception(exc)
@@ -842,6 +868,23 @@ class AsyncAssistantEventHandler:
                 await self._emit_sse_event(event)
 
                 yield event
+        except APITimeoutError as exc:
+            error = _request_error_from_api_error(exc)
+            await self.on_timeout()
+            await self.on_exception(error or exc)
+
+            if error is None:
+                raise
+
+            raise error from None
+        except APIConnectionError as exc:
+            error = _request_error_from_api_error(exc)
+            await self.on_exception(error or exc)
+
+            if error is None:
+                raise
+
+            raise error from None
         except _timeout_exceptions() as exc:
             await self.on_timeout()
             await self.on_exception(exc)
