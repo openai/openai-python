@@ -60,7 +60,7 @@ if [ "${OPENAI_TEST_HTTP_CLIENT:-httpx}" = "httpx2" ]; then
 fi
 
 echo "==> Running tests"
-uv run --locked --all-extras pytest --durations=20 "$@"
+uv run --locked --all-extras pytest "$@"
 
 echo "==> Running Pydantic v1 tests"
 ./scripts/test-pydantic-v1 "$@"
