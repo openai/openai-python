@@ -175,20 +175,20 @@ class Responses(SyncAPIResource):
         """Creates a model response.
 
         Provide
-        [text](https://platform.openai.com/docs/guides/text) or
-        [image](https://platform.openai.com/docs/guides/images) inputs to generate
-        [text](https://platform.openai.com/docs/guides/text) or
-        [JSON](https://platform.openai.com/docs/guides/structured-outputs) outputs. Have
-        the model call your own
-        [custom code](https://platform.openai.com/docs/guides/function-calling) or use
-        built-in [tools](https://platform.openai.com/docs/guides/tools) like
-        [web search](https://platform.openai.com/docs/guides/tools-web-search) or
-        [file search](https://platform.openai.com/docs/guides/tools-file-search) to use
-        your own data as input for the model's response.
+        [text](https://developers.openai.com/api/docs/guides/text) or
+        [image](https://developers.openai.com/api/docs/guides/images-vision) inputs to
+        generate [text](https://developers.openai.com/api/docs/guides/text) or
+        [JSON](https://developers.openai.com/api/docs/guides/structured-outputs)
+        outputs. Have the model call your own
+        [custom code](https://developers.openai.com/api/docs/guides/function-calling) or
+        use built-in [tools](https://developers.openai.com/api/docs/guides/tools) like
+        [web search](https://developers.openai.com/api/docs/guides/tools-web-search) or
+        [file search](https://developers.openai.com/api/docs/guides/tools-file-search)
+        to use your own data as input for the model's response.
 
         Args:
           background: Whether to run the model response in the background.
-              [Learn more](https://platform.openai.com/docs/guides/background).
+              [Learn more](https://developers.openai.com/api/docs/guides/background).
 
           context_management: Context management configuration for this request.
 
@@ -220,11 +220,11 @@ class Responses(SyncAPIResource):
 
               Learn more:
 
-              - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
-              - [Image inputs](https://platform.openai.com/docs/guides/images)
-              - [File inputs](https://platform.openai.com/docs/guides/pdf-files)
-              - [Conversation state](https://platform.openai.com/docs/guides/conversation-state)
-              - [Function calling](https://platform.openai.com/docs/guides/function-calling)
+              - [Text inputs and outputs](https://developers.openai.com/api/docs/guides/text)
+              - [Image inputs](https://developers.openai.com/api/docs/guides/images-vision)
+              - [File inputs](https://developers.openai.com/api/docs/guides/file-inputs)
+              - [Conversation state](https://developers.openai.com/api/docs/guides/conversation-state)
+              - [Function calling](https://developers.openai.com/api/docs/guides/function-calling)
 
           instructions: A system (or developer) message inserted into the model's context.
 
@@ -234,7 +234,7 @@ class Responses(SyncAPIResource):
 
           max_output_tokens: An upper bound for the number of tokens that can be generated for a response,
               including visible output tokens and
-              [reasoning tokens](https://platform.openai.com/docs/guides/reasoning).
+              [reasoning tokens](https://developers.openai.com/api/docs/guides/reasoning).
 
           max_tool_calls: The maximum number of total calls to built-in tools that can be processed in a
               response. This maximum number applies across all built-in tool calls, not per
@@ -251,8 +251,8 @@ class Responses(SyncAPIResource):
           model: Model ID used to generate the response, like `gpt-6-astra`. OpenAI offers a wide
               range of models with different capabilities, performance characteristics, and
               price points. Refer to the
-              [model guide](https://platform.openai.com/docs/models) to browse and compare
-              available models.
+              [model guide](https://developers.openai.com/api/docs/models) to browse and
+              compare available models.
 
           moderation: Configuration for running moderation on the input and output of this response.
 
@@ -260,15 +260,15 @@ class Responses(SyncAPIResource):
 
           previous_response_id: The unique ID of the previous response to the model. Use this to create
               multi-turn conversations. Learn more about
-              [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+              [conversation state](https://developers.openai.com/api/docs/guides/conversation-state).
               Cannot be used in conjunction with `conversation`.
 
           prompt: Reference to a prompt template and its variables.
-              [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
+              [Learn more](https://developers.openai.com/api/docs/guides/text?api-mode=responses#version-prompts-in-code).
 
           prompt_cache_key: Used by OpenAI to cache responses for similar requests to optimize your cache
               hit rates. Replaces the `user` field.
-              [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
+              [Learn more](https://developers.openai.com/api/docs/guides/prompt-caching).
 
           prompt_cache_options: Options for prompt caching. Supported for `gpt-5.6` and later models. By
               default, OpenAI automatically chooses one implicit cache breakpoint. You can add
@@ -277,7 +277,7 @@ class Responses(SyncAPIResource):
               up to the latest 80 breakpoints in the conversation, without a content-block
               lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The
               `ttl` defaults to `30m`, which is currently the only supported value. See the
-              [prompt caching guide](https://platform.openai.com/docs/guides/prompt-caching)
+              [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching)
               for current details.
 
           prompt_cache_retention: Deprecated. Use `prompt_cache_options.ttl` instead.
@@ -285,7 +285,7 @@ class Responses(SyncAPIResource):
               The retention policy for the prompt cache. Set to `24h` to enable extended
               prompt caching, which keeps cached prefixes active for longer, up to a maximum
               of 24 hours.
-              [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
+              [Learn more](https://developers.openai.com/api/docs/guides/prompt-caching#prompt-cache-retention).
               This field expresses a maximum retention policy, while
               `prompt_cache_options.ttl` expresses a minimum cache lifetime. The two fields
               are independent and do not interact. For `gpt-5.5`, `gpt-5.5-pro`, and future
@@ -299,14 +299,14 @@ class Responses(SyncAPIResource):
                 `prompt_cache_retention` is not specified.
 
           reasoning: Configuration options for
-              [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+              [reasoning models](https://developers.openai.com/api/docs/guides/reasoning).
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
               identifies each user, with a maximum length of 64 characters. We recommend
               hashing their username or email address, in order to avoid sending us any
               identifying information.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           service_tier: Specifies the processing type used for serving the request.
 
@@ -315,13 +315,15 @@ class Responses(SyncAPIResource):
                 will use 'default'.
               - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
-              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)',
-                then the request will be processed with the Flex Processing service tier.
-              - To opt-in to [Fast mode](/api/docs/guides/fast-mode) at the request level,
-                include the `service_tier=fast` or `service_tier=priority` parameter for
-                Responses or Chat Completions. The response will show `service_tier=priority`
-                regardless of if you specify `service_tier=fast` or `priority` in your
-                request.
+              - If set to
+                '[flex](https://developers.openai.com/api/docs/guides/flex-processing)', then
+                the request will be processed with the Flex Processing service tier.
+              - To opt-in to
+                [Fast mode](https://developers.openai.com/api/docs/guides/fast-mode) at the
+                request level, include the `service_tier=fast` or `service_tier=priority`
+                parameter for Responses or Chat Completions. The response will show
+                `service_tier=priority` regardless of if you specify `service_tier=fast` or
+                `priority` in your request.
               - If set to 'ultrafast', then the request will be processed with the
                 access-controlled Ultrafast Processing service tier. This tier is currently
                 available for `gpt-5.6-sol`; a response served through it will show
@@ -336,13 +338,13 @@ class Responses(SyncAPIResource):
           store: Whether to store the generated model response for later retrieval via API.
               Defaults to true when omitted. If set to true, response data will be stored for
               at least 30 days, subject to the
-              [data retention exceptions](/api/docs/guides/your-data#v1responses).
+              [data retention exceptions](https://developers.openai.com/api/docs/guides/your-data#v1responses).
 
           stream: If set to true, the model response data will be streamed to the client as it is
               generated using
               [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
               See the
-              [Streaming section below](https://platform.openai.com/docs/api-reference/responses-streaming)
+              [Streaming section below](https://developers.openai.com/api/reference/resources/responses/streaming-events)
               for more information.
 
           stream_options: Options for streaming responses. Only set this when you set `stream: true`.
@@ -355,8 +357,8 @@ class Responses(SyncAPIResource):
           text: Configuration options for a text response from the model. Can be plain text or
               structured JSON data. Learn more:
 
-              - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
-              - [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs)
+              - [Text inputs and outputs](https://developers.openai.com/api/docs/guides/text)
+              - [Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs)
 
           tool_choice: How the model should select which tool (or tools) to use when generating a
               response. See the `tools` parameter to see how to specify which tools the model
@@ -369,17 +371,18 @@ class Responses(SyncAPIResource):
 
               - **Built-in tools**: Tools that are provided by OpenAI that extend the model's
                 capabilities, like
-                [web search](https://platform.openai.com/docs/guides/tools-web-search) or
-                [file search](https://platform.openai.com/docs/guides/tools-file-search).
+                [web search](https://developers.openai.com/api/docs/guides/tools-web-search)
+                or
+                [file search](https://developers.openai.com/api/docs/guides/tools-file-search).
                 Learn more about
-                [built-in tools](https://platform.openai.com/docs/guides/tools).
+                [built-in tools](https://developers.openai.com/api/docs/guides/tools).
               - **MCP Tools**: Integrations with third-party systems via custom MCP servers or
                 predefined connectors such as Google Drive and SharePoint. Learn more about
-                [MCP Tools](https://platform.openai.com/docs/guides/tools-connectors-mcp).
+                [MCP Tools](https://developers.openai.com/api/docs/guides/tools-connectors-mcp).
               - **Function calls (custom tools)**: Functions that are defined by you, enabling
                 the model to call your own code with strongly typed arguments and outputs.
                 Learn more about
-                [function calling](https://platform.openai.com/docs/guides/function-calling).
+                [function calling](https://developers.openai.com/api/docs/guides/function-calling).
                 You can also use custom tools to call your own code.
 
           top_logprobs: An integer between 0 and 20 specifying the maximum number of most likely tokens
@@ -404,7 +407,7 @@ class Responses(SyncAPIResource):
               `prompt_cache_key` instead to maintain caching optimizations. A stable
               identifier for your end-users. Used to boost cache hit rates by better bucketing
               similar requests and to help OpenAI detect and prevent abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           extra_headers: Send extra headers
 
@@ -461,27 +464,27 @@ class Responses(SyncAPIResource):
         """Creates a model response.
 
         Provide
-        [text](https://platform.openai.com/docs/guides/text) or
-        [image](https://platform.openai.com/docs/guides/images) inputs to generate
-        [text](https://platform.openai.com/docs/guides/text) or
-        [JSON](https://platform.openai.com/docs/guides/structured-outputs) outputs. Have
-        the model call your own
-        [custom code](https://platform.openai.com/docs/guides/function-calling) or use
-        built-in [tools](https://platform.openai.com/docs/guides/tools) like
-        [web search](https://platform.openai.com/docs/guides/tools-web-search) or
-        [file search](https://platform.openai.com/docs/guides/tools-file-search) to use
-        your own data as input for the model's response.
+        [text](https://developers.openai.com/api/docs/guides/text) or
+        [image](https://developers.openai.com/api/docs/guides/images-vision) inputs to
+        generate [text](https://developers.openai.com/api/docs/guides/text) or
+        [JSON](https://developers.openai.com/api/docs/guides/structured-outputs)
+        outputs. Have the model call your own
+        [custom code](https://developers.openai.com/api/docs/guides/function-calling) or
+        use built-in [tools](https://developers.openai.com/api/docs/guides/tools) like
+        [web search](https://developers.openai.com/api/docs/guides/tools-web-search) or
+        [file search](https://developers.openai.com/api/docs/guides/tools-file-search)
+        to use your own data as input for the model's response.
 
         Args:
           stream: If set to true, the model response data will be streamed to the client as it is
               generated using
               [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
               See the
-              [Streaming section below](https://platform.openai.com/docs/api-reference/responses-streaming)
+              [Streaming section below](https://developers.openai.com/api/reference/resources/responses/streaming-events)
               for more information.
 
           background: Whether to run the model response in the background.
-              [Learn more](https://platform.openai.com/docs/guides/background).
+              [Learn more](https://developers.openai.com/api/docs/guides/background).
 
           context_management: Context management configuration for this request.
 
@@ -513,11 +516,11 @@ class Responses(SyncAPIResource):
 
               Learn more:
 
-              - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
-              - [Image inputs](https://platform.openai.com/docs/guides/images)
-              - [File inputs](https://platform.openai.com/docs/guides/pdf-files)
-              - [Conversation state](https://platform.openai.com/docs/guides/conversation-state)
-              - [Function calling](https://platform.openai.com/docs/guides/function-calling)
+              - [Text inputs and outputs](https://developers.openai.com/api/docs/guides/text)
+              - [Image inputs](https://developers.openai.com/api/docs/guides/images-vision)
+              - [File inputs](https://developers.openai.com/api/docs/guides/file-inputs)
+              - [Conversation state](https://developers.openai.com/api/docs/guides/conversation-state)
+              - [Function calling](https://developers.openai.com/api/docs/guides/function-calling)
 
           instructions: A system (or developer) message inserted into the model's context.
 
@@ -527,7 +530,7 @@ class Responses(SyncAPIResource):
 
           max_output_tokens: An upper bound for the number of tokens that can be generated for a response,
               including visible output tokens and
-              [reasoning tokens](https://platform.openai.com/docs/guides/reasoning).
+              [reasoning tokens](https://developers.openai.com/api/docs/guides/reasoning).
 
           max_tool_calls: The maximum number of total calls to built-in tools that can be processed in a
               response. This maximum number applies across all built-in tool calls, not per
@@ -544,8 +547,8 @@ class Responses(SyncAPIResource):
           model: Model ID used to generate the response, like `gpt-6-astra`. OpenAI offers a wide
               range of models with different capabilities, performance characteristics, and
               price points. Refer to the
-              [model guide](https://platform.openai.com/docs/models) to browse and compare
-              available models.
+              [model guide](https://developers.openai.com/api/docs/models) to browse and
+              compare available models.
 
           moderation: Configuration for running moderation on the input and output of this response.
 
@@ -553,15 +556,15 @@ class Responses(SyncAPIResource):
 
           previous_response_id: The unique ID of the previous response to the model. Use this to create
               multi-turn conversations. Learn more about
-              [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+              [conversation state](https://developers.openai.com/api/docs/guides/conversation-state).
               Cannot be used in conjunction with `conversation`.
 
           prompt: Reference to a prompt template and its variables.
-              [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
+              [Learn more](https://developers.openai.com/api/docs/guides/text?api-mode=responses#version-prompts-in-code).
 
           prompt_cache_key: Used by OpenAI to cache responses for similar requests to optimize your cache
               hit rates. Replaces the `user` field.
-              [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
+              [Learn more](https://developers.openai.com/api/docs/guides/prompt-caching).
 
           prompt_cache_options: Options for prompt caching. Supported for `gpt-5.6` and later models. By
               default, OpenAI automatically chooses one implicit cache breakpoint. You can add
@@ -570,7 +573,7 @@ class Responses(SyncAPIResource):
               up to the latest 80 breakpoints in the conversation, without a content-block
               lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The
               `ttl` defaults to `30m`, which is currently the only supported value. See the
-              [prompt caching guide](https://platform.openai.com/docs/guides/prompt-caching)
+              [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching)
               for current details.
 
           prompt_cache_retention: Deprecated. Use `prompt_cache_options.ttl` instead.
@@ -578,7 +581,7 @@ class Responses(SyncAPIResource):
               The retention policy for the prompt cache. Set to `24h` to enable extended
               prompt caching, which keeps cached prefixes active for longer, up to a maximum
               of 24 hours.
-              [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
+              [Learn more](https://developers.openai.com/api/docs/guides/prompt-caching#prompt-cache-retention).
               This field expresses a maximum retention policy, while
               `prompt_cache_options.ttl` expresses a minimum cache lifetime. The two fields
               are independent and do not interact. For `gpt-5.5`, `gpt-5.5-pro`, and future
@@ -592,14 +595,14 @@ class Responses(SyncAPIResource):
                 `prompt_cache_retention` is not specified.
 
           reasoning: Configuration options for
-              [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+              [reasoning models](https://developers.openai.com/api/docs/guides/reasoning).
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
               identifies each user, with a maximum length of 64 characters. We recommend
               hashing their username or email address, in order to avoid sending us any
               identifying information.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           service_tier: Specifies the processing type used for serving the request.
 
@@ -608,13 +611,15 @@ class Responses(SyncAPIResource):
                 will use 'default'.
               - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
-              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)',
-                then the request will be processed with the Flex Processing service tier.
-              - To opt-in to [Fast mode](/api/docs/guides/fast-mode) at the request level,
-                include the `service_tier=fast` or `service_tier=priority` parameter for
-                Responses or Chat Completions. The response will show `service_tier=priority`
-                regardless of if you specify `service_tier=fast` or `priority` in your
-                request.
+              - If set to
+                '[flex](https://developers.openai.com/api/docs/guides/flex-processing)', then
+                the request will be processed with the Flex Processing service tier.
+              - To opt-in to
+                [Fast mode](https://developers.openai.com/api/docs/guides/fast-mode) at the
+                request level, include the `service_tier=fast` or `service_tier=priority`
+                parameter for Responses or Chat Completions. The response will show
+                `service_tier=priority` regardless of if you specify `service_tier=fast` or
+                `priority` in your request.
               - If set to 'ultrafast', then the request will be processed with the
                 access-controlled Ultrafast Processing service tier. This tier is currently
                 available for `gpt-5.6-sol`; a response served through it will show
@@ -629,7 +634,7 @@ class Responses(SyncAPIResource):
           store: Whether to store the generated model response for later retrieval via API.
               Defaults to true when omitted. If set to true, response data will be stored for
               at least 30 days, subject to the
-              [data retention exceptions](/api/docs/guides/your-data#v1responses).
+              [data retention exceptions](https://developers.openai.com/api/docs/guides/your-data#v1responses).
 
           stream_options: Options for streaming responses. Only set this when you set `stream: true`.
 
@@ -641,8 +646,8 @@ class Responses(SyncAPIResource):
           text: Configuration options for a text response from the model. Can be plain text or
               structured JSON data. Learn more:
 
-              - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
-              - [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs)
+              - [Text inputs and outputs](https://developers.openai.com/api/docs/guides/text)
+              - [Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs)
 
           tool_choice: How the model should select which tool (or tools) to use when generating a
               response. See the `tools` parameter to see how to specify which tools the model
@@ -655,17 +660,18 @@ class Responses(SyncAPIResource):
 
               - **Built-in tools**: Tools that are provided by OpenAI that extend the model's
                 capabilities, like
-                [web search](https://platform.openai.com/docs/guides/tools-web-search) or
-                [file search](https://platform.openai.com/docs/guides/tools-file-search).
+                [web search](https://developers.openai.com/api/docs/guides/tools-web-search)
+                or
+                [file search](https://developers.openai.com/api/docs/guides/tools-file-search).
                 Learn more about
-                [built-in tools](https://platform.openai.com/docs/guides/tools).
+                [built-in tools](https://developers.openai.com/api/docs/guides/tools).
               - **MCP Tools**: Integrations with third-party systems via custom MCP servers or
                 predefined connectors such as Google Drive and SharePoint. Learn more about
-                [MCP Tools](https://platform.openai.com/docs/guides/tools-connectors-mcp).
+                [MCP Tools](https://developers.openai.com/api/docs/guides/tools-connectors-mcp).
               - **Function calls (custom tools)**: Functions that are defined by you, enabling
                 the model to call your own code with strongly typed arguments and outputs.
                 Learn more about
-                [function calling](https://platform.openai.com/docs/guides/function-calling).
+                [function calling](https://developers.openai.com/api/docs/guides/function-calling).
                 You can also use custom tools to call your own code.
 
           top_logprobs: An integer between 0 and 20 specifying the maximum number of most likely tokens
@@ -690,7 +696,7 @@ class Responses(SyncAPIResource):
               `prompt_cache_key` instead to maintain caching optimizations. A stable
               identifier for your end-users. Used to boost cache hit rates by better bucketing
               similar requests and to help OpenAI detect and prevent abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           extra_headers: Send extra headers
 
@@ -747,27 +753,27 @@ class Responses(SyncAPIResource):
         """Creates a model response.
 
         Provide
-        [text](https://platform.openai.com/docs/guides/text) or
-        [image](https://platform.openai.com/docs/guides/images) inputs to generate
-        [text](https://platform.openai.com/docs/guides/text) or
-        [JSON](https://platform.openai.com/docs/guides/structured-outputs) outputs. Have
-        the model call your own
-        [custom code](https://platform.openai.com/docs/guides/function-calling) or use
-        built-in [tools](https://platform.openai.com/docs/guides/tools) like
-        [web search](https://platform.openai.com/docs/guides/tools-web-search) or
-        [file search](https://platform.openai.com/docs/guides/tools-file-search) to use
-        your own data as input for the model's response.
+        [text](https://developers.openai.com/api/docs/guides/text) or
+        [image](https://developers.openai.com/api/docs/guides/images-vision) inputs to
+        generate [text](https://developers.openai.com/api/docs/guides/text) or
+        [JSON](https://developers.openai.com/api/docs/guides/structured-outputs)
+        outputs. Have the model call your own
+        [custom code](https://developers.openai.com/api/docs/guides/function-calling) or
+        use built-in [tools](https://developers.openai.com/api/docs/guides/tools) like
+        [web search](https://developers.openai.com/api/docs/guides/tools-web-search) or
+        [file search](https://developers.openai.com/api/docs/guides/tools-file-search)
+        to use your own data as input for the model's response.
 
         Args:
           stream: If set to true, the model response data will be streamed to the client as it is
               generated using
               [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
               See the
-              [Streaming section below](https://platform.openai.com/docs/api-reference/responses-streaming)
+              [Streaming section below](https://developers.openai.com/api/reference/resources/responses/streaming-events)
               for more information.
 
           background: Whether to run the model response in the background.
-              [Learn more](https://platform.openai.com/docs/guides/background).
+              [Learn more](https://developers.openai.com/api/docs/guides/background).
 
           context_management: Context management configuration for this request.
 
@@ -799,11 +805,11 @@ class Responses(SyncAPIResource):
 
               Learn more:
 
-              - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
-              - [Image inputs](https://platform.openai.com/docs/guides/images)
-              - [File inputs](https://platform.openai.com/docs/guides/pdf-files)
-              - [Conversation state](https://platform.openai.com/docs/guides/conversation-state)
-              - [Function calling](https://platform.openai.com/docs/guides/function-calling)
+              - [Text inputs and outputs](https://developers.openai.com/api/docs/guides/text)
+              - [Image inputs](https://developers.openai.com/api/docs/guides/images-vision)
+              - [File inputs](https://developers.openai.com/api/docs/guides/file-inputs)
+              - [Conversation state](https://developers.openai.com/api/docs/guides/conversation-state)
+              - [Function calling](https://developers.openai.com/api/docs/guides/function-calling)
 
           instructions: A system (or developer) message inserted into the model's context.
 
@@ -813,7 +819,7 @@ class Responses(SyncAPIResource):
 
           max_output_tokens: An upper bound for the number of tokens that can be generated for a response,
               including visible output tokens and
-              [reasoning tokens](https://platform.openai.com/docs/guides/reasoning).
+              [reasoning tokens](https://developers.openai.com/api/docs/guides/reasoning).
 
           max_tool_calls: The maximum number of total calls to built-in tools that can be processed in a
               response. This maximum number applies across all built-in tool calls, not per
@@ -830,8 +836,8 @@ class Responses(SyncAPIResource):
           model: Model ID used to generate the response, like `gpt-6-astra`. OpenAI offers a wide
               range of models with different capabilities, performance characteristics, and
               price points. Refer to the
-              [model guide](https://platform.openai.com/docs/models) to browse and compare
-              available models.
+              [model guide](https://developers.openai.com/api/docs/models) to browse and
+              compare available models.
 
           moderation: Configuration for running moderation on the input and output of this response.
 
@@ -839,15 +845,15 @@ class Responses(SyncAPIResource):
 
           previous_response_id: The unique ID of the previous response to the model. Use this to create
               multi-turn conversations. Learn more about
-              [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+              [conversation state](https://developers.openai.com/api/docs/guides/conversation-state).
               Cannot be used in conjunction with `conversation`.
 
           prompt: Reference to a prompt template and its variables.
-              [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
+              [Learn more](https://developers.openai.com/api/docs/guides/text?api-mode=responses#version-prompts-in-code).
 
           prompt_cache_key: Used by OpenAI to cache responses for similar requests to optimize your cache
               hit rates. Replaces the `user` field.
-              [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
+              [Learn more](https://developers.openai.com/api/docs/guides/prompt-caching).
 
           prompt_cache_options: Options for prompt caching. Supported for `gpt-5.6` and later models. By
               default, OpenAI automatically chooses one implicit cache breakpoint. You can add
@@ -856,7 +862,7 @@ class Responses(SyncAPIResource):
               up to the latest 80 breakpoints in the conversation, without a content-block
               lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The
               `ttl` defaults to `30m`, which is currently the only supported value. See the
-              [prompt caching guide](https://platform.openai.com/docs/guides/prompt-caching)
+              [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching)
               for current details.
 
           prompt_cache_retention: Deprecated. Use `prompt_cache_options.ttl` instead.
@@ -864,7 +870,7 @@ class Responses(SyncAPIResource):
               The retention policy for the prompt cache. Set to `24h` to enable extended
               prompt caching, which keeps cached prefixes active for longer, up to a maximum
               of 24 hours.
-              [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
+              [Learn more](https://developers.openai.com/api/docs/guides/prompt-caching#prompt-cache-retention).
               This field expresses a maximum retention policy, while
               `prompt_cache_options.ttl` expresses a minimum cache lifetime. The two fields
               are independent and do not interact. For `gpt-5.5`, `gpt-5.5-pro`, and future
@@ -878,14 +884,14 @@ class Responses(SyncAPIResource):
                 `prompt_cache_retention` is not specified.
 
           reasoning: Configuration options for
-              [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+              [reasoning models](https://developers.openai.com/api/docs/guides/reasoning).
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
               identifies each user, with a maximum length of 64 characters. We recommend
               hashing their username or email address, in order to avoid sending us any
               identifying information.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           service_tier: Specifies the processing type used for serving the request.
 
@@ -894,13 +900,15 @@ class Responses(SyncAPIResource):
                 will use 'default'.
               - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
-              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)',
-                then the request will be processed with the Flex Processing service tier.
-              - To opt-in to [Fast mode](/api/docs/guides/fast-mode) at the request level,
-                include the `service_tier=fast` or `service_tier=priority` parameter for
-                Responses or Chat Completions. The response will show `service_tier=priority`
-                regardless of if you specify `service_tier=fast` or `priority` in your
-                request.
+              - If set to
+                '[flex](https://developers.openai.com/api/docs/guides/flex-processing)', then
+                the request will be processed with the Flex Processing service tier.
+              - To opt-in to
+                [Fast mode](https://developers.openai.com/api/docs/guides/fast-mode) at the
+                request level, include the `service_tier=fast` or `service_tier=priority`
+                parameter for Responses or Chat Completions. The response will show
+                `service_tier=priority` regardless of if you specify `service_tier=fast` or
+                `priority` in your request.
               - If set to 'ultrafast', then the request will be processed with the
                 access-controlled Ultrafast Processing service tier. This tier is currently
                 available for `gpt-5.6-sol`; a response served through it will show
@@ -915,7 +923,7 @@ class Responses(SyncAPIResource):
           store: Whether to store the generated model response for later retrieval via API.
               Defaults to true when omitted. If set to true, response data will be stored for
               at least 30 days, subject to the
-              [data retention exceptions](/api/docs/guides/your-data#v1responses).
+              [data retention exceptions](https://developers.openai.com/api/docs/guides/your-data#v1responses).
 
           stream_options: Options for streaming responses. Only set this when you set `stream: true`.
 
@@ -927,8 +935,8 @@ class Responses(SyncAPIResource):
           text: Configuration options for a text response from the model. Can be plain text or
               structured JSON data. Learn more:
 
-              - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
-              - [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs)
+              - [Text inputs and outputs](https://developers.openai.com/api/docs/guides/text)
+              - [Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs)
 
           tool_choice: How the model should select which tool (or tools) to use when generating a
               response. See the `tools` parameter to see how to specify which tools the model
@@ -941,17 +949,18 @@ class Responses(SyncAPIResource):
 
               - **Built-in tools**: Tools that are provided by OpenAI that extend the model's
                 capabilities, like
-                [web search](https://platform.openai.com/docs/guides/tools-web-search) or
-                [file search](https://platform.openai.com/docs/guides/tools-file-search).
+                [web search](https://developers.openai.com/api/docs/guides/tools-web-search)
+                or
+                [file search](https://developers.openai.com/api/docs/guides/tools-file-search).
                 Learn more about
-                [built-in tools](https://platform.openai.com/docs/guides/tools).
+                [built-in tools](https://developers.openai.com/api/docs/guides/tools).
               - **MCP Tools**: Integrations with third-party systems via custom MCP servers or
                 predefined connectors such as Google Drive and SharePoint. Learn more about
-                [MCP Tools](https://platform.openai.com/docs/guides/tools-connectors-mcp).
+                [MCP Tools](https://developers.openai.com/api/docs/guides/tools-connectors-mcp).
               - **Function calls (custom tools)**: Functions that are defined by you, enabling
                 the model to call your own code with strongly typed arguments and outputs.
                 Learn more about
-                [function calling](https://platform.openai.com/docs/guides/function-calling).
+                [function calling](https://developers.openai.com/api/docs/guides/function-calling).
                 You can also use custom tools to call your own code.
 
           top_logprobs: An integer between 0 and 20 specifying the maximum number of most likely tokens
@@ -976,7 +985,7 @@ class Responses(SyncAPIResource):
               `prompt_cache_key` instead to maintain caching optimizations. A stable
               identifier for your end-users. Used to boost cache hit rates by better bucketing
               similar requests and to help OpenAI detect and prevent abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           extra_headers: Send extra headers
 
@@ -1500,7 +1509,7 @@ class Responses(SyncAPIResource):
               generated using
               [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
               See the
-              [Streaming section below](https://platform.openai.com/docs/api-reference/responses-streaming)
+              [Streaming section below](https://developers.openai.com/api/reference/resources/responses/streaming-events)
               for more information.
 
           extra_headers: Send extra headers
@@ -1537,7 +1546,7 @@ class Responses(SyncAPIResource):
               generated using
               [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
               See the
-              [Streaming section below](https://platform.openai.com/docs/api-reference/responses-streaming)
+              [Streaming section below](https://developers.openai.com/api/reference/resources/responses/streaming-events)
               for more information.
 
           include: Additional fields to include in the response. See the `include` parameter for
@@ -1586,7 +1595,7 @@ class Responses(SyncAPIResource):
               generated using
               [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
               See the
-              [Streaming section below](https://platform.openai.com/docs/api-reference/responses-streaming)
+              [Streaming section below](https://developers.openai.com/api/reference/resources/responses/streaming-events)
               for more information.
 
           include: Additional fields to include in the response. See the `include` parameter for
@@ -1704,7 +1713,7 @@ class Responses(SyncAPIResource):
 
         Only responses created with the
         `background` parameter set to `true` can be cancelled.
-        [Learn more](https://platform.openai.com/docs/guides/background).
+        [Learn more](https://developers.openai.com/api/docs/guides/background).
 
         Args:
           extra_headers: Send extra headers
@@ -1860,16 +1869,16 @@ class Responses(SyncAPIResource):
         Returns a compacted response object.
 
         Learn when and how to compact long-running conversations in the
-        [conversation state guide](https://platform.openai.com/docs/guides/conversation-state#managing-the-context-window).
+        [conversation state guide](https://developers.openai.com/api/docs/guides/conversation-state#managing-the-context-window).
         For ZDR-compatible compaction details, see
-        [Compaction (advanced)](https://platform.openai.com/docs/guides/conversation-state#compaction-advanced).
+        [Compaction (advanced)](https://developers.openai.com/api/docs/guides/conversation-state#compaction-advanced).
 
         Args:
           model: Model ID used to generate the response, like `gpt-6-astra`. OpenAI offers a wide
               range of models with different capabilities, performance characteristics, and
               price points. Refer to the
-              [model guide](https://platform.openai.com/docs/models) to browse and compare
-              available models.
+              [model guide](https://developers.openai.com/api/docs/models) to browse and
+              compare available models.
 
           input: Text, image, or file inputs to the model, used to generate a response
 
@@ -1880,7 +1889,7 @@ class Responses(SyncAPIResource):
 
           previous_response_id: The unique ID of the previous response to the model. Use this to create
               multi-turn conversations. Learn more about
-              [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+              [conversation state](https://developers.openai.com/api/docs/guides/conversation-state).
               Cannot be used in conjunction with `conversation`.
 
           prompt_cache_key: A key to use when reading from or writing to the prompt cache.
@@ -1892,7 +1901,7 @@ class Responses(SyncAPIResource):
               up to the latest 80 breakpoints in the conversation, without a content-block
               lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The
               `ttl` defaults to `30m`, which is currently the only supported value. See the
-              [prompt caching guide](https://platform.openai.com/docs/guides/prompt-caching)
+              [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching)
               for current details.
 
           prompt_cache_retention: How long to retain a prompt cache entry created by this request.
@@ -1902,17 +1911,17 @@ class Responses(SyncAPIResource):
               Project settings. Unless otherwise configured, the Project will use 'default'. -
               If set to 'default', then the request will be processed with the standard
               pricing and performance for the selected model. - If set to
-              '[flex](https://platform.openai.com/docs/guides/flex-processing)', then the
-              request will be processed with the Flex Processing service tier. - To opt-in to
-              [Fast mode](/api/docs/guides/fast-mode) at the request level, include the
-              `service_tier=fast` or `service_tier=priority` parameter for Responses or Chat
-              Completions. For models with a dedicated Fast tier, either value resolves to
-              `service_tier=fast`; for other models, either value resolves to
-              `service_tier=priority`. - When not set, the default behavior is 'auto'. When
-              the `service_tier` parameter is set, the response body will include the
-              `service_tier` value based on the processing mode actually used to serve the
-              request. This response value may be different from the value set in the
-              parameter.
+              '[flex](https://developers.openai.com/api/docs/guides/flex-processing)', then
+              the request will be processed with the Flex Processing service tier. - To opt-in
+              to [Fast mode](https://developers.openai.com/api/docs/guides/fast-mode) at the
+              request level, include the `service_tier=fast` or `service_tier=priority`
+              parameter for Responses or Chat Completions. For models with a dedicated Fast
+              tier, either value resolves to `service_tier=fast`; for other models, either
+              value resolves to `service_tier=priority`. - When not set, the default behavior
+              is 'auto'. When the `service_tier` parameter is set, the response body will
+              include the `service_tier` value based on the processing mode actually used to
+              serve the request. This response value may be different from the value set in
+              the parameter.
 
           extra_headers: Send extra headers
 
@@ -2048,20 +2057,20 @@ class AsyncResponses(AsyncAPIResource):
         """Creates a model response.
 
         Provide
-        [text](https://platform.openai.com/docs/guides/text) or
-        [image](https://platform.openai.com/docs/guides/images) inputs to generate
-        [text](https://platform.openai.com/docs/guides/text) or
-        [JSON](https://platform.openai.com/docs/guides/structured-outputs) outputs. Have
-        the model call your own
-        [custom code](https://platform.openai.com/docs/guides/function-calling) or use
-        built-in [tools](https://platform.openai.com/docs/guides/tools) like
-        [web search](https://platform.openai.com/docs/guides/tools-web-search) or
-        [file search](https://platform.openai.com/docs/guides/tools-file-search) to use
-        your own data as input for the model's response.
+        [text](https://developers.openai.com/api/docs/guides/text) or
+        [image](https://developers.openai.com/api/docs/guides/images-vision) inputs to
+        generate [text](https://developers.openai.com/api/docs/guides/text) or
+        [JSON](https://developers.openai.com/api/docs/guides/structured-outputs)
+        outputs. Have the model call your own
+        [custom code](https://developers.openai.com/api/docs/guides/function-calling) or
+        use built-in [tools](https://developers.openai.com/api/docs/guides/tools) like
+        [web search](https://developers.openai.com/api/docs/guides/tools-web-search) or
+        [file search](https://developers.openai.com/api/docs/guides/tools-file-search)
+        to use your own data as input for the model's response.
 
         Args:
           background: Whether to run the model response in the background.
-              [Learn more](https://platform.openai.com/docs/guides/background).
+              [Learn more](https://developers.openai.com/api/docs/guides/background).
 
           context_management: Context management configuration for this request.
 
@@ -2093,11 +2102,11 @@ class AsyncResponses(AsyncAPIResource):
 
               Learn more:
 
-              - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
-              - [Image inputs](https://platform.openai.com/docs/guides/images)
-              - [File inputs](https://platform.openai.com/docs/guides/pdf-files)
-              - [Conversation state](https://platform.openai.com/docs/guides/conversation-state)
-              - [Function calling](https://platform.openai.com/docs/guides/function-calling)
+              - [Text inputs and outputs](https://developers.openai.com/api/docs/guides/text)
+              - [Image inputs](https://developers.openai.com/api/docs/guides/images-vision)
+              - [File inputs](https://developers.openai.com/api/docs/guides/file-inputs)
+              - [Conversation state](https://developers.openai.com/api/docs/guides/conversation-state)
+              - [Function calling](https://developers.openai.com/api/docs/guides/function-calling)
 
           instructions: A system (or developer) message inserted into the model's context.
 
@@ -2107,7 +2116,7 @@ class AsyncResponses(AsyncAPIResource):
 
           max_output_tokens: An upper bound for the number of tokens that can be generated for a response,
               including visible output tokens and
-              [reasoning tokens](https://platform.openai.com/docs/guides/reasoning).
+              [reasoning tokens](https://developers.openai.com/api/docs/guides/reasoning).
 
           max_tool_calls: The maximum number of total calls to built-in tools that can be processed in a
               response. This maximum number applies across all built-in tool calls, not per
@@ -2124,8 +2133,8 @@ class AsyncResponses(AsyncAPIResource):
           model: Model ID used to generate the response, like `gpt-6-astra`. OpenAI offers a wide
               range of models with different capabilities, performance characteristics, and
               price points. Refer to the
-              [model guide](https://platform.openai.com/docs/models) to browse and compare
-              available models.
+              [model guide](https://developers.openai.com/api/docs/models) to browse and
+              compare available models.
 
           moderation: Configuration for running moderation on the input and output of this response.
 
@@ -2133,15 +2142,15 @@ class AsyncResponses(AsyncAPIResource):
 
           previous_response_id: The unique ID of the previous response to the model. Use this to create
               multi-turn conversations. Learn more about
-              [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+              [conversation state](https://developers.openai.com/api/docs/guides/conversation-state).
               Cannot be used in conjunction with `conversation`.
 
           prompt: Reference to a prompt template and its variables.
-              [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
+              [Learn more](https://developers.openai.com/api/docs/guides/text?api-mode=responses#version-prompts-in-code).
 
           prompt_cache_key: Used by OpenAI to cache responses for similar requests to optimize your cache
               hit rates. Replaces the `user` field.
-              [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
+              [Learn more](https://developers.openai.com/api/docs/guides/prompt-caching).
 
           prompt_cache_options: Options for prompt caching. Supported for `gpt-5.6` and later models. By
               default, OpenAI automatically chooses one implicit cache breakpoint. You can add
@@ -2150,7 +2159,7 @@ class AsyncResponses(AsyncAPIResource):
               up to the latest 80 breakpoints in the conversation, without a content-block
               lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The
               `ttl` defaults to `30m`, which is currently the only supported value. See the
-              [prompt caching guide](https://platform.openai.com/docs/guides/prompt-caching)
+              [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching)
               for current details.
 
           prompt_cache_retention: Deprecated. Use `prompt_cache_options.ttl` instead.
@@ -2158,7 +2167,7 @@ class AsyncResponses(AsyncAPIResource):
               The retention policy for the prompt cache. Set to `24h` to enable extended
               prompt caching, which keeps cached prefixes active for longer, up to a maximum
               of 24 hours.
-              [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
+              [Learn more](https://developers.openai.com/api/docs/guides/prompt-caching#prompt-cache-retention).
               This field expresses a maximum retention policy, while
               `prompt_cache_options.ttl` expresses a minimum cache lifetime. The two fields
               are independent and do not interact. For `gpt-5.5`, `gpt-5.5-pro`, and future
@@ -2172,14 +2181,14 @@ class AsyncResponses(AsyncAPIResource):
                 `prompt_cache_retention` is not specified.
 
           reasoning: Configuration options for
-              [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+              [reasoning models](https://developers.openai.com/api/docs/guides/reasoning).
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
               identifies each user, with a maximum length of 64 characters. We recommend
               hashing their username or email address, in order to avoid sending us any
               identifying information.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           service_tier: Specifies the processing type used for serving the request.
 
@@ -2188,13 +2197,15 @@ class AsyncResponses(AsyncAPIResource):
                 will use 'default'.
               - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
-              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)',
-                then the request will be processed with the Flex Processing service tier.
-              - To opt-in to [Fast mode](/api/docs/guides/fast-mode) at the request level,
-                include the `service_tier=fast` or `service_tier=priority` parameter for
-                Responses or Chat Completions. The response will show `service_tier=priority`
-                regardless of if you specify `service_tier=fast` or `priority` in your
-                request.
+              - If set to
+                '[flex](https://developers.openai.com/api/docs/guides/flex-processing)', then
+                the request will be processed with the Flex Processing service tier.
+              - To opt-in to
+                [Fast mode](https://developers.openai.com/api/docs/guides/fast-mode) at the
+                request level, include the `service_tier=fast` or `service_tier=priority`
+                parameter for Responses or Chat Completions. The response will show
+                `service_tier=priority` regardless of if you specify `service_tier=fast` or
+                `priority` in your request.
               - If set to 'ultrafast', then the request will be processed with the
                 access-controlled Ultrafast Processing service tier. This tier is currently
                 available for `gpt-5.6-sol`; a response served through it will show
@@ -2209,13 +2220,13 @@ class AsyncResponses(AsyncAPIResource):
           store: Whether to store the generated model response for later retrieval via API.
               Defaults to true when omitted. If set to true, response data will be stored for
               at least 30 days, subject to the
-              [data retention exceptions](/api/docs/guides/your-data#v1responses).
+              [data retention exceptions](https://developers.openai.com/api/docs/guides/your-data#v1responses).
 
           stream: If set to true, the model response data will be streamed to the client as it is
               generated using
               [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
               See the
-              [Streaming section below](https://platform.openai.com/docs/api-reference/responses-streaming)
+              [Streaming section below](https://developers.openai.com/api/reference/resources/responses/streaming-events)
               for more information.
 
           stream_options: Options for streaming responses. Only set this when you set `stream: true`.
@@ -2228,8 +2239,8 @@ class AsyncResponses(AsyncAPIResource):
           text: Configuration options for a text response from the model. Can be plain text or
               structured JSON data. Learn more:
 
-              - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
-              - [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs)
+              - [Text inputs and outputs](https://developers.openai.com/api/docs/guides/text)
+              - [Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs)
 
           tool_choice: How the model should select which tool (or tools) to use when generating a
               response. See the `tools` parameter to see how to specify which tools the model
@@ -2242,17 +2253,18 @@ class AsyncResponses(AsyncAPIResource):
 
               - **Built-in tools**: Tools that are provided by OpenAI that extend the model's
                 capabilities, like
-                [web search](https://platform.openai.com/docs/guides/tools-web-search) or
-                [file search](https://platform.openai.com/docs/guides/tools-file-search).
+                [web search](https://developers.openai.com/api/docs/guides/tools-web-search)
+                or
+                [file search](https://developers.openai.com/api/docs/guides/tools-file-search).
                 Learn more about
-                [built-in tools](https://platform.openai.com/docs/guides/tools).
+                [built-in tools](https://developers.openai.com/api/docs/guides/tools).
               - **MCP Tools**: Integrations with third-party systems via custom MCP servers or
                 predefined connectors such as Google Drive and SharePoint. Learn more about
-                [MCP Tools](https://platform.openai.com/docs/guides/tools-connectors-mcp).
+                [MCP Tools](https://developers.openai.com/api/docs/guides/tools-connectors-mcp).
               - **Function calls (custom tools)**: Functions that are defined by you, enabling
                 the model to call your own code with strongly typed arguments and outputs.
                 Learn more about
-                [function calling](https://platform.openai.com/docs/guides/function-calling).
+                [function calling](https://developers.openai.com/api/docs/guides/function-calling).
                 You can also use custom tools to call your own code.
 
           top_logprobs: An integer between 0 and 20 specifying the maximum number of most likely tokens
@@ -2277,7 +2289,7 @@ class AsyncResponses(AsyncAPIResource):
               `prompt_cache_key` instead to maintain caching optimizations. A stable
               identifier for your end-users. Used to boost cache hit rates by better bucketing
               similar requests and to help OpenAI detect and prevent abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           extra_headers: Send extra headers
 
@@ -2334,27 +2346,27 @@ class AsyncResponses(AsyncAPIResource):
         """Creates a model response.
 
         Provide
-        [text](https://platform.openai.com/docs/guides/text) or
-        [image](https://platform.openai.com/docs/guides/images) inputs to generate
-        [text](https://platform.openai.com/docs/guides/text) or
-        [JSON](https://platform.openai.com/docs/guides/structured-outputs) outputs. Have
-        the model call your own
-        [custom code](https://platform.openai.com/docs/guides/function-calling) or use
-        built-in [tools](https://platform.openai.com/docs/guides/tools) like
-        [web search](https://platform.openai.com/docs/guides/tools-web-search) or
-        [file search](https://platform.openai.com/docs/guides/tools-file-search) to use
-        your own data as input for the model's response.
+        [text](https://developers.openai.com/api/docs/guides/text) or
+        [image](https://developers.openai.com/api/docs/guides/images-vision) inputs to
+        generate [text](https://developers.openai.com/api/docs/guides/text) or
+        [JSON](https://developers.openai.com/api/docs/guides/structured-outputs)
+        outputs. Have the model call your own
+        [custom code](https://developers.openai.com/api/docs/guides/function-calling) or
+        use built-in [tools](https://developers.openai.com/api/docs/guides/tools) like
+        [web search](https://developers.openai.com/api/docs/guides/tools-web-search) or
+        [file search](https://developers.openai.com/api/docs/guides/tools-file-search)
+        to use your own data as input for the model's response.
 
         Args:
           stream: If set to true, the model response data will be streamed to the client as it is
               generated using
               [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
               See the
-              [Streaming section below](https://platform.openai.com/docs/api-reference/responses-streaming)
+              [Streaming section below](https://developers.openai.com/api/reference/resources/responses/streaming-events)
               for more information.
 
           background: Whether to run the model response in the background.
-              [Learn more](https://platform.openai.com/docs/guides/background).
+              [Learn more](https://developers.openai.com/api/docs/guides/background).
 
           context_management: Context management configuration for this request.
 
@@ -2386,11 +2398,11 @@ class AsyncResponses(AsyncAPIResource):
 
               Learn more:
 
-              - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
-              - [Image inputs](https://platform.openai.com/docs/guides/images)
-              - [File inputs](https://platform.openai.com/docs/guides/pdf-files)
-              - [Conversation state](https://platform.openai.com/docs/guides/conversation-state)
-              - [Function calling](https://platform.openai.com/docs/guides/function-calling)
+              - [Text inputs and outputs](https://developers.openai.com/api/docs/guides/text)
+              - [Image inputs](https://developers.openai.com/api/docs/guides/images-vision)
+              - [File inputs](https://developers.openai.com/api/docs/guides/file-inputs)
+              - [Conversation state](https://developers.openai.com/api/docs/guides/conversation-state)
+              - [Function calling](https://developers.openai.com/api/docs/guides/function-calling)
 
           instructions: A system (or developer) message inserted into the model's context.
 
@@ -2400,7 +2412,7 @@ class AsyncResponses(AsyncAPIResource):
 
           max_output_tokens: An upper bound for the number of tokens that can be generated for a response,
               including visible output tokens and
-              [reasoning tokens](https://platform.openai.com/docs/guides/reasoning).
+              [reasoning tokens](https://developers.openai.com/api/docs/guides/reasoning).
 
           max_tool_calls: The maximum number of total calls to built-in tools that can be processed in a
               response. This maximum number applies across all built-in tool calls, not per
@@ -2417,8 +2429,8 @@ class AsyncResponses(AsyncAPIResource):
           model: Model ID used to generate the response, like `gpt-6-astra`. OpenAI offers a wide
               range of models with different capabilities, performance characteristics, and
               price points. Refer to the
-              [model guide](https://platform.openai.com/docs/models) to browse and compare
-              available models.
+              [model guide](https://developers.openai.com/api/docs/models) to browse and
+              compare available models.
 
           moderation: Configuration for running moderation on the input and output of this response.
 
@@ -2426,15 +2438,15 @@ class AsyncResponses(AsyncAPIResource):
 
           previous_response_id: The unique ID of the previous response to the model. Use this to create
               multi-turn conversations. Learn more about
-              [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+              [conversation state](https://developers.openai.com/api/docs/guides/conversation-state).
               Cannot be used in conjunction with `conversation`.
 
           prompt: Reference to a prompt template and its variables.
-              [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
+              [Learn more](https://developers.openai.com/api/docs/guides/text?api-mode=responses#version-prompts-in-code).
 
           prompt_cache_key: Used by OpenAI to cache responses for similar requests to optimize your cache
               hit rates. Replaces the `user` field.
-              [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
+              [Learn more](https://developers.openai.com/api/docs/guides/prompt-caching).
 
           prompt_cache_options: Options for prompt caching. Supported for `gpt-5.6` and later models. By
               default, OpenAI automatically chooses one implicit cache breakpoint. You can add
@@ -2443,7 +2455,7 @@ class AsyncResponses(AsyncAPIResource):
               up to the latest 80 breakpoints in the conversation, without a content-block
               lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The
               `ttl` defaults to `30m`, which is currently the only supported value. See the
-              [prompt caching guide](https://platform.openai.com/docs/guides/prompt-caching)
+              [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching)
               for current details.
 
           prompt_cache_retention: Deprecated. Use `prompt_cache_options.ttl` instead.
@@ -2451,7 +2463,7 @@ class AsyncResponses(AsyncAPIResource):
               The retention policy for the prompt cache. Set to `24h` to enable extended
               prompt caching, which keeps cached prefixes active for longer, up to a maximum
               of 24 hours.
-              [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
+              [Learn more](https://developers.openai.com/api/docs/guides/prompt-caching#prompt-cache-retention).
               This field expresses a maximum retention policy, while
               `prompt_cache_options.ttl` expresses a minimum cache lifetime. The two fields
               are independent and do not interact. For `gpt-5.5`, `gpt-5.5-pro`, and future
@@ -2465,14 +2477,14 @@ class AsyncResponses(AsyncAPIResource):
                 `prompt_cache_retention` is not specified.
 
           reasoning: Configuration options for
-              [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+              [reasoning models](https://developers.openai.com/api/docs/guides/reasoning).
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
               identifies each user, with a maximum length of 64 characters. We recommend
               hashing their username or email address, in order to avoid sending us any
               identifying information.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           service_tier: Specifies the processing type used for serving the request.
 
@@ -2481,13 +2493,15 @@ class AsyncResponses(AsyncAPIResource):
                 will use 'default'.
               - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
-              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)',
-                then the request will be processed with the Flex Processing service tier.
-              - To opt-in to [Fast mode](/api/docs/guides/fast-mode) at the request level,
-                include the `service_tier=fast` or `service_tier=priority` parameter for
-                Responses or Chat Completions. The response will show `service_tier=priority`
-                regardless of if you specify `service_tier=fast` or `priority` in your
-                request.
+              - If set to
+                '[flex](https://developers.openai.com/api/docs/guides/flex-processing)', then
+                the request will be processed with the Flex Processing service tier.
+              - To opt-in to
+                [Fast mode](https://developers.openai.com/api/docs/guides/fast-mode) at the
+                request level, include the `service_tier=fast` or `service_tier=priority`
+                parameter for Responses or Chat Completions. The response will show
+                `service_tier=priority` regardless of if you specify `service_tier=fast` or
+                `priority` in your request.
               - If set to 'ultrafast', then the request will be processed with the
                 access-controlled Ultrafast Processing service tier. This tier is currently
                 available for `gpt-5.6-sol`; a response served through it will show
@@ -2502,7 +2516,7 @@ class AsyncResponses(AsyncAPIResource):
           store: Whether to store the generated model response for later retrieval via API.
               Defaults to true when omitted. If set to true, response data will be stored for
               at least 30 days, subject to the
-              [data retention exceptions](/api/docs/guides/your-data#v1responses).
+              [data retention exceptions](https://developers.openai.com/api/docs/guides/your-data#v1responses).
 
           stream_options: Options for streaming responses. Only set this when you set `stream: true`.
 
@@ -2514,8 +2528,8 @@ class AsyncResponses(AsyncAPIResource):
           text: Configuration options for a text response from the model. Can be plain text or
               structured JSON data. Learn more:
 
-              - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
-              - [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs)
+              - [Text inputs and outputs](https://developers.openai.com/api/docs/guides/text)
+              - [Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs)
 
           tool_choice: How the model should select which tool (or tools) to use when generating a
               response. See the `tools` parameter to see how to specify which tools the model
@@ -2528,17 +2542,18 @@ class AsyncResponses(AsyncAPIResource):
 
               - **Built-in tools**: Tools that are provided by OpenAI that extend the model's
                 capabilities, like
-                [web search](https://platform.openai.com/docs/guides/tools-web-search) or
-                [file search](https://platform.openai.com/docs/guides/tools-file-search).
+                [web search](https://developers.openai.com/api/docs/guides/tools-web-search)
+                or
+                [file search](https://developers.openai.com/api/docs/guides/tools-file-search).
                 Learn more about
-                [built-in tools](https://platform.openai.com/docs/guides/tools).
+                [built-in tools](https://developers.openai.com/api/docs/guides/tools).
               - **MCP Tools**: Integrations with third-party systems via custom MCP servers or
                 predefined connectors such as Google Drive and SharePoint. Learn more about
-                [MCP Tools](https://platform.openai.com/docs/guides/tools-connectors-mcp).
+                [MCP Tools](https://developers.openai.com/api/docs/guides/tools-connectors-mcp).
               - **Function calls (custom tools)**: Functions that are defined by you, enabling
                 the model to call your own code with strongly typed arguments and outputs.
                 Learn more about
-                [function calling](https://platform.openai.com/docs/guides/function-calling).
+                [function calling](https://developers.openai.com/api/docs/guides/function-calling).
                 You can also use custom tools to call your own code.
 
           top_logprobs: An integer between 0 and 20 specifying the maximum number of most likely tokens
@@ -2563,7 +2578,7 @@ class AsyncResponses(AsyncAPIResource):
               `prompt_cache_key` instead to maintain caching optimizations. A stable
               identifier for your end-users. Used to boost cache hit rates by better bucketing
               similar requests and to help OpenAI detect and prevent abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           extra_headers: Send extra headers
 
@@ -2620,27 +2635,27 @@ class AsyncResponses(AsyncAPIResource):
         """Creates a model response.
 
         Provide
-        [text](https://platform.openai.com/docs/guides/text) or
-        [image](https://platform.openai.com/docs/guides/images) inputs to generate
-        [text](https://platform.openai.com/docs/guides/text) or
-        [JSON](https://platform.openai.com/docs/guides/structured-outputs) outputs. Have
-        the model call your own
-        [custom code](https://platform.openai.com/docs/guides/function-calling) or use
-        built-in [tools](https://platform.openai.com/docs/guides/tools) like
-        [web search](https://platform.openai.com/docs/guides/tools-web-search) or
-        [file search](https://platform.openai.com/docs/guides/tools-file-search) to use
-        your own data as input for the model's response.
+        [text](https://developers.openai.com/api/docs/guides/text) or
+        [image](https://developers.openai.com/api/docs/guides/images-vision) inputs to
+        generate [text](https://developers.openai.com/api/docs/guides/text) or
+        [JSON](https://developers.openai.com/api/docs/guides/structured-outputs)
+        outputs. Have the model call your own
+        [custom code](https://developers.openai.com/api/docs/guides/function-calling) or
+        use built-in [tools](https://developers.openai.com/api/docs/guides/tools) like
+        [web search](https://developers.openai.com/api/docs/guides/tools-web-search) or
+        [file search](https://developers.openai.com/api/docs/guides/tools-file-search)
+        to use your own data as input for the model's response.
 
         Args:
           stream: If set to true, the model response data will be streamed to the client as it is
               generated using
               [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
               See the
-              [Streaming section below](https://platform.openai.com/docs/api-reference/responses-streaming)
+              [Streaming section below](https://developers.openai.com/api/reference/resources/responses/streaming-events)
               for more information.
 
           background: Whether to run the model response in the background.
-              [Learn more](https://platform.openai.com/docs/guides/background).
+              [Learn more](https://developers.openai.com/api/docs/guides/background).
 
           context_management: Context management configuration for this request.
 
@@ -2672,11 +2687,11 @@ class AsyncResponses(AsyncAPIResource):
 
               Learn more:
 
-              - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
-              - [Image inputs](https://platform.openai.com/docs/guides/images)
-              - [File inputs](https://platform.openai.com/docs/guides/pdf-files)
-              - [Conversation state](https://platform.openai.com/docs/guides/conversation-state)
-              - [Function calling](https://platform.openai.com/docs/guides/function-calling)
+              - [Text inputs and outputs](https://developers.openai.com/api/docs/guides/text)
+              - [Image inputs](https://developers.openai.com/api/docs/guides/images-vision)
+              - [File inputs](https://developers.openai.com/api/docs/guides/file-inputs)
+              - [Conversation state](https://developers.openai.com/api/docs/guides/conversation-state)
+              - [Function calling](https://developers.openai.com/api/docs/guides/function-calling)
 
           instructions: A system (or developer) message inserted into the model's context.
 
@@ -2686,7 +2701,7 @@ class AsyncResponses(AsyncAPIResource):
 
           max_output_tokens: An upper bound for the number of tokens that can be generated for a response,
               including visible output tokens and
-              [reasoning tokens](https://platform.openai.com/docs/guides/reasoning).
+              [reasoning tokens](https://developers.openai.com/api/docs/guides/reasoning).
 
           max_tool_calls: The maximum number of total calls to built-in tools that can be processed in a
               response. This maximum number applies across all built-in tool calls, not per
@@ -2703,8 +2718,8 @@ class AsyncResponses(AsyncAPIResource):
           model: Model ID used to generate the response, like `gpt-6-astra`. OpenAI offers a wide
               range of models with different capabilities, performance characteristics, and
               price points. Refer to the
-              [model guide](https://platform.openai.com/docs/models) to browse and compare
-              available models.
+              [model guide](https://developers.openai.com/api/docs/models) to browse and
+              compare available models.
 
           moderation: Configuration for running moderation on the input and output of this response.
 
@@ -2712,15 +2727,15 @@ class AsyncResponses(AsyncAPIResource):
 
           previous_response_id: The unique ID of the previous response to the model. Use this to create
               multi-turn conversations. Learn more about
-              [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+              [conversation state](https://developers.openai.com/api/docs/guides/conversation-state).
               Cannot be used in conjunction with `conversation`.
 
           prompt: Reference to a prompt template and its variables.
-              [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
+              [Learn more](https://developers.openai.com/api/docs/guides/text?api-mode=responses#version-prompts-in-code).
 
           prompt_cache_key: Used by OpenAI to cache responses for similar requests to optimize your cache
               hit rates. Replaces the `user` field.
-              [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
+              [Learn more](https://developers.openai.com/api/docs/guides/prompt-caching).
 
           prompt_cache_options: Options for prompt caching. Supported for `gpt-5.6` and later models. By
               default, OpenAI automatically chooses one implicit cache breakpoint. You can add
@@ -2729,7 +2744,7 @@ class AsyncResponses(AsyncAPIResource):
               up to the latest 80 breakpoints in the conversation, without a content-block
               lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The
               `ttl` defaults to `30m`, which is currently the only supported value. See the
-              [prompt caching guide](https://platform.openai.com/docs/guides/prompt-caching)
+              [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching)
               for current details.
 
           prompt_cache_retention: Deprecated. Use `prompt_cache_options.ttl` instead.
@@ -2737,7 +2752,7 @@ class AsyncResponses(AsyncAPIResource):
               The retention policy for the prompt cache. Set to `24h` to enable extended
               prompt caching, which keeps cached prefixes active for longer, up to a maximum
               of 24 hours.
-              [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
+              [Learn more](https://developers.openai.com/api/docs/guides/prompt-caching#prompt-cache-retention).
               This field expresses a maximum retention policy, while
               `prompt_cache_options.ttl` expresses a minimum cache lifetime. The two fields
               are independent and do not interact. For `gpt-5.5`, `gpt-5.5-pro`, and future
@@ -2751,14 +2766,14 @@ class AsyncResponses(AsyncAPIResource):
                 `prompt_cache_retention` is not specified.
 
           reasoning: Configuration options for
-              [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+              [reasoning models](https://developers.openai.com/api/docs/guides/reasoning).
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
               identifies each user, with a maximum length of 64 characters. We recommend
               hashing their username or email address, in order to avoid sending us any
               identifying information.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           service_tier: Specifies the processing type used for serving the request.
 
@@ -2767,13 +2782,15 @@ class AsyncResponses(AsyncAPIResource):
                 will use 'default'.
               - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
-              - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)',
-                then the request will be processed with the Flex Processing service tier.
-              - To opt-in to [Fast mode](/api/docs/guides/fast-mode) at the request level,
-                include the `service_tier=fast` or `service_tier=priority` parameter for
-                Responses or Chat Completions. The response will show `service_tier=priority`
-                regardless of if you specify `service_tier=fast` or `priority` in your
-                request.
+              - If set to
+                '[flex](https://developers.openai.com/api/docs/guides/flex-processing)', then
+                the request will be processed with the Flex Processing service tier.
+              - To opt-in to
+                [Fast mode](https://developers.openai.com/api/docs/guides/fast-mode) at the
+                request level, include the `service_tier=fast` or `service_tier=priority`
+                parameter for Responses or Chat Completions. The response will show
+                `service_tier=priority` regardless of if you specify `service_tier=fast` or
+                `priority` in your request.
               - If set to 'ultrafast', then the request will be processed with the
                 access-controlled Ultrafast Processing service tier. This tier is currently
                 available for `gpt-5.6-sol`; a response served through it will show
@@ -2788,7 +2805,7 @@ class AsyncResponses(AsyncAPIResource):
           store: Whether to store the generated model response for later retrieval via API.
               Defaults to true when omitted. If set to true, response data will be stored for
               at least 30 days, subject to the
-              [data retention exceptions](/api/docs/guides/your-data#v1responses).
+              [data retention exceptions](https://developers.openai.com/api/docs/guides/your-data#v1responses).
 
           stream_options: Options for streaming responses. Only set this when you set `stream: true`.
 
@@ -2800,8 +2817,8 @@ class AsyncResponses(AsyncAPIResource):
           text: Configuration options for a text response from the model. Can be plain text or
               structured JSON data. Learn more:
 
-              - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
-              - [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs)
+              - [Text inputs and outputs](https://developers.openai.com/api/docs/guides/text)
+              - [Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs)
 
           tool_choice: How the model should select which tool (or tools) to use when generating a
               response. See the `tools` parameter to see how to specify which tools the model
@@ -2814,17 +2831,18 @@ class AsyncResponses(AsyncAPIResource):
 
               - **Built-in tools**: Tools that are provided by OpenAI that extend the model's
                 capabilities, like
-                [web search](https://platform.openai.com/docs/guides/tools-web-search) or
-                [file search](https://platform.openai.com/docs/guides/tools-file-search).
+                [web search](https://developers.openai.com/api/docs/guides/tools-web-search)
+                or
+                [file search](https://developers.openai.com/api/docs/guides/tools-file-search).
                 Learn more about
-                [built-in tools](https://platform.openai.com/docs/guides/tools).
+                [built-in tools](https://developers.openai.com/api/docs/guides/tools).
               - **MCP Tools**: Integrations with third-party systems via custom MCP servers or
                 predefined connectors such as Google Drive and SharePoint. Learn more about
-                [MCP Tools](https://platform.openai.com/docs/guides/tools-connectors-mcp).
+                [MCP Tools](https://developers.openai.com/api/docs/guides/tools-connectors-mcp).
               - **Function calls (custom tools)**: Functions that are defined by you, enabling
                 the model to call your own code with strongly typed arguments and outputs.
                 Learn more about
-                [function calling](https://platform.openai.com/docs/guides/function-calling).
+                [function calling](https://developers.openai.com/api/docs/guides/function-calling).
                 You can also use custom tools to call your own code.
 
           top_logprobs: An integer between 0 and 20 specifying the maximum number of most likely tokens
@@ -2849,7 +2867,7 @@ class AsyncResponses(AsyncAPIResource):
               `prompt_cache_key` instead to maintain caching optimizations. A stable
               identifier for your end-users. Used to boost cache hit rates by better bucketing
               similar requests and to help OpenAI detect and prevent abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           extra_headers: Send extra headers
 
@@ -3372,7 +3390,7 @@ class AsyncResponses(AsyncAPIResource):
               generated using
               [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
               See the
-              [Streaming section below](https://platform.openai.com/docs/api-reference/responses-streaming)
+              [Streaming section below](https://developers.openai.com/api/reference/resources/responses/streaming-events)
               for more information.
 
           extra_headers: Send extra headers
@@ -3409,7 +3427,7 @@ class AsyncResponses(AsyncAPIResource):
               generated using
               [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
               See the
-              [Streaming section below](https://platform.openai.com/docs/api-reference/responses-streaming)
+              [Streaming section below](https://developers.openai.com/api/reference/resources/responses/streaming-events)
               for more information.
 
           include: Additional fields to include in the response. See the `include` parameter for
@@ -3458,7 +3476,7 @@ class AsyncResponses(AsyncAPIResource):
               generated using
               [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
               See the
-              [Streaming section below](https://platform.openai.com/docs/api-reference/responses-streaming)
+              [Streaming section below](https://developers.openai.com/api/reference/resources/responses/streaming-events)
               for more information.
 
           include: Additional fields to include in the response. See the `include` parameter for
@@ -3576,7 +3594,7 @@ class AsyncResponses(AsyncAPIResource):
 
         Only responses created with the
         `background` parameter set to `true` can be cancelled.
-        [Learn more](https://platform.openai.com/docs/guides/background).
+        [Learn more](https://developers.openai.com/api/docs/guides/background).
 
         Args:
           extra_headers: Send extra headers
@@ -3732,16 +3750,16 @@ class AsyncResponses(AsyncAPIResource):
         Returns a compacted response object.
 
         Learn when and how to compact long-running conversations in the
-        [conversation state guide](https://platform.openai.com/docs/guides/conversation-state#managing-the-context-window).
+        [conversation state guide](https://developers.openai.com/api/docs/guides/conversation-state#managing-the-context-window).
         For ZDR-compatible compaction details, see
-        [Compaction (advanced)](https://platform.openai.com/docs/guides/conversation-state#compaction-advanced).
+        [Compaction (advanced)](https://developers.openai.com/api/docs/guides/conversation-state#compaction-advanced).
 
         Args:
           model: Model ID used to generate the response, like `gpt-6-astra`. OpenAI offers a wide
               range of models with different capabilities, performance characteristics, and
               price points. Refer to the
-              [model guide](https://platform.openai.com/docs/models) to browse and compare
-              available models.
+              [model guide](https://developers.openai.com/api/docs/models) to browse and
+              compare available models.
 
           input: Text, image, or file inputs to the model, used to generate a response
 
@@ -3752,7 +3770,7 @@ class AsyncResponses(AsyncAPIResource):
 
           previous_response_id: The unique ID of the previous response to the model. Use this to create
               multi-turn conversations. Learn more about
-              [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+              [conversation state](https://developers.openai.com/api/docs/guides/conversation-state).
               Cannot be used in conjunction with `conversation`.
 
           prompt_cache_key: A key to use when reading from or writing to the prompt cache.
@@ -3764,7 +3782,7 @@ class AsyncResponses(AsyncAPIResource):
               up to the latest 80 breakpoints in the conversation, without a content-block
               lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The
               `ttl` defaults to `30m`, which is currently the only supported value. See the
-              [prompt caching guide](https://platform.openai.com/docs/guides/prompt-caching)
+              [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching)
               for current details.
 
           prompt_cache_retention: How long to retain a prompt cache entry created by this request.
@@ -3774,17 +3792,17 @@ class AsyncResponses(AsyncAPIResource):
               Project settings. Unless otherwise configured, the Project will use 'default'. -
               If set to 'default', then the request will be processed with the standard
               pricing and performance for the selected model. - If set to
-              '[flex](https://platform.openai.com/docs/guides/flex-processing)', then the
-              request will be processed with the Flex Processing service tier. - To opt-in to
-              [Fast mode](/api/docs/guides/fast-mode) at the request level, include the
-              `service_tier=fast` or `service_tier=priority` parameter for Responses or Chat
-              Completions. For models with a dedicated Fast tier, either value resolves to
-              `service_tier=fast`; for other models, either value resolves to
-              `service_tier=priority`. - When not set, the default behavior is 'auto'. When
-              the `service_tier` parameter is set, the response body will include the
-              `service_tier` value based on the processing mode actually used to serve the
-              request. This response value may be different from the value set in the
-              parameter.
+              '[flex](https://developers.openai.com/api/docs/guides/flex-processing)', then
+              the request will be processed with the Flex Processing service tier. - To opt-in
+              to [Fast mode](https://developers.openai.com/api/docs/guides/fast-mode) at the
+              request level, include the `service_tier=fast` or `service_tier=priority`
+              parameter for Responses or Chat Completions. For models with a dedicated Fast
+              tier, either value resolves to `service_tier=fast`; for other models, either
+              value resolves to `service_tier=priority`. - When not set, the default behavior
+              is 'auto'. When the `service_tier` parameter is set, the response body will
+              include the `service_tier` value based on the processing mode actually used to
+              serve the request. This response value may be different from the value set in
+              the parameter.
 
           extra_headers: Send extra headers
 

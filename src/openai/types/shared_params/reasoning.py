@@ -13,7 +13,7 @@ __all__ = ["Reasoning"]
 class Reasoning(TypedDict, total=False):
     """
     Configuration options for
-    [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+    [reasoning models](https://developers.openai.com/api/docs/guides/reasoning).
     """
 
     context: Optional[Literal["auto", "current_turn", "all_turns"]]
@@ -33,7 +33,7 @@ class Reasoning(TypedDict, total=False):
     `xhigh`, and `max`. Reducing reasoning effort can result in faster responses and
     fewer tokens used on reasoning in a response. Not all reasoning models support
     every value. See the
-    [reasoning guide](https://platform.openai.com/docs/guides/reasoning) for
+    [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning) for
     model-specific support.
     """
 

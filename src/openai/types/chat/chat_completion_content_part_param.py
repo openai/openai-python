@@ -38,7 +38,7 @@ class FilePromptCacheBreakpoint(TypedDict, total=False):
 
 class File(TypedDict, total=False):
     """
-    Learn about [file inputs](https://platform.openai.com/docs/guides/text) for text generation.
+    Learn about [file inputs](https://developers.openai.com/api/docs/guides/text) for text generation.
     """
 
     file: Required[FileFile]

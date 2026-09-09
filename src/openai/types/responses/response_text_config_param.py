@@ -15,8 +15,8 @@ class ResponseTextConfigParam(TypedDict, total=False):
 
     Can be plain
     text or structured JSON data. Learn more:
-    - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
-    - [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs)
+    - [Text inputs and outputs](https://developers.openai.com/api/docs/guides/text)
+    - [Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs)
     """
 
     format: ResponseFormatTextConfigParam
@@ -24,7 +24,7 @@ class ResponseTextConfigParam(TypedDict, total=False):
 
     Configuring `{ "type": "json_schema" }` enables Structured Outputs, which
     ensures the model will match your supplied JSON schema. Learn more in the
-    [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+    [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
 
     The default format is `{ "type": "text" }` with no additional options.
 

@@ -19,7 +19,7 @@ _FunctionToolParamReservedKeywords = TypedDict(
 class FunctionToolParam(_FunctionToolParamReservedKeywords, total=False):
     """Defines a function in your own code the model can choose to call.
 
-    Learn more about [function calling](https://platform.openai.com/docs/guides/function-calling).
+    Learn more about [function calling](https://developers.openai.com/api/docs/guides/function-calling).
     """
 
     name: Required[str]
