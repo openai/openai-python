@@ -58,7 +58,7 @@ class APIError(OpenAIError):
     If there was no response associated with this error then it will be `None`.
     """
 
-    code: Optional[str] = None
+    code: int | str | None = None
     param: Optional[str] = None
     type: Optional[str]
 
