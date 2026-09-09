@@ -61,13 +61,14 @@ class Graders(SyncAPIResource):
 
           model_sample: The model sample to be evaluated. This value will be used to populate the
               `sample` namespace. See
-              [the guide](https://platform.openai.com/docs/guides/graders) for more details.
-              The `output_json` variable will be populated if the model sample is a valid JSON
-              string.
+              [the guide](https://developers.openai.com/api/docs/guides/graders) for more
+              details. The `output_json` variable will be populated if the model sample is a
+              valid JSON string.
 
           item: The dataset item provided to the grader. This will be used to populate the
               `item` namespace. See
-              [the guide](https://platform.openai.com/docs/guides/graders) for more details.
+              [the guide](https://developers.openai.com/api/docs/guides/graders) for more
+              details.
 
           extra_headers: Send extra headers
 
@@ -179,13 +180,14 @@ class AsyncGraders(AsyncAPIResource):
 
           model_sample: The model sample to be evaluated. This value will be used to populate the
               `sample` namespace. See
-              [the guide](https://platform.openai.com/docs/guides/graders) for more details.
-              The `output_json` variable will be populated if the model sample is a valid JSON
-              string.
+              [the guide](https://developers.openai.com/api/docs/guides/graders) for more
+              details. The `output_json` variable will be populated if the model sample is a
+              valid JSON string.
 
           item: The dataset item provided to the grader. This will be used to populate the
               `item` namespace. See
-              [the guide](https://platform.openai.com/docs/guides/graders) for more details.
+              [the guide](https://developers.openai.com/api/docs/guides/graders) for more
+              details.
 
           extra_headers: Send extra headers
 
