@@ -3038,3 +3038,32 @@ class TestAsyncWorkloadIdentity401Retry:
             assert len(calls) == 2
 
             assert provider_call_count == 1
+
+
+def test_api_error_code_coercion() -> None:
+    """Regression test: APIError.code must always be Optional[str], never int.
+
+    The API can return a numeric code (e.g. 400) in the error body. Before the
+    fix, construct_type returned the raw int when the target type didn't match,
+    and cast(Any, ...) hid that from the type checker — so .code was silently int
+    at runtime, breaking any caller using str methods like .strip() or ==.
+    """
+    from openai._exceptions import APIError
+
+    request = httpx2.Request("GET", "http://localhost")
+
+    # Integer code must be coerced to str.
+    err = APIError("msg", request, body={"code": 400, "param": None, "type": "t"})
+    assert err.code == "400"
+    assert isinstance(err.code, str)
+
+    # String code must pass through unchanged.
+    err = APIError("msg", request, body={"code": "invalid_api_key", "param": None, "type": "t"})
+    assert err.code == "invalid_api_key"
+
+    # Absent / null code must yield None.
+    err = APIError("msg", request, body={"code": None, "param": None, "type": "t"})
+    assert err.code is None
+
+    err = APIError("msg", request, body={"param": None, "type": "t"})
+    assert err.code is None
