@@ -17,6 +17,7 @@ class _LegacyHttpxModule(Protocol):
     Timeout: type[httpx2.Timeout]
     Limits: type[httpx2.Limits]
     TimeoutException: type[httpx2.TimeoutException]
+    RequestError: type[httpx2.RequestError]
     HTTPStatusError: type[httpx2.HTTPStatusError]
     StreamConsumed: type[httpx2.StreamConsumed]
     RequestNotRead: type[httpx2.RequestNotRead]
@@ -97,6 +98,16 @@ def normalize_legacy_httpx_auth(value: httpx2.Auth) -> httpx2.Auth:
 def timeout_exceptions() -> tuple[type[httpx2.TimeoutException], ...]:
     module = _loaded_legacy_httpx()
     return (httpx2.TimeoutException,) if module is None else (httpx2.TimeoutException, module.TimeoutException)
+
+
+def request_exceptions() -> tuple[type[httpx2.RequestError], ...]:
+    """Exceptions raised by the transport for a single request: connection failures, protocol
+    errors, timeouts, and the like. Deliberately narrower than `Exception` so that unrelated
+    errors (e.g. a task-cancellation signal raised inside a custom transport) are not silently
+    retried and reported as an `APIConnectionError`.
+    """
+    module = _loaded_legacy_httpx()
+    return (httpx2.RequestError,) if module is None else (httpx2.RequestError, module.RequestError)
 
 
 def status_exceptions() -> tuple[type[httpx2.HTTPStatusError], ...]:
