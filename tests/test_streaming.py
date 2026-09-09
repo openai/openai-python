@@ -84,6 +84,67 @@ async def test_request_errors_are_wrapped(
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+@pytest.mark.parametrize(
+    "error_type",
+    [
+        httpx2.ReadTimeout,
+        httpx2.RemoteProtocolError,
+    ],
+)
+async def test_request_errors_from_response_processing_are_not_wrapped(
+    sync: bool,
+    error_type: type[Exception],
+    client: OpenAI,
+    async_client: AsyncOpenAI,
+) -> None:
+    error = error_type("response processing failure")
+    request = httpx2.Request("POST", "https://example.com")
+
+    class FailingModelBuilder:
+        @classmethod
+        def build(
+            cls,
+            *,
+            response: httpx2.Response,
+            data: object,
+        ) -> FailingModelBuilder:
+            assert response.request is request
+            assert data == {"foo": True}
+            raise error
+
+    if sync:
+        response = httpx2.Response(
+            200,
+            request=request,
+            content=b'data: {"foo": true}\n\n',
+        )
+        stream = Stream(
+            cast_to=FailingModelBuilder,
+            client=client,
+            response=response,
+        )
+
+        with pytest.raises(error_type) as exc_info:
+            next(stream)
+    else:
+        response = httpx2.Response(
+            200,
+            request=request,
+            content=b'data: {"foo": true}\n\n',
+        )
+        stream = AsyncStream(
+            cast_to=FailingModelBuilder,
+            client=async_client,
+            response=response,
+        )
+
+        with pytest.raises(error_type) as exc_info:
+            await stream.__anext__()
+
+    assert exc_info.value is error
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
 async def test_basic(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
     def body() -> Iterator[bytes]:
         yield b"event: completion\n"

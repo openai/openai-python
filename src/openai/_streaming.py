@@ -61,7 +61,15 @@ class Stream(Generic[_T]):
         iterator = self._iter_events()
 
         try:
-            for sse in iterator:
+            while True:
+                try:
+                    sse = next(iterator)
+                except StopIteration:
+                    break
+                except timeout_exceptions() as err:
+                    raise APITimeoutError(request=response.request) from err
+                except request_exceptions() as err:
+                    raise APIConnectionError(request=response.request) from err
                 if sse.data.startswith("[DONE]"):
                     break
 
@@ -107,10 +115,6 @@ class Stream(Generic[_T]):
                         cast_to=cast_to,
                         response=response,
                     )
-        except timeout_exceptions() as err:
-            raise APITimeoutError(request=response.request) from err
-        except request_exceptions() as err:
-            raise APIConnectionError(request=response.request) from err
         finally:
             # Ensure the response is closed even if the consumer doesn't read all data
             response.close()
@@ -175,7 +179,15 @@ class AsyncStream(Generic[_T]):
         iterator = self._iter_events()
 
         try:
-            async for sse in iterator:
+            while True:
+                try:
+                    sse = await iterator.__anext__()
+                except StopAsyncIteration:
+                    break
+                except timeout_exceptions() as err:
+                    raise APITimeoutError(request=response.request) from err
+                except request_exceptions() as err:
+                    raise APIConnectionError(request=response.request) from err
                 if sse.data.startswith("[DONE]"):
                     break
 
@@ -221,10 +233,6 @@ class AsyncStream(Generic[_T]):
                         cast_to=cast_to,
                         response=response,
                     )
-        except timeout_exceptions() as err:
-            raise APITimeoutError(request=response.request) from err
-        except request_exceptions() as err:
-            raise APIConnectionError(request=response.request) from err
         finally:
             # Ensure the response is closed even if the consumer doesn't read all data
             await response.aclose()
