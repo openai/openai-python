@@ -2,6 +2,7 @@ from ._events import (
     ResponseTextDoneEvent as ResponseTextDoneEvent,
     ResponseTextDeltaEvent as ResponseTextDeltaEvent,
     ResponseFunctionCallArgumentsDeltaEvent as ResponseFunctionCallArgumentsDeltaEvent,
+    ResponseFunctionCallArgumentsDoneEvent as ResponseFunctionCallArgumentsDoneEvent,
 )
 from ._responses import (
     ResponseStream as ResponseStream,
