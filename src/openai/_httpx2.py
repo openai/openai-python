@@ -132,10 +132,24 @@ def _set_httpx2_defaults(kwargs: dict[str, Any]) -> None:
 def DefaultHttpx2Client(**kwargs: Any) -> httpx2.Client:
     """Create an HTTPX2 client with the SDK's recommended defaults."""
     _set_httpx2_defaults(kwargs)
+    # Lazy import to avoid a circular dependency: _base_client imports from
+    # this module, and the sanitizer lives there.
+    from ._base_client import _sanitized_no_proxy
+
+    if kwargs.get("trust_env", True):
+        with _sanitized_no_proxy():
+            return httpx2.Client(**kwargs)
     return httpx2.Client(**kwargs)
 
 
 def DefaultAsyncHttpx2Client(**kwargs: Any) -> httpx2.AsyncClient:
     """Create an async HTTPX2 client with the SDK's recommended defaults."""
     _set_httpx2_defaults(kwargs)
+    # Lazy import to avoid a circular dependency: _base_client imports from
+    # this module, and the sanitizer lives there.
+    from ._base_client import _sanitized_no_proxy
+
+    if kwargs.get("trust_env", True):
+        with _sanitized_no_proxy():
+            return httpx2.AsyncClient(**kwargs)
     return httpx2.AsyncClient(**kwargs)

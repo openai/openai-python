@@ -866,19 +866,35 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
 _no_proxy_sanitizer_lock = threading.Lock()
 
 
+def _reset_no_proxy_sanitizer_lock() -> None:
+    """Replace the sanitizer lock after a fork.
+
+    If a POSIX process forks while another thread holds the lock, the child
+    inherits the lock in the acquired state but not the thread that can
+    release it, so any later client construction in the child would block
+    forever.  ``os.register_at_fork`` replaces the lock in the child.
+    """
+    global _no_proxy_sanitizer_lock
+    _no_proxy_sanitizer_lock = threading.Lock()
+
+
+if hasattr(os, "register_at_fork"):
+    os.register_at_fork(after_in_child=_reset_no_proxy_sanitizer_lock)
+
+
 @contextlib.contextmanager
 def _sanitized_no_proxy() -> Generator[None, None, None]:
     """Temporarily normalize line separators in NO_PROXY/no_proxy for the
     duration of a httpx client construction.
 
-    httpx's ``get_environment_proxies()`` only splits on commas, so a trailing
-    newline or carriage return in ``NO_PROXY`` (common in Docker/``.env`` files
-    or CRLF values where the ``\\n`` was stripped but ``\\r`` remains) becomes
-    part of the hostname and httpx raises ``InvalidURL`` (issue #3303).  httpx
-    reads the environment once during ``__init__``, so we only need the
-    sanitized value to be visible for that window and then restore the original
-    afterwards — this avoids permanently mutating process-global state for
-    unrelated clients.
+    httpx's ``get_environment_proxies()`` only splits on commas, so a line
+    separator in ``NO_PROXY`` (common in Docker/``.env`` files or CRLF values
+    where the ``\\n`` was stripped but ``\\r`` remains) becomes part of the
+    hostname and httpx raises ``InvalidURL`` (issue #3303).  httpx reads the
+    environment once during ``__init__``, so we only need the sanitized value
+    to be visible for that window and then restore the original afterwards —
+    this avoids permanently mutating process-global state for unrelated
+    clients.
 
     A module-level lock serializes concurrent client constructions so that one
     call cannot restore the original (invalid) value while another call's
@@ -890,10 +906,13 @@ def _sanitized_no_proxy() -> Generator[None, None, None]:
         try:
             for key in ("NO_PROXY", "no_proxy"):
                 val = os.environ.get(key)
-                if val and any(c in val for c in "\n\r"):
+                # splitlines() recognizes every line boundary (\n, \r, \r\n,
+                # \v, \f, \x1c-\x1e, \x85, \u2028, \u2029), including a
+                # trailing separator that produces a single part.  If the
+                # value contains any boundary, the split differs from the
+                # original string and sanitization is required.
+                if val and val.splitlines() != [val]:
                     originals[key] = val
-                    # splitlines() handles \n, \r, \r\n, and other Unicode line
-                    # separators uniformly.
                     parts = [part.strip() for part in val.splitlines()]
                     sanitized[key] = ",".join(p for p in parts if p)
                     os.environ[key] = sanitized[key]

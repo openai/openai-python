@@ -200,7 +200,7 @@ def test_crlf_sanitized(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def test_aiohttp_client_construction_with_newline_no_proxy(monkeypatch: pytest.MonkeyPatch) -> None:
     """The aiohttp transport client also sanitizes NO_PROXY newlines."""
-    pytest.importorskip("httpx_aiohttp")
+    pytest.importorskip("aiohttp")
     from openai._base_client import _DefaultAioHttpClient
 
     _set_no_proxy(monkeypatch, "localhost\n127.0.0.1")
@@ -213,7 +213,7 @@ def test_aiohttp_client_construction_with_newline_no_proxy(monkeypatch: pytest.M
 
 def test_aiohttp_client_trust_env_false_skips_sanitization(monkeypatch: pytest.MonkeyPatch) -> None:
     """The aiohttp transport client respects trust_env=False."""
-    pytest.importorskip("httpx_aiohttp")
+    pytest.importorskip("aiohttp")
     from openai._base_client import _DefaultAioHttpClient
 
     _set_no_proxy(monkeypatch, "localhost\n127.0.0.1")
@@ -274,3 +274,87 @@ def test_concurrent_no_proxy_update_not_clobbered(monkeypatch: pytest.MonkeyPatc
 
     # The application's update must survive the sanitizer's restore.
     assert os.environ.get("NO_PROXY") == "api.example.com"
+
+
+@pytest.mark.parametrize(
+    "separator",
+    ["\v", "\f", "\x1c", "\x1d", "\x1e", "\x85", "\u2028", "\u2029"],
+)
+def test_all_splitlines_separators_sanitized(monkeypatch: pytest.MonkeyPatch, separator: str) -> None:
+    """Every line boundary recognized by str.splitlines() is sanitized.
+
+    httpx rejects any non-printable character in the proxy hostname, so a
+    NO_PROXY value containing a vertical tab, form feed, or Unicode line
+    separator must be normalized just like a newline.
+    """
+    from openai._base_client import _DefaultHttpxClient
+
+    _set_no_proxy(monkeypatch, f"localhost{separator}127.0.0.1")
+    client = _DefaultHttpxClient()
+    patterns = _mount_patterns(client)
+    assert any("localhost" in p for p in patterns)
+    assert any("127.0.0.1" in p for p in patterns)
+    client.close()
+
+
+def test_httpx2_factory_sanitizes_no_proxy(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The public DefaultHttpx2Client factory also sanitizes NO_PROXY."""
+    from openai import DefaultHttpx2Client
+
+    _set_no_proxy(monkeypatch, "localhost\n127.0.0.1")
+    client = DefaultHttpx2Client()
+    patterns = _mount_patterns(client)
+    assert any("localhost" in p for p in patterns)
+    assert any("127.0.0.1" in p for p in patterns)
+    client.close()
+
+
+def test_httpx2_factory_trust_env_false_skips_sanitization(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The public DefaultHttpx2Client factory respects trust_env=False."""
+    from openai import DefaultHttpx2Client
+
+    _set_no_proxy(monkeypatch, "localhost\n127.0.0.1")
+    client = DefaultHttpx2Client(trust_env=False)
+    assert os.environ.get("NO_PROXY") == "localhost\n127.0.0.1"
+    assert client._mounts == {}
+    client.close()
+
+
+def test_async_httpx2_factory_sanitizes_no_proxy(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The public DefaultAsyncHttpx2Client factory also sanitizes NO_PROXY."""
+    from openai import DefaultAsyncHttpx2Client
+
+    _set_no_proxy(monkeypatch, "localhost\n127.0.0.1")
+    client = DefaultAsyncHttpx2Client()
+    patterns = _mount_patterns(client)
+    assert any("localhost" in p for p in patterns)
+    assert any("127.0.0.1" in p for p in patterns)
+
+
+def test_sanitizer_lock_replaced_after_fork() -> None:
+    """The sanitizer lock is replaced in the child after a fork.
+
+    If a fork happens while another thread holds the lock, the child would
+    inherit the acquired lock and block forever on the next client
+    construction.  os.register_at_fork must replace it.
+    """
+    import multiprocessing
+
+    import openai._base_client as base_client
+
+    # Simulate the child state: acquire the lock in this process, then fork.
+    base_client._no_proxy_sanitizer_lock.acquire()
+    try:
+        ctx = multiprocessing.get_context("fork")
+        q = ctx.Queue()
+        p = ctx.Process(
+            target=lambda: q.put(base_client._no_proxy_sanitizer_lock.locked()),
+        )
+        p.start()
+        p.join(timeout=10)
+        child_locked = q.get(timeout=5)
+    finally:
+        base_client._no_proxy_sanitizer_lock.release()
+
+    # The child must not inherit the acquired lock.
+    assert child_locked is False
