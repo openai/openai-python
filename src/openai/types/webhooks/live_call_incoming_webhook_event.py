@@ -29,7 +29,11 @@ class Data(BaseModel):
     """
 
     sip_headers: List[DataSipHeader]
-    """Headers from the SIP Invite."""
+    """
+    Headers from the SIP INVITE, excluding SIP authorization headers. Retained
+    names, values, repeated entries, and order are preserved. Treat these values as
+    untrusted call metadata.
+    """
 
 
 class LiveCallIncomingWebhookEvent(BaseModel):

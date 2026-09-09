@@ -65,14 +65,14 @@ class Files(SyncAPIResource):
     ) -> VectorStoreFile:
         """
         Create a vector store file by attaching a
-        [File](https://platform.openai.com/docs/api-reference/files) to a
-        [vector store](https://platform.openai.com/docs/api-reference/vector-stores/object).
+        [File](https://developers.openai.com/api/reference/resources/files) to a
+        [vector store](https://developers.openai.com/api/reference/resources/vector_stores).
 
         Args:
-          file_id: A [File](https://platform.openai.com/docs/api-reference/files) ID that the
-              vector store should use. Useful for tools like `file_search` that can access
+          file_id: A [File](https://developers.openai.com/api/reference/resources/files) ID that
+              the vector store should use. Useful for tools like `file_search` that can access
               files. For multi-file ingestion, we recommend
-              [`file_batches`](https://platform.openai.com/docs/api-reference/vector-stores-file-batches/createBatch)
+              [`file_batches`](https://developers.openai.com/api/reference/resources/vector_stores/subresources/file_batches/methods/create)
               to minimize per-vector-store write requests.
 
           attributes: Set of 16 key-value pairs that can be attached to an object. This can be useful
@@ -297,7 +297,7 @@ class Files(SyncAPIResource):
 
         This will remove the file from the vector store but
         the file itself will not be deleted. To delete the file, use the
-        [delete file](https://platform.openai.com/docs/api-reference/files/delete)
+        [delete file](https://developers.openai.com/api/reference/resources/files/methods/delete)
         endpoint.
 
         Args:
@@ -497,14 +497,14 @@ class AsyncFiles(AsyncAPIResource):
     ) -> VectorStoreFile:
         """
         Create a vector store file by attaching a
-        [File](https://platform.openai.com/docs/api-reference/files) to a
-        [vector store](https://platform.openai.com/docs/api-reference/vector-stores/object).
+        [File](https://developers.openai.com/api/reference/resources/files) to a
+        [vector store](https://developers.openai.com/api/reference/resources/vector_stores).
 
         Args:
-          file_id: A [File](https://platform.openai.com/docs/api-reference/files) ID that the
-              vector store should use. Useful for tools like `file_search` that can access
+          file_id: A [File](https://developers.openai.com/api/reference/resources/files) ID that
+              the vector store should use. Useful for tools like `file_search` that can access
               files. For multi-file ingestion, we recommend
-              [`file_batches`](https://platform.openai.com/docs/api-reference/vector-stores-file-batches/createBatch)
+              [`file_batches`](https://developers.openai.com/api/reference/resources/vector_stores/subresources/file_batches/methods/create)
               to minimize per-vector-store write requests.
 
           attributes: Set of 16 key-value pairs that can be attached to an object. This can be useful
@@ -729,7 +729,7 @@ class AsyncFiles(AsyncAPIResource):
 
         This will remove the file from the vector store but
         the file itself will not be deleted. To delete the file, use the
-        [delete file](https://platform.openai.com/docs/api-reference/files/delete)
+        [delete file](https://developers.openai.com/api/reference/resources/files/methods/delete)
         endpoint.
 
         Args:
