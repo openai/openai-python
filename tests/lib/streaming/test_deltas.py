@@ -263,6 +263,78 @@ class TestAccumulateDelta:
         assert calls[2]["index"] == 2
         assert calls[2]["id"] == "call_c"
 
+    def test_empty_accumulated_list_still_coalesces(self) -> None:
+        """Regression for Codex P2: when a prior chunk explicitly sets
+        tool_calls: [], the next chunk with duplicate-index entries must still
+        be coalesced instead of being extended verbatim."""
+        acc: dict[object, object] = {"tool_calls": []}
+        delta: dict[object, object] = {
+            "tool_calls": [
+                {"index": 0, "id": "call_abc", "function": {"name": "list_files"}, "type": "function"},
+                {"index": 0, "function": {"arguments": ' {"'}},
+            ]
+        }
+        result = accumulate_delta(acc, delta)
+        calls = cast(list[dict[str, Any]], result["tool_calls"])
+        assert len(calls) == 1
+        assert calls[0]["id"] == "call_abc"
+        assert calls[0]["function"]["arguments"] == ' {"'
+
+    def test_single_entry_normalized_to_logical_slot(self) -> None:
+        """Regression for Codex P2: a single tool-call entry whose logical
+        index is not 0 must be padded to its logical slot, not stored at
+        physical slot 0."""
+        acc: dict[object, object] = {}
+        delta: dict[object, object] = {
+            "tool_calls": [
+                {"index": 1, "id": "call_b", "function": {"name": "tool_b"}, "type": "function"},
+            ]
+        }
+        result = accumulate_delta(acc, delta)
+        calls = cast(list[dict[str, Any]], result["tool_calls"])
+        assert len(calls) == 2
+        assert calls[0] == {}
+        assert calls[1]["index"] == 1
+        assert calls[1]["id"] == "call_b"
+
+    def test_repeated_metadata_replaced_not_concatenated(self) -> None:
+        """Regression for Codex P2: duplicate-index entries repeating metadata
+        (id, function.name) must replace, not concatenate — otherwise the value
+        becomes call_abccall_abc."""
+        acc: dict[object, object] = {
+            "tool_calls": [
+                {"index": 0, "id": "call_abc", "function": {"name": "list_files"}, "type": "function"},
+            ]
+        }
+        delta: dict[object, object] = {
+            "tool_calls": [
+                {"index": 0, "id": "call_abc", "function": {"name": "list_files"}, "type": "function"},
+            ]
+        }
+        result = accumulate_delta(acc, delta)
+        calls = cast(list[dict[str, Any]], result["tool_calls"])
+        assert len(calls) == 1
+        assert calls[0]["id"] == "call_abc"
+        assert calls[0]["function"]["name"] == "list_files"
+
+    def test_huge_sparse_index_does_not_materialize_gaps(self) -> None:
+        """Regression for Codex P2: a delta with a huge sparse index must not
+        allocate storage proportional to the numeric index."""
+        from openai.lib.streaming._deltas import _MAX_INDEX_PADDING
+
+        acc: dict[object, object] = {}
+        delta: dict[object, object] = {
+            "tool_calls": [
+                {"index": 1_000_000, "id": "call_z", "function": {"name": "tool_z"}, "type": "function"},
+            ]
+        }
+        result = accumulate_delta(acc, delta)
+        calls = cast(list[dict[str, Any]], result["tool_calls"])
+        # Bounded allocation: no million-entry placeholder list.
+        assert len(calls) <= _MAX_INDEX_PADDING + 2
+        assert calls[-1]["index"] == 1_000_000
+        assert calls[-1]["id"] == "call_z"
+
 
 class TestChatCompletionStreamStateIntegration:
     """Integration-level regression for #3201: feed the two problematic chunks
@@ -400,3 +472,97 @@ class TestChatCompletionStreamStateIntegration:
         assert len(tool_calls) == 2, f"Expected 2 tool calls, got {len(tool_calls)}"
         assert tool_calls[0].id == "call_a"
         assert tool_calls[1].id == "call_b"
+
+    def test_backward_index_transition_does_not_finalize_tool(self) -> None:
+        """Regression for Codex P2: when a higher-index tool call starts before
+        a lower one (1 -> 0), the backward transition must not mark tool call 1
+        as done — its arguments may still be streaming, and finalizing it
+        early would suppress the corrected done event."""
+        from openai.types.chat import ChatCompletionChunk
+        from openai.lib.streaming.chat import ChatCompletionStreamState
+        from openai.types.chat.chat_completion_chunk import Choice as ChoiceChunk
+
+        chunk1 = ChatCompletionChunk.construct(
+            id="chatcmpl-3",
+            created=0,
+            model="gpt-4",
+            choices=[
+                ChoiceChunk.construct(
+                    index=0,
+                    delta={
+                        "tool_calls": [
+                            {
+                                "index": 1,
+                                "id": "call_b",
+                                "function": {"name": "tool_b", "arguments": ""},
+                                "type": "function",
+                            },
+                        ]
+                    },
+                ),
+            ],
+        )
+
+        chunk2 = ChatCompletionChunk.construct(
+            id="chatcmpl-3",
+            created=0,
+            model="gpt-4",
+            choices=[
+                ChoiceChunk.construct(
+                    index=0,
+                    delta={
+                        "tool_calls": [
+                            {
+                                "index": 0,
+                                "id": "call_a",
+                                "function": {"name": "tool_a", "arguments": ""},
+                                "type": "function",
+                            },
+                        ]
+                    },
+                ),
+            ],
+        )
+
+        chunk3 = ChatCompletionChunk.construct(
+            id="chatcmpl-3",
+            created=0,
+            model="gpt-4",
+            choices=[
+                ChoiceChunk.construct(
+                    index=0,
+                    delta={
+                        "tool_calls": [
+                            {
+                                "index": 1,
+                                "function": {"arguments": '{"x": 1}'},
+                            },
+                        ]
+                    },
+                ),
+            ],
+        )
+
+        state = ChatCompletionStreamState()
+        events1 = list(state.handle_chunk(chunk1))
+        events2 = list(state.handle_chunk(chunk2))
+        events3 = list(state.handle_chunk(chunk3))
+
+        # The backward transition (1 -> 0) must not finalize tool call 1 —
+        # its arguments are still streaming.  A done event for index 1 with
+        # empty arguments would be premature.
+        done_events = [
+            e
+            for e in events1 + events2 + events3
+            if getattr(e, "type", "") == "tool_calls.function.arguments.done"
+        ]
+        assert all(e.index != 1 for e in done_events), f"Premature done event for tool call 1: {done_events}"
+
+        # The final snapshot must still hold both calls with merged arguments.
+        snapshot = cast(Any, state.current_completion_snapshot)
+        tool_calls = snapshot.choices[0].message.tool_calls
+        assert tool_calls is not None
+        assert len(tool_calls) == 2
+        assert tool_calls[0].id == "call_a"
+        assert tool_calls[1].id == "call_b"
+        assert tool_calls[1].function.arguments == '{"x": 1}'

@@ -640,17 +640,25 @@ class ChoiceEventState:
                 )
 
         for tool_call in choice_chunk.delta.tool_calls or []:
-            if self.__current_tool_call_index != tool_call.index:
+            # Only finalize the previous tool call on a *forward* index
+            # transition.  In an out-of-order stream (e.g. index 1 starts
+            # before index 0), a backward transition must not mark the
+            # higher-index call as done — its arguments may still be
+            # streaming, and finalizing it early would suppress the
+            # corrected done event when the real end arrives. (#3201)
+            if (
+                self.__current_tool_call_index is not None
+                and tool_call.index > self.__current_tool_call_index
+            ):
                 events_to_fire.extend(
                     self._content_done_events(choice_snapshot=choice_snapshot, response_format=response_format)
                 )
 
-                if self.__current_tool_call_index is not None:
-                    self._add_tool_done_event(
-                        events_to_fire=events_to_fire,
-                        choice_snapshot=choice_snapshot,
-                        tool_index=self.__current_tool_call_index,
-                    )
+                self._add_tool_done_event(
+                    events_to_fire=events_to_fire,
+                    choice_snapshot=choice_snapshot,
+                    tool_index=self.__current_tool_call_index,
+                )
 
             self.__current_tool_call_index = tool_call.index
 

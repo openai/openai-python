@@ -2,6 +2,12 @@ from __future__ import annotations
 
 from ..._utils import is_dict, is_list
 
+#: Maximum gap padded between logical tool-call indexes.  A stream with a
+#: huge sparse index (e.g. index 1,000,000) must not allocate storage
+#: proportional to the numeric index; entries beyond this bound are appended
+#: at the end and still found by the index-based merge.
+_MAX_INDEX_PADDING = 1024
+
 
 def _is_placeholder(entry: object) -> bool:
     """Detect a gap-filler placeholder that should be replaced in-place.
@@ -27,11 +33,10 @@ def _is_placeholder(entry: object) -> bool:
 def accumulate_delta(acc: dict[object, object], delta: dict[object, object]) -> dict[object, object]:
     for key, delta_value in delta.items():
         if key not in acc:
-            # When the first chunk contains a list with multiple entries at the
-            # same index (e.g. from speculative decoding), storing it directly
-            # would leave duplicate entries that later merges can't fix. (#3201)
-            # Coalesce duplicate-index entries before storing.
-            if is_list(delta_value) and len(delta_value) > 1:
+            # Coalesce duplicate-index entries before storing so the snapshot
+            # starts in a clean state, and normalize single entries to their
+            # logical slot. (#3201)
+            if is_list(delta_value) and any(is_dict(x) for x in delta_value):
                 delta_value = _coalesce_list_by_index(delta_value)
             acc[key] = delta_value
             continue
@@ -41,7 +46,7 @@ def accumulate_delta(acc: dict[object, object], delta: dict[object, object]) -> 
             # Coalesce duplicate-index entries here too — a prior chunk may
             # have set acc[key] to None via a delta that only contained the
             # key without a value, and now the actual list arrives. (#3201)
-            if is_list(delta_value) and len(delta_value) > 1:
+            if is_list(delta_value) and any(is_dict(x) for x in delta_value):
                 delta_value = _coalesce_list_by_index(delta_value)
             acc[key] = delta_value
             continue
@@ -57,7 +62,14 @@ def accumulate_delta(acc: dict[object, object], delta: dict[object, object]) -> 
             continue
 
         if isinstance(acc_value, str) and isinstance(delta_value, str):
-            acc_value += delta_value
+            # Only streamed fields accumulate.  Repeated metadata (e.g. a
+            # duplicate-index entry repeating `id` or `function.name` from a
+            # speculative decoder) must be replaced, not concatenated —
+            # otherwise the value becomes `call_abccall_abc`. (#3201)
+            if key in ("content", "refusal", "arguments"):
+                acc_value += delta_value
+            else:
+                acc_value = delta_value
         elif isinstance(acc_value, (int, float)) and isinstance(delta_value, (int, float)):
             acc_value += delta_value
         elif is_dict(acc_value) and is_dict(delta_value):
@@ -65,13 +77,29 @@ def accumulate_delta(acc: dict[object, object], delta: dict[object, object]) -> 
         elif is_list(acc_value) and is_list(delta_value):
             # for lists of non-dictionary items we'll only ever get new entries
             # in the array, existing entries will never be changed
-            if all(isinstance(x, (str, int, float)) for x in acc_value):
+            if acc_value and all(isinstance(x, (str, int, float)) for x in acc_value):
                 acc_value.extend(delta_value)
                 continue
+
+            # Coalesce the incoming list so duplicate-index entries are merged
+            # before placement — covers the empty-acc fast path (an explicit
+            # `tool_calls: []` from a prior chunk) and any un-coalesced first
+            # chunk. (#3201)
+            if any(is_dict(x) for x in delta_value):
+                delta_value = _coalesce_list_by_index(delta_value)
+
+            # Build an index map once so merging is O(n) instead of O(n²).
+            index_map: dict[int, list[int]] = {}
+            for i, existing in enumerate(acc_value):
+                if is_dict(existing) and isinstance(existing.get("index"), int):
+                    index_map.setdefault(existing["index"], []).append(i)
 
             for delta_entry in delta_value:
                 if not is_dict(delta_entry):
                     raise TypeError(f"Unexpected list delta entry is not a dictionary: {delta_entry}")
+                if _is_placeholder(delta_entry):
+                    # Gap-filler from coalescing — nothing to merge.
+                    continue
 
                 try:
                     index = delta_entry["index"]
@@ -90,38 +118,43 @@ def accumulate_delta(acc: dict[object, object], delta: dict[object, object]) -> 
                 # If acc_value already contains duplicate-index entries
                 # (e.g. from a prior chunk that wasn't coalesced), merge into
                 # all of them so none are stranded.
-                found = False
-                for i, existing in enumerate(acc_value):
-                    if is_dict(existing) and existing.get("index") == index:
-                        acc_value[i] = accumulate_delta(existing, delta_entry)
-                        found = True
+                positions = index_map.get(index)
+                if positions:
+                    for pos in positions:
+                        acc_value[pos] = accumulate_delta(acc_value[pos], delta_entry)
+                    continue
 
-                if not found:
-                    # Add the new entry.  Don't assume the logical index is a
-                    # safe physical slot — if acc_value already has entries at
-                    # higher indexes (e.g. [{"index": 1, ...}] and index 0
-                    # arrives), acc_value[index] would overwrite the existing
-                    # entry.  Place the entry at the position matching the
-                    # logical index so downstream code that does
-                    # tool_calls[index] (treating logical index as physical
-                    # position) reads the right entry.
-                    if len(acc_value) <= index:
+                # Add the new entry.  Don't assume the logical index is a
+                # safe physical slot — if acc_value already has entries at
+                # higher indexes (e.g. [{"index": 1, ...}] and index 0
+                # arrives), acc_value[index] would overwrite the existing
+                # entry.  Place the entry at the position matching the
+                # logical index so downstream code that does
+                # tool_calls[index] (treating logical index as physical
+                # position) reads the right entry.  Bound the padding so a
+                # huge sparse index cannot allocate storage proportional to
+                # its value.
+                if len(acc_value) <= index:
+                    if index - len(acc_value) <= _MAX_INDEX_PADDING:
                         while len(acc_value) < index:
                             acc_value.append({})
                         acc_value.append(delta_entry)
                     else:
-                        # The list is large enough but no entry has this
-                        # index.  If the slot at `index` is a placeholder
-                        # (empty {} or a dumped placeholder with only None
-                        # values from a model_dump round-trip), replace it
-                        # in-place.  Otherwise insert at the correct
-                        # position to keep the list addressable by logical
-                        # index.
-                        existing = acc_value[index]
-                        if _is_placeholder(existing):
-                            acc_value[index] = delta_entry
-                        else:
-                            acc_value.insert(index, delta_entry)
+                        acc_value.append(delta_entry)
+                else:
+                    # The list is large enough but no entry has this
+                    # index.  If the slot at `index` is a placeholder
+                    # (empty {} or a dumped placeholder with only None
+                    # values from a model_dump round-trip), replace it
+                    # in-place.  Otherwise insert at the correct
+                    # position to keep the list addressable by logical
+                    # index.
+                    existing = acc_value[index]
+                    if _is_placeholder(existing):
+                        acc_value[index] = delta_entry
+                    else:
+                        acc_value.insert(index, delta_entry)
+                index_map.setdefault(index, []).append(len(acc_value) - 1)
 
         acc[key] = acc_value
 
@@ -139,36 +172,37 @@ def _coalesce_list_by_index(lst: list[object]) -> list[object]:
 
     The result is sorted by the ``index`` field so the list stays addressable
     by logical index — downstream code does ``tool_calls[index]`` treating
-    logical index as physical position.
+    logical index as physical position.  A single entry whose index does not
+    match its position is normalized to its logical slot as well.
     """
-    result: list[object] = []
+    merged: dict[int, object] = {}
+    tail: list[object] = []
     for entry in lst:
         if not is_dict(entry):
-            result.append(entry)
+            tail.append(entry)
             continue
         index = entry.get("index")
         if not isinstance(index, int):
-            result.append(entry)
+            if _is_placeholder(entry):
+                # Gap-filler from a previous padding pass — replaced by the
+                # real entry at the same logical index.
+                continue
+            tail.append(entry)
             continue
-        # Find an existing entry with the same index
-        found = False
-        for i, existing in enumerate(result):
-            if is_dict(existing) and existing.get("index") == index:
-                result[i] = accumulate_delta(existing, entry)
-                found = True
-                break
-        if not found:
-            # Place at the position matching the logical index, padding
-            # with empty dicts if needed, so the list is addressable by
-            # logical index.
-            while len(result) <= index:
-                result.append({})
-            # Replace the placeholder at `index` (empty {} or a dumped
-            # placeholder with only None values from a model_dump round-trip)
-            # or shift if occupied by a real entry.
-            existing = result[index]
-            if _is_placeholder(existing):
-                result[index] = entry
-            else:
-                result.insert(index, entry)
-    return result
+        if index in merged:
+            merged[index] = accumulate_delta(merged[index], entry)
+        else:
+            merged[index] = entry
+
+    if not merged:
+        return list(lst)
+
+    max_index = max(merged)
+    if max_index <= _MAX_INDEX_PADDING:
+        result = [merged.get(i, {}) for i in range(max_index + 1)]
+    else:
+        # Huge sparse index: materialize only up to the bound, then append
+        # the remaining entries in index order so allocation stays bounded.
+        result = [merged.get(i, {}) for i in range(_MAX_INDEX_PADDING + 1)]
+        result.extend(merged[i] for i in sorted(merged) if i > _MAX_INDEX_PADDING)
+    return result + tail
