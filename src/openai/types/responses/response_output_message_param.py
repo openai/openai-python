@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from typing import Union, Iterable, Optional
-from typing_extensions import Literal, Required, TypeAlias, TypedDict
+from typing_extensions import Literal, Required, TypeAlias, TypedDict, NotRequired
 
 from .response_output_text_param import ResponseOutputTextParam
 from .response_output_refusal_param import ResponseOutputRefusalParam
@@ -16,7 +16,7 @@ Content: TypeAlias = Union[ResponseOutputTextParam, ResponseOutputRefusalParam]
 class ResponseOutputMessageParam(TypedDict, total=False):
     """An output message from the model."""
 
-    id: Required[str]
+    id: NotRequired[str]
     """The unique ID of the output message."""
 
     content: Required[Iterable[Content]]
