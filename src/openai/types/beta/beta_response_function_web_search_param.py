@@ -63,7 +63,7 @@ class ActionFindInPage(TypedDict, total=False):
     type: Required[Literal["find_in_page"]]
     """The action type."""
 
-    url: Required[str]
+    url: str
     """The URL of the page searched for the pattern."""
 
 
