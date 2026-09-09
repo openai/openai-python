@@ -400,7 +400,7 @@ async def test_dictionary_items(use_async: bool) -> None:
 @parametrize
 @pytest.mark.asyncio
 async def test_bare_dict_annotation(use_async: bool) -> None:
-    """bare `dict` annotations have no type arguments so the values are left as-is"""
+    """Bare dictionaries still serialize their values."""
 
     class BareDict(TypedDict):
         metadata: dict  # type: ignore[type-arg]
@@ -408,12 +408,16 @@ async def test_bare_dict_annotation(use_async: bool) -> None:
     assert await transform({"metadata": {"key": "value"}}, BareDict, use_async) == {"metadata": {"key": "value"}}
     assert await transform({"key": "value"}, dict, use_async) == {"key": "value"}
     assert await transform({"key": "value"}, Dict, use_async) == {"key": "value"}
+    model = ModelWithDefaultField(foo="value")
+    assert cast(object, await transform({"metadata": {"model": model}}, BareDict, use_async)) == {
+        "metadata": {"model": {"foo": "value"}}
+    }
 
 
 @parametrize
 @pytest.mark.asyncio
 async def test_bare_list_annotation(use_async: bool) -> None:
-    """bare `list` annotations have no type arguments so the entries are left as-is"""
+    """Bare lists still serialize their entries."""
 
     class BareList(TypedDict):
         items: list  # type: ignore[type-arg]
@@ -421,6 +425,8 @@ async def test_bare_list_annotation(use_async: bool) -> None:
     assert await transform({"items": [{"foo_baz": "bar"}]}, BareList, use_async) == {"items": [{"foo_baz": "bar"}]}
     assert await transform([1, 2, 3], list, use_async) == [1, 2, 3]
     assert await transform([1, 2, 3], List, use_async) == [1, 2, 3]
+    model = ModelWithDefaultField(foo="value")
+    assert cast(object, await transform({"items": [model]}, BareList, use_async)) == {"items": [{"foo": "value"}]}
 
 
 class TypedDictIterableUnionStr(TypedDict):

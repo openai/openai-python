@@ -369,6 +369,7 @@ def test_bare_dict_annotation() -> None:
 
     assert construct_type(value={"key": "value"}, type_=dict) == {"key": "value"}
     assert construct_type(value={"key": "value"}, type_=Dict) == {"key": "value"}
+    assert construct_type(value={}, type_=dict) == {}
 
     # non-mapping values are still passed through unchanged
     assert construct_type(value="not a dict", type_=dict) == "not a dict"
@@ -384,6 +385,7 @@ def test_bare_list_annotation() -> None:
 
     assert construct_type(value=[1, 2], type_=list) == [1, 2]
     assert construct_type(value=[1, 2], type_=List) == [1, 2]
+    assert construct_type(value=[], type_=list) == []
 
     # non-list values are still passed through unchanged
     assert construct_type(value="not a list", type_=list) == "not a list"
