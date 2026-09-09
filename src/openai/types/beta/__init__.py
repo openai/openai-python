@@ -78,6 +78,8 @@ from .beta_response_input_image import BetaResponseInputImage as BetaResponseInp
 from .beta_response_input_param import BetaResponseInputParam as BetaResponseInputParam
 from .beta_response_output_item import BetaResponseOutputItem as BetaResponseOutputItem
 from .beta_response_output_text import BetaResponseOutputText as BetaResponseOutputText
+from .beta_response_steer_event import BetaResponseSteerEvent as BetaResponseSteerEvent
+from .beta_response_steer_input import BetaResponseSteerInput as BetaResponseSteerInput
 from .beta_response_text_config import BetaResponseTextConfig as BetaResponseTextConfig
 from .beta_tool_choice_function import BetaToolChoiceFunction as BetaToolChoiceFunction
 from .beta_computer_action_param import BetaComputerActionParam as BetaComputerActionParam
@@ -125,6 +127,7 @@ from .beta_response_incomplete_event import BetaResponseIncompleteEvent as BetaR
 from .beta_response_input_file_param import BetaResponseInputFileParam as BetaResponseInputFileParam
 from .beta_response_input_item_param import BetaResponseInputItemParam as BetaResponseInputItemParam
 from .beta_response_input_text_param import BetaResponseInputTextParam as BetaResponseInputTextParam
+from .beta_response_steer_error_code import BetaResponseSteerErrorCode as BetaResponseSteerErrorCode
 from .beta_response_text_delta_event import BetaResponseTextDeltaEvent as BetaResponseTextDeltaEvent
 from .beta_response_tool_search_call import BetaResponseToolSearchCall as BetaResponseToolSearchCall
 from .beta_tool_choice_allowed_param import BetaToolChoiceAllowedParam as BetaToolChoiceAllowedParam
@@ -134,6 +137,8 @@ from .beta_response_in_progress_event import BetaResponseInProgressEvent as Beta
 from .beta_response_input_image_param import BetaResponseInputImageParam as BetaResponseInputImageParam
 from .beta_response_local_environment import BetaResponseLocalEnvironment as BetaResponseLocalEnvironment
 from .beta_response_output_text_param import BetaResponseOutputTextParam as BetaResponseOutputTextParam
+from .beta_response_steer_event_param import BetaResponseSteerEventParam as BetaResponseSteerEventParam
+from .beta_response_steer_input_param import BetaResponseSteerInputParam as BetaResponseSteerInputParam
 from .beta_response_text_config_param import BetaResponseTextConfigParam as BetaResponseTextConfigParam
 from .beta_tool_choice_function_param import BetaToolChoiceFunctionParam as BetaToolChoiceFunctionParam
 from .assistant_response_format_option import AssistantResponseFormatOption as AssistantResponseFormatOption
@@ -146,18 +151,24 @@ from .beta_response_input_file_content import BetaResponseInputFileContent as Be
 from .beta_response_input_message_item import BetaResponseInputMessageItem as BetaResponseInputMessageItem
 from .beta_response_input_text_content import BetaResponseInputTextContent as BetaResponseInputTextContent
 from .beta_response_refusal_done_event import BetaResponseRefusalDoneEvent as BetaResponseRefusalDoneEvent
+from .beta_response_steer_failed_event import BetaResponseSteerFailedEvent as BetaResponseSteerFailedEvent
 from .beta_response_container_reference import BetaResponseContainerReference as BetaResponseContainerReference
 from .beta_response_function_web_search import BetaResponseFunctionWebSearch as BetaResponseFunctionWebSearch
 from .beta_response_inject_failed_event import BetaResponseInjectFailedEvent as BetaResponseInjectFailedEvent
 from .beta_response_input_content_param import BetaResponseInputContentParam as BetaResponseInputContentParam
 from .beta_response_input_image_content import BetaResponseInputImageContent as BetaResponseInputImageContent
 from .beta_response_refusal_delta_event import BetaResponseRefusalDeltaEvent as BetaResponseRefusalDeltaEvent
+from .beta_response_steer_input_content import BetaResponseSteerInputContent as BetaResponseSteerInputContent
+from .beta_response_steer_pending_event import BetaResponseSteerPendingEvent as BetaResponseSteerPendingEvent
 from .beta_responses_client_event_param import BetaResponsesClientEventParam as BetaResponsesClientEventParam
 from .assistant_tool_choice_option_param import AssistantToolChoiceOptionParam as AssistantToolChoiceOptionParam
 from .beta_response_inject_created_event import BetaResponseInjectCreatedEvent as BetaResponseInjectCreatedEvent
 from .beta_response_output_message_param import BetaResponseOutputMessageParam as BetaResponseOutputMessageParam
 from .beta_response_output_refusal_param import BetaResponseOutputRefusalParam as BetaResponseOutputRefusalParam
 from .beta_response_reasoning_item_param import BetaResponseReasoningItemParam as BetaResponseReasoningItemParam
+from .beta_response_steer_accepted_event import BetaResponseSteerAcceptedEvent as BetaResponseSteerAcceptedEvent
+from .beta_response_steer_pending_reason import BetaResponseSteerPendingReason as BetaResponseSteerPendingReason
+from .beta_response_steer_required_input import BetaResponseSteerRequiredInput as BetaResponseSteerRequiredInput
 from .beta_tool_choice_apply_patch_param import BetaToolChoiceApplyPatchParam as BetaToolChoiceApplyPatchParam
 from .beta_web_search_preview_tool_param import BetaWebSearchPreviewToolParam as BetaWebSearchPreviewToolParam
 from .beta_response_apply_patch_tool_call import BetaResponseApplyPatchToolCall as BetaResponseApplyPatchToolCall
@@ -210,6 +221,9 @@ from .beta_response_mcp_call_completed_event import (
 from .beta_container_network_policy_allowlist import (
     BetaContainerNetworkPolicyAllowlist as BetaContainerNetworkPolicyAllowlist,
 )
+from .beta_response_configuration_update_item import (
+    BetaResponseConfigurationUpdateItem as BetaResponseConfigurationUpdateItem,
+)
 from .beta_response_function_call_output_item import (
     BetaResponseFunctionCallOutputItem as BetaResponseFunctionCallOutputItem,
 )
@@ -221,6 +235,9 @@ from .beta_response_input_image_content_param import (
 )
 from .beta_response_reasoning_text_done_event import (
     BetaResponseReasoningTextDoneEvent as BetaResponseReasoningTextDoneEvent,
+)
+from .beta_response_steer_input_content_param import (
+    BetaResponseSteerInputContentParam as BetaResponseSteerInputContentParam,
 )
 from .beta_response_code_interpreter_tool_call import (
     BetaResponseCodeInterpreterToolCall as BetaResponseCodeInterpreterToolCall,
@@ -302,6 +319,9 @@ from .beta_response_shell_call_command_delta_event import (
 )
 from .beta_container_network_policy_allowlist_param import (
     BetaContainerNetworkPolicyAllowlistParam as BetaContainerNetworkPolicyAllowlistParam,
+)
+from .beta_response_configuration_update_item_param import (
+    BetaResponseConfigurationUpdateItemParam as BetaResponseConfigurationUpdateItemParam,
 )
 from .beta_response_function_call_output_item_param import (
     BetaResponseFunctionCallOutputItemParam as BetaResponseFunctionCallOutputItemParam,
@@ -398,6 +418,9 @@ from .beta_response_code_interpreter_call_code_done_event import (
 )
 from .beta_response_code_interpreter_call_completed_event import (
     BetaResponseCodeInterpreterCallCompletedEvent as BetaResponseCodeInterpreterCallCompletedEvent,
+)
+from .beta_response_configuration_update_item_param_param import (
+    BetaResponseConfigurationUpdateItemParamParam as BetaResponseConfigurationUpdateItemParamParam,
 )
 from .beta_response_shell_call_output_content_delta_event import (
     BetaResponseShellCallOutputContentDeltaEvent as BetaResponseShellCallOutputContentDeltaEvent,

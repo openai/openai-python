@@ -96,7 +96,7 @@ class CallAcceptParams(TypedDict, total=False):
     prompt: Optional[ResponsePromptParam]
     """
     Reference to a prompt template and its variables.
-    [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
+    [Learn more](https://developers.openai.com/api/docs/guides/text?api-mode=responses#version-prompts-in-code).
     """
 
     reasoning: RealtimeReasoningParam

@@ -3,6 +3,8 @@
 from typing import Dict, List, Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
 
+from pydantic import Field as FieldInfo
+
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
 from .custom_tool import CustomTool
@@ -17,6 +19,12 @@ class ToolFunction(BaseModel):
 
     allowed_callers: Optional[List[Literal["direct", "programmatic"]]] = None
     """The tool invocation context(s)."""
+
+    async_: Optional[bool] = FieldInfo(alias="async", default=None)
+    """
+    Whether the tool response can be returned asynchronously versus immediately
+    returned on next response creation.
+    """
 
     defer_loading: Optional[bool] = None
     """Whether this function should be deferred and discovered via tool search."""

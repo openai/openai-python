@@ -40,7 +40,7 @@ def test_reconnect_retries_bounded_send_queue(
         make_ws=MagicMock(return_value=ws),
         on_reconnecting=lambda _event: None,
         initial_delay=0,
-        max_retries=1,
+        max_retries=4,
     )
     for _ in range(3):
         assert connection._reconnect(RuntimeError("fake disconnect"))
@@ -52,6 +52,7 @@ def test_reconnect_retries_bounded_send_queue(
     assert connection._reconnect(RuntimeError("fake disconnect"))
     assert sent == ["aaa", "b"]
     assert q._bytes == 0
+    assert not connection._reconnect(RuntimeError("retry budget exhausted"))
 
 
 @pytest.mark.parametrize(
@@ -85,7 +86,7 @@ async def test_async_reconnect_retries_bounded_send_queue(
         make_ws=AsyncMock(return_value=ws),
         on_reconnecting=lambda _event: None,
         initial_delay=0,
-        max_retries=1,
+        max_retries=4,
     )
     for _ in range(3):
         assert await connection._reconnect(RuntimeError("fake disconnect"))
@@ -97,3 +98,4 @@ async def test_async_reconnect_retries_bounded_send_queue(
     assert await connection._reconnect(RuntimeError("fake disconnect"))
     assert sent == ["aaa", "b"]
     assert q._bytes == 0
+    assert not await connection._reconnect(RuntimeError("retry budget exhausted"))

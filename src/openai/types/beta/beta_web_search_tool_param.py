@@ -52,7 +52,7 @@ class BetaWebSearchToolParam(TypedDict, total=False):
     """Search the Internet for sources related to the prompt.
 
     Learn more about the
-    [web search tool](https://platform.openai.com/docs/guides/tools-web-search).
+    [web search tool](https://developers.openai.com/api/docs/guides/tools-web-search).
     """
 
     type: Required[Literal["web_search", "web_search_2025_08_26"]]

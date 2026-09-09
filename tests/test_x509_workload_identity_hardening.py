@@ -322,7 +322,15 @@ def test_x509_rejects_data_residency_without_a_confirmed_mtls_endpoint(
         client.with_options(data_residency="ae")
 
 
-@pytest.mark.parametrize("headers", [{"x-should-retry": "false"}, {"retry-after-ms": "120001"}])
+@pytest.mark.parametrize(
+    "headers",
+    [
+        {"x-should-retry": "false"},
+        {"retry-after-ms": "120001"},
+        {"retry-after": "1e999"},
+        {"retry-after-ms": "9" * 400},
+    ],
+)
 def test_sync_x509_token_exchange_honors_server_retry_refusals(headers: dict[str, str]) -> None:
     requests: list[httpx2.Request] = []
 
@@ -339,7 +347,15 @@ def test_sync_x509_token_exchange_honors_server_retry_refusals(headers: dict[str
     assert len(requests) == 1
 
 
-@pytest.mark.parametrize("headers", [{"x-should-retry": "false"}, {"retry-after-ms": "120001"}])
+@pytest.mark.parametrize(
+    "headers",
+    [
+        {"x-should-retry": "false"},
+        {"retry-after-ms": "120001"},
+        {"retry-after": "1e999"},
+        {"retry-after-ms": "9" * 400},
+    ],
+)
 async def test_async_x509_token_exchange_honors_server_retry_refusals(headers: dict[str, str]) -> None:
     requests: list[httpx2.Request] = []
 

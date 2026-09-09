@@ -451,6 +451,7 @@ from ._module_client import (
     files as files,
     images as images,
     models as models,
+    safety as safety,
     skills as skills,
     videos as videos,
     batches as batches,
