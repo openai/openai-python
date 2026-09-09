@@ -127,8 +127,8 @@ class ResponseCompactParams(TypedDict, total=False):
 
     OpenAI offers a wide range of models with different capabilities, performance
     characteristics, and price points. Refer to the
-    [model guide](https://platform.openai.com/docs/models) to browse and compare
-    available models.
+    [model guide](https://developers.openai.com/api/docs/models) to browse and
+    compare available models.
     """
 
     input: Union[str, Iterable[BetaResponseInputItemParam], None]
@@ -146,7 +146,7 @@ class ResponseCompactParams(TypedDict, total=False):
     """The unique ID of the previous response to the model.
 
     Use this to create multi-turn conversations. Learn more about
-    [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+    [conversation state](https://developers.openai.com/api/docs/guides/conversation-state).
     Cannot be used in conjunction with `conversation`.
     """
 
@@ -163,7 +163,7 @@ class ResponseCompactParams(TypedDict, total=False):
     breakpoints in the conversation, without a content-block lookback limit. Set
     `mode` to `explicit` to disable the implicit breakpoint. The `ttl` defaults to
     `30m`, which is currently the only supported value. See the
-    [prompt caching guide](https://platform.openai.com/docs/guides/prompt-caching)
+    [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching)
     for current details.
     """
 
@@ -177,11 +177,12 @@ class ResponseCompactParams(TypedDict, total=False):
       configured in the Project settings. Unless otherwise configured, the Project
       will use 'default'. - If set to 'default', then the request will be processed
       with the standard pricing and performance for the selected model. - If set to
-      '[flex](https://platform.openai.com/docs/guides/flex-processing)', then the
-      request will be processed with the Flex Processing service tier. - To opt-in
-      to [Fast mode](/api/docs/guides/fast-mode) at the request level, include the
-      `service_tier=fast` or `service_tier=priority` parameter for Responses or Chat
-      Completions. For models with a dedicated Fast tier, either value resolves to
+      '[flex](https://developers.openai.com/api/docs/guides/flex-processing)', then
+      the request will be processed with the Flex Processing service tier. - To
+      opt-in to [Fast mode](https://developers.openai.com/api/docs/guides/fast-mode)
+      at the request level, include the `service_tier=fast` or
+      `service_tier=priority` parameter for Responses or Chat Completions. For
+      models with a dedicated Fast tier, either value resolves to
       `service_tier=fast`; for other models, either value resolves to
       `service_tier=priority`. - When not set, the default behavior is 'auto'. When
       the `service_tier` parameter is set, the response body will include the
@@ -196,7 +197,7 @@ class ResponseCompactParams(TypedDict, total=False):
 class PromptCacheOptions(TypedDict, total=False):
     """Options for prompt caching.
 
-    Supported for `gpt-5.6` and later models. By default, OpenAI automatically chooses one implicit cache breakpoint. You can add explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each request can write up to four breakpoints. For cache matching, OpenAI considers up to the latest 80 breakpoints in the conversation, without a content-block lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The `ttl` defaults to `30m`, which is currently the only supported value. See the [prompt caching guide](https://platform.openai.com/docs/guides/prompt-caching) for current details.
+    Supported for `gpt-5.6` and later models. By default, OpenAI automatically chooses one implicit cache breakpoint. You can add explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each request can write up to four breakpoints. For cache matching, OpenAI considers up to the latest 80 breakpoints in the conversation, without a content-block lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The `ttl` defaults to `30m`, which is currently the only supported value. See the [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching) for current details.
     """
 
     mode: Literal["implicit", "explicit"]
