@@ -24,8 +24,8 @@ class Data(BaseModel):
     session_id: str
     """The `live_...` ID of the pending SIP session.
 
-    Forward this value unchanged when accepting or rejecting the call through the
-    Live API.
+    Pass this value unchanged to Live call controls and sideband connections. The
+    corresponding `realtime.call.incoming` event uses a separate `rtc_...` call ID.
     """
 
     sip_headers: List[DataSipHeader]
@@ -37,9 +37,11 @@ class Data(BaseModel):
 
 
 class LiveCallIncomingWebhookEvent(BaseModel):
-    """Sent when an incoming API SIP session is available for Live acceptance.
+    """Deprecated: use `live.transport.incoming`.
 
-    The
+    Retained for existing subscriptions
+    during migration; new subscriptions to this event are not allowed.
+    Sent when an incoming API SIP session is available for Live acceptance. The
     same pending session can also emit `realtime.call.incoming`; the first
     successful Realtime or Live accept endpoint selects the runtime surface.
     """

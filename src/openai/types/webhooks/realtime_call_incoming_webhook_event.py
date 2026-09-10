@@ -24,8 +24,8 @@ class Data(BaseModel):
     call_id: str
     """The Transceiver `rtc_...` ID of the pending SIP session.
 
-    The paired `live.call.incoming` event derives its `session_id` by replacing the
-    `rtc_` prefix with `live_`. Use the ID returned by the event with the
+    The paired `live.transport.incoming` event derives its `session_id` by replacing
+    the `rtc_` prefix with `live_`. Use the ID returned by the event with the
     corresponding Realtime or Live API.
     """
 
@@ -40,7 +40,7 @@ class Data(BaseModel):
 class RealtimeCallIncomingWebhookEvent(BaseModel):
     """
     Sent when an incoming API SIP session is available for Realtime acceptance.
-    The same pending session can also emit `live.call.incoming`; the first
+    The same pending session can also emit `live.transport.incoming`; the first
     successful Realtime or Live accept endpoint selects the runtime surface.
     """
 

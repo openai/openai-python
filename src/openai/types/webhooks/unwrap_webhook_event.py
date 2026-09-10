@@ -19,6 +19,7 @@ from .response_incomplete_webhook_event import ResponseIncompleteWebhookEvent
 from .safety_alert_created_webhook_event import SafetyAlertCreatedWebhookEvent
 from .fine_tuning_job_failed_webhook_event import FineTuningJobFailedWebhookEvent
 from .realtime_call_incoming_webhook_event import RealtimeCallIncomingWebhookEvent
+from .live_transport_incoming_webhook_event import LiveTransportIncomingWebhookEvent
 from .safety_org_alert_created_webhook_event import SafetyOrgAlertCreatedWebhookEvent
 from .fine_tuning_job_cancelled_webhook_event import FineTuningJobCancelledWebhookEvent
 from .fine_tuning_job_succeeded_webhook_event import FineTuningJobSucceededWebhookEvent
@@ -38,6 +39,7 @@ UnwrapWebhookEvent: TypeAlias = Annotated[
         FineTuningJobFailedWebhookEvent,
         FineTuningJobSucceededWebhookEvent,
         LiveCallIncomingWebhookEvent,
+        LiveTransportIncomingWebhookEvent,
         RealtimeCallIncomingWebhookEvent,
         ResponseCancelledWebhookEvent,
         ResponseCompletedWebhookEvent,
