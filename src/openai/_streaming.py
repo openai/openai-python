@@ -419,10 +419,8 @@ class SSEDecoder:
             else:
                 self._last_event_id = value
         elif fieldname == "retry":
-            try:
+            if value.isascii() and value.isdigit():
                 self._retry = int(value)
-            except (TypeError, ValueError):
-                pass
         else:
             pass  # Field is ignored.
 
