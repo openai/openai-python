@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ class ComparisonFilter(TypedDict, total=False):
     key: Required[str]
     """The key to compare against the value."""
 
-    type: Required[Literal["eq", "ne", "gt", "gte", "lt", "lte"]]
+    type: Required[Literal["eq", "ne", "gt", "gte", "lt", "lte", "in", "nin"]]
     """
     Specifies the comparison operator: `eq`, `ne`, `gt`, `gte`, `lt`, `lte`, `in`,
     `nin`.

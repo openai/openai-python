@@ -1,19 +1,21 @@
 # Note: initially copied from https://github.com/florimondmanca/httpx-sse/blob/master/src/httpx_sse/_decoders.py
 from __future__ import annotations
 
+import re
 import json
 import inspect
 from types import TracebackType
-from typing import TYPE_CHECKING, Any, Generic, TypeVar, Iterator, AsyncIterator, cast
+from typing import TYPE_CHECKING, Any, Generic, TypeVar, Iterator, Optional, AsyncIterator, cast
 from typing_extensions import Self, Protocol, TypeGuard, override, get_origin, runtime_checkable
 
-import httpx
+import httpx2
 
 from ._utils import is_mapping, extract_type_var_from_base
 from ._exceptions import APIError
 
 if TYPE_CHECKING:
     from ._client import OpenAI, AsyncOpenAI
+    from ._models import FinalRequestOptions
 
 
 _T = TypeVar("_T")
@@ -22,20 +24,22 @@ _T = TypeVar("_T")
 class Stream(Generic[_T]):
     """Provides the core interface to iterate over a synchronous stream response."""
 
-    response: httpx.Response
-
+    response: httpx2.Response
+    _options: Optional[FinalRequestOptions] = None
     _decoder: SSEBytesDecoder
 
     def __init__(
         self,
         *,
         cast_to: type[_T],
-        response: httpx.Response,
+        response: httpx2.Response,
         client: OpenAI,
+        options: Optional[FinalRequestOptions] = None,
     ) -> None:
         self.response = response
         self._cast_to = cast_to
         self._client = client
+        self._options = options
         self._decoder = client._make_sse_decoder()
         self._iterator = self.__stream__()
 
@@ -91,6 +95,28 @@ class Stream(Generic[_T]):
                     _raise_streaming_error(data)
                     yield process_data(data=data, cast_to=cast_to, response=response)
 
+                    data = sse.json()
+                    if is_mapping(data) and data.get("error"):
+                        message = None
+                        error = data.get("error")
+                        if is_mapping(error):
+                            message = error.get("message")
+                        if not message or not isinstance(message, str):
+                            message = "An error occurred during streaming"
+
+                        raise APIError(
+                            message=message,
+                            request=self.response.request,
+                            body=data["error"],
+                        )
+
+                    yield process_data(
+                        data={"data": data, "event": sse.event}
+                        if self._options is not None and self._options.synthesize_event_and_data
+                        else data,
+                        cast_to=cast_to,
+                        response=response,
+                    )
         finally:
             # Ensure the response is closed even if the consumer doesn't read all data
             response.close()
@@ -118,20 +144,22 @@ class Stream(Generic[_T]):
 class AsyncStream(Generic[_T]):
     """Provides the core interface to iterate over an asynchronous stream response."""
 
-    response: httpx.Response
-
+    response: httpx2.Response
+    _options: Optional[FinalRequestOptions] = None
     _decoder: SSEDecoder | SSEBytesDecoder
 
     def __init__(
         self,
         *,
         cast_to: type[_T],
-        response: httpx.Response,
+        response: httpx2.Response,
         client: AsyncOpenAI,
+        options: Optional[FinalRequestOptions] = None,
     ) -> None:
         self.response = response
         self._cast_to = cast_to
         self._client = client
+        self._options = options
         self._decoder = client._make_sse_decoder()
         self._iterator = self.__stream__()
 
@@ -188,6 +216,28 @@ class AsyncStream(Generic[_T]):
                     _raise_streaming_error(data)
                     yield process_data(data=data, cast_to=cast_to, response=response)
 
+                    data = sse.json()
+                    if is_mapping(data) and data.get("error"):
+                        message = None
+                        error = data.get("error")
+                        if is_mapping(error):
+                            message = error.get("message")
+                        if not message or not isinstance(message, str):
+                            message = "An error occurred during streaming"
+
+                        raise APIError(
+                            message=message,
+                            request=self.response.request,
+                            body=data["error"],
+                        )
+
+                    yield process_data(
+                        data={"data": data, "event": sse.event}
+                        if self._options is not None and self._options.synthesize_event_and_data
+                        else data,
+                        cast_to=cast_to,
+                        response=response,
+                    )
         finally:
             # Ensure the response is closed even if the consumer doesn't read all data
             await response.aclose()
@@ -257,61 +307,89 @@ class ServerSentEvent:
         return f"ServerSentEvent(event={self.event}, data={self.data}, id={self.id}, retry={self.retry})"
 
 
+_SSE_LINE_END = re.compile(b"[\\r\\n]")
+
+
+class _SSELineDecoder:
+    """Incrementally split CR, LF, and CRLF without copying growing prefixes."""
+
+    def __init__(self) -> None:
+        self._buffer = bytearray()
+        self._skip_lf = False
+
+    def _append(self, chunk: bytes, start: int, end: int) -> None:
+        self._buffer.extend(memoryview(chunk)[start:end])
+
+    def feed(self, chunk: bytes) -> Iterator[bytes]:
+        start = 0
+        for match in _SSE_LINE_END.finditer(chunk):
+            end = match.start()
+            if self._skip_lf and end == start and chunk[end] == 10:
+                self._skip_lf = False
+                start = end + 1
+                continue
+            self._skip_lf = False
+            self._append(chunk, start, end)
+            line = bytes(self._buffer)
+            self._buffer.clear()
+            self._skip_lf = chunk[end] == 13
+            start = end + 1
+            yield line
+        if start < len(chunk):
+            self._skip_lf = False
+            self._append(chunk, start, len(chunk))
+
+    def finish(self) -> Iterator[bytes]:
+        if self._buffer:
+            line = bytes(self._buffer)
+            self._buffer.clear()
+            yield line
+
+
 class SSEDecoder:
+    """Decode SSE incrementally without imposing a line or event size limit."""
+
     _data: list[str]
     _event: str | None
     _retry: int | None
     _last_event_id: str | None
 
     def __init__(self) -> None:
+        self._reset()
+
+    def _reset(self) -> None:
         self._event = None
         self._data = []
         self._last_event_id = None
         self._retry = None
 
-    def iter_bytes(self, iterator: Iterator[bytes]) -> Iterator[ServerSentEvent]:
-        """Given an iterator that yields raw binary data, iterate over it & yield every event encountered"""
-        for chunk in self._iter_chunks(iterator):
-            # Split before decoding so splitlines() only uses \r and \n
-            for raw_line in chunk.splitlines():
-                line = raw_line.decode("utf-8")
-                sse = self.decode(line)
-                if sse:
-                    yield sse
+    def _decode_lines(self, lines: Iterator[bytes]) -> Iterator[ServerSentEvent]:
+        for raw_line in lines:
+            sse = self.decode(raw_line.decode("utf-8"))
+            if sse:
+                yield sse
 
-    def _iter_chunks(self, iterator: Iterator[bytes]) -> Iterator[bytes]:
-        """Given an iterator that yields raw binary data, iterate over it and yield individual SSE chunks"""
-        data = b""
-        for chunk in iterator:
-            for line in chunk.splitlines(keepends=True):
-                data += line
-                if data.endswith((b"\r\r", b"\n\n", b"\r\n\r\n")):
-                    yield data
-                    data = b""
-        if data:
-            yield data
+    def iter_bytes(self, iterator: Iterator[bytes]) -> Iterator[ServerSentEvent]:
+        """Given raw binary data, yield every event encountered."""
+        decoder = _SSELineDecoder()
+        try:
+            for chunk in iterator:
+                yield from self._decode_lines(decoder.feed(chunk))
+            yield from self._decode_lines(decoder.finish())
+        finally:
+            self._reset()
 
     async def aiter_bytes(self, iterator: AsyncIterator[bytes]) -> AsyncIterator[ServerSentEvent]:
-        """Given an iterator that yields raw binary data, iterate over it & yield every event encountered"""
-        async for chunk in self._aiter_chunks(iterator):
-            # Split before decoding so splitlines() only uses \r and \n
-            for raw_line in chunk.splitlines():
-                line = raw_line.decode("utf-8")
-                sse = self.decode(line)
-                if sse:
+        """Given async raw binary data, yield every event encountered."""
+        decoder = _SSELineDecoder()
+        try:
+            async for chunk in iterator:
+                for sse in self._decode_lines(decoder.feed(chunk)):
                     yield sse
-
-    async def _aiter_chunks(self, iterator: AsyncIterator[bytes]) -> AsyncIterator[bytes]:
-        """Given an iterator that yields raw binary data, iterate over it and yield individual SSE chunks"""
-        data = b""
-        async for chunk in iterator:
-            for line in chunk.splitlines(keepends=True):
-                data += line
-                if data.endswith((b"\r\r", b"\n\n", b"\r\n\r\n")):
-                    yield data
-                    data = b""
-        if data:
-            yield data
+            for sse in self._decode_lines(decoder.finish()):
+                yield sse
+        finally:
+            self._reset()
 
     def decode(self, line: str) -> ServerSentEvent | None:
         # See: https://html.spec.whatwg.org/multipage/server-sent-events.html#event-stream-interpretation  # noqa: E501

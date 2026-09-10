@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import List, Union
 from typing_extensions import Literal
@@ -16,7 +16,7 @@ class ComparisonFilter(BaseModel):
     key: str
     """The key to compare against the value."""
 
-    type: Literal["eq", "ne", "gt", "gte", "lt", "lte"]
+    type: Literal["eq", "ne", "gt", "gte", "lt", "lte", "in", "nin"]
     """
     Specifies the comparison operator: `eq`, `ne`, `gt`, `gte`, `lt`, `lte`, `in`,
     `nin`.

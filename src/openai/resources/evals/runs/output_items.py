@@ -1,14 +1,14 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 from typing_extensions import Literal
 
-import httpx
+import httpx2
 
 from .... import _legacy_response
 from ...._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
-from ...._utils import maybe_transform
+from ...._utils import path_template, maybe_transform
 from ...._compat import cached_property
 from ...._resource import SyncAPIResource, AsyncAPIResource
 from ...._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -22,6 +22,8 @@ __all__ = ["OutputItems", "AsyncOutputItems"]
 
 
 class OutputItems(SyncAPIResource):
+    """Manage and run evals in the OpenAI platform."""
+
     @cached_property
     def with_raw_response(self) -> OutputItemsWithRawResponse:
         """
@@ -52,7 +54,7 @@ class OutputItems(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> OutputItemRetrieveResponse:
         """
         Get an evaluation run output item by ID.
@@ -73,9 +75,18 @@ class OutputItems(SyncAPIResource):
         if not output_item_id:
             raise ValueError(f"Expected a non-empty value for `output_item_id` but received {output_item_id!r}")
         return self._get(
-            f"/evals/{eval_id}/runs/{run_id}/output_items/{output_item_id}",
+            path_template(
+                "/evals/{eval_id}/runs/{run_id}/output_items/{output_item_id}",
+                eval_id=eval_id,
+                run_id=run_id,
+                output_item_id=output_item_id,
+            ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=OutputItemRetrieveResponse,
         )
@@ -94,7 +105,7 @@ class OutputItems(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncCursorPage[OutputItemListResponse]:
         """
         Get a list of output items for an evaluation run.
@@ -123,7 +134,7 @@ class OutputItems(SyncAPIResource):
         if not run_id:
             raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
         return self._get_api_list(
-            f"/evals/{eval_id}/runs/{run_id}/output_items",
+            path_template("/evals/{eval_id}/runs/{run_id}/output_items", eval_id=eval_id, run_id=run_id),
             page=SyncCursorPage[OutputItemListResponse],
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -139,12 +150,15 @@ class OutputItems(SyncAPIResource):
                     },
                     output_item_list_params.OutputItemListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=OutputItemListResponse,
         )
 
 
 class AsyncOutputItems(AsyncAPIResource):
+    """Manage and run evals in the OpenAI platform."""
+
     @cached_property
     def with_raw_response(self) -> AsyncOutputItemsWithRawResponse:
         """
@@ -175,7 +189,7 @@ class AsyncOutputItems(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> OutputItemRetrieveResponse:
         """
         Get an evaluation run output item by ID.
@@ -196,9 +210,18 @@ class AsyncOutputItems(AsyncAPIResource):
         if not output_item_id:
             raise ValueError(f"Expected a non-empty value for `output_item_id` but received {output_item_id!r}")
         return await self._get(
-            f"/evals/{eval_id}/runs/{run_id}/output_items/{output_item_id}",
+            path_template(
+                "/evals/{eval_id}/runs/{run_id}/output_items/{output_item_id}",
+                eval_id=eval_id,
+                run_id=run_id,
+                output_item_id=output_item_id,
+            ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=OutputItemRetrieveResponse,
         )
@@ -217,7 +240,7 @@ class AsyncOutputItems(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[OutputItemListResponse, AsyncCursorPage[OutputItemListResponse]]:
         """
         Get a list of output items for an evaluation run.
@@ -246,7 +269,7 @@ class AsyncOutputItems(AsyncAPIResource):
         if not run_id:
             raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
         return self._get_api_list(
-            f"/evals/{eval_id}/runs/{run_id}/output_items",
+            path_template("/evals/{eval_id}/runs/{run_id}/output_items", eval_id=eval_id, run_id=run_id),
             page=AsyncCursorPage[OutputItemListResponse],
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -262,6 +285,7 @@ class AsyncOutputItems(AsyncAPIResource):
                     },
                     output_item_list_params.OutputItemListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=OutputItemListResponse,
         )

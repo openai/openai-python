@@ -4,13 +4,15 @@ set -e
 
 cd "$(dirname "$0")/.."
 
-if [ "$1" = "--fix" ]; then
+if [ "${1:-}" = "--fix" ]; then
   echo "==> Running lints with --fix"
-  rye run fix:ruff
+  uv run --locked --all-extras ruff check --fix .
 else
   echo "==> Running lints"
-  rye run lint
+  uv run --locked --all-extras ruff check .
+  uv run --locked --all-extras scripts/run-pyright
+  uv run --locked --all-extras mypy .
 fi
 
 echo "==> Making sure it imports"
-rye run python -c 'import openai'
+uv run --locked --all-extras python -c 'import openai'

@@ -1,23 +1,28 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
+import typing_extensions
 from typing import TYPE_CHECKING, Mapping, cast
 from typing_extensions import Literal, assert_never
 
-import httpx
+import httpx2
 
 from .. import _legacy_response
 from ..types import (
     VideoSize,
     VideoSeconds,
+    video_edit_params,
     video_list_params,
     video_remix_params,
     video_create_params,
+    video_extend_params,
+    video_create_character_params,
     video_download_content_params,
 )
+from .._files import deepcopy_with_paths
 from .._types import Body, Omit, Query, Headers, NotGiven, FileTypes, omit, not_given
-from .._utils import extract_files, maybe_transform, deepcopy_minimal, async_maybe_transform
+from .._utils import extract_files, path_template, maybe_transform, async_maybe_transform
 from .._compat import cached_property
 from .._resource import SyncAPIResource, AsyncAPIResource
 from .._response import (
@@ -36,6 +41,8 @@ from ..types.video_size import VideoSize
 from ..types.video_seconds import VideoSeconds
 from ..types.video_model_param import VideoModelParam
 from ..types.video_delete_response import VideoDeleteResponse
+from ..types.video_get_character_response import VideoGetCharacterResponse
+from ..types.video_create_character_response import VideoCreateCharacterResponse
 
 __all__ = ["Videos", "AsyncVideos"]
 
@@ -60,11 +67,12 @@ class Videos(SyncAPIResource):
         """
         return VideosWithStreamingResponse(self)
 
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
     def create(
         self,
         *,
         prompt: str,
-        input_reference: FileTypes | Omit = omit,
+        input_reference: video_create_params.InputReference | Omit = omit,
         model: VideoModelParam | Omit = omit,
         seconds: VideoSeconds | Omit = omit,
         size: VideoSize | Omit = omit,
@@ -73,15 +81,15 @@ class Videos(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Video:
         """
-        Create a video
+        Create a new video generation job from a prompt and optional reference assets.
 
         Args:
           prompt: Text prompt that describes the video to generate.
 
-          input_reference: Optional image reference that guides generation.
+          input_reference: Optional reference asset upload or reference object that guides generation.
 
           model: The video generation model to use (allowed values: sora-2, sora-2-pro). Defaults
               to `sora-2`.
@@ -99,36 +107,41 @@ class Videos(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        body = deepcopy_minimal(
+        body = deepcopy_with_paths(
             {
                 "prompt": prompt,
                 "input_reference": input_reference,
                 "model": model,
                 "seconds": seconds,
                 "size": size,
-            }
+            },
+            [["input_reference"]],
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["input_reference"]])
-        if files:
-            # It should be noted that the actual Content-Type header that will be
-            # sent to the server will contain a `boundary` parameter, e.g.
-            # multipart/form-data; boundary=---abc--
-            extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
+        # It should be noted that the actual Content-Type header that will be
+        # sent to the server will contain a `boundary` parameter, e.g.
+        # multipart/form-data; boundary=---abc--
+        extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
         return self._post(
             "/videos",
             body=maybe_transform(body, video_create_params.VideoCreateParams),
             files=files,
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Video,
         )
 
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
     def create_and_poll(
         self,
         *,
         prompt: str,
-        input_reference: FileTypes | Omit = omit,
+        input_reference: video_create_params.InputReference | Omit = omit,
         model: VideoModelParam | Omit = omit,
         seconds: VideoSeconds | Omit = omit,
         size: VideoSize | Omit = omit,
@@ -138,10 +151,10 @@ class Videos(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Video:
         """Create a video and wait for it to be processed."""
-        video = self.create(
+        video = self.create(  # pyright: ignore[reportDeprecated]
             model=model,
             prompt=prompt,
             input_reference=input_reference,
@@ -153,11 +166,12 @@ class Videos(SyncAPIResource):
             timeout=timeout,
         )
 
-        return self.poll(
+        return self.poll(  # pyright: ignore[reportDeprecated]
             video.id,
             poll_interval_ms=poll_interval_ms,
         )
 
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
     def poll(
         self,
         video_id: str,
@@ -174,7 +188,7 @@ class Videos(SyncAPIResource):
             headers["X-Stainless-Custom-Poll-Interval"] = str(poll_interval_ms)
 
         while True:
-            response = self.with_raw_response.retrieve(
+            response = self.with_raw_response.retrieve(  # pyright: ignore[reportDeprecated]
                 video_id,
                 extra_headers=headers,
             )
@@ -197,6 +211,7 @@ class Videos(SyncAPIResource):
                 else:
                     return video
 
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
     def retrieve(
         self,
         video_id: str,
@@ -206,10 +221,10 @@ class Videos(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Video:
         """
-        Retrieve a video
+        Fetch the latest metadata for a generated video.
 
         Args:
           extra_headers: Send extra headers
@@ -223,13 +238,18 @@ class Videos(SyncAPIResource):
         if not video_id:
             raise ValueError(f"Expected a non-empty value for `video_id` but received {video_id!r}")
         return self._get(
-            f"/videos/{video_id}",
+            path_template("/videos/{video_id}", video_id=video_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Video,
         )
 
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
     def list(
         self,
         *,
@@ -241,10 +261,10 @@ class Videos(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncConversationCursorPage[Video]:
         """
-        List videos
+        List recently generated videos for the current project.
 
         Args:
           after: Identifier for the last item from the previous pagination request
@@ -278,10 +298,12 @@ class Videos(SyncAPIResource):
                     },
                     video_list_params.VideoListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=Video,
         )
 
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
     def delete(
         self,
         video_id: str,
@@ -291,10 +313,10 @@ class Videos(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VideoDeleteResponse:
         """
-        Delete a video
+        Permanently delete a completed or failed video and its stored assets.
 
         Args:
           extra_headers: Send extra headers
@@ -308,13 +330,73 @@ class Videos(SyncAPIResource):
         if not video_id:
             raise ValueError(f"Expected a non-empty value for `video_id` but received {video_id!r}")
         return self._delete(
-            f"/videos/{video_id}",
+            path_template("/videos/{video_id}", video_id=video_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VideoDeleteResponse,
         )
 
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
+    def create_character(
+        self,
+        *,
+        name: str,
+        video: FileTypes,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> VideoCreateCharacterResponse:
+        """
+        Create a character from an uploaded video.
+
+        Args:
+          name: Display name for this API character.
+
+          video: Video file used to create a character.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        body = deepcopy_with_paths(
+            {
+                "name": name,
+                "video": video,
+            },
+            [["video"]],
+        )
+        files = extract_files(cast(Mapping[str, object], body), paths=[["video"]])
+        # It should be noted that the actual Content-Type header that will be
+        # sent to the server will contain a `boundary` parameter, e.g.
+        # multipart/form-data; boundary=---abc--
+        extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
+        return self._post(
+            "/videos/characters",
+            body=maybe_transform(body, video_create_character_params.VideoCreateCharacterParams),
+            files=files,
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
+            ),
+            cast_to=VideoCreateCharacterResponse,
+        )
+
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
     def download_content(
         self,
         video_id: str,
@@ -325,14 +407,15 @@ class Videos(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> _legacy_response.HttpxBinaryResponseContent:
-        """Download video content
+        """
+        Download the generated video bytes or a derived preview asset.
+
+        Streams the rendered video content for the specified video job.
 
         Args:
-          variant: Which downloadable asset to return.
-
-        Defaults to the MP4 video.
+          variant: Which downloadable asset to return. Defaults to the MP4 video.
 
           extra_headers: Send extra headers
 
@@ -346,17 +429,173 @@ class Videos(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `video_id` but received {video_id!r}")
         extra_headers = {"Accept": "application/binary", **(extra_headers or {})}
         return self._get(
-            f"/videos/{video_id}/content",
+            path_template("/videos/{video_id}/content", video_id=video_id),
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
                 extra_body=extra_body,
                 timeout=timeout,
                 query=maybe_transform({"variant": variant}, video_download_content_params.VideoDownloadContentParams),
+                security={"bearer_auth": True},
             ),
             cast_to=_legacy_response.HttpxBinaryResponseContent,
         )
 
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
+    def edit(
+        self,
+        *,
+        prompt: str,
+        video: video_edit_params.Video,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> Video:
+        """
+        Create a new video generation job by editing a source video or existing
+        generated video.
+
+        Args:
+          prompt: Text prompt that describes how to edit the source video.
+
+          video: Reference to the completed video to edit.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        body = deepcopy_with_paths(
+            {
+                "prompt": prompt,
+                "video": video,
+            },
+            [["video"]],
+        )
+        files = extract_files(cast(Mapping[str, object], body), paths=[["video"]])
+        # It should be noted that the actual Content-Type header that will be
+        # sent to the server will contain a `boundary` parameter, e.g.
+        # multipart/form-data; boundary=---abc--
+        extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
+        return self._post(
+            "/videos/edits",
+            body=maybe_transform(body, video_edit_params.VideoEditParams),
+            files=files,
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
+            ),
+            cast_to=Video,
+        )
+
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
+    def extend(
+        self,
+        *,
+        prompt: str,
+        seconds: VideoSeconds,
+        video: video_extend_params.Video,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> Video:
+        """
+        Create an extension of a completed video.
+
+        Args:
+          prompt: Updated text prompt that directs the extension generation.
+
+          seconds: Length of the newly generated extension segment in seconds (allowed values: 4,
+              8, 12, 16, 20).
+
+          video: Reference to the completed video to extend.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        body = deepcopy_with_paths(
+            {
+                "prompt": prompt,
+                "seconds": seconds,
+                "video": video,
+            },
+            [["video"]],
+        )
+        files = extract_files(cast(Mapping[str, object], body), paths=[["video"]])
+        # It should be noted that the actual Content-Type header that will be
+        # sent to the server will contain a `boundary` parameter, e.g.
+        # multipart/form-data; boundary=---abc--
+        extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
+        return self._post(
+            "/videos/extensions",
+            body=maybe_transform(body, video_extend_params.VideoExtendParams),
+            files=files,
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
+            ),
+            cast_to=Video,
+        )
+
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
+    def get_character(
+        self,
+        character_id: str,
+        *,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> VideoGetCharacterResponse:
+        """
+        Fetch a character.
+
+        Args:
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not character_id:
+            raise ValueError(f"Expected a non-empty value for `character_id` but received {character_id!r}")
+        return self._get(
+            path_template("/videos/characters/{character_id}", character_id=character_id),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
+            ),
+            cast_to=VideoGetCharacterResponse,
+        )
+
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
     def remix(
         self,
         video_id: str,
@@ -367,10 +606,10 @@ class Videos(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Video:
         """
-        Create a video remix
+        Create a remix of a completed video using a refreshed prompt.
 
         Args:
           prompt: Updated text prompt that directs the remix generation.
@@ -386,10 +625,14 @@ class Videos(SyncAPIResource):
         if not video_id:
             raise ValueError(f"Expected a non-empty value for `video_id` but received {video_id!r}")
         return self._post(
-            f"/videos/{video_id}/remix",
+            path_template("/videos/{video_id}/remix", video_id=video_id),
             body=maybe_transform({"prompt": prompt}, video_remix_params.VideoRemixParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Video,
         )
@@ -415,11 +658,12 @@ class AsyncVideos(AsyncAPIResource):
         """
         return AsyncVideosWithStreamingResponse(self)
 
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
     async def create(
         self,
         *,
         prompt: str,
-        input_reference: FileTypes | Omit = omit,
+        input_reference: video_create_params.InputReference | Omit = omit,
         model: VideoModelParam | Omit = omit,
         seconds: VideoSeconds | Omit = omit,
         size: VideoSize | Omit = omit,
@@ -428,15 +672,15 @@ class AsyncVideos(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Video:
         """
-        Create a video
+        Create a new video generation job from a prompt and optional reference assets.
 
         Args:
           prompt: Text prompt that describes the video to generate.
 
-          input_reference: Optional image reference that guides generation.
+          input_reference: Optional reference asset upload or reference object that guides generation.
 
           model: The video generation model to use (allowed values: sora-2, sora-2-pro). Defaults
               to `sora-2`.
@@ -454,36 +698,41 @@ class AsyncVideos(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        body = deepcopy_minimal(
+        body = deepcopy_with_paths(
             {
                 "prompt": prompt,
                 "input_reference": input_reference,
                 "model": model,
                 "seconds": seconds,
                 "size": size,
-            }
+            },
+            [["input_reference"]],
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["input_reference"]])
-        if files:
-            # It should be noted that the actual Content-Type header that will be
-            # sent to the server will contain a `boundary` parameter, e.g.
-            # multipart/form-data; boundary=---abc--
-            extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
+        # It should be noted that the actual Content-Type header that will be
+        # sent to the server will contain a `boundary` parameter, e.g.
+        # multipart/form-data; boundary=---abc--
+        extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
         return await self._post(
             "/videos",
             body=await async_maybe_transform(body, video_create_params.VideoCreateParams),
             files=files,
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Video,
         )
 
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
     async def create_and_poll(
         self,
         *,
         prompt: str,
-        input_reference: FileTypes | Omit = omit,
+        input_reference: video_create_params.InputReference | Omit = omit,
         model: VideoModelParam | Omit = omit,
         seconds: VideoSeconds | Omit = omit,
         size: VideoSize | Omit = omit,
@@ -493,10 +742,10 @@ class AsyncVideos(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Video:
         """Create a video and wait for it to be processed."""
-        video = await self.create(
+        video = await self.create(  # pyright: ignore[reportDeprecated]
             model=model,
             prompt=prompt,
             input_reference=input_reference,
@@ -508,11 +757,12 @@ class AsyncVideos(AsyncAPIResource):
             timeout=timeout,
         )
 
-        return await self.poll(
+        return await self.poll(  # pyright: ignore[reportDeprecated]
             video.id,
             poll_interval_ms=poll_interval_ms,
         )
 
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
     async def poll(
         self,
         video_id: str,
@@ -529,7 +779,7 @@ class AsyncVideos(AsyncAPIResource):
             headers["X-Stainless-Custom-Poll-Interval"] = str(poll_interval_ms)
 
         while True:
-            response = await self.with_raw_response.retrieve(
+            response = await self.with_raw_response.retrieve(  # pyright: ignore[reportDeprecated]
                 video_id,
                 extra_headers=headers,
             )
@@ -552,6 +802,7 @@ class AsyncVideos(AsyncAPIResource):
                 else:
                     return video
 
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
     async def retrieve(
         self,
         video_id: str,
@@ -561,10 +812,10 @@ class AsyncVideos(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Video:
         """
-        Retrieve a video
+        Fetch the latest metadata for a generated video.
 
         Args:
           extra_headers: Send extra headers
@@ -578,13 +829,18 @@ class AsyncVideos(AsyncAPIResource):
         if not video_id:
             raise ValueError(f"Expected a non-empty value for `video_id` but received {video_id!r}")
         return await self._get(
-            f"/videos/{video_id}",
+            path_template("/videos/{video_id}", video_id=video_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Video,
         )
 
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
     def list(
         self,
         *,
@@ -596,10 +852,10 @@ class AsyncVideos(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[Video, AsyncConversationCursorPage[Video]]:
         """
-        List videos
+        List recently generated videos for the current project.
 
         Args:
           after: Identifier for the last item from the previous pagination request
@@ -633,10 +889,12 @@ class AsyncVideos(AsyncAPIResource):
                     },
                     video_list_params.VideoListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=Video,
         )
 
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
     async def delete(
         self,
         video_id: str,
@@ -646,10 +904,10 @@ class AsyncVideos(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VideoDeleteResponse:
         """
-        Delete a video
+        Permanently delete a completed or failed video and its stored assets.
 
         Args:
           extra_headers: Send extra headers
@@ -663,13 +921,73 @@ class AsyncVideos(AsyncAPIResource):
         if not video_id:
             raise ValueError(f"Expected a non-empty value for `video_id` but received {video_id!r}")
         return await self._delete(
-            f"/videos/{video_id}",
+            path_template("/videos/{video_id}", video_id=video_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VideoDeleteResponse,
         )
 
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
+    async def create_character(
+        self,
+        *,
+        name: str,
+        video: FileTypes,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> VideoCreateCharacterResponse:
+        """
+        Create a character from an uploaded video.
+
+        Args:
+          name: Display name for this API character.
+
+          video: Video file used to create a character.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        body = deepcopy_with_paths(
+            {
+                "name": name,
+                "video": video,
+            },
+            [["video"]],
+        )
+        files = extract_files(cast(Mapping[str, object], body), paths=[["video"]])
+        # It should be noted that the actual Content-Type header that will be
+        # sent to the server will contain a `boundary` parameter, e.g.
+        # multipart/form-data; boundary=---abc--
+        extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
+        return await self._post(
+            "/videos/characters",
+            body=await async_maybe_transform(body, video_create_character_params.VideoCreateCharacterParams),
+            files=files,
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
+            ),
+            cast_to=VideoCreateCharacterResponse,
+        )
+
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
     async def download_content(
         self,
         video_id: str,
@@ -680,14 +998,15 @@ class AsyncVideos(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> _legacy_response.HttpxBinaryResponseContent:
-        """Download video content
+        """
+        Download the generated video bytes or a derived preview asset.
+
+        Streams the rendered video content for the specified video job.
 
         Args:
-          variant: Which downloadable asset to return.
-
-        Defaults to the MP4 video.
+          variant: Which downloadable asset to return. Defaults to the MP4 video.
 
           extra_headers: Send extra headers
 
@@ -701,7 +1020,7 @@ class AsyncVideos(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `video_id` but received {video_id!r}")
         extra_headers = {"Accept": "application/binary", **(extra_headers or {})}
         return await self._get(
-            f"/videos/{video_id}/content",
+            path_template("/videos/{video_id}/content", video_id=video_id),
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -710,10 +1029,166 @@ class AsyncVideos(AsyncAPIResource):
                 query=await async_maybe_transform(
                     {"variant": variant}, video_download_content_params.VideoDownloadContentParams
                 ),
+                security={"bearer_auth": True},
             ),
             cast_to=_legacy_response.HttpxBinaryResponseContent,
         )
 
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
+    async def edit(
+        self,
+        *,
+        prompt: str,
+        video: video_edit_params.Video,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> Video:
+        """
+        Create a new video generation job by editing a source video or existing
+        generated video.
+
+        Args:
+          prompt: Text prompt that describes how to edit the source video.
+
+          video: Reference to the completed video to edit.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        body = deepcopy_with_paths(
+            {
+                "prompt": prompt,
+                "video": video,
+            },
+            [["video"]],
+        )
+        files = extract_files(cast(Mapping[str, object], body), paths=[["video"]])
+        # It should be noted that the actual Content-Type header that will be
+        # sent to the server will contain a `boundary` parameter, e.g.
+        # multipart/form-data; boundary=---abc--
+        extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
+        return await self._post(
+            "/videos/edits",
+            body=await async_maybe_transform(body, video_edit_params.VideoEditParams),
+            files=files,
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
+            ),
+            cast_to=Video,
+        )
+
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
+    async def extend(
+        self,
+        *,
+        prompt: str,
+        seconds: VideoSeconds,
+        video: video_extend_params.Video,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> Video:
+        """
+        Create an extension of a completed video.
+
+        Args:
+          prompt: Updated text prompt that directs the extension generation.
+
+          seconds: Length of the newly generated extension segment in seconds (allowed values: 4,
+              8, 12, 16, 20).
+
+          video: Reference to the completed video to extend.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        body = deepcopy_with_paths(
+            {
+                "prompt": prompt,
+                "seconds": seconds,
+                "video": video,
+            },
+            [["video"]],
+        )
+        files = extract_files(cast(Mapping[str, object], body), paths=[["video"]])
+        # It should be noted that the actual Content-Type header that will be
+        # sent to the server will contain a `boundary` parameter, e.g.
+        # multipart/form-data; boundary=---abc--
+        extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
+        return await self._post(
+            "/videos/extensions",
+            body=await async_maybe_transform(body, video_extend_params.VideoExtendParams),
+            files=files,
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
+            ),
+            cast_to=Video,
+        )
+
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
+    async def get_character(
+        self,
+        character_id: str,
+        *,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> VideoGetCharacterResponse:
+        """
+        Fetch a character.
+
+        Args:
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not character_id:
+            raise ValueError(f"Expected a non-empty value for `character_id` but received {character_id!r}")
+        return await self._get(
+            path_template("/videos/characters/{character_id}", character_id=character_id),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
+            ),
+            cast_to=VideoGetCharacterResponse,
+        )
+
+    @typing_extensions.deprecated("The Sora API is scheduled to permanently shut down on September 24, 2026.")
     async def remix(
         self,
         video_id: str,
@@ -724,10 +1199,10 @@ class AsyncVideos(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Video:
         """
-        Create a video remix
+        Create a remix of a completed video using a refreshed prompt.
 
         Args:
           prompt: Updated text prompt that directs the remix generation.
@@ -743,10 +1218,14 @@ class AsyncVideos(AsyncAPIResource):
         if not video_id:
             raise ValueError(f"Expected a non-empty value for `video_id` but received {video_id!r}")
         return await self._post(
-            f"/videos/{video_id}/remix",
+            path_template("/videos/{video_id}/remix", video_id=video_id),
             body=await async_maybe_transform({"prompt": prompt}, video_remix_params.VideoRemixParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Video,
         )
@@ -756,23 +1235,55 @@ class VideosWithRawResponse:
     def __init__(self, videos: Videos) -> None:
         self._videos = videos
 
-        self.create = _legacy_response.to_raw_response_wrapper(
-            videos.create,
+        self.create = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.to_raw_response_wrapper(
+                videos.create,  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.retrieve = _legacy_response.to_raw_response_wrapper(
-            videos.retrieve,
+        self.retrieve = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.to_raw_response_wrapper(
+                videos.retrieve,  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.list = _legacy_response.to_raw_response_wrapper(
-            videos.list,
+        self.list = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.to_raw_response_wrapper(
+                videos.list,  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.delete = _legacy_response.to_raw_response_wrapper(
-            videos.delete,
+        self.delete = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.to_raw_response_wrapper(
+                videos.delete,  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.download_content = _legacy_response.to_raw_response_wrapper(
-            videos.download_content,
+        self.create_character = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.to_raw_response_wrapper(
+                videos.create_character,  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.remix = _legacy_response.to_raw_response_wrapper(
-            videos.remix,
+        self.download_content = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.to_raw_response_wrapper(
+                videos.download_content,  # pyright: ignore[reportDeprecated],
+            )
+        )
+        self.edit = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.to_raw_response_wrapper(
+                videos.edit,  # pyright: ignore[reportDeprecated],
+            )
+        )
+        self.extend = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.to_raw_response_wrapper(
+                videos.extend,  # pyright: ignore[reportDeprecated],
+            )
+        )
+        self.get_character = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.to_raw_response_wrapper(
+                videos.get_character,  # pyright: ignore[reportDeprecated],
+            )
+        )
+        self.remix = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.to_raw_response_wrapper(
+                videos.remix,  # pyright: ignore[reportDeprecated],
+            )
         )
 
 
@@ -780,23 +1291,55 @@ class AsyncVideosWithRawResponse:
     def __init__(self, videos: AsyncVideos) -> None:
         self._videos = videos
 
-        self.create = _legacy_response.async_to_raw_response_wrapper(
-            videos.create,
+        self.create = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.async_to_raw_response_wrapper(
+                videos.create,  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.retrieve = _legacy_response.async_to_raw_response_wrapper(
-            videos.retrieve,
+        self.retrieve = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.async_to_raw_response_wrapper(
+                videos.retrieve,  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.list = _legacy_response.async_to_raw_response_wrapper(
-            videos.list,
+        self.list = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.async_to_raw_response_wrapper(
+                videos.list,  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.delete = _legacy_response.async_to_raw_response_wrapper(
-            videos.delete,
+        self.delete = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.async_to_raw_response_wrapper(
+                videos.delete,  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.download_content = _legacy_response.async_to_raw_response_wrapper(
-            videos.download_content,
+        self.create_character = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.async_to_raw_response_wrapper(
+                videos.create_character,  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.remix = _legacy_response.async_to_raw_response_wrapper(
-            videos.remix,
+        self.download_content = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.async_to_raw_response_wrapper(
+                videos.download_content,  # pyright: ignore[reportDeprecated],
+            )
+        )
+        self.edit = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.async_to_raw_response_wrapper(
+                videos.edit,  # pyright: ignore[reportDeprecated],
+            )
+        )
+        self.extend = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.async_to_raw_response_wrapper(
+                videos.extend,  # pyright: ignore[reportDeprecated],
+            )
+        )
+        self.get_character = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.async_to_raw_response_wrapper(
+                videos.get_character,  # pyright: ignore[reportDeprecated],
+            )
+        )
+        self.remix = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.async_to_raw_response_wrapper(
+                videos.remix,  # pyright: ignore[reportDeprecated],
+            )
         )
 
 
@@ -804,24 +1347,56 @@ class VideosWithStreamingResponse:
     def __init__(self, videos: Videos) -> None:
         self._videos = videos
 
-        self.create = to_streamed_response_wrapper(
-            videos.create,
+        self.create = (  # pyright: ignore[reportDeprecated]
+            to_streamed_response_wrapper(
+                videos.create,  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.retrieve = to_streamed_response_wrapper(
-            videos.retrieve,
+        self.retrieve = (  # pyright: ignore[reportDeprecated]
+            to_streamed_response_wrapper(
+                videos.retrieve,  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.list = to_streamed_response_wrapper(
-            videos.list,
+        self.list = (  # pyright: ignore[reportDeprecated]
+            to_streamed_response_wrapper(
+                videos.list,  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.delete = to_streamed_response_wrapper(
-            videos.delete,
+        self.delete = (  # pyright: ignore[reportDeprecated]
+            to_streamed_response_wrapper(
+                videos.delete,  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.download_content = to_custom_streamed_response_wrapper(
-            videos.download_content,
-            StreamedBinaryAPIResponse,
+        self.create_character = (  # pyright: ignore[reportDeprecated]
+            to_streamed_response_wrapper(
+                videos.create_character,  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.remix = to_streamed_response_wrapper(
-            videos.remix,
+        self.download_content = (  # pyright: ignore[reportDeprecated]
+            to_custom_streamed_response_wrapper(
+                videos.download_content,  # pyright: ignore[reportDeprecated],
+                StreamedBinaryAPIResponse,
+            )
+        )
+        self.edit = (  # pyright: ignore[reportDeprecated]
+            to_streamed_response_wrapper(
+                videos.edit,  # pyright: ignore[reportDeprecated],
+            )
+        )
+        self.extend = (  # pyright: ignore[reportDeprecated]
+            to_streamed_response_wrapper(
+                videos.extend,  # pyright: ignore[reportDeprecated],
+            )
+        )
+        self.get_character = (  # pyright: ignore[reportDeprecated]
+            to_streamed_response_wrapper(
+                videos.get_character,  # pyright: ignore[reportDeprecated],
+            )
+        )
+        self.remix = (  # pyright: ignore[reportDeprecated]
+            to_streamed_response_wrapper(
+                videos.remix,  # pyright: ignore[reportDeprecated],
+            )
         )
 
 
@@ -829,22 +1404,54 @@ class AsyncVideosWithStreamingResponse:
     def __init__(self, videos: AsyncVideos) -> None:
         self._videos = videos
 
-        self.create = async_to_streamed_response_wrapper(
-            videos.create,
+        self.create = (  # pyright: ignore[reportDeprecated]
+            async_to_streamed_response_wrapper(
+                videos.create,  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.retrieve = async_to_streamed_response_wrapper(
-            videos.retrieve,
+        self.retrieve = (  # pyright: ignore[reportDeprecated]
+            async_to_streamed_response_wrapper(
+                videos.retrieve,  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.list = async_to_streamed_response_wrapper(
-            videos.list,
+        self.list = (  # pyright: ignore[reportDeprecated]
+            async_to_streamed_response_wrapper(
+                videos.list,  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.delete = async_to_streamed_response_wrapper(
-            videos.delete,
+        self.delete = (  # pyright: ignore[reportDeprecated]
+            async_to_streamed_response_wrapper(
+                videos.delete,  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.download_content = async_to_custom_streamed_response_wrapper(
-            videos.download_content,
-            AsyncStreamedBinaryAPIResponse,
+        self.create_character = (  # pyright: ignore[reportDeprecated]
+            async_to_streamed_response_wrapper(
+                videos.create_character,  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.remix = async_to_streamed_response_wrapper(
-            videos.remix,
+        self.download_content = (  # pyright: ignore[reportDeprecated]
+            async_to_custom_streamed_response_wrapper(
+                videos.download_content,  # pyright: ignore[reportDeprecated],
+                AsyncStreamedBinaryAPIResponse,
+            )
+        )
+        self.edit = (  # pyright: ignore[reportDeprecated]
+            async_to_streamed_response_wrapper(
+                videos.edit,  # pyright: ignore[reportDeprecated],
+            )
+        )
+        self.extend = (  # pyright: ignore[reportDeprecated]
+            async_to_streamed_response_wrapper(
+                videos.extend,  # pyright: ignore[reportDeprecated],
+            )
+        )
+        self.get_character = (  # pyright: ignore[reportDeprecated]
+            async_to_streamed_response_wrapper(
+                videos.get_character,  # pyright: ignore[reportDeprecated],
+            )
+        )
+        self.remix = (  # pyright: ignore[reportDeprecated]
+            async_to_streamed_response_wrapper(
+                videos.remix,  # pyright: ignore[reportDeprecated],
+            )
         )

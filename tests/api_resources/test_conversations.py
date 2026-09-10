@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -32,6 +32,7 @@ class TestConversations:
                 {
                     "content": "string",
                     "role": "user",
+                    "phase": "commentary",
                     "type": "message",
                 }
             ],
@@ -195,6 +196,7 @@ class TestAsyncConversations:
                 {
                     "content": "string",
                     "role": "user",
+                    "phase": "commentary",
                     "type": "message",
                 }
             ],

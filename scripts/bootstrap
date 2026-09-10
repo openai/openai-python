@@ -4,7 +4,7 @@ set -e
 
 cd "$(dirname "$0")/.."
 
-if [ -f "Brewfile" ] && [ "$(uname -s)" = "Darwin" ] && [ "$SKIP_BREW" != "1" ] && [ -t 0 ]; then
+if [ -f "Brewfile" ] && [ "$(uname -s)" = "Darwin" ] && [ "${SKIP_BREW:-}" != "1" ] && [ -t 0 ]; then
   brew bundle check >/dev/null 2>&1 || {
     echo -n "==> Install Homebrew dependencies? (y/N): "
     read -r response
@@ -21,7 +21,6 @@ fi
 
 echo "==> Installing Python dependencies…"
 
-# experimental uv support makes installations significantly faster
-rye config --set-bool behavior.use-uv=true
+uv sync --locked --all-extras
 
-rye sync
+./scripts/bootstrap-node

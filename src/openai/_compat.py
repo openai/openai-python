@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Union, Generic, TypeVar, Callable, cast, overload
 from datetime import date, datetime
-from typing_extensions import Self, Literal
+from typing_extensions import Self, Literal, TypedDict
 
 import pydantic
 from pydantic.fields import FieldInfo
@@ -131,6 +131,10 @@ def model_json(model: pydantic.BaseModel, *, indent: int | None = None) -> str:
     return model.model_dump_json(indent=indent)
 
 
+class _ModelDumpKwargs(TypedDict, total=False):
+    by_alias: bool
+
+
 def model_dump(
     model: pydantic.BaseModel,
     *,
@@ -142,6 +146,9 @@ def model_dump(
     by_alias: bool | None = None,
 ) -> dict[str, Any]:
     if (not PYDANTIC_V1) or hasattr(model, "model_dump"):
+        kwargs: _ModelDumpKwargs = {}
+        if by_alias is not None:
+            kwargs["by_alias"] = by_alias
         return model.model_dump(
             mode=mode,
             exclude=exclude,
@@ -149,7 +156,7 @@ def model_dump(
             exclude_defaults=exclude_defaults,
             # warnings are not supported in Pydantic v1
             warnings=True if PYDANTIC_V1 else warnings,
-            by_alias=by_alias,
+            **kwargs,
         )
     return cast(
         "dict[str, Any]",

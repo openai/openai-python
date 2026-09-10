@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -30,10 +30,10 @@ class AssistantCreateParams(TypedDict, total=False):
     """ID of the model to use.
 
     You can use the
-    [List models](https://platform.openai.com/docs/api-reference/models/list) API to
-    see all of your available models, or see our
-    [Model overview](https://platform.openai.com/docs/models) for descriptions of
-    them.
+    [List models](https://developers.openai.com/api/reference/resources/models/methods/list)
+    API to see all of your available models, or see our
+    [Model overview](https://developers.openai.com/api/docs/models) for descriptions
+    of them.
     """
 
     description: Optional[str]
@@ -59,33 +59,27 @@ class AssistantCreateParams(TypedDict, total=False):
     """The name of the assistant. The maximum length is 256 characters."""
 
     reasoning_effort: Optional[ReasoningEffort]
-    """
-    Constrains effort on reasoning for
-    [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
-    supported values are `none`, `minimal`, `low`, `medium`, `high`, and `xhigh`.
-    Reducing reasoning effort can result in faster responses and fewer tokens used
-    on reasoning in a response.
+    """Constrains effort on reasoning for reasoning models.
 
-    - `gpt-5.1` defaults to `none`, which does not perform reasoning. The supported
-      reasoning values for `gpt-5.1` are `none`, `low`, `medium`, and `high`. Tool
-      calls are supported for all reasoning values in gpt-5.1.
-    - All models before `gpt-5.1` default to `medium` reasoning effort, and do not
-      support `none`.
-    - The `gpt-5-pro` model defaults to (and only supports) `high` reasoning effort.
-    - `xhigh` is supported for all models after `gpt-5.1-codex-max`.
+    Currently supported values are `none`, `minimal`, `low`, `medium`, `high`,
+    `xhigh`, and `max`. Reducing reasoning effort can result in faster responses and
+    fewer tokens used on reasoning in a response. Not all reasoning models support
+    every value. See the
+    [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning) for
+    model-specific support.
     """
 
     response_format: Optional[AssistantResponseFormatOptionParam]
     """Specifies the format that the model must output.
 
-    Compatible with [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
-    [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4),
-    and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+    Compatible with [GPT-4o](https://developers.openai.com/api/docs/models/gpt-4o),
+    [GPT-4 Turbo](https://developers.openai.com/api/docs/models/gpt-4-turbo), and
+    all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
     Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
     Outputs which ensures the model will match your supplied JSON schema. Learn more
     in the
-    [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+    [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
 
     Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
     message the model generates is valid JSON.
@@ -134,9 +128,9 @@ class AssistantCreateParams(TypedDict, total=False):
 class ToolResourcesCodeInterpreter(TypedDict, total=False):
     file_ids: SequenceNotStr[str]
     """
-    A list of [file](https://platform.openai.com/docs/api-reference/files) IDs made
-    available to the `code_interpreter` tool. There can be a maximum of 20 files
-    associated with the tool.
+    A list of [file](https://developers.openai.com/api/reference/resources/files)
+    IDs made available to the `code_interpreter` tool. There can be a maximum of 20
+    files associated with the tool.
     """
 
 
@@ -186,9 +180,10 @@ class ToolResourcesFileSearchVectorStore(TypedDict, total=False):
 
     file_ids: SequenceNotStr[str]
     """
-    A list of [file](https://platform.openai.com/docs/api-reference/files) IDs to
-    add to the vector store. There can be a maximum of 10000 files in a vector
-    store.
+    A list of [file](https://developers.openai.com/api/reference/resources/files)
+    IDs to add to the vector store. For vector stores created before Nov 2025, there
+    can be a maximum of 10,000 files in a vector store. For vector stores created
+    starting in Nov 2025, the limit is 100,000,000 files.
     """
 
     metadata: Optional[Metadata]
@@ -206,7 +201,7 @@ class ToolResourcesFileSearch(TypedDict, total=False):
     vector_store_ids: SequenceNotStr[str]
     """
     The
-    [vector store](https://platform.openai.com/docs/api-reference/vector-stores/object)
+    [vector store](https://developers.openai.com/api/reference/resources/vector_stores)
     attached to this assistant. There can be a maximum of 1 vector store attached to
     the assistant.
     """
@@ -214,7 +209,7 @@ class ToolResourcesFileSearch(TypedDict, total=False):
     vector_stores: Iterable[ToolResourcesFileSearchVectorStore]
     """
     A helper to create a
-    [vector store](https://platform.openai.com/docs/api-reference/vector-stores/object)
+    [vector store](https://developers.openai.com/api/reference/resources/vector_stores)
     with file_ids and attach it to this assistant. There can be a maximum of 1
     vector store attached to the assistant.
     """

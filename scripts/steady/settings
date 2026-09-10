@@ -1,0 +1,54 @@
+case "$(uname -s):$(uname -m)" in
+  Darwin:arm64) DENO_TARGET=aarch64-apple-darwin ;;
+  Darwin:x86_64) DENO_TARGET=x86_64-apple-darwin ;;
+  Linux:aarch64|Linux:arm64) DENO_TARGET=aarch64-unknown-linux-gnu ;;
+  Linux:x86_64) DENO_TARGET=x86_64-unknown-linux-gnu ;;
+  MINGW*:x86_64|MSYS*:x86_64) DENO_TARGET=x86_64-pc-windows-msvc ;;
+  *) echo 'Unsupported platform for the Steady development tool.' >&2; exit 1 ;;
+esac
+
+# Keep dependency pins in the data manifest, separate from launcher code.
+read -r STEADY_REPOSITORY STEADY_REVISION STEADY_SOURCE_SHA256 DENO_VERSION DENO_SHA256 < <(
+  node -e '
+    const { steady, deno } = require(process.argv[1]);
+    const checksum = deno.sha256[process.argv[2]];
+    if (!checksum) throw new Error("Missing Deno checksum for this platform");
+    console.log(steady.repository, steady.revision, steady.sha256, deno.version, checksum);
+  ' "$STEADY_ROOT/scripts/steady/manifest.json" "$DENO_TARGET"
+)
+
+STEADY_CACHE="$STEADY_ROOT/scripts/steady/.cache"
+STEADY_SOURCE="$STEADY_CACHE/source-$STEADY_REVISION"
+DENO_DIRECTORY="$STEADY_CACHE/deno-$DENO_VERSION-$DENO_TARGET"
+DENO_BINARY=deno
+[[ "$DENO_TARGET" != *windows* ]] || DENO_BINARY=deno.exe
+export DENO_DIR="$STEADY_CACHE/deps-$STEADY_REVISION-$DENO_VERSION"
+export DENO_NO_UPDATE_CHECK=1
+
+steady_fail() {
+  echo "$* Run ./scripts/steady/install to install the pinned mock tool." >&2
+  exit 1
+}
+
+steady_runtime_fail() {
+  echo "$* Remove '$DENO_DIRECTORY', then run ./scripts/steady/install to reinstall the pinned runtime." >&2
+  exit 1
+}
+
+steady_sha256() {
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum | cut -d ' ' -f 1
+  else
+    shasum -a 256 | cut -d ' ' -f 1
+  fi
+}
+
+steady_verify() {
+  [[ -d "$STEADY_CACHE" && "$(cd "$STEADY_CACHE" && pwd -P)" == "$STEADY_CACHE" ]] || steady_fail 'Missing or linked Steady cache.'
+  [[ -d "$STEADY_SOURCE" && ! -L "$STEADY_SOURCE" ]] || steady_fail 'Missing local Steady source.'
+  # Hash bytes directly; cached Git metadata must never execute hooks or filters.
+  [[ "$(node "$STEADY_ROOT/scripts/steady/source-sha256.cjs" "$STEADY_SOURCE")" == "$STEADY_SOURCE_SHA256" ]] || steady_fail 'Steady source has local changes; remove its cache directory before reinstalling.'
+  [[ -f "$DENO_DIRECTORY/deno.zip" && -x "$DENO_DIRECTORY/$DENO_BINARY" && ! -L "$DENO_DIRECTORY" && ! -L "$DENO_DIRECTORY/$DENO_BINARY" ]] || steady_runtime_fail 'Missing or invalid local Deno runtime.'
+  [[ "$(steady_sha256 < "$DENO_DIRECTORY/deno.zip")" == "$DENO_SHA256" ]] || steady_runtime_fail 'Deno archive checksum mismatch.'
+  [[ "$(unzip -p "$DENO_DIRECTORY/deno.zip" "$DENO_BINARY" | steady_sha256)" == "$(steady_sha256 < "$DENO_DIRECTORY/$DENO_BINARY")" ]] || steady_runtime_fail 'Deno executable checksum mismatch.'
+}
