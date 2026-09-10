@@ -15,6 +15,7 @@ from openai.types.webhooks import (
     FineTuningJobFailedWebhookEvent,
     FineTuningJobSucceededWebhookEvent,
     LiveCallIncomingWebhookEvent,
+    LiveTransportIncomingWebhookEvent,
     RealtimeCallIncomingWebhookEvent,
     ResponseCancelledWebhookEvent,
     ResponseCompletedWebhookEvent,

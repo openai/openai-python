@@ -445,6 +445,7 @@ def _reset_client() -> None:  # type: ignore[reportUnusedFunction]
 from ._module_client import (
     beta as beta,
     chat as chat,
+    live as live,
     admin as admin,
     audio as audio,
     evals as evals,
