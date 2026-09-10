@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import List, Optional
 from typing_extensions import Literal
@@ -36,7 +36,7 @@ class UserLocation(BaseModel):
 class WebSearchPreviewTool(BaseModel):
     """This tool searches the web for relevant results to use in a response.
 
-    Learn more about the [web search tool](https://platform.openai.com/docs/guides/tools-web-search).
+    Learn more about the [web search tool](https://developers.openai.com/api/docs/guides/tools-web-search).
     """
 
     type: Literal["web_search_preview", "web_search_preview_2025_03_11"]

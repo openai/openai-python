@@ -1,5 +1,3 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
-
 from typing import Any, List, Generic, TypeVar, Optional, cast
 from typing_extensions import Protocol, override, runtime_checkable
 

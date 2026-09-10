@@ -393,7 +393,7 @@ def get_required_header(headers: HeadersLike, header: str) -> str:
             if k.lower() == lower_header and isinstance(v, str):
                 return v
 
-    # to deal with the case where the header looks like Stainless-Event-Id
+    # to deal with the case where the header looks like X-Request-Id
     intercaps_header = re.sub(r"([^\w])(\w)", lambda pat: pat.group(1) + pat.group(2).upper(), header.capitalize())
 
     for normalized_header in [header, lower_header, header.upper(), intercaps_header]:

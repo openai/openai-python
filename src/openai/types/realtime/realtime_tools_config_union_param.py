@@ -1,8 +1,8 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
-from typing import Dict, Union, Optional
+from typing import Dict, List, Union, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from ..._types import SequenceNotStr
@@ -89,7 +89,7 @@ McpRequireApproval: TypeAlias = Union[McpRequireApprovalMcpToolApprovalFilter, L
 class Mcp(TypedDict, total=False):
     """
     Give the model access to additional tools via remote Model Context Protocol
-    (MCP) servers. [Learn more about MCP](https://platform.openai.com/docs/guides/tools-remote-mcp).
+    (MCP) servers. [Learn more about MCP](https://developers.openai.com/api/docs/guides/tools-connectors-mcp).
     """
 
     server_label: Required[str]
@@ -97,6 +97,9 @@ class Mcp(TypedDict, total=False):
 
     type: Required[Literal["mcp"]]
     """The type of the MCP tool. Always `mcp`."""
+
+    allowed_callers: Optional[List[Literal["direct", "programmatic"]]]
+    """The tool invocation context(s)."""
 
     allowed_tools: Optional[McpAllowedTools]
     """List of allowed tool names or a filter object."""
@@ -122,7 +125,7 @@ class Mcp(TypedDict, total=False):
 
     One of `server_url`, `connector_id`, or `tunnel_id` must be provided. Learn more
     about service connectors
-    [here](https://platform.openai.com/docs/guides/tools-remote-mcp#connectors).
+    [here](https://developers.openai.com/api/docs/guides/tools-connectors-mcp#connectors).
 
     Currently supported `connector_id` values are:
 

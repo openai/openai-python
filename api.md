@@ -157,6 +157,18 @@ Methods:
 - <code title="post /images/edits">client.images.<a href="./src/openai/resources/images.py">edit</a>(\*\*<a href="src/openai/types/image_edit_params.py">params</a>) -> <a href="./src/openai/types/images_response.py">ImagesResponse</a></code>
 - <code title="post /images/generations">client.images.<a href="./src/openai/resources/images.py">generate</a>(\*\*<a href="src/openai/types/image_generate_params.py">params</a>) -> <a href="./src/openai/types/images_response.py">ImagesResponse</a></code>
 
+# ContentProvenanceChecks
+
+Types:
+
+```python
+from openai.types import ContentProvenanceCheck
+```
+
+Methods:
+
+- <code title="post /content_provenance_checks">client.content_provenance_checks.<a href="./src/openai/resources/content_provenance_checks.py">create</a>(\*\*<a href="src/openai/types/content_provenance_check_create_params.py">params</a>) -> <a href="./src/openai/types/content_provenance_check.py">ContentProvenanceCheck</a></code>
+
 # Audio
 
 Types:
@@ -175,6 +187,7 @@ from openai.types.audio import (
     TranscriptionDiarized,
     TranscriptionDiarizedSegment,
     TranscriptionInclude,
+    TranscriptionLanguage,
     TranscriptionSegment,
     TranscriptionStreamEvent,
     TranscriptionTextDeltaEvent,
@@ -422,6 +435,20 @@ Methods:
 - <code>client.vector_stores.file_batches.<a href="./src/openai/resources/vector_stores/file_batches.py">poll</a>(\*args) -> VectorStoreFileBatch</code>
 - <code>client.vector_stores.file_batches.<a href="./src/openai/resources/vector_stores/file_batches.py">upload_and_poll</a>(\*args) -> VectorStoreFileBatch</code>
 
+# Safety
+
+## Alerts
+
+Types:
+
+```python
+from openai.types.safety import SafetyAlert
+```
+
+Methods:
+
+- <code title="get /safety/alerts/{id}">client.safety.alerts.<a href="./src/openai/resources/safety/alerts.py">retrieve</a>(id) -> <a href="./src/openai/types/safety/safety_alert.py">SafetyAlert</a></code>
+
 # [Webhooks](src/openai/resources/webhooks/api.md)
 
 Methods:
@@ -430,6 +457,266 @@ Methods:
 - <code>client.webhooks.<a href="./src/openai/resources/webhooks.py">verify_signature</a>(payload, headers, \*, secret, tolerance) -> None</code>
 
 # Beta
+
+## Responses
+
+Types:
+
+```python
+from openai.types.beta import (
+    BetaApplyPatchTool,
+    BetaCompactedResponse,
+    BetaComputerAction,
+    BetaComputerActionList,
+    BetaComputerTool,
+    BetaComputerUsePreviewTool,
+    BetaContainerAuto,
+    BetaContainerNetworkPolicyAllowlist,
+    BetaContainerNetworkPolicyDisabled,
+    BetaContainerNetworkPolicyDomainSecret,
+    BetaContainerReference,
+    BetaCustomTool,
+    BetaEasyInputMessage,
+    BetaFileSearchTool,
+    BetaFunctionShellTool,
+    BetaFunctionTool,
+    BetaImageDetail,
+    BetaInlineSkill,
+    BetaInlineSkillSource,
+    BetaLocalEnvironment,
+    BetaLocalSkill,
+    BetaMcpToolCallError,
+    BetaNamespaceTool,
+    BetaResponse,
+    BetaResponseApplyPatchToolCall,
+    BetaResponseApplyPatchToolCallOutput,
+    BetaResponseAudioDeltaEvent,
+    BetaResponseAudioDoneEvent,
+    BetaResponseAudioTranscriptDeltaEvent,
+    BetaResponseAudioTranscriptDoneEvent,
+    BetaResponseCodeInterpreterCallCodeDeltaEvent,
+    BetaResponseCodeInterpreterCallCodeDoneEvent,
+    BetaResponseCodeInterpreterCallCompletedEvent,
+    BetaResponseCodeInterpreterCallInProgressEvent,
+    BetaResponseCodeInterpreterCallInterpretingEvent,
+    BetaResponseCodeInterpreterToolCall,
+    BetaResponseCompactionItem,
+    BetaResponseCompactionItemParam,
+    BetaResponseCompletedEvent,
+    BetaResponseComputerToolCall,
+    BetaResponseComputerToolCallOutputItem,
+    BetaResponseComputerToolCallOutputScreenshot,
+    BetaResponseConfigurationUpdateItem,
+    BetaResponseConfigurationUpdateItemParam,
+    BetaResponseContainerReference,
+    BetaResponseContent,
+    BetaResponseContentPartAddedEvent,
+    BetaResponseContentPartDoneEvent,
+    BetaResponseConversationParam,
+    BetaResponseCreatedEvent,
+    BetaResponseCustomToolCall,
+    BetaResponseCustomToolCallInputDeltaEvent,
+    BetaResponseCustomToolCallInputDoneEvent,
+    BetaResponseCustomToolCallItem,
+    BetaResponseCustomToolCallOutput,
+    BetaResponseCustomToolCallOutputItem,
+    BetaResponseError,
+    BetaResponseErrorEvent,
+    BetaResponseFailedEvent,
+    BetaResponseFileSearchCallCompletedEvent,
+    BetaResponseFileSearchCallInProgressEvent,
+    BetaResponseFileSearchCallSearchingEvent,
+    BetaResponseFileSearchToolCall,
+    BetaResponseFormatTextConfig,
+    BetaResponseFormatTextJSONSchemaConfig,
+    BetaResponseFunctionCallArgumentsDeltaEvent,
+    BetaResponseFunctionCallArgumentsDoneEvent,
+    BetaResponseFunctionCallOutputItem,
+    BetaResponseFunctionCallOutputItemList,
+    BetaResponseFunctionShellCallOutputContent,
+    BetaResponseFunctionShellToolCall,
+    BetaResponseFunctionShellToolCallOutput,
+    BetaResponseFunctionToolCall,
+    BetaResponseFunctionToolCallItem,
+    BetaResponseFunctionToolCallOutputItem,
+    BetaResponseFunctionWebSearch,
+    BetaResponseImageGenCallCompletedEvent,
+    BetaResponseImageGenCallGeneratingEvent,
+    BetaResponseImageGenCallInProgressEvent,
+    BetaResponseImageGenCallPartialImageEvent,
+    BetaResponseInProgressEvent,
+    BetaResponseIncludable,
+    BetaResponseIncompleteEvent,
+    BetaResponseInjectCreatedEvent,
+    BetaResponseInjectEvent,
+    BetaResponseInjectFailedEvent,
+    BetaResponseInput,
+    BetaResponseInputAudio,
+    BetaResponseInputContent,
+    BetaResponseInputFile,
+    BetaResponseInputFileContent,
+    BetaResponseInputImage,
+    BetaResponseInputImageContent,
+    BetaResponseInputItem,
+    BetaResponseInputMessageContentList,
+    BetaResponseInputMessageItem,
+    BetaResponseInputText,
+    BetaResponseInputTextContent,
+    BetaResponseItem,
+    BetaResponseLocalEnvironment,
+    BetaResponseMcpCallArgumentsDeltaEvent,
+    BetaResponseMcpCallArgumentsDoneEvent,
+    BetaResponseMcpCallCompletedEvent,
+    BetaResponseMcpCallFailedEvent,
+    BetaResponseMcpCallInProgressEvent,
+    BetaResponseMcpListToolsCompletedEvent,
+    BetaResponseMcpListToolsFailedEvent,
+    BetaResponseMcpListToolsInProgressEvent,
+    BetaResponseOutputAudio,
+    BetaResponseOutputItem,
+    BetaResponseOutputItemAddedEvent,
+    BetaResponseOutputItemDoneEvent,
+    BetaResponseOutputMessage,
+    BetaResponseOutputRefusal,
+    BetaResponseOutputText,
+    BetaResponseOutputTextAnnotationAddedEvent,
+    BetaResponsePrompt,
+    BetaResponseQueuedEvent,
+    BetaResponseReasoningItem,
+    BetaResponseReasoningSummaryPartAddedEvent,
+    BetaResponseReasoningSummaryPartDoneEvent,
+    BetaResponseReasoningSummaryTextDeltaEvent,
+    BetaResponseReasoningSummaryTextDoneEvent,
+    BetaResponseReasoningTextDeltaEvent,
+    BetaResponseReasoningTextDoneEvent,
+    BetaResponseRefusalDeltaEvent,
+    BetaResponseRefusalDoneEvent,
+    BetaResponseShellCallCommandAddedEvent,
+    BetaResponseShellCallCommandDeltaEvent,
+    BetaResponseShellCallCommandDoneEvent,
+    BetaResponseShellCallOutputContentDeltaEvent,
+    BetaResponseShellCallOutputContentDoneEvent,
+    BetaResponseStatus,
+    BetaResponseSteerAcceptedEvent,
+    BetaResponseSteerErrorCode,
+    BetaResponseSteerEvent,
+    BetaResponseSteerFailedEvent,
+    BetaResponseSteerInput,
+    BetaResponseSteerInputContent,
+    BetaResponseSteerPendingEvent,
+    BetaResponseSteerPendingReason,
+    BetaResponseSteerRequiredInput,
+    BetaResponseStreamEvent,
+    BetaResponseTextConfig,
+    BetaResponseTextDeltaEvent,
+    BetaResponseTextDoneEvent,
+    BetaResponseToolSearchCall,
+    BetaResponseToolSearchOutputItem,
+    BetaResponseToolSearchOutputItemParam,
+    BetaResponseUsage,
+    BetaResponseWebSearchCallCompletedEvent,
+    BetaResponseWebSearchCallInProgressEvent,
+    BetaResponseWebSearchCallSearchingEvent,
+    BetaResponsesClientEvent,
+    BetaResponsesServerEvent,
+    BetaServiceTier,
+    BetaSkillReference,
+    BetaTool,
+    BetaToolChoiceAllowed,
+    BetaToolChoiceApplyPatch,
+    BetaToolChoiceCustom,
+    BetaToolChoiceFunction,
+    BetaToolChoiceMcp,
+    BetaToolChoiceOptions,
+    BetaToolChoiceShell,
+    BetaToolChoiceTypes,
+    BetaToolSearchTool,
+    BetaWebSearchPreviewTool,
+    BetaWebSearchTool,
+)
+```
+
+Methods:
+
+- <code title="post /responses?beta=true">client.beta.responses.<a href="./src/openai/resources/beta/responses/responses.py">create</a>(\*\*<a href="src/openai/types/beta/response_create_params.py">params</a>) -> <a href="./src/openai/types/beta/beta_response.py">BetaResponse</a></code>
+- <code title="get /responses/{response_id}?beta=true">client.beta.responses.<a href="./src/openai/resources/beta/responses/responses.py">retrieve</a>(response_id, \*\*<a href="src/openai/types/beta/response_retrieve_params.py">params</a>) -> <a href="./src/openai/types/beta/beta_response.py">BetaResponse</a></code>
+- <code title="delete /responses/{response_id}?beta=true">client.beta.responses.<a href="./src/openai/resources/beta/responses/responses.py">delete</a>(response_id) -> None</code>
+- <code title="post /responses/{response_id}/cancel?beta=true">client.beta.responses.<a href="./src/openai/resources/beta/responses/responses.py">cancel</a>(response_id) -> <a href="./src/openai/types/beta/beta_response.py">BetaResponse</a></code>
+- <code title="post /responses/compact?beta=true">client.beta.responses.<a href="./src/openai/resources/beta/responses/responses.py">compact</a>(\*\*<a href="src/openai/types/beta/response_compact_params.py">params</a>) -> <a href="./src/openai/types/beta/beta_compacted_response.py">BetaCompactedResponse</a></code>
+
+### InputItems
+
+Types:
+
+```python
+from openai.types.beta.responses import BetaResponseItemList
+```
+
+Methods:
+
+- <code title="get /responses/{response_id}/input_items?beta=true">client.beta.responses.input_items.<a href="./src/openai/resources/beta/responses/input_items.py">list</a>(response_id, \*\*<a href="src/openai/types/beta/responses/input_item_list_params.py">params</a>) -> <a href="./src/openai/types/beta/beta_response_item.py">SyncCursorPage[BetaResponseItem]</a></code>
+
+### InputTokens
+
+Types:
+
+```python
+from openai.types.beta.responses import InputTokenCountResponse
+```
+
+Methods:
+
+- <code title="post /responses/input_tokens?beta=true">client.beta.responses.input_tokens.<a href="./src/openai/resources/beta/responses/input_tokens.py">count</a>(\*\*<a href="src/openai/types/beta/responses/input_token_count_params.py">params</a>) -> <a href="./src/openai/types/beta/responses/input_token_count_response.py">InputTokenCountResponse</a></code>
+
+## ChatKit
+
+Types:
+
+```python
+from openai.types.beta import ChatKitWorkflow
+```
+
+### Sessions
+
+Methods:
+
+- <code title="post /chatkit/sessions">client.beta.chatkit.sessions.<a href="./src/openai/resources/beta/chatkit/sessions.py">create</a>(\*\*<a href="src/openai/types/beta/chatkit/session_create_params.py">params</a>) -> <a href="./src/openai/types/beta/chatkit/chat_session.py">ChatSession</a></code>
+- <code title="post /chatkit/sessions/{session_id}/cancel">client.beta.chatkit.sessions.<a href="./src/openai/resources/beta/chatkit/sessions.py">cancel</a>(session_id) -> <a href="./src/openai/types/beta/chatkit/chat_session.py">ChatSession</a></code>
+
+### Threads
+
+Types:
+
+```python
+from openai.types.beta.chatkit import (
+    ChatSession,
+    ChatSessionAutomaticThreadTitling,
+    ChatSessionChatKitConfiguration,
+    ChatSessionChatKitConfigurationParam,
+    ChatSessionExpiresAfterParam,
+    ChatSessionFileUpload,
+    ChatSessionHistory,
+    ChatSessionRateLimits,
+    ChatSessionRateLimitsParam,
+    ChatSessionStatus,
+    ChatSessionWorkflowParam,
+    ChatKitAttachment,
+    ChatKitResponseOutputText,
+    ChatKitThread,
+    ChatKitThreadAssistantMessageItem,
+    ChatKitThreadItemList,
+    ChatKitThreadUserMessageItem,
+    ChatKitWidgetItem,
+    ThreadDeleteResponse,
+)
+```
+
+Methods:
+
+- <code title="get /chatkit/threads/{thread_id}">client.beta.chatkit.threads.<a href="./src/openai/resources/beta/chatkit/threads.py">retrieve</a>(thread_id) -> <a href="./src/openai/types/beta/chatkit/chatkit_thread.py">ChatKitThread</a></code>
+- <code title="get /chatkit/threads">client.beta.chatkit.threads.<a href="./src/openai/resources/beta/chatkit/threads.py">list</a>(\*\*<a href="src/openai/types/beta/chatkit/thread_list_params.py">params</a>) -> <a href="./src/openai/types/beta/chatkit/chatkit_thread.py">SyncConversationCursorPage[ChatKitThread]</a></code>
+- <code title="delete /chatkit/threads/{thread_id}">client.beta.chatkit.threads.<a href="./src/openai/resources/beta/chatkit/threads.py">delete</a>(thread_id) -> <a href="./src/openai/types/beta/chatkit/thread_delete_response.py">ThreadDeleteResponse</a></code>
+- <code title="get /chatkit/threads/{thread_id}/items">client.beta.chatkit.threads.<a href="./src/openai/resources/beta/chatkit/threads.py">list_items</a>(thread_id, \*\*<a href="src/openai/types/beta/chatkit/thread_list_items_params.py">params</a>) -> SyncConversationCursorPage[Data]</code>
 
 ## Realtime
 
@@ -748,6 +1035,7 @@ Types:
 
 ```python
 from openai.types.admin.organization import (
+    CostQuantityUnit,
     UsageAudioSpeechesResponse,
     UsageAudioTranscriptionsResponse,
     UsageCodeInterpreterSessionsResponse,
@@ -911,6 +1199,20 @@ Methods:
 - <code title="get /organization/data_retention">client.admin.organization.data_retention.<a href="./src/openai/resources/admin/organization/data_retention.py">retrieve</a>() -> <a href="./src/openai/types/admin/organization/organization_data_retention.py">OrganizationDataRetention</a></code>
 - <code title="post /organization/data_retention">client.admin.organization.data_retention.<a href="./src/openai/resources/admin/organization/data_retention.py">update</a>(\*\*<a href="src/openai/types/admin/organization/data_retention_update_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/organization_data_retention.py">OrganizationDataRetention</a></code>
 
+### SpendLimit
+
+Types:
+
+```python
+from openai.types.admin.organization import OrganizationSpendLimit, OrganizationSpendLimitDeleted
+```
+
+Methods:
+
+- <code title="get /organization/spend_limit">client.admin.organization.spend_limit.<a href="./src/openai/resources/admin/organization/spend_limit.py">retrieve</a>() -> <a href="./src/openai/types/admin/organization/organization_spend_limit.py">OrganizationSpendLimit</a></code>
+- <code title="post /organization/spend_limit">client.admin.organization.spend_limit.<a href="./src/openai/resources/admin/organization/spend_limit.py">update</a>(\*\*<a href="src/openai/types/admin/organization/spend_limit_update_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/organization_spend_limit.py">OrganizationSpendLimit</a></code>
+- <code title="delete /organization/spend_limit">client.admin.organization.spend_limit.<a href="./src/openai/resources/admin/organization/spend_limit.py">delete</a>() -> <a href="./src/openai/types/admin/organization/organization_spend_limit_deleted.py">OrganizationSpendLimitDeleted</a></code>
+
 ### SpendAlerts
 
 Types:
@@ -956,7 +1258,7 @@ Methods:
 Types:
 
 ```python
-from openai.types.admin.organization import Project
+from openai.types.admin.organization import Project, ProjectResidency
 ```
 
 Methods:
@@ -1017,11 +1319,23 @@ from openai.types.admin.organization.projects import (
 
 Methods:
 
-- <code title="post /organization/projects/{project_id}/service_accounts">client.admin.organization.projects.service_accounts.<a href="./src/openai/resources/admin/organization/projects/service_accounts.py">create</a>(project_id, \*\*<a href="src/openai/types/admin/organization/projects/service_account_create_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/projects/service_account_create_response.py">ServiceAccountCreateResponse</a></code>
-- <code title="get /organization/projects/{project_id}/service_accounts/{service_account_id}">client.admin.organization.projects.service_accounts.<a href="./src/openai/resources/admin/organization/projects/service_accounts.py">retrieve</a>(service_account_id, \*, project_id) -> <a href="./src/openai/types/admin/organization/projects/project_service_account.py">ProjectServiceAccount</a></code>
-- <code title="post /organization/projects/{project_id}/service_accounts/{service_account_id}">client.admin.organization.projects.service_accounts.<a href="./src/openai/resources/admin/organization/projects/service_accounts.py">update</a>(service_account_id, \*, project_id, \*\*<a href="src/openai/types/admin/organization/projects/service_account_update_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/projects/project_service_account.py">ProjectServiceAccount</a></code>
-- <code title="get /organization/projects/{project_id}/service_accounts">client.admin.organization.projects.service_accounts.<a href="./src/openai/resources/admin/organization/projects/service_accounts.py">list</a>(project_id, \*\*<a href="src/openai/types/admin/organization/projects/service_account_list_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/projects/project_service_account.py">SyncConversationCursorPage[ProjectServiceAccount]</a></code>
-- <code title="delete /organization/projects/{project_id}/service_accounts/{service_account_id}">client.admin.organization.projects.service_accounts.<a href="./src/openai/resources/admin/organization/projects/service_accounts.py">delete</a>(service_account_id, \*, project_id) -> <a href="./src/openai/types/admin/organization/projects/service_account_delete_response.py">ServiceAccountDeleteResponse</a></code>
+- <code title="post /organization/projects/{project_id}/service_accounts">client.admin.organization.projects.service_accounts.<a href="./src/openai/resources/admin/organization/projects/service_accounts/service_accounts.py">create</a>(project_id, \*\*<a href="src/openai/types/admin/organization/projects/service_account_create_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/projects/service_account_create_response.py">ServiceAccountCreateResponse</a></code>
+- <code title="get /organization/projects/{project_id}/service_accounts/{service_account_id}">client.admin.organization.projects.service_accounts.<a href="./src/openai/resources/admin/organization/projects/service_accounts/service_accounts.py">retrieve</a>(service_account_id, \*, project_id) -> <a href="./src/openai/types/admin/organization/projects/project_service_account.py">ProjectServiceAccount</a></code>
+- <code title="post /organization/projects/{project_id}/service_accounts/{service_account_id}">client.admin.organization.projects.service_accounts.<a href="./src/openai/resources/admin/organization/projects/service_accounts/service_accounts.py">update</a>(service_account_id, \*, project_id, \*\*<a href="src/openai/types/admin/organization/projects/service_account_update_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/projects/project_service_account.py">ProjectServiceAccount</a></code>
+- <code title="get /organization/projects/{project_id}/service_accounts">client.admin.organization.projects.service_accounts.<a href="./src/openai/resources/admin/organization/projects/service_accounts/service_accounts.py">list</a>(project_id, \*\*<a href="src/openai/types/admin/organization/projects/service_account_list_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/projects/project_service_account.py">SyncConversationCursorPage[ProjectServiceAccount]</a></code>
+- <code title="delete /organization/projects/{project_id}/service_accounts/{service_account_id}">client.admin.organization.projects.service_accounts.<a href="./src/openai/resources/admin/organization/projects/service_accounts/service_accounts.py">delete</a>(service_account_id, \*, project_id) -> <a href="./src/openai/types/admin/organization/projects/service_account_delete_response.py">ServiceAccountDeleteResponse</a></code>
+
+##### APIKeys
+
+Types:
+
+```python
+from openai.types.admin.organization.projects.service_accounts import APIKeyCreateResponse
+```
+
+Methods:
+
+- <code title="post /organization/projects/{project_id}/service_accounts/{service_account_id}/api_keys">client.admin.organization.projects.service_accounts.api_keys.<a href="./src/openai/resources/admin/organization/projects/service_accounts/api_keys.py">create</a>(service_account_id, \*, project_id, \*\*<a href="src/openai/types/admin/organization/projects/service_accounts/api_key_create_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/projects/service_accounts/api_key_create_response.py">APIKeyCreateResponse</a></code>
 
 #### APIKeys
 
@@ -1143,6 +1457,20 @@ Methods:
 
 - <code title="get /organization/projects/{project_id}/data_retention">client.admin.organization.projects.data_retention.<a href="./src/openai/resources/admin/organization/projects/data_retention.py">retrieve</a>(project_id) -> <a href="./src/openai/types/admin/organization/projects/project_data_retention.py">ProjectDataRetention</a></code>
 - <code title="post /organization/projects/{project_id}/data_retention">client.admin.organization.projects.data_retention.<a href="./src/openai/resources/admin/organization/projects/data_retention.py">update</a>(project_id, \*\*<a href="src/openai/types/admin/organization/projects/data_retention_update_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/projects/project_data_retention.py">ProjectDataRetention</a></code>
+
+#### SpendLimit
+
+Types:
+
+```python
+from openai.types.admin.organization.projects import ProjectSpendLimit, ProjectSpendLimitDeleted
+```
+
+Methods:
+
+- <code title="get /organization/projects/{project_id}/spend_limit">client.admin.organization.projects.spend_limit.<a href="./src/openai/resources/admin/organization/projects/spend_limit.py">retrieve</a>(project_id) -> <a href="./src/openai/types/admin/organization/projects/project_spend_limit.py">ProjectSpendLimit</a></code>
+- <code title="post /organization/projects/{project_id}/spend_limit">client.admin.organization.projects.spend_limit.<a href="./src/openai/resources/admin/organization/projects/spend_limit.py">update</a>(project_id, \*\*<a href="src/openai/types/admin/organization/projects/spend_limit_update_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/projects/project_spend_limit.py">ProjectSpendLimit</a></code>
+- <code title="delete /organization/projects/{project_id}/spend_limit">client.admin.organization.projects.spend_limit.<a href="./src/openai/resources/admin/organization/projects/spend_limit.py">delete</a>(project_id) -> <a href="./src/openai/types/admin/organization/projects/project_spend_limit_deleted.py">ProjectSpendLimitDeleted</a></code>
 
 #### SpendAlerts
 

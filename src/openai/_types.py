@@ -31,9 +31,9 @@ from typing_extensions import (
     runtime_checkable,
 )
 
-import httpx
+import httpx2
 import pydantic
-from httpx import URL, Proxy, Timeout, Response, BaseTransport, AsyncBaseTransport
+from httpx2 import URL, Proxy, Timeout, Response, BaseTransport, AsyncBaseTransport
 
 if TYPE_CHECKING:
     from ._models import BaseModel, SecurityOptions
@@ -251,7 +251,7 @@ class _GenericAlias(Protocol):
 
 
 class HttpxSendArgs(TypedDict, total=False):
-    auth: httpx.Auth
+    auth: httpx2.Auth
     follow_redirects: bool
 
 

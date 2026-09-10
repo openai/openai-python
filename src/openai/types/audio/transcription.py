@@ -1,10 +1,11 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import List, Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
 
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
+from .transcription_language import TranscriptionLanguage
 
 __all__ = ["Transcription", "Logprob", "Usage", "UsageTokens", "UsageTokensInputTokenDetails", "UsageDuration"]
 
@@ -69,6 +70,13 @@ class Transcription(BaseModel):
 
     text: str
     """The transcribed text."""
+
+    languages: Optional[List[TranscriptionLanguage]] = None
+    """The languages detected in the audio.
+
+    Returned by `gpt-transcribe`. An empty array indicates that no language could be
+    reliably detected.
+    """
 
     logprobs: Optional[List[Logprob]] = None
     """The log probabilities of the tokens in the transcription.
