@@ -10,10 +10,9 @@ from tests.respx2 import MockRouter
 from openai._types import omit
 from openai._utils import assert_signatures_in_sync
 from openai._models import construct_type_unchecked
-from openai.types.responses import Response
+from openai.types.responses import Response, ResponseCreatedEvent, ResponseOutputItemAddedEvent
 from openai.lib._parsing._responses import parse_response
 from openai.lib.streaming.responses._responses import ResponseStreamState
-from openai.types.responses.response_stream_event import ResponseStreamEvent as RawResponseStreamEvent
 
 from ...conftest import base_url
 from ..snapshots import make_snapshot_request
@@ -116,10 +115,10 @@ def test_parse_response_with_null_output() -> None:
 
 
 def test_stream_state_ignores_output_item_added_with_null_item() -> None:
-    state = ResponseStreamState(text_format=None, input_tools=[])
+    state: ResponseStreamState[object] = ResponseStreamState(text_format=omit, input_tools=[])
 
     created = construct_type_unchecked(
-        type_=RawResponseStreamEvent,
+        type_=ResponseCreatedEvent,
         value={
             "type": "response.created",
             "sequence_number": 0,
@@ -159,7 +158,7 @@ def test_stream_state_ignores_output_item_added_with_null_item() -> None:
     state.handle_event(created)
 
     added = construct_type_unchecked(
-        type_=RawResponseStreamEvent,
+        type_=ResponseOutputItemAddedEvent,
         value={
             "type": "response.output_item.added",
             "sequence_number": 1,
@@ -171,5 +170,4 @@ def test_stream_state_ignores_output_item_added_with_null_item() -> None:
     events = state.handle_event(added)
 
     assert events == [added]
-    assert state._ResponseStreamState__current_snapshot is not None
-    assert state._ResponseStreamState__current_snapshot.output == []
+    assert state.accumulate_event(added).output == []
