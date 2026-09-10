@@ -58,6 +58,31 @@ async def test_event_missing_data(sync: bool, client: OpenAI, async_client: Asyn
     await assert_empty_iter(iterator)
 
 
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+async def test_stream_skips_empty_sse_events(
+    sync: bool,
+    client: OpenAI,
+    async_client: AsyncOpenAI,
+) -> None:
+    def body() -> Iterator[bytes]:
+        yield b"id: control-only\n"
+        yield b"retry: 1000\n"
+        yield b"\n"
+        yield b'data: {"foo":true}\n'
+        yield b"\n"
+
+    if sync:
+        stream = Stream(cast_to=object, client=client, response=httpx2.Response(200, content=body()))
+        assert list(stream) == [{"foo": True}]
+    else:
+        stream = AsyncStream(
+            cast_to=object,
+            client=async_client,
+            response=httpx2.Response(200, content=to_aiter(body())),
+        )
+        assert [item async for item in stream] == [{"foo": True}]
+
+
 @pytest.mark.asyncio
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
 async def test_multiple_events(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
