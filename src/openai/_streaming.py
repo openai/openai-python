@@ -93,23 +93,6 @@ class Stream(Generic[_T]):
                     yield process_data(data={"data": data, "event": sse.event}, cast_to=cast_to, response=response)
                 else:
                     _raise_streaming_error(data)
-                    yield process_data(data=data, cast_to=cast_to, response=response)
-
-                    data = sse.json()
-                    if is_mapping(data) and data.get("error"):
-                        message = None
-                        error = data.get("error")
-                        if is_mapping(error):
-                            message = error.get("message")
-                        if not message or not isinstance(message, str):
-                            message = "An error occurred during streaming"
-
-                        raise APIError(
-                            message=message,
-                            request=self.response.request,
-                            body=data["error"],
-                        )
-
                     yield process_data(
                         data={"data": data, "event": sse.event}
                         if self._options is not None and self._options.synthesize_event_and_data
@@ -214,23 +197,6 @@ class AsyncStream(Generic[_T]):
                     yield process_data(data={"data": data, "event": sse.event}, cast_to=cast_to, response=response)
                 else:
                     _raise_streaming_error(data)
-                    yield process_data(data=data, cast_to=cast_to, response=response)
-
-                    data = sse.json()
-                    if is_mapping(data) and data.get("error"):
-                        message = None
-                        error = data.get("error")
-                        if is_mapping(error):
-                            message = error.get("message")
-                        if not message or not isinstance(message, str):
-                            message = "An error occurred during streaming"
-
-                        raise APIError(
-                            message=message,
-                            request=self.response.request,
-                            body=data["error"],
-                        )
-
                     yield process_data(
                         data={"data": data, "event": sse.event}
                         if self._options is not None and self._options.synthesize_event_and_data
