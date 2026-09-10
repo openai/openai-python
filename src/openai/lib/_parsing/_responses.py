@@ -61,7 +61,7 @@ def parse_response(
     for output in response.output or []:
         if output.type == "message":
             content_list: List[ParsedContent[TextFormatT]] = []
-            for item in output.content:
+            for item in output.content or []:
                 if item.type != "output_text":
                     content_list.append(item)
                     continue
