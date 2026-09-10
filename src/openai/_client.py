@@ -57,6 +57,7 @@ if TYPE_CHECKING:
     from .resources import (
         beta,
         chat,
+        live,
         admin,
         audio,
         evals,
@@ -86,6 +87,7 @@ if TYPE_CHECKING:
     from .resources.batches import Batches, AsyncBatches
     from .resources.beta.beta import Beta, AsyncBeta
     from .resources.chat.chat import Chat, AsyncChat
+    from .resources.live.live import Live, AsyncLive
     from .resources.embeddings import Embeddings, AsyncEmbeddings
     from .resources.admin.admin import Admin, AsyncAdmin
     from .resources.audio.audio import Audio, AsyncAudio
@@ -475,6 +477,12 @@ class OpenAI(SyncAPIClient):
         from .resources.responses import Responses
 
         return Responses(self)
+
+    @cached_property
+    def live(self) -> Live:
+        from .resources.live import Live
+
+        return Live(self)
 
     @cached_property
     def realtime(self) -> Realtime:
@@ -1225,6 +1233,12 @@ class AsyncOpenAI(AsyncAPIClient):
         return AsyncResponses(self)
 
     @cached_property
+    def live(self) -> AsyncLive:
+        from .resources.live import AsyncLive
+
+        return AsyncLive(self)
+
+    @cached_property
     def realtime(self) -> AsyncRealtime:
         from .resources.realtime import AsyncRealtime
 
@@ -1752,6 +1766,12 @@ class OpenAIWithRawResponse:
         return ResponsesWithRawResponse(self._client.responses)
 
     @cached_property
+    def live(self) -> live.LiveWithRawResponse:
+        from .resources.live import LiveWithRawResponse
+
+        return LiveWithRawResponse(self._client.live)
+
+    @cached_property
     def realtime(self) -> realtime.RealtimeWithRawResponse:
         from .resources.realtime import RealtimeWithRawResponse
 
@@ -1913,6 +1933,12 @@ class AsyncOpenAIWithRawResponse:
         from .resources.responses import AsyncResponsesWithRawResponse
 
         return AsyncResponsesWithRawResponse(self._client.responses)
+
+    @cached_property
+    def live(self) -> live.AsyncLiveWithRawResponse:
+        from .resources.live import AsyncLiveWithRawResponse
+
+        return AsyncLiveWithRawResponse(self._client.live)
 
     @cached_property
     def realtime(self) -> realtime.AsyncRealtimeWithRawResponse:
@@ -2078,6 +2104,12 @@ class OpenAIWithStreamedResponse:
         return ResponsesWithStreamingResponse(self._client.responses)
 
     @cached_property
+    def live(self) -> live.LiveWithStreamingResponse:
+        from .resources.live import LiveWithStreamingResponse
+
+        return LiveWithStreamingResponse(self._client.live)
+
+    @cached_property
     def realtime(self) -> realtime.RealtimeWithStreamingResponse:
         from .resources.realtime import RealtimeWithStreamingResponse
 
@@ -2239,6 +2271,12 @@ class AsyncOpenAIWithStreamedResponse:
         from .resources.responses import AsyncResponsesWithStreamingResponse
 
         return AsyncResponsesWithStreamingResponse(self._client.responses)
+
+    @cached_property
+    def live(self) -> live.AsyncLiveWithStreamingResponse:
+        from .resources.live import AsyncLiveWithStreamingResponse
+
+        return AsyncLiveWithStreamingResponse(self._client.live)
 
     @cached_property
     def realtime(self) -> realtime.AsyncRealtimeWithStreamingResponse:

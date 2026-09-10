@@ -1508,6 +1508,8 @@ Methods:
 
 # [Responses](src/openai/resources/responses/api.md)
 
+# [Live](src/openai/resources/live/api.md)
+
 # [Realtime](src/openai/resources/realtime/api.md)
 
 # [Conversations](src/openai/resources/conversations/api.md)

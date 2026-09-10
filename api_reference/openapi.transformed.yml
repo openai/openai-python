@@ -8185,6 +8185,183 @@ paths:
               ]
             }
       description: Creates a variation of a given image. This endpoint only supports `dall-e-2`.
+  /live/sessions:
+    post:
+      operationId: create-live
+      summary: Create session
+      description: Create a Live WebRTC session. Start with the [Live prompting guide](https://developers.openai.com/api/docs/guides/live-prompting).
+      tags:
+      - Live
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LiveCreateRequest'
+      responses:
+        '201':
+          description: Live session created with a WebRTC answer.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LiveCreateResponse'
+              example:
+                session:
+                  id: live_123
+                transport:
+                  type: webrtc
+                  sdp: <SDP answer>
+      x-oaiMeta:
+        name: Create session
+        group: live
+        returns: Returns 201 Created with the session identifier in session.id and SDP answer in transport.sdp.
+        examples:
+          request:
+            curl: |-
+              curl https://api.openai.com/v1/live/sessions \
+                -H "Authorization: Bearer $OPENAI_API_KEY" \
+                -H "Content-Type: application/json" \
+                -d '{"session":{"model":"gpt-live-1","instructions":"Be concise. Ask for clarification when needed."},"transport":{"type":"webrtc","sdp":"<SDP offer>"}}'
+  /live/sessions/{session_id}/accept:
+    post:
+      operationId: accept-live-session
+      summary: Accept call
+      description: Accept an incoming SIP call with Live startup configuration.
+      tags:
+      - Live
+      parameters:
+      - in: path
+        name: session_id
+        required: true
+        description: Opaque Live session identifier from the creation response or incoming-call webhook. Preserve the returned value unchanged, including its prefix.
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LiveCallAcceptRequest'
+      responses:
+        '200':
+          description: Session accept request accepted.
+      x-oaiMeta:
+        name: Accept call
+        group: live-sessions
+        returns: Returns 200 OK when the control request succeeds.
+  /live/sessions/{session_id}/fork:
+    post:
+      operationId: fork-live-session
+      summary: Fork session
+      description: Fork a stored Live session onto a new WebRTC connection.
+      tags:
+      - Live
+      parameters:
+      - in: path
+        name: session_id
+        required: true
+        schema:
+          type: string
+        description: The ID of the stored Live session to fork.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LiveForkRequest'
+      responses:
+        '201':
+          description: Forked Live session created with a WebRTC answer.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LiveCreateResponse'
+      x-oaiMeta:
+        name: Fork session
+        group: live
+        returns: The new session identifier in session.id and SDP answer in transport.sdp.
+        examples:
+          request:
+            curl: |-
+              curl https://api.openai.com/v1/live/sessions/live_123/fork \
+                -H "Authorization: Bearer $OPENAI_API_KEY" \
+                -H "Content-Type: application/json" \
+                -d '{"session":{},"transport":{"type":"webrtc","sdp":"<SDP offer>"}}'
+  /live/sessions/{session_id}/hangup:
+    post:
+      operationId: hangup-live-session
+      summary: Hang up session
+      description: Hang up a Live session.
+      tags:
+      - Live
+      parameters:
+      - in: path
+        name: session_id
+        required: true
+        description: Opaque Live session identifier from the creation response or incoming-call webhook. Preserve the returned value unchanged, including its prefix.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Session hangup request accepted.
+      x-oaiMeta:
+        name: Hang up session
+        group: live-sessions
+        returns: Returns 200 OK when the control request succeeds.
+  /live/sessions/{session_id}/refer:
+    post:
+      operationId: refer-live-session
+      summary: Transfer call
+      description: Transfer a Live SIP call to another destination.
+      tags:
+      - Live
+      parameters:
+      - in: path
+        name: session_id
+        required: true
+        description: Opaque Live session identifier from the creation response or incoming-call webhook. Preserve the returned value unchanged, including its prefix.
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LiveCallReferRequest'
+      responses:
+        '200':
+          description: Session refer request accepted.
+      x-oaiMeta:
+        name: Transfer call
+        group: live-sessions
+        returns: Returns 200 OK when the control request succeeds.
+  /live/sessions/{session_id}/reject:
+    post:
+      operationId: reject-live-session
+      summary: Reject call
+      description: Reject an incoming SIP call.
+      tags:
+      - Live
+      parameters:
+      - in: path
+        name: session_id
+        required: true
+        description: Opaque Live session identifier from the creation response or incoming-call webhook. Preserve the returned value unchanged, including its prefix.
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LiveCallRejectRequest'
+      responses:
+        '200':
+          description: Session reject request accepted.
+      x-oaiMeta:
+        name: Reject call
+        group: live-sessions
+        returns: Returns 200 OK when the control request succeeds.
   /models:
     get:
       operationId: listModels
@@ -22581,6 +22758,35 @@ paths:
               "reason": "Potentially unintended data access."
             }
       description: Get a safety alert belonging to the authenticated API project.
+  /live/sessions/{session_id}/content:
+    get:
+      tags:
+      - Live
+      summary: Download recording
+      description: Get Live session content
+      operationId: download-live-recording
+      parameters:
+      - name: session_id
+        in: path
+        description: The ID of the stored Live session to download. Use the session ID returned when the session started with storage enabled.
+        required: true
+        schema:
+          description: The ID of the stored Live session to download. Use the session ID returned when the session started with storage enabled.
+          type: string
+          pattern: ^live_[A-Za-z0-9_-]{1,128}$
+      responses:
+        '200':
+          description: Stored session recording. Input audio is in the left channel and output audio is in the right channel.
+          content:
+            audio/wav:
+              schema:
+                description: The Live session recording as a stereo WAV file, with input audio in the left channel and output audio in the right channel.
+                type: string
+                format: binary
+      x-oaiMeta:
+        name: Download recording
+        group: live
+        returns: The stored session recording as binary stereo WAV audio.
   /organization/spend_limit:
     get:
       summary: Retrieve organization spend limit
@@ -27093,6 +27299,7 @@ webhooks:
               $ref: '#/components/schemas/WebhookFineTuningJobSucceeded'
   live_call_incoming:
     post:
+      deprecated: true
       responses:
         '200':
           description: |
@@ -27104,6 +27311,19 @@ webhooks:
           application/json:
             schema:
               $ref: '#/components/schemas/WebhookLiveCallIncoming'
+  live_transport_incoming:
+    post:
+      responses:
+        '200':
+          description: |
+            Return a 200 status code to acknowledge receipt of the event. Non-200
+            status codes will be retried.
+      requestBody:
+        description: The event payload sent by the API.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookLiveTransportIncoming'
   realtime_call_incoming:
     post:
       responses:
@@ -39471,65 +39691,6 @@ components:
           $ref: '#/components/schemas/ImageGenActionEnum'
       required:
       - type
-    ImageGenToolCall:
-      type: object
-      title: Image generation call
-      description: |
-        An image generation request made by the model.
-      properties:
-        type:
-          type: string
-          enum:
-          - image_generation_call
-          description: |
-            The type of the image generation call. Always `image_generation_call`.
-          x-stainless-const: true
-        id:
-          type: string
-          description: |
-            The unique ID of the image generation call.
-        status:
-          type: string
-          enum:
-          - in_progress
-          - completed
-          - generating
-          - failed
-          description: |
-            The status of the image generation call.
-        result:
-          anyOf:
-          - type: string
-            description: |
-              The generated image encoded in base64.
-          - type: 'null'
-        size:
-          anyOf:
-          - type: string
-          - type: string
-            enum:
-            - 1024x1024
-            - 1024x1536
-            - 1536x1024
-          - type: 'null'
-          description: The image dimensions as a `WIDTHxHEIGHT` string, for example `1536x864`.
-        quality:
-          anyOf:
-          - type: string
-            enum:
-            - low
-            - medium
-            - high
-            - xhigh
-            - max
-            - auto
-          - type: 'null'
-          description: The quality of the image generated by the image generation tool call. One of `low`, `medium`, `high`, `xhigh`, `max`, or `auto`.
-      required:
-      - type
-      - id
-      - status
-      - result
     ImageRefParam:
       type: object
       description: |
@@ -40501,6 +40662,281 @@ components:
       - first_id
       - last_id
       - has_more
+    LiveCallAcceptRequest:
+      type: object
+      description: Accept an incoming SIP call with Live startup configuration.
+      properties:
+        session:
+          $ref: '#/components/schemas/LiveCallAcceptSession'
+          description: Model and startup configuration for the Live session that answers the incoming SIP call.
+      required:
+      - session
+      additionalProperties: false
+    LiveCallAcceptSession:
+      type: object
+      description: Startup configuration for accepting an incoming Live SIP call. Follow the [Live prompting guide](https://developers.openai.com/api/docs/guides/live-prompting) when writing frontend and backend instructions.
+      properties:
+        model:
+          $ref: '#/components/schemas/ModelIdsLive'
+          description: The Live model to use for the accepted call.
+          minLength: 1
+        instructions:
+          $ref: '#/components/schemas/instructions'
+        audio:
+          $ref: '#/components/schemas/LiveMediaSessionAudioParam'
+          description: Startup audio output configuration. SIP negotiates the media format; audio.format is only accepted for primary WebSockets. Voice cannot change after startup.
+        delegation:
+          $ref: '#/components/schemas/delegation'
+        store:
+          $ref: '#/components/schemas/store'
+        input:
+          $ref: '#/components/schemas/input'
+        type:
+          type: string
+          enum:
+          - live
+          default: live
+          x-stainless-const: true
+          description: The session type. Always `live`.
+      required:
+      - model
+      - type
+      additionalProperties: false
+    LiveCallReferRequest:
+      type: object
+      description: Parameters used to transfer a Live SIP call to another destination.
+      properties:
+        target_uri:
+          $ref: '#/components/schemas/target_uri'
+          minLength: 1
+          pattern: \S
+          description: Nonblank URI for the SIP Refer-To header, such as tel:+14155550123 or sip:agent@example.com.
+      required:
+      - target_uri
+      additionalProperties: false
+    LiveCallRejectRequest:
+      type: object
+      description: Parameters used to reject an incoming Live SIP call.
+      properties:
+        status_code:
+          type: integer
+          minimum: 300
+          maximum: 699
+          description: SIP rejection status sent to the caller. This field is required.
+          example: 486
+      required:
+      - status_code
+      additionalProperties: false
+    LiveClientEvent:
+      description: Client events for Live. Initialize a primary WebSocket with session.start and wait for session.started. WebRTC creation already starts the session. Audio append is primary WebSocket-only. See the [Live prompting guide](https://developers.openai.com/api/docs/guides/live-prompting) before writing frontend instructions and delegation policies.
+      discriminator:
+        propertyName: type
+      anyOf:
+      - $ref: '#/components/schemas/LiveSessionStartEvent'
+      - $ref: '#/components/schemas/LiveSessionUpdateParam'
+      - $ref: '#/components/schemas/LiveInputAudioAppendEvent'
+      - $ref: '#/components/schemas/LiveInputAudioMuteParam'
+      - $ref: '#/components/schemas/LiveInputAudioUnmuteParam'
+      - $ref: '#/components/schemas/LiveInstructionsAppendParam'
+      - $ref: '#/components/schemas/LiveThinkingAppendParam'
+      - $ref: '#/components/schemas/LiveCommentaryAppendParam'
+      - $ref: '#/components/schemas/LiveResponseItemCreateParam'
+      - $ref: '#/components/schemas/LiveResponseCreateParam'
+      - $ref: '#/components/schemas/LiveSessionCloseParam'
+    LiveConnectParams:
+      type: object
+      x-stainless-empty-object: true
+      description: Primary Live WebSocket connections accept no query parameters. Supply the model and startup configuration in the first session.start event.
+      properties: {}
+      additionalProperties: false
+    LiveCreateRequest:
+      type: object
+      description: Create a Live WebRTC session with JSON session configuration and an SDP offer. Follow the [Live prompting guide](https://developers.openai.com/api/docs/guides/live-prompting) before choosing frontend and backend instructions. The request starts the session; do not send session.start on the data channel.
+      properties:
+        session:
+          $ref: '#/components/schemas/LiveMediaSessionCreateParams'
+          description: Startup configuration for the Live session.
+        transport:
+          $ref: '#/components/schemas/LiveWebRTCTransport'
+          description: WebRTC transport with the browser's SDP offer.
+      required:
+      - session
+      - transport
+      additionalProperties: false
+    LiveCreateResponse:
+      type: object
+      description: The created Live session identifier and WebRTC answer. Apply transport.sdp as the peer's remote answer and wait for session.started on the data channel before sending commands.
+      properties:
+        session:
+          type: object
+          description: The newly created Live session. Use its ID for session controls and sideband connections.
+          properties:
+            id:
+              type: string
+              description: Opaque session identifier. Preserve the returned value unchanged, including its prefix.
+          required:
+          - id
+        transport:
+          $ref: '#/components/schemas/LiveWebRTCTransport'
+          description: WebRTC transport with the SDP answer.
+      required:
+      - session
+      - transport
+    LiveForkClientEvent:
+      description: Client events for a Live fork WebSocket. First send session.start with an overrides object (which may be empty), then wait for session.started before sending other commands. The model and conversation are inherited from the stored session.
+      discriminator:
+        propertyName: type
+      anyOf:
+      - $ref: '#/components/schemas/LiveForkSessionStartEvent'
+      - $ref: '#/components/schemas/LiveSessionUpdateParam'
+      - $ref: '#/components/schemas/LiveInputAudioAppendEvent'
+      - $ref: '#/components/schemas/LiveInputAudioMuteParam'
+      - $ref: '#/components/schemas/LiveInputAudioUnmuteParam'
+      - $ref: '#/components/schemas/LiveInstructionsAppendParam'
+      - $ref: '#/components/schemas/LiveThinkingAppendParam'
+      - $ref: '#/components/schemas/LiveCommentaryAppendParam'
+      - $ref: '#/components/schemas/LiveResponseItemCreateParam'
+      - $ref: '#/components/schemas/LiveResponseCreateParam'
+      - $ref: '#/components/schemas/LiveSessionCloseParam'
+    LiveForkPathParams:
+      type: object
+      description: Identifies the stored Live session whose conversation and configuration are used to create a fork.
+      required:
+      - session_id
+      properties:
+        session_id:
+          type: string
+          description: The ID of the stored Live session to fork.
+    LiveForkRequest:
+      type: object
+      description: Fork a stored Live session onto a new WebRTC connection. Omit session or send an empty object to inherit its configuration.
+      properties:
+        session:
+          $ref: '#/components/schemas/LiveMediaSessionForkParams'
+          description: Optional configuration overrides for the new Live session. Omit this object or send an empty object to inherit the stored session's settings.
+        transport:
+          $ref: '#/components/schemas/LiveWebRTCTransport'
+          description: WebRTC transport with an SDP offer for the new connection to the forked session.
+      required:
+      - transport
+      additionalProperties: false
+    LiveForkServerEvent:
+      $ref: '#/components/schemas/LiveServerEvent'
+    LiveMediaSessionAudioParam:
+      type: object
+      description: Startup audio output configuration. WebRTC and SIP negotiate the media format; audio.format is only accepted for primary WebSockets. Voice cannot change after startup.
+      properties:
+        output:
+          $ref: '#/components/schemas/LiveInitialSessionAudioOutputParam'
+      additionalProperties: false
+    LiveMediaSessionCreateParams:
+      type: object
+      description: Startup configuration for a Live media session. Follow the [Live prompting guide](https://developers.openai.com/api/docs/guides/live-prompting) when writing frontend instructions and the backend prompt under delegation.responses.instructions.
+      properties:
+        model:
+          $ref: '#/components/schemas/ModelIdsLive'
+        instructions:
+          $ref: '#/components/schemas/instructions'
+        audio:
+          $ref: '#/components/schemas/LiveMediaSessionAudioParam'
+          description: Startup audio configuration. WebRTC and SIP negotiate their audio format on the media transport.
+        delegation:
+          $ref: '#/components/schemas/delegation'
+        store:
+          $ref: '#/components/schemas/store'
+        input:
+          $ref: '#/components/schemas/input'
+        client:
+          $ref: '#/components/schemas/LiveClientConfigParam'
+      required:
+      - model
+      additionalProperties: false
+    LiveMediaSessionForkParams:
+      type: object
+      description: Optional overrides for a stored Live session. Omitted settings are inherited. The model, voice, frontend instructions, and prior conversation come from the stored session. WebRTC negotiates its audio format; audio.format is only supported on WebSocket forks.
+      properties:
+        store:
+          $ref: '#/components/schemas/properties-store'
+        delegation:
+          $ref: '#/components/schemas/LiveResponsesDelegationUpdateParam'
+        client:
+          $ref: '#/components/schemas/LiveClientConfigParam'
+      additionalProperties: false
+    LiveServerEvent:
+      description: Server events for Live. Response lifecycle events are wrapped inside response.event; dispatch the nested event by its full type and tolerate new response event types. Follow the [Live prompting guide](https://developers.openai.com/api/docs/guides/live-prompting) when designing the conversation and delegation policy.
+      discriminator:
+        propertyName: type
+      allOf:
+      - $ref: '#/components/schemas/LiveServerEvent-2'
+    LiveSidebandClientEvent:
+      description: Client events accepted by an attached Live sideband WebSocket. The session is already started; send audio over the primary connection.
+      discriminator:
+        propertyName: type
+      anyOf:
+      - $ref: '#/components/schemas/LiveSessionUpdateParam'
+      - $ref: '#/components/schemas/LiveInputAudioMuteParam'
+      - $ref: '#/components/schemas/LiveInputAudioUnmuteParam'
+      - $ref: '#/components/schemas/LiveInstructionsAppendParam'
+      - $ref: '#/components/schemas/LiveThinkingAppendParam'
+      - $ref: '#/components/schemas/LiveCommentaryAppendParam'
+      - $ref: '#/components/schemas/LiveResponseItemCreateParam'
+      - $ref: '#/components/schemas/LiveResponseCreateParam'
+      - $ref: '#/components/schemas/LiveSessionCloseParam'
+    LiveSidebandConnectParams:
+      type: object
+      description: Connection options for a sideband WebSocket attached to an existing Live session.
+      properties:
+        graceful_close:
+          type: boolean
+          description: Opt in to the graceful WebSocket closing handshake when the session ends. The server may also enable this behavior by default.
+      additionalProperties: false
+    LiveSidebandPathParams:
+      type: object
+      description: Identifies the Live session to observe and control through a sideband WebSocket.
+      required:
+      - session_id
+      properties:
+        session_id:
+          type: string
+          description: The ID of the existing Live session to attach to.
+    LiveSidebandServerEvent:
+      description: Server events received by an attached Live sideband WebSocket. Audio deltas are delivered over the primary connection.
+      discriminator:
+        propertyName: type
+      anyOf:
+      - $ref: '#/components/schemas/LiveSessionStarted'
+      - $ref: '#/components/schemas/LiveSessionUpdated'
+      - $ref: '#/components/schemas/LiveInputAudioMuted'
+      - $ref: '#/components/schemas/LiveInputAudioUnmuted'
+      - $ref: '#/components/schemas/LiveInstructionsAppended'
+      - $ref: '#/components/schemas/LiveThinkingAppended'
+      - $ref: '#/components/schemas/LiveCommentaryAppended'
+      - $ref: '#/components/schemas/LiveInputTranscriptDelta'
+      - $ref: '#/components/schemas/LiveOutputTranscriptDelta'
+      - $ref: '#/components/schemas/LiveDelegationCreated'
+      - $ref: '#/components/schemas/LiveResponseEvent'
+      - $ref: '#/components/schemas/LiveSessionUsageUpdated'
+      - $ref: '#/components/schemas/LiveSessionClosed'
+      - $ref: '#/components/schemas/LiveErrorEvent'
+      - $ref: '#/components/schemas/LiveInfoEvent'
+    LiveWebRTCTransport:
+      type: object
+      description: WebRTC transport carrying the offer SDP in a creation request or answer SDP in its response.
+      properties:
+        type:
+          type: string
+          description: The transport used for the Live session. Always `webrtc`.
+          enum:
+          - webrtc
+          x-stainless-const: true
+        sdp:
+          type: string
+          minLength: 1
+          description: Session Description Protocol message for the WebRTC connection.
+      required:
+      - type
+      - sdp
+      additionalProperties: false
     LocalShellToolCall:
       type: object
       title: Local shell call
@@ -41692,6 +42128,15 @@ components:
       - type: string
       - type: 'null'
       description: Model ID used to generate the response, like `gpt-6-astra`. OpenAI offers a wide range of models with different capabilities, performance characteristics, and price points. Refer to the [model guide](https://developers.openai.com/api/docs/models) to browse and compare available models.
+    ModelIdsLive:
+      description: The Live model. Required in the session configuration for every transport; do not pass it as a URL query parameter.
+      example: gpt-live-1
+      anyOf:
+      - type: string
+        minLength: 1
+      - type: string
+        enum:
+        - gpt-live-1
     ModelIdsResponses:
       example: gpt-6-astra
       anyOf:
@@ -61817,7 +62262,10 @@ components:
     WebhookLiveCallIncoming:
       type: object
       title: live.call.incoming
+      deprecated: true
       description: |
+        Deprecated: use `live.transport.incoming`. Retained for existing subscriptions
+        during migration; new subscriptions to this event are not allowed.
         Sent when an incoming API SIP session is available for Live acceptance. The
         same pending session can also emit `realtime.call.incoming`; the first
         successful Realtime or Live accept endpoint selects the runtime surface.
@@ -61847,8 +62295,9 @@ components:
             session_id:
               type: string
               description: |
-                The `live_...` ID of the pending SIP session. Forward this value
-                unchanged when accepting or rejecting the call through the Live API.
+                The `live_...` ID of the pending SIP session. Pass this value unchanged
+                to Live call controls and sideband connections. The corresponding
+                `realtime.call.incoming` event uses a separate `rtc_...` call ID.
             sip_headers:
               type: array
               description: |
@@ -61902,12 +62351,108 @@ components:
               ]
             }
           }
+    WebhookLiveTransportIncoming:
+      type: object
+      title: live.transport.incoming
+      description: |
+        Sent when an incoming API SIP session is available for Live acceptance. The
+        same pending session can also emit `realtime.call.incoming`; the first
+        successful Realtime or Live accept endpoint selects the runtime surface.
+      required:
+      - created_at
+      - id
+      - data
+      - type
+      properties:
+        created_at:
+          type: integer
+          format: unixtime
+          description: |
+            The Unix timestamp (in seconds) of when the event was created.
+        id:
+          type: string
+          description: |
+            The unique ID of the event.
+        data:
+          type: object
+          description: |
+            Event data payload.
+          required:
+          - type
+          - session_id
+          - sip_headers
+          properties:
+            type:
+              type: string
+              description: The incoming transport type. Always `sip`.
+              enum:
+              - sip
+              x-stainless-const: true
+            session_id:
+              type: string
+              description: |
+                The `live_...` ID of the pending SIP session. Forward this value
+                unchanged when accepting or rejecting the call through the Live API.
+            sip_headers:
+              type: array
+              description: |
+                Headers from the SIP INVITE, excluding SIP authorization headers.
+                Retained names, values, repeated entries, and order are preserved.
+                Treat these values as untrusted call metadata.
+              items:
+                type: object
+                description: |
+                  A header from the SIP Invite.
+                required:
+                - name
+                - value
+                properties:
+                  name:
+                    type: string
+                    description: |
+                      Name of the SIP Header.
+                  value:
+                    type: string
+                    description: |
+                      Value of the SIP Header.
+        object:
+          type: string
+          description: |
+            The object of the event. Always `event`.
+          enum:
+          - event
+          x-stainless-const: true
+        type:
+          type: string
+          description: |
+            The type of the event. Always `live.transport.incoming`.
+          enum:
+          - live.transport.incoming
+          x-stainless-const: true
+      x-oaiMeta:
+        name: live.transport.incoming
+        group: webhook-events
+        example: |
+          {
+            "id": "evt_abc123",
+            "type": "live.transport.incoming",
+            "created_at": 1719168000,
+            "data": {
+              "type": "sip",
+              "session_id": "live_u0_479a275623b54bdb9b6fbae2f7cbd408",
+              "sip_headers": [
+                {"name": "From", "value": "<sip:alice@example.com>;tag=abc123"},
+                {"name": "To", "value": "<sip:recipient@example.com>"},
+                {"name": "Call-ID", "value": "call-123@example.com"}
+              ]
+            }
+          }
     WebhookRealtimeCallIncoming:
       type: object
       title: realtime.call.incoming
       description: |
         Sent when an incoming API SIP session is available for Realtime acceptance.
-        The same pending session can also emit `live.call.incoming`; the first
+        The same pending session can also emit `live.transport.incoming`; the first
         successful Realtime or Live accept endpoint selects the runtime surface.
       required:
       - created_at
@@ -61936,7 +62481,7 @@ components:
               type: string
               description: |
                 The Transceiver `rtc_...` ID of the pending SIP session. The paired
-                `live.call.incoming` event derives its `session_id` by replacing the
+                `live.transport.incoming` event derives its `session_id` by replacing the
                 `rtc_` prefix with `live_`. Use the ID returned by the event with the
                 corresponding Realtime or Live API.
             sip_headers:
@@ -63143,6 +63688,102 @@ components:
       - completed
       - failed
       - incomplete
+    ImageGenActionEnum:
+      type: string
+      enum:
+      - generate
+      - edit
+      - auto
+    ImageBackground:
+      type: string
+      enum:
+      - transparent
+      - opaque
+      - auto
+    ImageOutputFormat:
+      type: string
+      enum:
+      - png
+      - webp
+      - jpeg
+    ImageGenToolCall:
+      properties:
+        type:
+          type: string
+          enum:
+          - image_generation_call
+          description: The type of the image generation call. Always `image_generation_call`.
+          x-stainless-const: true
+        id:
+          type: string
+          description: The unique ID of the image generation call.
+        status:
+          type: string
+          enum:
+          - in_progress
+          - completed
+          - generating
+          - failed
+          description: The status of the image generation call.
+        result:
+          anyOf:
+          - type: string
+            description: The generated image encoded in base64.
+          - type: 'null'
+        size:
+          anyOf:
+          - anyOf:
+            - type: string
+            - type: string
+              enum:
+              - 1024x1024
+              - 1024x1536
+              - 1536x1024
+            description: The image dimensions as a `WIDTHxHEIGHT` string, for example `1536x864`.
+          - type: 'null'
+        quality:
+          anyOf:
+          - type: string
+            enum:
+            - low
+            - medium
+            - high
+            - xhigh
+            - max
+            - auto
+            description: The quality of the image generated by the image generation tool call. One of `low`, `medium`, `high`, `xhigh`, `max`, or `auto`.
+          - type: 'null'
+        action:
+          anyOf:
+          - $ref: '#/components/schemas/ImageGenActionEnum'
+            description: The action used for image generation.
+          - type: 'null'
+          x-openai-go-optional-enum: true
+        background:
+          anyOf:
+          - $ref: '#/components/schemas/ImageBackground'
+            description: The background setting used for generation.
+          - type: 'null'
+          x-openai-go-optional-enum: true
+        output_format:
+          anyOf:
+          - $ref: '#/components/schemas/ImageOutputFormat'
+            description: The output format used for generation.
+          - type: 'null'
+          x-openai-go-optional-enum: true
+        revised_prompt:
+          anyOf:
+          - type: string
+            description: The prompt that was used after any model prompt rewriting.
+          - type: 'null'
+      type: object
+      required:
+      - type
+      - id
+      - status
+      - result
+      title: Image generation call
+      description: An image generation request made by the model.
     ClickButtonType:
       type: string
       enum:
@@ -63672,12 +64313,6 @@ components:
       - high
       - low
       description: Control how much effort the model will exert to match the style and features, especially facial features, of input images. This parameter is only supported for `gpt-image-1` and `gpt-image-1.5` and later models, unsupported for `gpt-image-1-mini`. Supports `high` and `low`. Defaults to `low`.
-    ImageGenActionEnum:
-      type: string
-      enum:
-      - generate
-      - edit
-      - auto
     LocalShellToolParam:
       properties:
         type:
@@ -65789,6 +66424,607 @@ components:
       - input_tokens_details
       title: Image generation usage
       description: For `gpt-image-1` only, the token usage information for the image generation.
+    instructions:
+      anyOf:
+      - description: Frontend instructions for voice, conversation, interruptions, and when to delegate. Start with the [Live prompting guide](https://developers.openai.com/api/docs/guides/live-prompting); put business rules and tool workflows in a separate [backend prompt](https://developers.openai.com/api/docs/guides/live-delegation#start-with-your-existing-backend-prompt). Limited to 16,384 client-supplied tokens. Omitted or blank instructions use server defaults. Immutable after startup.
+        type: string
+      - type: 'null'
+    LiveCustomVoiceParam:
+      type: object
+      properties:
+        id:
+          type: string
+          minLength: 1
+          maxLength: 128
+      required:
+      - id
+    LiveInitialSessionAudioOutputParam:
+      description: Settings for speech generated by the Live model. Choose the voice before starting the session.
+      type: object
+      properties:
+        voice:
+          description: The voice used for Live speech, as a built-in voice name or a custom voice object containing its ID. Defaults to `marin` and cannot change after startup.
+          anyOf:
+          - anyOf:
+            - type: string
+            - $ref: '#/components/schemas/LiveBuiltInVoice'
+          - $ref: '#/components/schemas/LiveCustomVoiceParam'
+      required: []
+    LiveClientDelegationParam:
+      description: Delegate tasks to your application. The Live session emits delegation events that your backend handles.
+      type: object
+      properties:
+        type:
+          description: The delegation owner. Always `client` for tasks handled by your application.
+          default: client
+          x-stainless-const: true
+          type: string
+          enum:
+          - client
+      required:
+      - type
+    LiveResponsesServiceTier:
+      type: string
+      enum:
+      - auto
+      - default
+      - fast_tier_temp_pilot
+      - flex
+      - priority
+      - ultrafast
+    LiveReasoningEffort:
+      type: string
+      enum:
+      - none
+      - minimal
+      - low
+      - medium
+      - high
+      - xhigh
+    LiveReasoningSummary:
+      type: string
+      enum:
+      - concise
+      - detailed
+      - auto
+    LiveDelegationReasoningInputParam:
+      description: Reasoning options for Responses requests made on behalf of the Live session.
+      type: object
+      properties:
+        effort:
+          anyOf:
+          - description: How much reasoning effort the delegated Responses model should use. Supported values depend on the backend model.
+            $ref: '#/components/schemas/LiveReasoningEffort'
+          - type: 'null'
+        summary:
+          anyOf:
+          - description: The reasoning summary to request from the delegated Responses model, when supported.
+            $ref: '#/components/schemas/LiveReasoningSummary'
+          - type: 'null'
+      required: []
+    LiveTextVerbosity:
+      type: string
+      enum:
+      - low
+      - medium
+      - high
+    LiveDelegationTextInputParam:
+      description: Text generation options for the Live session’s Responses backend.
+      type: object
+      properties:
+        verbosity:
+          anyOf:
+          - description: The amount of detail in text generated by the Responses backend. This does not configure the Live model’s spoken delivery.
+            $ref: '#/components/schemas/LiveTextVerbosity'
+          - type: 'null'
+      required: []
+    LiveFunctionToolInputParam:
+      description: A function tool available to the Responses backend when the Live model delegates a task.
+      type: object
+      properties:
+        type:
+          description: The tool type. Always `function`.
+          default: function
+          x-stainless-const: true
+          type: string
+          enum:
+          - function
+        name:
+          description: The name the delegated Responses model uses when calling this function.
+          type: string
+        description:
+          anyOf:
+          - description: What the function does and when the delegated Responses model should call it.
+            type: string
+          - type: 'null'
+        parameters:
+          anyOf:
+          - description: A JSON Schema object describing the arguments accepted by the function.
+            type: object
+            additionalProperties: {}
+          - type: 'null'
+        strict:
+          anyOf:
+          - description: Whether the delegated Responses model must follow the function’s parameter schema exactly.
+            type: boolean
+          - type: 'null'
+      required:
+      - type
+      - name
+    LiveWebSearchToolInputParam:
+      description: A web search tool available to the Live session’s Responses backend.
+      type: object
+      properties:
+        type:
+          description: The tool type. Always `web_search`.
+          default: web_search
+          x-stainless-const: true
+          type: string
+          enum:
+          - web_search
+      required:
+      - type
+    LiveToolChoiceEnum:
+      type: string
+      enum:
+      - auto
+      - none
+      - required
+    LiveFunctionToolChoiceParam:
+      type: object
+      properties:
+        type:
+          default: function
+          x-stainless-const: true
+          type: string
+          enum:
+          - function
+        name:
+          type: string
+          minLength: 1
+          maxLength: 64
+          pattern: ^[a-zA-Z0-9_-]+$
+      required:
+      - type
+      - name
+    LiveMCPToolChoiceParam:
+      type: object
+      properties:
+        type:
+          default: mcp
+          x-stainless-const: true
+          type: string
+          enum:
+          - mcp
+        server_label:
+          type: string
+          minLength: 1
+          maxLength: 64
+          pattern: ^[a-zA-Z0-9_-]+$
+        name:
+          type: string
+          minLength: 1
+          maxLength: 64
+          pattern: ^[a-zA-Z0-9_-]+$
+      required:
+      - type
+      - server_label
+      - name
+    LiveResponsesDelegationSettingsInputParam:
+      description: Model, prompt, and tool settings for tasks delegated by the Live session to a Responses backend.
+      type: object
+      properties:
+        model:
+          description: The model used for server-owned Responses delegations.
+          type: string
+        instructions:
+          anyOf:
+          - description: Instructions for the delegated Responses model, separate from Live instructions. See [backend prompting](https://developers.openai.com/api/docs/guides/live-delegation#start-with-your-existing-backend-prompt).
+            type: string
+          - type: 'null'
+        max_output_tokens:
+          anyOf:
+          - description: Maximum number of output tokens for each delegated response.
+            type: integer
+            minimum: 16
+          - type: 'null'
+        service_tier:
+          anyOf:
+          - description: Service tier for delegated Responses requests.
+            $ref: '#/components/schemas/LiveResponsesServiceTier'
+          - type: 'null'
+        reasoning:
+          anyOf:
+          - description: Reasoning settings passed to each delegated Responses request.
+            $ref: '#/components/schemas/LiveDelegationReasoningInputParam'
+          - type: 'null'
+        text:
+          anyOf:
+          - description: Text generation settings passed to each delegated Responses request.
+            $ref: '#/components/schemas/LiveDelegationTextInputParam'
+          - type: 'null'
+        tools:
+          description: Tools available to the Responses backend while it handles tasks delegated by the Live model.
+          type: array
+          items:
+            discriminator:
+              propertyName: type
+            anyOf:
+            - $ref: '#/components/schemas/LiveFunctionToolInputParam'
+            - $ref: '#/components/schemas/LiveWebSearchToolInputParam'
+        tool_choice:
+          description: Controls which tool the Responses backend uses when handling a task delegated by the Live model.
+          anyOf:
+          - $ref: '#/components/schemas/LiveToolChoiceEnum'
+          - $ref: '#/components/schemas/LiveFunctionToolChoiceParam'
+          - $ref: '#/components/schemas/LiveMCPToolChoiceParam'
+        parallel_tool_calls:
+          anyOf:
+          - description: Whether the delegated Responses model may request multiple tool calls in a single response.
+            type: boolean
+          - type: 'null'
+      required:
+      - model
+    LiveResponsesDelegationParam:
+      description: Delegate tasks to a Responses model managed by the Live session.
+      type: object
+      properties:
+        type:
+          description: The delegation owner. Always `responses` for tasks handled by the Responses API.
+          default: responses
+          x-stainless-const: true
+          type: string
+          enum:
+          - responses
+        responses:
+          description: Backend model, prompt, and tools used when the Live session delegates a task to Responses.
+          $ref: '#/components/schemas/LiveResponsesDelegationSettingsInputParam'
+      required:
+      - type
+      - responses
+    delegation:
+      anyOf:
+      - description: Who handles tasks delegated by the Live model. Omitted or null selects your application; use `responses` to let the API manage a Responses backend.
+        discriminator:
+          propertyName: type
+        anyOf:
+        - $ref: '#/components/schemas/LiveClientDelegationParam'
+        - $ref: '#/components/schemas/LiveResponsesDelegationParam'
+      - type: 'null'
+    store:
+      description: Whether to store the session for later forking and recording download. Defaults to false for new sessions.
+      type: boolean
+    LiveInitialMessageStatus:
+      type: string
+      enum:
+      - incomplete
+      - completed
+    LiveInitialInputTextContentPartParam:
+      description: Text supplied in a developer or user message when starting a Live session.
+      type: object
+      properties:
+        type:
+          description: The text content type. Always `input_text`.
+          default: input_text
+          x-stainless-const: true
+          type: string
+          enum:
+          - input_text
+        text:
+          description: The message text to include in the Live session’s initial conversation history.
+          type: string
+      required:
+      - text
+    LiveInitialDeveloperMessageItemParam:
+      description: A developer message included in the initial text history of a Live session.
+      type: object
+      properties:
+        id:
+          anyOf:
+          - description: An optional identifier for the supplied history message. Live uses the message’s role and text to initialize the conversation.
+            type: string
+          - type: 'null'
+        type:
+          description: The history item type. Always `message`.
+          default: message
+          x-stainless-const: true
+          type: string
+          enum:
+          - message
+        status:
+          anyOf:
+          - description: The supplied message’s status. Live uses its text as history and does not resume an incomplete message.
+            $ref: '#/components/schemas/LiveInitialMessageStatus'
+          - type: 'null'
+        role:
+          description: The author of this history message. Always `developer`.
+          default: developer
+          x-stainless-const: true
+          type: string
+          enum:
+          - developer
+        content:
+          description: The message content. Supply exactly one text part for the initial Live conversation history.
+          type: array
+          items:
+            $ref: '#/components/schemas/LiveInitialInputTextContentPartParam'
+          minItems: 1
+          maxItems: 1
+      required:
+      - role
+      - content
+    LiveInitialUserMessageItemParam:
+      description: A user message included in the initial text history of a Live session.
+      type: object
+      properties:
+        id:
+          anyOf:
+          - description: An optional identifier for the supplied history message. Live uses the message’s role and text to initialize the conversation.
+            type: string
+          - type: 'null'
+        type:
+          description: The history item type. Always `message`.
+          default: message
+          x-stainless-const: true
+          type: string
+          enum:
+          - message
+        status:
+          anyOf:
+          - description: The supplied message’s status. Live uses its text as history and does not resume an incomplete message.
+            $ref: '#/components/schemas/LiveInitialMessageStatus'
+          - type: 'null'
+        role:
+          description: The author of this history message. Always `user`.
+          default: user
+          x-stainless-const: true
+          type: string
+          enum:
+          - user
+        content:
+          description: The message content. Supply exactly one text part for the initial Live conversation history.
+          type: array
+          items:
+            $ref: '#/components/schemas/LiveInitialInputTextContentPartParam'
+          minItems: 1
+          maxItems: 1
+      required:
+      - role
+      - content
+    LiveInitialTextContentPartParam:
+      description: Assistant text supplied as conversation history when starting a Live session.
+      type: object
+      properties:
+        type:
+          description: The text content type. Always `text`.
+          default: text
+          x-stainless-const: true
+          type: string
+          enum:
+          - text
+        text:
+          description: The message text to include in the Live session’s initial conversation history.
+          type: string
+      required:
+      - text
+    LiveInitialOutputTextContentPartParam:
+      description: Assistant output text supplied as conversation history when starting a Live session.
+      type: object
+      properties:
+        type:
+          description: The text content type. Always `output_text`.
+          default: output_text
+          x-stainless-const: true
+          type: string
+          enum:
+          - output_text
+        text:
+          description: The message text to include in the Live session’s initial conversation history.
+          type: string
+      required:
+      - type
+      - text
+    LiveInitialAssistantMessageItemParam:
+      description: An assistant message included in the initial text history of a Live session.
+      type: object
+      properties:
+        id:
+          anyOf:
+          - description: An optional identifier for the supplied history message. Live uses the message’s role and text to initialize the conversation.
+            type: string
+          - type: 'null'
+        type:
+          description: The history item type. Always `message`.
+          default: message
+          x-stainless-const: true
+          type: string
+          enum:
+          - message
+        status:
+          anyOf:
+          - description: The supplied message’s status. Live uses its text as history and does not resume an incomplete message.
+            $ref: '#/components/schemas/LiveInitialMessageStatus'
+          - type: 'null'
+        role:
+          description: The author of this history message. Always `assistant`.
+          default: assistant
+          x-stainless-const: true
+          type: string
+          enum:
+          - assistant
+        content:
+          description: The message content. Supply exactly one text part for the initial Live conversation history.
+          type: array
+          items:
+            discriminator:
+              propertyName: type
+            x-oai-default-discriminator-value: text
+            anyOf:
+            - $ref: '#/components/schemas/LiveInitialTextContentPartParam'
+            - $ref: '#/components/schemas/LiveInitialOutputTextContentPartParam'
+          minItems: 1
+          maxItems: 1
+      required:
+      - role
+      - content
+    LiveInitialItem:
+      description: A developer, user, or assistant message supplied as text history before the Live session starts.
+      discriminator:
+        propertyName: role
+      anyOf:
+      - $ref: '#/components/schemas/LiveInitialDeveloperMessageItemParam'
+      - $ref: '#/components/schemas/LiveInitialUserMessageItemParam'
+      - $ref: '#/components/schemas/LiveInitialAssistantMessageItemParam'
+    input:
+      description: Ordered text-only history supplied before startup. Supports developer, user, and assistant messages with one text part each; at most 128 messages and 8,192 rendered tokens in total.
+      type: array
+      items:
+        $ref: '#/components/schemas/LiveInitialItem'
+      maxItems: 128
+    LiveAllowedServerEventParam:
+      description: A Live server event selector for the WebRTC frontend data channel.
+      example:
+        type: session.started
+      type: object
+      properties:
+        type:
+          description: The outer Live server event type. Use 'response.event' for Responses events.
+          type: string
+          minLength: 1
+          maxLength: 256
+        response_event:
+          description: The nested Responses event type. Required when type is 'response.event'; forbidden for other event types.
+          type: string
+          minLength: 1
+          maxLength: 256
+      required:
+      - type
+      additionalProperties: false
+      x-oaiMeta:
+        example:
+          type: session.started
+    LiveDataChannelConfigParam:
+      description: Control which Live events an untrusted WebRTC frontend can send and receive over its data channel. These restrictions do not apply to trusted sideband connections.
+      type: object
+      properties:
+        allowed_client_events:
+          description: Client event types that the frontend data channel may send. Use 'all' to allow every client event; an empty array allows none. Omission preserves the existing allow-all behavior.
+          anyOf:
+          - default: all
+            x-stainless-const: true
+            type: string
+            enum:
+            - all
+          - type: array
+            items:
+              description: A Live client event type allowed on the frontend data channel, such as `session.input_audio.mute`.
+              type: string
+              minLength: 1
+              maxLength: 256
+              pattern: ^(?:error|info|[a-z][a-z0-9_-]*(?:\.[a-z0-9_-]+)+)$
+            maxItems: 256
+        allowed_server_events:
+          description: Server events that may be sent to the frontend data channel. Use 'all' to allow every server event; an empty array allows none. Omission preserves the existing allow-all behavior. Responses events use an object with type 'response.event' and a response_event selector.
+          anyOf:
+          - default: all
+            x-stainless-const: true
+            type: string
+            enum:
+            - all
+          - type: array
+            items:
+              $ref: '#/components/schemas/LiveAllowedServerEventParam'
+            maxItems: 256
+            x-stainless-variantName: event_selectors
+      required: []
+    LiveClientConfigParam:
+      description: Startup-only capabilities for an untrusted frontend attached to a unified WebRTC session. Trusted sideband connections are unaffected.
+      type: object
+      properties:
+        data_channel:
+          description: Client and server event permissions for the WebRTC frontend data channel.
+          $ref: '#/components/schemas/LiveDataChannelConfigParam'
+      required:
+      - data_channel
+    properties-store:
+      description: Whether to store the forked session. Omission inherits the stored session's setting.
+      type: boolean
+    LiveResponsesDelegationSettingsUpdateInputParam:
+      description: Updates to the Responses backend of an existing Live session. Omitted settings retain their current values.
+      type: object
+      properties:
+        model:
+          description: The Responses backend model to use for subsequent delegated requests. Omit to keep the current backend model.
+          type: string
+        instructions:
+          anyOf:
+          - description: Instructions for the delegated Responses model, separate from Live instructions. See [backend prompting](https://developers.openai.com/api/docs/guides/live-delegation#start-with-your-existing-backend-prompt).
+            type: string
+          - type: 'null'
+        max_output_tokens:
+          anyOf:
+          - description: Maximum number of output tokens for each delegated response.
+            type: integer
+            minimum: 16
+          - type: 'null'
+        service_tier:
+          anyOf:
+          - description: Service tier for delegated Responses requests.
+            $ref: '#/components/schemas/LiveResponsesServiceTier'
+          - type: 'null'
+        reasoning:
+          anyOf:
+          - description: Reasoning settings passed to each delegated Responses request.
+            $ref: '#/components/schemas/LiveDelegationReasoningInputParam'
+          - type: 'null'
+        text:
+          anyOf:
+          - description: Text generation settings passed to each delegated Responses request.
+            $ref: '#/components/schemas/LiveDelegationTextInputParam'
+          - type: 'null'
+        tools:
+          description: Tools available to the Responses backend while it handles tasks delegated by the Live model.
+          type: array
+          items:
+            discriminator:
+              propertyName: type
+            anyOf:
+            - $ref: '#/components/schemas/LiveFunctionToolInputParam'
+            - $ref: '#/components/schemas/LiveWebSearchToolInputParam'
+        tool_choice:
+          description: Controls which tool the Responses backend uses when handling a task delegated by the Live model.
+          anyOf:
+          - $ref: '#/components/schemas/LiveToolChoiceEnum'
+          - $ref: '#/components/schemas/LiveFunctionToolChoiceParam'
+          - $ref: '#/components/schemas/LiveMCPToolChoiceParam'
+        parallel_tool_calls:
+          anyOf:
+          - description: Whether the delegated Responses model may request multiple tool calls in a single response.
+            type: boolean
+          - type: 'null'
+      required: []
+    LiveResponsesDelegationUpdateParam:
+      description: Update the Responses backend for an existing Live session without changing delegation ownership.
+      type: object
+      properties:
+        type:
+          description: The delegation owner. Always `responses` for tasks handled by the Responses API.
+          default: responses
+          x-stainless-const: true
+          type: string
+          enum:
+          - responses
+        responses:
+          description: Responses backend settings to update. Omitted settings keep their existing values.
+          $ref: '#/components/schemas/LiveResponsesDelegationSettingsUpdateInputParam'
+      required:
+      - type
+    target_uri:
+      type: string
+      description: |-
+        URI that should appear in the SIP Refer-To header. Supports values like
+        `tel:+14155550123` or `sip:agent@example.com`.
+      example: tel:+14155550123
     PublicProjectResidency:
       type: string
       enum:
@@ -68560,6 +69796,1706 @@ components:
       - y
       title: Coordinate
       description: 'An x/y coordinate pair, e.g. `{ x: 100, y: 200 }`.'
+    LiveSessionAudioFormatPCMParam:
+      description: Raw, mono 16-bit little-endian PCM audio for a Live WebSocket connection.
+      type: object
+      properties:
+        type:
+          description: The audio encoding. Always `audio/pcm`.
+          default: audio/pcm
+          x-stainless-const: true
+          type: string
+          enum:
+          - audio/pcm
+        rate:
+          description: Audio sample rate in hertz. Live WebSocket PCM audio supports 16000 or 24000 Hz.
+          type: integer
+          minimum: 16000
+          maximum: 24000
+          enum:
+          - 16000
+          - 24000
+      required:
+      - type
+      - rate
+    LiveSessionAudioFormatPCMUParam:
+      description: Raw, mono G.711 μ-law audio for a Live WebSocket connection.
+      type: object
+      properties:
+        type:
+          description: The audio encoding. Always `audio/pcmu`.
+          default: audio/pcmu
+          x-stainless-const: true
+          type: string
+          enum:
+          - audio/pcmu
+        rate:
+          description: Audio sample rate in hertz. G.711 audio uses 8000 Hz.
+          type: integer
+          minimum: 8000
+          maximum: 8000
+      required:
+      - type
+      - rate
+    LiveSessionAudioFormatPCMAParam:
+      description: Raw, mono G.711 A-law audio for a Live WebSocket connection.
+      type: object
+      properties:
+        type:
+          description: The audio encoding. Always `audio/pcma`.
+          default: audio/pcma
+          x-stainless-const: true
+          type: string
+          enum:
+          - audio/pcma
+        rate:
+          description: Audio sample rate in hertz. G.711 audio uses 8000 Hz.
+          type: integer
+          minimum: 8000
+          maximum: 8000
+      required:
+      - type
+      - rate
+    LiveAudioFormat:
+      description: Audio encoding and sample rate for audio sent and received over a Live WebSocket connection. WebRTC and SIP negotiate their media format separately.
+      discriminator:
+        propertyName: type
+      anyOf:
+      - $ref: '#/components/schemas/LiveSessionAudioFormatPCMParam'
+      - $ref: '#/components/schemas/LiveSessionAudioFormatPCMUParam'
+      - $ref: '#/components/schemas/LiveSessionAudioFormatPCMAParam'
+    LiveInitialSessionAudioParam:
+      description: Startup audio configuration. Only primary WebSockets accept audio.format; WebRTC and SIP negotiate their media format. Voice and format are immutable after startup.
+      type: object
+      properties:
+        format:
+          description: Audio encoding and sample rate for audio sent and received over a Live WebSocket connection. WebRTC and SIP negotiate their media format separately.
+          $ref: '#/components/schemas/LiveAudioFormat'
+        output:
+          description: The voice used for speech generated by the Live model.
+          $ref: '#/components/schemas/LiveInitialSessionAudioOutputParam'
+      required: []
+    LiveSessionCreateParams:
+      description: Initial configuration for a Live session, including its model, conversation instructions, audio, and delegated task handling.
+      type: object
+      properties:
+        model:
+          $ref: '#/components/schemas/ModelIdsLive'
+        instructions:
+          anyOf:
+          - description: Frontend instructions for voice, conversation, interruptions, and when to delegate. Start with the [Live prompting guide](https://developers.openai.com/api/docs/guides/live-prompting); put business rules and tool workflows in a separate [backend prompt](https://developers.openai.com/api/docs/guides/live-delegation#start-with-your-existing-backend-prompt). Limited to 16,384 client-supplied tokens. Omitted or blank instructions use server defaults. Immutable after startup.
+            type: string
+          - type: 'null'
+        input:
+          description: Ordered text-only history supplied before startup. Supports developer, user, and assistant messages with one text part each; at most 128 messages and 8,192 rendered tokens in total.
+          type: array
+          items:
+            $ref: '#/components/schemas/LiveInitialItem'
+          maxItems: 128
+        audio:
+          description: Startup audio configuration. Only primary WebSockets accept audio.format; WebRTC and SIP negotiate their media format. Voice and format are immutable after startup.
+          $ref: '#/components/schemas/LiveInitialSessionAudioParam'
+        delegation:
+          anyOf:
+          - description: Who handles tasks delegated by the Live model. Omitted or null selects your application; use `responses` to let the API manage a Responses backend.
+            discriminator:
+              propertyName: type
+            anyOf:
+            - $ref: '#/components/schemas/LiveClientDelegationParam'
+            - $ref: '#/components/schemas/LiveResponsesDelegationParam'
+          - type: 'null'
+        store:
+          description: Whether to store the session for later forking and recording download. Defaults to false for new sessions.
+          type: boolean
+        client:
+          description: Startup-only capabilities for an untrusted frontend attached to a unified WebRTC session. Trusted sideband connections are unaffected.
+          $ref: '#/components/schemas/LiveClientConfigParam'
+      required:
+      - model
+    LiveSessionStartEvent:
+      description: Start a Live session on a primary WebSocket. Send this event before other commands and wait for `session.started`.
+      example:
+        type: session.start
+        event_id: evt_start_001
+        session:
+          model: gpt-live-1
+          instructions: Help the caller plan a restaurant reservation. Confirm details before booking.
+          audio:
+            format:
+              type: audio/pcm
+              rate: 24000
+            output:
+              voice: marin
+          delegation:
+            type: client
+      type: object
+      properties:
+        event_id:
+          anyOf:
+          - description: Optional client identifier for correlating this command with a server event's client_event_id or error.client_event_id.
+            type: string
+            maxLength: 512
+          - type: 'null'
+        type:
+          description: The Live client event type. Always `session.start`.
+          default: session.start
+          x-stainless-const: true
+          type: string
+          enum:
+          - session.start
+        session:
+          description: Initial configuration for a primary WebSocket. Send session.start first and wait for session.started before application commands. WebRTC creation already starts the session; do not send this event again on its data channel.
+          $ref: '#/components/schemas/LiveSessionCreateParams'
+      required:
+      - type
+      - session
+      x-oaiMeta:
+        example:
+          type: session.start
+          event_id: evt_start_001
+          session:
+            model: gpt-live-1
+            instructions: Help the caller plan a restaurant reservation. Confirm details before booking.
+            audio:
+              format:
+                type: audio/pcm
+                rate: 24000
+              output:
+                voice: marin
+            delegation:
+              type: client
+    LiveSessionUpdateParams:
+      description: Changes to an active Live session. Only delegation backend settings can be updated after startup.
+      type: object
+      properties:
+        delegation:
+          anyOf:
+          - description: Delegation settings to update. The delegation type must match the current session; omitted settings retain their values.
+            discriminator:
+              propertyName: type
+            anyOf:
+            - $ref: '#/components/schemas/LiveClientDelegationParam'
+            - $ref: '#/components/schemas/LiveResponsesDelegationUpdateParam'
+          - type: 'null'
+      required: []
+    LiveSessionUpdateParam:
+      description: Update the delegation settings of an active Live session. The server acknowledges accepted changes with `session.updated`.
+      example:
+        type: session.update
+        event_id: evt_update_001
+        session:
+          delegation:
+            type: responses
+            responses:
+              instructions: Check restaurant availability. Ask before confirming a booking.
+              max_output_tokens: 1024
+      type: object
+      properties:
+        event_id:
+          anyOf:
+          - description: Optional client identifier for correlating this command with a server event's client_event_id or error.client_event_id.
+            type: string
+            maxLength: 512
+          - type: 'null'
+        type:
+          description: The Live client event type. Always `session.update`.
+          default: session.update
+          x-stainless-const: true
+          type: string
+          enum:
+          - session.update
+        session:
+          description: Sparse delegation updates. Omitted settings retain their values. The delegation type cannot change, including resetting Responses delegation to null or client. Model, frontend instructions, audio, and startup input are immutable.
+          $ref: '#/components/schemas/LiveSessionUpdateParams'
+      required:
+      - type
+      - session
+      x-oaiMeta:
+        example:
+          type: session.update
+          event_id: evt_update_001
+          session:
+            delegation:
+              type: responses
+              responses:
+                instructions: Check restaurant availability. Ask before confirming a booking.
+                max_output_tokens: 1024
+    LiveInputAudioAppendEvent:
+      description: Send audio to a Live session over its primary WebSocket. WebRTC and SIP sessions send audio over their media transport.
+      example:
+        type: session.input_audio.append
+        audio: AACAAIAAAIAAAP9/AIAAgA==
+      type: object
+      properties:
+        event_id:
+          anyOf:
+          - description: Optional client identifier for correlating this command with a server event's client_event_id or error.client_event_id.
+            type: string
+            maxLength: 512
+          - type: 'null'
+        type:
+          description: The Live client event type. Always `session.input_audio.append`.
+          default: session.input_audio.append
+          x-stainless-const: true
+          type: string
+          enum:
+          - session.input_audio.append
+        audio:
+          description: Base64-encoded raw audio in the startup-selected format, without a WAV or other container header. Primary WebSocket only; media transports use their audio track. Audio appends have no acknowledgment. Reflected sideband server events reuse this event type and audio key, with no timestamps or event_id; their audio is always mono PCM16LE at 24 kHz.
+          type: string
+          minLength: 1
+      required:
+      - type
+      - audio
+      x-oaiMeta:
+        example:
+          type: session.input_audio.append
+          audio: AACAAIAAAIAAAP9/AIAAgA==
+    LiveInputAudioMuteParam:
+      description: Mute audio input to the Live model without closing the session. The server acknowledges with `session.input_audio.muted`.
+      example:
+        type: session.input_audio.mute
+        event_id: evt_mute_001
+      type: object
+      properties:
+        event_id:
+          anyOf:
+          - description: Optional client identifier for correlating this command with a server event's client_event_id or error.client_event_id.
+            type: string
+            maxLength: 512
+          - type: 'null'
+        type:
+          description: The Live client event type. Always `session.input_audio.mute`.
+          default: session.input_audio.mute
+          x-stainless-const: true
+          type: string
+          enum:
+          - session.input_audio.mute
+      required:
+      - type
+      x-oaiMeta:
+        example:
+          type: session.input_audio.mute
+          event_id: evt_mute_001
+    LiveInputAudioUnmuteParam:
+      description: Resume audio input to a Live model after muting it. The server acknowledges with `session.input_audio.unmuted`.
+      example:
+        type: session.input_audio.unmute
+        event_id: evt_unmute_001
+      type: object
+      properties:
+        event_id:
+          anyOf:
+          - description: Optional client identifier for correlating this command with a server event's client_event_id or error.client_event_id.
+            type: string
+            maxLength: 512
+          - type: 'null'
+        type:
+          description: The Live client event type. Always `session.input_audio.unmute`.
+          default: session.input_audio.unmute
+          x-stainless-const: true
+          type: string
+          enum:
+          - session.input_audio.unmute
+      required:
+      - type
+      x-oaiMeta:
+        example:
+          type: session.input_audio.unmute
+          event_id: evt_unmute_001
+    LiveInstructionsAppendParam:
+      description: Append instructions to the Live conversation while it is running, optionally associating them with an existing client delegation.
+      example:
+        type: session.instructions.append
+        event_id: evt_instructions_001
+        delegation_id: null
+        content: The caller prefers outdoor seating.
+      type: object
+      properties:
+        event_id:
+          anyOf:
+          - description: Optional client identifier for correlating this command with a server event's client_event_id or error.client_event_id.
+            type: string
+            maxLength: 512
+          - type: 'null'
+        type:
+          description: The Live client event type. Always `session.instructions.append`.
+          default: session.instructions.append
+          x-stainless-const: true
+          type: string
+          enum:
+          - session.instructions.append
+        delegation_id:
+          anyOf:
+          - description: Required, nullable. Set null for general session context, or use the ID from session.delegation.created for an existing client delegation. Non-null IDs are not accepted with Responses delegation.
+            type: string
+            minLength: 1
+          - type: 'null'
+        content:
+          description: Instruction text to append, limited to 500 tokens. This is a plain string, not an array of content parts.
+          type: string
+      required:
+      - type
+      - delegation_id
+      - content
+      x-oaiMeta:
+        example:
+          type: session.instructions.append
+          event_id: evt_instructions_001
+          delegation_id: null
+          content: The caller prefers outdoor seating.
+    LiveThinkingAppendParam:
+      description: Provide silent reasoning or progress context to the Live model, optionally for an existing client delegation.
+      example:
+        type: session.thinking.append
+        event_id: evt_thinking_001
+        delegation_id: del_abc123
+        content: Checking availability for two guests at 7 PM.
+      type: object
+      properties:
+        event_id:
+          anyOf:
+          - description: Optional client identifier for correlating this command with a server event's client_event_id or error.client_event_id.
+            type: string
+            maxLength: 512
+          - type: 'null'
+        type:
+          description: The Live client event type. Always `session.thinking.append`.
+          default: session.thinking.append
+          x-stainless-const: true
+          type: string
+          enum:
+          - session.thinking.append
+        delegation_id:
+          anyOf:
+          - description: Required, nullable. Set null for general session context, or use the ID from session.delegation.created for an existing client delegation. Non-null IDs are not accepted with Responses delegation.
+            type: string
+            minLength: 1
+          - type: 'null'
+        content:
+          description: Silent reasoning or progress context, limited to 500 tokens. It does not directly request speech, but can influence later speech and is not a secrecy boundary.
+          type: string
+      required:
+      - type
+      - delegation_id
+      - content
+      x-oaiMeta:
+        example:
+          type: session.thinking.append
+          event_id: evt_thinking_001
+          delegation_id: del_abc123
+          content: Checking availability for two guests at 7 PM.
+    LiveCommentaryAppendParam:
+      description: Provide context the Live model can communicate to the user, optionally for an existing client delegation.
+      example:
+        type: session.commentary.append
+        event_id: evt_commentary_001
+        delegation_id: del_abc123
+        content: There is an outdoor table for two at 7 PM. Ask whether to reserve it.
+      type: object
+      properties:
+        event_id:
+          anyOf:
+          - description: Optional client identifier for correlating this command with a server event's client_event_id or error.client_event_id.
+            type: string
+            maxLength: 512
+          - type: 'null'
+        type:
+          description: The Live client event type. Always `session.commentary.append`.
+          default: session.commentary.append
+          x-stainless-const: true
+          type: string
+          enum:
+          - session.commentary.append
+        delegation_id:
+          anyOf:
+          - description: Required, nullable. Set null for general session context, or use the ID from session.delegation.created for an existing client delegation. Non-null IDs are not accepted with Responses delegation.
+            type: string
+            minLength: 1
+          - type: 'null'
+        content:
+          description: Speakable context for the Live model, limited to 500 tokens. Use this for a result the model should communicate; use session.thinking.append for silent context.
+          type: string
+      required:
+      - type
+      - delegation_id
+      - content
+      x-oaiMeta:
+        example:
+          type: session.commentary.append
+          event_id: evt_commentary_001
+          delegation_id: del_abc123
+          content: There is an outdoor table for two at 7 PM. Ask whether to reserve it.
+    LiveResponseItemCreateParam:
+      description: Add an input item to the Live session’s Responses backend. Requires Responses delegation; use `response.create` to request a response.
+      example:
+        type: response.item.create
+        event_id: evt_item_001
+        item:
+          type: message
+          role: user
+          content:
+          - type: input_text
+            text: Please check for a table for two at 7 PM.
+      type: object
+      properties:
+        event_id:
+          anyOf:
+          - description: Optional client identifier for correlating this command with a server event's client_event_id or error.client_event_id.
+            type: string
+            maxLength: 512
+          - type: 'null'
+        type:
+          description: The Live client event type. Always `response.item.create`.
+          default: response.item.create
+          x-stainless-const: true
+          type: string
+          enum:
+          - response.item.create
+        item:
+          description: An input item to append to the Responses backend conversation, such as a user message or a function tool result.
+          $ref: '#/components/schemas/InputItem'
+      required:
+      - type
+      - item
+      x-oaiMeta:
+        example:
+          type: response.item.create
+          event_id: evt_item_001
+          item:
+            type: message
+            role: user
+            content:
+            - type: input_text
+              text: Please check for a table for two at 7 PM.
+    LiveResponseCreateParam:
+      description: Request a response from the Live session’s Responses backend, or continue a delegated response waiting for tool results. Requires Responses delegation.
+      example:
+        type: response.create
+        event_id: evt_response_001
+      type: object
+      properties:
+        event_id:
+          anyOf:
+          - description: Optional client identifier for correlating this command with a server event's client_event_id or error.client_event_id.
+            type: string
+            maxLength: 512
+          - type: 'null'
+        type:
+          description: The Live client event type. Always `response.create`.
+          default: response.create
+          x-stainless-const: true
+          type: string
+          enum:
+          - response.create
+      required:
+      - type
+      x-oaiMeta:
+        example:
+          type: response.create
+          event_id: evt_response_001
+    LiveSessionCloseParam:
+      description: Request that the Live session close. The terminal `session.closed` event contains the close reason and final usage.
+      example:
+        type: session.close
+        event_id: evt_close_001
+      type: object
+      properties:
+        event_id:
+          anyOf:
+          - description: Optional client identifier for correlating this command with a server event's client_event_id or error.client_event_id.
+            type: string
+            maxLength: 512
+          - type: 'null'
+        type:
+          description: The Live client event type. Always `session.close`.
+          default: session.close
+          x-stainless-const: true
+          type: string
+          enum:
+          - session.close
+      required:
+      - type
+      x-oaiMeta:
+        example:
+          type: session.close
+          event_id: evt_close_001
+    LiveForkAudioParam:
+      description: Audio format for the new WebSocket connection to a forked Live session. The stored voice is preserved.
+      type: object
+      properties:
+        format:
+          description: Audio encoding and sample rate for audio sent and received over a Live WebSocket connection. WebRTC and SIP negotiate their media format separately.
+          $ref: '#/components/schemas/LiveAudioFormat'
+      required: []
+    LiveForkSessionConfigParam:
+      description: Overrides for a stored session after connecting to the fork WebSocket. An empty object inherits the stored configuration; do not supply a new model. audio.format applies only to the new WebSocket connection. client overrides are only supported for WebRTC forks.
+      type: object
+      properties:
+        audio:
+          description: Audio format for a WebSocket fork. WebRTC forks negotiate their audio format and must omit this field.
+          $ref: '#/components/schemas/LiveForkAudioParam'
+        delegation:
+          description: Overrides for the stored session’s Responses backend. Only supported when the stored session already uses Responses delegation; the delegation type cannot change.
+          $ref: '#/components/schemas/LiveResponsesDelegationUpdateParam'
+        store:
+          description: Whether to store the forked session. Omission inherits the stored session's setting.
+          type: boolean
+        client:
+          description: Frontend data-channel permissions for a WebRTC fork. Omitted permissions inherit the stored values. Not supported for WebSocket forks.
+          $ref: '#/components/schemas/LiveClientConfigParam'
+      required: []
+    LiveForkSessionStartEvent:
+      description: Start a Live session after connecting to a stored session’s fork WebSocket. Send an empty `session` object to use the stored configuration.
+      example:
+        type: session.start
+        session: {}
+      type: object
+      properties:
+        event_id:
+          anyOf:
+          - description: Optional client identifier for correlating this command with a server event's client_event_id or error.client_event_id.
+            type: string
+            maxLength: 512
+          - type: 'null'
+        type:
+          description: The Live client event type. Always `session.start`.
+          default: session.start
+          x-stainless-const: true
+          type: string
+          enum:
+          - session.start
+        session:
+          description: Overrides for a stored session after connecting to the fork WebSocket. An empty object inherits the stored configuration; do not supply a new model. audio.format applies only to the new WebSocket connection. client overrides are only supported for WebRTC forks.
+          $ref: '#/components/schemas/LiveForkSessionConfigParam'
+      required:
+      - type
+      - session
+      x-oaiMeta:
+        example:
+          type: session.start
+          session: {}
+    LiveSessionResourceParam:
+      description: The resolved Live session configuration and server-assigned session metadata.
+      type: object
+      properties:
+        model:
+          $ref: '#/components/schemas/ModelIdsLive'
+        instructions:
+          anyOf:
+          - description: Frontend instructions for voice, conversation, interruptions, and when to delegate. Start with the [Live prompting guide](https://developers.openai.com/api/docs/guides/live-prompting); put business rules and tool workflows in a separate [backend prompt](https://developers.openai.com/api/docs/guides/live-delegation#start-with-your-existing-backend-prompt). Limited to 16,384 client-supplied tokens. Omitted or blank instructions use server defaults. Immutable after startup.
+            type: string
+          - type: 'null'
+        input:
+          description: Ordered text-only history supplied before startup. Supports developer, user, and assistant messages with one text part each; at most 128 messages and 8,192 rendered tokens in total.
+          type: array
+          items:
+            $ref: '#/components/schemas/LiveInitialItem'
+          maxItems: 128
+        audio:
+          description: Startup audio configuration. Only primary WebSockets accept audio.format; WebRTC and SIP negotiate their media format. Voice and format are immutable after startup.
+          $ref: '#/components/schemas/LiveInitialSessionAudioParam'
+        delegation:
+          anyOf:
+          - description: Who handles tasks delegated by the Live model. Omitted or null selects your application; use `responses` to let the API manage a Responses backend.
+            discriminator:
+              propertyName: type
+            anyOf:
+            - $ref: '#/components/schemas/LiveClientDelegationParam'
+            - $ref: '#/components/schemas/LiveResponsesDelegationParam'
+          - type: 'null'
+        store:
+          description: Whether to store the session for later forking and recording download. Defaults to false for new sessions.
+          type: boolean
+        client:
+          description: Startup-only capabilities for an untrusted frontend attached to a unified WebRTC session. Trusted sideband connections are unaffected.
+          $ref: '#/components/schemas/LiveClientConfigParam'
+        id:
+          description: The unique ID of the Live session. Use this ID for sideband connections, forking, and recording download.
+          type: string
+        expires_at:
+          description: The Unix timestamp, in seconds, at which the Live session expires.
+          type: integer
+        status:
+          description: The status of the session snapshot. Always `active`, including the final snapshot in session.closed; use the event type to determine that the session has closed.
+          default: active
+          x-stainless-const: true
+          type: string
+          enum:
+          - active
+      required:
+      - model
+      - id
+      - expires_at
+      - status
+    LiveSessionStarted:
+      description: Returned when a Live session has started. Contains the resolved session configuration, including server defaults.
+      example:
+        type: session.started
+        event_id: evt_started_001
+        client_event_id: evt_start_001
+        session:
+          id: live_abc123
+          model: gpt-live-1
+          status: active
+          expires_at: 1788555600
+          instructions: Help the caller plan a restaurant reservation. Confirm details before booking.
+          input: []
+          audio:
+            format:
+              type: audio/pcm
+              rate: 24000
+            output:
+              voice: marin
+          delegation:
+            type: client
+      type: object
+      properties:
+        type:
+          description: The event type, always `session.started`.
+          default: session.started
+          x-stainless-const: true
+          type: string
+          enum:
+          - session.started
+        event_id:
+          description: The unique ID of the Live server event.
+          type: string
+        client_event_id:
+          description: The event_id of the client command associated with this server event, when supplied.
+          type: string
+        session:
+          $ref: '#/components/schemas/LiveSessionResourceParam'
+      required:
+      - type
+      - event_id
+      - session
+      x-oaiMeta:
+        example:
+          type: session.started
+          event_id: evt_started_001
+          client_event_id: evt_start_001
+          session:
+            id: live_abc123
+            model: gpt-live-1
+            status: active
+            expires_at: 1788555600
+            instructions: Help the caller plan a restaurant reservation. Confirm details before booking.
+            input: []
+            audio:
+              format:
+                type: audio/pcm
+                rate: 24000
+              output:
+                voice: marin
+            delegation:
+              type: client
+    LiveSessionUpdated:
+      description: Returned when a Live session update is accepted. Contains the resolved session configuration after the update.
+      example:
+        type: session.updated
+        event_id: evt_updated_001
+        client_event_id: evt_update_001
+        session:
+          id: live_def456
+          model: gpt-live-1
+          status: active
+          expires_at: 1788555600
+          instructions: Help the caller plan a restaurant reservation. Confirm details before booking.
+          input: []
+          audio:
+            format:
+              type: audio/pcm
+              rate: 24000
+            output:
+              voice: marin
+          delegation:
+            type: responses
+            responses:
+              model: gpt-6-astra
+              instructions: Check restaurant availability. Ask before confirming a booking.
+              max_output_tokens: 1024
+              tools: []
+      type: object
+      properties:
+        type:
+          description: The event type, always `session.updated`.
+          default: session.updated
+          x-stainless-const: true
+          type: string
+          enum:
+          - session.updated
+        event_id:
+          description: The unique ID of the Live server event.
+          type: string
+        client_event_id:
+          description: The event_id of the client command associated with this server event, when supplied.
+          type: string
+        session:
+          $ref: '#/components/schemas/LiveSessionResourceParam'
+      required:
+      - type
+      - event_id
+      - session
+      x-oaiMeta:
+        example:
+          type: session.updated
+          event_id: evt_updated_001
+          client_event_id: evt_update_001
+          session:
+            id: live_def456
+            model: gpt-live-1
+            status: active
+            expires_at: 1788555600
+            instructions: Help the caller plan a restaurant reservation. Confirm details before booking.
+            input: []
+            audio:
+              format:
+                type: audio/pcm
+                rate: 24000
+              output:
+                voice: marin
+            delegation:
+              type: responses
+              responses:
+                model: gpt-6-astra
+                instructions: Check restaurant availability. Ask before confirming a booking.
+                max_output_tokens: 1024
+                tools: []
+    LiveInputAudioMuted:
+      description: Returned when a session.input_audio.mute command is accepted. Input audio is no longer sent to the model; sideband audio reflection continues.
+      example:
+        type: session.input_audio.muted
+        event_id: evt_muted_001
+        client_event_id: evt_mute_001
+      type: object
+      properties:
+        event_id:
+          description: The unique ID of the Live server event.
+          type: string
+        client_event_id:
+          description: The event_id of the client command associated with this server event, when supplied.
+          type: string
+        type:
+          description: The event type, always `session.input_audio.muted`.
+          default: session.input_audio.muted
+          x-stainless-const: true
+          type: string
+          enum:
+          - session.input_audio.muted
+      required:
+      - event_id
+      - type
+      x-oaiMeta:
+        example:
+          type: session.input_audio.muted
+          event_id: evt_muted_001
+          client_event_id: evt_mute_001
+    LiveInputAudioUnmuted:
+      description: Returned when a session.input_audio.unmute command is accepted. Input audio is sent to the model again.
+      example:
+        type: session.input_audio.unmuted
+        event_id: evt_unmuted_001
+        client_event_id: evt_unmute_001
+      type: object
+      properties:
+        event_id:
+          description: The unique ID of the Live server event.
+          type: string
+        client_event_id:
+          description: The event_id of the client command associated with this server event, when supplied.
+          type: string
+        type:
+          description: The event type, always `session.input_audio.unmuted`.
+          default: session.input_audio.unmuted
+          x-stainless-const: true
+          type: string
+          enum:
+          - session.input_audio.unmuted
+      required:
+      - event_id
+      - type
+      x-oaiMeta:
+        example:
+          type: session.input_audio.unmuted
+          event_id: evt_unmuted_001
+          client_event_id: evt_unmute_001
+    LiveInstructionsAppended:
+      description: Returned when a session.instructions.append command is accepted into the Live session timeline. Acknowledges the appended instructions without guaranteeing that the model has acted on them.
+      example:
+        type: session.instructions.appended
+        event_id: evt_instructions_002
+        client_event_id: evt_instructions_001
+        start_ms: 1200
+        end_ms: 1400
+      type: object
+      properties:
+        event_id:
+          description: The unique ID of the Live server event.
+          type: string
+        client_event_id:
+          description: The event_id of the client command associated with this server event, when supplied.
+          type: string
+        start_ms:
+          description: The start of this event on the Live session timeline, in milliseconds from the beginning of the session.
+          type: integer
+        end_ms:
+          description: The end of this event on the Live session timeline, in milliseconds from the beginning of the session. For appended context, this can equal start_ms.
+          type: integer
+        type:
+          description: The event type, always `session.instructions.appended`.
+          default: session.instructions.appended
+          x-stainless-const: true
+          type: string
+          enum:
+          - session.instructions.appended
+      required:
+      - event_id
+      - start_ms
+      - end_ms
+      - type
+      x-oaiMeta:
+        example:
+          type: session.instructions.appended
+          event_id: evt_instructions_002
+          client_event_id: evt_instructions_001
+          start_ms: 1200
+          end_ms: 1400
+    LiveThinkingAppended:
+      description: Returned when a session.thinking.append command is accepted into the Live session timeline. Acknowledges the added reasoning context without guaranteeing any spoken output.
+      example:
+        type: session.thinking.appended
+        event_id: evt_thinking_002
+        client_event_id: evt_thinking_001
+        start_ms: 4600
+        end_ms: 4800
+      type: object
+      properties:
+        event_id:
+          description: The unique ID of the Live server event.
+          type: string
+        client_event_id:
+          description: The event_id of the client command associated with this server event, when supplied.
+          type: string
+        start_ms:
+          description: The start of this event on the Live session timeline, in milliseconds from the beginning of the session.
+          type: integer
+        end_ms:
+          description: The end of this event on the Live session timeline, in milliseconds from the beginning of the session. For appended context, this can equal start_ms.
+          type: integer
+        type:
+          description: The event type, always `session.thinking.appended`.
+          default: session.thinking.appended
+          x-stainless-const: true
+          type: string
+          enum:
+          - session.thinking.appended
+      required:
+      - event_id
+      - start_ms
+      - end_ms
+      - type
+      x-oaiMeta:
+        example:
+          type: session.thinking.appended
+          event_id: evt_thinking_002
+          client_event_id: evt_thinking_001
+          start_ms: 4600
+          end_ms: 4800
+    LiveCommentaryAppended:
+      description: Returned when a session.commentary.append command is accepted into the Live session timeline. Acknowledges the added commentary without guaranteeing exact wording or completed audio playback.
+      example:
+        type: session.commentary.appended
+        event_id: evt_commentary_002
+        client_event_id: evt_commentary_001
+        start_ms: 5200
+        end_ms: 5400
+      type: object
+      properties:
+        event_id:
+          description: The unique ID of the Live server event.
+          type: string
+        client_event_id:
+          description: The event_id of the client command associated with this server event, when supplied.
+          type: string
+        start_ms:
+          description: The start of this event on the Live session timeline, in milliseconds from the beginning of the session.
+          type: integer
+        end_ms:
+          description: The end of this event on the Live session timeline, in milliseconds from the beginning of the session. For appended context, this can equal start_ms.
+          type: integer
+        type:
+          description: The event type, always `session.commentary.appended`.
+          default: session.commentary.appended
+          x-stainless-const: true
+          type: string
+          enum:
+          - session.commentary.appended
+      required:
+      - event_id
+      - start_ms
+      - end_ms
+      - type
+      x-oaiMeta:
+        example:
+          type: session.commentary.appended
+          event_id: evt_commentary_002
+          client_event_id: evt_commentary_001
+          start_ms: 5200
+          end_ms: 5400
+    LiveInputAudioAppend:
+      description: Input audio received from the primary transport and reflected to a Live sideband connection before model-input muting.
+      example:
+        type: session.input_audio.append
+        audio: AACAAIAAAIAAAP9/AIAAgA==
+      type: object
+      properties:
+        type:
+          description: The event type, always `session.input_audio.append`.
+          default: session.input_audio.append
+          x-stainless-const: true
+          type: string
+          enum:
+          - session.input_audio.append
+        audio:
+          description: Base64-encoded raw mono PCM16LE at 24 kHz received from the primary transport, reflected to the sideband before model-input muting. This server event uses the same audio key as the client command, but is not an acknowledgment of it.
+          type: string
+      required:
+      - type
+      - audio
+      x-oaiMeta:
+        example:
+          type: session.input_audio.append
+          audio: AACAAIAAAIAAAP9/AIAAgA==
+    LiveOutputAudioDelta:
+      description: An audio chunk generated by the Live model. Decode and play primary WebSocket chunks in delivery order using the configured session audio format. Sideband connections receive reflected output audio with timestamps.
+      example:
+        type: session.output_audio.delta
+        delta: AACAAIAAAIAAAP9/AIAAgA==
+        start_ms: 1000
+        end_ms: 1200
+      type: object
+      properties:
+        type:
+          description: The event type, always `session.output_audio.delta`.
+          default: session.output_audio.delta
+          x-stainless-const: true
+          type: string
+          enum:
+          - session.output_audio.delta
+        delta:
+          description: Base64-encoded raw audio. Primary WebSocket events use the session's configured format; reflected sideband events use mono PCM16LE at 24 kHz.
+          type: string
+        start_ms:
+          description: Inclusive session-relative start in milliseconds. Required on reflected sideband events; omitted on the primary WebSocket.
+          type: integer
+        end_ms:
+          description: Exclusive session-relative end in milliseconds. Required on reflected sideband events; omitted on the primary WebSocket. Dropped output frames leave gaps between reflected ranges.
+          type: integer
+      required:
+      - type
+      - delta
+      x-oaiMeta:
+        example:
+          type: session.output_audio.delta
+          delta: AACAAIAAAIAAAP9/AIAAgA==
+          start_ms: 1000
+          end_ms: 1200
+    LiveInputTranscriptDelta:
+      description: A transcript fragment for user input audio in the Live session. Accumulate fragments in delivery order; these events do not define complete turns or include a transcript-done event.
+      example:
+        type: session.input_transcript.delta
+        event_id: evt_input_transcript_001
+        delta: A table for two at seven, please.
+        start_ms: 1600
+        end_ms: 3400
+      type: object
+      properties:
+        event_id:
+          description: The unique ID of the Live server event.
+          type: string
+        client_event_id:
+          description: The event_id of the client command associated with this server event, when supplied.
+          type: string
+        start_ms:
+          description: The start of this event on the Live session timeline, in milliseconds from the beginning of the session.
+          type: integer
+        end_ms:
+          description: The end of this event on the Live session timeline, in milliseconds from the beginning of the session. For appended context, this can equal start_ms.
+          type: integer
+        delta:
+          description: The transcript text fragment for the audio in this time range. Append fragments in delivery order to build the transcript.
+          type: string
+        type:
+          description: The event type, always `session.input_transcript.delta`.
+          default: session.input_transcript.delta
+          x-stainless-const: true
+          type: string
+          enum:
+          - session.input_transcript.delta
+      required:
+      - event_id
+      - start_ms
+      - end_ms
+      - delta
+      - type
+      x-oaiMeta:
+        example:
+          type: session.input_transcript.delta
+          event_id: evt_input_transcript_001
+          delta: A table for two at seven, please.
+          start_ms: 1600
+          end_ms: 3400
+    LiveOutputTranscriptDelta:
+      description: A transcript fragment for assistant output audio in the Live session. Accumulate fragments in delivery order; these events do not define complete turns or include a transcript-done event.
+      example:
+        type: session.output_transcript.delta
+        event_id: evt_output_transcript_001
+        delta: Would you like me to reserve that table?
+        start_ms: 5400
+        end_ms: 7200
+      type: object
+      properties:
+        event_id:
+          description: The unique ID of the Live server event.
+          type: string
+        client_event_id:
+          description: The event_id of the client command associated with this server event, when supplied.
+          type: string
+        start_ms:
+          description: The start of this event on the Live session timeline, in milliseconds from the beginning of the session.
+          type: integer
+        end_ms:
+          description: The end of this event on the Live session timeline, in milliseconds from the beginning of the session. For appended context, this can equal start_ms.
+          type: integer
+        delta:
+          description: The transcript text fragment for the audio in this time range. Append fragments in delivery order to build the transcript.
+          type: string
+        type:
+          description: The event type, always `session.output_transcript.delta`.
+          default: session.output_transcript.delta
+          x-stainless-const: true
+          type: string
+          enum:
+          - session.output_transcript.delta
+      required:
+      - event_id
+      - start_ms
+      - end_ms
+      - delta
+      - type
+      x-oaiMeta:
+        example:
+          type: session.output_transcript.delta
+          event_id: evt_output_transcript_001
+          delta: Would you like me to reserve that table?
+          start_ms: 5400
+          end_ms: 7200
+    LiveDelegationItem:
+      description: Metadata for work delegated by the Live model. Client delegations are handled by your application; Responses delegations run on the configured backend.
+      type: object
+      properties:
+        id:
+          description: The unique ID of the delegation. Use this as delegation_id when replying to client-owned work or correlating Responses events.
+          type: string
+        type:
+          description: The object type, always `delegation`.
+          default: delegation
+          x-stainless-const: true
+          type: string
+          enum:
+          - delegation
+        target:
+          description: 'Where the Live model delegated the work: `client` for your application, or `responses` for the configured Responses backend.'
+          anyOf:
+          - default: client
+            x-stainless-const: true
+            type: string
+            enum:
+            - client
+          - default: responses
+            x-stainless-const: true
+            type: string
+            enum:
+            - responses
+        response_id:
+          description: The ID of the Responses API response associated with a Responses delegation. Omitted for client delegations.
+          type: string
+      required:
+      - id
+      - type
+      - target
+    LiveDelegationCreated:
+      description: Returned when the Live model delegates work to your application or a Responses backend. Contains delegation metadata and the position on the session timeline where the work was delegated.
+      example:
+        type: session.delegation.created
+        event_id: evt_delegation_001
+        offset_ms: 3600
+        delegation:
+          id: del_abc123
+          type: delegation
+          target: client
+      type: object
+      properties:
+        event_id:
+          description: The unique ID of the Live server event.
+          type: string
+        client_event_id:
+          description: The event_id of the client command associated with this server event, when supplied.
+          type: string
+        type:
+          description: The event type, always `session.delegation.created`.
+          default: session.delegation.created
+          x-stainless-const: true
+          type: string
+          enum:
+          - session.delegation.created
+        offset_ms:
+          description: The position on the Live session timeline where the delegation was created, in milliseconds from the beginning of the session.
+          type: integer
+        delegation:
+          description: The delegated work identifier and destination. This object contains metadata, not the task text.
+          $ref: '#/components/schemas/LiveDelegationItem'
+      required:
+      - event_id
+      - type
+      - offset_ms
+      - delegation
+      x-oaiMeta:
+        example:
+          type: session.delegation.created
+          event_id: evt_delegation_001
+          offset_ms: 3600
+          delegation:
+            id: del_abc123
+            type: delegation
+            target: client
+    LiveResponseEvent:
+      description: A streaming Responses API event from a backend delegated to by the Live session. Use the outer delegation_id to associate the nested stream with its Live delegation.
+      example:
+        type: response.event
+        event_id: evt_response_002
+        delegation_id: del_responses123
+        event:
+          type: response.output_text.delta
+          item_id: msg_abc123
+          output_index: 0
+          content_index: 0
+          delta: An outdoor table is available at 7 PM.
+          sequence_number: 3
+          logprobs: []
+      type: object
+      properties:
+        event_id:
+          description: The unique ID of the Live server event.
+          type: string
+        client_event_id:
+          description: The event_id of the client command associated with this server event, when supplied.
+          type: string
+        type:
+          description: The event type, always `response.event`.
+          default: response.event
+          x-stainless-const: true
+          type: string
+          enum:
+          - response.event
+        delegation_id:
+          anyOf:
+          - description: The Live delegation associated with the nested Responses event. May be null or omitted when the event cannot be correlated with a delegation.
+            type: string
+          - type: 'null'
+        event:
+          description: The nested Responses streaming event. Dispatch on its type field. Response lifecycle snapshots omit input and clear instructions, tools, and output to keep messages small; consume granular output events for the generated content.
+          type: object
+          additionalProperties: {}
+      required:
+      - event_id
+      - type
+      - event
+      x-oaiMeta:
+        example:
+          type: response.event
+          event_id: evt_response_002
+          delegation_id: del_responses123
+          event:
+            type: response.output_text.delta
+            item_id: msg_abc123
+            output_index: 0
+            content_index: 0
+            delta: An outdoor table is available at 7 PM.
+            sequence_number: 3
+            logprobs: []
+    LiveSessionUsage:
+      description: Cumulative audio duration for a Live session. Values are totals for the session, not increments to sum across usage events.
+      type: object
+      properties:
+        seconds:
+          description: The cumulative Live audio duration in seconds. Do not sum this value across usage events.
+          type: number
+      required:
+      - seconds
+    LiveContextWindowUsage:
+      description: The latest measured context-window usage of the Live model. This is separate from billing usage and delegated Responses token usage.
+      type: object
+      properties:
+        usage_ratio:
+          description: The latest active context token count divided by the Live model context limit. Can decrease after compaction and may lag between measured audio frames.
+          type: number
+      required:
+      - usage_ratio
+    LiveSessionUsageUpdated:
+      description: Reports cumulative Live audio usage and, when available, the most recent context-window usage. Delegated Responses token usage is reported separately in response.event events.
+      example:
+        type: session.usage.updated
+        event_id: evt_usage_001
+        usage:
+          seconds: 32.5
+        context_window:
+          usage_ratio: 0.12
+      type: object
+      properties:
+        event_id:
+          description: The unique ID of the Live server event.
+          type: string
+        client_event_id:
+          description: The event_id of the client command associated with this server event, when supplied.
+          type: string
+        type:
+          description: The event type, always `session.usage.updated`.
+          default: session.usage.updated
+          x-stainless-const: true
+          type: string
+          enum:
+          - session.usage.updated
+        usage:
+          description: The cumulative Live audio usage so far.
+          $ref: '#/components/schemas/LiveSessionUsage'
+        context_window:
+          description: The latest measured Live context-window usage. Omitted when the context limit is unknown.
+          $ref: '#/components/schemas/LiveContextWindowUsage'
+      required:
+      - event_id
+      - type
+      - usage
+      x-oaiMeta:
+        example:
+          type: session.usage.updated
+          event_id: evt_usage_001
+          usage:
+            seconds: 32.5
+          context_window:
+            usage_ratio: 0.12
+    LiveSessionClosed:
+      description: Returned after the Live session finishes finalizing, with the close reason, final session snapshot, and cumulative audio usage. A connection closing without this event does not confirm successful finalization.
+      example:
+        type: session.closed
+        event_id: evt_closed_001
+        client_event_id: evt_close_001
+        reason: close_requested
+        session:
+          id: live_abc123
+          model: gpt-live-1
+          status: active
+          expires_at: 1788555600
+          instructions: Help the caller plan a restaurant reservation. Confirm details before booking.
+          input: []
+          audio:
+            format:
+              type: audio/pcm
+              rate: 24000
+            output:
+              voice: marin
+          delegation:
+            type: client
+        usage:
+          seconds: 45.8
+      type: object
+      properties:
+        event_id:
+          description: The unique ID of the Live server event.
+          type: string
+        client_event_id:
+          description: The event_id of the client command associated with this server event, when supplied.
+          type: string
+        type:
+          description: The event type, always `session.closed`.
+          default: session.closed
+          x-stainless-const: true
+          type: string
+          enum:
+          - session.closed
+        reason:
+          description: 'Why the Live session ended: `close_requested` for an application close or hangup request, `expired` for the session duration limit, `content` for a safety filter, `remote_hangup` for a graceful remote disconnect, or `connection_lost` for an unexpected primary or upstream disconnection.'
+          anyOf:
+          - default: close_requested
+            x-stainless-const: true
+            type: string
+            enum:
+            - close_requested
+          - default: expired
+            x-stainless-const: true
+            type: string
+            enum:
+            - expired
+          - default: content
+            x-stainless-const: true
+            type: string
+            enum:
+            - content
+          - default: remote_hangup
+            x-stainless-const: true
+            type: string
+            enum:
+            - remote_hangup
+          - default: connection_lost
+            x-stainless-const: true
+            type: string
+            enum:
+            - connection_lost
+        session:
+          $ref: '#/components/schemas/LiveSessionResourceParam'
+        usage:
+          description: The final cumulative Live audio usage after session finalization.
+          $ref: '#/components/schemas/LiveSessionUsage'
+      required:
+      - event_id
+      - type
+      - reason
+      - session
+      - usage
+      x-oaiMeta:
+        example:
+          type: session.closed
+          event_id: evt_closed_001
+          client_event_id: evt_close_001
+          reason: close_requested
+          session:
+            id: live_abc123
+            model: gpt-live-1
+            status: active
+            expires_at: 1788555600
+            instructions: Help the caller plan a restaurant reservation. Confirm details before booking.
+            input: []
+            audio:
+              format:
+                type: audio/pcm
+                rate: 24000
+              output:
+                voice: marin
+            delegation:
+              type: client
+          usage:
+            seconds: 45.8
+    LiveLiveError:
+      description: Details of an error encountered by the Live session, including the affected parameter or client command when available.
+      type: object
+      properties:
+        type:
+          description: The category of error, such as `invalid_request_error` for an invalid Live client command.
+          type: string
+        code:
+          description: A machine-readable code identifying the Live error, such as `unknown_parameter`.
+          type: string
+        message:
+          description: A human-readable explanation of the Live error.
+          type: string
+        param:
+          description: The parameter that caused the error, when applicable, such as `session.voice`.
+          type: string
+        client_event_id:
+          description: The event_id of the client command that caused the error, when supplied.
+          type: string
+      required:
+      - type
+      - code
+      - message
+    LiveErrorEvent:
+      description: Reports an error in the Live session, such as an invalid client command. Use error.client_event_id, when present, to identify the command that caused the error.
+      example:
+        type: error
+        event_id: evt_error_001
+        error:
+          type: invalid_request_error
+          code: unknown_parameter
+          message: 'Unknown parameter: ''session.voice''.'
+          param: session.voice
+          client_event_id: evt_invalid_001
+      type: object
+      properties:
+        event_id:
+          description: The unique ID of the Live server event.
+          type: string
+        client_event_id:
+          description: The event_id of the client command associated with this server event, when supplied.
+          type: string
+        type:
+          description: The event type, always `error`.
+          default: error
+          x-stainless-const: true
+          type: string
+          enum:
+          - error
+        error:
+          description: Details of the Live error and the client command that caused it, when known.
+          $ref: '#/components/schemas/LiveLiveError'
+      required:
+      - event_id
+      - type
+      - error
+      x-oaiMeta:
+        example:
+          type: error
+          event_id: evt_error_001
+          error:
+            type: invalid_request_error
+            code: unknown_parameter
+            message: 'Unknown parameter: ''session.voice''.'
+            param: session.voice
+            client_event_id: evt_invalid_001
+    LiveInfoEvent:
+      description: An informational notice about the Live session, such as the event permissions applied to a frontend data channel.
+      example:
+        type: info
+        event_id: evt_info_001
+        code: data_channel_permissions
+        message: The frontend data channel is configured with restricted event permissions.
+      type: object
+      properties:
+        event_id:
+          description: The unique ID of the Live server event.
+          type: string
+        client_event_id:
+          description: The event_id of the client command associated with this server event, when supplied.
+          type: string
+        type:
+          description: The event type, always `info`.
+          default: info
+          x-stainless-const: true
+          type: string
+          enum:
+          - info
+        code:
+          description: A machine-readable code for the notice, such as `data_channel_permissions`.
+          type: string
+        message:
+          description: A human-readable explanation of the Live session notice.
+          type: string
+      required:
+      - event_id
+      - type
+      - code
+      - message
+      x-oaiMeta:
+        example:
+          type: info
+          event_id: evt_info_001
+          code: data_channel_permissions
+          message: The frontend data channel is configured with restricted event permissions.
+    LiveTransportDTMFReceived:
+      description: A SIP DTMF keypress received from the caller. Delivered only to sideband observers.
+      example:
+        type: transport.dtmf.received
+        event_id: event_dtmf_1
+        event: '5'
+      type: object
+      properties:
+        type:
+          default: transport.dtmf.received
+          x-stainless-const: true
+          type: string
+          enum:
+          - transport.dtmf.received
+        event_id:
+          type: string
+        event:
+          type: string
+          minLength: 1
+          maxLength: 1
+          pattern: ^[0-9A-D*#]$
+      required:
+      - type
+      - event_id
+      - event
+      x-oaiMeta:
+        example:
+          type: transport.dtmf.received
+          event_id: event_dtmf_1
+          event: '5'
+    LiveTransportDTMFSend:
+      description: A SIP DTMF keypress successfully sent by the hosted tool. Delivered only to sideband observers; this is not a client command.
+      example:
+        type: transport.dtmf.send
+        event_id: event_dtmf_2
+        event: '#'
+      type: object
+      properties:
+        type:
+          default: transport.dtmf.send
+          x-stainless-const: true
+          type: string
+          enum:
+          - transport.dtmf.send
+        event_id:
+          type: string
+        event:
+          type: string
+          minLength: 1
+          maxLength: 1
+          pattern: ^[0-9A-D*#]$
+      required:
+      - type
+      - event_id
+      - event
+      x-oaiMeta:
+        example:
+          type: transport.dtmf.send
+          event_id: event_dtmf_2
+          event: '#'
+    LiveTransportRinging:
+      description: The outbound SIP provider leg is ringing or providing early media. Delivered only to sideband observers.
+      example:
+        type: transport.ringing
+        event_id: event_call_1
+        session_id: live_u0_123
+      type: object
+      properties:
+        event_id:
+          type: string
+        session_id:
+          description: The canonical Live session ID.
+          type: string
+        type:
+          default: transport.ringing
+          x-stainless-const: true
+          type: string
+          enum:
+          - transport.ringing
+      required:
+      - event_id
+      - session_id
+      - type
+      x-oaiMeta:
+        example:
+          type: transport.ringing
+          event_id: event_call_1
+          session_id: live_u0_123
+    LiveTransportAnswered:
+      description: The outbound SIP provider leg answered and media is established. Delivered only to sideband observers.
+      example:
+        type: transport.answered
+        event_id: event_call_2
+        session_id: live_u0_123
+      type: object
+      properties:
+        event_id:
+          type: string
+        session_id:
+          description: The canonical Live session ID.
+          type: string
+        type:
+          default: transport.answered
+          x-stainless-const: true
+          type: string
+          enum:
+          - transport.answered
+      required:
+      - event_id
+      - session_id
+      - type
+      x-oaiMeta:
+        example:
+          type: transport.answered
+          event_id: event_call_2
+          session_id: live_u0_123
+    LiveTransportCallError:
+      type: object
+      properties:
+        type:
+          default: call_error
+          x-stainless-const: true
+          type: string
+          enum:
+          - call_error
+        code:
+          description: The call setup failure code.
+          type: string
+        message:
+          type: string
+        param:
+          description: The parameter related to the error, if any. Empty when no parameter applies.
+          type: string
+      required:
+      - type
+      - code
+      - message
+    LiveTransportFailed:
+      description: An asynchronous outbound SIP setup failure. Delivered only to sideband observers.
+      example:
+        type: transport.failed
+        event_id: event_call_4
+        session_id: live_u0_123
+        error:
+          type: call_error
+          code: provider_invite_failed
+          message: provider rejected the call
+          param: ''
+      type: object
+      properties:
+        event_id:
+          type: string
+        session_id:
+          description: The canonical Live session ID.
+          type: string
+        type:
+          default: transport.failed
+          x-stainless-const: true
+          type: string
+          enum:
+          - transport.failed
+        error:
+          $ref: '#/components/schemas/LiveTransportCallError'
+      required:
+      - event_id
+      - session_id
+      - type
+      - error
+      x-oaiMeta:
+        example:
+          type: transport.failed
+          event_id: event_call_4
+          session_id: live_u0_123
+          error:
+            type: call_error
+            code: provider_invite_failed
+            message: provider rejected the call
+            param: ''
+    LiveServerEvent-2:
+      description: An event sent by the Live API on a primary WebSocket or sideband connection.
+      discriminator:
+        propertyName: type
+      anyOf:
+      - $ref: '#/components/schemas/LiveSessionStarted'
+      - $ref: '#/components/schemas/LiveSessionUpdated'
+      - $ref: '#/components/schemas/LiveInputAudioMuted'
+      - $ref: '#/components/schemas/LiveInputAudioUnmuted'
+      - $ref: '#/components/schemas/LiveInstructionsAppended'
+      - $ref: '#/components/schemas/LiveThinkingAppended'
+      - $ref: '#/components/schemas/LiveCommentaryAppended'
+      - $ref: '#/components/schemas/LiveInputAudioAppend'
+      - $ref: '#/components/schemas/LiveOutputAudioDelta'
+      - $ref: '#/components/schemas/LiveInputTranscriptDelta'
+      - $ref: '#/components/schemas/LiveOutputTranscriptDelta'
+      - $ref: '#/components/schemas/LiveDelegationCreated'
+      - $ref: '#/components/schemas/LiveResponseEvent'
+      - $ref: '#/components/schemas/LiveSessionUsageUpdated'
+      - $ref: '#/components/schemas/LiveSessionClosed'
+      - $ref: '#/components/schemas/LiveErrorEvent'
+      - $ref: '#/components/schemas/LiveInfoEvent'
+      - $ref: '#/components/schemas/LiveTransportDTMFReceived'
+      - $ref: '#/components/schemas/LiveTransportDTMFSend'
+      - $ref: '#/components/schemas/LiveTransportRinging'
+      - $ref: '#/components/schemas/LiveTransportAnswered'
+      - $ref: '#/components/schemas/LiveTransportFailed'
     UserMessageItemParam:
       properties:
         id:
@@ -71856,27 +74792,21 @@ components:
       title: Code interpreter output logs
       description: The logs output from the code interpreter.
     BetaImageGenToolCall:
-      type: object
-      title: Image generation call
-      description: |
-        An image generation request made by the model.
       properties:
         agent:
           anyOf:
           - $ref: '#/components/schemas/BetaAgentTag'
+            description: The agent that produced this item.
           - type: 'null'
-          description: The agent that produced this item.
         type:
           type: string
           enum:
           - image_generation_call
-          description: |
-            The type of the image generation call. Always `image_generation_call`.
+          description: The type of the image generation call. Always `image_generation_call`.
           x-stainless-const: true
         id:
           type: string
-          description: |
-            The unique ID of the image generation call.
+          description: The unique ID of the image generation call.
         status:
           type: string
           enum:
@@ -71884,24 +74814,23 @@ components:
           - completed
           - generating
           - failed
-          description: |
-            The status of the image generation call.
+          description: The status of the image generation call.
         result:
           anyOf:
           - type: string
-            description: |
-              The generated image encoded in base64.
+            description: The generated image encoded in base64.
           - type: 'null'
         size:
           anyOf:
-          - type: string
-          - type: string
-            enum:
-            - 1024x1024
-            - 1024x1536
-            - 1536x1024
+          - anyOf:
+            - type: string
+            - type: string
+              enum:
+              - 1024x1024
+              - 1024x1536
+              - 1536x1024
+            description: The image dimensions as a `WIDTHxHEIGHT` string, for example `1536x864`.
           - type: 'null'
-          description: The image dimensions as a `WIDTHxHEIGHT` string, for example `1536x864`.
         quality:
           anyOf:
           - type: string
@@ -71912,13 +74841,51 @@ components:
             - xhigh
             - max
             - auto
+            description: The quality of the image generated by the image generation tool call. One of `low`, `medium`, `high`, `xhigh`, `max`, or `auto`.
           - type: 'null'
-          description: The quality of the image generated by the image generation tool call. One of `low`, `medium`, `high`, `xhigh`, `max`, or `auto`.
+        action:
+          anyOf:
+          - $ref: '#/components/schemas/BetaImageGenActionEnum'
+            description: The action used for image generation.
+          - type: 'null'
+          x-openai-go-optional-enum: true
+        background:
+          anyOf:
+          - $ref: '#/components/schemas/BetaImageBackground'
+            description: The background setting used for generation.
+          - type: 'null'
+          x-openai-go-optional-enum: true
+        output_format:
+          anyOf:
+          - $ref: '#/components/schemas/BetaImageOutputFormat'
+            description: The output format used for generation.
+          - type: 'null'
+          x-openai-go-optional-enum: true
+        revised_prompt:
+          anyOf:
+          - type: string
+            description: The prompt that was used after any model prompt rewriting.
+          - type: 'null'
+      type: object
       required:
       - type
       - id
       - status
       - result
+      title: Image generation call
+      description: An image generation request made by the model.
+    BetaImageOutputFormat:
+      type: string
+      enum:
+      - png
+      - webp
+      - jpeg
+    BetaImageBackground:
+      type: string
+      enum:
+      - transparent
+      - opaque
+      - auto
     BetaCompactionSummaryItemParam:
       properties:
         agent:
@@ -81183,6 +84150,32 @@ components:
       - gpt-3.5-turbo-0125
       - gpt-3.5-turbo-16k-0613
       x-stainless-nominal: false
+    LiveBuiltInVoice:
+      type: string
+      enum:
+      - alloy
+      - ash
+      - ballad
+      - beacon
+      - bossa
+      - cedar
+      - cinder
+      - coral
+      - delta
+      - echo
+      - gleam
+      - marin
+      - meridian
+      - quartz
+      - ripple
+      - sage
+      - shimmer
+      - stone
+      - tempo
+      - verse
+      - vesper
+      - willow
+      description: A built-in voice available for Live speech.
     Summary:
       properties:
         type:
@@ -81586,6 +84579,8 @@ x-oaiMeta:
     beta: true
   - id: containers
     title: Containers
+  - id: live
+    title: Live (alpha)
   - id: realtime
     title: Realtime
   - id: chat
@@ -82006,6 +85001,9 @@ x-oaiMeta:
       path: <auto>
     - type: object
       key: WebhookLiveCallIncoming
+      path: <auto>
+    - type: object
+      key: WebhookLiveTransportIncoming
       path: <auto>
     - type: object
       key: WebhookSafetyAlertCreated
@@ -82447,4 +85445,98 @@ x-oaiMeta:
       path: <auto>
     - type: object
       key: RealtimeBetaServerEventRateLimitsUpdated
+      path: <auto>
+  - id: live-client-events
+    title: Client events
+    description: Initialize a primary WebSocket with session.start and wait for session.started before sending other events. WebRTC creation starts the session for you. Start with the [Live prompting guide](https://developers.openai.com/api/docs/guides/live-prompting) to design frontend instructions and delegation policy; see [backend prompting](https://developers.openai.com/api/docs/guides/live-delegation#start-with-your-existing-backend-prompt) for tools and business rules.
+    navigationGroup: live
+    sections:
+    - type: object
+      key: LiveSessionStartEvent
+      path: <auto>
+    - type: object
+      key: LiveForkSessionStartEvent
+      path: <auto>
+    - type: object
+      key: LiveSessionUpdateParam
+      path: <auto>
+    - type: object
+      key: LiveInputAudioAppendEvent
+      path: <auto>
+    - type: object
+      key: LiveInputAudioMuteParam
+      path: <auto>
+    - type: object
+      key: LiveInputAudioUnmuteParam
+      path: <auto>
+    - type: object
+      key: LiveInstructionsAppendParam
+      path: <auto>
+    - type: object
+      key: LiveThinkingAppendParam
+      path: <auto>
+    - type: object
+      key: LiveCommentaryAppendParam
+      path: <auto>
+    - type: object
+      key: LiveResponseItemCreateParam
+      path: <auto>
+    - type: object
+      key: LiveResponseCreateParam
+      path: <auto>
+    - type: object
+      key: LiveSessionCloseParam
+      path: <auto>
+  - id: live-server-events
+    title: Server events
+    description: Live server events. Responses delegation lifecycle events arrive inside response.event, not as top-level response events. Start with the [Live prompting guide](https://developers.openai.com/api/docs/guides/live-prompting) to design frontend instructions and delegation policy; see [backend prompting](https://developers.openai.com/api/docs/guides/live-delegation#start-with-your-existing-backend-prompt) for tools and business rules.
+    navigationGroup: live
+    sections:
+    - type: object
+      key: LiveSessionStarted
+      path: <auto>
+    - type: object
+      key: LiveSessionUpdated
+      path: <auto>
+    - type: object
+      key: LiveInputAudioMuted
+      path: <auto>
+    - type: object
+      key: LiveInputAudioUnmuted
+      path: <auto>
+    - type: object
+      key: LiveInstructionsAppended
+      path: <auto>
+    - type: object
+      key: LiveThinkingAppended
+      path: <auto>
+    - type: object
+      key: LiveCommentaryAppended
+      path: <auto>
+    - type: object
+      key: LiveOutputAudioDelta
+      path: <auto>
+    - type: object
+      key: LiveInputTranscriptDelta
+      path: <auto>
+    - type: object
+      key: LiveOutputTranscriptDelta
+      path: <auto>
+    - type: object
+      key: LiveDelegationCreated
+      path: <auto>
+    - type: object
+      key: LiveResponseEvent
+      path: <auto>
+    - type: object
+      key: LiveSessionUsageUpdated
+      path: <auto>
+    - type: object
+      key: LiveSessionClosed
+      path: <auto>
+    - type: object
+      key: LiveErrorEvent
+      path: <auto>
+    - type: object
+      key: LiveInfoEvent
       path: <auto>

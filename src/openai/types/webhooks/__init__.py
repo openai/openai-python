@@ -11,13 +11,18 @@ from .eval_run_failed_webhook_event import EvalRunFailedWebhookEvent as EvalRunF
 from .response_failed_webhook_event import ResponseFailedWebhookEvent as ResponseFailedWebhookEvent
 from .eval_run_canceled_webhook_event import EvalRunCanceledWebhookEvent as EvalRunCanceledWebhookEvent
 from .eval_run_succeeded_webhook_event import EvalRunSucceededWebhookEvent as EvalRunSucceededWebhookEvent
-from .live_call_incoming_webhook_event import LiveCallIncomingWebhookEvent as LiveCallIncomingWebhookEvent
+from .live_call_incoming_webhook_event import (
+    LiveCallIncomingWebhookEvent as LiveCallIncomingWebhookEvent,  # pyright: ignore[reportDeprecated]
+)
 from .response_cancelled_webhook_event import ResponseCancelledWebhookEvent as ResponseCancelledWebhookEvent
 from .response_completed_webhook_event import ResponseCompletedWebhookEvent as ResponseCompletedWebhookEvent
 from .response_incomplete_webhook_event import ResponseIncompleteWebhookEvent as ResponseIncompleteWebhookEvent
 from .safety_alert_created_webhook_event import SafetyAlertCreatedWebhookEvent as SafetyAlertCreatedWebhookEvent
 from .fine_tuning_job_failed_webhook_event import FineTuningJobFailedWebhookEvent as FineTuningJobFailedWebhookEvent
 from .realtime_call_incoming_webhook_event import RealtimeCallIncomingWebhookEvent as RealtimeCallIncomingWebhookEvent
+from .live_transport_incoming_webhook_event import (
+    LiveTransportIncomingWebhookEvent as LiveTransportIncomingWebhookEvent,
+)
 from .safety_org_alert_created_webhook_event import (
     SafetyOrgAlertCreatedWebhookEvent as SafetyOrgAlertCreatedWebhookEvent,
 )
