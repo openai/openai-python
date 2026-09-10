@@ -1,21 +1,25 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Dict, Union, Optional
-from typing_extensions import Literal, assert_never
+from typing import Dict, Union, Optional
+from typing_extensions import Literal
 
-import httpx
+import httpx2
 
 from ... import _legacy_response
 from ...types import FileChunkingStrategyParam
 from ..._types import Body, Omit, Query, Headers, NotGiven, FileTypes, omit, not_given
-from ..._utils import is_given, path_template, maybe_transform, async_maybe_transform
+from ..._utils import path_template, maybe_transform, async_maybe_transform
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from ...pagination import SyncPage, AsyncPage, SyncCursorPage, AsyncCursorPage
 from ..._base_client import AsyncPaginator, make_request_options
+from ...lib._vector_stores import (
+    poll_vector_store_file as _poll_vector_store_file,
+    async_poll_vector_store_file as _async_poll_vector_store_file,
+)
 from ...types.vector_stores import file_list_params, file_create_params, file_update_params
 from ...types.file_chunking_strategy_param import FileChunkingStrategyParam
 from ...types.vector_stores.vector_store_file import VectorStoreFile
@@ -57,17 +61,19 @@ class Files(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFile:
         """
         Create a vector store file by attaching a
-        [File](https://platform.openai.com/docs/api-reference/files) to a
-        [vector store](https://platform.openai.com/docs/api-reference/vector-stores/object).
+        [File](https://developers.openai.com/api/reference/resources/files) to a
+        [vector store](https://developers.openai.com/api/reference/resources/vector_stores).
 
         Args:
-          file_id: A [File](https://platform.openai.com/docs/api-reference/files) ID that the
-              vector store should use. Useful for tools like `file_search` that can access
-              files.
+          file_id: A [File](https://developers.openai.com/api/reference/resources/files) ID that
+              the vector store should use. Useful for tools like `file_search` that can access
+              files. For multi-file ingestion, we recommend
+              [`file_batches`](https://developers.openai.com/api/reference/resources/vector_stores/subresources/file_batches/methods/create)
+              to minimize per-vector-store write requests.
 
           attributes: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format, and
@@ -100,7 +106,11 @@ class Files(SyncAPIResource):
                 file_create_params.FileCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStoreFile,
         )
@@ -115,7 +125,7 @@ class Files(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFile:
         """
         Retrieves a vector store file.
@@ -139,7 +149,11 @@ class Files(SyncAPIResource):
                 "/vector_stores/{vector_store_id}/files/{file_id}", vector_store_id=vector_store_id, file_id=file_id
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStoreFile,
         )
@@ -155,7 +169,7 @@ class Files(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFile:
         """
         Update attributes on a vector store file.
@@ -186,7 +200,11 @@ class Files(SyncAPIResource):
             ),
             body=maybe_transform({"attributes": attributes}, file_update_params.FileUpdateParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStoreFile,
         )
@@ -205,7 +223,7 @@ class Files(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncCursorPage[VectorStoreFile]:
         """
         Returns a list of vector store files.
@@ -258,6 +276,7 @@ class Files(SyncAPIResource):
                     },
                     file_list_params.FileListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=VectorStoreFile,
         )
@@ -272,13 +291,13 @@ class Files(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFileDeleted:
         """Delete a vector store file.
 
         This will remove the file from the vector store but
         the file itself will not be deleted. To delete the file, use the
-        [delete file](https://platform.openai.com/docs/api-reference/files/delete)
+        [delete file](https://developers.openai.com/api/reference/resources/files/methods/delete)
         endpoint.
 
         Args:
@@ -300,7 +319,11 @@ class Files(SyncAPIResource):
                 "/vector_stores/{vector_store_id}/files/{file_id}", vector_store_id=vector_store_id, file_id=file_id
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStoreFileDeleted,
         )
@@ -318,7 +341,7 @@ class Files(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFile:
         """Attach a file to the given vector store and wait for it to be processed."""
         self.create(
@@ -350,34 +373,12 @@ class Files(SyncAPIResource):
         Note: this will return even if the file failed to process, you need to check
         file.last_error and file.status to handle these cases
         """
-        headers: dict[str, str] = {"X-Stainless-Poll-Helper": "true"}
-        if is_given(poll_interval_ms):
-            headers["X-Stainless-Custom-Poll-Interval"] = str(poll_interval_ms)
-
-        while True:
-            response = self.with_raw_response.retrieve(
-                file_id,
-                vector_store_id=vector_store_id,
-                extra_headers=headers,
-            )
-
-            file = response.parse()
-            if file.status == "in_progress":
-                if not is_given(poll_interval_ms):
-                    from_header = response.headers.get("openai-poll-after-ms")
-                    if from_header is not None:
-                        poll_interval_ms = int(from_header)
-                    else:
-                        poll_interval_ms = 1000
-
-                self._sleep(poll_interval_ms / 1000)
-            elif file.status == "cancelled" or file.status == "completed" or file.status == "failed":
-                return file
-            else:
-                if TYPE_CHECKING:  # type: ignore[unreachable]
-                    assert_never(file.status)
-                else:
-                    return file
+        return _poll_vector_store_file(
+            self,
+            file_id,
+            vector_store_id=vector_store_id,
+            poll_interval_ms=poll_interval_ms,
+        )
 
     def upload(
         self,
@@ -423,7 +424,7 @@ class Files(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncPage[FileContentResponse]:
         """
         Retrieve the parsed contents of a vector store file.
@@ -450,7 +451,11 @@ class Files(SyncAPIResource):
             ),
             page=SyncPage[FileContentResponse],
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             model=FileContentResponse,
         )
@@ -488,17 +493,19 @@ class AsyncFiles(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFile:
         """
         Create a vector store file by attaching a
-        [File](https://platform.openai.com/docs/api-reference/files) to a
-        [vector store](https://platform.openai.com/docs/api-reference/vector-stores/object).
+        [File](https://developers.openai.com/api/reference/resources/files) to a
+        [vector store](https://developers.openai.com/api/reference/resources/vector_stores).
 
         Args:
-          file_id: A [File](https://platform.openai.com/docs/api-reference/files) ID that the
-              vector store should use. Useful for tools like `file_search` that can access
-              files.
+          file_id: A [File](https://developers.openai.com/api/reference/resources/files) ID that
+              the vector store should use. Useful for tools like `file_search` that can access
+              files. For multi-file ingestion, we recommend
+              [`file_batches`](https://developers.openai.com/api/reference/resources/vector_stores/subresources/file_batches/methods/create)
+              to minimize per-vector-store write requests.
 
           attributes: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format, and
@@ -531,7 +538,11 @@ class AsyncFiles(AsyncAPIResource):
                 file_create_params.FileCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStoreFile,
         )
@@ -546,7 +557,7 @@ class AsyncFiles(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFile:
         """
         Retrieves a vector store file.
@@ -570,7 +581,11 @@ class AsyncFiles(AsyncAPIResource):
                 "/vector_stores/{vector_store_id}/files/{file_id}", vector_store_id=vector_store_id, file_id=file_id
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStoreFile,
         )
@@ -586,7 +601,7 @@ class AsyncFiles(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFile:
         """
         Update attributes on a vector store file.
@@ -617,7 +632,11 @@ class AsyncFiles(AsyncAPIResource):
             ),
             body=await async_maybe_transform({"attributes": attributes}, file_update_params.FileUpdateParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStoreFile,
         )
@@ -636,7 +655,7 @@ class AsyncFiles(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[VectorStoreFile, AsyncCursorPage[VectorStoreFile]]:
         """
         Returns a list of vector store files.
@@ -689,6 +708,7 @@ class AsyncFiles(AsyncAPIResource):
                     },
                     file_list_params.FileListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=VectorStoreFile,
         )
@@ -703,13 +723,13 @@ class AsyncFiles(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFileDeleted:
         """Delete a vector store file.
 
         This will remove the file from the vector store but
         the file itself will not be deleted. To delete the file, use the
-        [delete file](https://platform.openai.com/docs/api-reference/files/delete)
+        [delete file](https://developers.openai.com/api/reference/resources/files/methods/delete)
         endpoint.
 
         Args:
@@ -731,7 +751,11 @@ class AsyncFiles(AsyncAPIResource):
                 "/vector_stores/{vector_store_id}/files/{file_id}", vector_store_id=vector_store_id, file_id=file_id
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStoreFileDeleted,
         )
@@ -749,7 +773,7 @@ class AsyncFiles(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFile:
         """Attach a file to the given vector store and wait for it to be processed."""
         await self.create(
@@ -781,34 +805,12 @@ class AsyncFiles(AsyncAPIResource):
         Note: this will return even if the file failed to process, you need to check
         file.last_error and file.status to handle these cases
         """
-        headers: dict[str, str] = {"X-Stainless-Poll-Helper": "true"}
-        if is_given(poll_interval_ms):
-            headers["X-Stainless-Custom-Poll-Interval"] = str(poll_interval_ms)
-
-        while True:
-            response = await self.with_raw_response.retrieve(
-                file_id,
-                vector_store_id=vector_store_id,
-                extra_headers=headers,
-            )
-
-            file = response.parse()
-            if file.status == "in_progress":
-                if not is_given(poll_interval_ms):
-                    from_header = response.headers.get("openai-poll-after-ms")
-                    if from_header is not None:
-                        poll_interval_ms = int(from_header)
-                    else:
-                        poll_interval_ms = 1000
-
-                await self._sleep(poll_interval_ms / 1000)
-            elif file.status == "cancelled" or file.status == "completed" or file.status == "failed":
-                return file
-            else:
-                if TYPE_CHECKING:  # type: ignore[unreachable]
-                    assert_never(file.status)
-                else:
-                    return file
+        return await _async_poll_vector_store_file(
+            self,
+            file_id,
+            vector_store_id=vector_store_id,
+            poll_interval_ms=poll_interval_ms,
+        )
 
     async def upload(
         self,
@@ -856,7 +858,7 @@ class AsyncFiles(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[FileContentResponse, AsyncPage[FileContentResponse]]:
         """
         Retrieve the parsed contents of a vector store file.
@@ -883,7 +885,11 @@ class AsyncFiles(AsyncAPIResource):
             ),
             page=AsyncPage[FileContentResponse],
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             model=FileContentResponse,
         )

@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -30,11 +30,12 @@ class FileBatchCreateParams(TypedDict, total=False):
 
     file_ids: SequenceNotStr[str]
     """
-    A list of [File](https://platform.openai.com/docs/api-reference/files) IDs that
-    the vector store should use. Useful for tools like `file_search` that can access
-    files. If `attributes` or `chunking_strategy` are provided, they will be applied
-    to all files in the batch. The maximum batch size is 2000 files. Mutually
-    exclusive with `files`.
+    A list of [File](https://developers.openai.com/api/reference/resources/files)
+    IDs that the vector store should use. Useful for tools like `file_search` that
+    can access files. If `attributes` or `chunking_strategy` are provided, they will
+    be applied to all files in the batch. The maximum batch size is 2000 files. This
+    endpoint is recommended for multi-file ingestion and helps reduce
+    per-vector-store write request pressure. Mutually exclusive with `files`.
     """
 
     files: Iterable[File]
@@ -42,17 +43,20 @@ class FileBatchCreateParams(TypedDict, total=False):
     A list of objects that each include a `file_id` plus optional `attributes` or
     `chunking_strategy`. Use this when you need to override metadata for specific
     files. The global `attributes` or `chunking_strategy` will be ignored and must
-    be specified for each file. The maximum batch size is 2000 files. Mutually
-    exclusive with `file_ids`.
+    be specified for each file. The maximum batch size is 2000 files. This endpoint
+    is recommended for multi-file ingestion and helps reduce per-vector-store write
+    request pressure. Mutually exclusive with `file_ids`.
     """
 
 
 class File(TypedDict, total=False):
     file_id: Required[str]
     """
-    A [File](https://platform.openai.com/docs/api-reference/files) ID that the
-    vector store should use. Useful for tools like `file_search` that can access
-    files.
+    A [File](https://developers.openai.com/api/reference/resources/files) ID that
+    the vector store should use. Useful for tools like `file_search` that can access
+    files. For multi-file ingestion, we recommend
+    [`file_batches`](https://developers.openai.com/api/reference/resources/vector_stores/subresources/file_batches/methods/create)
+    to minimize per-vector-store write requests.
     """
 
     attributes: Optional[Dict[str, Union[str, float, bool]]]

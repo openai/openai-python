@@ -31,12 +31,12 @@ from typing_extensions import (
     runtime_checkable,
 )
 
-import httpx
+import httpx2
 import pydantic
-from httpx import URL, Proxy, Timeout, Response, BaseTransport, AsyncBaseTransport
+from httpx2 import URL, Proxy, Timeout, Response, BaseTransport, AsyncBaseTransport
 
 if TYPE_CHECKING:
-    from ._models import BaseModel
+    from ._models import BaseModel, SecurityOptions
     from ._response import APIResponse, AsyncAPIResponse
     from ._legacy_response import HttpxBinaryResponseContent
 
@@ -47,6 +47,9 @@ Body = object
 AnyMapping = Mapping[str, object]
 ModelT = TypeVar("ModelT", bound=pydantic.BaseModel)
 _T = TypeVar("_T")
+
+ArrayFormat = Literal["comma", "repeat", "indices", "brackets"]
+NestedFormat = Literal["dots", "brackets"]
 
 
 # Approximates httpx internal ProxiesTypes and RequestFiles types
@@ -122,6 +125,7 @@ class RequestOptions(TypedDict, total=False):
     extra_json: AnyMapping
     idempotency_key: str
     follow_redirects: bool
+    security: SecurityOptions
     synthesize_event_and_data: bool
 
 
@@ -247,7 +251,7 @@ class _GenericAlias(Protocol):
 
 
 class HttpxSendArgs(TypedDict, total=False):
-    auth: httpx.Auth
+    auth: httpx2.Auth
     follow_redirects: bool
 
 

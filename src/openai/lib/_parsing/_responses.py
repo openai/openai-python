@@ -58,7 +58,7 @@ def parse_response(
 ) -> ParsedResponse[TextFormatT]:
     output_list: List[ParsedResponseOutputItem[TextFormatT]] = []
 
-    for output in response.output:
+    for output in response.output or []:
         if output.type == "message":
             content_list: List[ParsedContent[TextFormatT]] = []
             for item in output.content:
@@ -103,7 +103,10 @@ def parse_response(
             or output.type == "web_search_call"
             or output.type == "tool_search_call"
             or output.type == "tool_search_output"
+            or output.type == "additional_tools"
             or output.type == "reasoning"
+            or output.type == "program"
+            or output.type == "program_output"
             or output.type == "compaction"
             or output.type == "mcp_call"
             or output.type == "mcp_approval_request"

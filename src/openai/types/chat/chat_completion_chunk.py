@@ -1,8 +1,9 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
-from typing import List, Optional
-from typing_extensions import Literal
+from typing import Dict, List, Union, Optional
+from typing_extensions import Literal, Annotated, TypeAlias
 
+from ..._utils import PropertyInfo
 from ..._models import BaseModel
 from ..completion_usage import CompletionUsage
 from .chat_completion_token_logprob import ChatCompletionTokenLogprob
@@ -15,6 +16,15 @@ __all__ = [
     "ChoiceDeltaToolCall",
     "ChoiceDeltaToolCallFunction",
     "ChoiceLogprobs",
+    "Moderation",
+    "ModerationInput",
+    "ModerationInputModerationResults",
+    "ModerationInputModerationResultsResult",
+    "ModerationInputError",
+    "ModerationOutput",
+    "ModerationOutputModerationResults",
+    "ModerationOutputModerationResultsResult",
+    "ModerationOutputError",
 ]
 
 
@@ -114,11 +124,143 @@ class Choice(BaseModel):
     """Log probability information for the choice."""
 
 
+class ModerationInputModerationResultsResult(BaseModel):
+    """A moderation result produced for the response input or output."""
+
+    categories: Dict[str, bool]
+    """
+    A dictionary of moderation categories to booleans, True if the input is flagged
+    under this category.
+    """
+
+    category_applied_input_types: Dict[str, List[Literal["text", "image"]]]
+    """Which modalities of input are reflected by the score for each category."""
+
+    category_scores: Dict[str, float]
+    """A dictionary of moderation categories to scores."""
+
+    flagged: bool
+    """A boolean indicating whether the content was flagged by any category."""
+
+    model: str
+    """The moderation model that produced this result."""
+
+    type: Literal["moderation_result"]
+    """
+    The object type, which was always `moderation_result` for successful moderation
+    results.
+    """
+
+
+class ModerationInputModerationResults(BaseModel):
+    """Successful moderation results for the request input or generated output."""
+
+    model: str
+    """The moderation model used to generate the results."""
+
+    results: List[ModerationInputModerationResultsResult]
+    """A list of moderation results."""
+
+    type: Literal["moderation_results"]
+    """The object type, which is always `moderation_results`."""
+
+
+class ModerationInputError(BaseModel):
+    """An error produced while attempting moderation."""
+
+    code: str
+    """The error code."""
+
+    message: str
+    """The error message."""
+
+    type: Literal["error"]
+    """The object type, which is always `error`."""
+
+
+ModerationInput: TypeAlias = Annotated[
+    Union[ModerationInputModerationResults, ModerationInputError], PropertyInfo(discriminator="type")
+]
+
+
+class ModerationOutputModerationResultsResult(BaseModel):
+    """A moderation result produced for the response input or output."""
+
+    categories: Dict[str, bool]
+    """
+    A dictionary of moderation categories to booleans, True if the input is flagged
+    under this category.
+    """
+
+    category_applied_input_types: Dict[str, List[Literal["text", "image"]]]
+    """Which modalities of input are reflected by the score for each category."""
+
+    category_scores: Dict[str, float]
+    """A dictionary of moderation categories to scores."""
+
+    flagged: bool
+    """A boolean indicating whether the content was flagged by any category."""
+
+    model: str
+    """The moderation model that produced this result."""
+
+    type: Literal["moderation_result"]
+    """
+    The object type, which was always `moderation_result` for successful moderation
+    results.
+    """
+
+
+class ModerationOutputModerationResults(BaseModel):
+    """Successful moderation results for the request input or generated output."""
+
+    model: str
+    """The moderation model used to generate the results."""
+
+    results: List[ModerationOutputModerationResultsResult]
+    """A list of moderation results."""
+
+    type: Literal["moderation_results"]
+    """The object type, which is always `moderation_results`."""
+
+
+class ModerationOutputError(BaseModel):
+    """An error produced while attempting moderation."""
+
+    code: str
+    """The error code."""
+
+    message: str
+    """The error message."""
+
+    type: Literal["error"]
+    """The object type, which is always `error`."""
+
+
+ModerationOutput: TypeAlias = Annotated[
+    Union[ModerationOutputModerationResults, ModerationOutputError], PropertyInfo(discriminator="type")
+]
+
+
+class Moderation(BaseModel):
+    """Moderation results for the request input and generated output.
+
+    Present
+    on the moderation chunk when moderated completions are requested.
+    """
+
+    input: ModerationInput
+    """Moderation for the request input."""
+
+    output: ModerationOutput
+    """Moderation for the generated output."""
+
+
 class ChatCompletionChunk(BaseModel):
     """
     Represents a streamed chunk of a chat completion response returned
     by the model, based on the provided input.
-    [Learn more](https://platform.openai.com/docs/guides/streaming-responses).
+    [Learn more](https://developers.openai.com/api/docs/guides/streaming-responses).
     """
 
     id: str
@@ -143,7 +285,20 @@ class ChatCompletionChunk(BaseModel):
     object: Literal["chat.completion.chunk"]
     """The object type, which is always `chat.completion.chunk`."""
 
-    service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] = None
+    moderation: Optional[Moderation] = None
+    """Moderation results for the request input and generated output.
+
+    Present on the moderation chunk when moderated completions are requested.
+    """
+
+    obfuscation: Optional[str] = None
+    """
+    An obfuscation string added to normalize the size of streamed chunks as a
+    mitigation to certain side-channel attacks. The field is included by default and
+    omitted when `stream_options.include_obfuscation` is `false`.
+    """
+
+    service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] = None
     """Specifies the processing type used for serving the request.
 
     - If set to 'auto', then the request will be processed with the service tier
@@ -151,9 +306,15 @@ class ChatCompletionChunk(BaseModel):
       will use 'default'.
     - If set to 'default', then the request will be processed with the standard
       pricing and performance for the selected model.
-    - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-      '[priority](https://openai.com/api-priority-processing/)', then the request
-      will be processed with the corresponding service tier.
+    - If set to
+      '[flex](https://developers.openai.com/api/docs/guides/flex-processing)', then
+      the request will be processed with the Flex Processing service tier.
+    - To opt-in to
+      [Fast mode](https://developers.openai.com/api/docs/guides/fast-mode) at the
+      request level, include the `service_tier=fast` or `service_tier=priority`
+      parameter for Responses or Chat Completions. The response will show
+      `service_tier=priority` regardless of if you specify `service_tier=fast` or
+      `priority` in your request.
     - When not set, the default behavior is 'auto'.
 
     When the `service_tier` parameter is set, the response body will include the

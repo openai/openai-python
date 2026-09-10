@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -7,13 +7,19 @@ from typing_extensions import Literal, Required, TypedDict
 
 from .response_input_item_param import ResponseInputItemParam
 
-__all__ = ["ResponseCompactParams"]
+__all__ = ["ResponseCompactParams", "PromptCacheOptions"]
 
 
 class ResponseCompactParams(TypedDict, total=False):
     model: Required[
         Union[
             Literal[
+                "gpt-6-astra",
+                "gpt-5.6-sol",
+                "gpt-5.6-terra",
+                "gpt-5.6-luna",
+                "gpt-5.5",
+                "gpt-5.5-2026-04-23",
                 "gpt-5.4",
                 "gpt-5.4-mini",
                 "gpt-5.4-nano",
@@ -102,21 +108,26 @@ class ResponseCompactParams(TypedDict, total=False):
                 "o4-mini-deep-research-2025-06-26",
                 "computer-use-preview",
                 "computer-use-preview-2025-03-11",
+                "gpt-5.5-pro",
+                "gpt-5.5-pro-2026-04-23",
                 "gpt-5-codex",
                 "gpt-5-pro",
                 "gpt-5-pro-2025-10-06",
                 "gpt-5.1-codex-max",
+                "gpt-daybreak-blue-latest",
+                "gpt-daybreak-red-latest",
+                "gpt-5.6-cyber",
             ],
             str,
             None,
         ]
     ]
-    """Model ID used to generate the response, like `gpt-5` or `o3`.
+    """Model ID used to generate the response, like `gpt-6-astra`.
 
     OpenAI offers a wide range of models with different capabilities, performance
     characteristics, and price points. Refer to the
-    [model guide](https://platform.openai.com/docs/models) to browse and compare
-    available models.
+    [model guide](https://developers.openai.com/api/docs/models) to browse and
+    compare available models.
     """
 
     input: Union[str, Iterable[ResponseInputItemParam], None]
@@ -134,9 +145,71 @@ class ResponseCompactParams(TypedDict, total=False):
     """The unique ID of the previous response to the model.
 
     Use this to create multi-turn conversations. Learn more about
-    [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+    [conversation state](https://developers.openai.com/api/docs/guides/conversation-state).
     Cannot be used in conjunction with `conversation`.
     """
 
     prompt_cache_key: Optional[str]
     """A key to use when reading from or writing to the prompt cache."""
+
+    prompt_cache_options: Optional[PromptCacheOptions]
+    """Options for prompt caching.
+
+    Supported for `gpt-5.6` and later models. By default, OpenAI automatically
+    chooses one implicit cache breakpoint. You can add explicit breakpoints to
+    content blocks with `prompt_cache_breakpoint`. Each request can write up to four
+    breakpoints. For cache matching, OpenAI considers up to the latest 80
+    breakpoints in the conversation, without a content-block lookback limit. Set
+    `mode` to `explicit` to disable the implicit breakpoint. The `ttl` defaults to
+    `30m`, which is currently the only supported value. See the
+    [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching)
+    for current details.
+    """
+
+    prompt_cache_retention: Optional[Literal["in_memory", "24h"]]
+    """How long to retain a prompt cache entry created by this request."""
+
+    service_tier: Optional[Literal["auto", "default", "fast", "flex", "priority"]]
+    """Specifies the processing type used for serving the request.
+
+    - If set to 'auto', then the request will be processed with the service tier
+      configured in the Project settings. Unless otherwise configured, the Project
+      will use 'default'. - If set to 'default', then the request will be processed
+      with the standard pricing and performance for the selected model. - If set to
+      '[flex](https://developers.openai.com/api/docs/guides/flex-processing)', then
+      the request will be processed with the Flex Processing service tier. - To
+      opt-in to [Fast mode](https://developers.openai.com/api/docs/guides/fast-mode)
+      at the request level, include the `service_tier=fast` or
+      `service_tier=priority` parameter for Responses or Chat Completions. For
+      models with a dedicated Fast tier, either value resolves to
+      `service_tier=fast`; for other models, either value resolves to
+      `service_tier=priority`. - When not set, the default behavior is 'auto'. When
+      the `service_tier` parameter is set, the response body will include the
+      `service_tier` value based on the processing mode actually used to serve the
+      request. This response value may be different from the value set in the
+      parameter.
+    """
+
+
+class PromptCacheOptions(TypedDict, total=False):
+    """Options for prompt caching.
+
+    Supported for `gpt-5.6` and later models. By default, OpenAI automatically chooses one implicit cache breakpoint. You can add explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each request can write up to four breakpoints. For cache matching, OpenAI considers up to the latest 80 breakpoints in the conversation, without a content-block lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The `ttl` defaults to `30m`, which is currently the only supported value. See the [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching) for current details.
+    """
+
+    mode: Literal["implicit", "explicit"]
+    """Controls whether OpenAI automatically creates an implicit cache breakpoint.
+
+    Defaults to `implicit`. With `implicit`, OpenAI creates one implicit breakpoint
+    and writes up to the latest three explicit breakpoints in the request. With
+    `explicit`, OpenAI does not create an implicit breakpoint and writes up to the
+    latest four explicit breakpoints. If there are no explicit breakpoints, the
+    request does not use prompt caching.
+    """
+
+    ttl: Literal["30m"]
+    """
+    The minimum lifetime applied to every implicit and explicit cache breakpoint
+    written by the request. Defaults to `30m`, which is currently the only supported
+    value. The backend may retain cache entries for longer.
+    """

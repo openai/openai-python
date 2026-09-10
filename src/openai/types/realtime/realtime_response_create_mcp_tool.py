@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import Dict, List, Union, Optional
 from typing_extensions import Literal, TypeAlias
@@ -85,7 +85,7 @@ RequireApproval: TypeAlias = Union[RequireApprovalMcpToolApprovalFilter, Literal
 class RealtimeResponseCreateMcpTool(BaseModel):
     """
     Give the model access to additional tools via remote Model Context Protocol
-    (MCP) servers. [Learn more about MCP](https://platform.openai.com/docs/guides/tools-remote-mcp).
+    (MCP) servers. [Learn more about MCP](https://developers.openai.com/api/docs/guides/tools-connectors-mcp).
     """
 
     server_label: str
@@ -93,6 +93,9 @@ class RealtimeResponseCreateMcpTool(BaseModel):
 
     type: Literal["mcp"]
     """The type of the MCP tool. Always `mcp`."""
+
+    allowed_callers: Optional[List[Literal["direct", "programmatic"]]] = None
+    """The tool invocation context(s)."""
 
     allowed_tools: Optional[AllowedTools] = None
     """List of allowed tool names or a filter object."""
@@ -118,9 +121,9 @@ class RealtimeResponseCreateMcpTool(BaseModel):
     ] = None
     """Identifier for service connectors, like those available in ChatGPT.
 
-    One of `server_url` or `connector_id` must be provided. Learn more about service
-    connectors
-    [here](https://platform.openai.com/docs/guides/tools-remote-mcp#connectors).
+    One of `server_url`, `connector_id`, or `tunnel_id` must be provided. Learn more
+    about service connectors
+    [here](https://developers.openai.com/api/docs/guides/tools-connectors-mcp#connectors).
 
     Currently supported `connector_id` values are:
 
@@ -152,5 +155,11 @@ class RealtimeResponseCreateMcpTool(BaseModel):
     server_url: Optional[str] = None
     """The URL for the MCP server.
 
-    One of `server_url` or `connector_id` must be provided.
+    One of `server_url`, `connector_id`, or `tunnel_id` must be provided.
+    """
+
+    tunnel_id: Optional[str] = None
+    """The Secure MCP Tunnel ID to use instead of a direct server URL.
+
+    One of `server_url`, `connector_id`, or `tunnel_id` must be provided.
     """

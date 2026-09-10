@@ -1,8 +1,8 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
-from typing import Dict, Union, Optional
+from typing import Dict, List, Union, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from . import web_search_tool_param
@@ -35,6 +35,7 @@ __all__ = [
     "CodeInterpreterContainer",
     "CodeInterpreterContainerCodeInterpreterToolAuto",
     "CodeInterpreterContainerCodeInterpreterToolAutoNetworkPolicy",
+    "ProgrammaticToolCalling",
     "ImageGeneration",
     "ImageGenerationInputImageMask",
     "LocalShell",
@@ -114,7 +115,7 @@ McpRequireApproval: TypeAlias = Union[McpRequireApprovalMcpToolApprovalFilter, L
 class Mcp(TypedDict, total=False):
     """
     Give the model access to additional tools via remote Model Context Protocol
-    (MCP) servers. [Learn more about MCP](https://platform.openai.com/docs/guides/tools-remote-mcp).
+    (MCP) servers. [Learn more about MCP](https://developers.openai.com/api/docs/guides/tools-connectors-mcp).
     """
 
     server_label: Required[str]
@@ -122,6 +123,9 @@ class Mcp(TypedDict, total=False):
 
     type: Required[Literal["mcp"]]
     """The type of the MCP tool. Always `mcp`."""
+
+    allowed_callers: Optional[List[Literal["direct", "programmatic"]]]
+    """The tool invocation context(s)."""
 
     allowed_tools: Optional[McpAllowedTools]
     """List of allowed tool names or a filter object."""
@@ -145,9 +149,9 @@ class Mcp(TypedDict, total=False):
     ]
     """Identifier for service connectors, like those available in ChatGPT.
 
-    One of `server_url` or `connector_id` must be provided. Learn more about service
-    connectors
-    [here](https://platform.openai.com/docs/guides/tools-remote-mcp#connectors).
+    One of `server_url`, `connector_id`, or `tunnel_id` must be provided. Learn more
+    about service connectors
+    [here](https://developers.openai.com/api/docs/guides/tools-connectors-mcp#connectors).
 
     Currently supported `connector_id` values are:
 
@@ -179,7 +183,13 @@ class Mcp(TypedDict, total=False):
     server_url: str
     """The URL for the MCP server.
 
-    One of `server_url` or `connector_id` must be provided.
+    One of `server_url`, `connector_id`, or `tunnel_id` must be provided.
+    """
+
+    tunnel_id: str
+    """The Secure MCP Tunnel ID to use instead of a direct server URL.
+
+    One of `server_url`, `connector_id`, or `tunnel_id` must be provided.
     """
 
 
@@ -223,6 +233,14 @@ class CodeInterpreter(TypedDict, total=False):
     type: Required[Literal["code_interpreter"]]
     """The type of the code interpreter tool. Always `code_interpreter`."""
 
+    allowed_callers: Optional[List[Literal["direct", "programmatic"]]]
+    """The tool invocation context(s)."""
+
+
+class ProgrammaticToolCalling(TypedDict, total=False):
+    type: Required[Literal["programmatic_tool_calling"]]
+    """The type of the tool. Always `programmatic_tool_calling`."""
+
 
 class ImageGenerationInputImageMask(TypedDict, total=False):
     """Optional mask for inpainting.
@@ -248,9 +266,17 @@ class ImageGeneration(TypedDict, total=False):
     """Whether to generate a new image or edit an existing image. Default: `auto`."""
 
     background: Literal["transparent", "opaque", "auto"]
-    """Background type for the generated image.
+    """Allows to set transparency for the background of the generated image(s).
 
-    One of `transparent`, `opaque`, or `auto`. Default: `auto`.
+    Must be one of `transparent`, `opaque`, or `auto` (default value). When `auto`
+    is used, the model will automatically determine the best background for the
+    image.
+
+    `gpt-image-2.5-sunburst` and `gpt-image-2.5-flare`, including their `2026-09-08`
+    snapshots, support `opaque` and `transparent` backgrounds. Transparent
+    backgrounds are available for supported GPT Image models. For `gpt-image-2` and
+    `gpt-image-2-2026-04-21`, this support is in preview. When using `transparent`,
+    set the output format to `png` or `webp`.
     """
 
     input_fidelity: Optional[Literal["high", "low"]]
@@ -267,8 +293,29 @@ class ImageGeneration(TypedDict, total=False):
     Contains `image_url` (string, optional) and `file_id` (string, optional).
     """
 
-    model: Union[str, Literal["gpt-image-1", "gpt-image-1-mini", "gpt-image-1.5"]]
-    """The image generation model to use. Default: `gpt-image-1`."""
+    model: Union[
+        str,
+        Literal[
+            "gpt-image-1",
+            "gpt-image-1-mini",
+            "gpt-image-2",
+            "gpt-image-2-2026-04-21",
+            "gpt-image-2.5-sunburst",
+            "gpt-image-2.5-sunburst-2026-09-08",
+            "gpt-image-2.5-flare",
+            "gpt-image-2.5-flare-2026-09-08",
+            "gpt-image-1.5",
+            "chatgpt-image-latest",
+        ],
+    ]
+    """The image generation model to use.
+
+    One of `gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`,
+    `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
+    `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`,
+    `gpt-image-2.5-flare-2026-09-08`, or `chatgpt-image-latest`. Default:
+    `gpt-image-1`.
+    """
 
     moderation: Literal["auto", "low"]
     """Moderation level for the generated image. Default: `auto`."""
@@ -288,16 +335,29 @@ class ImageGeneration(TypedDict, total=False):
     to 3.
     """
 
-    quality: Literal["low", "medium", "high", "auto"]
+    quality: Literal["low", "medium", "high", "xhigh", "max", "auto"]
     """The quality of the generated image.
 
-    One of `low`, `medium`, `high`, or `auto`. Default: `auto`.
+    The GPT image models support `low`, `medium`, and `high`.
+    `gpt-image-2.5-sunburst` and `gpt-image-2.5-flare`, including their `2026-09-08`
+    snapshots, also support `xhigh` and `max`. Default: `auto`.
     """
 
-    size: Literal["1024x1024", "1024x1536", "1536x1024", "auto"]
-    """The size of the generated image.
+    size: Union[str, Literal["1024x1024", "1024x1536", "1536x1024", "auto"]]
+    """The size of the generated images.
 
-    One of `1024x1024`, `1024x1536`, `1536x1024`, or `auto`. Default: `auto`.
+    For `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
+    `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, and
+    `gpt-image-2.5-flare-2026-09-08`, arbitrary resolutions are supported as
+    `WIDTHxHEIGHT` strings, for example `1536x864`. Width and height must both be
+    divisible by 16 and the requested aspect ratio must be between 1:3 and 3:1.
+    Resolutions above `2560x1440` are experimental, and the maximum supported
+    resolution is `3840x2160`. The requested size must also satisfy the model's
+    current pixel and edge limits. The standard sizes `1024x1024`, `1536x1024`, and
+    `1024x1536` are supported by the GPT image models; `auto` is supported for
+    models that allow automatic sizing. For `dall-e-2`, use one of `256x256`,
+    `512x512`, or `1024x1024`. For `dall-e-3`, use one of `1024x1024`, `1792x1024`,
+    or `1024x1792`.
     """
 
 
@@ -316,6 +376,7 @@ ToolParam: TypeAlias = Union[
     WebSearchToolParam,
     Mcp,
     CodeInterpreter,
+    ProgrammaticToolCalling,
     ImageGeneration,
     LocalShell,
     FunctionShellToolParam,

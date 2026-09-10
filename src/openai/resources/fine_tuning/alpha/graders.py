@@ -1,8 +1,8 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
-import httpx
+import httpx2
 
 from .... import _legacy_response
 from ...._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
@@ -51,7 +51,7 @@ class Graders(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> GraderRunResponse:
         """
         Run a grader.
@@ -61,13 +61,14 @@ class Graders(SyncAPIResource):
 
           model_sample: The model sample to be evaluated. This value will be used to populate the
               `sample` namespace. See
-              [the guide](https://platform.openai.com/docs/guides/graders) for more details.
-              The `output_json` variable will be populated if the model sample is a valid JSON
-              string.
+              [the guide](https://developers.openai.com/api/docs/guides/graders) for more
+              details. The `output_json` variable will be populated if the model sample is a
+              valid JSON string.
 
           item: The dataset item provided to the grader. This will be used to populate the
               `item` namespace. See
-              [the guide](https://platform.openai.com/docs/guides/graders) for more details.
+              [the guide](https://developers.openai.com/api/docs/guides/graders) for more
+              details.
 
           extra_headers: Send extra headers
 
@@ -88,7 +89,11 @@ class Graders(SyncAPIResource):
                 grader_run_params.GraderRunParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=GraderRunResponse,
         )
@@ -102,7 +107,7 @@ class Graders(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> GraderValidateResponse:
         """
         Validate a grader.
@@ -122,7 +127,11 @@ class Graders(SyncAPIResource):
             "/fine_tuning/alpha/graders/validate",
             body=maybe_transform({"grader": grader}, grader_validate_params.GraderValidateParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=GraderValidateResponse,
         )
@@ -161,7 +170,7 @@ class AsyncGraders(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> GraderRunResponse:
         """
         Run a grader.
@@ -171,13 +180,14 @@ class AsyncGraders(AsyncAPIResource):
 
           model_sample: The model sample to be evaluated. This value will be used to populate the
               `sample` namespace. See
-              [the guide](https://platform.openai.com/docs/guides/graders) for more details.
-              The `output_json` variable will be populated if the model sample is a valid JSON
-              string.
+              [the guide](https://developers.openai.com/api/docs/guides/graders) for more
+              details. The `output_json` variable will be populated if the model sample is a
+              valid JSON string.
 
           item: The dataset item provided to the grader. This will be used to populate the
               `item` namespace. See
-              [the guide](https://platform.openai.com/docs/guides/graders) for more details.
+              [the guide](https://developers.openai.com/api/docs/guides/graders) for more
+              details.
 
           extra_headers: Send extra headers
 
@@ -198,7 +208,11 @@ class AsyncGraders(AsyncAPIResource):
                 grader_run_params.GraderRunParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=GraderRunResponse,
         )
@@ -212,7 +226,7 @@ class AsyncGraders(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> GraderValidateResponse:
         """
         Validate a grader.
@@ -232,7 +246,11 @@ class AsyncGraders(AsyncAPIResource):
             "/fine_tuning/alpha/graders/validate",
             body=await async_maybe_transform({"grader": grader}, grader_validate_params.GraderValidateParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=GraderValidateResponse,
         )

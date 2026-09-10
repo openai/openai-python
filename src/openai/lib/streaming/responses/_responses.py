@@ -15,6 +15,7 @@ from ._events import (
 )
 from ...._types import Omit, omit
 from ...._utils import is_given, consume_sync_iterator, consume_async_iterator
+from ...._compat import model_copy
 from ...._models import build, construct_type_unchecked
 from ...._streaming import Stream, AsyncStream
 from ....types.responses import ParsedResponse, ResponseStreamEvent as RawResponseStreamEvent
@@ -25,6 +26,7 @@ from ....types.responses.parsed_response import (
     ParsedResponseOutputMessage,
     ParsedResponseFunctionToolCall,
 )
+from ....types.responses.response_output_item import ResponseOutputItem
 
 
 class ResponseStream(Generic[TextFormatT]):
@@ -240,6 +242,7 @@ class ResponseStreamState(Generic[TextFormatT]):
     ) -> None:
         self.__current_snapshot: ParsedResponseSnapshot | None = None
         self._completed_response: ParsedResponse[TextFormatT] | None = None
+        self._completed_output: dict[int, ResponseOutputItem] = {}
         self._input_tools = [tool for tool in input_tools] if is_given(input_tools) else []
         self._text_format = text_format
         self._rich_text_format: type | Omit = text_format if inspect.isclass(text_format) else omit
@@ -356,10 +359,17 @@ class ResponseStreamState(Generic[TextFormatT]):
             output = snapshot.output[event.output_index]
             if output.type == "function_call":
                 output.arguments += event.delta
+        elif event.type == "response.output_item.done":
+            self._completed_output[event.output_index] = event.item
         elif event.type == "response.completed":
+            response = event.response
+            if getattr(response, "output", None) is None:
+                # Recover finalized items; deltas can omit final status, annotations, or refusals.
+                response = model_copy(response)
+                response.output = [self._completed_output[index] for index in sorted(self._completed_output)]
             self._completed_response = parse_response(
                 text_format=self._text_format,
-                response=event.response,
+                response=response,
                 input_tools=self._input_tools,
             )
 

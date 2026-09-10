@@ -1,7 +1,9 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
-from typing import Optional
+from typing import List, Optional
 from typing_extensions import Literal
+
+from pydantic import Field as FieldInfo
 
 from ..._models import BaseModel
 from ..shared.custom_tool_input_format import CustomToolInputFormat
@@ -12,7 +14,7 @@ __all__ = ["CustomTool"]
 class CustomTool(BaseModel):
     """A custom tool that processes input using a specified format.
 
-    Learn more about   [custom tools](https://platform.openai.com/docs/guides/function-calling#custom-tools)
+    Learn more about   [custom tools](https://developers.openai.com/api/docs/guides/function-calling#custom-tools)
     """
 
     name: str
@@ -20,6 +22,15 @@ class CustomTool(BaseModel):
 
     type: Literal["custom"]
     """The type of the custom tool. Always `custom`."""
+
+    allowed_callers: Optional[List[Literal["direct", "programmatic"]]] = None
+    """The tool invocation context(s)."""
+
+    async_: Optional[bool] = FieldInfo(alias="async", default=None)
+    """
+    Whether the tool response can be returned asynchronously versus immediately
+    returned on next response creation.
+    """
 
     defer_loading: Optional[bool] = None
     """Whether this tool should be deferred and discovered via tool search."""

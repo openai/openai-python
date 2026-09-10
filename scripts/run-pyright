@@ -5,4 +5,8 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 CONFIG=${PYRIGHT_PROJECT:-pyproject.toml}
-exec pyright -p "$CONFIG" "$@"
+if ! command -v node >/dev/null 2>&1; then
+  echo 'Node.js is missing. Follow CONTRIBUTING.md, then run ./scripts/bootstrap.' >&2
+  exit 1
+fi
+exec node scripts/utils/node-tooling.cjs pyright -p "$CONFIG" "$@"

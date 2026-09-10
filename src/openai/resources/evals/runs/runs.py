@@ -1,11 +1,11 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 from typing import Optional
 from typing_extensions import Literal
 
-import httpx
+import httpx2
 
 from .... import _legacy_response
 from ...._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
@@ -73,7 +73,7 @@ class Runs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> RunCreateResponse:
         """
         Kicks off a new run for a given evaluation, specifying the data source, and what
@@ -113,7 +113,11 @@ class Runs(SyncAPIResource):
                 run_create_params.RunCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=RunCreateResponse,
         )
@@ -128,7 +132,7 @@ class Runs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> RunRetrieveResponse:
         """
         Get an evaluation run by ID.
@@ -149,7 +153,11 @@ class Runs(SyncAPIResource):
         return self._get(
             path_template("/evals/{eval_id}/runs/{run_id}", eval_id=eval_id, run_id=run_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=RunRetrieveResponse,
         )
@@ -167,7 +175,7 @@ class Runs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncCursorPage[RunListResponse]:
         """
         Get a list of runs for an evaluation.
@@ -210,6 +218,7 @@ class Runs(SyncAPIResource):
                     },
                     run_list_params.RunListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=RunListResponse,
         )
@@ -224,7 +233,7 @@ class Runs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> RunDeleteResponse:
         """
         Delete an eval run.
@@ -245,7 +254,11 @@ class Runs(SyncAPIResource):
         return self._delete(
             path_template("/evals/{eval_id}/runs/{run_id}", eval_id=eval_id, run_id=run_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=RunDeleteResponse,
         )
@@ -260,7 +273,7 @@ class Runs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> RunCancelResponse:
         """
         Cancel an ongoing evaluation run.
@@ -281,7 +294,11 @@ class Runs(SyncAPIResource):
         return self._post(
             path_template("/evals/{eval_id}/runs/{run_id}", eval_id=eval_id, run_id=run_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=RunCancelResponse,
         )
@@ -326,7 +343,7 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> RunCreateResponse:
         """
         Kicks off a new run for a given evaluation, specifying the data source, and what
@@ -366,7 +383,11 @@ class AsyncRuns(AsyncAPIResource):
                 run_create_params.RunCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=RunCreateResponse,
         )
@@ -381,7 +402,7 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> RunRetrieveResponse:
         """
         Get an evaluation run by ID.
@@ -402,7 +423,11 @@ class AsyncRuns(AsyncAPIResource):
         return await self._get(
             path_template("/evals/{eval_id}/runs/{run_id}", eval_id=eval_id, run_id=run_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=RunRetrieveResponse,
         )
@@ -420,7 +445,7 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[RunListResponse, AsyncCursorPage[RunListResponse]]:
         """
         Get a list of runs for an evaluation.
@@ -463,6 +488,7 @@ class AsyncRuns(AsyncAPIResource):
                     },
                     run_list_params.RunListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=RunListResponse,
         )
@@ -477,7 +503,7 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> RunDeleteResponse:
         """
         Delete an eval run.
@@ -498,7 +524,11 @@ class AsyncRuns(AsyncAPIResource):
         return await self._delete(
             path_template("/evals/{eval_id}/runs/{run_id}", eval_id=eval_id, run_id=run_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=RunDeleteResponse,
         )
@@ -513,7 +543,7 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> RunCancelResponse:
         """
         Cancel an ongoing evaluation run.
@@ -534,7 +564,11 @@ class AsyncRuns(AsyncAPIResource):
         return await self._post(
             path_template("/evals/{eval_id}/runs/{run_id}", eval_id=eval_id, run_id=run_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=RunCancelResponse,
         )

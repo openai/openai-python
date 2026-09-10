@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -14,10 +14,12 @@ if TYPE_CHECKING:
     from .resources.beta.beta import Beta
     from .resources.chat.chat import Chat
     from .resources.embeddings import Embeddings
+    from .resources.admin.admin import Admin
     from .resources.audio.audio import Audio
     from .resources.completions import Completions
     from .resources.evals.evals import Evals
     from .resources.moderations import Moderations
+    from .resources.safety.safety import Safety
     from .resources.skills.skills import Skills
     from .resources.uploads.uploads import Uploads
     from .resources.realtime.realtime import Realtime
@@ -25,6 +27,7 @@ if TYPE_CHECKING:
     from .resources.responses.responses import Responses
     from .resources.containers.containers import Containers
     from .resources.fine_tuning.fine_tuning import FineTuning
+    from .resources.content_provenance_checks import ContentProvenanceChecks
     from .resources.conversations.conversations import Conversations
     from .resources.vector_stores.vector_stores import VectorStores
 
@@ -56,6 +59,12 @@ class AudioProxy(LazyProxy["Audio"]):
         return _load_client().audio
 
 
+class AdminProxy(LazyProxy["Admin"]):
+    @override
+    def __load__(self) -> Admin:
+        return _load_client().admin
+
+
 class EvalsProxy(LazyProxy["Evals"]):
     @override
     def __load__(self) -> Evals:
@@ -72,6 +81,12 @@ class ModelsProxy(LazyProxy["Models"]):
     @override
     def __load__(self) -> Models:
         return _load_client().models
+
+
+class SafetyProxy(LazyProxy["Safety"]):
+    @override
+    def __load__(self) -> Safety:
+        return _load_client().safety
 
 
 class SkillsProxy(LazyProxy["Skills"]):
@@ -158,13 +173,21 @@ class ConversationsProxy(LazyProxy["Conversations"]):
         return _load_client().conversations
 
 
+class ContentProvenanceChecksProxy(LazyProxy["ContentProvenanceChecks"]):
+    @override
+    def __load__(self) -> ContentProvenanceChecks:
+        return _load_client().content_provenance_checks
+
+
 chat: Chat = ChatProxy().__as_proxied__()
 beta: Beta = BetaProxy().__as_proxied__()
 files: Files = FilesProxy().__as_proxied__()
 audio: Audio = AudioProxy().__as_proxied__()
+admin: Admin = AdminProxy().__as_proxied__()
 evals: Evals = EvalsProxy().__as_proxied__()
 images: Images = ImagesProxy().__as_proxied__()
 models: Models = ModelsProxy().__as_proxied__()
+safety: Safety = SafetyProxy().__as_proxied__()
 skills: Skills = SkillsProxy().__as_proxied__()
 videos: Videos = VideosProxy().__as_proxied__()
 batches: Batches = BatchesProxy().__as_proxied__()
@@ -179,3 +202,4 @@ moderations: Moderations = ModerationsProxy().__as_proxied__()
 fine_tuning: FineTuning = FineTuningProxy().__as_proxied__()
 vector_stores: VectorStores = VectorStoresProxy().__as_proxied__()
 conversations: Conversations = ConversationsProxy().__as_proxied__()
+content_provenance_checks: ContentProvenanceChecks = ContentProvenanceChecksProxy().__as_proxied__()

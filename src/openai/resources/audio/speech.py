@@ -1,11 +1,11 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 from typing import Union
 from typing_extensions import Literal
 
-import httpx
+import httpx2
 
 from ... import _legacy_response
 from ..._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
@@ -62,7 +62,7 @@ class Speech(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> _legacy_response.HttpxBinaryResponseContent:
         """
         Generates audio from the input text.
@@ -73,7 +73,8 @@ class Speech(SyncAPIResource):
           input: The text to generate audio for. The maximum length is 4096 characters.
 
           model:
-              One of the available [TTS models](https://platform.openai.com/docs/models#tts):
+              One of the available
+              [TTS models](https://developers.openai.com/api/docs/guides/text-to-speech):
               `tts-1`, `tts-1-hd`, `gpt-4o-mini-tts`, or `gpt-4o-mini-tts-2025-12-15`.
 
           voice: The voice to use when generating the audio. Supported built-in voices are
@@ -81,7 +82,7 @@ class Speech(SyncAPIResource):
               `shimmer`, `verse`, `marin`, and `cedar`. You may also provide a custom voice
               object with an `id`, for example `{ "id": "voice_1234" }`. Previews of the
               voices are available in the
-              [Text to speech guide](https://platform.openai.com/docs/guides/text-to-speech#voice-options).
+              [Text to speech guide](https://developers.openai.com/api/docs/guides/text-to-speech#voice-options).
 
           instructions: Control the voice of your generated audio with additional instructions. Does not
               work with `tts-1` or `tts-1-hd`.
@@ -119,7 +120,11 @@ class Speech(SyncAPIResource):
                 speech_create_params.SpeechCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=_legacy_response.HttpxBinaryResponseContent,
         )
@@ -162,7 +167,7 @@ class AsyncSpeech(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> _legacy_response.HttpxBinaryResponseContent:
         """
         Generates audio from the input text.
@@ -173,7 +178,8 @@ class AsyncSpeech(AsyncAPIResource):
           input: The text to generate audio for. The maximum length is 4096 characters.
 
           model:
-              One of the available [TTS models](https://platform.openai.com/docs/models#tts):
+              One of the available
+              [TTS models](https://developers.openai.com/api/docs/guides/text-to-speech):
               `tts-1`, `tts-1-hd`, `gpt-4o-mini-tts`, or `gpt-4o-mini-tts-2025-12-15`.
 
           voice: The voice to use when generating the audio. Supported built-in voices are
@@ -181,7 +187,7 @@ class AsyncSpeech(AsyncAPIResource):
               `shimmer`, `verse`, `marin`, and `cedar`. You may also provide a custom voice
               object with an `id`, for example `{ "id": "voice_1234" }`. Previews of the
               voices are available in the
-              [Text to speech guide](https://platform.openai.com/docs/guides/text-to-speech#voice-options).
+              [Text to speech guide](https://developers.openai.com/api/docs/guides/text-to-speech#voice-options).
 
           instructions: Control the voice of your generated audio with additional instructions. Does not
               work with `tts-1` or `tts-1-hd`.
@@ -219,7 +225,11 @@ class AsyncSpeech(AsyncAPIResource):
                 speech_create_params.SpeechCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=_legacy_response.HttpxBinaryResponseContent,
         )
