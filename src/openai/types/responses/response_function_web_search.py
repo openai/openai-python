@@ -19,11 +19,14 @@ __all__ = [
 class ActionSearchSource(BaseModel):
     """A source used in the search."""
 
-    type: Literal["url"]
-    """The type of source. Always `url`."""
+    type: Literal["url", "api"]
+    """The type of source. `url` for a web page, `api` for a built-in OpenAI data source."""
 
-    url: str
-    """The URL of the source."""
+    url: Optional[str] = None
+    """The URL of the source. Present when type is `url`."""
+
+    name: Optional[str] = None
+    """The name of the built-in data source (e.g. `oai-weather`). Present when type is `api`."""
 
 
 class ActionSearch(BaseModel):
