@@ -18,6 +18,7 @@ from ...pagination import SyncPage, AsyncPage, SyncCursorPage, AsyncCursorPage
 from ..._base_client import AsyncPaginator, make_request_options
 from ...lib._vector_stores import (
     poll_vector_store_file as _poll_vector_store_file,
+    validate_max_wait_seconds as _validate_max_wait_seconds,
     async_poll_vector_store_file as _async_poll_vector_store_file,
 )
 from ...types.vector_stores import file_list_params, file_create_params, file_update_params
@@ -335,6 +336,7 @@ class Files(SyncAPIResource):
         vector_store_id: str,
         attributes: Optional[Dict[str, Union[str, float, bool]]] | Omit = omit,
         poll_interval_ms: int | Omit = omit,
+        max_wait_seconds: float | Omit = omit,
         chunking_strategy: FileChunkingStrategyParam | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -343,7 +345,11 @@ class Files(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFile:
-        """Attach a file to the given vector store and wait for it to be processed."""
+        """Attach a file to the given vector store and wait for it to be processed.
+
+        `max_wait_seconds` limits polling after attachment; see `poll` for details.
+        """
+        _validate_max_wait_seconds(max_wait_seconds)
         self.create(
             vector_store_id=vector_store_id,
             file_id=file_id,
@@ -359,6 +365,7 @@ class Files(SyncAPIResource):
             file_id,
             vector_store_id=vector_store_id,
             poll_interval_ms=poll_interval_ms,
+            max_wait_seconds=max_wait_seconds,
         )
 
     def poll(
@@ -367,8 +374,15 @@ class Files(SyncAPIResource):
         *,
         vector_store_id: str,
         poll_interval_ms: int | Omit = omit,
+        max_wait_seconds: float | Omit = omit,
     ) -> VectorStoreFile:
         """Wait for the vector store file to finish processing.
+
+        `max_wait_seconds` must be finite and non-negative. When provided, it limits
+        polling and raises `TimeoutError` on expiry; zero prevents any polling requests.
+        Omit it to wait indefinitely. In-flight requests and retries use the client's
+        HTTP timeout settings and may finish after the polling deadline. Timing out
+        does not cancel processing on the server.
 
         Note: this will return even if the file failed to process, you need to check
         file.last_error and file.status to handle these cases
@@ -378,6 +392,7 @@ class Files(SyncAPIResource):
             file_id,
             vector_store_id=vector_store_id,
             poll_interval_ms=poll_interval_ms,
+            max_wait_seconds=max_wait_seconds,
         )
 
     def upload(
@@ -402,15 +417,21 @@ class Files(SyncAPIResource):
         file: FileTypes,
         attributes: Optional[Dict[str, Union[str, float, bool]]] | Omit = omit,
         poll_interval_ms: int | Omit = omit,
+        max_wait_seconds: float | Omit = omit,
         chunking_strategy: FileChunkingStrategyParam | Omit = omit,
     ) -> VectorStoreFile:
-        """Add a file to a vector store and poll until processing is complete."""
+        """Add a file to a vector store and poll until processing is complete.
+
+        `max_wait_seconds` limits polling after upload and attachment; see `poll` for details.
+        """
+        _validate_max_wait_seconds(max_wait_seconds)
         file_obj = self._client.files.create(file=file, purpose="assistants")
         return self.create_and_poll(
             vector_store_id=vector_store_id,
             file_id=file_obj.id,
             chunking_strategy=chunking_strategy,
             poll_interval_ms=poll_interval_ms,
+            max_wait_seconds=max_wait_seconds,
             attributes=attributes,
         )
 
@@ -767,6 +788,7 @@ class AsyncFiles(AsyncAPIResource):
         vector_store_id: str,
         attributes: Optional[Dict[str, Union[str, float, bool]]] | Omit = omit,
         poll_interval_ms: int | Omit = omit,
+        max_wait_seconds: float | Omit = omit,
         chunking_strategy: FileChunkingStrategyParam | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -775,7 +797,11 @@ class AsyncFiles(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFile:
-        """Attach a file to the given vector store and wait for it to be processed."""
+        """Attach a file to the given vector store and wait for it to be processed.
+
+        `max_wait_seconds` limits polling after attachment; see `poll` for details.
+        """
+        _validate_max_wait_seconds(max_wait_seconds)
         await self.create(
             vector_store_id=vector_store_id,
             file_id=file_id,
@@ -791,6 +817,7 @@ class AsyncFiles(AsyncAPIResource):
             file_id,
             vector_store_id=vector_store_id,
             poll_interval_ms=poll_interval_ms,
+            max_wait_seconds=max_wait_seconds,
         )
 
     async def poll(
@@ -799,8 +826,15 @@ class AsyncFiles(AsyncAPIResource):
         *,
         vector_store_id: str,
         poll_interval_ms: int | Omit = omit,
+        max_wait_seconds: float | Omit = omit,
     ) -> VectorStoreFile:
         """Wait for the vector store file to finish processing.
+
+        `max_wait_seconds` must be finite and non-negative. When provided, it limits
+        polling and raises `TimeoutError` on expiry; zero prevents any polling requests.
+        Omit it to wait indefinitely. In-flight requests and retries use the client's
+        HTTP timeout settings and may finish after the polling deadline. Timing out
+        does not cancel processing on the server.
 
         Note: this will return even if the file failed to process, you need to check
         file.last_error and file.status to handle these cases
@@ -810,6 +844,7 @@ class AsyncFiles(AsyncAPIResource):
             file_id,
             vector_store_id=vector_store_id,
             poll_interval_ms=poll_interval_ms,
+            max_wait_seconds=max_wait_seconds,
         )
 
     async def upload(
@@ -836,14 +871,20 @@ class AsyncFiles(AsyncAPIResource):
         file: FileTypes,
         attributes: Optional[Dict[str, Union[str, float, bool]]] | Omit = omit,
         poll_interval_ms: int | Omit = omit,
+        max_wait_seconds: float | Omit = omit,
         chunking_strategy: FileChunkingStrategyParam | Omit = omit,
     ) -> VectorStoreFile:
-        """Add a file to a vector store and poll until processing is complete."""
+        """Add a file to a vector store and poll until processing is complete.
+
+        `max_wait_seconds` limits polling after upload and attachment; see `poll` for details.
+        """
+        _validate_max_wait_seconds(max_wait_seconds)
         file_obj = await self._client.files.create(file=file, purpose="assistants")
         return await self.create_and_poll(
             vector_store_id=vector_store_id,
             file_id=file_obj.id,
             poll_interval_ms=poll_interval_ms,
+            max_wait_seconds=max_wait_seconds,
             chunking_strategy=chunking_strategy,
             attributes=attributes,
         )
