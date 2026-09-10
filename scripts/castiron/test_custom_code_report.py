@@ -11,9 +11,9 @@ import subprocess
 import tempfile
 import textwrap
 import unittest
+import unittest.mock as mock
 from pathlib import Path
 from typing import Any
-from unittest import mock
 
 import custom_code_report as report
 
