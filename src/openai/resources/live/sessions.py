@@ -62,8 +62,13 @@ class Sessions(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> None:
-        """
-        Accept an incoming SIP call with Live startup configuration.
+        """Accept an incoming SIP call.
+
+        Supply session with type live, the model, and
+        startup configuration. Before accepting calls, follow the
+        [Live prompting guide](https://developers.openai.com/api/docs/guides/live-prompting)
+        to write frontend conversation instructions and a separate backend prompt. SIP
+        media format is negotiated; omit audio.format.
 
         Args:
           session: Model and startup configuration for the Live session that answers the incoming
@@ -197,7 +202,7 @@ class Sessions(SyncAPIResource):
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> None:
         """
-        Hang up a Live session.
+        End a SIP call identified by session_id.
 
         Args:
           extra_headers: Send extra headers
@@ -235,8 +240,10 @@ class Sessions(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> None:
-        """
-        Transfer a Live SIP call to another destination.
+        """Transfer a SIP call to another destination.
+
+        Supply a nonblank target_uri for the
+        SIP Refer-To header.
 
         Args:
           target_uri: Nonblank URI for the SIP Refer-To header, such as tel:+14155550123 or
@@ -278,8 +285,10 @@ class Sessions(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> None:
-        """
-        Reject an incoming SIP call.
+        """Reject an incoming SIP call.
+
+        Send a required SIP rejection status_code between
+        300 and 699.
 
         Args:
           status_code: SIP rejection status sent to the caller. This field is required.
@@ -341,8 +350,13 @@ class AsyncSessions(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> None:
-        """
-        Accept an incoming SIP call with Live startup configuration.
+        """Accept an incoming SIP call.
+
+        Supply session with type live, the model, and
+        startup configuration. Before accepting calls, follow the
+        [Live prompting guide](https://developers.openai.com/api/docs/guides/live-prompting)
+        to write frontend conversation instructions and a separate backend prompt. SIP
+        media format is negotiated; omit audio.format.
 
         Args:
           session: Model and startup configuration for the Live session that answers the incoming
@@ -476,7 +490,7 @@ class AsyncSessions(AsyncAPIResource):
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> None:
         """
-        Hang up a Live session.
+        End a SIP call identified by session_id.
 
         Args:
           extra_headers: Send extra headers
@@ -514,8 +528,10 @@ class AsyncSessions(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> None:
-        """
-        Transfer a Live SIP call to another destination.
+        """Transfer a SIP call to another destination.
+
+        Supply a nonblank target_uri for the
+        SIP Refer-To header.
 
         Args:
           target_uri: Nonblank URI for the SIP Refer-To header, such as tel:+14155550123 or
@@ -557,8 +573,10 @@ class AsyncSessions(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> None:
-        """
-        Reject an incoming SIP call.
+        """Reject an incoming SIP call.
+
+        Send a required SIP rejection status_code between
+        300 and 699.
 
         Args:
           status_code: SIP rejection status sent to the caller. This field is required.

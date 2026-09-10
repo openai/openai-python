@@ -12,6 +12,14 @@ from .assistants import (
     AsyncAssistantsWithStreamingResponse,
 )
 from ..._resource import SyncAPIResource, AsyncAPIResource
+from .agents.agents import (
+    Agents,
+    AsyncAgents,
+    AgentsWithRawResponse,
+    AsyncAgentsWithRawResponse,
+    AgentsWithStreamingResponse,
+    AsyncAgentsWithStreamingResponse,
+)
 from .chatkit.chatkit import (
     ChatKit,
     AsyncChatKit,
@@ -41,6 +49,10 @@ __all__ = ["Beta", "AsyncBeta"]
 
 
 class Beta(SyncAPIResource):
+    @cached_property
+    def agents(self) -> Agents:
+        return Agents(self._client)
+
     @cached_property
     def responses(self) -> Responses:
         return Responses(self._client)
@@ -80,6 +92,10 @@ class Beta(SyncAPIResource):
 
 
 class AsyncBeta(AsyncAPIResource):
+    @cached_property
+    def agents(self) -> AsyncAgents:
+        return AsyncAgents(self._client)
+
     @cached_property
     def responses(self) -> AsyncResponses:
         return AsyncResponses(self._client)
@@ -123,6 +139,10 @@ class BetaWithRawResponse:
         self._beta = beta
 
     @cached_property
+    def agents(self) -> AgentsWithRawResponse:
+        return AgentsWithRawResponse(self._beta.agents)
+
+    @cached_property
     def responses(self) -> ResponsesWithRawResponse:
         return ResponsesWithRawResponse(self._beta.responses)
 
@@ -144,6 +164,10 @@ class BetaWithRawResponse:
 class AsyncBetaWithRawResponse:
     def __init__(self, beta: AsyncBeta) -> None:
         self._beta = beta
+
+    @cached_property
+    def agents(self) -> AsyncAgentsWithRawResponse:
+        return AsyncAgentsWithRawResponse(self._beta.agents)
 
     @cached_property
     def responses(self) -> AsyncResponsesWithRawResponse:
@@ -169,6 +193,10 @@ class BetaWithStreamingResponse:
         self._beta = beta
 
     @cached_property
+    def agents(self) -> AgentsWithStreamingResponse:
+        return AgentsWithStreamingResponse(self._beta.agents)
+
+    @cached_property
     def responses(self) -> ResponsesWithStreamingResponse:
         return ResponsesWithStreamingResponse(self._beta.responses)
 
@@ -190,6 +218,10 @@ class BetaWithStreamingResponse:
 class AsyncBetaWithStreamingResponse:
     def __init__(self, beta: AsyncBeta) -> None:
         self._beta = beta
+
+    @cached_property
+    def agents(self) -> AsyncAgentsWithStreamingResponse:
+        return AsyncAgentsWithStreamingResponse(self._beta.agents)
 
     @cached_property
     def responses(self) -> AsyncResponsesWithStreamingResponse:
