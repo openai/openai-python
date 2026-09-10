@@ -1,10 +1,10 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 from typing_extensions import Literal, Required, TypedDict
 
-__all__ = ["ChatCompletionContentPartImageParam", "ImageURL"]
+__all__ = ["ChatCompletionContentPartImageParam", "ImageURL", "PromptCacheBreakpoint"]
 
 
 class ImageURL(TypedDict, total=False):
@@ -15,14 +15,33 @@ class ImageURL(TypedDict, total=False):
     """Specifies the detail level of the image.
 
     Learn more in the
-    [Vision guide](https://platform.openai.com/docs/guides/vision#low-or-high-fidelity-image-understanding).
+    [Vision guide](https://developers.openai.com/api/docs/guides/images-vision#choose-an-image-detail-level).
     """
 
 
+class PromptCacheBreakpoint(TypedDict, total=False):
+    """Marks the exact end of a reusable prompt prefix.
+
+    The breakpoint inherits its TTL from the request's `prompt_cache_options.ttl`; the boundary is not rounded to a token block.
+    """
+
+    mode: Required[Literal["explicit"]]
+    """The breakpoint mode. Always `explicit`."""
+
+
 class ChatCompletionContentPartImageParam(TypedDict, total=False):
-    """Learn about [image inputs](https://platform.openai.com/docs/guides/vision)."""
+    """
+    Learn about [image inputs](https://developers.openai.com/api/docs/guides/images-vision).
+    """
 
     image_url: Required[ImageURL]
 
     type: Required[Literal["image_url"]]
     """The type of the content part."""
+
+    prompt_cache_breakpoint: PromptCacheBreakpoint
+    """Marks the exact end of a reusable prompt prefix.
+
+    The breakpoint inherits its TTL from the request's `prompt_cache_options.ttl`;
+    the boundary is not rounded to a token block.
+    """

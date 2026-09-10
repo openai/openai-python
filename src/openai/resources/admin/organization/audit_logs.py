@@ -1,11 +1,11 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 from typing import List
 from typing_extensions import Literal
 
-import httpx
+import httpx2
 
 from .... import _legacy_response
 from ...._types import Body, Omit, Query, Headers, NotGiven, SequenceNotStr, omit, not_given
@@ -102,6 +102,8 @@ class AuditLogs(SyncAPIResource):
                 "role.deleted",
                 "role.assignment.created",
                 "role.assignment.deleted",
+                "role.bound_to_resource",
+                "role.unbound_from_resource",
                 "scim.enabled",
                 "scim.disabled",
                 "service_account.created",
@@ -110,18 +112,107 @@ class AuditLogs(SyncAPIResource):
                 "user.added",
                 "user.updated",
                 "user.deleted",
+                "tenant.metadata.updated",
+                "tenant.microsoft_entra_mapping.upserted",
+                "tenant.microsoft_entra_mapping.deleted",
+                "tenant.workload_identity.provider.created",
+                "tenant.workload_identity.provider.updated",
+                "tenant.workload_identity.provider.archived",
+                "tenant.workload_identity.mapping.created",
+                "tenant.workload_identity.mapping.updated",
+                "tenant.workload_identity.mapping.archived",
+                "tenant.workload_identity.binding.created",
+                "tenant.workload_identity.principal.provisioned",
+                "tenant.workload_identity.access_token.issued",
+                "tenant.admin_api_key.created",
+                "tenant.admin_api_key.updated",
+                "tenant.admin_api_key.deleted",
+                "tenant.project_api_key.created",
+                "tenant.trusted_access.business_verification.started",
+                "tenant.trusted_access.application.submitted",
+                "tenant.chatgpt_access_token.revoked",
+                "tenant.migration.completed",
+                "tenant.sso.migrated",
+                "tenant.domains.migrated",
+                "tenant.sso_connection.created",
+                "tenant.sso_connection.updated",
+                "tenant.sso_connection.deleted",
+                "tenant.sso_connection.setup.started",
+                "tenant.policy.created",
+                "tenant.policy.updated",
+                "tenant.policy.deleted",
+                "tenant.policy.attached",
+                "tenant.policy.detached",
+                "tenant.principal_authentication_policy.resolved",
+                "tenant.scim.setup.started",
+                "tenant.scim.deletion.requested",
+                "tenant.scim.directory.created",
+                "tenant.product_access_policy.updated",
+                "tenant.resource_share_grant.created",
+                "tenant.resource_share_grant.updated",
+                "tenant.resource_share_grant.accepted",
+                "tenant.resource_share_grant.declined",
+                "tenant.resource_share_grant.revoked",
+                "tenant.resource_share_grant.deleted",
+                "tenant.service_account.updated",
+                "tenant.service_account.deleted",
+                "tenant.service_account.token.revoked",
+                "tenant.billing.overage_limit.updated",
+                "tenant.billing.alerts.updated",
+                "tenant.billing.info.updated",
+                "tenant.usage_limit.workspace.updated",
+                "tenant.usage_limit.group.updated",
+                "tenant.usage_limit.user.updated",
+                "tenant.usage_limit.increase_request.updated",
+                "tenant.usage_limit.increase_request.resolved",
+                "tenant.group.created",
+                "tenant.group.updated",
+                "tenant.group.deleted",
+                "tenant.group.member.added",
+                "tenant.group.member.removed",
+                "tenant.migration_rollout.status.updated",
+                "tenant.migration_rollout.tier.updated",
+                "tenant.role.metadata.updated",
+                "tenant.custom_role.created",
+                "tenant.custom_role.updated",
+                "tenant.custom_role.deleted",
+                "tenant.role_assignment.created",
+                "tenant.role_assignment.deleted",
+                "tenant.resource_role_assignment.created",
+                "tenant.resource_role_assignment.deleted",
+                "tenant.resource_access.updated",
+                "tenant.resource_access.deleted",
+                "tenant.ads_account.onboarding.redemption",
+                "tenant.session_policy.created",
+                "tenant.session_policy.updated",
+                "tenant.session_policy.deleted",
+                "tenant.session_revocation.started",
+                "tenant.third_party_app_policy.updated",
+                "tenant.user.added",
+                "tenant.user.updated",
+                "tenant.user.removed",
+                "tenant.user.looked_up",
+                "tenant.user.invited",
+                "tenant.membership.revoked",
+                "tenant.api_organization_invite.upserted",
+                "tenant.api_organization_invite.deleted",
+                "tenant.chatgpt_workspace_invite.upserted",
+                "tenant.membership.accepted",
+                "tenant.membership.declined",
+                "tenant.workspace_invite_email_settings.updated",
             ]
         ]
         | Omit = omit,
         limit: int | Omit = omit,
         project_ids: SequenceNotStr[str] | Omit = omit,
         resource_ids: SequenceNotStr[str] | Omit = omit,
+        tenant_only: bool | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncConversationCursorPage[AuditLogListResponse]:
         """
         List user actions and configuration changes within this organization.
@@ -146,7 +237,7 @@ class AuditLogs(SyncAPIResource):
 
           event_types: Return only events with a `type` in one of these values. For example,
               `project.created`. For all options, see the documentation for the
-              [audit log object](https://platform.openai.com/docs/api-reference/audit-logs/object).
+              [audit log object](https://developers.openai.com/api/reference/resources/admin/subresources/organization/subresources/audit_logs).
 
           limit: A limit on the number of objects to be returned. Limit can range between 1 and
               100, and the default is 20.
@@ -154,7 +245,13 @@ class AuditLogs(SyncAPIResource):
           project_ids: Return only events for these projects.
 
           resource_ids: Return only events performed on these targets. For example, a project ID
-              updated.
+              updated. For ChatGPT connector role events, use the workspace connector resource
+              ID shown in `details.id`, such as `<workspace_id>__<connector_id>`.
+
+          tenant_only: Return only tenant-scoped events associated with this organization. Required for
+              tenant-scoped events such as `role.bound_to_resource` and
+              `role.unbound_from_resource`. When `true`, all supplied event types must be
+              tenant-scoped.
 
           extra_headers: Send extra headers
 
@@ -183,6 +280,7 @@ class AuditLogs(SyncAPIResource):
                         "limit": limit,
                         "project_ids": project_ids,
                         "resource_ids": resource_ids,
+                        "tenant_only": tenant_only,
                     },
                     audit_log_list_params.AuditLogListParams,
                 ),
@@ -273,6 +371,8 @@ class AsyncAuditLogs(AsyncAPIResource):
                 "role.deleted",
                 "role.assignment.created",
                 "role.assignment.deleted",
+                "role.bound_to_resource",
+                "role.unbound_from_resource",
                 "scim.enabled",
                 "scim.disabled",
                 "service_account.created",
@@ -281,18 +381,107 @@ class AsyncAuditLogs(AsyncAPIResource):
                 "user.added",
                 "user.updated",
                 "user.deleted",
+                "tenant.metadata.updated",
+                "tenant.microsoft_entra_mapping.upserted",
+                "tenant.microsoft_entra_mapping.deleted",
+                "tenant.workload_identity.provider.created",
+                "tenant.workload_identity.provider.updated",
+                "tenant.workload_identity.provider.archived",
+                "tenant.workload_identity.mapping.created",
+                "tenant.workload_identity.mapping.updated",
+                "tenant.workload_identity.mapping.archived",
+                "tenant.workload_identity.binding.created",
+                "tenant.workload_identity.principal.provisioned",
+                "tenant.workload_identity.access_token.issued",
+                "tenant.admin_api_key.created",
+                "tenant.admin_api_key.updated",
+                "tenant.admin_api_key.deleted",
+                "tenant.project_api_key.created",
+                "tenant.trusted_access.business_verification.started",
+                "tenant.trusted_access.application.submitted",
+                "tenant.chatgpt_access_token.revoked",
+                "tenant.migration.completed",
+                "tenant.sso.migrated",
+                "tenant.domains.migrated",
+                "tenant.sso_connection.created",
+                "tenant.sso_connection.updated",
+                "tenant.sso_connection.deleted",
+                "tenant.sso_connection.setup.started",
+                "tenant.policy.created",
+                "tenant.policy.updated",
+                "tenant.policy.deleted",
+                "tenant.policy.attached",
+                "tenant.policy.detached",
+                "tenant.principal_authentication_policy.resolved",
+                "tenant.scim.setup.started",
+                "tenant.scim.deletion.requested",
+                "tenant.scim.directory.created",
+                "tenant.product_access_policy.updated",
+                "tenant.resource_share_grant.created",
+                "tenant.resource_share_grant.updated",
+                "tenant.resource_share_grant.accepted",
+                "tenant.resource_share_grant.declined",
+                "tenant.resource_share_grant.revoked",
+                "tenant.resource_share_grant.deleted",
+                "tenant.service_account.updated",
+                "tenant.service_account.deleted",
+                "tenant.service_account.token.revoked",
+                "tenant.billing.overage_limit.updated",
+                "tenant.billing.alerts.updated",
+                "tenant.billing.info.updated",
+                "tenant.usage_limit.workspace.updated",
+                "tenant.usage_limit.group.updated",
+                "tenant.usage_limit.user.updated",
+                "tenant.usage_limit.increase_request.updated",
+                "tenant.usage_limit.increase_request.resolved",
+                "tenant.group.created",
+                "tenant.group.updated",
+                "tenant.group.deleted",
+                "tenant.group.member.added",
+                "tenant.group.member.removed",
+                "tenant.migration_rollout.status.updated",
+                "tenant.migration_rollout.tier.updated",
+                "tenant.role.metadata.updated",
+                "tenant.custom_role.created",
+                "tenant.custom_role.updated",
+                "tenant.custom_role.deleted",
+                "tenant.role_assignment.created",
+                "tenant.role_assignment.deleted",
+                "tenant.resource_role_assignment.created",
+                "tenant.resource_role_assignment.deleted",
+                "tenant.resource_access.updated",
+                "tenant.resource_access.deleted",
+                "tenant.ads_account.onboarding.redemption",
+                "tenant.session_policy.created",
+                "tenant.session_policy.updated",
+                "tenant.session_policy.deleted",
+                "tenant.session_revocation.started",
+                "tenant.third_party_app_policy.updated",
+                "tenant.user.added",
+                "tenant.user.updated",
+                "tenant.user.removed",
+                "tenant.user.looked_up",
+                "tenant.user.invited",
+                "tenant.membership.revoked",
+                "tenant.api_organization_invite.upserted",
+                "tenant.api_organization_invite.deleted",
+                "tenant.chatgpt_workspace_invite.upserted",
+                "tenant.membership.accepted",
+                "tenant.membership.declined",
+                "tenant.workspace_invite_email_settings.updated",
             ]
         ]
         | Omit = omit,
         limit: int | Omit = omit,
         project_ids: SequenceNotStr[str] | Omit = omit,
         resource_ids: SequenceNotStr[str] | Omit = omit,
+        tenant_only: bool | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[AuditLogListResponse, AsyncConversationCursorPage[AuditLogListResponse]]:
         """
         List user actions and configuration changes within this organization.
@@ -317,7 +506,7 @@ class AsyncAuditLogs(AsyncAPIResource):
 
           event_types: Return only events with a `type` in one of these values. For example,
               `project.created`. For all options, see the documentation for the
-              [audit log object](https://platform.openai.com/docs/api-reference/audit-logs/object).
+              [audit log object](https://developers.openai.com/api/reference/resources/admin/subresources/organization/subresources/audit_logs).
 
           limit: A limit on the number of objects to be returned. Limit can range between 1 and
               100, and the default is 20.
@@ -325,7 +514,13 @@ class AsyncAuditLogs(AsyncAPIResource):
           project_ids: Return only events for these projects.
 
           resource_ids: Return only events performed on these targets. For example, a project ID
-              updated.
+              updated. For ChatGPT connector role events, use the workspace connector resource
+              ID shown in `details.id`, such as `<workspace_id>__<connector_id>`.
+
+          tenant_only: Return only tenant-scoped events associated with this organization. Required for
+              tenant-scoped events such as `role.bound_to_resource` and
+              `role.unbound_from_resource`. When `true`, all supplied event types must be
+              tenant-scoped.
 
           extra_headers: Send extra headers
 
@@ -354,6 +549,7 @@ class AsyncAuditLogs(AsyncAPIResource):
                         "limit": limit,
                         "project_ids": project_ids,
                         "resource_ids": resource_ids,
+                        "tenant_only": tenant_only,
                     },
                     audit_log_list_params.AuditLogListParams,
                 ),

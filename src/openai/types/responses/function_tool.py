@@ -1,7 +1,9 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 from typing_extensions import Literal
+
+from pydantic import Field as FieldInfo
 
 from ..._models import BaseModel
 
@@ -11,7 +13,7 @@ __all__ = ["FunctionTool"]
 class FunctionTool(BaseModel):
     """Defines a function in your own code the model can choose to call.
 
-    Learn more about [function calling](https://platform.openai.com/docs/guides/function-calling).
+    Learn more about [function calling](https://developers.openai.com/api/docs/guides/function-calling).
     """
 
     name: str
@@ -21,10 +23,15 @@ class FunctionTool(BaseModel):
     """A JSON schema object describing the parameters of the function."""
 
     strict: Optional[bool] = None
-    """Whether to enforce strict parameter validation. Default `true`."""
+    """Whether strict parameter validation is enforced for this function tool."""
 
     type: Literal["function"]
     """The type of the function tool. Always `function`."""
+
+    allowed_callers: Optional[List[Literal["direct", "programmatic"]]] = None
+    """The tool invocation context(s)."""
+
+    async_: Optional[bool] = FieldInfo(alias="async", default=None)
 
     defer_loading: Optional[bool] = None
     """Whether this function is deferred and loaded via tool search."""
@@ -33,4 +40,10 @@ class FunctionTool(BaseModel):
     """A description of the function.
 
     Used by the model to determine whether or not to call the function.
+    """
+
+    output_schema: Optional[Dict[str, object]] = None
+    """
+    A JSON schema object describing the JSON value encoded in string outputs for
+    this function.
     """

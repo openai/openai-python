@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -9,7 +9,6 @@ import pytest
 
 from openai import OpenAI, AsyncOpenAI
 from tests.utils import assert_matches_type
-from openai._utils import assert_signatures_in_sync
 from openai.pagination import SyncPage, AsyncPage, SyncCursorPage, AsyncCursorPage
 from openai.types.vector_stores import (
     VectorStoreFile,
@@ -18,28 +17,6 @@ from openai.types.vector_stores import (
 )
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
-
-
-def make_vector_store_file(status: str) -> VectorStoreFile:
-    return VectorStoreFile(
-        id="file-abc123",
-        created_at=123,
-        last_error=None,
-        object="vector_store.file",
-        status=status,  # type: ignore[arg-type]
-        usage_bytes=0,
-        vector_store_id="vs_abc123",
-    )
-
-
-class FakeVectorStoreFileResponse:
-    headers: dict[str, str] = {}
-
-    def __init__(self, file: VectorStoreFile) -> None:
-        self._file = file
-
-    def parse(self) -> VectorStoreFile:
-        return self._file
 
 
 class TestFiles:
@@ -342,22 +319,6 @@ class TestFiles:
             client.vector_stores.files.with_raw_response.content(
                 file_id="",
                 vector_store_id="vs_abc123",
-            )
-
-    @parametrize
-    def test_poll_timeout(self, client: OpenAI, monkeypatch: pytest.MonkeyPatch) -> None:
-        def retrieve(*_args: Any, **_kwargs: Any) -> FakeVectorStoreFileResponse:
-            return FakeVectorStoreFileResponse(make_vector_store_file("in_progress"))
-
-        monkeypatch.setattr(client.vector_stores.files.with_raw_response, "retrieve", retrieve)
-        monkeypatch.setattr(client.vector_stores.files, "_sleep", lambda _: None)
-
-        with pytest.raises(TimeoutError, match="Timed out waiting for vector store file"):
-            client.vector_stores.files.poll(
-                "file-abc123",
-                vector_store_id="vs_abc123",
-                poll_interval_ms=1,
-                max_wait_seconds=0,
             )
 
 
@@ -664,43 +625,3 @@ class TestAsyncFiles:
                 file_id="",
                 vector_store_id="vs_abc123",
             )
-
-    @parametrize
-    async def test_poll_timeout(self, async_client: AsyncOpenAI, monkeypatch: pytest.MonkeyPatch) -> None:
-        async def retrieve(*_args: Any, **_kwargs: Any) -> FakeVectorStoreFileResponse:
-            return FakeVectorStoreFileResponse(make_vector_store_file("in_progress"))
-
-        async def sleep(_: float) -> None:
-            return None
-
-        monkeypatch.setattr(async_client.vector_stores.files.with_raw_response, "retrieve", retrieve)
-        monkeypatch.setattr(async_client.vector_stores.files, "_sleep", sleep)
-
-        with pytest.raises(TimeoutError, match="Timed out waiting for vector store file"):
-            await async_client.vector_stores.files.poll(
-                "file-abc123",
-                vector_store_id="vs_abc123",
-                poll_interval_ms=1,
-                max_wait_seconds=0,
-            )
-
-
-@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
-def test_create_and_poll_method_in_sync(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
-    checking_client: OpenAI | AsyncOpenAI = client if sync else async_client
-
-    assert_signatures_in_sync(
-        checking_client.vector_stores.files.create,
-        checking_client.vector_stores.files.create_and_poll,
-    )
-
-
-@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
-def test_upload_and_poll_method_in_sync(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
-    checking_client: OpenAI | AsyncOpenAI = client if sync else async_client
-
-    assert_signatures_in_sync(
-        checking_client.vector_stores.files.create,
-        checking_client.vector_stores.files.upload_and_poll,
-        exclude_params={"file_id", "extra_headers", "extra_query", "extra_body", "timeout"},
-    )

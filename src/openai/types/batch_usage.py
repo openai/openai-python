@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from .._models import BaseModel
 
@@ -11,7 +11,7 @@ class InputTokensDetails(BaseModel):
     cached_tokens: int
     """The number of tokens that were retrieved from the cache.
 
-    [More on prompt caching](https://platform.openai.com/docs/guides/prompt-caching).
+    [More on prompt caching](https://developers.openai.com/api/docs/guides/prompt-caching).
     """
 
 

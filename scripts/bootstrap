@@ -21,7 +21,6 @@ fi
 
 echo "==> Installing Python dependencies…"
 
-# experimental uv support makes installations significantly faster
-rye config --set-bool behavior.use-uv=true
+uv sync --locked --all-extras
 
-rye sync
+./scripts/bootstrap-node

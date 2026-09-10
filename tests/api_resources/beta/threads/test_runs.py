@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -57,7 +57,7 @@ class TestRuns:
                 max_completion_tokens=256,
                 max_prompt_tokens=256,
                 metadata={"foo": "string"},
-                model="gpt-5.4",
+                model="gpt-6-astra",
                 parallel_tool_calls=True,
                 reasoning_effort="none",
                 response_format="auto",
@@ -148,7 +148,7 @@ class TestRuns:
                 max_completion_tokens=256,
                 max_prompt_tokens=256,
                 metadata={"foo": "string"},
-                model="gpt-5.4",
+                model="gpt-6-astra",
                 parallel_tool_calls=True,
                 reasoning_effort="none",
                 response_format="auto",
@@ -607,7 +607,7 @@ class TestAsyncRuns:
                 max_completion_tokens=256,
                 max_prompt_tokens=256,
                 metadata={"foo": "string"},
-                model="gpt-5.4",
+                model="gpt-6-astra",
                 parallel_tool_calls=True,
                 reasoning_effort="none",
                 response_format="auto",
@@ -698,7 +698,7 @@ class TestAsyncRuns:
                 max_completion_tokens=256,
                 max_prompt_tokens=256,
                 metadata={"foo": "string"},
-                model="gpt-5.4",
+                model="gpt-6-astra",
                 parallel_tool_calls=True,
                 reasoning_effort="none",
                 response_format="auto",

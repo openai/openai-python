@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import Optional
 from typing_extensions import Literal
@@ -20,6 +20,12 @@ class APIKey(BaseModel):
 
     value: str
 
+    expires_at: Optional[int] = None
+    """
+    The Unix timestamp (in seconds) when the API key expires, or null if it does not
+    expire.
+    """
+
 
 class ServiceAccountCreateResponse(BaseModel):
     id: str
@@ -32,5 +38,8 @@ class ServiceAccountCreateResponse(BaseModel):
 
     object: Literal["organization.project.service_account"]
 
-    role: Literal["member"]
-    """Service accounts can only have one role of type `member`"""
+    role: Literal["member", "none"]
+    """Service accounts created with default project membership have role `member`.
+
+    Accounts created with `create_service_account_only` have role `none`.
+    """

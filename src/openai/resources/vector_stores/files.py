@@ -1,22 +1,26 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
-import time
-from typing import TYPE_CHECKING, Dict, Union, Optional
-from typing_extensions import Literal, assert_never
+from typing import Dict, Union, Optional
+from typing_extensions import Literal
 
-import httpx
+import httpx2
 
 from ... import _legacy_response
 from ...types import FileChunkingStrategyParam
 from ..._types import Body, Omit, Query, Headers, NotGiven, FileTypes, omit, not_given
-from ..._utils import is_given, path_template, maybe_transform, async_maybe_transform
+from ..._utils import path_template, maybe_transform, async_maybe_transform
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from ...pagination import SyncPage, AsyncPage, SyncCursorPage, AsyncCursorPage
 from ..._base_client import AsyncPaginator, make_request_options
+from ...lib._vector_stores import (
+    poll_vector_store_file as _poll_vector_store_file,
+    validate_max_wait_seconds as _validate_max_wait_seconds,
+    async_poll_vector_store_file as _async_poll_vector_store_file,
+)
 from ...types.vector_stores import file_list_params, file_create_params, file_update_params
 from ...types.file_chunking_strategy_param import FileChunkingStrategyParam
 from ...types.vector_stores.vector_store_file import VectorStoreFile
@@ -58,18 +62,18 @@ class Files(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFile:
         """
         Create a vector store file by attaching a
-        [File](https://platform.openai.com/docs/api-reference/files) to a
-        [vector store](https://platform.openai.com/docs/api-reference/vector-stores/object).
+        [File](https://developers.openai.com/api/reference/resources/files) to a
+        [vector store](https://developers.openai.com/api/reference/resources/vector_stores).
 
         Args:
-          file_id: A [File](https://platform.openai.com/docs/api-reference/files) ID that the
-              vector store should use. Useful for tools like `file_search` that can access
+          file_id: A [File](https://developers.openai.com/api/reference/resources/files) ID that
+              the vector store should use. Useful for tools like `file_search` that can access
               files. For multi-file ingestion, we recommend
-              [`file_batches`](https://platform.openai.com/docs/api-reference/vector-stores-file-batches/createBatch)
+              [`file_batches`](https://developers.openai.com/api/reference/resources/vector_stores/subresources/file_batches/methods/create)
               to minimize per-vector-store write requests.
 
           attributes: Set of 16 key-value pairs that can be attached to an object. This can be useful
@@ -122,7 +126,7 @@ class Files(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFile:
         """
         Retrieves a vector store file.
@@ -166,7 +170,7 @@ class Files(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFile:
         """
         Update attributes on a vector store file.
@@ -220,7 +224,7 @@ class Files(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncCursorPage[VectorStoreFile]:
         """
         Returns a list of vector store files.
@@ -288,13 +292,13 @@ class Files(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFileDeleted:
         """Delete a vector store file.
 
         This will remove the file from the vector store but
         the file itself will not be deleted. To delete the file, use the
-        [delete file](https://platform.openai.com/docs/api-reference/files/delete)
+        [delete file](https://developers.openai.com/api/reference/resources/files/methods/delete)
         endpoint.
 
         Args:
@@ -339,9 +343,13 @@ class Files(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFile:
-        """Attach a file to the given vector store and wait for it to be processed."""
+        """Attach a file to the given vector store and wait for it to be processed.
+
+        `max_wait_seconds` limits polling after attachment; see `poll` for details.
+        """
+        _validate_max_wait_seconds(max_wait_seconds)
         self.create(
             vector_store_id=vector_store_id,
             file_id=file_id,
@@ -370,50 +378,22 @@ class Files(SyncAPIResource):
     ) -> VectorStoreFile:
         """Wait for the vector store file to finish processing.
 
+        `max_wait_seconds` must be finite and non-negative. When provided, it limits
+        polling and raises `TimeoutError` on expiry; zero prevents any polling requests.
+        Omit it to wait indefinitely. In-flight requests and retries use the client's
+        HTTP timeout settings and may finish after the polling deadline. Timing out
+        does not cancel processing on the server.
+
         Note: this will return even if the file failed to process, you need to check
         file.last_error and file.status to handle these cases
         """
-        if is_given(max_wait_seconds) and max_wait_seconds < 0:
-            raise ValueError("Expected a non-negative value for `max_wait_seconds`")
-
-        start = time.monotonic()
-        headers: dict[str, str] = {"X-Stainless-Poll-Helper": "true"}
-        if is_given(poll_interval_ms):
-            headers["X-Stainless-Custom-Poll-Interval"] = str(poll_interval_ms)
-
-        while True:
-            response = self.with_raw_response.retrieve(
-                file_id,
-                vector_store_id=vector_store_id,
-                extra_headers=headers,
-            )
-
-            file = response.parse()
-            if file.status == "in_progress":
-                if not is_given(poll_interval_ms):
-                    from_header = response.headers.get("openai-poll-after-ms")
-                    if from_header is not None:
-                        poll_interval_ms = int(from_header)
-                    else:
-                        poll_interval_ms = 1000
-
-                sleep_seconds = poll_interval_ms / 1000
-                if is_given(max_wait_seconds):
-                    remaining = max_wait_seconds - (time.monotonic() - start)
-                    if remaining <= 0:
-                        raise TimeoutError(
-                            f"Timed out waiting for vector store file {file_id!r} to finish processing"
-                        )
-                    sleep_seconds = min(sleep_seconds, remaining)
-
-                self._sleep(sleep_seconds)
-            elif file.status == "cancelled" or file.status == "completed" or file.status == "failed":
-                return file
-            else:
-                if TYPE_CHECKING:  # type: ignore[unreachable]
-                    assert_never(file.status)
-                else:
-                    return file
+        return _poll_vector_store_file(
+            self,
+            file_id,
+            vector_store_id=vector_store_id,
+            poll_interval_ms=poll_interval_ms,
+            max_wait_seconds=max_wait_seconds,
+        )
 
     def upload(
         self,
@@ -440,7 +420,11 @@ class Files(SyncAPIResource):
         max_wait_seconds: float | Omit = omit,
         chunking_strategy: FileChunkingStrategyParam | Omit = omit,
     ) -> VectorStoreFile:
-        """Add a file to a vector store and poll until processing is complete."""
+        """Add a file to a vector store and poll until processing is complete.
+
+        `max_wait_seconds` limits polling after upload and attachment; see `poll` for details.
+        """
+        _validate_max_wait_seconds(max_wait_seconds)
         file_obj = self._client.files.create(file=file, purpose="assistants")
         return self.create_and_poll(
             vector_store_id=vector_store_id,
@@ -461,7 +445,7 @@ class Files(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncPage[FileContentResponse]:
         """
         Retrieve the parsed contents of a vector store file.
@@ -530,18 +514,18 @@ class AsyncFiles(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFile:
         """
         Create a vector store file by attaching a
-        [File](https://platform.openai.com/docs/api-reference/files) to a
-        [vector store](https://platform.openai.com/docs/api-reference/vector-stores/object).
+        [File](https://developers.openai.com/api/reference/resources/files) to a
+        [vector store](https://developers.openai.com/api/reference/resources/vector_stores).
 
         Args:
-          file_id: A [File](https://platform.openai.com/docs/api-reference/files) ID that the
-              vector store should use. Useful for tools like `file_search` that can access
+          file_id: A [File](https://developers.openai.com/api/reference/resources/files) ID that
+              the vector store should use. Useful for tools like `file_search` that can access
               files. For multi-file ingestion, we recommend
-              [`file_batches`](https://platform.openai.com/docs/api-reference/vector-stores-file-batches/createBatch)
+              [`file_batches`](https://developers.openai.com/api/reference/resources/vector_stores/subresources/file_batches/methods/create)
               to minimize per-vector-store write requests.
 
           attributes: Set of 16 key-value pairs that can be attached to an object. This can be useful
@@ -594,7 +578,7 @@ class AsyncFiles(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFile:
         """
         Retrieves a vector store file.
@@ -638,7 +622,7 @@ class AsyncFiles(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFile:
         """
         Update attributes on a vector store file.
@@ -692,7 +676,7 @@ class AsyncFiles(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[VectorStoreFile, AsyncCursorPage[VectorStoreFile]]:
         """
         Returns a list of vector store files.
@@ -760,13 +744,13 @@ class AsyncFiles(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFileDeleted:
         """Delete a vector store file.
 
         This will remove the file from the vector store but
         the file itself will not be deleted. To delete the file, use the
-        [delete file](https://platform.openai.com/docs/api-reference/files/delete)
+        [delete file](https://developers.openai.com/api/reference/resources/files/methods/delete)
         endpoint.
 
         Args:
@@ -811,9 +795,13 @@ class AsyncFiles(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFile:
-        """Attach a file to the given vector store and wait for it to be processed."""
+        """Attach a file to the given vector store and wait for it to be processed.
+
+        `max_wait_seconds` limits polling after attachment; see `poll` for details.
+        """
+        _validate_max_wait_seconds(max_wait_seconds)
         await self.create(
             vector_store_id=vector_store_id,
             file_id=file_id,
@@ -842,50 +830,22 @@ class AsyncFiles(AsyncAPIResource):
     ) -> VectorStoreFile:
         """Wait for the vector store file to finish processing.
 
+        `max_wait_seconds` must be finite and non-negative. When provided, it limits
+        polling and raises `TimeoutError` on expiry; zero prevents any polling requests.
+        Omit it to wait indefinitely. In-flight requests and retries use the client's
+        HTTP timeout settings and may finish after the polling deadline. Timing out
+        does not cancel processing on the server.
+
         Note: this will return even if the file failed to process, you need to check
         file.last_error and file.status to handle these cases
         """
-        if is_given(max_wait_seconds) and max_wait_seconds < 0:
-            raise ValueError("Expected a non-negative value for `max_wait_seconds`")
-
-        start = time.monotonic()
-        headers: dict[str, str] = {"X-Stainless-Poll-Helper": "true"}
-        if is_given(poll_interval_ms):
-            headers["X-Stainless-Custom-Poll-Interval"] = str(poll_interval_ms)
-
-        while True:
-            response = await self.with_raw_response.retrieve(
-                file_id,
-                vector_store_id=vector_store_id,
-                extra_headers=headers,
-            )
-
-            file = response.parse()
-            if file.status == "in_progress":
-                if not is_given(poll_interval_ms):
-                    from_header = response.headers.get("openai-poll-after-ms")
-                    if from_header is not None:
-                        poll_interval_ms = int(from_header)
-                    else:
-                        poll_interval_ms = 1000
-
-                sleep_seconds = poll_interval_ms / 1000
-                if is_given(max_wait_seconds):
-                    remaining = max_wait_seconds - (time.monotonic() - start)
-                    if remaining <= 0:
-                        raise TimeoutError(
-                            f"Timed out waiting for vector store file {file_id!r} to finish processing"
-                        )
-                    sleep_seconds = min(sleep_seconds, remaining)
-
-                await self._sleep(sleep_seconds)
-            elif file.status == "cancelled" or file.status == "completed" or file.status == "failed":
-                return file
-            else:
-                if TYPE_CHECKING:  # type: ignore[unreachable]
-                    assert_never(file.status)
-                else:
-                    return file
+        return await _async_poll_vector_store_file(
+            self,
+            file_id,
+            vector_store_id=vector_store_id,
+            poll_interval_ms=poll_interval_ms,
+            max_wait_seconds=max_wait_seconds,
+        )
 
     async def upload(
         self,
@@ -914,7 +874,11 @@ class AsyncFiles(AsyncAPIResource):
         max_wait_seconds: float | Omit = omit,
         chunking_strategy: FileChunkingStrategyParam | Omit = omit,
     ) -> VectorStoreFile:
-        """Add a file to a vector store and poll until processing is complete."""
+        """Add a file to a vector store and poll until processing is complete.
+
+        `max_wait_seconds` limits polling after upload and attachment; see `poll` for details.
+        """
+        _validate_max_wait_seconds(max_wait_seconds)
         file_obj = await self._client.files.create(file=file, purpose="assistants")
         return await self.create_and_poll(
             vector_store_id=vector_store_id,
@@ -935,7 +899,7 @@ class AsyncFiles(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[FileContentResponse, AsyncPage[FileContentResponse]]:
         """
         Retrieve the parsed contents of a vector store file.

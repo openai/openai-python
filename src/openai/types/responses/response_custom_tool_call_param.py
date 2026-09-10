@@ -1,13 +1,37 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
-from typing_extensions import Literal, Required, TypedDict
+from typing import Union, Optional
+from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
-__all__ = ["ResponseCustomToolCallParam"]
+__all__ = ["ResponseCustomToolCallParam", "Caller", "CallerDirect", "CallerProgram"]
 
 
-class ResponseCustomToolCallParam(TypedDict, total=False):
+class CallerDirect(TypedDict, total=False):
+    type: Required[Literal["direct"]]
+
+
+class CallerProgram(TypedDict, total=False):
+    caller_id: Required[str]
+    """The call ID of the program item that produced this tool call."""
+
+    type: Required[Literal["program"]]
+
+
+Caller: TypeAlias = Union[CallerDirect, CallerProgram]
+
+
+_ResponseCustomToolCallParamReservedKeywords = TypedDict(
+    "_ResponseCustomToolCallParamReservedKeywords",
+    {
+        "async": bool,
+    },
+    total=False,
+)
+
+
+class ResponseCustomToolCallParam(_ResponseCustomToolCallParamReservedKeywords, total=False):
     """A call to a custom tool created by the model."""
 
     call_id: Required[str]
@@ -24,6 +48,9 @@ class ResponseCustomToolCallParam(TypedDict, total=False):
 
     id: str
     """The unique ID of the custom tool call in the OpenAI platform."""
+
+    caller: Optional[Caller]
+    """The execution context that produced this tool call."""
 
     namespace: str
     """The namespace of the custom tool being called."""
