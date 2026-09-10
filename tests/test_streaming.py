@@ -60,6 +60,28 @@ async def test_event_missing_data(sync: bool, client: OpenAI, async_client: Asyn
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+async def test_control_only_blocks_are_skipped(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
+    def body() -> Iterator[bytes]:
+        yield b"retry: 1000\n"
+        yield b"\n"
+        yield b"id: 1\n"
+        yield b"\n"
+        yield b'data: {"foo":true}\n'
+        yield b"\n"
+        yield b"\n"
+
+    iterator = make_event_iterator(content=body(), sync=sync, client=client, async_client=async_client)
+
+    sse = await iter_next(iterator)
+    assert sse.id == "1"
+    assert sse.retry == 1000
+    assert sse.json() == {"foo": True}
+
+    await assert_empty_iter(iterator)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
 async def test_multiple_events(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
     def body() -> Iterator[bytes]:
         yield b"event: ping\n"
