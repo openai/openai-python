@@ -10,8 +10,17 @@ from tests.respx2 import MockRouter
 from openai._types import omit
 from openai._utils import assert_signatures_in_sync
 from openai._models import construct_type_unchecked
-from openai.types.responses import Response
+from openai.types.responses import (
+    Response,
+    ResponseCreatedEvent,
+    ResponseReasoningItem,
+    ParsedResponseOutputMessage,
+    ResponseOutputItemDoneEvent,
+    ResponseOutputItemAddedEvent,
+    ParsedResponseFunctionToolCall,
+)
 from openai.lib._parsing._responses import parse_response
+from openai.lib.streaming.responses import ResponseStreamState
 
 from ...conftest import base_url
 from ..snapshots import make_snapshot_request
@@ -70,6 +79,107 @@ def test_parse_response_preserves_program_items(item: dict[str, object]) -> None
     parsed = parse_response(text_format=omit, input_tools=omit, response=response)
 
     assert parsed.output[0].to_dict() == item
+
+
+@pytest.mark.parametrize(
+    ("added_item", "completed_item", "expected_item_type"),
+    [
+        pytest.param(
+            {
+                "id": "rs_123",
+                "type": "reasoning",
+                "summary": [],
+                "status": "in_progress",
+                "encrypted_content": "preliminary-ciphertext",
+            },
+            {
+                "id": "rs_123",
+                "type": "reasoning",
+                "summary": [{"type": "summary_text", "text": "Completed reasoning"}],
+                "status": "completed",
+                "encrypted_content": "final-authoritative-ciphertext",
+            },
+            ResponseReasoningItem,
+            id="reasoning",
+        ),
+        pytest.param(
+            {
+                "id": "msg_123",
+                "type": "message",
+                "role": "assistant",
+                "status": "in_progress",
+                "content": [],
+            },
+            {
+                "id": "msg_123",
+                "type": "message",
+                "role": "assistant",
+                "status": "completed",
+                "phase": "final_answer",
+                "content": [{"type": "output_text", "text": "Completed answer", "annotations": list[object]()}],
+            },
+            ParsedResponseOutputMessage,
+            id="message",
+        ),
+        pytest.param(
+            {
+                "id": "fc_123",
+                "type": "function_call",
+                "call_id": "call_123",
+                "name": "get_weather",
+                "arguments": "",
+                "status": "in_progress",
+            },
+            {
+                "id": "fc_123",
+                "type": "function_call",
+                "call_id": "call_123",
+                "name": "get_weather",
+                "arguments": '{"city":"San Francisco"}',
+                "status": "completed",
+            },
+            ParsedResponseFunctionToolCall,
+            id="function_call",
+        ),
+    ],
+)
+def test_stream_state_replaces_added_output_item_with_completed_item(
+    added_item: dict[str, object], completed_item: dict[str, object], expected_item_type: type[object]
+) -> None:
+    state: ResponseStreamState[None] = ResponseStreamState(text_format=omit, input_tools=omit)
+    state.handle_event(
+        construct_type_unchecked(
+            type_=ResponseCreatedEvent,
+            value={"type": "response.created", "sequence_number": 0, "response": {"output": []}},
+        )
+    )
+    state.handle_event(
+        construct_type_unchecked(
+            type_=ResponseOutputItemAddedEvent,
+            value={
+                "type": "response.output_item.added",
+                "sequence_number": 1,
+                "output_index": 0,
+                "item": added_item,
+            },
+        )
+    )
+
+    snapshot = state.accumulate_event(
+        construct_type_unchecked(
+            type_=ResponseOutputItemDoneEvent,
+            value={
+                "type": "response.output_item.done",
+                "sequence_number": 2,
+                "output_index": 0,
+                "item": completed_item,
+            },
+        )
+    )
+
+    assert len(snapshot.output) == 1
+    assert isinstance(snapshot.output[0], expected_item_type)
+    assert snapshot.output[0].to_dict() == completed_item
 
 
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
