@@ -1,18 +1,24 @@
 from __future__ import annotations
 
+import io
 import os
 import re
 import sys
 import json
 import shutil
+import traceback
 import subprocess
+from types import CodeType
 from typing import Any, cast
 from pathlib import Path
+from contextlib import redirect_stderr, redirect_stdout
 
 import pytest
 from packaging.markers import Marker
 from packaging.version import Version
 from packaging.requirements import Requirement
+
+from openai._utils import lru_cache
 
 if sys.version_info >= (3, 11):
     import tomllib
@@ -1213,6 +1219,12 @@ def security_dependency_floor_program() -> str:
     return program
 
 
+@lru_cache(maxsize=1)
+def compiled_security_dependency_floor_program() -> CodeType:
+    # Compile once per worker, but execute with fresh globals for every case.
+    return compile(security_dependency_floor_program(), str(ROOT / "scripts/check-dependency-security.py"), "exec")
+
+
 @pytest.mark.parametrize(
     ("variant", "accepted"),
     [
@@ -1380,6 +1392,7 @@ def run_security_dependency_floor_check(
     base_lock_optional_dependencies: dict[tuple[str, str], dict[str, list[dict[str, object]]]] | None = None,
     head_lock_optional_dependencies: dict[tuple[str, str], dict[str, list[dict[str, object]]]] | None = None,
     origin: str = "https://github.com/openai/openai-python",
+    run_in_subprocess: bool = False,
 ) -> subprocess.CompletedProcess[str]:
     def project(
         requirements: list[str],
@@ -1476,14 +1489,88 @@ def run_security_dependency_floor_check(
     )
     fake_git.chmod(0o755)
     environment = dict(os.environ, BASE_SHA=sha, PATH=str(tmp_path) + os.pathsep + os.environ["PATH"])
-    return subprocess.run(
-        [sys.executable, "-c", security_dependency_floor_program()],
-        cwd=tmp_path,
-        env=environment,
-        capture_output=True,
-        text=True,
-        check=False,
+    if run_in_subprocess:
+        return subprocess.run(
+            [sys.executable, "-c", security_dependency_floor_program()],
+            cwd=tmp_path,
+            env=environment,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
+    # The policy matrix used to launch five Python processes per case. Execute
+    # the same checker and Git stub in-process; keep real CLI coverage below.
+    git_program = compile(fake_git.read_text(), str(fake_git), "exec")
+
+    def run_git(args: list[str], **_kwargs: Any) -> subprocess.CompletedProcess[str]:
+        assert args[0] == "git", "Unexpected subprocess in dependency security checker"
+        output = io.StringIO()
+        with pytest.MonkeyPatch.context() as patch, redirect_stdout(output):
+            patch.setattr(sys, "argv", args)
+            exec(git_program, {"__name__": "__main__"})
+        return subprocess.CompletedProcess(args, 0, output.getvalue(), "")
+
+    stdout, stderr = io.StringIO(), io.StringIO()
+    returncode = 0
+    with pytest.MonkeyPatch.context() as patch, redirect_stdout(stdout), redirect_stderr(stderr):
+        patch.chdir(tmp_path)
+        patch.setenv("BASE_SHA", sha)
+        patch.setattr(subprocess, "run", run_git)
+        if sys.version_info < (3, 11):
+            # The compatibility prelude writes this alias into sys.modules.
+            # Register it with MonkeyPatch so it cannot leak into later tests.
+            patch.setitem(sys.modules, "tomllib", tomllib)
+        try:
+            exec(compiled_security_dependency_floor_program(), {"__name__": "__main__"})
+        except SystemExit as error:
+            if isinstance(error.code, int):
+                returncode = error.code
+            elif error.code is not None:
+                returncode = 1
+                print(error.code, file=stderr)
+        except AssertionError:
+            raise
+        except Exception:
+            returncode = 1
+            traceback.print_exc(file=stderr)
+    return subprocess.CompletedProcess(
+        [sys.executable, "-c", "<security policy>"], returncode, stdout.getvalue(), stderr.getvalue()
     )
+
+
+@pytest.mark.parametrize(
+    ("minimum", "sha", "origin", "accepted"),
+    [
+        ("danger>=2", "a" * 40, "https://github.com/openai/openai-python", True),
+        ("danger>=1", "a" * 40, "https://github.com/openai/openai-python", False),
+        ("danger>=2", "invalid", "https://github.com/openai/openai-python", False),
+        ("danger>=2", "a" * 40, "https://example.test/foreign.git", False),
+    ],
+)
+def test_security_policy_in_process_matches_cli(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, minimum: str, sha: str, origin: str, accepted: bool
+) -> None:
+    if sys.version_info < (3, 11):
+        monkeypatch.delitem(sys.modules, "tomllib", raising=False)
+    original_tomllib = sys.modules.get("tomllib")
+    results = [
+        run_security_dependency_floor_check(
+            tmp_path,
+            base_requirements=["danger>=1"],
+            head_requirements=[minimum],
+            base_packages=[("danger", "1")],
+            head_packages=[("danger", "2")],
+            sha=sha,
+            origin=origin,
+            run_in_subprocess=isolated,
+        )
+        for isolated in (True, False)
+    ]
+    assert results[0].returncode == results[1].returncode == (0 if accepted else 1)
+    assert results[0].stdout == results[1].stdout
+    assert results[0].stderr == results[1].stderr
+    assert sys.modules.get("tomllib") is original_tomllib
 
 
 @pytest.mark.parametrize(

@@ -1,5 +1,33 @@
 # Changelog
 
+## [3.13.0](https://github.com/openai/openai-python/compare/v3.12.0...v3.13.0) (2026-09-10)
+
+
+### Features
+
+* **api:** add Agents API ([1c4284a](https://github.com/openai/openai-python/commit/1c4284a08294f734d57047585ab82e2e09d3a5bc))
+
+## [3.12.0](https://github.com/openai/openai-python/compare/v3.11.0...v3.12.0) (2026-09-10)
+
+
+### Features
+
+* **api:** Add Live API ([0e4bfef](https://github.com/openai/openai-python/commit/0e4bfef9c79251fcf4926fd732129627bde050f1))
+
+
+### Bug Fixes
+
+* add aclose() to AsyncStream for standard async cleanup ([#2854](https://github.com/openai/openai-python/issues/2854)) ([802b334](https://github.com/openai/openai-python/commit/802b334928d8f0c3e24e5fce15a0eaa1b28c61cd))
+* handle bare `dict` and `list` annotations without type arguments ([#3760](https://github.com/openai/openai-python/issues/3760)) ([c7e8c03](https://github.com/openai/openai-python/commit/c7e8c03e2d87708ef233d0db00167dfa339325a9))
+* preserve finalized output on null response completion ([#3345](https://github.com/openai/openai-python/issues/3345)) ([adb212e](https://github.com/openai/openai-python/commit/adb212e116323fcec4b4811d20ba9eb78280c24c))
+
+## [3.11.0](https://github.com/openai/openai-python/compare/v3.10.0...v3.11.0) (2026-09-09)
+
+
+### Features
+
+* **api:** Add expiration controls for service account keys ([#3825](https://github.com/openai/openai-python/issues/3825)) ([f348ec8](https://github.com/openai/openai-python/commit/f348ec87b934c98889102668913e0a3ae7fc303d))
+
 ## [3.10.0](https://github.com/openai/openai-python/compare/v3.9.0...v3.10.0) (2026-09-08)
 
 

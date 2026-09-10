@@ -17,6 +17,7 @@ class _LegacyHttpxModule(Protocol):
     Timeout: type[httpx2.Timeout]
     Limits: type[httpx2.Limits]
     TimeoutException: type[httpx2.TimeoutException]
+    RequestError: type[httpx2.RequestError]
     HTTPStatusError: type[httpx2.HTTPStatusError]
     StreamConsumed: type[httpx2.StreamConsumed]
     RequestNotRead: type[httpx2.RequestNotRead]
@@ -99,16 +100,9 @@ def timeout_exceptions() -> tuple[type[httpx2.TimeoutException], ...]:
     return (httpx2.TimeoutException,) if module is None else (httpx2.TimeoutException, module.TimeoutException)
 
 
-def request_exceptions() -> tuple[type[Exception], ...]:
+def request_exceptions() -> tuple[type[httpx2.RequestError], ...]:
     module = _loaded_legacy_httpx()
-    if module is None:
-        return (httpx2.RequestError,)
-
-    legacy_request_error = cast(
-        type[Exception],
-        getattr(module, "RequestError", httpx2.RequestError),
-    )
-    return (httpx2.RequestError, legacy_request_error)
+    return (httpx2.RequestError,) if module is None else (httpx2.RequestError, module.RequestError)
 
 
 def status_exceptions() -> tuple[type[httpx2.HTTPStatusError], ...]:

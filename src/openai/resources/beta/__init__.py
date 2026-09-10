@@ -8,6 +8,14 @@ from .beta import (
     BetaWithStreamingResponse,
     AsyncBetaWithStreamingResponse,
 )
+from .agents import (
+    Agents,
+    AsyncAgents,
+    AgentsWithRawResponse,
+    AsyncAgentsWithRawResponse,
+    AgentsWithStreamingResponse,
+    AsyncAgentsWithStreamingResponse,
+)
 from .chatkit import (
     ChatKit,
     AsyncChatKit,
@@ -42,6 +50,12 @@ from .assistants import (
 )
 
 __all__ = [
+    "Agents",
+    "AsyncAgents",
+    "AgentsWithRawResponse",
+    "AsyncAgentsWithRawResponse",
+    "AgentsWithStreamingResponse",
+    "AsyncAgentsWithStreamingResponse",
     "Responses",
     "AsyncResponses",
     "ResponsesWithRawResponse",

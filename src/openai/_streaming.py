@@ -52,7 +52,12 @@ class Stream(Generic[_T]):
             yield item
 
     def _iter_events(self) -> Iterator[ServerSentEvent]:
-        yield from self._decoder.iter_bytes(self.response.iter_bytes())
+        try:
+            yield from self._decoder.iter_bytes(self.response.iter_bytes())
+        except timeout_exceptions() as err:
+            raise APITimeoutError(request=self.response.request) from err
+        except request_exceptions() as err:
+            raise APIConnectionError(request=self.response.request) from err
 
     def __stream__(self) -> Iterator[_T]:
         cast_to = cast(Any, self._cast_to)
@@ -61,15 +66,7 @@ class Stream(Generic[_T]):
         iterator = self._iter_events()
 
         try:
-            while True:
-                try:
-                    sse = next(iterator)
-                except StopIteration:
-                    break
-                except timeout_exceptions() as err:
-                    raise APITimeoutError(request=response.request) from err
-                except request_exceptions() as err:
-                    raise APIConnectionError(request=response.request) from err
+            for sse in iterator:
                 if sse.data.startswith("[DONE]"):
                     break
 
@@ -169,8 +166,13 @@ class AsyncStream(Generic[_T]):
             yield item
 
     async def _iter_events(self) -> AsyncIterator[ServerSentEvent]:
-        async for sse in self._decoder.aiter_bytes(self.response.aiter_bytes()):
-            yield sse
+        try:
+            async for sse in self._decoder.aiter_bytes(self.response.aiter_bytes()):
+                yield sse
+        except timeout_exceptions() as err:
+            raise APITimeoutError(request=self.response.request) from err
+        except request_exceptions() as err:
+            raise APIConnectionError(request=self.response.request) from err
 
     async def __stream__(self) -> AsyncIterator[_T]:
         cast_to = cast(Any, self._cast_to)
@@ -179,15 +181,7 @@ class AsyncStream(Generic[_T]):
         iterator = self._iter_events()
 
         try:
-            while True:
-                try:
-                    sse = await iterator.__anext__()
-                except StopAsyncIteration:
-                    break
-                except timeout_exceptions() as err:
-                    raise APITimeoutError(request=response.request) from err
-                except request_exceptions() as err:
-                    raise APIConnectionError(request=response.request) from err
+            async for sse in iterator:
                 if sse.data.startswith("[DONE]"):
                     break
 
@@ -255,6 +249,10 @@ class AsyncStream(Generic[_T]):
         Automatically called if the response body is read to completion.
         """
         await self.response.aclose()
+
+    async def aclose(self) -> None:
+        """Close the response and release the connection. Alias for `close()`."""
+        await self.close()
 
 
 class ServerSentEvent:

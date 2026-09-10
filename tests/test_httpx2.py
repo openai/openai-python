@@ -578,7 +578,8 @@ async def test_provider_auth_and_stream_consumed_families() -> None:
 
 
 @pytest.mark.filterwarnings("ignore:The Assistants API is deprecated in favor of the Responses API:DeprecationWarning")
-async def test_assistant_stream_timeout_callbacks_preserve_httpx2_family() -> None:
+@pytest.mark.parametrize("error_type", [httpx2.ReadTimeout, httpx2.RemoteProtocolError, httpx2.DecodingError])
+async def test_assistant_stream_error_callbacks_preserve_httpx2_family(error_type: type[httpx2.RequestError]) -> None:
     class SyncHandler(openai.AssistantEventHandler):
         def __init__(self) -> None:
             super().__init__()
@@ -611,13 +612,13 @@ async def test_assistant_stream_timeout_callbacks_preserve_httpx2_family() -> No
         @override
         def __iter__(self):
             yield b"partial"
-            raise httpx2.ReadTimeout("assistant stream timeout")
+            raise error_type("assistant stream failure")
 
     class FailingAsyncStream(httpx2.AsyncByteStream):
         @override
         async def __aiter__(self):
             yield b"partial"
-            raise httpx2.ReadTimeout("assistant stream timeout")
+            raise error_type("assistant stream failure")
 
     def sync_response(request: httpx2.Request) -> httpx2.Response:
         return httpx2.Response(
@@ -639,11 +640,11 @@ async def test_assistant_stream_timeout_callbacks_preserve_httpx2_family() -> No
         with sync_client.beta.threads.runs.stream(  # pyright: ignore[reportDeprecated]
             assistant_id="asst_test", thread_id="thread_test", event_handler=sync_handler
         ) as stream:
-            with pytest.raises(httpx2.ReadTimeout, match="assistant stream timeout"):
+            with pytest.raises(error_type, match="assistant stream failure"):
                 stream.until_done()
 
-    assert sync_handler.timed_out
-    assert isinstance(sync_handler.exception, httpx2.ReadTimeout)
+    assert sync_handler.timed_out == issubclass(error_type, httpx2.TimeoutException)
+    assert isinstance(sync_handler.exception, error_type)
 
     async_handler = AsyncHandler()
     async with AsyncOpenAI(
@@ -655,16 +656,14 @@ async def test_assistant_stream_timeout_callbacks_preserve_httpx2_family() -> No
         async with async_client.beta.threads.runs.stream(  # pyright: ignore[reportDeprecated]
             assistant_id="asst_test", thread_id="thread_test", event_handler=async_handler
         ) as async_stream:
-            with pytest.raises(httpx2.ReadTimeout, match="assistant stream timeout"):
+            with pytest.raises(error_type, match="assistant stream failure"):
                 await async_stream.until_done()
 
-    assert async_handler.timed_out
-    assert isinstance(async_handler.exception, httpx2.ReadTimeout)
+    assert async_handler.timed_out == issubclass(error_type, httpx2.TimeoutException)
+    assert isinstance(async_handler.exception, error_type)
 
 
-@pytest.mark.filterwarnings(
-    "ignore:The Assistants API is deprecated in favor of the Responses API:DeprecationWarning"
-)
+@pytest.mark.filterwarnings("ignore:The Assistants API is deprecated in favor of the Responses API:DeprecationWarning")
 @pytest.mark.asyncio
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
 @pytest.mark.parametrize("timeout", [True, False], ids=["timeout", "connection"])
