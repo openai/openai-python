@@ -239,6 +239,10 @@ class AsyncStream(Generic[_T]):
         """
         await self.response.aclose()
 
+    async def aclose(self) -> None:
+        """Close the response and release the connection. Alias for `close()`."""
+        await self.close()
+
 
 class ServerSentEvent:
     def __init__(
