@@ -9,7 +9,7 @@ import httpx2
 import pytest
 
 from openai import OpenAI, AsyncOpenAI, APITimeoutError, APIConnectionError
-from openai._streaming import Stream, AsyncStream, ServerSentEvent
+from openai._streaming import SSEDecoder, Stream, AsyncStream, ServerSentEvent
 
 
 @pytest.fixture(
@@ -406,6 +406,27 @@ async def test_async_stream_aclosing(raise_error: bool) -> None:
                     break
 
         assert response.is_closed
+
+
+@pytest.mark.parametrize("value", ["-1", "+1000", "1.5", " 100", "100 ", "1e3", ""])
+def test_sse_decoder_ignores_invalid_retry_value(value: str) -> None:
+    decoder = SSEDecoder()
+    decoder.decode(f"retry: {value}")
+    decoder.decode("data: ok")
+    sse = decoder.decode("")
+
+    assert sse is not None
+    assert sse.retry is None
+
+
+def test_sse_decoder_accepts_valid_retry_value() -> None:
+    decoder = SSEDecoder()
+    decoder.decode("retry: 3000")
+    decoder.decode("data: ok")
+    sse = decoder.decode("")
+
+    assert sse is not None
+    assert sse.retry == 3000
 
 
 async def to_aiter(iter: Iterator[bytes]) -> AsyncIterator[bytes]:

@@ -419,10 +419,11 @@ class SSEDecoder:
             else:
                 self._last_event_id = value
         elif fieldname == "retry":
-            try:
+            # Per the SSE spec, a retry field is valid only if it consists entirely
+            # of ASCII digits; anything else (a sign, whitespace, a decimal point)
+            # must be ignored rather than parsed leniently by int().
+            if value.isascii() and value.isdigit():
                 self._retry = int(value)
-            except (TypeError, ValueError):
-                pass
         else:
             pass  # Field is ignored.
 
