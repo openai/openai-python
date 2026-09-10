@@ -828,6 +828,23 @@ class TestOpenAI:
         assert response.content == file_content
 
     @pytest.mark.respx2(base_url=base_url)
+    @pytest.mark.parametrize("client", [False], indirect=True)
+    def test_bare_container_response(self, respx2_mock: MockRouter, client: OpenAI) -> None:
+        class Model(BaseModel):
+            metadata: dict  # type: ignore[type-arg]
+            items: list  # type: ignore[type-arg]
+
+        data = {"metadata": {"key": "value"}, "items": [1, "two"]}
+        respx2_mock.get("/foo").mock(return_value=httpx2.Response(200, json=data))
+
+        assert client.get("/foo", cast_to=dict) == data
+        response = client.get("/foo", cast_to=Model)
+        assert response.model_dump() == data
+
+        respx2_mock.get("/items").mock(return_value=httpx2.Response(200, json=[1, "two"]))
+        assert client.get("/items", cast_to=list) == [1, "two"]
+
+    @pytest.mark.respx2(base_url=base_url)
     def test_basic_union_response(self, respx2_mock: MockRouter, client: OpenAI) -> None:
         class Model1(BaseModel):
             name: str
@@ -2130,6 +2147,23 @@ class TestAsyncOpenAI:
         assert response.status_code == 200
         assert response.request.headers["Content-Type"] == "application/octet-stream"
         assert response.content == file_content
+
+    @pytest.mark.respx2(base_url=base_url)
+    @pytest.mark.parametrize("async_client", [False], indirect=True)
+    async def test_bare_container_response(self, respx2_mock: MockRouter, async_client: AsyncOpenAI) -> None:
+        class Model(BaseModel):
+            metadata: dict  # type: ignore[type-arg]
+            items: list  # type: ignore[type-arg]
+
+        data = {"metadata": {"key": "value"}, "items": [1, "two"]}
+        respx2_mock.get("/foo").mock(return_value=httpx2.Response(200, json=data))
+
+        assert await async_client.get("/foo", cast_to=dict) == data
+        response = await async_client.get("/foo", cast_to=Model)
+        assert response.model_dump() == data
+
+        respx2_mock.get("/items").mock(return_value=httpx2.Response(200, json=[1, "two"]))
+        assert await async_client.get("/items", cast_to=list) == [1, "two"]
 
     @pytest.mark.respx2(base_url=base_url)
     async def test_basic_union_response(self, respx2_mock: MockRouter, async_client: AsyncOpenAI) -> None:
