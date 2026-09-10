@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -10,12 +10,14 @@ from . import types
 from ._types import NOT_GIVEN, Omit, NoneType, NotGiven, Transport, ProxiesTypes, omit, not_given
 from ._utils import file_from_path
 from ._client import Client, OpenAI, Stream, Timeout, Transport, AsyncClient, AsyncOpenAI, AsyncStream, RequestOptions
+from ._httpx2 import DefaultHttpx2Client, DefaultAsyncHttpx2Client, normalize_httpx_url as _normalize_httpx_url
 from ._models import BaseModel
 from ._version import __title__, __version__
 from ._response import APIResponse as APIResponse, AsyncAPIResponse as AsyncAPIResponse
 from ._constants import DEFAULT_TIMEOUT, DEFAULT_MAX_RETRIES, DEFAULT_CONNECTION_LIMITS
 from ._exceptions import (
     APIError,
+    OAuthError,
     OpenAIError,
     ConflictError,
     NotFoundError,
@@ -28,14 +30,18 @@ from ._exceptions import (
     InternalServerError,
     PermissionDeniedError,
     LengthFinishReasonError,
+    WebSocketQueueFullError,
     UnprocessableEntityError,
     APIResponseValidationError,
     InvalidWebhookSignatureError,
     ContentFilterFinishReasonError,
+    WebSocketConnectionClosedError,
 )
 from ._base_client import DefaultHttpxClient, DefaultAioHttpClient, DefaultAsyncHttpxClient
 from ._utils._logs import setup_logging as _setup_logging
+from ._data_residency import DataResidency
 from ._legacy_response import HttpxBinaryResponseContent as HttpxBinaryResponseContent
+from .types.websocket_reconnection import ReconnectingEvent, ReconnectingOverrides
 
 __all__ = [
     "types",
@@ -57,6 +63,7 @@ __all__ = [
     "APIResponseValidationError",
     "BadRequestError",
     "AuthenticationError",
+    "OAuthError",
     "PermissionDeniedError",
     "NotFoundError",
     "ConflictError",
@@ -68,12 +75,15 @@ __all__ = [
     "InvalidWebhookSignatureError",
     "Timeout",
     "RequestOptions",
+    "DataResidency",
     "Client",
     "AsyncClient",
     "Stream",
     "AsyncStream",
     "OpenAI",
     "AsyncOpenAI",
+    "BedrockOpenAI",
+    "AsyncBedrockOpenAI",
     "file_from_path",
     "BaseModel",
     "DEFAULT_TIMEOUT",
@@ -82,14 +92,21 @@ __all__ = [
     "DefaultHttpxClient",
     "DefaultAsyncHttpxClient",
     "DefaultAioHttpClient",
+    "DefaultHttpx2Client",
+    "DefaultAsyncHttpx2Client",
+    "ReconnectingEvent",
+    "ReconnectingOverrides",
+    "WebSocketQueueFullError",
+    "WebSocketConnectionClosedError",
 ]
 
 if not _t.TYPE_CHECKING:
     from ._utils._resources_proxy import resources as resources
 
-from .lib import azure as _azure, pydantic_function_tool as pydantic_function_tool
+from .lib import azure as _azure, bedrock as _bedrock, pydantic_function_tool as pydantic_function_tool
 from .version import VERSION as VERSION
 from .lib.azure import AzureOpenAI as AzureOpenAI, AsyncAzureOpenAI as AsyncAzureOpenAI
+from .lib.bedrock import BedrockOpenAI as BedrockOpenAI, AsyncBedrockOpenAI as AsyncBedrockOpenAI
 from .lib._old_api import *
 from .lib.streaming import (
     AssistantEventHandler as AssistantEventHandler,
@@ -115,11 +132,13 @@ for __name in __all__:
 import typing as _t
 import typing_extensions as _te
 
-import httpx as _httpx
+import httpx2 as _httpx
 
 from ._base_client import DEFAULT_TIMEOUT, DEFAULT_MAX_RETRIES
 
 api_key: str | None = None
+
+admin_api_key: str | None = None
 
 organization: str | None = None
 
@@ -139,7 +158,7 @@ default_query: _t.Mapping[str, object] | None = None
 
 http_client: _httpx.Client | None = None
 
-_ApiType = _te.Literal["openai", "azure"]
+_ApiType = _te.Literal["openai", "azure", "amazon-bedrock"]
 
 api_type: _ApiType | None = _t.cast(_ApiType, _os.environ.get("OPENAI_API_TYPE"))
 
@@ -147,9 +166,14 @@ api_version: str | None = _os.environ.get("OPENAI_API_VERSION")
 
 azure_endpoint: str | None = _os.environ.get("AZURE_OPENAI_ENDPOINT")
 
-azure_ad_token: str | None = _os.environ.get("AZURE_OPENAI_AD_TOKEN")
+# Keep explicit module configuration separate from Azure's environment fallback.
+azure_ad_token: str | None = None
 
 azure_ad_token_provider: _azure.AzureADTokenProvider | None = None
+
+_bedrock_api_key: str | None = None
+
+bedrock_token_provider: _bedrock.BedrockTokenProvider | None = None
 
 
 class _ModuleClient(OpenAI):
@@ -166,6 +190,17 @@ class _ModuleClient(OpenAI):
         global api_key
 
         api_key = value
+
+    @property  # type: ignore
+    @override
+    def admin_api_key(self) -> str | None:
+        return admin_api_key
+
+    @admin_api_key.setter  # type: ignore
+    def admin_api_key(self, value: str | None) -> None:  # type: ignore
+        global admin_api_key
+
+        admin_api_key = value
 
     @property  # type: ignore
     @override
@@ -204,7 +239,7 @@ class _ModuleClient(OpenAI):
     @override
     def base_url(self) -> _httpx.URL:
         if base_url is not None:
-            return _httpx.URL(base_url)
+            return _normalize_httpx_url(base_url)
 
         return super().base_url
 
@@ -272,10 +307,36 @@ class _AzureModuleClient(_ModuleClient, AzureOpenAI):  # type: ignore
     ...
 
 
+class _BedrockModuleClient(_ModuleClient, BedrockOpenAI):  # type: ignore
+    @property  # type: ignore
+    @override
+    def api_key(self) -> str | None:
+        return api_key if api_key is not None else _bedrock_api_key
+
+    @api_key.setter  # type: ignore
+    def api_key(self, value: str | None) -> None:  # type: ignore
+        global _bedrock_api_key
+
+        _bedrock_api_key = value
+
+    @override
+    def _refresh_api_key(self) -> str:
+        if api_key is not None:
+            return api_key
+
+        return super()._refresh_api_key()
+
+    @override
+    def _legacy_auth_configuration(self) -> _bedrock._LegacyAuthConfiguration:
+        if api_key is not None:
+            return ("bearer", api_key)
+        return super()._legacy_auth_configuration()
+
+
 class _AmbiguousModuleClientUsageError(OpenAIError):
     def __init__(self) -> None:
         super().__init__(
-            "Ambiguous use of module client; please set `openai.api_type` or the `OPENAI_API_TYPE` environment variable to `openai` or `azure`"
+            "Ambiguous use of module client; please set `openai.api_type` or the `OPENAI_API_TYPE` environment variable to `openai`, `azure`, or `amazon-bedrock`"
         )
 
 
@@ -302,13 +363,10 @@ def _load_client() -> OpenAI:  # type: ignore[reportUnusedFunction]
     global _client
 
     if _client is None:
-        global api_type, azure_endpoint, azure_ad_token, api_version
+        global api_type, azure_endpoint, api_version
 
         if azure_endpoint is None:
             azure_endpoint = _os.environ.get("AZURE_OPENAI_ENDPOINT")
-
-        if azure_ad_token is None:
-            azure_ad_token = _os.environ.get("AZURE_OPENAI_AD_TOKEN")
 
         if api_version is None:
             api_version = _os.environ.get("OPENAI_API_VERSION")
@@ -319,11 +377,6 @@ def _load_client() -> OpenAI:  # type: ignore[reportUnusedFunction]
             has_azure_ad = _has_azure_ad_credentials()
 
             if has_openai and (has_azure or has_azure_ad):
-                raise _AmbiguousModuleClientUsageError()
-
-            if (azure_ad_token is not None or azure_ad_token_provider is not None) and _os.environ.get(
-                "AZURE_OPENAI_API_KEY"
-            ) is not None:
                 raise _AmbiguousModuleClientUsageError()
 
             if has_azure or has_azure_ad:
@@ -348,8 +401,25 @@ def _load_client() -> OpenAI:  # type: ignore[reportUnusedFunction]
             )
             return _client
 
+        if api_type == "amazon-bedrock":
+            _client = _BedrockModuleClient(  # type: ignore
+                api_key=api_key,
+                bedrock_token_provider=bedrock_token_provider,
+                organization=organization,
+                project=project,
+                webhook_secret=webhook_secret,
+                base_url=base_url,
+                timeout=timeout,
+                max_retries=max_retries,
+                default_headers=default_headers,
+                default_query=default_query,
+                http_client=http_client,
+            )
+            return _client
+
         _client = _ModuleClient(
             api_key=api_key,
+            admin_api_key=admin_api_key,
             organization=organization,
             project=project,
             webhook_secret=webhook_secret,
@@ -359,6 +429,7 @@ def _load_client() -> OpenAI:  # type: ignore[reportUnusedFunction]
             default_headers=default_headers,
             default_query=default_query,
             http_client=http_client,
+            _enforce_credentials=False,
         )
         return _client
 
@@ -374,11 +445,14 @@ def _reset_client() -> None:  # type: ignore[reportUnusedFunction]
 from ._module_client import (
     beta as beta,
     chat as chat,
+    live as live,
+    admin as admin,
     audio as audio,
     evals as evals,
     files as files,
     images as images,
     models as models,
+    safety as safety,
     skills as skills,
     videos as videos,
     batches as batches,
@@ -393,4 +467,5 @@ from ._module_client import (
     moderations as moderations,
     conversations as conversations,
     vector_stores as vector_stores,
+    content_provenance_checks as content_provenance_checks,
 )

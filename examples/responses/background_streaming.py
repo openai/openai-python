@@ -1,4 +1,4 @@
-#!/usr/bin/env -S rye run python
+#!/usr/bin/env -S uv run python
 from typing import List
 
 import rich

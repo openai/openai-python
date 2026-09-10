@@ -1,41 +1,59 @@
 #!/usr/bin/env bash
 
-set -e
+set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-if [[ -n "$1" && "$1" != '--'* ]]; then
+if [[ -n "${1:-}" && "$1" != '--'* ]]; then
   URL="$1"
   shift
-else
-  URL="$(grep 'openapi_spec_url' .stats.yml | cut -d' ' -f2)"
-fi
+elif [[ -f .castiron.stats.yml && -f api_reference/openapi.transformed.yml ]]; then
+  URL="api_reference/openapi.transformed.yml"
+  EXPECTED_HASH="$(awk '$1 == "openapi_transformed_spec_hash:" { print $2; exit }' .castiron.stats.yml)"
+  ACTUAL_HASH="$(node -e 'process.stdout.write(require("node:crypto").createHash("md5").update(require("node:fs").readFileSync(process.argv[1])).digest("hex"))' "$URL")"
 
-# Check if the URL is empty
-if [ -z "$URL" ]; then
-  echo "Error: No OpenAPI spec path/url provided or found in .stats.yml"
+  if [[ -z "$EXPECTED_HASH" || "$ACTUAL_HASH" != "$EXPECTED_HASH" ]]; then
+    echo "Error: Local OpenAPI specification does not match generation metadata" >&2
+    exit 1
+  fi
+else
+  echo "Error: No OpenAPI spec path/url provided or found in Castiron generation metadata" >&2
   exit 1
 fi
 
 echo "==> Starting mock server with URL ${URL}"
 
-# Run prism mock on the given spec
-if [ "$1" == "--daemon" ]; then
-  npm exec --package=@stainless-api/prism-cli@5.15.0 -- prism mock "$URL" &> .prism.log &
+# Run steady mock on the given spec
+if [ "${1:-}" == "--daemon" ]; then
+  # Check the already-installed tool before starting the readiness timeout.
+  ./scripts/run-steady --version
 
-  # Wait for server to come online
+  ./scripts/run-steady --host 127.0.0.1 -p 4010 --validator-query-array-format=brackets --validator-form-array-format=brackets --validator-query-object-format=brackets --validator-form-object-format=brackets "$URL" &> .stdy.log &
+  server_pid=$!
+  trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+
+  # Wait for server to come online via health endpoint (max 30s)
   echo -n "Waiting for server"
-  while ! grep -q "✖  fatal\|Prism is listening" ".prism.log" ; do
+  attempts=0
+  while ! curl --silent --fail "http://127.0.0.1:4010/_x-steady/health" >/dev/null 2>&1; do
+    if ! kill -0 "$server_pid" 2>/dev/null; then
+      echo
+      cat .stdy.log
+      exit 1
+    fi
+    attempts=$((attempts + 1))
+    if [ "$attempts" -ge 300 ]; then
+      echo
+      echo "Timed out waiting for Steady server to start"
+      cat .stdy.log
+      exit 1
+    fi
     echo -n "."
     sleep 0.1
   done
 
-  if grep -q "✖  fatal" ".prism.log"; then
-    cat .prism.log
-    exit 1
-  fi
-
   echo
+  trap - EXIT
 else
-  npm exec --package=@stainless-api/prism-cli@5.15.0 -- prism mock "$URL"
+  exec ./scripts/run-steady --host 127.0.0.1 -p 4010 --validator-query-array-format=brackets --validator-form-array-format=brackets --validator-query-object-format=brackets --validator-form-object-format=brackets "$URL"
 fi

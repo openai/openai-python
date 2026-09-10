@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -12,6 +12,7 @@ from .transcription_include import TranscriptionInclude as TranscriptionInclude
 from .transcription_segment import TranscriptionSegment as TranscriptionSegment
 from .transcription_verbose import TranscriptionVerbose as TranscriptionVerbose
 from .transcription_diarized import TranscriptionDiarized as TranscriptionDiarized
+from .transcription_language import TranscriptionLanguage as TranscriptionLanguage
 from .translation_create_params import TranslationCreateParams as TranslationCreateParams
 from .transcription_stream_event import TranscriptionStreamEvent as TranscriptionStreamEvent
 from .transcription_create_params import TranscriptionCreateParams as TranscriptionCreateParams

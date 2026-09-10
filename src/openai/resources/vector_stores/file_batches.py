@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -7,19 +7,23 @@ from typing import Dict, Iterable, Optional
 from typing_extensions import Union, Literal
 from concurrent.futures import Future, ThreadPoolExecutor, as_completed
 
-import httpx
+import httpx2
 import sniffio
 
 from ... import _legacy_response
 from ...types import FileChunkingStrategyParam
 from ..._types import Body, Omit, Query, Headers, NotGiven, FileTypes, SequenceNotStr, omit, not_given
-from ..._utils import is_given, maybe_transform, async_maybe_transform
+from ..._utils import path_template, maybe_transform, async_maybe_transform
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from ...pagination import SyncCursorPage, AsyncCursorPage
 from ..._base_client import AsyncPaginator, make_request_options
 from ...types.file_object import FileObject
+from ...lib._vector_stores import (
+    poll_vector_store_file_batch as _poll_vector_store_file_batch,
+    async_poll_vector_store_file_batch as _async_poll_vector_store_file_batch,
+)
 from ...types.vector_stores import file_batch_create_params, file_batch_list_files_params
 from ...types.file_chunking_strategy_param import FileChunkingStrategyParam
 from ...types.vector_stores.vector_store_file import VectorStoreFile
@@ -61,7 +65,7 @@ class FileBatches(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFileBatch:
         """
         Create a vector store file batch.
@@ -76,15 +80,19 @@ class FileBatches(SyncAPIResource):
           chunking_strategy: The chunking strategy used to chunk the file(s). If not set, will use the `auto`
               strategy. Only applicable if `file_ids` is non-empty.
 
-          file_ids: A list of [File](https://platform.openai.com/docs/api-reference/files) IDs that
-              the vector store should use. Useful for tools like `file_search` that can access
-              files. If `attributes` or `chunking_strategy` are provided, they will be applied
-              to all files in the batch. Mutually exclusive with `files`.
+          file_ids: A list of [File](https://developers.openai.com/api/reference/resources/files)
+              IDs that the vector store should use. Useful for tools like `file_search` that
+              can access files. If `attributes` or `chunking_strategy` are provided, they will
+              be applied to all files in the batch. The maximum batch size is 2000 files. This
+              endpoint is recommended for multi-file ingestion and helps reduce
+              per-vector-store write request pressure. Mutually exclusive with `files`.
 
           files: A list of objects that each include a `file_id` plus optional `attributes` or
               `chunking_strategy`. Use this when you need to override metadata for specific
               files. The global `attributes` or `chunking_strategy` will be ignored and must
-              be specified for each file. Mutually exclusive with `file_ids`.
+              be specified for each file. The maximum batch size is 2000 files. This endpoint
+              is recommended for multi-file ingestion and helps reduce per-vector-store write
+              request pressure. Mutually exclusive with `file_ids`.
 
           extra_headers: Send extra headers
 
@@ -98,7 +106,7 @@ class FileBatches(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `vector_store_id` but received {vector_store_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._post(
-            f"/vector_stores/{vector_store_id}/file_batches",
+            path_template("/vector_stores/{vector_store_id}/file_batches", vector_store_id=vector_store_id),
             body=maybe_transform(
                 {
                     "attributes": attributes,
@@ -109,7 +117,11 @@ class FileBatches(SyncAPIResource):
                 file_batch_create_params.FileBatchCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStoreFileBatch,
         )
@@ -124,7 +136,7 @@ class FileBatches(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFileBatch:
         """
         Retrieves a vector store file batch.
@@ -144,9 +156,17 @@ class FileBatches(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `batch_id` but received {batch_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._get(
-            f"/vector_stores/{vector_store_id}/file_batches/{batch_id}",
+            path_template(
+                "/vector_stores/{vector_store_id}/file_batches/{batch_id}",
+                vector_store_id=vector_store_id,
+                batch_id=batch_id,
+            ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStoreFileBatch,
         )
@@ -161,7 +181,7 @@ class FileBatches(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFileBatch:
         """Cancel a vector store file batch.
 
@@ -183,9 +203,17 @@ class FileBatches(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `batch_id` but received {batch_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._post(
-            f"/vector_stores/{vector_store_id}/file_batches/{batch_id}/cancel",
+            path_template(
+                "/vector_stores/{vector_store_id}/file_batches/{batch_id}/cancel",
+                vector_store_id=vector_store_id,
+                batch_id=batch_id,
+            ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStoreFileBatch,
         )
@@ -204,7 +232,7 @@ class FileBatches(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFileBatch:
         """Create a vector store batch and poll until all files have been processed."""
         batch = self.create(
@@ -240,7 +268,7 @@ class FileBatches(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncCursorPage[VectorStoreFile]:
         """
         Returns a list of vector store files in a batch.
@@ -278,7 +306,11 @@ class FileBatches(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `batch_id` but received {batch_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._get_api_list(
-            f"/vector_stores/{vector_store_id}/file_batches/{batch_id}/files",
+            path_template(
+                "/vector_stores/{vector_store_id}/file_batches/{batch_id}/files",
+                vector_store_id=vector_store_id,
+                batch_id=batch_id,
+            ),
             page=SyncCursorPage[VectorStoreFile],
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -295,6 +327,7 @@ class FileBatches(SyncAPIResource):
                     },
                     file_batch_list_files_params.FileBatchListFilesParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=VectorStoreFile,
         )
@@ -311,30 +344,12 @@ class FileBatches(SyncAPIResource):
         Note: this will return even if one of the files failed to process, you need to
         check batch.file_counts.failed_count to handle this case.
         """
-        headers: dict[str, str] = {"X-Stainless-Poll-Helper": "true"}
-        if is_given(poll_interval_ms):
-            headers["X-Stainless-Custom-Poll-Interval"] = str(poll_interval_ms)
-
-        while True:
-            response = self.with_raw_response.retrieve(
-                batch_id,
-                vector_store_id=vector_store_id,
-                extra_headers=headers,
-            )
-
-            batch = response.parse()
-            if batch.file_counts.in_progress > 0:
-                if not is_given(poll_interval_ms):
-                    from_header = response.headers.get("openai-poll-after-ms")
-                    if from_header is not None:
-                        poll_interval_ms = int(from_header)
-                    else:
-                        poll_interval_ms = 1000
-
-                self._sleep(poll_interval_ms / 1000)
-                continue
-
-            return batch
+        return _poll_vector_store_file_batch(
+            self,
+            batch_id,
+            vector_store_id=vector_store_id,
+            poll_interval_ms=poll_interval_ms,
+        )
 
     def upload_and_poll(
         self,
@@ -420,7 +435,7 @@ class AsyncFileBatches(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFileBatch:
         """
         Create a vector store file batch.
@@ -435,15 +450,19 @@ class AsyncFileBatches(AsyncAPIResource):
           chunking_strategy: The chunking strategy used to chunk the file(s). If not set, will use the `auto`
               strategy. Only applicable if `file_ids` is non-empty.
 
-          file_ids: A list of [File](https://platform.openai.com/docs/api-reference/files) IDs that
-              the vector store should use. Useful for tools like `file_search` that can access
-              files. If `attributes` or `chunking_strategy` are provided, they will be applied
-              to all files in the batch. Mutually exclusive with `files`.
+          file_ids: A list of [File](https://developers.openai.com/api/reference/resources/files)
+              IDs that the vector store should use. Useful for tools like `file_search` that
+              can access files. If `attributes` or `chunking_strategy` are provided, they will
+              be applied to all files in the batch. The maximum batch size is 2000 files. This
+              endpoint is recommended for multi-file ingestion and helps reduce
+              per-vector-store write request pressure. Mutually exclusive with `files`.
 
           files: A list of objects that each include a `file_id` plus optional `attributes` or
               `chunking_strategy`. Use this when you need to override metadata for specific
               files. The global `attributes` or `chunking_strategy` will be ignored and must
-              be specified for each file. Mutually exclusive with `file_ids`.
+              be specified for each file. The maximum batch size is 2000 files. This endpoint
+              is recommended for multi-file ingestion and helps reduce per-vector-store write
+              request pressure. Mutually exclusive with `file_ids`.
 
           extra_headers: Send extra headers
 
@@ -457,7 +476,7 @@ class AsyncFileBatches(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `vector_store_id` but received {vector_store_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._post(
-            f"/vector_stores/{vector_store_id}/file_batches",
+            path_template("/vector_stores/{vector_store_id}/file_batches", vector_store_id=vector_store_id),
             body=await async_maybe_transform(
                 {
                     "attributes": attributes,
@@ -468,7 +487,11 @@ class AsyncFileBatches(AsyncAPIResource):
                 file_batch_create_params.FileBatchCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStoreFileBatch,
         )
@@ -483,7 +506,7 @@ class AsyncFileBatches(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFileBatch:
         """
         Retrieves a vector store file batch.
@@ -503,9 +526,17 @@ class AsyncFileBatches(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `batch_id` but received {batch_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._get(
-            f"/vector_stores/{vector_store_id}/file_batches/{batch_id}",
+            path_template(
+                "/vector_stores/{vector_store_id}/file_batches/{batch_id}",
+                vector_store_id=vector_store_id,
+                batch_id=batch_id,
+            ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStoreFileBatch,
         )
@@ -520,7 +551,7 @@ class AsyncFileBatches(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFileBatch:
         """Cancel a vector store file batch.
 
@@ -542,9 +573,17 @@ class AsyncFileBatches(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `batch_id` but received {batch_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._post(
-            f"/vector_stores/{vector_store_id}/file_batches/{batch_id}/cancel",
+            path_template(
+                "/vector_stores/{vector_store_id}/file_batches/{batch_id}/cancel",
+                vector_store_id=vector_store_id,
+                batch_id=batch_id,
+            ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStoreFileBatch,
         )
@@ -563,7 +602,7 @@ class AsyncFileBatches(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFileBatch:
         """Create a vector store batch and poll until all files have been processed."""
         batch = await self.create(
@@ -599,7 +638,7 @@ class AsyncFileBatches(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[VectorStoreFile, AsyncCursorPage[VectorStoreFile]]:
         """
         Returns a list of vector store files in a batch.
@@ -637,7 +676,11 @@ class AsyncFileBatches(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `batch_id` but received {batch_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._get_api_list(
-            f"/vector_stores/{vector_store_id}/file_batches/{batch_id}/files",
+            path_template(
+                "/vector_stores/{vector_store_id}/file_batches/{batch_id}/files",
+                vector_store_id=vector_store_id,
+                batch_id=batch_id,
+            ),
             page=AsyncCursorPage[VectorStoreFile],
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -654,6 +697,7 @@ class AsyncFileBatches(AsyncAPIResource):
                     },
                     file_batch_list_files_params.FileBatchListFilesParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=VectorStoreFile,
         )
@@ -670,30 +714,12 @@ class AsyncFileBatches(AsyncAPIResource):
         Note: this will return even if one of the files failed to process, you need to
         check batch.file_counts.failed_count to handle this case.
         """
-        headers: dict[str, str] = {"X-Stainless-Poll-Helper": "true"}
-        if is_given(poll_interval_ms):
-            headers["X-Stainless-Custom-Poll-Interval"] = str(poll_interval_ms)
-
-        while True:
-            response = await self.with_raw_response.retrieve(
-                batch_id,
-                vector_store_id=vector_store_id,
-                extra_headers=headers,
-            )
-
-            batch = response.parse()
-            if batch.file_counts.in_progress > 0:
-                if not is_given(poll_interval_ms):
-                    from_header = response.headers.get("openai-poll-after-ms")
-                    if from_header is not None:
-                        poll_interval_ms = int(from_header)
-                    else:
-                        poll_interval_ms = 1000
-
-                await self._sleep(poll_interval_ms / 1000)
-                continue
-
-            return batch
+        return await _async_poll_vector_store_file_batch(
+            self,
+            batch_id,
+            vector_store_id=vector_store_id,
+            poll_interval_ms=poll_interval_ms,
+        )
 
     async def upload_and_poll(
         self,

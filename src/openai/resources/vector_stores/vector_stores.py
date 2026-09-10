@@ -1,11 +1,11 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 from typing import Union, Optional
 from typing_extensions import Literal
 
-import httpx
+import httpx2
 
 from ... import _legacy_response
 from .files import (
@@ -24,7 +24,7 @@ from ...types import (
     vector_store_update_params,
 )
 from ..._types import Body, Omit, Query, Headers, NotGiven, SequenceNotStr, omit, not_given
-from ..._utils import maybe_transform, async_maybe_transform
+from ..._utils import path_template, maybe_transform, async_maybe_transform
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -89,7 +89,7 @@ class VectorStores(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStore:
         """
         Create a vector store.
@@ -103,9 +103,9 @@ class VectorStores(SyncAPIResource):
 
           expires_after: The expiration policy for a vector store.
 
-          file_ids: A list of [File](https://platform.openai.com/docs/api-reference/files) IDs that
-              the vector store should use. Useful for tools like `file_search` that can access
-              files.
+          file_ids: A list of [File](https://developers.openai.com/api/reference/resources/files)
+              IDs that the vector store should use. Useful for tools like `file_search` that
+              can access files.
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format, and
@@ -139,7 +139,11 @@ class VectorStores(SyncAPIResource):
                 vector_store_create_params.VectorStoreCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStore,
         )
@@ -153,7 +157,7 @@ class VectorStores(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStore:
         """
         Retrieves a vector store.
@@ -171,9 +175,13 @@ class VectorStores(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `vector_store_id` but received {vector_store_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._get(
-            f"/vector_stores/{vector_store_id}",
+            path_template("/vector_stores/{vector_store_id}", vector_store_id=vector_store_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStore,
         )
@@ -190,7 +198,7 @@ class VectorStores(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStore:
         """
         Modifies a vector store.
@@ -219,7 +227,7 @@ class VectorStores(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `vector_store_id` but received {vector_store_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._post(
-            f"/vector_stores/{vector_store_id}",
+            path_template("/vector_stores/{vector_store_id}", vector_store_id=vector_store_id),
             body=maybe_transform(
                 {
                     "expires_after": expires_after,
@@ -229,7 +237,11 @@ class VectorStores(SyncAPIResource):
                 vector_store_update_params.VectorStoreUpdateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStore,
         )
@@ -246,7 +258,7 @@ class VectorStores(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncCursorPage[VectorStore]:
         """Returns a list of vector stores.
 
@@ -295,6 +307,7 @@ class VectorStores(SyncAPIResource):
                     },
                     vector_store_list_params.VectorStoreListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=VectorStore,
         )
@@ -308,7 +321,7 @@ class VectorStores(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreDeleted:
         """
         Delete a vector store.
@@ -326,9 +339,13 @@ class VectorStores(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `vector_store_id` but received {vector_store_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._delete(
-            f"/vector_stores/{vector_store_id}",
+            path_template("/vector_stores/{vector_store_id}", vector_store_id=vector_store_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStoreDeleted,
         )
@@ -347,7 +364,7 @@ class VectorStores(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncPage[VectorStoreSearchResponse]:
         """
         Search a vector store for relevant chunks based on a query and file attributes
@@ -377,7 +394,7 @@ class VectorStores(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `vector_store_id` but received {vector_store_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._get_api_list(
-            f"/vector_stores/{vector_store_id}/search",
+            path_template("/vector_stores/{vector_store_id}/search", vector_store_id=vector_store_id),
             page=SyncPage[VectorStoreSearchResponse],
             body=maybe_transform(
                 {
@@ -390,7 +407,11 @@ class VectorStores(SyncAPIResource):
                 vector_store_search_params.VectorStoreSearchParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             model=VectorStoreSearchResponse,
             method="post",
@@ -439,7 +460,7 @@ class AsyncVectorStores(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStore:
         """
         Create a vector store.
@@ -453,9 +474,9 @@ class AsyncVectorStores(AsyncAPIResource):
 
           expires_after: The expiration policy for a vector store.
 
-          file_ids: A list of [File](https://platform.openai.com/docs/api-reference/files) IDs that
-              the vector store should use. Useful for tools like `file_search` that can access
-              files.
+          file_ids: A list of [File](https://developers.openai.com/api/reference/resources/files)
+              IDs that the vector store should use. Useful for tools like `file_search` that
+              can access files.
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format, and
@@ -489,7 +510,11 @@ class AsyncVectorStores(AsyncAPIResource):
                 vector_store_create_params.VectorStoreCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStore,
         )
@@ -503,7 +528,7 @@ class AsyncVectorStores(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStore:
         """
         Retrieves a vector store.
@@ -521,9 +546,13 @@ class AsyncVectorStores(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `vector_store_id` but received {vector_store_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._get(
-            f"/vector_stores/{vector_store_id}",
+            path_template("/vector_stores/{vector_store_id}", vector_store_id=vector_store_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStore,
         )
@@ -540,7 +569,7 @@ class AsyncVectorStores(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStore:
         """
         Modifies a vector store.
@@ -569,7 +598,7 @@ class AsyncVectorStores(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `vector_store_id` but received {vector_store_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._post(
-            f"/vector_stores/{vector_store_id}",
+            path_template("/vector_stores/{vector_store_id}", vector_store_id=vector_store_id),
             body=await async_maybe_transform(
                 {
                     "expires_after": expires_after,
@@ -579,7 +608,11 @@ class AsyncVectorStores(AsyncAPIResource):
                 vector_store_update_params.VectorStoreUpdateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStore,
         )
@@ -596,7 +629,7 @@ class AsyncVectorStores(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[VectorStore, AsyncCursorPage[VectorStore]]:
         """Returns a list of vector stores.
 
@@ -645,6 +678,7 @@ class AsyncVectorStores(AsyncAPIResource):
                     },
                     vector_store_list_params.VectorStoreListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=VectorStore,
         )
@@ -658,7 +692,7 @@ class AsyncVectorStores(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreDeleted:
         """
         Delete a vector store.
@@ -676,9 +710,13 @@ class AsyncVectorStores(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `vector_store_id` but received {vector_store_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._delete(
-            f"/vector_stores/{vector_store_id}",
+            path_template("/vector_stores/{vector_store_id}", vector_store_id=vector_store_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=VectorStoreDeleted,
         )
@@ -697,7 +735,7 @@ class AsyncVectorStores(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[VectorStoreSearchResponse, AsyncPage[VectorStoreSearchResponse]]:
         """
         Search a vector store for relevant chunks based on a query and file attributes
@@ -727,7 +765,7 @@ class AsyncVectorStores(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `vector_store_id` but received {vector_store_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._get_api_list(
-            f"/vector_stores/{vector_store_id}/search",
+            path_template("/vector_stores/{vector_store_id}/search", vector_store_id=vector_store_id),
             page=AsyncPage[VectorStoreSearchResponse],
             body=maybe_transform(
                 {
@@ -740,7 +778,11 @@ class AsyncVectorStores(AsyncAPIResource):
                 vector_store_search_params.VectorStoreSearchParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             model=VectorStoreSearchResponse,
             method="post",

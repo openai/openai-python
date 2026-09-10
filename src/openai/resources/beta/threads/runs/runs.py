@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from typing import List, Union, Iterable, Optional
 from functools import partial
 from typing_extensions import Literal, overload
 
-import httpx
+import httpx2
 
 from ..... import _legacy_response
 from .steps import (
@@ -21,6 +21,7 @@ from .steps import (
 from ....._types import NOT_GIVEN, Body, Omit, Query, Headers, NotGiven, omit, not_given
 from ....._utils import (
     is_given,
+    path_template,
     required_args,
     maybe_transform,
     async_maybe_transform,
@@ -59,8 +60,11 @@ __all__ = ["Runs", "AsyncRuns"]
 
 
 class Runs(SyncAPIResource):
+    """Build Assistants that can call models and use tools."""
+
     @cached_property
     def steps(self) -> Steps:
+        """Build Assistants that can call models and use tools."""
         return Steps(self._client)
 
     @cached_property
@@ -111,22 +115,22 @@ class Runs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Run:
         """
         Create a run.
 
         Args:
           assistant_id: The ID of the
-              [assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
-              execute this run.
+              [assistant](https://developers.openai.com/api/docs/assistants/migration) to use
+              to execute this run.
 
           include: A list of additional fields to include in the response. Currently the only
               supported value is `step_details.tool_calls[*].file_search.results[*].content`
               to fetch the file search result content.
 
               See the
-              [file search tool documentation](https://platform.openai.com/docs/assistants/tools/file-search#customizing-file-search-settings)
+              [file search tool documentation](https://developers.openai.com/api/docs/guides/tools-file-search#retrieval-customization)
               for more information.
 
           additional_instructions: Appends additional instructions at the end of the instructions for the run. This
@@ -136,8 +140,8 @@ class Runs(SyncAPIResource):
           additional_messages: Adds additional messages to the thread before creating the run.
 
           instructions: Overrides the
-              [instructions](https://platform.openai.com/docs/api-reference/assistants/createAssistant)
-              of the assistant. This is useful for modifying the behavior on a per-run basis.
+              [instructions](https://developers.openai.com/api/docs/assistants/migration) of
+              the assistant. This is useful for modifying the behavior on a per-run basis.
 
           max_completion_tokens: The maximum number of completion tokens that may be used over the course of the
               run. The run will make a best effort to use only the number of completion tokens
@@ -158,38 +162,32 @@ class Runs(SyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
-              be used to execute this run. If a value is provided here, it will override the
-              model associated with the assistant. If not, the model associated with the
-              assistant will be used.
+          model: The ID of the
+              [Model](https://developers.openai.com/api/reference/resources/models) to be used
+              to execute this run. If a value is provided here, it will override the model
+              associated with the assistant. If not, the model associated with the assistant
+              will be used.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
+              [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
               during tool use.
 
-          reasoning_effort: Constrains effort on reasoning for
-              [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
-              supported values are `none`, `minimal`, `low`, `medium`, `high`, and `xhigh`.
-              Reducing reasoning effort can result in faster responses and fewer tokens used
-              on reasoning in a response.
-
-              - `gpt-5.1` defaults to `none`, which does not perform reasoning. The supported
-                reasoning values for `gpt-5.1` are `none`, `low`, `medium`, and `high`. Tool
-                calls are supported for all reasoning values in gpt-5.1.
-              - All models before `gpt-5.1` default to `medium` reasoning effort, and do not
-                support `none`.
-              - The `gpt-5-pro` model defaults to (and only supports) `high` reasoning effort.
-              - `xhigh` is supported for all models after `gpt-5.1-codex-max`.
+          reasoning_effort: Constrains effort on reasoning for reasoning models. Currently supported values
+              are `none`, `minimal`, `low`, `medium`, `high`, `xhigh`, and `max`. Reducing
+              reasoning effort can result in faster responses and fewer tokens used on
+              reasoning in a response. Not all reasoning models support every value. See the
+              [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning) for
+              model-specific support.
 
           response_format: Specifies the format that the model must output. Compatible with
-              [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
-              [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4),
-              and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+              [GPT-4o](https://developers.openai.com/api/docs/models/gpt-4o),
+              [GPT-4 Turbo](https://developers.openai.com/api/docs/models/gpt-4-turbo), and
+              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
               Outputs which ensures the model will match your supplied JSON schema. Learn more
               in the
-              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+              [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
               message the model generates is valid JSON.
@@ -269,15 +267,15 @@ class Runs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Stream[AssistantStreamEvent]:
         """
         Create a run.
 
         Args:
           assistant_id: The ID of the
-              [assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
-              execute this run.
+              [assistant](https://developers.openai.com/api/docs/assistants/migration) to use
+              to execute this run.
 
           stream: If `true`, returns a stream of events that happen during the Run as server-sent
               events, terminating when the Run enters a terminal state with a `data: [DONE]`
@@ -288,7 +286,7 @@ class Runs(SyncAPIResource):
               to fetch the file search result content.
 
               See the
-              [file search tool documentation](https://platform.openai.com/docs/assistants/tools/file-search#customizing-file-search-settings)
+              [file search tool documentation](https://developers.openai.com/api/docs/guides/tools-file-search#retrieval-customization)
               for more information.
 
           additional_instructions: Appends additional instructions at the end of the instructions for the run. This
@@ -298,8 +296,8 @@ class Runs(SyncAPIResource):
           additional_messages: Adds additional messages to the thread before creating the run.
 
           instructions: Overrides the
-              [instructions](https://platform.openai.com/docs/api-reference/assistants/createAssistant)
-              of the assistant. This is useful for modifying the behavior on a per-run basis.
+              [instructions](https://developers.openai.com/api/docs/assistants/migration) of
+              the assistant. This is useful for modifying the behavior on a per-run basis.
 
           max_completion_tokens: The maximum number of completion tokens that may be used over the course of the
               run. The run will make a best effort to use only the number of completion tokens
@@ -320,38 +318,32 @@ class Runs(SyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
-              be used to execute this run. If a value is provided here, it will override the
-              model associated with the assistant. If not, the model associated with the
-              assistant will be used.
+          model: The ID of the
+              [Model](https://developers.openai.com/api/reference/resources/models) to be used
+              to execute this run. If a value is provided here, it will override the model
+              associated with the assistant. If not, the model associated with the assistant
+              will be used.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
+              [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
               during tool use.
 
-          reasoning_effort: Constrains effort on reasoning for
-              [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
-              supported values are `none`, `minimal`, `low`, `medium`, `high`, and `xhigh`.
-              Reducing reasoning effort can result in faster responses and fewer tokens used
-              on reasoning in a response.
-
-              - `gpt-5.1` defaults to `none`, which does not perform reasoning. The supported
-                reasoning values for `gpt-5.1` are `none`, `low`, `medium`, and `high`. Tool
-                calls are supported for all reasoning values in gpt-5.1.
-              - All models before `gpt-5.1` default to `medium` reasoning effort, and do not
-                support `none`.
-              - The `gpt-5-pro` model defaults to (and only supports) `high` reasoning effort.
-              - `xhigh` is supported for all models after `gpt-5.1-codex-max`.
+          reasoning_effort: Constrains effort on reasoning for reasoning models. Currently supported values
+              are `none`, `minimal`, `low`, `medium`, `high`, `xhigh`, and `max`. Reducing
+              reasoning effort can result in faster responses and fewer tokens used on
+              reasoning in a response. Not all reasoning models support every value. See the
+              [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning) for
+              model-specific support.
 
           response_format: Specifies the format that the model must output. Compatible with
-              [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
-              [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4),
-              and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+              [GPT-4o](https://developers.openai.com/api/docs/models/gpt-4o),
+              [GPT-4 Turbo](https://developers.openai.com/api/docs/models/gpt-4-turbo), and
+              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
               Outputs which ensures the model will match your supplied JSON schema. Learn more
               in the
-              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+              [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
               message the model generates is valid JSON.
@@ -427,15 +419,15 @@ class Runs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Run | Stream[AssistantStreamEvent]:
         """
         Create a run.
 
         Args:
           assistant_id: The ID of the
-              [assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
-              execute this run.
+              [assistant](https://developers.openai.com/api/docs/assistants/migration) to use
+              to execute this run.
 
           stream: If `true`, returns a stream of events that happen during the Run as server-sent
               events, terminating when the Run enters a terminal state with a `data: [DONE]`
@@ -446,7 +438,7 @@ class Runs(SyncAPIResource):
               to fetch the file search result content.
 
               See the
-              [file search tool documentation](https://platform.openai.com/docs/assistants/tools/file-search#customizing-file-search-settings)
+              [file search tool documentation](https://developers.openai.com/api/docs/guides/tools-file-search#retrieval-customization)
               for more information.
 
           additional_instructions: Appends additional instructions at the end of the instructions for the run. This
@@ -456,8 +448,8 @@ class Runs(SyncAPIResource):
           additional_messages: Adds additional messages to the thread before creating the run.
 
           instructions: Overrides the
-              [instructions](https://platform.openai.com/docs/api-reference/assistants/createAssistant)
-              of the assistant. This is useful for modifying the behavior on a per-run basis.
+              [instructions](https://developers.openai.com/api/docs/assistants/migration) of
+              the assistant. This is useful for modifying the behavior on a per-run basis.
 
           max_completion_tokens: The maximum number of completion tokens that may be used over the course of the
               run. The run will make a best effort to use only the number of completion tokens
@@ -478,38 +470,32 @@ class Runs(SyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
-              be used to execute this run. If a value is provided here, it will override the
-              model associated with the assistant. If not, the model associated with the
-              assistant will be used.
+          model: The ID of the
+              [Model](https://developers.openai.com/api/reference/resources/models) to be used
+              to execute this run. If a value is provided here, it will override the model
+              associated with the assistant. If not, the model associated with the assistant
+              will be used.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
+              [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
               during tool use.
 
-          reasoning_effort: Constrains effort on reasoning for
-              [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
-              supported values are `none`, `minimal`, `low`, `medium`, `high`, and `xhigh`.
-              Reducing reasoning effort can result in faster responses and fewer tokens used
-              on reasoning in a response.
-
-              - `gpt-5.1` defaults to `none`, which does not perform reasoning. The supported
-                reasoning values for `gpt-5.1` are `none`, `low`, `medium`, and `high`. Tool
-                calls are supported for all reasoning values in gpt-5.1.
-              - All models before `gpt-5.1` default to `medium` reasoning effort, and do not
-                support `none`.
-              - The `gpt-5-pro` model defaults to (and only supports) `high` reasoning effort.
-              - `xhigh` is supported for all models after `gpt-5.1-codex-max`.
+          reasoning_effort: Constrains effort on reasoning for reasoning models. Currently supported values
+              are `none`, `minimal`, `low`, `medium`, `high`, `xhigh`, and `max`. Reducing
+              reasoning effort can result in faster responses and fewer tokens used on
+              reasoning in a response. Not all reasoning models support every value. See the
+              [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning) for
+              model-specific support.
 
           response_format: Specifies the format that the model must output. Compatible with
-              [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
-              [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4),
-              and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+              [GPT-4o](https://developers.openai.com/api/docs/models/gpt-4o),
+              [GPT-4 Turbo](https://developers.openai.com/api/docs/models/gpt-4-turbo), and
+              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
               Outputs which ensures the model will match your supplied JSON schema. Learn more
               in the
-              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+              [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
               message the model generates is valid JSON.
@@ -585,13 +571,13 @@ class Runs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Run | Stream[AssistantStreamEvent]:
         if not thread_id:
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._post(
-            f"/threads/{thread_id}/runs",
+            path_template("/threads/{thread_id}/runs", thread_id=thread_id),
             body=maybe_transform(
                 {
                     "assistant_id": assistant_id,
@@ -620,6 +606,8 @@ class Runs(SyncAPIResource):
                 extra_body=extra_body,
                 timeout=timeout,
                 query=maybe_transform({"include": include}, run_create_params.RunCreateParams),
+                security={"bearer_auth": True},
+                synthesize_event_and_data=True,
             ),
             cast_to=Run,
             stream=stream or False,
@@ -637,7 +625,7 @@ class Runs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Run:
         """
         Retrieves a run.
@@ -657,9 +645,13 @@ class Runs(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._get(
-            f"/threads/{thread_id}/runs/{run_id}",
+            path_template("/threads/{thread_id}/runs/{run_id}", thread_id=thread_id, run_id=run_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Run,
         )
@@ -676,7 +668,7 @@ class Runs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Run:
         """
         Modifies a run.
@@ -703,10 +695,14 @@ class Runs(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._post(
-            f"/threads/{thread_id}/runs/{run_id}",
+            path_template("/threads/{thread_id}/runs/{run_id}", thread_id=thread_id, run_id=run_id),
             body=maybe_transform({"metadata": metadata}, run_update_params.RunUpdateParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Run,
         )
@@ -725,7 +721,7 @@ class Runs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncCursorPage[Run]:
         """
         Returns a list of runs belonging to a thread.
@@ -759,7 +755,7 @@ class Runs(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._get_api_list(
-            f"/threads/{thread_id}/runs",
+            path_template("/threads/{thread_id}/runs", thread_id=thread_id),
             page=SyncCursorPage[Run],
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -775,6 +771,7 @@ class Runs(SyncAPIResource):
                     },
                     run_list_params.RunListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=Run,
         )
@@ -790,7 +787,7 @@ class Runs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Run:
         """
         Cancels a run that is `in_progress`.
@@ -810,9 +807,13 @@ class Runs(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._post(
-            f"/threads/{thread_id}/runs/{run_id}/cancel",
+            path_template("/threads/{thread_id}/runs/{run_id}/cancel", thread_id=thread_id, run_id=run_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Run,
         )
@@ -845,7 +846,7 @@ class Runs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> Run:
         """
         A helper to create a run an poll for a terminal state. More information on Run
@@ -915,7 +916,7 @@ class Runs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AssistantStreamManager[AssistantEventHandler]:
         """Create a Run stream"""
         ...
@@ -948,7 +949,7 @@ class Runs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AssistantStreamManager[AssistantEventHandlerT]:
         """Create a Run stream"""
         ...
@@ -980,7 +981,7 @@ class Runs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AssistantStreamManager[AssistantEventHandler] | AssistantStreamManager[AssistantEventHandlerT]:
         """Create a Run stream"""
         if not thread_id:
@@ -994,7 +995,7 @@ class Runs(SyncAPIResource):
         }
         make_request = partial(
             self._post,
-            f"/threads/{thread_id}/runs",
+            path_template("/threads/{thread_id}/runs", thread_id=thread_id),
             body=maybe_transform(
                 {
                     "assistant_id": assistant_id,
@@ -1018,7 +1019,11 @@ class Runs(SyncAPIResource):
                 run_create_params.RunCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Run,
             stream=True,
@@ -1034,7 +1039,7 @@ class Runs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
         poll_interval_ms: int | Omit = omit,
     ) -> Run:
         """
@@ -1100,7 +1105,7 @@ class Runs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AssistantStreamManager[AssistantEventHandler]:
         """Create a Run stream"""
         ...
@@ -1134,7 +1139,7 @@ class Runs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AssistantStreamManager[AssistantEventHandlerT]:
         """Create a Run stream"""
         ...
@@ -1167,7 +1172,7 @@ class Runs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AssistantStreamManager[AssistantEventHandler] | AssistantStreamManager[AssistantEventHandlerT]:
         """Create a Run stream"""
         if not thread_id:
@@ -1181,7 +1186,7 @@ class Runs(SyncAPIResource):
         }
         make_request = partial(
             self._post,
-            f"/threads/{thread_id}/runs",
+            path_template("/threads/{thread_id}/runs", thread_id=thread_id),
             body=maybe_transform(
                 {
                     "assistant_id": assistant_id,
@@ -1210,6 +1215,7 @@ class Runs(SyncAPIResource):
                 extra_body=extra_body,
                 timeout=timeout,
                 query=maybe_transform({"include": include}, run_create_params.RunCreateParams),
+                security={"bearer_auth": True},
             ),
             cast_to=Run,
             stream=True,
@@ -1231,7 +1237,7 @@ class Runs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Run:
         """
         When a run has the `status: "requires_action"` and `required_action.type` is
@@ -1270,7 +1276,7 @@ class Runs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Stream[AssistantStreamEvent]:
         """
         When a run has the `status: "requires_action"` and `required_action.type` is
@@ -1309,7 +1315,7 @@ class Runs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Run | Stream[AssistantStreamEvent]:
         """
         When a run has the `status: "requires_action"` and `required_action.type` is
@@ -1349,7 +1355,7 @@ class Runs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Run | Stream[AssistantStreamEvent]:
         if not thread_id:
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
@@ -1357,7 +1363,7 @@ class Runs(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._post(
-            f"/threads/{thread_id}/runs/{run_id}/submit_tool_outputs",
+            path_template("/threads/{thread_id}/runs/{run_id}/submit_tool_outputs", thread_id=thread_id, run_id=run_id),
             body=maybe_transform(
                 {
                     "tool_outputs": tool_outputs,
@@ -1368,7 +1374,12 @@ class Runs(SyncAPIResource):
                 else run_submit_tool_outputs_params.RunSubmitToolOutputsParamsNonStreaming,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
+                synthesize_event_and_data=True,
             ),
             cast_to=Run,
             stream=stream or False,
@@ -1388,7 +1399,7 @@ class Runs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> Run:
         """
         A helper to submit a tool output to a run and poll for a terminal run state.
@@ -1428,7 +1439,7 @@ class Runs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AssistantStreamManager[AssistantEventHandler]:
         """
         Submit the tool outputs from a previous run and stream the run to a terminal
@@ -1451,7 +1462,7 @@ class Runs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AssistantStreamManager[AssistantEventHandlerT]:
         """
         Submit the tool outputs from a previous run and stream the run to a terminal
@@ -1473,7 +1484,7 @@ class Runs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AssistantStreamManager[AssistantEventHandler] | AssistantStreamManager[AssistantEventHandlerT]:
         """
         Submit the tool outputs from a previous run and stream the run to a terminal
@@ -1494,7 +1505,7 @@ class Runs(SyncAPIResource):
         }
         request = partial(
             self._post,
-            f"/threads/{thread_id}/runs/{run_id}/submit_tool_outputs",
+            path_template("/threads/{thread_id}/runs/{run_id}/submit_tool_outputs", thread_id=thread_id, run_id=run_id),
             body=maybe_transform(
                 {
                     "tool_outputs": tool_outputs,
@@ -1503,7 +1514,11 @@ class Runs(SyncAPIResource):
                 run_submit_tool_outputs_params.RunSubmitToolOutputsParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Run,
             stream=True,
@@ -1513,8 +1528,11 @@ class Runs(SyncAPIResource):
 
 
 class AsyncRuns(AsyncAPIResource):
+    """Build Assistants that can call models and use tools."""
+
     @cached_property
     def steps(self) -> AsyncSteps:
+        """Build Assistants that can call models and use tools."""
         return AsyncSteps(self._client)
 
     @cached_property
@@ -1565,22 +1583,22 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Run:
         """
         Create a run.
 
         Args:
           assistant_id: The ID of the
-              [assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
-              execute this run.
+              [assistant](https://developers.openai.com/api/docs/assistants/migration) to use
+              to execute this run.
 
           include: A list of additional fields to include in the response. Currently the only
               supported value is `step_details.tool_calls[*].file_search.results[*].content`
               to fetch the file search result content.
 
               See the
-              [file search tool documentation](https://platform.openai.com/docs/assistants/tools/file-search#customizing-file-search-settings)
+              [file search tool documentation](https://developers.openai.com/api/docs/guides/tools-file-search#retrieval-customization)
               for more information.
 
           additional_instructions: Appends additional instructions at the end of the instructions for the run. This
@@ -1590,8 +1608,8 @@ class AsyncRuns(AsyncAPIResource):
           additional_messages: Adds additional messages to the thread before creating the run.
 
           instructions: Overrides the
-              [instructions](https://platform.openai.com/docs/api-reference/assistants/createAssistant)
-              of the assistant. This is useful for modifying the behavior on a per-run basis.
+              [instructions](https://developers.openai.com/api/docs/assistants/migration) of
+              the assistant. This is useful for modifying the behavior on a per-run basis.
 
           max_completion_tokens: The maximum number of completion tokens that may be used over the course of the
               run. The run will make a best effort to use only the number of completion tokens
@@ -1612,38 +1630,32 @@ class AsyncRuns(AsyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
-              be used to execute this run. If a value is provided here, it will override the
-              model associated with the assistant. If not, the model associated with the
-              assistant will be used.
+          model: The ID of the
+              [Model](https://developers.openai.com/api/reference/resources/models) to be used
+              to execute this run. If a value is provided here, it will override the model
+              associated with the assistant. If not, the model associated with the assistant
+              will be used.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
+              [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
               during tool use.
 
-          reasoning_effort: Constrains effort on reasoning for
-              [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
-              supported values are `none`, `minimal`, `low`, `medium`, `high`, and `xhigh`.
-              Reducing reasoning effort can result in faster responses and fewer tokens used
-              on reasoning in a response.
-
-              - `gpt-5.1` defaults to `none`, which does not perform reasoning. The supported
-                reasoning values for `gpt-5.1` are `none`, `low`, `medium`, and `high`. Tool
-                calls are supported for all reasoning values in gpt-5.1.
-              - All models before `gpt-5.1` default to `medium` reasoning effort, and do not
-                support `none`.
-              - The `gpt-5-pro` model defaults to (and only supports) `high` reasoning effort.
-              - `xhigh` is supported for all models after `gpt-5.1-codex-max`.
+          reasoning_effort: Constrains effort on reasoning for reasoning models. Currently supported values
+              are `none`, `minimal`, `low`, `medium`, `high`, `xhigh`, and `max`. Reducing
+              reasoning effort can result in faster responses and fewer tokens used on
+              reasoning in a response. Not all reasoning models support every value. See the
+              [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning) for
+              model-specific support.
 
           response_format: Specifies the format that the model must output. Compatible with
-              [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
-              [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4),
-              and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+              [GPT-4o](https://developers.openai.com/api/docs/models/gpt-4o),
+              [GPT-4 Turbo](https://developers.openai.com/api/docs/models/gpt-4-turbo), and
+              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
               Outputs which ensures the model will match your supplied JSON schema. Learn more
               in the
-              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+              [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
               message the model generates is valid JSON.
@@ -1723,15 +1735,15 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncStream[AssistantStreamEvent]:
         """
         Create a run.
 
         Args:
           assistant_id: The ID of the
-              [assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
-              execute this run.
+              [assistant](https://developers.openai.com/api/docs/assistants/migration) to use
+              to execute this run.
 
           stream: If `true`, returns a stream of events that happen during the Run as server-sent
               events, terminating when the Run enters a terminal state with a `data: [DONE]`
@@ -1742,7 +1754,7 @@ class AsyncRuns(AsyncAPIResource):
               to fetch the file search result content.
 
               See the
-              [file search tool documentation](https://platform.openai.com/docs/assistants/tools/file-search#customizing-file-search-settings)
+              [file search tool documentation](https://developers.openai.com/api/docs/guides/tools-file-search#retrieval-customization)
               for more information.
 
           additional_instructions: Appends additional instructions at the end of the instructions for the run. This
@@ -1752,8 +1764,8 @@ class AsyncRuns(AsyncAPIResource):
           additional_messages: Adds additional messages to the thread before creating the run.
 
           instructions: Overrides the
-              [instructions](https://platform.openai.com/docs/api-reference/assistants/createAssistant)
-              of the assistant. This is useful for modifying the behavior on a per-run basis.
+              [instructions](https://developers.openai.com/api/docs/assistants/migration) of
+              the assistant. This is useful for modifying the behavior on a per-run basis.
 
           max_completion_tokens: The maximum number of completion tokens that may be used over the course of the
               run. The run will make a best effort to use only the number of completion tokens
@@ -1774,38 +1786,32 @@ class AsyncRuns(AsyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
-              be used to execute this run. If a value is provided here, it will override the
-              model associated with the assistant. If not, the model associated with the
-              assistant will be used.
+          model: The ID of the
+              [Model](https://developers.openai.com/api/reference/resources/models) to be used
+              to execute this run. If a value is provided here, it will override the model
+              associated with the assistant. If not, the model associated with the assistant
+              will be used.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
+              [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
               during tool use.
 
-          reasoning_effort: Constrains effort on reasoning for
-              [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
-              supported values are `none`, `minimal`, `low`, `medium`, `high`, and `xhigh`.
-              Reducing reasoning effort can result in faster responses and fewer tokens used
-              on reasoning in a response.
-
-              - `gpt-5.1` defaults to `none`, which does not perform reasoning. The supported
-                reasoning values for `gpt-5.1` are `none`, `low`, `medium`, and `high`. Tool
-                calls are supported for all reasoning values in gpt-5.1.
-              - All models before `gpt-5.1` default to `medium` reasoning effort, and do not
-                support `none`.
-              - The `gpt-5-pro` model defaults to (and only supports) `high` reasoning effort.
-              - `xhigh` is supported for all models after `gpt-5.1-codex-max`.
+          reasoning_effort: Constrains effort on reasoning for reasoning models. Currently supported values
+              are `none`, `minimal`, `low`, `medium`, `high`, `xhigh`, and `max`. Reducing
+              reasoning effort can result in faster responses and fewer tokens used on
+              reasoning in a response. Not all reasoning models support every value. See the
+              [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning) for
+              model-specific support.
 
           response_format: Specifies the format that the model must output. Compatible with
-              [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
-              [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4),
-              and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+              [GPT-4o](https://developers.openai.com/api/docs/models/gpt-4o),
+              [GPT-4 Turbo](https://developers.openai.com/api/docs/models/gpt-4-turbo), and
+              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
               Outputs which ensures the model will match your supplied JSON schema. Learn more
               in the
-              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+              [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
               message the model generates is valid JSON.
@@ -1881,15 +1887,15 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Run | AsyncStream[AssistantStreamEvent]:
         """
         Create a run.
 
         Args:
           assistant_id: The ID of the
-              [assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
-              execute this run.
+              [assistant](https://developers.openai.com/api/docs/assistants/migration) to use
+              to execute this run.
 
           stream: If `true`, returns a stream of events that happen during the Run as server-sent
               events, terminating when the Run enters a terminal state with a `data: [DONE]`
@@ -1900,7 +1906,7 @@ class AsyncRuns(AsyncAPIResource):
               to fetch the file search result content.
 
               See the
-              [file search tool documentation](https://platform.openai.com/docs/assistants/tools/file-search#customizing-file-search-settings)
+              [file search tool documentation](https://developers.openai.com/api/docs/guides/tools-file-search#retrieval-customization)
               for more information.
 
           additional_instructions: Appends additional instructions at the end of the instructions for the run. This
@@ -1910,8 +1916,8 @@ class AsyncRuns(AsyncAPIResource):
           additional_messages: Adds additional messages to the thread before creating the run.
 
           instructions: Overrides the
-              [instructions](https://platform.openai.com/docs/api-reference/assistants/createAssistant)
-              of the assistant. This is useful for modifying the behavior on a per-run basis.
+              [instructions](https://developers.openai.com/api/docs/assistants/migration) of
+              the assistant. This is useful for modifying the behavior on a per-run basis.
 
           max_completion_tokens: The maximum number of completion tokens that may be used over the course of the
               run. The run will make a best effort to use only the number of completion tokens
@@ -1932,38 +1938,32 @@ class AsyncRuns(AsyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
-              be used to execute this run. If a value is provided here, it will override the
-              model associated with the assistant. If not, the model associated with the
-              assistant will be used.
+          model: The ID of the
+              [Model](https://developers.openai.com/api/reference/resources/models) to be used
+              to execute this run. If a value is provided here, it will override the model
+              associated with the assistant. If not, the model associated with the assistant
+              will be used.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
+              [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
               during tool use.
 
-          reasoning_effort: Constrains effort on reasoning for
-              [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
-              supported values are `none`, `minimal`, `low`, `medium`, `high`, and `xhigh`.
-              Reducing reasoning effort can result in faster responses and fewer tokens used
-              on reasoning in a response.
-
-              - `gpt-5.1` defaults to `none`, which does not perform reasoning. The supported
-                reasoning values for `gpt-5.1` are `none`, `low`, `medium`, and `high`. Tool
-                calls are supported for all reasoning values in gpt-5.1.
-              - All models before `gpt-5.1` default to `medium` reasoning effort, and do not
-                support `none`.
-              - The `gpt-5-pro` model defaults to (and only supports) `high` reasoning effort.
-              - `xhigh` is supported for all models after `gpt-5.1-codex-max`.
+          reasoning_effort: Constrains effort on reasoning for reasoning models. Currently supported values
+              are `none`, `minimal`, `low`, `medium`, `high`, `xhigh`, and `max`. Reducing
+              reasoning effort can result in faster responses and fewer tokens used on
+              reasoning in a response. Not all reasoning models support every value. See the
+              [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning) for
+              model-specific support.
 
           response_format: Specifies the format that the model must output. Compatible with
-              [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
-              [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4),
-              and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+              [GPT-4o](https://developers.openai.com/api/docs/models/gpt-4o),
+              [GPT-4 Turbo](https://developers.openai.com/api/docs/models/gpt-4-turbo), and
+              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
               Outputs which ensures the model will match your supplied JSON schema. Learn more
               in the
-              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+              [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
               message the model generates is valid JSON.
@@ -2040,13 +2040,13 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Run | AsyncStream[AssistantStreamEvent]:
         if not thread_id:
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._post(
-            f"/threads/{thread_id}/runs",
+            path_template("/threads/{thread_id}/runs", thread_id=thread_id),
             body=await async_maybe_transform(
                 {
                     "assistant_id": assistant_id,
@@ -2075,6 +2075,8 @@ class AsyncRuns(AsyncAPIResource):
                 extra_body=extra_body,
                 timeout=timeout,
                 query=await async_maybe_transform({"include": include}, run_create_params.RunCreateParams),
+                security={"bearer_auth": True},
+                synthesize_event_and_data=True,
             ),
             cast_to=Run,
             stream=stream or False,
@@ -2092,7 +2094,7 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Run:
         """
         Retrieves a run.
@@ -2112,9 +2114,13 @@ class AsyncRuns(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._get(
-            f"/threads/{thread_id}/runs/{run_id}",
+            path_template("/threads/{thread_id}/runs/{run_id}", thread_id=thread_id, run_id=run_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Run,
         )
@@ -2131,7 +2137,7 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Run:
         """
         Modifies a run.
@@ -2158,10 +2164,14 @@ class AsyncRuns(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._post(
-            f"/threads/{thread_id}/runs/{run_id}",
+            path_template("/threads/{thread_id}/runs/{run_id}", thread_id=thread_id, run_id=run_id),
             body=await async_maybe_transform({"metadata": metadata}, run_update_params.RunUpdateParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Run,
         )
@@ -2180,7 +2190,7 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[Run, AsyncCursorPage[Run]]:
         """
         Returns a list of runs belonging to a thread.
@@ -2214,7 +2224,7 @@ class AsyncRuns(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._get_api_list(
-            f"/threads/{thread_id}/runs",
+            path_template("/threads/{thread_id}/runs", thread_id=thread_id),
             page=AsyncCursorPage[Run],
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -2230,6 +2240,7 @@ class AsyncRuns(AsyncAPIResource):
                     },
                     run_list_params.RunListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=Run,
         )
@@ -2245,7 +2256,7 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Run:
         """
         Cancels a run that is `in_progress`.
@@ -2265,9 +2276,13 @@ class AsyncRuns(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._post(
-            f"/threads/{thread_id}/runs/{run_id}/cancel",
+            path_template("/threads/{thread_id}/runs/{run_id}/cancel", thread_id=thread_id, run_id=run_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Run,
         )
@@ -2300,7 +2315,7 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> Run:
         """
         A helper to create a run an poll for a terminal state. More information on Run
@@ -2369,7 +2384,7 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AsyncAssistantStreamManager[AsyncAssistantEventHandler]:
         """Create a Run stream"""
         ...
@@ -2401,7 +2416,7 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AsyncAssistantStreamManager[AsyncAssistantEventHandlerT]:
         """Create a Run stream"""
         ...
@@ -2432,7 +2447,7 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> (
         AsyncAssistantStreamManager[AsyncAssistantEventHandler]
         | AsyncAssistantStreamManager[AsyncAssistantEventHandlerT]
@@ -2448,7 +2463,7 @@ class AsyncRuns(AsyncAPIResource):
             **(extra_headers or {}),
         }
         request = self._post(
-            f"/threads/{thread_id}/runs",
+            path_template("/threads/{thread_id}/runs", thread_id=thread_id),
             body=maybe_transform(
                 {
                     "assistant_id": assistant_id,
@@ -2471,7 +2486,11 @@ class AsyncRuns(AsyncAPIResource):
                 run_create_params.RunCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Run,
             stream=True,
@@ -2487,7 +2506,7 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
         poll_interval_ms: int | Omit = omit,
     ) -> Run:
         """
@@ -2552,7 +2571,7 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AsyncAssistantStreamManager[AsyncAssistantEventHandler]:
         """Create a Run stream"""
         ...
@@ -2586,7 +2605,7 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AsyncAssistantStreamManager[AsyncAssistantEventHandlerT]:
         """Create a Run stream"""
         ...
@@ -2619,7 +2638,7 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> (
         AsyncAssistantStreamManager[AsyncAssistantEventHandler]
         | AsyncAssistantStreamManager[AsyncAssistantEventHandlerT]
@@ -2635,7 +2654,7 @@ class AsyncRuns(AsyncAPIResource):
             **(extra_headers or {}),
         }
         request = self._post(
-            f"/threads/{thread_id}/runs",
+            path_template("/threads/{thread_id}/runs", thread_id=thread_id),
             body=maybe_transform(
                 {
                     "assistant_id": assistant_id,
@@ -2664,6 +2683,7 @@ class AsyncRuns(AsyncAPIResource):
                 extra_body=extra_body,
                 timeout=timeout,
                 query=maybe_transform({"include": include}, run_create_params.RunCreateParams),
+                security={"bearer_auth": True},
             ),
             cast_to=Run,
             stream=True,
@@ -2685,7 +2705,7 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Run:
         """
         When a run has the `status: "requires_action"` and `required_action.type` is
@@ -2724,7 +2744,7 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncStream[AssistantStreamEvent]:
         """
         When a run has the `status: "requires_action"` and `required_action.type` is
@@ -2763,7 +2783,7 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Run | AsyncStream[AssistantStreamEvent]:
         """
         When a run has the `status: "requires_action"` and `required_action.type` is
@@ -2803,7 +2823,7 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Run | AsyncStream[AssistantStreamEvent]:
         if not thread_id:
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
@@ -2811,7 +2831,7 @@ class AsyncRuns(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._post(
-            f"/threads/{thread_id}/runs/{run_id}/submit_tool_outputs",
+            path_template("/threads/{thread_id}/runs/{run_id}/submit_tool_outputs", thread_id=thread_id, run_id=run_id),
             body=await async_maybe_transform(
                 {
                     "tool_outputs": tool_outputs,
@@ -2822,7 +2842,12 @@ class AsyncRuns(AsyncAPIResource):
                 else run_submit_tool_outputs_params.RunSubmitToolOutputsParamsNonStreaming,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
+                synthesize_event_and_data=True,
             ),
             cast_to=Run,
             stream=stream or False,
@@ -2842,7 +2867,7 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> Run:
         """
         A helper to submit a tool output to a run and poll for a terminal run state.
@@ -2882,7 +2907,7 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AsyncAssistantStreamManager[AsyncAssistantEventHandler]:
         """
         Submit the tool outputs from a previous run and stream the run to a terminal
@@ -2905,7 +2930,7 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AsyncAssistantStreamManager[AsyncAssistantEventHandlerT]:
         """
         Submit the tool outputs from a previous run and stream the run to a terminal
@@ -2927,7 +2952,7 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> (
         AsyncAssistantStreamManager[AsyncAssistantEventHandler]
         | AsyncAssistantStreamManager[AsyncAssistantEventHandlerT]
@@ -2950,7 +2975,7 @@ class AsyncRuns(AsyncAPIResource):
             **(extra_headers or {}),
         }
         request = self._post(
-            f"/threads/{thread_id}/runs/{run_id}/submit_tool_outputs",
+            path_template("/threads/{thread_id}/runs/{run_id}/submit_tool_outputs", thread_id=thread_id, run_id=run_id),
             body=maybe_transform(
                 {
                     "tool_outputs": tool_outputs,
@@ -2959,7 +2984,11 @@ class AsyncRuns(AsyncAPIResource):
                 run_submit_tool_outputs_params.RunSubmitToolOutputsParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Run,
             stream=True,
@@ -3005,6 +3034,7 @@ class RunsWithRawResponse:
 
     @cached_property
     def steps(self) -> StepsWithRawResponse:
+        """Build Assistants that can call models and use tools."""
         return StepsWithRawResponse(self._runs.steps)
 
 
@@ -3045,6 +3075,7 @@ class AsyncRunsWithRawResponse:
 
     @cached_property
     def steps(self) -> AsyncStepsWithRawResponse:
+        """Build Assistants that can call models and use tools."""
         return AsyncStepsWithRawResponse(self._runs.steps)
 
 
@@ -3085,6 +3116,7 @@ class RunsWithStreamingResponse:
 
     @cached_property
     def steps(self) -> StepsWithStreamingResponse:
+        """Build Assistants that can call models and use tools."""
         return StepsWithStreamingResponse(self._runs.steps)
 
 
@@ -3125,4 +3157,5 @@ class AsyncRunsWithStreamingResponse:
 
     @cached_property
     def steps(self) -> AsyncStepsWithStreamingResponse:
+        """Build Assistants that can call models and use tools."""
         return AsyncStepsWithStreamingResponse(self._runs.steps)

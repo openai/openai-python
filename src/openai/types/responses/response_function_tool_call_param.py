@@ -1,17 +1,41 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
-from typing_extensions import Literal, Required, TypedDict
+from typing import Union, Optional
+from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
-__all__ = ["ResponseFunctionToolCallParam"]
+__all__ = ["ResponseFunctionToolCallParam", "Caller", "CallerDirect", "CallerProgram"]
 
 
-class ResponseFunctionToolCallParam(TypedDict, total=False):
+class CallerDirect(TypedDict, total=False):
+    type: Required[Literal["direct"]]
+
+
+class CallerProgram(TypedDict, total=False):
+    caller_id: Required[str]
+    """The call ID of the program item that produced this tool call."""
+
+    type: Required[Literal["program"]]
+
+
+Caller: TypeAlias = Union[CallerDirect, CallerProgram]
+
+
+_ResponseFunctionToolCallParamReservedKeywords = TypedDict(
+    "_ResponseFunctionToolCallParamReservedKeywords",
+    {
+        "async": bool,
+    },
+    total=False,
+)
+
+
+class ResponseFunctionToolCallParam(_ResponseFunctionToolCallParamReservedKeywords, total=False):
     """A tool call to run a function.
 
     See the
-    [function calling guide](https://platform.openai.com/docs/guides/function-calling) for more information.
+    [function calling guide](https://developers.openai.com/api/docs/guides/function-calling) for more information.
     """
 
     arguments: Required[str]
@@ -28,6 +52,12 @@ class ResponseFunctionToolCallParam(TypedDict, total=False):
 
     id: str
     """The unique ID of the function tool call."""
+
+    caller: Optional[Caller]
+    """The execution context that produced this tool call."""
+
+    namespace: str
+    """The namespace of the function to run."""
 
     status: Literal["in_progress", "completed", "incomplete"]
     """The status of the item.

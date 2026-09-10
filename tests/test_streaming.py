@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 from typing import Iterator, AsyncIterator
+from contextlib import aclosing, nullcontext
 
-import httpx
+import httpx2
 import pytest
 
 from openai import OpenAI, AsyncOpenAI
@@ -216,6 +217,52 @@ async def test_multi_byte_character_multiple_chunks(
     assert sse.json() == {"content": "известни"}
 
 
+@pytest.mark.asyncio
+async def test_async_stream_aclose(async_client: AsyncOpenAI) -> None:
+    def body() -> Iterator[bytes]:
+        yield b"data: [DONE]\n\n"
+
+    response = httpx2.Response(200, content=to_aiter(body()))
+    stream = AsyncStream(cast_to=object, client=async_client, response=response)
+
+    assert not response.is_closed
+    await stream.aclose()
+    assert response.is_closed
+
+    # Either spelling remains safe after the response has already been closed.
+    await stream.close()
+    await stream.aclose()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("raise_error", [False, True], ids=["early-exit", "exception"])
+async def test_async_stream_aclosing(raise_error: bool) -> None:
+    def body() -> Iterator[bytes]:
+        yield (
+            b'data: {"id":"chatcmpl-test","object":"chat.completion.chunk","created":0,'
+            b'"model":"test-model","choices":[{"index":0,"delta":{"content":"hello"},'
+            b'"finish_reason":null}]}\n\n'
+        )
+        yield b"data: [DONE]\n\n"
+
+    response = httpx2.Response(200, content=to_aiter(body()), headers={"content-type": "text/event-stream"})
+    async with AsyncOpenAI(
+        api_key="fake-test-key",
+        http_client=httpx2.AsyncClient(transport=httpx2.MockTransport(lambda _request: response)),
+    ) as client:
+        stream = await client.chat.completions.create(model="test-model", messages=[], stream=True)
+        with pytest.raises(ValueError, match="test exception") if raise_error else nullcontext():
+            async with aclosing(stream):
+                async for chunk in stream:
+                    assert chunk.choices[0].delta.content == "hello"
+                    assert not response.is_closed
+                    if raise_error:
+                        raise ValueError("test exception")
+                    break
+
+        assert response.is_closed
+
+
 async def to_aiter(iter: Iterator[bytes]) -> AsyncIterator[bytes]:
     for chunk in iter:
         yield chunk
@@ -241,8 +288,8 @@ def make_event_iterator(
     async_client: AsyncOpenAI,
 ) -> Iterator[ServerSentEvent] | AsyncIterator[ServerSentEvent]:
     if sync:
-        return Stream(cast_to=object, client=client, response=httpx.Response(200, content=content))._iter_events()
+        return Stream(cast_to=object, client=client, response=httpx2.Response(200, content=content))._iter_events()
 
     return AsyncStream(
-        cast_to=object, client=async_client, response=httpx.Response(200, content=to_aiter(content))
+        cast_to=object, client=async_client, response=httpx2.Response(200, content=to_aiter(content))
     )._iter_events()

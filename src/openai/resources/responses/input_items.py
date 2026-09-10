@@ -1,15 +1,15 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 from typing import Any, List, cast
 from typing_extensions import Literal
 
-import httpx
+import httpx2
 
 from ... import _legacy_response
 from ..._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
-from ..._utils import maybe_transform
+from ..._utils import path_template, maybe_transform
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -55,7 +55,7 @@ class InputItems(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncCursorPage[ResponseItem]:
         """
         Returns a list of input items for a given response.
@@ -85,7 +85,7 @@ class InputItems(SyncAPIResource):
         if not response_id:
             raise ValueError(f"Expected a non-empty value for `response_id` but received {response_id!r}")
         return self._get_api_list(
-            f"/responses/{response_id}/input_items",
+            path_template("/responses/{response_id}/input_items", response_id=response_id),
             page=SyncCursorPage[ResponseItem],
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -101,6 +101,7 @@ class InputItems(SyncAPIResource):
                     },
                     input_item_list_params.InputItemListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=cast(Any, ResponseItem),  # Union types cannot be passed in as arguments in the type system
         )
@@ -139,7 +140,7 @@ class AsyncInputItems(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[ResponseItem, AsyncCursorPage[ResponseItem]]:
         """
         Returns a list of input items for a given response.
@@ -169,7 +170,7 @@ class AsyncInputItems(AsyncAPIResource):
         if not response_id:
             raise ValueError(f"Expected a non-empty value for `response_id` but received {response_id!r}")
         return self._get_api_list(
-            f"/responses/{response_id}/input_items",
+            path_template("/responses/{response_id}/input_items", response_id=response_id),
             page=AsyncCursorPage[ResponseItem],
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -185,6 +186,7 @@ class AsyncInputItems(AsyncAPIResource):
                     },
                     input_item_list_params.InputItemListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=cast(Any, ResponseItem),  # Union types cannot be passed in as arguments in the type system
         )

@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from typing import Union, Iterable, Optional
 from functools import partial
 from typing_extensions import Literal, overload
 
-import httpx
+import httpx2
 
 from .... import _legacy_response
 from .messages import (
@@ -19,7 +19,7 @@ from .messages import (
     AsyncMessagesWithStreamingResponse,
 )
 from ...._types import NOT_GIVEN, Body, Omit, Query, Headers, NotGiven, omit, not_given
-from ...._utils import required_args, maybe_transform, async_maybe_transform
+from ...._utils import path_template, required_args, maybe_transform, async_maybe_transform
 from .runs.runs import (
     Runs,
     AsyncRuns,
@@ -60,12 +60,16 @@ __all__ = ["Threads", "AsyncThreads"]
 
 
 class Threads(SyncAPIResource):
+    """Build Assistants that can call models and use tools."""
+
     @cached_property
     def runs(self) -> Runs:
+        """Build Assistants that can call models and use tools."""
         return Runs(self._client)
 
     @cached_property
     def messages(self) -> Messages:
+        """Build Assistants that can call models and use tools."""
         return Messages(self._client)
 
     @cached_property
@@ -99,14 +103,15 @@ class Threads(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Thread:
         """
         Create a thread.
 
         Args:
-          messages: A list of [messages](https://platform.openai.com/docs/api-reference/messages) to
-              start the thread with.
+          messages: A list of
+              [messages](https://developers.openai.com/api/docs/assistants/migration) to start
+              the thread with.
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format, and
@@ -140,7 +145,11 @@ class Threads(SyncAPIResource):
                 thread_create_params.ThreadCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Thread,
         )
@@ -155,7 +164,7 @@ class Threads(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Thread:
         """
         Retrieves a thread.
@@ -173,9 +182,13 @@ class Threads(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._get(
-            f"/threads/{thread_id}",
+            path_template("/threads/{thread_id}", thread_id=thread_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Thread,
         )
@@ -192,7 +205,7 @@ class Threads(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Thread:
         """
         Modifies a thread.
@@ -222,7 +235,7 @@ class Threads(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._post(
-            f"/threads/{thread_id}",
+            path_template("/threads/{thread_id}", thread_id=thread_id),
             body=maybe_transform(
                 {
                     "metadata": metadata,
@@ -231,7 +244,11 @@ class Threads(SyncAPIResource):
                 thread_update_params.ThreadUpdateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Thread,
         )
@@ -246,7 +263,7 @@ class Threads(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ThreadDeleted:
         """
         Delete a thread.
@@ -264,9 +281,13 @@ class Threads(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._delete(
-            f"/threads/{thread_id}",
+            path_template("/threads/{thread_id}", thread_id=thread_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ThreadDeleted,
         )
@@ -297,15 +318,15 @@ class Threads(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Run:
         """
         Create a thread and run it in one request.
 
         Args:
           assistant_id: The ID of the
-              [assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
-              execute this run.
+              [assistant](https://developers.openai.com/api/docs/assistants/migration) to use
+              to execute this run.
 
           instructions: Override the default system message of the assistant. This is useful for
               modifying the behavior on a per-run basis.
@@ -329,24 +350,25 @@ class Threads(SyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
-              be used to execute this run. If a value is provided here, it will override the
-              model associated with the assistant. If not, the model associated with the
-              assistant will be used.
+          model: The ID of the
+              [Model](https://developers.openai.com/api/reference/resources/models) to be used
+              to execute this run. If a value is provided here, it will override the model
+              associated with the assistant. If not, the model associated with the assistant
+              will be used.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
+              [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
               during tool use.
 
           response_format: Specifies the format that the model must output. Compatible with
-              [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
-              [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4),
-              and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+              [GPT-4o](https://developers.openai.com/api/docs/models/gpt-4o),
+              [GPT-4 Turbo](https://developers.openai.com/api/docs/models/gpt-4-turbo), and
+              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
               Outputs which ensures the model will match your supplied JSON schema. Learn more
               in the
-              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+              [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
               message the model generates is valid JSON.
@@ -431,15 +453,15 @@ class Threads(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Stream[AssistantStreamEvent]:
         """
         Create a thread and run it in one request.
 
         Args:
           assistant_id: The ID of the
-              [assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
-              execute this run.
+              [assistant](https://developers.openai.com/api/docs/assistants/migration) to use
+              to execute this run.
 
           stream: If `true`, returns a stream of events that happen during the Run as server-sent
               events, terminating when the Run enters a terminal state with a `data: [DONE]`
@@ -467,24 +489,25 @@ class Threads(SyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
-              be used to execute this run. If a value is provided here, it will override the
-              model associated with the assistant. If not, the model associated with the
-              assistant will be used.
+          model: The ID of the
+              [Model](https://developers.openai.com/api/reference/resources/models) to be used
+              to execute this run. If a value is provided here, it will override the model
+              associated with the assistant. If not, the model associated with the assistant
+              will be used.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
+              [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
               during tool use.
 
           response_format: Specifies the format that the model must output. Compatible with
-              [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
-              [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4),
-              and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+              [GPT-4o](https://developers.openai.com/api/docs/models/gpt-4o),
+              [GPT-4 Turbo](https://developers.openai.com/api/docs/models/gpt-4-turbo), and
+              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
               Outputs which ensures the model will match your supplied JSON schema. Learn more
               in the
-              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+              [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
               message the model generates is valid JSON.
@@ -565,15 +588,15 @@ class Threads(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Run | Stream[AssistantStreamEvent]:
         """
         Create a thread and run it in one request.
 
         Args:
           assistant_id: The ID of the
-              [assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
-              execute this run.
+              [assistant](https://developers.openai.com/api/docs/assistants/migration) to use
+              to execute this run.
 
           stream: If `true`, returns a stream of events that happen during the Run as server-sent
               events, terminating when the Run enters a terminal state with a `data: [DONE]`
@@ -601,24 +624,25 @@ class Threads(SyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
-              be used to execute this run. If a value is provided here, it will override the
-              model associated with the assistant. If not, the model associated with the
-              assistant will be used.
+          model: The ID of the
+              [Model](https://developers.openai.com/api/reference/resources/models) to be used
+              to execute this run. If a value is provided here, it will override the model
+              associated with the assistant. If not, the model associated with the assistant
+              will be used.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
+              [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
               during tool use.
 
           response_format: Specifies the format that the model must output. Compatible with
-              [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
-              [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4),
-              and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+              [GPT-4o](https://developers.openai.com/api/docs/models/gpt-4o),
+              [GPT-4 Turbo](https://developers.openai.com/api/docs/models/gpt-4-turbo), and
+              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
               Outputs which ensures the model will match your supplied JSON schema. Learn more
               in the
-              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+              [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
               message the model generates is valid JSON.
@@ -700,7 +724,7 @@ class Threads(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Run | Stream[AssistantStreamEvent]:
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._post(
@@ -729,7 +753,12 @@ class Threads(SyncAPIResource):
                 else thread_create_and_run_params.ThreadCreateAndRunParamsNonStreaming,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
+                synthesize_event_and_data=True,
             ),
             cast_to=Run,
             stream=stream or False,
@@ -760,7 +789,7 @@ class Threads(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> Run:
         """
         A helper to create a thread, start a run and then poll for a terminal state.
@@ -815,7 +844,7 @@ class Threads(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AssistantStreamManager[AssistantEventHandler]:
         """Create a thread and stream the run back"""
         ...
@@ -845,7 +874,7 @@ class Threads(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AssistantStreamManager[AssistantEventHandlerT]:
         """Create a thread and stream the run back"""
         ...
@@ -874,7 +903,7 @@ class Threads(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AssistantStreamManager[AssistantEventHandler] | AssistantStreamManager[AssistantEventHandlerT]:
         """Create a thread and stream the run back"""
         extra_headers = {
@@ -908,7 +937,11 @@ class Threads(SyncAPIResource):
                 thread_create_and_run_params.ThreadCreateAndRunParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Run,
             stream=True,
@@ -918,12 +951,16 @@ class Threads(SyncAPIResource):
 
 
 class AsyncThreads(AsyncAPIResource):
+    """Build Assistants that can call models and use tools."""
+
     @cached_property
     def runs(self) -> AsyncRuns:
+        """Build Assistants that can call models and use tools."""
         return AsyncRuns(self._client)
 
     @cached_property
     def messages(self) -> AsyncMessages:
+        """Build Assistants that can call models and use tools."""
         return AsyncMessages(self._client)
 
     @cached_property
@@ -957,14 +994,15 @@ class AsyncThreads(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Thread:
         """
         Create a thread.
 
         Args:
-          messages: A list of [messages](https://platform.openai.com/docs/api-reference/messages) to
-              start the thread with.
+          messages: A list of
+              [messages](https://developers.openai.com/api/docs/assistants/migration) to start
+              the thread with.
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format, and
@@ -998,7 +1036,11 @@ class AsyncThreads(AsyncAPIResource):
                 thread_create_params.ThreadCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Thread,
         )
@@ -1013,7 +1055,7 @@ class AsyncThreads(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Thread:
         """
         Retrieves a thread.
@@ -1031,9 +1073,13 @@ class AsyncThreads(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._get(
-            f"/threads/{thread_id}",
+            path_template("/threads/{thread_id}", thread_id=thread_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Thread,
         )
@@ -1050,7 +1096,7 @@ class AsyncThreads(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Thread:
         """
         Modifies a thread.
@@ -1080,7 +1126,7 @@ class AsyncThreads(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._post(
-            f"/threads/{thread_id}",
+            path_template("/threads/{thread_id}", thread_id=thread_id),
             body=await async_maybe_transform(
                 {
                     "metadata": metadata,
@@ -1089,7 +1135,11 @@ class AsyncThreads(AsyncAPIResource):
                 thread_update_params.ThreadUpdateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Thread,
         )
@@ -1104,7 +1154,7 @@ class AsyncThreads(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ThreadDeleted:
         """
         Delete a thread.
@@ -1122,9 +1172,13 @@ class AsyncThreads(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._delete(
-            f"/threads/{thread_id}",
+            path_template("/threads/{thread_id}", thread_id=thread_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ThreadDeleted,
         )
@@ -1155,15 +1209,15 @@ class AsyncThreads(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Run:
         """
         Create a thread and run it in one request.
 
         Args:
           assistant_id: The ID of the
-              [assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
-              execute this run.
+              [assistant](https://developers.openai.com/api/docs/assistants/migration) to use
+              to execute this run.
 
           instructions: Override the default system message of the assistant. This is useful for
               modifying the behavior on a per-run basis.
@@ -1187,24 +1241,25 @@ class AsyncThreads(AsyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
-              be used to execute this run. If a value is provided here, it will override the
-              model associated with the assistant. If not, the model associated with the
-              assistant will be used.
+          model: The ID of the
+              [Model](https://developers.openai.com/api/reference/resources/models) to be used
+              to execute this run. If a value is provided here, it will override the model
+              associated with the assistant. If not, the model associated with the assistant
+              will be used.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
+              [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
               during tool use.
 
           response_format: Specifies the format that the model must output. Compatible with
-              [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
-              [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4),
-              and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+              [GPT-4o](https://developers.openai.com/api/docs/models/gpt-4o),
+              [GPT-4 Turbo](https://developers.openai.com/api/docs/models/gpt-4-turbo), and
+              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
               Outputs which ensures the model will match your supplied JSON schema. Learn more
               in the
-              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+              [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
               message the model generates is valid JSON.
@@ -1289,15 +1344,15 @@ class AsyncThreads(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncStream[AssistantStreamEvent]:
         """
         Create a thread and run it in one request.
 
         Args:
           assistant_id: The ID of the
-              [assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
-              execute this run.
+              [assistant](https://developers.openai.com/api/docs/assistants/migration) to use
+              to execute this run.
 
           stream: If `true`, returns a stream of events that happen during the Run as server-sent
               events, terminating when the Run enters a terminal state with a `data: [DONE]`
@@ -1325,24 +1380,25 @@ class AsyncThreads(AsyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
-              be used to execute this run. If a value is provided here, it will override the
-              model associated with the assistant. If not, the model associated with the
-              assistant will be used.
+          model: The ID of the
+              [Model](https://developers.openai.com/api/reference/resources/models) to be used
+              to execute this run. If a value is provided here, it will override the model
+              associated with the assistant. If not, the model associated with the assistant
+              will be used.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
+              [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
               during tool use.
 
           response_format: Specifies the format that the model must output. Compatible with
-              [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
-              [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4),
-              and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+              [GPT-4o](https://developers.openai.com/api/docs/models/gpt-4o),
+              [GPT-4 Turbo](https://developers.openai.com/api/docs/models/gpt-4-turbo), and
+              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
               Outputs which ensures the model will match your supplied JSON schema. Learn more
               in the
-              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+              [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
               message the model generates is valid JSON.
@@ -1423,15 +1479,15 @@ class AsyncThreads(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Run | AsyncStream[AssistantStreamEvent]:
         """
         Create a thread and run it in one request.
 
         Args:
           assistant_id: The ID of the
-              [assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
-              execute this run.
+              [assistant](https://developers.openai.com/api/docs/assistants/migration) to use
+              to execute this run.
 
           stream: If `true`, returns a stream of events that happen during the Run as server-sent
               events, terminating when the Run enters a terminal state with a `data: [DONE]`
@@ -1459,24 +1515,25 @@ class AsyncThreads(AsyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
-              be used to execute this run. If a value is provided here, it will override the
-              model associated with the assistant. If not, the model associated with the
-              assistant will be used.
+          model: The ID of the
+              [Model](https://developers.openai.com/api/reference/resources/models) to be used
+              to execute this run. If a value is provided here, it will override the model
+              associated with the assistant. If not, the model associated with the assistant
+              will be used.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
+              [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
               during tool use.
 
           response_format: Specifies the format that the model must output. Compatible with
-              [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
-              [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4),
-              and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+              [GPT-4o](https://developers.openai.com/api/docs/models/gpt-4o),
+              [GPT-4 Turbo](https://developers.openai.com/api/docs/models/gpt-4-turbo), and
+              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
               Outputs which ensures the model will match your supplied JSON schema. Learn more
               in the
-              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+              [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
               message the model generates is valid JSON.
@@ -1558,7 +1615,7 @@ class AsyncThreads(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Run | AsyncStream[AssistantStreamEvent]:
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._post(
@@ -1587,7 +1644,12 @@ class AsyncThreads(AsyncAPIResource):
                 else thread_create_and_run_params.ThreadCreateAndRunParamsNonStreaming,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
+                synthesize_event_and_data=True,
             ),
             cast_to=Run,
             stream=stream or False,
@@ -1618,7 +1680,7 @@ class AsyncThreads(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> Run:
         """
         A helper to create a thread, start a run and then poll for a terminal state.
@@ -1675,7 +1737,7 @@ class AsyncThreads(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AsyncAssistantStreamManager[AsyncAssistantEventHandler]:
         """Create a thread and stream the run back"""
         ...
@@ -1705,7 +1767,7 @@ class AsyncThreads(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AsyncAssistantStreamManager[AsyncAssistantEventHandlerT]:
         """Create a thread and stream the run back"""
         ...
@@ -1734,7 +1796,7 @@ class AsyncThreads(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> (
         AsyncAssistantStreamManager[AsyncAssistantEventHandler]
         | AsyncAssistantStreamManager[AsyncAssistantEventHandlerT]
@@ -1770,7 +1832,11 @@ class AsyncThreads(AsyncAPIResource):
                 thread_create_and_run_params.ThreadCreateAndRunParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Run,
             stream=True,
@@ -1811,10 +1877,12 @@ class ThreadsWithRawResponse:
 
     @cached_property
     def runs(self) -> RunsWithRawResponse:
+        """Build Assistants that can call models and use tools."""
         return RunsWithRawResponse(self._threads.runs)
 
     @cached_property
     def messages(self) -> MessagesWithRawResponse:
+        """Build Assistants that can call models and use tools."""
         return MessagesWithRawResponse(self._threads.messages)
 
 
@@ -1850,10 +1918,12 @@ class AsyncThreadsWithRawResponse:
 
     @cached_property
     def runs(self) -> AsyncRunsWithRawResponse:
+        """Build Assistants that can call models and use tools."""
         return AsyncRunsWithRawResponse(self._threads.runs)
 
     @cached_property
     def messages(self) -> AsyncMessagesWithRawResponse:
+        """Build Assistants that can call models and use tools."""
         return AsyncMessagesWithRawResponse(self._threads.messages)
 
 
@@ -1889,10 +1959,12 @@ class ThreadsWithStreamingResponse:
 
     @cached_property
     def runs(self) -> RunsWithStreamingResponse:
+        """Build Assistants that can call models and use tools."""
         return RunsWithStreamingResponse(self._threads.runs)
 
     @cached_property
     def messages(self) -> MessagesWithStreamingResponse:
+        """Build Assistants that can call models and use tools."""
         return MessagesWithStreamingResponse(self._threads.messages)
 
 
@@ -1928,8 +2000,10 @@ class AsyncThreadsWithStreamingResponse:
 
     @cached_property
     def runs(self) -> AsyncRunsWithStreamingResponse:
+        """Build Assistants that can call models and use tools."""
         return AsyncRunsWithStreamingResponse(self._threads.runs)
 
     @cached_property
     def messages(self) -> AsyncMessagesWithStreamingResponse:
+        """Build Assistants that can call models and use tools."""
         return AsyncMessagesWithStreamingResponse(self._threads.messages)

@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -6,19 +6,16 @@ import typing_extensions
 from typing import Union, Iterable, Optional
 from typing_extensions import Literal
 
-import httpx
+import httpx2
 
 from .... import _legacy_response
 from ...._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
-from ...._utils import maybe_transform, async_maybe_transform
+from ...._utils import path_template, maybe_transform, async_maybe_transform
 from ...._compat import cached_property
 from ...._resource import SyncAPIResource, AsyncAPIResource
 from ...._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from ....pagination import SyncCursorPage, AsyncCursorPage
-from ...._base_client import (
-    AsyncPaginator,
-    make_request_options,
-)
+from ...._base_client import AsyncPaginator, make_request_options
 from ....types.beta.threads import message_list_params, message_create_params, message_update_params
 from ....types.beta.threads.message import Message
 from ....types.shared_params.metadata import Metadata
@@ -29,6 +26,8 @@ __all__ = ["Messages", "AsyncMessages"]
 
 
 class Messages(SyncAPIResource):
+    """Build Assistants that can call models and use tools."""
+
     @cached_property
     def with_raw_response(self) -> MessagesWithRawResponse:
         """
@@ -62,7 +61,7 @@ class Messages(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Message:
         """
         Create a message.
@@ -99,7 +98,7 @@ class Messages(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._post(
-            f"/threads/{thread_id}/messages",
+            path_template("/threads/{thread_id}/messages", thread_id=thread_id),
             body=maybe_transform(
                 {
                     "content": content,
@@ -110,7 +109,11 @@ class Messages(SyncAPIResource):
                 message_create_params.MessageCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Message,
         )
@@ -126,7 +129,7 @@ class Messages(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Message:
         """
         Retrieve a message.
@@ -146,9 +149,13 @@ class Messages(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `message_id` but received {message_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._get(
-            f"/threads/{thread_id}/messages/{message_id}",
+            path_template("/threads/{thread_id}/messages/{message_id}", thread_id=thread_id, message_id=message_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Message,
         )
@@ -165,7 +172,7 @@ class Messages(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Message:
         """
         Modifies a message.
@@ -192,10 +199,14 @@ class Messages(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `message_id` but received {message_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._post(
-            f"/threads/{thread_id}/messages/{message_id}",
+            path_template("/threads/{thread_id}/messages/{message_id}", thread_id=thread_id, message_id=message_id),
             body=maybe_transform({"metadata": metadata}, message_update_params.MessageUpdateParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Message,
         )
@@ -215,7 +226,7 @@ class Messages(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncCursorPage[Message]:
         """
         Returns a list of messages for a given thread.
@@ -251,7 +262,7 @@ class Messages(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._get_api_list(
-            f"/threads/{thread_id}/messages",
+            path_template("/threads/{thread_id}/messages", thread_id=thread_id),
             page=SyncCursorPage[Message],
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -268,6 +279,7 @@ class Messages(SyncAPIResource):
                     },
                     message_list_params.MessageListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=Message,
         )
@@ -283,7 +295,7 @@ class Messages(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> MessageDeleted:
         """
         Deletes a message.
@@ -303,15 +315,21 @@ class Messages(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `message_id` but received {message_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._delete(
-            f"/threads/{thread_id}/messages/{message_id}",
+            path_template("/threads/{thread_id}/messages/{message_id}", thread_id=thread_id, message_id=message_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=MessageDeleted,
         )
 
 
 class AsyncMessages(AsyncAPIResource):
+    """Build Assistants that can call models and use tools."""
+
     @cached_property
     def with_raw_response(self) -> AsyncMessagesWithRawResponse:
         """
@@ -345,7 +363,7 @@ class AsyncMessages(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Message:
         """
         Create a message.
@@ -382,7 +400,7 @@ class AsyncMessages(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._post(
-            f"/threads/{thread_id}/messages",
+            path_template("/threads/{thread_id}/messages", thread_id=thread_id),
             body=await async_maybe_transform(
                 {
                     "content": content,
@@ -393,7 +411,11 @@ class AsyncMessages(AsyncAPIResource):
                 message_create_params.MessageCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Message,
         )
@@ -409,7 +431,7 @@ class AsyncMessages(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Message:
         """
         Retrieve a message.
@@ -429,9 +451,13 @@ class AsyncMessages(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `message_id` but received {message_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._get(
-            f"/threads/{thread_id}/messages/{message_id}",
+            path_template("/threads/{thread_id}/messages/{message_id}", thread_id=thread_id, message_id=message_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Message,
         )
@@ -448,7 +474,7 @@ class AsyncMessages(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Message:
         """
         Modifies a message.
@@ -475,10 +501,14 @@ class AsyncMessages(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `message_id` but received {message_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._post(
-            f"/threads/{thread_id}/messages/{message_id}",
+            path_template("/threads/{thread_id}/messages/{message_id}", thread_id=thread_id, message_id=message_id),
             body=await async_maybe_transform({"metadata": metadata}, message_update_params.MessageUpdateParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Message,
         )
@@ -498,7 +528,7 @@ class AsyncMessages(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[Message, AsyncCursorPage[Message]]:
         """
         Returns a list of messages for a given thread.
@@ -534,7 +564,7 @@ class AsyncMessages(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._get_api_list(
-            f"/threads/{thread_id}/messages",
+            path_template("/threads/{thread_id}/messages", thread_id=thread_id),
             page=AsyncCursorPage[Message],
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -551,6 +581,7 @@ class AsyncMessages(AsyncAPIResource):
                     },
                     message_list_params.MessageListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=Message,
         )
@@ -566,7 +597,7 @@ class AsyncMessages(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> MessageDeleted:
         """
         Deletes a message.
@@ -586,9 +617,13 @@ class AsyncMessages(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `message_id` but received {message_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._delete(
-            f"/threads/{thread_id}/messages/{message_id}",
+            path_template("/threads/{thread_id}/messages/{message_id}", thread_id=thread_id, message_id=message_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=MessageDeleted,
         )

@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import List, Optional
 from typing_extensions import Literal
@@ -22,14 +22,27 @@ class Data(BaseModel):
     """Event data payload."""
 
     call_id: str
-    """The unique ID of this call."""
+    """The Transceiver `rtc_...` ID of the pending SIP session.
+
+    The paired `live.transport.incoming` event derives its `session_id` by replacing
+    the `rtc_` prefix with `live_`. Use the ID returned by the event with the
+    corresponding Realtime or Live API.
+    """
 
     sip_headers: List[DataSipHeader]
-    """Headers from the SIP Invite."""
+    """
+    Headers from the SIP INVITE, excluding SIP authorization headers. Retained
+    names, values, repeated entries, and order are preserved. Treat these values as
+    untrusted call metadata.
+    """
 
 
 class RealtimeCallIncomingWebhookEvent(BaseModel):
-    """Sent when Realtime API Receives a incoming SIP call."""
+    """
+    Sent when an incoming API SIP session is available for Realtime acceptance.
+    The same pending session can also emit `live.transport.incoming`; the first
+    successful Realtime or Live accept endpoint selects the runtime surface.
+    """
 
     id: str
     """The unique ID of the event."""

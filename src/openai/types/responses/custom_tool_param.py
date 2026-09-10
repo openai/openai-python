@@ -1,18 +1,27 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
+from typing import List, Optional
 from typing_extensions import Literal, Required, TypedDict
 
 from ..shared_params.custom_tool_input_format import CustomToolInputFormat
 
 __all__ = ["CustomToolParam"]
 
+_CustomToolParamReservedKeywords = TypedDict(
+    "_CustomToolParamReservedKeywords",
+    {
+        "async": bool,
+    },
+    total=False,
+)
 
-class CustomToolParam(TypedDict, total=False):
+
+class CustomToolParam(_CustomToolParamReservedKeywords, total=False):
     """A custom tool that processes input using a specified format.
 
-    Learn more about   [custom tools](https://platform.openai.com/docs/guides/function-calling#custom-tools)
+    Learn more about   [custom tools](https://developers.openai.com/api/docs/guides/function-calling#custom-tools)
     """
 
     name: Required[str]
@@ -20,6 +29,12 @@ class CustomToolParam(TypedDict, total=False):
 
     type: Required[Literal["custom"]]
     """The type of the custom tool. Always `custom`."""
+
+    allowed_callers: Optional[List[Literal["direct", "programmatic"]]]
+    """The tool invocation context(s)."""
+
+    defer_loading: bool
+    """Whether this tool should be deferred and discovered via tool search."""
 
     description: str
     """Optional description of the custom tool, used to provide more context."""

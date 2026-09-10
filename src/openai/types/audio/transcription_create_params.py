@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -23,13 +23,15 @@ class TranscriptionCreateParamsBase(TypedDict, total=False):
     file: Required[FileTypes]
     """
     The audio file object (not file name) to transcribe, in one of these formats:
-    flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.
+    flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm. The request must include
+    enough format metadata for the file to be identified. We recommend an
+    extension-bearing filename and an appropriate content type.
     """
 
     model: Required[Union[str, AudioModel]]
     """ID of the model to use.
 
-    The options are `gpt-4o-transcribe`, `gpt-4o-mini-transcribe`,
+    The options are `gpt-transcribe`, `gpt-4o-transcribe`, `gpt-4o-mini-transcribe`,
     `gpt-4o-mini-transcribe-2025-12-15`, `whisper-1` (which is powered by our open
     source Whisper V2 model), and `gpt-4o-transcribe-diarize`.
     """
@@ -52,6 +54,12 @@ class TranscriptionCreateParamsBase(TypedDict, total=False):
     response_format set to `json` and only with the models `gpt-4o-transcribe`,
     `gpt-4o-mini-transcribe`, and `gpt-4o-mini-transcribe-2025-12-15`. This field is
     not supported when using `gpt-4o-transcribe-diarize`.
+    """
+
+    keywords: SequenceNotStr[str]
+    """Words or phrases to guide transcription of the input audio.
+
+    Supported by `gpt-transcribe`.
     """
 
     known_speaker_names: SequenceNotStr[str]
@@ -78,11 +86,19 @@ class TranscriptionCreateParamsBase(TypedDict, total=False):
     format will improve accuracy and latency.
     """
 
+    languages: SequenceNotStr[str]
+    """
+    Possible languages of the input audio, in
+    [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) format.
+    Supported by `gpt-transcribe`.
+    """
+
     prompt: str
     """An optional text to guide the model's style or continue a previous audio
     segment.
 
-    The [prompt](https://platform.openai.com/docs/guides/speech-to-text#prompting)
+    The
+    [prompt](https://developers.openai.com/api/docs/guides/speech-to-text#prompting)
     should match the audio language. This field is not supported when using
     `gpt-4o-transcribe-diarize`.
     """
@@ -148,7 +164,7 @@ class TranscriptionCreateParamsNonStreaming(TranscriptionCreateParamsBase, total
     generated using
     [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
     See the
-    [Streaming section of the Speech-to-Text guide](https://platform.openai.com/docs/guides/speech-to-text?lang=curl#streaming-transcriptions)
+    [Streaming section of the Speech-to-Text guide](https://developers.openai.com/api/docs/guides/speech-to-text?lang=curl#streaming)
     for more information.
 
     Note: Streaming is not supported for the `whisper-1` model and will be ignored.
@@ -162,7 +178,7 @@ class TranscriptionCreateParamsStreaming(TranscriptionCreateParamsBase):
     generated using
     [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
     See the
-    [Streaming section of the Speech-to-Text guide](https://platform.openai.com/docs/guides/speech-to-text?lang=curl#streaming-transcriptions)
+    [Streaming section of the Speech-to-Text guide](https://developers.openai.com/api/docs/guides/speech-to-text?lang=curl#streaming)
     for more information.
 
     Note: Streaming is not supported for the `whisper-1` model and will be ignored.
