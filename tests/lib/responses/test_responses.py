@@ -10,8 +10,9 @@ from tests.respx2 import MockRouter
 from openai._types import omit
 from openai._utils import assert_signatures_in_sync
 from openai._models import construct_type_unchecked
-from openai.types.responses import Response
+from openai.types.responses import Response, ResponseCreatedEvent, ResponseOutputItemAddedEvent
 from openai.lib._parsing._responses import parse_response
+from openai.lib.streaming.responses._responses import ResponseStreamState
 
 from ...conftest import base_url
 from ..snapshots import make_snapshot_request
@@ -111,3 +112,62 @@ def test_parse_response_with_null_output() -> None:
     parsed = parse_response(text_format=omit, input_tools=omit, response=response)
 
     assert parsed.output == []
+
+
+def test_stream_state_ignores_output_item_added_with_null_item() -> None:
+    state: ResponseStreamState[object] = ResponseStreamState(text_format=omit, input_tools=[])
+
+    created = construct_type_unchecked(
+        type_=ResponseCreatedEvent,
+        value={
+            "type": "response.created",
+            "sequence_number": 0,
+            "response": {
+                "id": "resp_123",
+                "object": "response",
+                "created_at": 0,
+                "status": "in_progress",
+                "background": False,
+                "error": None,
+                "incomplete_details": None,
+                "instructions": None,
+                "max_output_tokens": None,
+                "max_tool_calls": None,
+                "model": "gpt-4o-mini",
+                "output": [],
+                "parallel_tool_calls": True,
+                "previous_response_id": None,
+                "prompt_cache_key": None,
+                "reasoning": {"effort": None, "summary": None},
+                "safety_identifier": None,
+                "service_tier": "default",
+                "store": True,
+                "temperature": 1.0,
+                "text": {"format": {"type": "text"}, "verbosity": "medium"},
+                "tool_choice": "auto",
+                "tools": [],
+                "top_logprobs": 0,
+                "top_p": 1.0,
+                "truncation": "disabled",
+                "usage": None,
+                "user": None,
+                "metadata": {},
+            },
+        },
+    )
+    state.handle_event(created)
+
+    added = construct_type_unchecked(
+        type_=ResponseOutputItemAddedEvent,
+        value={
+            "type": "response.output_item.added",
+            "sequence_number": 1,
+            "output_index": 0,
+            "item": None,
+        },
+    )
+
+    events = state.handle_event(added)
+
+    assert events == [added]
+    assert state.accumulate_event(added).output == []

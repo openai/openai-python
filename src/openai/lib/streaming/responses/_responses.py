@@ -23,6 +23,7 @@ from ..._parsing._responses import TextFormatT, parse_text, parse_response
 from ....types.responses.tool_param import ToolParam
 from ....types.responses.parsed_response import (
     ParsedContent,
+    ParsedResponseOutputItem,
     ParsedResponseOutputMessage,
     ParsedResponseFunctionToolCall,
 )
@@ -243,17 +244,18 @@ class ResponseStreamState(Generic[TextFormatT]):
         self.__current_snapshot: ParsedResponseSnapshot | None = None
         self._completed_response: ParsedResponse[TextFormatT] | None = None
         self._completed_output: dict[int, ResponseOutputItem] = {}
+        self._output_items: dict[int, ParsedResponseOutputItem[object]] = {}
         self._input_tools = [tool for tool in input_tools] if is_given(input_tools) else []
         self._text_format = text_format
         self._rich_text_format: type | Omit = text_format if inspect.isclass(text_format) else omit
 
     def handle_event(self, event: RawResponseStreamEvent) -> List[ResponseStreamEvent[TextFormatT]]:
-        self.__current_snapshot = snapshot = self.accumulate_event(event)
+        self.__current_snapshot = self.accumulate_event(event)
 
         events: List[ResponseStreamEvent[TextFormatT]] = []
 
         if event.type == "response.output_text.delta":
-            output = snapshot.output[event.output_index]
+            output = self._get_output_item(event.output_index)
             assert output.type == "message"
 
             content = output.content[event.content_index]
@@ -273,7 +275,7 @@ class ResponseStreamState(Generic[TextFormatT]):
                 )
             )
         elif event.type == "response.output_text.done":
-            output = snapshot.output[event.output_index]
+            output = self._get_output_item(event.output_index)
             assert output.type == "message"
 
             content = output.content[event.content_index]
@@ -293,7 +295,7 @@ class ResponseStreamState(Generic[TextFormatT]):
                 )
             )
         elif event.type == "response.function_call_arguments.delta":
-            output = snapshot.output[event.output_index]
+            output = self._get_output_item(event.output_index)
             assert output.type == "function_call"
 
             events.append(
@@ -331,6 +333,9 @@ class ResponseStreamState(Generic[TextFormatT]):
             return self._create_initial_response(event)
 
         if event.type == "response.output_item.added":
+            if getattr(event, "item", None) is None:
+                return snapshot
+
             if event.item.type == "function_call":
                 snapshot.output.append(
                     construct_type_unchecked(
@@ -343,20 +348,21 @@ class ResponseStreamState(Generic[TextFormatT]):
                 )
             else:
                 snapshot.output.append(event.item)
+            self._output_items[event.output_index] = snapshot.output[-1]
         elif event.type == "response.content_part.added":
-            output = snapshot.output[event.output_index]
+            output = self._get_output_item(event.output_index)
             if output.type == "message":
                 output.content.append(
                     construct_type_unchecked(type_=cast(Any, ParsedContent), value=event.part.to_dict())
                 )
         elif event.type == "response.output_text.delta":
-            output = snapshot.output[event.output_index]
+            output = self._get_output_item(event.output_index)
             if output.type == "message":
                 content = output.content[event.content_index]
                 assert content.type == "output_text"
                 content.text += event.delta
         elif event.type == "response.function_call_arguments.delta":
-            output = snapshot.output[event.output_index]
+            output = self._get_output_item(event.output_index)
             if output.type == "function_call":
                 output.arguments += event.delta
         elif event.type == "response.output_item.done":
@@ -375,8 +381,19 @@ class ResponseStreamState(Generic[TextFormatT]):
 
         return snapshot
 
+    def _get_output_item(self, output_index: int) -> ParsedResponseOutputItem[object]:
+        try:
+            return self._output_items[output_index]
+        except KeyError:
+            raise RuntimeError(
+                f"Received a content event for output index {output_index} before receiving its output item"
+            ) from None
+
     def _create_initial_response(self, event: RawResponseStreamEvent) -> ParsedResponseSnapshot:
         if event.type != "response.created":
             raise RuntimeError(f"Expected to have received `response.created` before `{event.type}`")
 
-        return construct_type_unchecked(type_=ParsedResponseSnapshot, value=event.response.to_dict())
+        snapshot = construct_type_unchecked(type_=ParsedResponseSnapshot, value=event.response.to_dict())
+        # Stream indexes can have gaps when a provider emits an empty added event.
+        self._output_items = dict(enumerate(snapshot.output or []))
+        return snapshot
