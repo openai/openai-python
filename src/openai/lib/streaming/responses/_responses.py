@@ -395,5 +395,5 @@ class ResponseStreamState(Generic[TextFormatT]):
 
         snapshot = construct_type_unchecked(type_=ParsedResponseSnapshot, value=event.response.to_dict())
         # Stream indexes can have gaps when a provider emits an empty added event.
-        self._output_items = dict(enumerate(snapshot.output))
+        self._output_items = dict(enumerate(snapshot.output or []))
         return snapshot

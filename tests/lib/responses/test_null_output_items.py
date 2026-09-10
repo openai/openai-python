@@ -196,13 +196,15 @@ async def test_stream_keeps_initial_output_after_empty_item(sync: bool) -> None:
 
 
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
-async def test_stream_completes_with_only_empty_items(sync: bool) -> None:
-    _, final = await _consume(
-        sync,
-        [
-            {"type": "response.created", "response": {"id": "resp_test", "output": []}},
-            {"type": "response.output_item.added", "output_index": 0, "item": None},
-            {"type": "response.completed", "response": {"id": "resp_test", "output": None}},
-        ],
-    )
+@pytest.mark.parametrize("initial_output", ["empty", "null", "missing"])
+@pytest.mark.parametrize("empty_added_event", [False, True])
+async def test_stream_completes_with_only_empty_items(sync: bool, initial_output: str, empty_added_event: bool) -> None:
+    response: dict[str, object] = {"id": "resp_test"}
+    if initial_output != "missing":
+        response["output"] = [] if initial_output == "empty" else None
+    events: list[dict[str, object]] = [{"type": "response.created", "response": response}]
+    if empty_added_event:
+        events.append({"type": "response.output_item.added", "output_index": 0, "item": None})
+    events.append({"type": "response.completed", "response": {"id": "resp_test", "output": None}})
+    _, final = await _consume(sync, events)
     assert final.output == []
