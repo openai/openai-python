@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import Iterator, AsyncIterator
-from unittest import mock
+from contextlib import aclosing, nullcontext
 
 import httpx2
 import pytest
@@ -219,30 +219,48 @@ async def test_multi_byte_character_multiple_chunks(
 
 @pytest.mark.asyncio
 async def test_async_stream_aclose(async_client: AsyncOpenAI) -> None:
-    """AsyncStream should support aclose() as an alias for close().
-
-    This is the standard Python async cleanup method name (used by contextlib,
-    asyncio, and the language spec for async generators).  Callers such as
-    ``AsyncChatCompletionStream.close()`` and Langfuse's
-    ``LangfuseResponseGeneratorAsync`` invoke ``aclose()`` on the underlying
-    stream, so its absence causes ``AttributeError`` at cleanup time.
-    """
-
     def body() -> Iterator[bytes]:
         yield b"data: [DONE]\n\n"
 
-    stream = AsyncStream(
-        cast_to=object,
-        client=async_client,
-        response=httpx.Response(200, content=to_aiter(body())),
-    )
+    response = httpx2.Response(200, content=to_aiter(body()))
+    stream = AsyncStream(cast_to=object, client=async_client, response=response)
 
-    assert hasattr(stream, "aclose"), "AsyncStream must expose aclose()"
+    assert not response.is_closed
+    await stream.aclose()
+    assert response.is_closed
 
-    # aclose() should delegate to close()
-    with mock.patch.object(stream, "close", wraps=stream.close) as mock_close:
-        await stream.aclose()
-        mock_close.assert_called_once()
+    # Either spelling remains safe after the response has already been closed.
+    await stream.close()
+    await stream.aclose()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("raise_error", [False, True], ids=["early-exit", "exception"])
+async def test_async_stream_aclosing(raise_error: bool) -> None:
+    def body() -> Iterator[bytes]:
+        yield (
+            b'data: {"id":"chatcmpl-test","object":"chat.completion.chunk","created":0,'
+            b'"model":"test-model","choices":[{"index":0,"delta":{"content":"hello"},'
+            b'"finish_reason":null}]}\n\n'
+        )
+        yield b"data: [DONE]\n\n"
+
+    response = httpx2.Response(200, content=to_aiter(body()), headers={"content-type": "text/event-stream"})
+    async with AsyncOpenAI(
+        api_key="fake-test-key",
+        http_client=httpx2.AsyncClient(transport=httpx2.MockTransport(lambda _request: response)),
+    ) as client:
+        stream = await client.chat.completions.create(model="test-model", messages=[], stream=True)
+        with pytest.raises(ValueError, match="test exception") if raise_error else nullcontext():
+            async with aclosing(stream):
+                async for chunk in stream:
+                    assert chunk.choices[0].delta.content == "hello"
+                    assert not response.is_closed
+                    if raise_error:
+                        raise ValueError("test exception")
+                    break
+
+        assert response.is_closed
 
 
 async def to_aiter(iter: Iterator[bytes]) -> AsyncIterator[bytes]:

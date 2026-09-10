@@ -240,12 +240,7 @@ class AsyncStream(Generic[_T]):
         await self.response.aclose()
 
     async def aclose(self) -> None:
-        """Alias for :meth:`close` following the Python async convention.
-
-        Callers such as ``AsyncChatCompletionStream`` and third-party
-        instrumentation libraries (e.g. Langfuse) use ``aclose()`` as the
-        standard async cleanup method.
-        """
+        """Close the response and release the connection. Alias for `close()`."""
         await self.close()
 
 
