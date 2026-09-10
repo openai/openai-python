@@ -8,10 +8,11 @@ from typing_extensions import Awaitable, AsyncIterable, AsyncIterator, assert_ne
 from ._deltas import accumulate_delta as accumulate_delta
 from ..._utils import consume_sync_iterator, consume_async_iterator
 from ..._compat import model_dump
-from ..._httpx2 import timeout_exceptions
+from ..._httpx2 import request_exceptions, timeout_exceptions
 from ..._models import construct_type
 from ..._streaming import Stream, AsyncStream
 from ...types.beta import AssistantStreamEvent
+from ..._exceptions import APIConnectionError
 from ...types.beta.threads import (
     Run,
     Text,
@@ -27,6 +28,26 @@ from ...types.beta.threads.runs import RunStep, ToolCall, RunStepDelta, ToolCall
 
 def _timeout_exceptions() -> tuple[type[Exception], ...]:
     return (*timeout_exceptions(), asyncio.TimeoutError)
+
+
+def _iter_events(stream: Stream[AssistantStreamEvent]) -> Iterator[AssistantStreamEvent]:
+    # Preserve legacy transport exceptions without unwrapping errors from user callbacks.
+    try:
+        yield from stream
+    except APIConnectionError as exc:
+        if isinstance(exc.__cause__, request_exceptions()):
+            raise exc.__cause__ from None
+        raise
+
+
+async def _aiter_events(stream: AsyncStream[AssistantStreamEvent]) -> AsyncIterator[AssistantStreamEvent]:
+    try:
+        async for event in stream:
+            yield event
+    except APIConnectionError as exc:
+        if isinstance(exc.__cause__, request_exceptions()):
+            raise exc.__cause__ from None
+        raise
 
 
 class AssistantEventHandler:
@@ -407,7 +428,7 @@ class AssistantEventHandler:
             raise RuntimeError("Stream has not been started yet")
 
         try:
-            for event in stream:
+            for event in _iter_events(stream):
                 self._emit_sse_event(event)
 
                 yield event
@@ -839,7 +860,7 @@ class AsyncAssistantEventHandler:
             raise RuntimeError("Stream has not been started yet")
 
         try:
-            async for event in stream:
+            async for event in _aiter_events(stream):
                 await self._emit_sse_event(event)
 
                 yield event

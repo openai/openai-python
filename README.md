@@ -657,6 +657,14 @@ response), a subclass of `openai.APIStatusError` is raised, containing `status_c
 
 All errors inherit from `openai.APIError`.
 
+When consuming a `Stream` or `AsyncStream`, read timeouts raise `APITimeoutError`
+and other HTTPX request failures raise `APIConnectionError`. Catch these SDK
+exceptions instead of raw HTTPX exceptions; the original exception is available
+as `__cause__`. Stream consumption is not automatically retried, because replaying
+a request could duplicate output already delivered to your application.
+The Assistants event-handler helpers and raw `with_streaming_response` iterators
+retain their existing exception behavior.
+
 ```python
 import openai
 from openai import OpenAI
