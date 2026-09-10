@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 import time
 import threading
 from typing import Any, Generic, TypeVar, Callable, TypedDict, cast
@@ -305,8 +306,10 @@ class _WorkloadIdentityAuth(Generic[_WorkloadIdentityT]):
         )
 
     def _validate_expires_in(self, expires_in: object) -> float:
-        if not isinstance(expires_in, (int, float)):
-            raise OpenAIError("Token exchange response did not include a valid expires_in")
+        if isinstance(expires_in, bool):
+            expires_in = int(expires_in)
+        if not isinstance(expires_in, (int, float)) or math.isnan(expires_in) or math.isinf(expires_in) or expires_in <= 0:
+            raise ValueError("Token exchange response did not include a valid expires_in")
         return float(expires_in)
 
     def _token_unusable(self) -> bool:
