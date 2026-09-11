@@ -47,18 +47,16 @@ def test_multiple_params() -> None:
 
     assert foo(a="a", b="b", c="c") == "a b c"
 
-    error_message = r"Missing required arguments.*"
-
-    with pytest.raises(TypeError, match=error_message):
+    with pytest.raises(TypeError, match=r"Missing required arguments: 'a', 'b' or 'c'"):
         foo()
 
-    with pytest.raises(TypeError, match=error_message):
+    with pytest.raises(TypeError, match=r"Missing required arguments: 'b' or 'c'"):
         foo(a="a")
 
-    with pytest.raises(TypeError, match=error_message):
+    with pytest.raises(TypeError, match=r"Missing required arguments: 'a' or 'c'"):
         foo(b="b")
 
-    with pytest.raises(TypeError, match=error_message):
+    with pytest.raises(TypeError, match=r"Missing required arguments: 'a' or 'b'"):
         foo(c="c")
 
     with pytest.raises(TypeError, match=r"Missing required argument: 'a'"):
@@ -78,7 +76,6 @@ def test_multiple_variants() -> None:
     assert foo(a=None) is None
     assert foo(b=None) is None
 
-    # TODO: this error message could probably be improved
     with pytest.raises(
         TypeError,
         match=r"Missing required arguments; Expected either \('a'\) or \('b'\) arguments to be given",
