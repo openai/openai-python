@@ -1,5 +1,23 @@
 # Changelog
 
+## [3.14.0](https://github.com/openai/openai-python/compare/v3.13.0...v3.14.0) (2026-09-11)
+
+
+### Features
+
+* **streaming:** normalize errors raised while reading streams ([#3827](https://github.com/openai/openai-python/issues/3827)) ([d7c41ef](https://github.com/openai/openai-python/commit/d7c41efee1b0802b79f3f88a678ef2052b06e9ce))
+
+
+### Bug Fixes
+
+* bound vector store file polling ([#3401](https://github.com/openai/openai-python/issues/3401)) ([ae41bc4](https://github.com/openai/openai-python/commit/ae41bc46cdd53d17e948ac8a73e16bdbf34123a1))
+* preserve response stream indexes after empty items ([#3126](https://github.com/openai/openai-python/issues/3126)) ([8f84fbd](https://github.com/openai/openai-python/commit/8f84fbd688bdd8a9cde17c09f79b34d5d5580f0f))
+
+
+### Documentation
+
+* use the vision guide image in README example ([#3849](https://github.com/openai/openai-python/issues/3849)) ([1ed8902](https://github.com/openai/openai-python/commit/1ed8902e5629c1aae0c26eadceff02bd5cebb0e1))
+
 ## [3.13.0](https://github.com/openai/openai-python/compare/v3.12.0...v3.13.0) (2026-09-10)
 
 
