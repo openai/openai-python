@@ -61,8 +61,8 @@ class ActionFind(BaseModel):
     type: Literal["find_in_page"]
     """The action type."""
 
-    url: str
-    """The URL of the page searched for the pattern."""
+    url: Optional[str] = None
+    """The URL of the page searched for the pattern, when provided."""
 
 
 Action: TypeAlias = Annotated[Union[ActionSearch, ActionOpenPage, ActionFind], PropertyInfo(discriminator="type")]
