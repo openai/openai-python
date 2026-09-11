@@ -300,9 +300,7 @@ def github_evaluate(
         raise ValueError("unexpected or superseded source workflow run")
     head = report.require_sha(run["head_sha"])
     if run["event"] == "pull_request":
-        associated = run["pull_requests"] or report.api(
-            "GET", f"{root}/commits/{head}/pulls?per_page=100"
-        )
+        associated = report.associated_pulls(repository, run)
         current: list[int] = []
         for number in sorted({int(pr["number"]) for pr in associated}):
             if number <= 0:

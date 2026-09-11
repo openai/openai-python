@@ -20,6 +20,12 @@ class APIKey(BaseModel):
 
     value: str
 
+    expires_at: Optional[int] = None
+    """
+    The Unix timestamp (in seconds) when the API key expires, or null if it does not
+    expire.
+    """
+
 
 class ServiceAccountCreateResponse(BaseModel):
     id: str

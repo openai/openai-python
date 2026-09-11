@@ -1,5 +1,85 @@
 # Changelog
 
+## [3.13.0](https://github.com/openai/openai-python/compare/v3.12.0...v3.13.0) (2026-09-10)
+
+
+### Features
+
+* **api:** add Agents API ([1c4284a](https://github.com/openai/openai-python/commit/1c4284a08294f734d57047585ab82e2e09d3a5bc))
+
+## [3.12.0](https://github.com/openai/openai-python/compare/v3.11.0...v3.12.0) (2026-09-10)
+
+
+### Features
+
+* **api:** Add Live API ([0e4bfef](https://github.com/openai/openai-python/commit/0e4bfef9c79251fcf4926fd732129627bde050f1))
+
+
+### Bug Fixes
+
+* add aclose() to AsyncStream for standard async cleanup ([#2854](https://github.com/openai/openai-python/issues/2854)) ([802b334](https://github.com/openai/openai-python/commit/802b334928d8f0c3e24e5fce15a0eaa1b28c61cd))
+* handle bare `dict` and `list` annotations without type arguments ([#3760](https://github.com/openai/openai-python/issues/3760)) ([c7e8c03](https://github.com/openai/openai-python/commit/c7e8c03e2d87708ef233d0db00167dfa339325a9))
+* preserve finalized output on null response completion ([#3345](https://github.com/openai/openai-python/issues/3345)) ([adb212e](https://github.com/openai/openai-python/commit/adb212e116323fcec4b4811d20ba9eb78280c24c))
+
+## [3.11.0](https://github.com/openai/openai-python/compare/v3.10.0...v3.11.0) (2026-09-09)
+
+
+### Features
+
+* **api:** Add expiration controls for service account keys ([#3825](https://github.com/openai/openai-python/issues/3825)) ([f348ec8](https://github.com/openai/openai-python/commit/f348ec87b934c98889102668913e0a3ae7fc303d))
+
+## [3.10.0](https://github.com/openai/openai-python/compare/v3.9.0...v3.10.0) (2026-09-08)
+
+
+### Features
+
+* **api:** add GPT Image 2.5 models and image options ([#3824](https://github.com/openai/openai-python/issues/3824)) ([5b39c45](https://github.com/openai/openai-python/commit/5b39c453ee5ee8f46fba0bd9cb4ae47fa5ee6d51))
+* **api:** add service-account API key expiration fields ([#3802](https://github.com/openai/openai-python/issues/3802)) ([f1cd7f0](https://github.com/openai/openai-python/commit/f1cd7f020210ec3fc71699fc46d90320ddbb411c))
+
+## [3.9.0](https://github.com/openai/openai-python/compare/v3.8.0...v3.9.0) (2026-09-05)
+
+
+### Features
+
+* **api:** Add prompt cache diagnostics ([#3800](https://github.com/openai/openai-python/issues/3800)) ([8326784](https://github.com/openai/openai-python/commit/83267847a0219ea8b584c9d60f92c7a4dffd392a))
+* **api:** correct function argument completion event fields (openapi-545) ([#3801](https://github.com/openai/openai-python/issues/3801)) ([2a98f6a](https://github.com/openai/openai-python/commit/2a98f6a1dee448c6410531c89c2de0af4383c6a7))
+
+
+### Bug Fixes
+
+* **api:** accept incomplete web search call statuses ([#3786](https://github.com/openai/openai-python/issues/3786)) ([3cc8d78](https://github.com/openai/openai-python/commit/3cc8d784ad05f75a265012ee86638adaf93d8bf2))
+* refuse overflowing server retry delays ([#3799](https://github.com/openai/openai-python/issues/3799)) ([88b4d43](https://github.com/openai/openai-python/commit/88b4d4341af38e84784221d73c175f2088fa6b85))
+
+
+### Chores
+
+* **api:** document throttling and model overload responses — SDK-235 ([#3803](https://github.com/openai/openai-python/issues/3803)) ([be92815](https://github.com/openai/openai-python/commit/be928151372e4b62adb4a1571cda52ad759b38be))
+* migrate to forked steady ([#3795](https://github.com/openai/openai-python/issues/3795)) ([b24aeda](https://github.com/openai/openai-python/commit/b24aeda89980aff382c641366cce869082056b83))
+
+## [3.8.0](https://github.com/openai/openai-python/compare/v3.7.0...v3.8.0) (2026-09-03)
+
+
+### Features
+
+* **api:** add gpt-6-astra and related features ([#3791](https://github.com/openai/openai-python/issues/3791)) ([09f446f](https://github.com/openai/openai-python/commit/09f446f5f8623d79464568dc91b9dc258e74bcae))
+
+
+### Documentation
+
+* add canonical SDK security model ([#3778](https://github.com/openai/openai-python/issues/3778)) ([2a097b9](https://github.com/openai/openai-python/commit/2a097b991bb23a26bde9da8ea286f850ac1329f1))
+
+## [3.7.0](https://github.com/openai/openai-python/compare/v3.6.0...v3.7.0) (2026-09-02)
+
+
+### Features
+
+* **api:** update usage APIs and documentation ([#3779](https://github.com/openai/openai-python/issues/3779)) ([6f0da16](https://github.com/openai/openai-python/commit/6f0da16573086401a7b171f4bd14a78f22c9d0e9))
+
+
+### Bug Fixes
+
+* avoid repeated numpy checks for embeddings ([#3757](https://github.com/openai/openai-python/issues/3757)) ([b19c216](https://github.com/openai/openai-python/commit/b19c2161b1eac80fbf1f6f67a64a50af99c53356))
+
 ## [3.6.0](https://github.com/openai/openai-python/compare/v3.5.0...v3.6.0) (2026-08-27)
 
 

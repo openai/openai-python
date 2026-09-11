@@ -16,7 +16,7 @@ class ImageURL(BaseModel):
     """Specifies the detail level of the image.
 
     Learn more in the
-    [Vision guide](https://platform.openai.com/docs/guides/vision#low-or-high-fidelity-image-understanding).
+    [Vision guide](https://developers.openai.com/api/docs/guides/images-vision#choose-an-image-detail-level).
     """
 
 
@@ -31,7 +31,9 @@ class PromptCacheBreakpoint(BaseModel):
 
 
 class ChatCompletionContentPartImage(BaseModel):
-    """Learn about [image inputs](https://platform.openai.com/docs/guides/vision)."""
+    """
+    Learn about [image inputs](https://developers.openai.com/api/docs/guides/images-vision).
+    """
 
     image_url: ImageURL
 

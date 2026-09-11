@@ -11,9 +11,9 @@ import subprocess
 import tempfile
 import textwrap
 import unittest
+import unittest.mock as mock
 from pathlib import Path
 from typing import Any
-from unittest import mock
 
 import custom_code_report as report
 
@@ -283,14 +283,17 @@ class CustomCodeTests(unittest.TestCase):
         harness = r"""
 const assert = require('node:assert/strict');
 const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
-async function check(stale, exists, priorRun, expected) {
+async function check(stale, exists, priorRun, expected, missing = false) {
   const writes = [];
   const event = {id: 20, run_attempt: 1, event: 'pull_request', path: '.github/workflows/castiron-custom-code.yml', head_sha: 'a'.repeat(40), pull_requests: [{number: 1}]};
+  if (missing) Object.assign(event, {pull_requests: [], head_repository: {owner: {login: 'contributor'}}, head_branch: 'sdk'});
   const current = {state: 'open', head: {sha: (stale ? 'c' : 'a').repeat(40)}};
   const previous = {id: 42, user: {type: 'Bot', login: 'github-actions[bot]'},
     body: `<!-- castiron:custom-code-report:v1 -->\n<!-- castiron:run:v1:${priorRun}:1 -->`};
-  const github = {paginate: async () => exists ? [previous] : [], rest: {
-    pulls: {get: async () => ({data: current})},
+  const github = {paginate: async method => method === 'associations' ? []
+    : method === 'pulls' ? [{number: 1}] : exists ? [previous] : [], rest: {
+    repos: {listPullRequestsAssociatedWithCommit: 'associations'},
+    pulls: {get: async () => ({data: current}), list: 'pulls'},
     issues: {listComments() {}, updateComment: async x => writes.push(['update', x]),
       createComment: async x => writes.push(['create', x])}}};
   const context = {payload: {workflow_run: event}, repo: {owner: 'openai', repo: 'example'},
@@ -308,6 +311,8 @@ async function check(stale, exists, priorRun, expected) {
   await check(false, false, 10, 'create');
   await check(true, true, 10, null);
   await check(false, true, 21, null);
+  await check(false, true, 10, 'update', true);
+  await check(true, true, 10, null, true);
 })().catch(error => { console.error(error); process.exitCode = 1; });
 """
         subprocess.run(
@@ -429,9 +434,7 @@ async function check(stale, exists, priorRun, expected) {
         self.write("generated.py", "generated\n# custom\n")
         # Neither a replacement reporter nor its claimed result may be executed
         # or read by the trusted job.
-        self.write(
-            "scripts/castiron/custom_code_report.py", "raise RuntimeError('PR code ran')\n"
-        )
+        self.write("scripts/castiron/custom_code_report.py", "raise RuntimeError('PR code ran')\n")
         self.write("report.json", json.dumps(legitimate))
         head = self.commit()
         broken_stats = (
@@ -450,7 +453,12 @@ async function check(stale, exists, priorRun, expected) {
             self.assertNotIn("checkout", args)
             return real_git(repo, *args, input_bytes=input_bytes)
 
-        for label, revision in (("genuine", base), ("custom", head), ("broken", broken)):
+        for label, revision in (
+            ("genuine", base),
+            ("custom", head),
+            ("fork", head),
+            ("broken", broken),
+        ):
             with self.subTest(label=label):
                 calls: list[tuple[str, str]] = []
                 bodies: list[str] = []
@@ -466,6 +474,8 @@ async function check(stale, exists, priorRun, expected) {
                     "head_sha": revision,
                     "run_attempt": 1,
                     "pull_requests": [],
+                    "head_repository": {"owner": {"login": "contributor"}},
+                    "head_branch": "fix/branch",
                 }
                 forged: dict[str, Any] = {**legitimate, "head_sha": revision, "files": []}
                 self.assertIn("Generated baselines verified", report.render_report(forged))
@@ -473,15 +483,16 @@ async function check(stale, exists, priorRun, expected) {
                 producer.mkdir()
                 (producer / "report.json").write_text(json.dumps(forged))
 
-                def fake_api(
-                    method: str, path: str, payload: dict[str, Any] | None = None
-                ) -> Any:
+                def fake_api(method: str, path: str, payload: dict[str, Any] | None = None) -> Any:
                     calls.append((method, path))
                     if method == "GET":
                         responses: dict[str, Any] = {
                             "repos/openai/example": {"private": False},
                             "repos/openai/example/actions/runs/2": run,
-                            f"repos/openai/example/commits/{revision}/pulls?per_page=100": [
+                            f"repos/openai/example/commits/{revision}/pulls?per_page=100": (
+                                [] if label == "fork" else [{"number": 1}]
+                            ),
+                            "repos/openai/example/pulls?state=open&head=contributor%3Afix%2Fbranch&per_page=100&page=1": [
                                 {"number": 1}
                             ],
                             "repos/openai/example/pulls/1": pull,
@@ -529,7 +540,7 @@ async function check(stale, exists, priorRun, expected) {
                 if label == "broken":
                     self.assertIn("Report unavailable", body)
                     self.assertNotIn("Generated baselines verified", body)
-                elif label == "custom":
+                elif label in ("custom", "fork"):
                     self.assertIn("1 newly customized", body)
                     self.assertIn("generated.py", body)
                     self.assertIn(b"+# custom", (out / "custom-code.patch").read_bytes())
@@ -539,6 +550,24 @@ async function check(stale, exists, priorRun, expected) {
                     self.assertIn("Generated baselines verified", body)
                     self.assertIn("--name castiron-custom-code-9-3", body)
 
+    def test_fork_association_fallback_paginates_candidates(self) -> None:
+        run: dict[str, Any] = {
+            "head_sha": "a" * 40,
+            "pull_requests": [],
+            "head_repository": {"owner": {"login": "contributor"}},
+            "head_branch": "fix/branch&other=value",
+        }
+        first = [{"number": number} for number in range(1, 101)]
+        with mock.patch.object(report, "api", side_effect=[[], first, [{"number": 101}]]) as api:
+            self.assertEqual(len(report.associated_pulls("openai/example", run)), 101)
+        self.assertEqual(
+            api.call_args.args,
+            (
+                "GET",
+                "repos/openai/example/pulls?state=open&head=contributor%3Afix%2Fbranch%26other%3Dvalue&per_page=100&page=2",
+            ),
+        )
+
     def test_trusted_report_rejects_invalid_or_stale_association_before_fetch(self) -> None:
         run = {
             "event": "pull_request",
@@ -547,6 +576,8 @@ async function check(stale, exists, priorRun, expected) {
             "head_sha": "a" * 40,
             "run_attempt": 1,
             "pull_requests": [{"number": 1}],
+            "head_repository": {"owner": {"login": "contributor"}},
+            "head_branch": "fix/branch",
         }
         pull = {
             "state": "open",
@@ -563,7 +594,21 @@ async function check(stale, exists, priorRun, expected) {
                 [run, {**pull, "base": {"sha": "b" * 40, "repo": {"full_name": "other/repo"}}}],
                 False,
             ),
-            ([{**run, "pull_requests": []}, []], False),
+            ([{**run, "pull_requests": []}, [], []], False),
+            (
+                [{**run, "pull_requests": []}, [], [{"number": 1}], {**pull, "state": "closed"}],
+                False,
+            ),
+            (
+                [
+                    {**run, "pull_requests": []},
+                    [],
+                    [{"number": 1}],
+                    {**pull, "head": {"sha": "c" * 40}},
+                ],
+                False,
+            ),
+            ([{**run, "pull_requests": []}, [], [{"number": 1}, {"number": 2}], pull, pull], True),
             ([{**run, "pull_requests": [{"number": 1}, {"number": 2}]}, pull, pull], True),
         ]
         for responses, raises in cases:
@@ -861,6 +906,8 @@ async function check(stale, exists, priorRun, expected) {
             "head_sha": base,
             "run_attempt": 2,
             "pull_requests": [{"number": 1}],
+            "head_repository": {"owner": {"login": "contributor"}},
+            "head_branch": "fix/branch",
         }
         comment = {
             "id": 8,
@@ -879,7 +926,9 @@ async function check(stale, exists, priorRun, expected) {
             )
             self.assertEqual(api.call_count, 3)
         with (
-            mock.patch.object(report, "api", side_effect=[pull, {**run, "pull_requests": []}, []]),
+            mock.patch.object(
+                report, "api", side_effect=[pull, {**run, "pull_requests": []}, [], []]
+            ),
             self.assertRaisesRegex(report.ReportError, "does not match report PR"),
         ):
             report.publish_comment(result, "openai/example", 1, 2, 2)

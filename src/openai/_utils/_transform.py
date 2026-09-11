@@ -23,7 +23,6 @@ from ._compat import get_origin, is_typeddict
 from ._typing import (
     is_list_type,
     is_union_type,
-    extract_type_arg,
     is_iterable_type,
     is_required_type,
     is_sequence_type,
@@ -180,7 +179,8 @@ def _transform_recursive(
         return _transform_typeddict(data, stripped_type)
 
     if origin == dict and is_mapping(data):
-        items_type = get_args(stripped_type)[1]
+        args = get_args(stripped_type)
+        items_type = args[1] if len(args) > 1 else object
         return {key: _transform_recursive(value, annotation=items_type) for key, value in data.items()}
 
     if (
@@ -196,7 +196,8 @@ def _transform_recursive(
         if isinstance(data, dict):
             return cast(object, data)
 
-        inner_type = extract_type_arg(stripped_type, 0)
+        args = get_args(stripped_type)
+        inner_type = cast(type, args[0]) if args else object
         if _no_transform_needed(inner_type):
             # for some types there is no need to transform anything, so we can get a small
             # perf boost from skipping that work.
@@ -346,7 +347,8 @@ async def _async_transform_recursive(
         return await _async_transform_typeddict(data, stripped_type)
 
     if origin == dict and is_mapping(data):
-        items_type = get_args(stripped_type)[1]
+        args = get_args(stripped_type)
+        items_type = args[1] if len(args) > 1 else object
         return {key: _transform_recursive(value, annotation=items_type) for key, value in data.items()}
 
     if (
@@ -362,7 +364,8 @@ async def _async_transform_recursive(
         if isinstance(data, dict):
             return cast(object, data)
 
-        inner_type = extract_type_arg(stripped_type, 0)
+        args = get_args(stripped_type)
+        inner_type = cast(type, args[0]) if args else object
         if _no_transform_needed(inner_type):
             # for some types there is no need to transform anything, so we can get a small
             # perf boost from skipping that work.

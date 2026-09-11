@@ -11,7 +11,8 @@ from typing_extensions import Self, Protocol, TypeGuard, override, get_origin, r
 import httpx2
 
 from ._utils import is_mapping, extract_type_var_from_base
-from ._exceptions import APIError
+from ._httpx2 import request_exceptions, timeout_exceptions
+from ._exceptions import APIError, APITimeoutError, APIConnectionError
 
 if TYPE_CHECKING:
     from ._client import OpenAI, AsyncOpenAI
@@ -51,7 +52,12 @@ class Stream(Generic[_T]):
             yield item
 
     def _iter_events(self) -> Iterator[ServerSentEvent]:
-        yield from self._decoder.iter_bytes(self.response.iter_bytes())
+        try:
+            yield from self._decoder.iter_bytes(self.response.iter_bytes())
+        except timeout_exceptions() as err:
+            raise APITimeoutError(request=self.response.request) from err
+        except request_exceptions() as err:
+            raise APIConnectionError(request=self.response.request) from err
 
     def __stream__(self) -> Iterator[_T]:
         cast_to = cast(Any, self._cast_to)
@@ -160,8 +166,13 @@ class AsyncStream(Generic[_T]):
             yield item
 
     async def _iter_events(self) -> AsyncIterator[ServerSentEvent]:
-        async for sse in self._decoder.aiter_bytes(self.response.aiter_bytes()):
-            yield sse
+        try:
+            async for sse in self._decoder.aiter_bytes(self.response.aiter_bytes()):
+                yield sse
+        except timeout_exceptions() as err:
+            raise APITimeoutError(request=self.response.request) from err
+        except request_exceptions() as err:
+            raise APIConnectionError(request=self.response.request) from err
 
     async def __stream__(self) -> AsyncIterator[_T]:
         cast_to = cast(Any, self._cast_to)
@@ -238,6 +249,10 @@ class AsyncStream(Generic[_T]):
         Automatically called if the response body is read to completion.
         """
         await self.response.aclose()
+
+    async def aclose(self) -> None:
+        """Close the response and release the connection. Alias for `close()`."""
+        await self.close()
 
 
 class ServerSentEvent:
