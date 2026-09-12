@@ -122,7 +122,7 @@ class BetaResponseOutputText(BaseModel):
     annotations: List[Annotation]
     """The annotations of the text output."""
 
-    text: str
+    text: Optional[str] = None
     """The text output from the model."""
 
     type: Literal["output_text"]
