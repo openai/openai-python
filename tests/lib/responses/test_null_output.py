@@ -8,6 +8,7 @@ from pydantic import BaseModel
 
 from openai import OpenAI, AsyncOpenAI
 from openai.types.responses import ToolParam
+from openai.types.responses.response import Response
 
 
 class Answer(BaseModel):
@@ -123,3 +124,55 @@ async def test_stream_recovers_finalized_output(sync: bool, terminal_output: str
         assert tool.type == "function_call" and tool.status == "completed"
         assert tool.id == "fc_test"
         assert tool.parsed_arguments == {"answer": 4}
+
+
+def _make_response(**overrides: object) -> Response:
+    base: dict[str, object] = dict(
+        id="resp_test",
+        created_at=0,
+        model="gpt-5.2",
+        object="response",
+        parallel_tool_calls=False,
+        tool_choice="auto",
+        tools=[],
+    )
+    base.update(overrides)
+    return Response.model_construct(**base)
+
+
+def test_output_text_with_null_output() -> None:
+    """output_text must not crash when output is None, matching parse_response's own guard."""
+    response = _make_response(output=None)
+    assert response.output_text == ""
+
+
+def test_output_text_with_missing_output_text() -> None:
+    """A message content block whose type is output_text but whose text is None (a
+    partial/aborted item) must be skipped rather than appended as None."""
+    response = _make_response(
+        output=[
+            {
+                "id": "msg_test",
+                "type": "message",
+                "role": "assistant",
+                "status": "in_progress",
+                "content": [{"type": "output_text", "text": None, "annotations": []}],
+            }
+        ]
+    )
+    assert response.output_text == ""
+
+
+def test_output_text_with_present_output() -> None:
+    response = _make_response(
+        output=[
+            {
+                "id": "msg_test",
+                "type": "message",
+                "role": "assistant",
+                "status": "completed",
+                "content": [{"type": "output_text", "text": "hello", "annotations": []}],
+            }
+        ]
+    )
+    assert response.output_text == "hello"
