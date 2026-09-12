@@ -21,6 +21,7 @@ __all__ = [
     "ConflictError",
     "UnprocessableEntityError",
     "RateLimitError",
+    "InsufficientQuotaError",
     "InternalServerError",
     "LengthFinishReasonError",
     "ContentFilterFinishReasonError",
@@ -154,6 +155,10 @@ class UnprocessableEntityError(APIStatusError):
 
 
 class RateLimitError(APIStatusError):
+    status_code: Literal[429] = 429  # pyright: ignore[reportIncompatibleVariableOverride]
+
+
+class InsufficientQuotaError(RateLimitError):
     status_code: Literal[429] = 429  # pyright: ignore[reportIncompatibleVariableOverride]
 
 
