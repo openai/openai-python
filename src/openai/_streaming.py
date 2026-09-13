@@ -342,6 +342,7 @@ class SSEDecoder:
     _event: str | None
     _retry: int | None
     _last_event_id: str | None
+    _first_line: bool
 
     def __init__(self) -> None:
         self._reset()
@@ -351,6 +352,7 @@ class SSEDecoder:
         self._data = []
         self._last_event_id = None
         self._retry = None
+        self._first_line = True
 
     def _decode_lines(self, lines: Iterator[bytes]) -> Iterator[ServerSentEvent]:
         for raw_line in lines:
@@ -382,6 +384,10 @@ class SSEDecoder:
 
     def decode(self, line: str) -> ServerSentEvent | None:
         # See: https://html.spec.whatwg.org/multipage/server-sent-events.html#event-stream-interpretation  # noqa: E501
+
+        if self._first_line:
+            self._first_line = False
+            line = line.removeprefix("\ufeff")
 
         if not line:
             if not self._event and not self._data and not self._last_event_id and self._retry is None:
