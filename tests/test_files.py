@@ -19,6 +19,11 @@ def test_tuple_input() -> None:
     assert result == [("file", ("README.md", readme_path.read_bytes()))]
 
 
+def test_tuple_input_reads_pathlike_content() -> None:
+    result = to_httpx_files({"file": ("custom.txt", readme_path)})
+    assert result == {"file": ("custom.txt", readme_path.read_bytes())}
+
+
 @pytest.mark.asyncio
 async def test_async_pathlib_includes_file_name() -> None:
     result = await async_to_httpx_files({"file": readme_path})
@@ -35,6 +40,12 @@ async def test_async_supports_anyio_path() -> None:
 async def test_async_tuple_input() -> None:
     result = await async_to_httpx_files([("file", readme_path)])
     assert result == [("file", ("README.md", readme_path.read_bytes()))]
+
+
+@pytest.mark.asyncio
+async def test_async_tuple_input_reads_pathlike_content() -> None:
+    result = await async_to_httpx_files({"file": ("custom.txt", readme_path)})
+    assert result == {"file": ("custom.txt", readme_path.read_bytes())}
 
 
 def test_string_not_allowed() -> None:
