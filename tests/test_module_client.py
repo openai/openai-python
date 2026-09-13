@@ -100,6 +100,17 @@ def test_http_client_option() -> None:
     assert openai.completions._client._client is new_client
 
 
+def test_falsy_http_client_option() -> None:
+    class FalsyHttpClient(httpx2.Client):
+        def __bool__(self) -> bool:
+            return False
+
+    with FalsyHttpClient() as new_client:
+        openai.http_client = new_client
+
+        assert openai.completions._client._client is new_client
+
+
 import contextlib
 from typing import Generator
 
