@@ -1,15 +1,15 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 from typing import Any, cast
 from typing_extensions import Literal
 
-import httpx
+import httpx2
 
 from .... import _legacy_response
 from ...._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
-from ...._utils import maybe_transform
+from ...._utils import path_template, maybe_transform
 from ...._compat import cached_property
 from ...._resource import SyncAPIResource, AsyncAPIResource
 from ...._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -52,7 +52,7 @@ class Threads(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ChatKitThread:
         """
         Retrieve a ChatKit thread by its identifier.
@@ -70,9 +70,13 @@ class Threads(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
         extra_headers = {"OpenAI-Beta": "chatkit_beta=v1", **(extra_headers or {})}
         return self._get(
-            f"/chatkit/threads/{thread_id}",
+            path_template("/chatkit/threads/{thread_id}", thread_id=thread_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ChatKitThread,
         )
@@ -90,7 +94,7 @@ class Threads(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncConversationCursorPage[ChatKitThread]:
         """
         List ChatKit threads with optional pagination and user filters.
@@ -136,6 +140,7 @@ class Threads(SyncAPIResource):
                     },
                     thread_list_params.ThreadListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=ChatKitThread,
         )
@@ -149,7 +154,7 @@ class Threads(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ThreadDeleteResponse:
         """
         Delete a ChatKit thread along with its items and stored attachments.
@@ -167,9 +172,13 @@ class Threads(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
         extra_headers = {"OpenAI-Beta": "chatkit_beta=v1", **(extra_headers or {})}
         return self._delete(
-            f"/chatkit/threads/{thread_id}",
+            path_template("/chatkit/threads/{thread_id}", thread_id=thread_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ThreadDeleteResponse,
         )
@@ -187,7 +196,7 @@ class Threads(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncConversationCursorPage[Data]:
         """
         List items that belong to a ChatKit thread.
@@ -215,7 +224,7 @@ class Threads(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
         extra_headers = {"OpenAI-Beta": "chatkit_beta=v1", **(extra_headers or {})}
         return self._get_api_list(
-            f"/chatkit/threads/{thread_id}/items",
+            path_template("/chatkit/threads/{thread_id}/items", thread_id=thread_id),
             page=SyncConversationCursorPage[Data],
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -231,6 +240,7 @@ class Threads(SyncAPIResource):
                     },
                     thread_list_items_params.ThreadListItemsParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=cast(Any, Data),  # Union types cannot be passed in as arguments in the type system
         )
@@ -265,7 +275,7 @@ class AsyncThreads(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ChatKitThread:
         """
         Retrieve a ChatKit thread by its identifier.
@@ -283,9 +293,13 @@ class AsyncThreads(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
         extra_headers = {"OpenAI-Beta": "chatkit_beta=v1", **(extra_headers or {})}
         return await self._get(
-            f"/chatkit/threads/{thread_id}",
+            path_template("/chatkit/threads/{thread_id}", thread_id=thread_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ChatKitThread,
         )
@@ -303,7 +317,7 @@ class AsyncThreads(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[ChatKitThread, AsyncConversationCursorPage[ChatKitThread]]:
         """
         List ChatKit threads with optional pagination and user filters.
@@ -349,6 +363,7 @@ class AsyncThreads(AsyncAPIResource):
                     },
                     thread_list_params.ThreadListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=ChatKitThread,
         )
@@ -362,7 +377,7 @@ class AsyncThreads(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ThreadDeleteResponse:
         """
         Delete a ChatKit thread along with its items and stored attachments.
@@ -380,9 +395,13 @@ class AsyncThreads(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
         extra_headers = {"OpenAI-Beta": "chatkit_beta=v1", **(extra_headers or {})}
         return await self._delete(
-            f"/chatkit/threads/{thread_id}",
+            path_template("/chatkit/threads/{thread_id}", thread_id=thread_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ThreadDeleteResponse,
         )
@@ -400,7 +419,7 @@ class AsyncThreads(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[Data, AsyncConversationCursorPage[Data]]:
         """
         List items that belong to a ChatKit thread.
@@ -428,7 +447,7 @@ class AsyncThreads(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
         extra_headers = {"OpenAI-Beta": "chatkit_beta=v1", **(extra_headers or {})}
         return self._get_api_list(
-            f"/chatkit/threads/{thread_id}/items",
+            path_template("/chatkit/threads/{thread_id}/items", thread_id=thread_id),
             page=AsyncConversationCursorPage[Data],
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -444,6 +463,7 @@ class AsyncThreads(AsyncAPIResource):
                     },
                     thread_list_items_params.ThreadListItemsParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=cast(Any, Data),  # Union types cannot be passed in as arguments in the type system
         )

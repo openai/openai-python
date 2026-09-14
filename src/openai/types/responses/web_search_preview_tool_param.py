@@ -1,8 +1,8 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import List, Optional
 from typing_extensions import Literal, Required, TypedDict
 
 __all__ = ["WebSearchPreviewToolParam", "UserLocation"]
@@ -36,7 +36,7 @@ class UserLocation(TypedDict, total=False):
 class WebSearchPreviewToolParam(TypedDict, total=False):
     """This tool searches the web for relevant results to use in a response.
 
-    Learn more about the [web search tool](https://platform.openai.com/docs/guides/tools-web-search).
+    Learn more about the [web search tool](https://developers.openai.com/api/docs/guides/tools-web-search).
     """
 
     type: Required[Literal["web_search_preview", "web_search_preview_2025_03_11"]]
@@ -44,6 +44,8 @@ class WebSearchPreviewToolParam(TypedDict, total=False):
 
     One of `web_search_preview` or `web_search_preview_2025_03_11`.
     """
+
+    search_content_types: List[Literal["text", "image"]]
 
     search_context_size: Literal["low", "medium", "high"]
     """High level guidance for the amount of context window space to use for the

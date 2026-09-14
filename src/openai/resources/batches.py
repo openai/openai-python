@@ -1,16 +1,16 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 from typing import Optional
 from typing_extensions import Literal
 
-import httpx
+import httpx2
 
 from .. import _legacy_response
 from ..types import batch_list_params, batch_create_params
 from .._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
-from .._utils import maybe_transform, async_maybe_transform
+from .._utils import path_template, maybe_transform, async_maybe_transform
 from .._compat import cached_property
 from .._resource import SyncAPIResource, AsyncAPIResource
 from .._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -23,6 +23,8 @@ __all__ = ["Batches", "AsyncBatches"]
 
 
 class Batches(SyncAPIResource):
+    """Create large batches of API requests to run asynchronously."""
+
     @cached_property
     def with_raw_response(self) -> BatchesWithRawResponse:
         """
@@ -54,6 +56,7 @@ class Batches(SyncAPIResource):
             "/v1/moderations",
             "/v1/images/generations",
             "/v1/images/edits",
+            "/v1/videos",
         ],
         input_file_id: str,
         metadata: Optional[Metadata] | Omit = omit,
@@ -63,7 +66,7 @@ class Batches(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Batch:
         """
         Creates and executes a batch from an uploaded file of requests
@@ -74,17 +77,19 @@ class Batches(SyncAPIResource):
 
           endpoint: The endpoint to be used for all requests in the batch. Currently
               `/v1/responses`, `/v1/chat/completions`, `/v1/embeddings`, `/v1/completions`,
-              `/v1/moderations`, `/v1/images/generations`, and `/v1/images/edits` are
-              supported. Note that `/v1/embeddings` batches are also restricted to a maximum
-              of 50,000 embedding inputs across all requests in the batch.
+              `/v1/moderations`, `/v1/images/generations`, `/v1/images/edits`, and
+              `/v1/videos` are supported. Note that `/v1/embeddings` batches are also
+              restricted to a maximum of 50,000 embedding inputs across all requests in the
+              batch.
 
           input_file_id: The ID of an uploaded file that contains requests for the new batch.
 
-              See [upload file](https://platform.openai.com/docs/api-reference/files/create)
+              See
+              [upload file](https://developers.openai.com/api/reference/resources/files/methods/create)
               for how to upload a file.
 
               Your input file must be formatted as a
-              [JSONL file](https://platform.openai.com/docs/api-reference/batch/request-input),
+              [JSONL file](https://developers.openai.com/api/docs/guides/batch#1-prepare-your-batch-file),
               and must be uploaded with the purpose `batch`. The file can contain up to 50,000
               requests, and can be up to 200 MB in size.
 
@@ -119,7 +124,11 @@ class Batches(SyncAPIResource):
                 batch_create_params.BatchCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Batch,
         )
@@ -133,7 +142,7 @@ class Batches(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Batch:
         """
         Retrieves a batch.
@@ -150,9 +159,13 @@ class Batches(SyncAPIResource):
         if not batch_id:
             raise ValueError(f"Expected a non-empty value for `batch_id` but received {batch_id!r}")
         return self._get(
-            f"/batches/{batch_id}",
+            path_template("/batches/{batch_id}", batch_id=batch_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Batch,
         )
@@ -167,7 +180,7 @@ class Batches(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncCursorPage[Batch]:
         """List your organization's batches.
 
@@ -205,6 +218,7 @@ class Batches(SyncAPIResource):
                     },
                     batch_list_params.BatchListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=Batch,
         )
@@ -218,7 +232,7 @@ class Batches(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Batch:
         """Cancels an in-progress batch.
 
@@ -238,15 +252,21 @@ class Batches(SyncAPIResource):
         if not batch_id:
             raise ValueError(f"Expected a non-empty value for `batch_id` but received {batch_id!r}")
         return self._post(
-            f"/batches/{batch_id}/cancel",
+            path_template("/batches/{batch_id}/cancel", batch_id=batch_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Batch,
         )
 
 
 class AsyncBatches(AsyncAPIResource):
+    """Create large batches of API requests to run asynchronously."""
+
     @cached_property
     def with_raw_response(self) -> AsyncBatchesWithRawResponse:
         """
@@ -278,6 +298,7 @@ class AsyncBatches(AsyncAPIResource):
             "/v1/moderations",
             "/v1/images/generations",
             "/v1/images/edits",
+            "/v1/videos",
         ],
         input_file_id: str,
         metadata: Optional[Metadata] | Omit = omit,
@@ -287,7 +308,7 @@ class AsyncBatches(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Batch:
         """
         Creates and executes a batch from an uploaded file of requests
@@ -298,17 +319,19 @@ class AsyncBatches(AsyncAPIResource):
 
           endpoint: The endpoint to be used for all requests in the batch. Currently
               `/v1/responses`, `/v1/chat/completions`, `/v1/embeddings`, `/v1/completions`,
-              `/v1/moderations`, `/v1/images/generations`, and `/v1/images/edits` are
-              supported. Note that `/v1/embeddings` batches are also restricted to a maximum
-              of 50,000 embedding inputs across all requests in the batch.
+              `/v1/moderations`, `/v1/images/generations`, `/v1/images/edits`, and
+              `/v1/videos` are supported. Note that `/v1/embeddings` batches are also
+              restricted to a maximum of 50,000 embedding inputs across all requests in the
+              batch.
 
           input_file_id: The ID of an uploaded file that contains requests for the new batch.
 
-              See [upload file](https://platform.openai.com/docs/api-reference/files/create)
+              See
+              [upload file](https://developers.openai.com/api/reference/resources/files/methods/create)
               for how to upload a file.
 
               Your input file must be formatted as a
-              [JSONL file](https://platform.openai.com/docs/api-reference/batch/request-input),
+              [JSONL file](https://developers.openai.com/api/docs/guides/batch#1-prepare-your-batch-file),
               and must be uploaded with the purpose `batch`. The file can contain up to 50,000
               requests, and can be up to 200 MB in size.
 
@@ -343,7 +366,11 @@ class AsyncBatches(AsyncAPIResource):
                 batch_create_params.BatchCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Batch,
         )
@@ -357,7 +384,7 @@ class AsyncBatches(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Batch:
         """
         Retrieves a batch.
@@ -374,9 +401,13 @@ class AsyncBatches(AsyncAPIResource):
         if not batch_id:
             raise ValueError(f"Expected a non-empty value for `batch_id` but received {batch_id!r}")
         return await self._get(
-            f"/batches/{batch_id}",
+            path_template("/batches/{batch_id}", batch_id=batch_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Batch,
         )
@@ -391,7 +422,7 @@ class AsyncBatches(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[Batch, AsyncCursorPage[Batch]]:
         """List your organization's batches.
 
@@ -429,6 +460,7 @@ class AsyncBatches(AsyncAPIResource):
                     },
                     batch_list_params.BatchListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=Batch,
         )
@@ -442,7 +474,7 @@ class AsyncBatches(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Batch:
         """Cancels an in-progress batch.
 
@@ -462,9 +494,13 @@ class AsyncBatches(AsyncAPIResource):
         if not batch_id:
             raise ValueError(f"Expected a non-empty value for `batch_id` but received {batch_id!r}")
         return await self._post(
-            f"/batches/{batch_id}/cancel",
+            path_template("/batches/{batch_id}/cancel", batch_id=batch_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Batch,
         )

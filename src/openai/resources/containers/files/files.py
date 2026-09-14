@@ -1,11 +1,11 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 from typing import Mapping, cast
 from typing_extensions import Literal
 
-import httpx
+import httpx2
 
 from .... import _legacy_response
 from .content import (
@@ -16,8 +16,9 @@ from .content import (
     ContentWithStreamingResponse,
     AsyncContentWithStreamingResponse,
 )
+from ...._files import deepcopy_with_paths
 from ...._types import Body, Omit, Query, Headers, NoneType, NotGiven, FileTypes, omit, not_given
-from ...._utils import extract_files, maybe_transform, deepcopy_minimal, async_maybe_transform
+from ...._utils import extract_files, path_template, maybe_transform, async_maybe_transform
 from ...._compat import cached_property
 from ...._resource import SyncAPIResource, AsyncAPIResource
 from ...._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -66,7 +67,7 @@ class Files(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> FileCreateResponse:
         """
         Create a Container File
@@ -89,11 +90,12 @@ class Files(SyncAPIResource):
         """
         if not container_id:
             raise ValueError(f"Expected a non-empty value for `container_id` but received {container_id!r}")
-        body = deepcopy_minimal(
+        body = deepcopy_with_paths(
             {
                 "file": file,
                 "file_id": file_id,
-            }
+            },
+            [["file"]],
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["file"]])
         if files:
@@ -102,11 +104,15 @@ class Files(SyncAPIResource):
             # multipart/form-data; boundary=---abc--
             extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
         return self._post(
-            f"/containers/{container_id}/files",
+            path_template("/containers/{container_id}/files", container_id=container_id),
             body=maybe_transform(body, file_create_params.FileCreateParams),
             files=files,
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=FileCreateResponse,
         )
@@ -121,7 +127,7 @@ class Files(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> FileRetrieveResponse:
         """
         Retrieve Container File
@@ -140,9 +146,13 @@ class Files(SyncAPIResource):
         if not file_id:
             raise ValueError(f"Expected a non-empty value for `file_id` but received {file_id!r}")
         return self._get(
-            f"/containers/{container_id}/files/{file_id}",
+            path_template("/containers/{container_id}/files/{file_id}", container_id=container_id, file_id=file_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=FileRetrieveResponse,
         )
@@ -159,7 +169,7 @@ class Files(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncCursorPage[FileListResponse]:
         """List Container files
 
@@ -188,7 +198,7 @@ class Files(SyncAPIResource):
         if not container_id:
             raise ValueError(f"Expected a non-empty value for `container_id` but received {container_id!r}")
         return self._get_api_list(
-            f"/containers/{container_id}/files",
+            path_template("/containers/{container_id}/files", container_id=container_id),
             page=SyncCursorPage[FileListResponse],
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -203,6 +213,7 @@ class Files(SyncAPIResource):
                     },
                     file_list_params.FileListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=FileListResponse,
         )
@@ -217,7 +228,7 @@ class Files(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> None:
         """
         Delete Container File
@@ -237,9 +248,13 @@ class Files(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `file_id` but received {file_id!r}")
         extra_headers = {"Accept": "*/*", **(extra_headers or {})}
         return self._delete(
-            f"/containers/{container_id}/files/{file_id}",
+            path_template("/containers/{container_id}/files/{file_id}", container_id=container_id, file_id=file_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=NoneType,
         )
@@ -280,7 +295,7 @@ class AsyncFiles(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> FileCreateResponse:
         """
         Create a Container File
@@ -303,11 +318,12 @@ class AsyncFiles(AsyncAPIResource):
         """
         if not container_id:
             raise ValueError(f"Expected a non-empty value for `container_id` but received {container_id!r}")
-        body = deepcopy_minimal(
+        body = deepcopy_with_paths(
             {
                 "file": file,
                 "file_id": file_id,
-            }
+            },
+            [["file"]],
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["file"]])
         if files:
@@ -316,11 +332,15 @@ class AsyncFiles(AsyncAPIResource):
             # multipart/form-data; boundary=---abc--
             extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
         return await self._post(
-            f"/containers/{container_id}/files",
+            path_template("/containers/{container_id}/files", container_id=container_id),
             body=await async_maybe_transform(body, file_create_params.FileCreateParams),
             files=files,
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=FileCreateResponse,
         )
@@ -335,7 +355,7 @@ class AsyncFiles(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> FileRetrieveResponse:
         """
         Retrieve Container File
@@ -354,9 +374,13 @@ class AsyncFiles(AsyncAPIResource):
         if not file_id:
             raise ValueError(f"Expected a non-empty value for `file_id` but received {file_id!r}")
         return await self._get(
-            f"/containers/{container_id}/files/{file_id}",
+            path_template("/containers/{container_id}/files/{file_id}", container_id=container_id, file_id=file_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=FileRetrieveResponse,
         )
@@ -373,7 +397,7 @@ class AsyncFiles(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[FileListResponse, AsyncCursorPage[FileListResponse]]:
         """List Container files
 
@@ -402,7 +426,7 @@ class AsyncFiles(AsyncAPIResource):
         if not container_id:
             raise ValueError(f"Expected a non-empty value for `container_id` but received {container_id!r}")
         return self._get_api_list(
-            f"/containers/{container_id}/files",
+            path_template("/containers/{container_id}/files", container_id=container_id),
             page=AsyncCursorPage[FileListResponse],
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -417,6 +441,7 @@ class AsyncFiles(AsyncAPIResource):
                     },
                     file_list_params.FileListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=FileListResponse,
         )
@@ -431,7 +456,7 @@ class AsyncFiles(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> None:
         """
         Delete Container File
@@ -451,9 +476,13 @@ class AsyncFiles(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `file_id` but received {file_id!r}")
         extra_headers = {"Accept": "*/*", **(extra_headers or {})}
         return await self._delete(
-            f"/containers/{container_id}/files/{file_id}",
+            path_template("/containers/{container_id}/files/{file_id}", container_id=container_id, file_id=file_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=NoneType,
         )
