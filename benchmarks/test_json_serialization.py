@@ -57,12 +57,12 @@ def _payload(target_size_bytes: int) -> dict[str, Any]:
 
 
 _PAYLOADS = (
-    pytest.param(500, 300, id="1kb"),
-    pytest.param(3_000, 200, id="4kb"),
-    pytest.param(16_000, 100, id="18kb"),
-    pytest.param(56_000, 50, id="64kb"),
-    pytest.param(256_000, 20, id="289kb"),
-    pytest.param(1_000_000, 5, id="1.13mb"),
+    pytest.param(500, 835, 300, id="835b"),
+    pytest.param(3_000, 3_983, 200, id="3983b"),
+    pytest.param(16_000, 18_162, 100, id="18162b"),
+    pytest.param(56_000, 63_078, 50, id="63078b"),
+    pytest.param(256_000, 288_712, 20, id="288712b"),
+    pytest.param(1_000_000, 1_127_848, 5, id="1127848b"),
 )
 
 _SERIALIZERS = (
@@ -71,18 +71,20 @@ _SERIALIZERS = (
 )
 
 
-@pytest.mark.parametrize(("target_size_bytes", "iterations"), _PAYLOADS)
+@pytest.mark.parametrize(("target_content_bytes", "encoded_payload_bytes", "iterations"), _PAYLOADS)
 @pytest.mark.parametrize(("serializer_name", "serializer"), _SERIALIZERS)
 def test_openapi_dumps(
     benchmark: Any,
-    target_size_bytes: int,
+    target_content_bytes: int,
+    encoded_payload_bytes: int,
     iterations: int,
     serializer_name: str,
     serializer: Callable[[Any], bytes],
 ) -> None:
     """Measure identical payloads with the prior stdlib and proposed serializers."""
-    payload = _payload(target_size_bytes)
+    payload = _payload(target_content_bytes)
     expected = _stdlib_openapi_dumps(payload)
+    assert len(expected) == encoded_payload_bytes
 
     result = benchmark.pedantic(serializer, args=(payload,), rounds=30, iterations=iterations, warmup_rounds=5)
 
@@ -90,12 +92,13 @@ def test_openapi_dumps(
     assert result == expected, serializer_name
 
 
-@pytest.mark.parametrize(("target_size_bytes", "iterations"), _PAYLOADS)
+@pytest.mark.parametrize(("target_content_bytes", "encoded_payload_bytes", "iterations"), _PAYLOADS)
 @pytest.mark.parametrize(("serializer_name", "serializer"), _SERIALIZERS)
 def test_build_request(
     benchmark: Any,
     monkeypatch: pytest.MonkeyPatch,
-    target_size_bytes: int,
+    target_content_bytes: int,
+    encoded_payload_bytes: int,
     iterations: int,
     serializer_name: str,
     serializer: Callable[[Any], bytes],
@@ -106,8 +109,9 @@ def test_build_request(
     outbound body construction before the request is sent; it intentionally excludes network
     I/O and parsing of inbound streaming events.
     """
-    payload = _payload(target_size_bytes)
+    payload = _payload(target_content_bytes)
     expected = _stdlib_openapi_dumps(payload)
+    assert len(expected) == encoded_payload_bytes
     options = FinalRequestOptions(method="post", url="/responses", json_data=payload)
     client = OpenAI(api_key="benchmark", base_url="https://example.invalid/v1")
     monkeypatch.setattr(base_client, "openapi_dumps", serializer)

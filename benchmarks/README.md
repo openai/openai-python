@@ -19,12 +19,12 @@ is intended for source control.
 
 | Encoded payload | Representative use case |
 | --- | --- |
-| ~1 KB | Small tool arguments and an individual streaming event |
-| ~4 KB | Short requests, responses, and structured outputs |
-| 18 KB | Larger responses and moderate chat requests |
-| 64 KB | Mid-sized context between chat and RAG workloads |
-| 289 KB | RAG context and long conversation history |
-| 1.13 MB | Large context and large tool results |
+| 835 B | Small tool arguments and an individual streaming event |
+| 3,983 B | Short requests, responses, and structured outputs |
+| 18,162 B | Larger responses and moderate chat requests |
+| 63,078 B | Mid-sized context between chat and RAG workloads |
+| 288,712 B | RAG context and long conversation history |
+| 1,127,848 B | Large context and large tool results |
 
 `test_openapi_dumps` isolates serializer CPU. `test_build_request` measures the SDK's actual
 `BaseClient._build_request()` path with a pre-built payload and no network request. That outbound code is shared by
@@ -34,7 +34,8 @@ transformation, provider/network latency, or parsing incoming SSE events; this c
 The two serializers are compared as the application uses them: both return UTF-8 `bytes`, with payload construction
 outside the timed section. The stdlib baseline is exactly `json.dumps(..., ensure_ascii=False, separators=(",", ":"),
 allow_nan=False).encode("utf-8")`; correctness tests assert compact UTF-8 output and byte-for-byte equality for the
-benchmark payloads.
+benchmark payloads. Each case also asserts its exact encoded byte length; the pytest ID and pyperf benchmark name use
+that length.
 
 For a branch comparison, first save a run from each checkout, then compare their JSON result files:
 

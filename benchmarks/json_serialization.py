@@ -80,24 +80,28 @@ def main() -> None:
     selected_serializer = serializer(args.serializer)
 
     payloads = (
-        ("1kb", 500),
-        ("4kb", 3_000),
-        ("18kb", 16_000),
-        ("64kb", 56_000),
-        ("289kb", 256_000),
-        ("1.13mb", 1_000_000),
+        (835, 500),
+        (3_983, 3_000),
+        (18_162, 16_000),
+        (63_078, 56_000),
+        (288_712, 256_000),
+        (1_127_848, 1_000_000),
     )
     if args.scope == "serialization":
-        for name, target_size_bytes in payloads:
-            runner.bench_func(f"openapi_dumps[{name}]", selected_serializer, payload(target_size_bytes))
+        for encoded_payload_bytes, target_content_bytes in payloads:
+            benchmark_payload = payload(target_content_bytes)
+            assert len(stdlib_openapi_dumps(benchmark_payload)) == encoded_payload_bytes
+            runner.bench_func(f"openapi_dumps[{encoded_payload_bytes}b]", selected_serializer, benchmark_payload)
         return
 
     client = OpenAI(api_key="benchmark", base_url="https://example.invalid/v1")
     base_client.openapi_dumps = selected_serializer
     try:
-        for name, target_size_bytes in payloads:
-            options = FinalRequestOptions(method="post", url="/responses", json_data=payload(target_size_bytes))
-            runner.bench_func(f"build_request[{name}]", client._build_request, options)
+        for encoded_payload_bytes, target_content_bytes in payloads:
+            benchmark_payload = payload(target_content_bytes)
+            assert len(stdlib_openapi_dumps(benchmark_payload)) == encoded_payload_bytes
+            options = FinalRequestOptions(method="post", url="/responses", json_data=benchmark_payload)
+            runner.bench_func(f"build_request[{encoded_payload_bytes}b]", client._build_request, options)
     finally:
         client.close()
 
