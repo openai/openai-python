@@ -21,14 +21,17 @@ def test_tuple_input() -> None:
 
 def test_file_tuple_with_pathlike_content() -> None:
     result = to_httpx_files({"file": ("custom-name.md", readme_path)})
-    print(result)
-    assert result == IsDict({"file": IsTuple("custom-name.md", IsBytes())})
+    assert result == {"file": ("custom-name.md", readme_path.read_bytes())}
 
 
 def test_file_tuple_with_pathlike_content_and_metadata() -> None:
     result = to_httpx_files({"file": ("custom-name.md", readme_path, "text/markdown")})
-    print(result)
-    assert result == IsDict({"file": IsTuple("custom-name.md", IsBytes(), "text/markdown")})
+    assert result == {"file": ("custom-name.md", readme_path.read_bytes(), "text/markdown")}
+
+
+def test_file_tuple_with_pathlike_content_and_headers() -> None:
+    result = to_httpx_files({"file": ("custom-name.md", readme_path, "text/markdown", {"X-Test": "1"})})
+    assert result == {"file": ("custom-name.md", readme_path.read_bytes(), "text/markdown", {"X-Test": "1"})}
 
 
 @pytest.mark.asyncio
@@ -52,15 +55,21 @@ async def test_async_tuple_input() -> None:
 @pytest.mark.asyncio
 async def test_async_file_tuple_with_pathlike_content() -> None:
     result = await async_to_httpx_files({"file": ("custom-name.md", readme_path)})
-    print(result)
-    assert result == IsDict({"file": IsTuple("custom-name.md", IsBytes())})
+    assert result == {"file": ("custom-name.md", readme_path.read_bytes())}
 
 
 @pytest.mark.asyncio
 async def test_async_file_tuple_with_pathlike_content_and_metadata() -> None:
     result = await async_to_httpx_files({"file": ("custom-name.md", readme_path, "text/markdown")})
-    print(result)
-    assert result == IsDict({"file": IsTuple("custom-name.md", IsBytes(), "text/markdown")})
+    assert result == {"file": ("custom-name.md", readme_path.read_bytes(), "text/markdown")}
+
+
+@pytest.mark.asyncio
+async def test_async_file_tuple_with_pathlike_content_and_headers() -> None:
+    result = await async_to_httpx_files(
+        {"file": ("custom-name.md", anyio.Path(readme_path), "text/markdown", {"X-Test": "1"})}
+    )
+    assert result == {"file": ("custom-name.md", readme_path.read_bytes(), "text/markdown", {"X-Test": "1"})}
 
 
 def test_string_not_allowed() -> None:
