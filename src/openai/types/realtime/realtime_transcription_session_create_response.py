@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import List, Optional
 from typing_extensions import Literal
@@ -31,14 +31,13 @@ class AudioInput(BaseModel):
     """Configuration for input audio noise reduction."""
 
     transcription: Optional[AudioTranscription] = None
-    """Configuration of the transcription model."""
 
     turn_detection: Optional[RealtimeTranscriptionSessionTurnDetection] = None
     """Configuration for turn detection.
 
     Can be set to `null` to turn off. Server VAD means that the model will detect
     the start and end of speech based on audio volume and respond at the end of user
-    speech.
+    speech. For `gpt-realtime-whisper`, this must be `null`; VAD is not supported.
     """
 
 

@@ -1,11 +1,11 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 from typing import Iterable, Optional
 from typing_extensions import Literal
 
-import httpx
+import httpx2
 
 from ... import _legacy_response
 from ...types import eval_list_params, eval_create_params, eval_update_params
@@ -73,7 +73,7 @@ class Evals(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> EvalCreateResponse:
         """
         Create the structure of an evaluation that can be used to test a model's
@@ -81,7 +81,7 @@ class Evals(SyncAPIResource):
         data source, which dictates the schema of the data used in the evaluation. After
         creating an evaluation, you can run it on different models and model parameters.
         We support several types of graders and datasources. For more information, see
-        the [Evals guide](https://platform.openai.com/docs/guides/evals).
+        the [Evals guide](https://developers.openai.com/api/docs/guides/evals).
 
         Args:
           data_source_config: The configuration for the data source used for the evaluation runs. Dictates the
@@ -121,7 +121,11 @@ class Evals(SyncAPIResource):
                 eval_create_params.EvalCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=EvalCreateResponse,
         )
@@ -135,7 +139,7 @@ class Evals(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> EvalRetrieveResponse:
         """
         Get an evaluation by ID.
@@ -154,7 +158,11 @@ class Evals(SyncAPIResource):
         return self._get(
             path_template("/evals/{eval_id}", eval_id=eval_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=EvalRetrieveResponse,
         )
@@ -170,7 +178,7 @@ class Evals(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> EvalUpdateResponse:
         """
         Update certain properties of an evaluation.
@@ -205,7 +213,11 @@ class Evals(SyncAPIResource):
                 eval_update_params.EvalUpdateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=EvalUpdateResponse,
         )
@@ -222,7 +234,7 @@ class Evals(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncCursorPage[EvalListResponse]:
         """
         List evaluations for a project.
@@ -263,6 +275,7 @@ class Evals(SyncAPIResource):
                     },
                     eval_list_params.EvalListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=EvalListResponse,
         )
@@ -276,7 +289,7 @@ class Evals(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> EvalDeleteResponse:
         """
         Delete an evaluation.
@@ -295,7 +308,11 @@ class Evals(SyncAPIResource):
         return self._delete(
             path_template("/evals/{eval_id}", eval_id=eval_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=EvalDeleteResponse,
         )
@@ -340,7 +357,7 @@ class AsyncEvals(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> EvalCreateResponse:
         """
         Create the structure of an evaluation that can be used to test a model's
@@ -348,7 +365,7 @@ class AsyncEvals(AsyncAPIResource):
         data source, which dictates the schema of the data used in the evaluation. After
         creating an evaluation, you can run it on different models and model parameters.
         We support several types of graders and datasources. For more information, see
-        the [Evals guide](https://platform.openai.com/docs/guides/evals).
+        the [Evals guide](https://developers.openai.com/api/docs/guides/evals).
 
         Args:
           data_source_config: The configuration for the data source used for the evaluation runs. Dictates the
@@ -388,7 +405,11 @@ class AsyncEvals(AsyncAPIResource):
                 eval_create_params.EvalCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=EvalCreateResponse,
         )
@@ -402,7 +423,7 @@ class AsyncEvals(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> EvalRetrieveResponse:
         """
         Get an evaluation by ID.
@@ -421,7 +442,11 @@ class AsyncEvals(AsyncAPIResource):
         return await self._get(
             path_template("/evals/{eval_id}", eval_id=eval_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=EvalRetrieveResponse,
         )
@@ -437,7 +462,7 @@ class AsyncEvals(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> EvalUpdateResponse:
         """
         Update certain properties of an evaluation.
@@ -472,7 +497,11 @@ class AsyncEvals(AsyncAPIResource):
                 eval_update_params.EvalUpdateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=EvalUpdateResponse,
         )
@@ -489,7 +518,7 @@ class AsyncEvals(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[EvalListResponse, AsyncCursorPage[EvalListResponse]]:
         """
         List evaluations for a project.
@@ -530,6 +559,7 @@ class AsyncEvals(AsyncAPIResource):
                     },
                     eval_list_params.EvalListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=EvalListResponse,
         )
@@ -543,7 +573,7 @@ class AsyncEvals(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> EvalDeleteResponse:
         """
         Delete an evaluation.
@@ -562,7 +592,11 @@ class AsyncEvals(AsyncAPIResource):
         return await self._delete(
             path_template("/evals/{eval_id}", eval_id=eval_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=EvalDeleteResponse,
         )
