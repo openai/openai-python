@@ -47,41 +47,42 @@ def test_output_text(client: OpenAI, respx2_mock: MockRouter) -> None:
 
 
 @pytest.mark.respx2(base_url=base_url)
-@pytest.mark.parametrize("client", [False], indirect=True)  # loose validation
-def test_output_text_ignores_null_content_text(client: OpenAI, respx2_mock: MockRouter) -> None:
-    response = make_snapshot_request(
-        lambda c: c.responses.create(
-            model="gpt-4o-mini",
-            input="Say hello",
-        ),
-        content_snapshot=snapshot(
-            '{"id": "resp_3011", "object": "response", "created_at": 1757000000, "status": "completed", "background": false, "error": null, "incomplete_details": null, "instructions": null, "max_output_tokens": null, "max_tool_calls": null, "model": "gpt-4o-mini-2024-07-18", "output": [{"id": "msg_3011", "type": "message", "status": "completed", "content": [{"type": "output_text", "annotations": [], "logprobs": [], "text": null}, {"type": "output_text", "annotations": [], "logprobs": [], "text": "hello"}], "role": "assistant"}], "parallel_tool_calls": true, "previous_response_id": null, "prompt_cache_key": null, "reasoning": {"effort": null, "summary": null}, "safety_identifier": null, "service_tier": "default", "store": true, "temperature": 1.0, "text": {"format": {"type": "text"}, "verbosity": "medium"}, "tool_choice": "auto", "tools": [], "top_logprobs": 0, "top_p": 1.0, "truncation": "disabled", "usage": {"input_tokens": 10, "input_tokens_details": {"cached_tokens": 0}, "output_tokens": 1, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 11}, "user": null, "metadata": {}}'
-        ),
-        path="/responses",
-        mock_client=client,
-        respx2_mock=respx2_mock,
+@pytest.mark.parametrize("client,async_client", [(False, False)], indirect=True)  # default loose validation
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+@pytest.mark.parametrize(
+    "text_fields,expected",
+    [
+        pytest.param([{"text": "hello"}, {"text": None}, {"text": " world"}], "hello world", id="mixed-null"),
+        pytest.param([{"text": None}, {"text": None}], "", id="all-null"),
+        pytest.param([{}, {"text": "hello"}], "hello", id="missing"),
+        pytest.param([{"text": "hello"}, {"text": " world"}], "hello world", id="strings"),
+        pytest.param([{"text": ""}], "", id="empty-string"),
+        pytest.param([], "", id="empty-content"),
+    ],
+)
+async def test_output_text_with_nullable_content(
+    client: OpenAI,
+    async_client: AsyncOpenAI,
+    respx2_mock: MockRouter,
+    sync: bool,
+    text_fields: list[dict[str, str | None]],
+    expected: str,
+) -> None:
+    content = [{"type": "output_text", "annotations": [], **fields} for fields in text_fields]
+    respx2_mock.post("/responses").respond(
+        json={
+            "output": [{"type": "message", "role": "assistant", "content": content}],
+        },
     )
 
-    assert response.output_text == "hello"
+    if sync:
+        response = client.responses.create(model="gpt-4o-mini", input="Say hello")
+    else:
+        response = await async_client.responses.create(model="gpt-4o-mini", input="Say hello")
 
-
-@pytest.mark.respx2(base_url=base_url)
-@pytest.mark.parametrize("client", [False], indirect=True)  # loose validation
-def test_output_text_ignores_missing_content_text(client: OpenAI, respx2_mock: MockRouter) -> None:
-    response = make_snapshot_request(
-        lambda c: c.responses.create(
-            model="gpt-4o-mini",
-            input="Say hello",
-        ),
-        content_snapshot=snapshot(
-            '{"id": "resp_3011_missing", "object": "response", "created_at": 1757000000, "status": "completed", "background": false, "error": null, "incomplete_details": null, "instructions": null, "max_output_tokens": null, "max_tool_calls": null, "model": "gpt-4o-mini-2024-07-18", "output": [{"id": "msg_3011_missing", "type": "message", "status": "completed", "content": [{"type": "output_text", "annotations": [], "logprobs": []}, {"type": "output_text", "annotations": [], "logprobs": [], "text": "hello"}], "role": "assistant"}], "parallel_tool_calls": true, "previous_response_id": null, "prompt_cache_key": null, "reasoning": {"effort": null, "summary": null}, "safety_identifier": null, "service_tier": "default", "store": true, "temperature": 1.0, "text": {"format": {"type": "text"}, "verbosity": "medium"}, "tool_choice": "auto", "tools": [], "top_logprobs": 0, "top_p": 1.0, "truncation": "disabled", "usage": {"input_tokens": 10, "input_tokens_details": {"cached_tokens": 0}, "output_tokens": 1, "output_tokens_details": {"reasoning_tokens": 0}, "total_tokens": 11}, "user": null, "metadata": {}}'
-        ),
-        path="/responses",
-        mock_client=client,
-        respx2_mock=respx2_mock,
-    )
-
-    assert response.output_text == "hello"
+    assert response.to_dict()["output"][0]["content"] == content
+    assert response.output_text == expected
+    assert response.to_dict()["output"][0]["content"] == content
 
 
 @pytest.mark.parametrize(
