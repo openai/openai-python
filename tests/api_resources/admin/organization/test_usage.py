@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -231,6 +231,7 @@ class TestUsage:
             end_time=0,
             group_by=["project_id"],
             limit=0,
+            line_items=["string"],
             page="page",
             project_ids=["string"],
         )
@@ -750,6 +751,7 @@ class TestAsyncUsage:
             end_time=0,
             group_by=["project_id"],
             limit=0,
+            line_items=["string"],
             page="page",
             project_ids=["string"],
         )

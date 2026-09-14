@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -7,6 +7,12 @@ from typing_extensions import Literal, TypeAlias
 __all__ = ["ChatModel"]
 
 ChatModel: TypeAlias = Literal[
+    "gpt-6-astra",
+    "gpt-5.6-sol",
+    "gpt-5.6-terra",
+    "gpt-5.6-luna",
+    "gpt-5.5",
+    "gpt-5.5-2026-04-23",
     "gpt-5.4",
     "gpt-5.4-mini",
     "gpt-5.4-nano",

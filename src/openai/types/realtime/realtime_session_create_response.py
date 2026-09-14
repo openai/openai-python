@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import Dict, List, Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
@@ -307,7 +307,7 @@ ToolMcpToolRequireApproval: TypeAlias = Union[
 class ToolMcpTool(BaseModel):
     """
     Give the model access to additional tools via remote Model Context Protocol
-    (MCP) servers. [Learn more about MCP](https://platform.openai.com/docs/guides/tools-remote-mcp).
+    (MCP) servers. [Learn more about MCP](https://developers.openai.com/api/docs/guides/tools-connectors-mcp).
     """
 
     server_label: str
@@ -315,6 +315,9 @@ class ToolMcpTool(BaseModel):
 
     type: Literal["mcp"]
     """The type of the MCP tool. Always `mcp`."""
+
+    allowed_callers: Optional[List[Literal["direct", "programmatic"]]] = None
+    """The tool invocation context(s)."""
 
     allowed_tools: Optional[ToolMcpToolAllowedTools] = None
     """List of allowed tool names or a filter object."""
@@ -342,7 +345,7 @@ class ToolMcpTool(BaseModel):
 
     One of `server_url`, `connector_id`, or `tunnel_id` must be provided. Learn more
     about service connectors
-    [here](https://platform.openai.com/docs/guides/tools-remote-mcp#connectors).
+    [here](https://developers.openai.com/api/docs/guides/tools-connectors-mcp#connectors).
 
     Currently supported `connector_id` values are:
 
@@ -466,6 +469,8 @@ class RealtimeSessionCreateResponse(BaseModel):
             "gpt-realtime",
             "gpt-realtime-1.5",
             "gpt-realtime-2",
+            "gpt-realtime-2.1",
+            "gpt-realtime-2.1-mini",
             "gpt-realtime-2025-08-28",
             "gpt-4o-realtime-preview",
             "gpt-4o-realtime-preview-2024-10-01",
@@ -496,7 +501,7 @@ class RealtimeSessionCreateResponse(BaseModel):
     prompt: Optional[ResponsePrompt] = None
     """
     Reference to a prompt template and its variables.
-    [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
+    [Learn more](https://developers.openai.com/api/docs/guides/text?api-mode=responses#version-prompts-in-code).
     """
 
     reasoning: Optional[RealtimeReasoning] = None

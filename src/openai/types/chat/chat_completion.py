@@ -1,10 +1,11 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import Dict, List, Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
 
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
+from ..shared.metadata import Metadata
 from ..completion_usage import CompletionUsage
 from .chat_completion_message import ChatCompletionMessage
 from .chat_completion_token_logprob import ChatCompletionTokenLogprob
@@ -211,13 +212,23 @@ class ChatCompletion(BaseModel):
     object: Literal["chat.completion"]
     """The object type, which is always `chat.completion`."""
 
+    metadata: Optional[Metadata] = None
+    """Set of 16 key-value pairs that can be attached to an object.
+
+    This can be useful for storing additional information about the object in a
+    structured format, and querying for objects via API or the dashboard.
+
+    Keys are strings with a maximum length of 64 characters. Values are strings with
+    a maximum length of 512 characters.
+    """
+
     moderation: Optional[Moderation] = None
     """
     Moderation results for the request input and generated output, if moderated
     completions were requested.
     """
 
-    service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] = None
+    service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] = None
     """Specifies the processing type used for serving the request.
 
     - If set to 'auto', then the request will be processed with the service tier
@@ -225,9 +236,15 @@ class ChatCompletion(BaseModel):
       will use 'default'.
     - If set to 'default', then the request will be processed with the standard
       pricing and performance for the selected model.
-    - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-      '[priority](https://openai.com/api-priority-processing/)', then the request
-      will be processed with the corresponding service tier.
+    - If set to
+      '[flex](https://developers.openai.com/api/docs/guides/flex-processing)', then
+      the request will be processed with the Flex Processing service tier.
+    - To opt-in to
+      [Fast mode](https://developers.openai.com/api/docs/guides/fast-mode) at the
+      request level, include the `service_tier=fast` or `service_tier=priority`
+      parameter for Responses or Chat Completions. The response will show
+      `service_tier=priority` regardless of if you specify `service_tier=fast` or
+      `priority` in your request.
     - When not set, the default behavior is 'auto'.
 
     When the `service_tier` parameter is set, the response body will include the
