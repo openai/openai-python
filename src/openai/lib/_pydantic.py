@@ -66,6 +66,15 @@ def _ensure_strict_json_schema(
     if is_dict(items):
         json_schema["items"] = _ensure_strict_json_schema(items, path=(*path, "items"), root=root)
 
+    # tuples / positional arrays
+    # { 'type': 'array', 'prefixItems': [{...}, {...}] }
+    prefix_items = json_schema.get("prefixItems")
+    if is_list(prefix_items):
+        json_schema["prefixItems"] = [
+            _ensure_strict_json_schema(item, path=(*path, "prefixItems", str(i)), root=root)
+            for i, item in enumerate(prefix_items)
+        ]
+
     # unions
     any_of = json_schema.get("anyOf")
     if is_list(any_of):
