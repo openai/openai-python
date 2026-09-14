@@ -431,7 +431,7 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
                         raise LengthFinishReasonError(completion=completion_snapshot)
 
                     if choice.finish_reason == "content_filter":
-                        raise ContentFilterFinishReasonError()
+                        raise ContentFilterFinishReasonError(completion=completion_snapshot)
 
             if (
                 choice_snapshot.message.content
