@@ -11,22 +11,11 @@ uv run --locked --all-extras pytest benchmarks/test_json_serialization.py \
   --benchmark-only \
   --benchmark-autosave \
   --benchmark-json=benchmark-results/json-serialization.json
-
-uv run --locked --all-extras python benchmarks/render_json_serialization_chart.py \
-  --chart=serialization \
-  --input benchmark-results/json-serialization.json \
-  --output-dir benchmark-results
-
-uv run --locked --all-extras python benchmarks/render_json_serialization_chart.py \
-  --chart=request-preparation \
-  --input benchmark-results/json-serialization.json \
-  --output-dir benchmark-results
 ```
 
 The command prints a statistics table, saves the machine and interpreter metadata with the raw samples under
-`.benchmarks/`, and writes light- and dark-theme SVGs to `benchmark-results/`. The generated SVG uses one panel per
-payload size, with fixed series colours for `stdlib json` and `orjson`; it renders the median, interquartile range,
-minimum, maximum, and mean for each serializer. Neither generated-results directory is intended for source control.
+`.benchmarks/`, and writes a portable JSON result file to `benchmark-results/`. Neither generated-results directory
+is intended for source control.
 
 | Encoded payload | Representative use case |
 | --- | --- |

@@ -57,7 +57,7 @@ dev = [
     "mypy==2.3.1",
     "pytest>=9.0.3",
     "pytest-asyncio>=1.4.0",
-    "pytest-benchmark[histogram]>=5.2.3,<6",
+    "pytest-benchmark>=5.2.3,<6",
     "pyperf>=2.10.0,<3",
     "ruff",
     "rich>=13.7.1",
