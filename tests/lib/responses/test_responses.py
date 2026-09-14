@@ -3,15 +3,16 @@ from __future__ import annotations
 from typing_extensions import TypeVar
 
 import pytest
-from respx import MockRouter
 from inline_snapshot import snapshot
 
 from openai import OpenAI, AsyncOpenAI
+from tests.respx2 import MockRouter
 from openai._types import omit
 from openai._utils import assert_signatures_in_sync
 from openai._models import construct_type_unchecked
-from openai.types.responses import Response
+from openai.types.responses import Response, ResponseCreatedEvent, ResponseOutputItemAddedEvent
 from openai.lib._parsing._responses import parse_response
+from openai.lib.streaming.responses._responses import ResponseStreamState
 
 from ...conftest import base_url
 from ..snapshots import make_snapshot_request
@@ -25,8 +26,8 @@ _T = TypeVar("_T")
 # `OPENAI_LIVE=1 pytest --inline-snapshot=fix -p no:xdist -o addopts=""`
 
 
-@pytest.mark.respx(base_url=base_url)
-def test_output_text(client: OpenAI, respx_mock: MockRouter) -> None:
+@pytest.mark.respx2(base_url=base_url)
+def test_output_text(client: OpenAI, respx2_mock: MockRouter) -> None:
     response = make_snapshot_request(
         lambda c: c.responses.create(
             model="gpt-4o-mini",
@@ -37,7 +38,7 @@ def test_output_text(client: OpenAI, respx_mock: MockRouter) -> None:
         ),
         path="/responses",
         mock_client=client,
-        respx_mock=respx_mock,
+        respx2_mock=respx2_mock,
     )
 
     assert response.output_text == snapshot(
@@ -84,6 +85,17 @@ def test_stream_method_definition_in_sync(sync: bool, client: OpenAI, async_clie
 
 
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+def test_parse_method_in_sync(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
+    checking_client: OpenAI | AsyncOpenAI = client if sync else async_client
+
+    assert_signatures_in_sync(
+        checking_client.responses.create,
+        checking_client.responses.parse,
+        exclude_params={"stream", "tools"},
+    )
+
+
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
 def test_parse_method_definition_in_sync(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
     checking_client: OpenAI | AsyncOpenAI = client if sync else async_client
 
@@ -92,3 +104,70 @@ def test_parse_method_definition_in_sync(sync: bool, client: OpenAI, async_clien
         checking_client.responses.parse,
         exclude_params={"tools"},
     )
+
+
+def test_parse_response_with_null_output() -> None:
+    response = construct_type_unchecked(type_=Response, value={"output": None})
+
+    parsed = parse_response(text_format=omit, input_tools=omit, response=response)
+
+    assert parsed.output == []
+
+
+def test_stream_state_ignores_output_item_added_with_null_item() -> None:
+    state: ResponseStreamState[object] = ResponseStreamState(text_format=omit, input_tools=[])
+
+    created = construct_type_unchecked(
+        type_=ResponseCreatedEvent,
+        value={
+            "type": "response.created",
+            "sequence_number": 0,
+            "response": {
+                "id": "resp_123",
+                "object": "response",
+                "created_at": 0,
+                "status": "in_progress",
+                "background": False,
+                "error": None,
+                "incomplete_details": None,
+                "instructions": None,
+                "max_output_tokens": None,
+                "max_tool_calls": None,
+                "model": "gpt-4o-mini",
+                "output": [],
+                "parallel_tool_calls": True,
+                "previous_response_id": None,
+                "prompt_cache_key": None,
+                "reasoning": {"effort": None, "summary": None},
+                "safety_identifier": None,
+                "service_tier": "default",
+                "store": True,
+                "temperature": 1.0,
+                "text": {"format": {"type": "text"}, "verbosity": "medium"},
+                "tool_choice": "auto",
+                "tools": [],
+                "top_logprobs": 0,
+                "top_p": 1.0,
+                "truncation": "disabled",
+                "usage": None,
+                "user": None,
+                "metadata": {},
+            },
+        },
+    )
+    state.handle_event(created)
+
+    added = construct_type_unchecked(
+        type_=ResponseOutputItemAddedEvent,
+        value={
+            "type": "response.output_item.added",
+            "sequence_number": 1,
+            "output_index": 0,
+            "item": None,
+        },
+    )
+
+    events = state.handle_event(added)
+
+    assert events == [added]
+    assert state.accumulate_event(added).output == []

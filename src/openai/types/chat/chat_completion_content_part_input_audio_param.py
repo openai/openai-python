@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -26,7 +26,9 @@ class PromptCacheBreakpoint(TypedDict, total=False):
 
 
 class ChatCompletionContentPartInputAudioParam(TypedDict, total=False):
-    """Learn about [audio inputs](https://platform.openai.com/docs/guides/audio)."""
+    """
+    Learn about [audio inputs](https://developers.openai.com/api/docs/guides/audio).
+    """
 
     input_audio: Required[InputAudio]
 
