@@ -1,11 +1,11 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 from typing import Dict, Union, Iterable, Optional
 from typing_extensions import Literal
 
-import httpx
+import httpx2
 
 from .... import _legacy_response
 from ...._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
@@ -22,10 +22,7 @@ from .checkpoints import (
 from ...._resource import SyncAPIResource, AsyncAPIResource
 from ...._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from ....pagination import SyncCursorPage, AsyncCursorPage
-from ...._base_client import (
-    AsyncPaginator,
-    make_request_options,
-)
+from ...._base_client import AsyncPaginator, make_request_options
 from ....types.fine_tuning import job_list_params, job_create_params, job_list_events_params
 from ....types.shared_params.metadata import Metadata
 from ....types.fine_tuning.fine_tuning_job import FineTuningJob
@@ -78,7 +75,7 @@ class Jobs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> FineTuningJob:
         """
         Creates a fine-tuning job which begins the process of creating a new model from
@@ -87,29 +84,30 @@ class Jobs(SyncAPIResource):
         Response includes details of the enqueued job including job status and the name
         of the fine-tuned models once complete.
 
-        [Learn more about fine-tuning](https://platform.openai.com/docs/guides/model-optimization)
+        [Learn more about fine-tuning](https://developers.openai.com/api/docs/guides/model-optimization)
 
         Args:
           model: The name of the model to fine-tune. You can select one of the
-              [supported models](https://platform.openai.com/docs/guides/fine-tuning#which-models-can-be-fine-tuned).
+              [supported models](https://developers.openai.com/api/docs/guides/model-optimization#fine-tuning-methods).
 
           training_file: The ID of an uploaded file that contains training data.
 
-              See [upload file](https://platform.openai.com/docs/api-reference/files/create)
+              See
+              [upload file](https://developers.openai.com/api/reference/resources/files/methods/create)
               for how to upload a file.
 
               Your dataset must be formatted as a JSONL file. Additionally, you must upload
               your file with the purpose `fine-tune`.
 
               The contents of the file should differ depending on if the model uses the
-              [chat](https://platform.openai.com/docs/api-reference/fine-tuning/chat-input),
-              [completions](https://platform.openai.com/docs/api-reference/fine-tuning/completions-input)
+              [chat](https://developers.openai.com/api/docs/guides/supervised-fine-tuning#formatting-your-data),
+              [completions](https://developers.openai.com/api/docs/guides/supervised-fine-tuning#formatting-your-data)
               format, or if the fine-tuning method uses the
-              [preference](https://platform.openai.com/docs/api-reference/fine-tuning/preference-input)
+              [preference](https://developers.openai.com/api/docs/guides/direct-preference-optimization)
               format.
 
               See the
-              [fine-tuning guide](https://platform.openai.com/docs/guides/model-optimization)
+              [fine-tuning guide](https://developers.openai.com/api/docs/guides/model-optimization)
               for more details.
 
           hyperparameters: The hyperparameters used for the fine-tuning job. This value is now deprecated
@@ -147,7 +145,7 @@ class Jobs(SyncAPIResource):
               the purpose `fine-tune`.
 
               See the
-              [fine-tuning guide](https://platform.openai.com/docs/guides/model-optimization)
+              [fine-tuning guide](https://developers.openai.com/api/docs/guides/model-optimization)
               for more details.
 
           extra_headers: Send extra headers
@@ -175,7 +173,11 @@ class Jobs(SyncAPIResource):
                 job_create_params.JobCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=FineTuningJob,
         )
@@ -189,12 +191,12 @@ class Jobs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> FineTuningJob:
         """
         Get info about a fine-tuning job.
 
-        [Learn more about fine-tuning](https://platform.openai.com/docs/guides/model-optimization)
+        [Learn more about fine-tuning](https://developers.openai.com/api/docs/guides/model-optimization)
 
         Args:
           extra_headers: Send extra headers
@@ -210,7 +212,11 @@ class Jobs(SyncAPIResource):
         return self._get(
             path_template("/fine_tuning/jobs/{fine_tuning_job_id}", fine_tuning_job_id=fine_tuning_job_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=FineTuningJob,
         )
@@ -226,7 +232,7 @@ class Jobs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncCursorPage[FineTuningJob]:
         """
         List your organization's fine-tuning jobs
@@ -263,6 +269,7 @@ class Jobs(SyncAPIResource):
                     },
                     job_list_params.JobListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=FineTuningJob,
         )
@@ -276,7 +283,7 @@ class Jobs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> FineTuningJob:
         """
         Immediately cancel a fine-tune job.
@@ -295,7 +302,11 @@ class Jobs(SyncAPIResource):
         return self._post(
             path_template("/fine_tuning/jobs/{fine_tuning_job_id}/cancel", fine_tuning_job_id=fine_tuning_job_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=FineTuningJob,
         )
@@ -311,7 +322,7 @@ class Jobs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncCursorPage[FineTuningJobEvent]:
         """
         Get status updates for a fine-tuning job.
@@ -346,6 +357,7 @@ class Jobs(SyncAPIResource):
                     },
                     job_list_events_params.JobListEventsParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=FineTuningJobEvent,
         )
@@ -359,7 +371,7 @@ class Jobs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> FineTuningJob:
         """
         Pause a fine-tune job.
@@ -378,7 +390,11 @@ class Jobs(SyncAPIResource):
         return self._post(
             path_template("/fine_tuning/jobs/{fine_tuning_job_id}/pause", fine_tuning_job_id=fine_tuning_job_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=FineTuningJob,
         )
@@ -392,7 +408,7 @@ class Jobs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> FineTuningJob:
         """
         Resume a fine-tune job.
@@ -411,7 +427,11 @@ class Jobs(SyncAPIResource):
         return self._post(
             path_template("/fine_tuning/jobs/{fine_tuning_job_id}/resume", fine_tuning_job_id=fine_tuning_job_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=FineTuningJob,
         )
@@ -461,7 +481,7 @@ class AsyncJobs(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> FineTuningJob:
         """
         Creates a fine-tuning job which begins the process of creating a new model from
@@ -470,29 +490,30 @@ class AsyncJobs(AsyncAPIResource):
         Response includes details of the enqueued job including job status and the name
         of the fine-tuned models once complete.
 
-        [Learn more about fine-tuning](https://platform.openai.com/docs/guides/model-optimization)
+        [Learn more about fine-tuning](https://developers.openai.com/api/docs/guides/model-optimization)
 
         Args:
           model: The name of the model to fine-tune. You can select one of the
-              [supported models](https://platform.openai.com/docs/guides/fine-tuning#which-models-can-be-fine-tuned).
+              [supported models](https://developers.openai.com/api/docs/guides/model-optimization#fine-tuning-methods).
 
           training_file: The ID of an uploaded file that contains training data.
 
-              See [upload file](https://platform.openai.com/docs/api-reference/files/create)
+              See
+              [upload file](https://developers.openai.com/api/reference/resources/files/methods/create)
               for how to upload a file.
 
               Your dataset must be formatted as a JSONL file. Additionally, you must upload
               your file with the purpose `fine-tune`.
 
               The contents of the file should differ depending on if the model uses the
-              [chat](https://platform.openai.com/docs/api-reference/fine-tuning/chat-input),
-              [completions](https://platform.openai.com/docs/api-reference/fine-tuning/completions-input)
+              [chat](https://developers.openai.com/api/docs/guides/supervised-fine-tuning#formatting-your-data),
+              [completions](https://developers.openai.com/api/docs/guides/supervised-fine-tuning#formatting-your-data)
               format, or if the fine-tuning method uses the
-              [preference](https://platform.openai.com/docs/api-reference/fine-tuning/preference-input)
+              [preference](https://developers.openai.com/api/docs/guides/direct-preference-optimization)
               format.
 
               See the
-              [fine-tuning guide](https://platform.openai.com/docs/guides/model-optimization)
+              [fine-tuning guide](https://developers.openai.com/api/docs/guides/model-optimization)
               for more details.
 
           hyperparameters: The hyperparameters used for the fine-tuning job. This value is now deprecated
@@ -530,7 +551,7 @@ class AsyncJobs(AsyncAPIResource):
               the purpose `fine-tune`.
 
               See the
-              [fine-tuning guide](https://platform.openai.com/docs/guides/model-optimization)
+              [fine-tuning guide](https://developers.openai.com/api/docs/guides/model-optimization)
               for more details.
 
           extra_headers: Send extra headers
@@ -558,7 +579,11 @@ class AsyncJobs(AsyncAPIResource):
                 job_create_params.JobCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=FineTuningJob,
         )
@@ -572,12 +597,12 @@ class AsyncJobs(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> FineTuningJob:
         """
         Get info about a fine-tuning job.
 
-        [Learn more about fine-tuning](https://platform.openai.com/docs/guides/model-optimization)
+        [Learn more about fine-tuning](https://developers.openai.com/api/docs/guides/model-optimization)
 
         Args:
           extra_headers: Send extra headers
@@ -593,7 +618,11 @@ class AsyncJobs(AsyncAPIResource):
         return await self._get(
             path_template("/fine_tuning/jobs/{fine_tuning_job_id}", fine_tuning_job_id=fine_tuning_job_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=FineTuningJob,
         )
@@ -609,7 +638,7 @@ class AsyncJobs(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[FineTuningJob, AsyncCursorPage[FineTuningJob]]:
         """
         List your organization's fine-tuning jobs
@@ -646,6 +675,7 @@ class AsyncJobs(AsyncAPIResource):
                     },
                     job_list_params.JobListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=FineTuningJob,
         )
@@ -659,7 +689,7 @@ class AsyncJobs(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> FineTuningJob:
         """
         Immediately cancel a fine-tune job.
@@ -678,7 +708,11 @@ class AsyncJobs(AsyncAPIResource):
         return await self._post(
             path_template("/fine_tuning/jobs/{fine_tuning_job_id}/cancel", fine_tuning_job_id=fine_tuning_job_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=FineTuningJob,
         )
@@ -694,7 +728,7 @@ class AsyncJobs(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[FineTuningJobEvent, AsyncCursorPage[FineTuningJobEvent]]:
         """
         Get status updates for a fine-tuning job.
@@ -729,6 +763,7 @@ class AsyncJobs(AsyncAPIResource):
                     },
                     job_list_events_params.JobListEventsParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=FineTuningJobEvent,
         )
@@ -742,7 +777,7 @@ class AsyncJobs(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> FineTuningJob:
         """
         Pause a fine-tune job.
@@ -761,7 +796,11 @@ class AsyncJobs(AsyncAPIResource):
         return await self._post(
             path_template("/fine_tuning/jobs/{fine_tuning_job_id}/pause", fine_tuning_job_id=fine_tuning_job_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=FineTuningJob,
         )
@@ -775,7 +814,7 @@ class AsyncJobs(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> FineTuningJob:
         """
         Resume a fine-tune job.
@@ -794,7 +833,11 @@ class AsyncJobs(AsyncAPIResource):
         return await self._post(
             path_template("/fine_tuning/jobs/{fine_tuning_job_id}/resume", fine_tuning_job_id=fine_tuning_job_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=FineTuningJob,
         )

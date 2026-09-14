@@ -1,7 +1,8 @@
 import json
-from typing import TYPE_CHECKING, Any, Dict, List, Union, Optional, cast
+from typing import TYPE_CHECKING, Any, Dict, List, Union, Iterable, Optional, cast
 from datetime import datetime, timezone
-from typing_extensions import Literal, Annotated, TypeAliasType
+from collections import deque
+from typing_extensions import Literal, Annotated, TypedDict, TypeAliasType
 
 import pytest
 import pydantic
@@ -9,7 +10,7 @@ from pydantic import Field
 
 from openai._utils import PropertyInfo
 from openai._compat import PYDANTIC_V1, parse_obj, model_dump, model_json
-from openai._models import DISCRIMINATOR_CACHE, BaseModel, construct_type
+from openai._models import DISCRIMINATOR_CACHE, BaseModel, EagerIterable, construct_type
 
 
 class BasicModel(BaseModel):
@@ -356,6 +357,38 @@ def test_union_of_lists() -> None:
     assert isinstance(m.items[0], SubModel1)
     assert m.items[0].level == -1
     assert cast(Any, m.items[1]) == 156
+
+
+def test_bare_dict_annotation() -> None:
+    # a bare `dict` has no type arguments so the values are left as-is
+    class Model(BaseModel):
+        metadata: dict  # type: ignore[type-arg]
+
+    m = Model.construct(metadata={"key": "value"})
+    assert m.metadata == {"key": "value"}  # pyright: ignore[reportUnknownMemberType]
+
+    assert construct_type(value={"key": "value"}, type_=dict) == {"key": "value"}
+    assert construct_type(value={"key": "value"}, type_=Dict) == {"key": "value"}
+    assert construct_type(value={}, type_=dict) == {}
+
+    # non-mapping values are still passed through unchanged
+    assert construct_type(value="not a dict", type_=dict) == "not a dict"
+
+
+def test_bare_list_annotation() -> None:
+    # a bare `list` has no type arguments so the entries are left as-is
+    class Model(BaseModel):
+        items: list  # type: ignore[type-arg]
+
+    m = Model.construct(items=[{"key": "value"}, 1])
+    assert m.items == [{"key": "value"}, 1]  # pyright: ignore[reportUnknownMemberType]
+
+    assert construct_type(value=[1, 2], type_=list) == [1, 2]
+    assert construct_type(value=[1, 2], type_=List) == [1, 2]
+    assert construct_type(value=[], type_=list) == []
+
+    # non-list values are still passed through unchanged
+    assert construct_type(value="not a list", type_=list) == "not a list"
 
 
 def test_dict_of_union() -> None:
@@ -961,3 +994,56 @@ def test_extra_properties() -> None:
     assert model.a.prop == 1
     assert isinstance(model.a, Item)
     assert model.other == "foo"
+
+
+# NOTE: Workaround for Pydantic Iterable behavior.
+# Iterable fields are replaced with a ValidatorIterator and may be consumed
+# during serialization, which can cause subsequent dumps to return empty data.
+# See: https://github.com/pydantic/pydantic/issues/9541
+@pytest.mark.parametrize(
+    "data, expected_validated",
+    [
+        ([1, 2, 3], [1, 2, 3]),
+        ((1, 2, 3), (1, 2, 3)),
+        (set([1, 2, 3]), set([1, 2, 3])),
+        (iter([1, 2, 3]), [1, 2, 3]),
+        ([], []),
+        ((x for x in [1, 2, 3]), [1, 2, 3]),
+        (map(lambda x: x, [1, 2, 3]), [1, 2, 3]),
+        (frozenset([1, 2, 3]), frozenset([1, 2, 3])),
+        (deque([1, 2, 3]), deque([1, 2, 3])),
+    ],
+    ids=["list", "tuple", "set", "iterator", "empty", "generator", "map", "frozenset", "deque"],
+)
+@pytest.mark.skipif(PYDANTIC_V1, reason="this is only supported in pydantic v2")
+def test_iterable_construction(data: Iterable[int], expected_validated: Iterable[int]) -> None:
+    class TypeWithIterable(TypedDict):
+        items: EagerIterable[int]
+
+    class Model(BaseModel):
+        data: TypeWithIterable
+
+    m = Model.model_validate({"data": {"items": data}})
+    assert m.data["items"] == expected_validated
+
+    # Verify repeated dumps don't lose data (the original bug)
+    assert m.model_dump()["data"]["items"] == list(expected_validated)
+    assert m.model_dump()["data"]["items"] == list(expected_validated)
+
+
+@pytest.mark.skipif(PYDANTIC_V1, reason="this is only supported in pydantic v2")
+def test_iterable_construction_str_falls_back_to_list() -> None:
+    # str is iterable (over chars), but str(list_of_chars) produces the list's repr
+    # rather than reconstructing a string from items. We special-case str to fall
+    # back to list instead of attempting reconstruction.
+    class TypeWithIterable(TypedDict):
+        items: EagerIterable[str]
+
+    class Model(BaseModel):
+        data: TypeWithIterable
+
+    m = Model.model_validate({"data": {"items": "hello"}})
+
+    # falls back to list of chars rather than calling str(["h", "e", "l", "l", "o"])
+    assert m.data["items"] == ["h", "e", "l", "l", "o"]
+    assert m.model_dump()["data"]["items"] == ["h", "e", "l", "l", "o"]

@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -39,7 +39,10 @@ class TestClientSecrets:
                         },
                         "noise_reduction": {"type": "near_field"},
                         "transcription": {
+                            "delay": "minimal",
+                            "keywords": ["string"],
                             "language": "language",
+                            "languages": ["string"],
                             "model": "whisper-1",
                             "prompt": "prompt",
                         },
@@ -67,11 +70,13 @@ class TestClientSecrets:
                 "max_output_tokens": "inf",
                 "model": "gpt-realtime",
                 "output_modalities": ["text"],
+                "parallel_tool_calls": True,
                 "prompt": {
                     "id": "id",
                     "variables": {"foo": "string"},
                     "version": "version",
                 },
+                "reasoning": {"effort": "minimal"},
                 "tool_choice": "none",
                 "tools": [
                     {
@@ -135,7 +140,10 @@ class TestAsyncClientSecrets:
                         },
                         "noise_reduction": {"type": "near_field"},
                         "transcription": {
+                            "delay": "minimal",
+                            "keywords": ["string"],
                             "language": "language",
+                            "languages": ["string"],
                             "model": "whisper-1",
                             "prompt": "prompt",
                         },
@@ -163,11 +171,13 @@ class TestAsyncClientSecrets:
                 "max_output_tokens": "inf",
                 "model": "gpt-realtime",
                 "output_modalities": ["text"],
+                "parallel_tool_calls": True,
                 "prompt": {
                     "id": "id",
                     "variables": {"foo": "string"},
                     "version": "version",
                 },
+                "reasoning": {"effort": "minimal"},
                 "tool_choice": "none",
                 "tools": [
                     {
