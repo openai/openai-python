@@ -15,6 +15,11 @@ class TestOpenapiDumps:
         json_bytes = openapi_dumps(data)
         assert json_bytes == b'{"key":"value","number":42}'
 
+    def test_non_string_keys(self) -> None:
+        data = {1: "integer", None: "none"}
+        json_bytes = openapi_dumps(data)
+        assert json_bytes == b'{"1":"integer","null":"none"}'
+
     def test_datetime_serialization(self) -> None:
         dt = datetime.datetime(2023, 1, 1, 12, 0, 0)
         data = {"datetime": dt}

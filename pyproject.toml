@@ -10,6 +10,7 @@ authors = [
 
 dependencies = [
   "httpx2>=2.7.0, <3",
+  "orjson>=3.10.0, <4",
   "pydantic>=1.10.13, <3, !=2.0.*, !=2.1.*, !=2.2.*, !=2.3.*",
   "typing-extensions>=4.14, <5",
   "anyio>=4.10.0, <5",
