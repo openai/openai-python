@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import List, Optional
 from typing_extensions import Literal
@@ -30,7 +30,7 @@ class Logprob(BaseModel):
     """The log probability of this token."""
 
     top_logprobs: Optional[List[LogprobTopLogprob]] = None
-    """The log probability of the top 20 most likely tokens."""
+    """The log probabilities of up to 20 of the most likely tokens."""
 
 
 class ResponseTextDeltaEvent(BaseModel):

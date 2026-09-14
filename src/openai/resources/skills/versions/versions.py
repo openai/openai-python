@@ -1,11 +1,11 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 from typing import Union, Mapping, cast
 from typing_extensions import Literal
 
-import httpx
+import httpx2
 
 from .... import _legacy_response
 from .content import (
@@ -16,6 +16,7 @@ from .content import (
     ContentWithStreamingResponse,
     AsyncContentWithStreamingResponse,
 )
+from ...._files import deepcopy_with_paths
 from ...._types import (
     Body,
     Omit,
@@ -27,7 +28,7 @@ from ...._types import (
     omit,
     not_given,
 )
-from ...._utils import extract_files, path_template, maybe_transform, deepcopy_minimal, async_maybe_transform
+from ...._utils import extract_files, path_template, maybe_transform, async_maybe_transform
 from ...._compat import cached_property
 from ...._resource import SyncAPIResource, AsyncAPIResource
 from ...._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -75,7 +76,7 @@ class Versions(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SkillVersion:
         """
         Create a new immutable skill version.
@@ -95,11 +96,12 @@ class Versions(SyncAPIResource):
         """
         if not skill_id:
             raise ValueError(f"Expected a non-empty value for `skill_id` but received {skill_id!r}")
-        body = deepcopy_minimal(
+        body = deepcopy_with_paths(
             {
                 "default": default,
                 "files": files,
-            }
+            },
+            [["files", "<array>"], ["files"]],
         )
         extracted_files = extract_files(cast(Mapping[str, object], body), paths=[["files", "<array>"], ["files"]])
         if extracted_files:
@@ -112,7 +114,11 @@ class Versions(SyncAPIResource):
             body=maybe_transform(body, version_create_params.VersionCreateParams),
             files=extracted_files,
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=SkillVersion,
         )
@@ -127,7 +133,7 @@ class Versions(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SkillVersion:
         """
         Get a specific skill version.
@@ -150,7 +156,11 @@ class Versions(SyncAPIResource):
         return self._get(
             path_template("/skills/{skill_id}/versions/{version}", skill_id=skill_id, version=version),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=SkillVersion,
         )
@@ -167,7 +177,7 @@ class Versions(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncCursorPage[SkillVersion]:
         """
         List skill versions for a skill.
@@ -205,6 +215,7 @@ class Versions(SyncAPIResource):
                     },
                     version_list_params.VersionListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=SkillVersion,
         )
@@ -219,7 +230,7 @@ class Versions(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> DeletedSkillVersion:
         """
         Delete a skill version.
@@ -242,7 +253,11 @@ class Versions(SyncAPIResource):
         return self._delete(
             path_template("/skills/{skill_id}/versions/{version}", skill_id=skill_id, version=version),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=DeletedSkillVersion,
         )
@@ -283,7 +298,7 @@ class AsyncVersions(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SkillVersion:
         """
         Create a new immutable skill version.
@@ -303,11 +318,12 @@ class AsyncVersions(AsyncAPIResource):
         """
         if not skill_id:
             raise ValueError(f"Expected a non-empty value for `skill_id` but received {skill_id!r}")
-        body = deepcopy_minimal(
+        body = deepcopy_with_paths(
             {
                 "default": default,
                 "files": files,
-            }
+            },
+            [["files", "<array>"], ["files"]],
         )
         extracted_files = extract_files(cast(Mapping[str, object], body), paths=[["files", "<array>"], ["files"]])
         if extracted_files:
@@ -320,7 +336,11 @@ class AsyncVersions(AsyncAPIResource):
             body=await async_maybe_transform(body, version_create_params.VersionCreateParams),
             files=extracted_files,
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=SkillVersion,
         )
@@ -335,7 +355,7 @@ class AsyncVersions(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SkillVersion:
         """
         Get a specific skill version.
@@ -358,7 +378,11 @@ class AsyncVersions(AsyncAPIResource):
         return await self._get(
             path_template("/skills/{skill_id}/versions/{version}", skill_id=skill_id, version=version),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=SkillVersion,
         )
@@ -375,7 +399,7 @@ class AsyncVersions(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[SkillVersion, AsyncCursorPage[SkillVersion]]:
         """
         List skill versions for a skill.
@@ -413,6 +437,7 @@ class AsyncVersions(AsyncAPIResource):
                     },
                     version_list_params.VersionListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=SkillVersion,
         )
@@ -427,7 +452,7 @@ class AsyncVersions(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> DeletedSkillVersion:
         """
         Delete a skill version.
@@ -450,7 +475,11 @@ class AsyncVersions(AsyncAPIResource):
         return await self._delete(
             path_template("/skills/{skill_id}/versions/{version}", skill_id=skill_id, version=version),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=DeletedSkillVersion,
         )

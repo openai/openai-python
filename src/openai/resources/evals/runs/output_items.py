@@ -1,10 +1,10 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 from typing_extensions import Literal
 
-import httpx
+import httpx2
 
 from .... import _legacy_response
 from ...._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
@@ -54,7 +54,7 @@ class OutputItems(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> OutputItemRetrieveResponse:
         """
         Get an evaluation run output item by ID.
@@ -82,7 +82,11 @@ class OutputItems(SyncAPIResource):
                 output_item_id=output_item_id,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=OutputItemRetrieveResponse,
         )
@@ -101,7 +105,7 @@ class OutputItems(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncCursorPage[OutputItemListResponse]:
         """
         Get a list of output items for an evaluation run.
@@ -146,6 +150,7 @@ class OutputItems(SyncAPIResource):
                     },
                     output_item_list_params.OutputItemListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=OutputItemListResponse,
         )
@@ -184,7 +189,7 @@ class AsyncOutputItems(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> OutputItemRetrieveResponse:
         """
         Get an evaluation run output item by ID.
@@ -212,7 +217,11 @@ class AsyncOutputItems(AsyncAPIResource):
                 output_item_id=output_item_id,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=OutputItemRetrieveResponse,
         )
@@ -231,7 +240,7 @@ class AsyncOutputItems(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[OutputItemListResponse, AsyncCursorPage[OutputItemListResponse]]:
         """
         Get a list of output items for an evaluation run.
@@ -276,6 +285,7 @@ class AsyncOutputItems(AsyncAPIResource):
                     },
                     output_item_list_params.OutputItemListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=OutputItemListResponse,
         )
