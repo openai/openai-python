@@ -10,12 +10,17 @@ uv run --locked --all-extras pytest benchmarks/test_json_serialization.py \
   -n 0 \
   --benchmark-only \
   --benchmark-autosave \
-  --benchmark-histogram=benchmark-results/json-serialization
+  --benchmark-json=benchmark-results/json-serialization.json
+
+uv run --locked --all-extras python benchmarks/render_json_serialization_chart.py \
+  --input benchmark-results/json-serialization.json \
+  --output-dir benchmark-results
 ```
 
 The command prints a statistics table, saves the machine and interpreter metadata with the raw samples under
-`.benchmarks/`, and writes an SVG histogram to `benchmark-results/`. Neither directory is intended for source
-control.
+`.benchmarks/`, and writes light- and dark-theme SVGs to `benchmark-results/`. The generated SVG uses one panel per
+payload size, with fixed series colours for `stdlib json` and `orjson`; it renders the median, interquartile range,
+minimum, maximum, and mean for each serializer. Neither generated-results directory is intended for source control.
 
 For a branch comparison, first save a run from each checkout, then compare their JSON result files:
 
