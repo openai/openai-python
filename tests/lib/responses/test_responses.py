@@ -68,21 +68,18 @@ async def test_output_text_with_nullable_content(
     text_fields: list[dict[str, str | None]],
     expected: str,
 ) -> None:
-    content = [{"type": "output_text", "annotations": [], **fields} for fields in text_fields]
-    respx2_mock.post("/responses").respond(
-        json={
-            "output": [{"type": "message", "role": "assistant", "content": content}],
-        },
-    )
+    content: list[dict[str, object]] = [{"type": "output_text", "annotations": [], **fields} for fields in text_fields]
+    output: list[dict[str, object]] = [{"type": "message", "role": "assistant", "content": content}]
+    respx2_mock.post("/responses").respond(json={"output": output})
 
     if sync:
         response = client.responses.create(model="gpt-4o-mini", input="Say hello")
     else:
         response = await async_client.responses.create(model="gpt-4o-mini", input="Say hello")
 
-    assert response.to_dict()["output"][0]["content"] == content
+    assert response.to_dict()["output"] == output
     assert response.output_text == expected
-    assert response.to_dict()["output"][0]["content"] == content
+    assert response.to_dict()["output"] == output
 
 
 @pytest.mark.parametrize(
