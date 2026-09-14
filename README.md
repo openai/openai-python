@@ -232,7 +232,7 @@ With an image URL:
 
 ```python
 prompt = "What is in this image?"
-img_url = "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/2023_06_08_Raccoon1.jpg/1599px-2023_06_08_Raccoon1.jpg"
+img_url = "https://api.nga.gov/iiif/a2e6da57-3cd1-4235-b20e-95dcaefed6c8/full/!800,800/0/default.jpg"
 
 response = client.responses.create(
     model="gpt-5.5",
@@ -656,6 +656,14 @@ When the API returns a non-success status code (that is, 4xx or 5xx
 response), a subclass of `openai.APIStatusError` is raised, containing `status_code` and `response` properties.
 
 All errors inherit from `openai.APIError`.
+
+When consuming a `Stream` or `AsyncStream`, read timeouts raise `APITimeoutError`
+and other HTTPX request failures raise `APIConnectionError`. Catch these SDK
+exceptions instead of raw HTTPX exceptions; the original exception is available
+as `__cause__`. Stream consumption is not automatically retried, because replaying
+a request could duplicate output already delivered to your application.
+The Assistants event-handler helpers and raw `with_streaming_response` iterators
+retain their existing exception behavior.
 
 ```python
 import openai

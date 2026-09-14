@@ -69,7 +69,7 @@ class Steps(SyncAPIResource):
               to fetch the file search result content.
 
               See the
-              [file search tool documentation](https://platform.openai.com/docs/assistants/tools/file-search#customizing-file-search-settings)
+              [file search tool documentation](https://developers.openai.com/api/docs/guides/tools-file-search#retrieval-customization)
               for more information.
 
           extra_headers: Send extra headers
@@ -142,7 +142,7 @@ class Steps(SyncAPIResource):
               to fetch the file search result content.
 
               See the
-              [file search tool documentation](https://platform.openai.com/docs/assistants/tools/file-search#customizing-file-search-settings)
+              [file search tool documentation](https://developers.openai.com/api/docs/guides/tools-file-search#retrieval-customization)
               for more information.
 
           limit: A limit on the number of objects to be returned. Limit can range between 1 and
@@ -234,7 +234,7 @@ class AsyncSteps(AsyncAPIResource):
               to fetch the file search result content.
 
               See the
-              [file search tool documentation](https://platform.openai.com/docs/assistants/tools/file-search#customizing-file-search-settings)
+              [file search tool documentation](https://developers.openai.com/api/docs/guides/tools-file-search#retrieval-customization)
               for more information.
 
           extra_headers: Send extra headers
@@ -307,7 +307,7 @@ class AsyncSteps(AsyncAPIResource):
               to fetch the file search result content.
 
               See the
-              [file search tool documentation](https://platform.openai.com/docs/assistants/tools/file-search#customizing-file-search-settings)
+              [file search tool documentation](https://developers.openai.com/api/docs/guides/tools-file-search#retrieval-customization)
               for more information.
 
           limit: A limit on the number of objects to be returned. Limit can range between 1 and

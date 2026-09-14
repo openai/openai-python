@@ -22,7 +22,7 @@ function fixture(t) {
   return root;
 }
 
-function installFake(root, version = '1.1.399') {
+function installFake(root, version = JSON.parse(fs.readFileSync(path.join(root, 'package.json'))).devDependencies.pyright) {
   const directory = path.join(root, 'node_modules/pyright');
   fs.mkdirSync(directory, { recursive: true });
   fs.writeFileSync(path.join(directory, 'package.json'), JSON.stringify({ version }));
@@ -78,20 +78,6 @@ test('bootstrap refuses a wrong pnpm without attempting an install', (t) => {
   });
   assert.equal(result.status, 1);
   assert.match(result.stderr, /Expected pnpm/);
-});
-
-test('Steady is local-only and receives the original arguments', (t) => {
-  const root = fixture(t);
-  const missing = run(root, ['steady', '--version']);
-  assert.equal(missing.status, 1);
-  assert.match(missing.stderr, /Missing local steady/);
-  const directory = path.join(root, 'node_modules/@stdy/cli');
-  fs.mkdirSync(directory, { recursive: true });
-  fs.writeFileSync(path.join(directory, 'package.json'), JSON.stringify({ version: '0.22.1' }));
-  fs.writeFileSync(path.join(directory, 'steady.js'), 'console.log(JSON.stringify(process.argv.slice(2)));');
-  const result = run(root, ['steady', 'spec with spaces.yml', '--version']);
-  assert.equal(result.status, 0);
-  assert.deepEqual(JSON.parse(result.stdout), ['spec with spaces.yml', '--version']);
 });
 
 function executable(root, file, content) {
@@ -158,4 +144,11 @@ test('devcontainer installs the pinned toolchain and bootstraps local tools', (t
   assert.equal(feature.version, fs.readFileSync(path.join(repository, '.node-version'), 'utf8').trim());
   assert.equal(`pnpm@${feature.pnpmVersion}`, manifest.packageManager);
   assert.equal(config.postStartCommand, './scripts/bootstrap');
+});
+
+test('forked Steady tooling installs and runs locally', () => {
+  const result = spawnSync(process.execPath, ['scripts/steady/test.cjs'], {
+    cwd: repository, encoding: 'utf8', timeout: 120000,
+  });
+  assert.equal(result.status, 0, result.stdout + result.stderr);
 });

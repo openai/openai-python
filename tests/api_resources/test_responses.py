@@ -42,7 +42,7 @@ class TestResponses:
             max_output_tokens=16,
             max_tool_calls=0,
             metadata={"foo": "string"},
-            model="gpt-5.1",
+            model="gpt-6-astra",
             moderation={
                 "model": "model",
                 "policy": {
@@ -59,6 +59,7 @@ class TestResponses:
             },
             prompt_cache_key="prompt-cache-key-1234",
             prompt_cache_options={
+                "comparison_response_id": "resp_123",
                 "mode": "implicit",
                 "ttl": "30m",
             },
@@ -88,6 +89,7 @@ class TestResponses:
                     "strict": True,
                     "type": "function",
                     "allowed_callers": ["direct"],
+                    "async": True,
                     "defer_loading": True,
                     "description": "description",
                     "output_schema": {"foo": "bar"},
@@ -145,7 +147,7 @@ class TestResponses:
             max_output_tokens=16,
             max_tool_calls=0,
             metadata={"foo": "string"},
-            model="gpt-5.1",
+            model="gpt-6-astra",
             moderation={
                 "model": "model",
                 "policy": {
@@ -162,6 +164,7 @@ class TestResponses:
             },
             prompt_cache_key="prompt-cache-key-1234",
             prompt_cache_options={
+                "comparison_response_id": "resp_123",
                 "mode": "implicit",
                 "ttl": "30m",
             },
@@ -190,6 +193,7 @@ class TestResponses:
                     "strict": True,
                     "type": "function",
                     "allowed_callers": ["direct"],
+                    "async": True,
                     "defer_loading": True,
                     "description": "description",
                     "output_schema": {"foo": "bar"},
@@ -405,14 +409,14 @@ class TestResponses:
     @parametrize
     def test_method_compact(self, client: OpenAI) -> None:
         response = client.responses.compact(
-            model="gpt-5.6-sol",
+            model="gpt-6-astra",
         )
         assert_matches_type(CompactedResponse, response, path=["response"])
 
     @parametrize
     def test_method_compact_with_all_params(self, client: OpenAI) -> None:
         response = client.responses.compact(
-            model="gpt-5.6-sol",
+            model="gpt-6-astra",
             input="string",
             instructions="instructions",
             previous_response_id="resp_123",
@@ -429,7 +433,7 @@ class TestResponses:
     @parametrize
     def test_raw_response_compact(self, client: OpenAI) -> None:
         http_response = client.responses.with_raw_response.compact(
-            model="gpt-5.6-sol",
+            model="gpt-6-astra",
         )
 
         assert http_response.is_closed is True
@@ -440,7 +444,7 @@ class TestResponses:
     @parametrize
     def test_streaming_response_compact(self, client: OpenAI) -> None:
         with client.responses.with_streaming_response.compact(
-            model="gpt-5.6-sol",
+            model="gpt-6-astra",
         ) as http_response:
             assert not http_response.is_closed
             assert http_response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -478,7 +482,7 @@ class TestAsyncResponses:
             max_output_tokens=16,
             max_tool_calls=0,
             metadata={"foo": "string"},
-            model="gpt-5.1",
+            model="gpt-6-astra",
             moderation={
                 "model": "model",
                 "policy": {
@@ -495,6 +499,7 @@ class TestAsyncResponses:
             },
             prompt_cache_key="prompt-cache-key-1234",
             prompt_cache_options={
+                "comparison_response_id": "resp_123",
                 "mode": "implicit",
                 "ttl": "30m",
             },
@@ -524,6 +529,7 @@ class TestAsyncResponses:
                     "strict": True,
                     "type": "function",
                     "allowed_callers": ["direct"],
+                    "async": True,
                     "defer_loading": True,
                     "description": "description",
                     "output_schema": {"foo": "bar"},
@@ -581,7 +587,7 @@ class TestAsyncResponses:
             max_output_tokens=16,
             max_tool_calls=0,
             metadata={"foo": "string"},
-            model="gpt-5.1",
+            model="gpt-6-astra",
             moderation={
                 "model": "model",
                 "policy": {
@@ -598,6 +604,7 @@ class TestAsyncResponses:
             },
             prompt_cache_key="prompt-cache-key-1234",
             prompt_cache_options={
+                "comparison_response_id": "resp_123",
                 "mode": "implicit",
                 "ttl": "30m",
             },
@@ -626,6 +633,7 @@ class TestAsyncResponses:
                     "strict": True,
                     "type": "function",
                     "allowed_callers": ["direct"],
+                    "async": True,
                     "defer_loading": True,
                     "description": "description",
                     "output_schema": {"foo": "bar"},
@@ -841,14 +849,14 @@ class TestAsyncResponses:
     @parametrize
     async def test_method_compact(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.responses.compact(
-            model="gpt-5.6-sol",
+            model="gpt-6-astra",
         )
         assert_matches_type(CompactedResponse, response, path=["response"])
 
     @parametrize
     async def test_method_compact_with_all_params(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.responses.compact(
-            model="gpt-5.6-sol",
+            model="gpt-6-astra",
             input="string",
             instructions="instructions",
             previous_response_id="resp_123",
@@ -865,7 +873,7 @@ class TestAsyncResponses:
     @parametrize
     async def test_raw_response_compact(self, async_client: AsyncOpenAI) -> None:
         http_response = await async_client.responses.with_raw_response.compact(
-            model="gpt-5.6-sol",
+            model="gpt-6-astra",
         )
 
         assert http_response.is_closed is True
@@ -876,7 +884,7 @@ class TestAsyncResponses:
     @parametrize
     async def test_streaming_response_compact(self, async_client: AsyncOpenAI) -> None:
         async with async_client.responses.with_streaming_response.compact(
-            model="gpt-5.6-sol",
+            model="gpt-6-astra",
         ) as http_response:
             assert not http_response.is_closed
             assert http_response.http_request.headers.get("X-Stainless-Lang") == "python"
