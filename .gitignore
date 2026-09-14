@@ -6,6 +6,8 @@ _dev
 
 __pycache__
 .mypy_cache
+.benchmarks/
+benchmark-results/
 
 dist
 
