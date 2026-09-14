@@ -7,7 +7,10 @@ from typing import Any, Callable
 import pytest
 import pydantic
 
+import openai._base_client as base_client
+from openai import OpenAI
 from openai._compat import model_dump
+from openai._models import FinalRequestOptions
 from openai._utils._json import openapi_dumps
 
 
@@ -34,7 +37,7 @@ def _stdlib_openapi_dumps(obj: Any) -> bytes:
         ensure_ascii=False,
         separators=(",", ":"),
         allow_nan=False,
-    ).encode()
+    ).encode("utf-8")
 
 
 def _payload(target_size_bytes: int) -> dict[str, Any]:
@@ -54,9 +57,12 @@ def _payload(target_size_bytes: int) -> dict[str, Any]:
 
 
 _PAYLOADS = (
-    pytest.param(16_000, 500, id="18kb"),
-    pytest.param(256_000, 50, id="289kb"),
-    pytest.param(1_000_000, 10, id="1.13mb"),
+    pytest.param(500, 300, id="1kb"),
+    pytest.param(3_000, 200, id="4kb"),
+    pytest.param(16_000, 100, id="18kb"),
+    pytest.param(56_000, 50, id="64kb"),
+    pytest.param(256_000, 20, id="289kb"),
+    pytest.param(1_000_000, 5, id="1.13mb"),
 )
 
 _SERIALIZERS = (
@@ -80,4 +86,37 @@ def test_openapi_dumps(
 
     result = benchmark.pedantic(serializer, args=(payload,), rounds=30, iterations=iterations, warmup_rounds=5)
 
+    assert isinstance(result, bytes)
     assert result == expected, serializer_name
+
+
+@pytest.mark.parametrize(("target_size_bytes", "iterations"), _PAYLOADS)
+@pytest.mark.parametrize(("serializer_name", "serializer"), _SERIALIZERS)
+def test_build_request(
+    benchmark: Any,
+    monkeypatch: pytest.MonkeyPatch,
+    target_size_bytes: int,
+    iterations: int,
+    serializer_name: str,
+    serializer: Callable[[Any], bytes],
+) -> None:
+    """Measure the SDK's no-network JSON request construction path.
+
+    REST and streaming requests share ``BaseClient._build_request()``. This measures the
+    outbound body construction before the request is sent; it intentionally excludes network
+    I/O and parsing of inbound streaming events.
+    """
+    payload = _payload(target_size_bytes)
+    expected = _stdlib_openapi_dumps(payload)
+    options = FinalRequestOptions(method="post", url="/responses", json_data=payload)
+    client = OpenAI(api_key="benchmark", base_url="https://example.invalid/v1")
+    monkeypatch.setattr(base_client, "openapi_dumps", serializer)
+    try:
+        request = benchmark.pedantic(
+            client._build_request, args=(options,), rounds=30, iterations=iterations, warmup_rounds=5
+        )
+    finally:
+        client.close()
+
+    assert isinstance(request.content, bytes)
+    assert request.content == expected, serializer_name

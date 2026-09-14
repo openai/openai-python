@@ -15,6 +15,12 @@ class TestOpenapiDumps:
         json_bytes = openapi_dumps(data)
         assert json_bytes == b'{"key":"value","number":42}'
 
+    def test_compact_utf8_output(self) -> None:
+        data = {"greeting": "café", "items": ["東京", "London"]}
+        json_bytes = openapi_dumps(data)
+        assert isinstance(json_bytes, bytes)
+        assert json_bytes == b'{"greeting":"caf\xc3\xa9","items":["\xe6\x9d\xb1\xe4\xba\xac","London"]}'
+
     def test_non_string_keys(self) -> None:
         data = {1: "integer", None: "none"}
         json_bytes = openapi_dumps(data)

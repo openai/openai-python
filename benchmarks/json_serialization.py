@@ -8,7 +8,10 @@ from typing import Any, Callable
 import pyperf
 import pydantic
 
+import openai._base_client as base_client
+from openai import OpenAI
 from openai._compat import model_dump
+from openai._models import FinalRequestOptions
 from openai._utils._json import openapi_dumps
 
 
@@ -35,7 +38,7 @@ def stdlib_openapi_dumps(obj: Any) -> bytes:
         ensure_ascii=False,
         separators=(",", ":"),
         allow_nan=False,
-    ).encode()
+    ).encode("utf-8")
 
 
 def payload(target_size_bytes: int) -> dict[str, Any]:
@@ -65,16 +68,38 @@ def serializer(value: str) -> Callable[[Any], bytes]:
 def add_cmdline_args(command: list[str], args: argparse.Namespace) -> None:
     """Pass the selected serializer to pyperf's isolated worker processes."""
     command.append(f"--serializer={args.serializer}")
+    command.append(f"--scope={args.scope}")
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--serializer", choices=("stdlib", "orjson"), required=True)
+    parser.add_argument("--scope", choices=("request-preparation", "serialization"), default="serialization")
     runner = pyperf.Runner(_argparser=parser, add_cmdline_args=add_cmdline_args)
-    selected_serializer = serializer(runner.parse_args().serializer)
+    args = runner.parse_args()
+    selected_serializer = serializer(args.serializer)
 
-    for name, target_size_bytes in (("18kb", 16_000), ("289kb", 256_000), ("1.13mb", 1_000_000)):
-        runner.bench_func(f"openapi_dumps[{name}]", selected_serializer, payload(target_size_bytes))
+    payloads = (
+        ("1kb", 500),
+        ("4kb", 3_000),
+        ("18kb", 16_000),
+        ("64kb", 56_000),
+        ("289kb", 256_000),
+        ("1.13mb", 1_000_000),
+    )
+    if args.scope == "serialization":
+        for name, target_size_bytes in payloads:
+            runner.bench_func(f"openapi_dumps[{name}]", selected_serializer, payload(target_size_bytes))
+        return
+
+    client = OpenAI(api_key="benchmark", base_url="https://example.invalid/v1")
+    base_client.openapi_dumps = selected_serializer
+    try:
+        for name, target_size_bytes in payloads:
+            options = FinalRequestOptions(method="post", url="/responses", json_data=payload(target_size_bytes))
+            runner.bench_func(f"build_request[{name}]", client._build_request, options)
+    finally:
+        client.close()
 
 
 if __name__ == "__main__":

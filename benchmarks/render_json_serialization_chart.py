@@ -10,6 +10,7 @@ from pathlib import Path
 from collections.abc import Mapping, Iterable
 
 ThemeName = Literal["dark", "light"]
+ChartKind = Literal["request-preparation", "serialization"]
 
 _THEMES: dict[ThemeName, dict[str, str]] = {
     "light": {
@@ -35,13 +36,27 @@ _THEMES: dict[ThemeName, dict[str, str]] = {
 }
 
 _SERIALIZER_ORDER = ("stdlib", "orjson")
+_CHARTS: dict[ChartKind, dict[str, str]] = {
+    "serialization": {
+        "benchmark_prefix": "test_openapi_dumps",
+        "title": "Request-body JSON serialization distribution",
+        "footer": "Synthetic Pydantic chat-style payloads · serializer CPU only · lower is better",
+    },
+    "request-preparation": {
+        "benchmark_prefix": "test_build_request",
+        "title": "SDK REST request-preparation distribution",
+        "footer": "Same outbound path used to start REST and streaming requests · excludes network and SSE parsing · lower is better",
+    },
+}
 _WIDTH = 1320
-_HEIGHT = 580
-_PLOT_TOP = 158
 _PLOT_HEIGHT = 280
 _PANEL_WIDTH = 370
+_PANEL_HEIGHT = 350
 _PANEL_GAP = 20
 _PANEL_LEFT = 90
+_PANEL_TOP = 122
+_ROW_GAP = 26
+_COLUMNS = 3
 
 
 def _escape(value: object) -> str:
@@ -54,7 +69,7 @@ def _number(value: object) -> float:
     return float(value)
 
 
-def _benchmark_records(payload: Mapping[str, Any]) -> dict[int, dict[str, dict[str, float]]]:
+def _benchmark_records(payload: Mapping[str, Any], benchmark_prefix: str) -> dict[int, dict[str, dict[str, float]]]:
     records: dict[int, dict[str, dict[str, float]]] = {}
     benchmarks = payload.get("benchmarks")
     if not isinstance(benchmarks, list):
@@ -62,6 +77,9 @@ def _benchmark_records(payload: Mapping[str, Any]) -> dict[int, dict[str, dict[s
 
     for item in benchmarks:
         if not isinstance(item, Mapping):
+            continue
+        name = item.get("name")
+        if not isinstance(name, str) or not name.startswith(benchmark_prefix):
             continue
         params = item.get("params")
         stats = item.get("stats")
@@ -72,12 +90,11 @@ def _benchmark_records(payload: Mapping[str, Any]) -> dict[int, dict[str, dict[s
         if serializer not in _SERIALIZER_ORDER or not isinstance(target_size_bytes, int):
             continue
         records.setdefault(target_size_bytes, {})[serializer] = {
-            statistic: _number(stats.get(statistic))
-            for statistic in ("min", "q1", "median", "q3", "max", "mean")
+            statistic: _number(stats.get(statistic)) for statistic in ("min", "q1", "median", "q3", "max", "mean")
         }
 
     if not records:
-        raise ValueError("No JSON serializer benchmark results were found")
+        raise ValueError(f"No benchmark results matching {benchmark_prefix!r} were found")
     for target_size_bytes, serializers in records.items():
         if set(serializers) != set(_SERIALIZER_ORDER):
             raise ValueError(f"Missing serializer result for {target_size_bytes} byte payload")
@@ -85,12 +102,18 @@ def _benchmark_records(payload: Mapping[str, Any]) -> dict[int, dict[str, dict[s
 
 
 def _payload_label(target_size_bytes: int) -> str:
+    if target_size_bytes == 500:
+        return "~1 KB tool/stream payload"
+    if target_size_bytes == 3_000:
+        return "~4 KB short request/response"
     if target_size_bytes == 16_000:
-        return "18 KB encoded payload"
+        return "18 KB moderate chat payload"
+    if target_size_bytes == 56_000:
+        return "64 KB medium context payload"
     if target_size_bytes == 256_000:
-        return "289 KB encoded payload"
+        return "289 KB RAG context payload"
     if target_size_bytes == 1_000_000:
-        return "1.13 MB encoded payload"
+        return "1.13 MB large context payload"
     return f"{target_size_bytes / 1_000_000:.2f} MB encoded payload"
 
 
@@ -106,8 +129,8 @@ def _ticks(lower: float, upper: float) -> Iterable[float]:
         yield lower + (upper - lower) * step / 4
 
 
-def _y(value: float, lower: float, upper: float) -> float:
-    return _PLOT_TOP + _PLOT_HEIGHT - (value - lower) / (upper - lower) * _PLOT_HEIGHT
+def _y(value: float, lower: float, upper: float, plot_top: float) -> float:
+    return plot_top + _PLOT_HEIGHT - (value - lower) / (upper - lower) * _PLOT_HEIGHT
 
 
 def _svg_text(x: float, y: float, text: str, css_class: str, anchor: str = "start") -> str:
@@ -121,13 +144,14 @@ def _distribution(
     color: str,
     lower: float,
     upper: float,
+    plot_top: float,
 ) -> str:
-    minimum = _y(statistics["min"], lower, upper)
-    q1 = _y(statistics["q1"], lower, upper)
-    median = _y(statistics["median"], lower, upper)
-    q3 = _y(statistics["q3"], lower, upper)
-    maximum = _y(statistics["max"], lower, upper)
-    mean = _y(statistics["mean"], lower, upper)
+    minimum = _y(statistics["min"], lower, upper, plot_top)
+    q1 = _y(statistics["q1"], lower, upper, plot_top)
+    median = _y(statistics["median"], lower, upper, plot_top)
+    q3 = _y(statistics["q3"], lower, upper, plot_top)
+    maximum = _y(statistics["max"], lower, upper, plot_top)
+    mean = _y(statistics["mean"], lower, upper, plot_top)
     box_width = 104
     cap_width = 44
     return "\n".join(
@@ -143,11 +167,18 @@ def _distribution(
     )
 
 
-def render_svg(records: Mapping[int, Mapping[str, Mapping[str, float]]], theme_name: ThemeName) -> str:
+def render_svg(
+    records: Mapping[int, Mapping[str, Mapping[str, float]]], theme_name: ThemeName, chart_kind: ChartKind
+) -> str:
     theme = _THEMES[theme_name]
+    chart = _CHARTS[chart_kind]
     panels: list[str] = []
     for panel_index, (target_size_bytes, serializers) in enumerate(sorted(records.items())):
-        x = _PANEL_LEFT + panel_index * (_PANEL_WIDTH + _PANEL_GAP)
+        row = panel_index // _COLUMNS
+        column = panel_index % _COLUMNS
+        x = _PANEL_LEFT + column * (_PANEL_WIDTH + _PANEL_GAP)
+        panel_top = _PANEL_TOP + row * (_PANEL_HEIGHT + _ROW_GAP)
+        plot_top = panel_top + 36
         values = [value for serializer in serializers.values() for value in serializer.values()]
         minimum = min(values)
         maximum = max(values)
@@ -156,11 +187,11 @@ def render_svg(records: Mapping[int, Mapping[str, Mapping[str, float]]], theme_n
         upper = maximum + padding
         tick_lines: list[str] = []
         for tick in _ticks(lower, upper):
-            y = _y(tick, lower, upper)
+            y = _y(tick, lower, upper, plot_top)
             tick_lines.extend(
                 (
                     f'<line x1="{x:.1f}" y1="{y:.1f}" x2="{x + _PANEL_WIDTH:.1f}" y2="{y:.1f}" class="grid" />',
-                    _svg_text(x - 8, y + 4, _duration(tick), "axis", "end"),
+                    _svg_text(x + 8, y + 4, _duration(tick), "axis"),
                 )
             )
         stdlib_median = serializers["stdlib"]["median"]
@@ -174,23 +205,36 @@ def render_svg(records: Mapping[int, Mapping[str, Mapping[str, float]]], theme_n
                 color=theme[name],
                 lower=lower,
                 upper=upper,
+                plot_top=plot_top,
             )
             for name in _SERIALIZER_ORDER
         )
         labels = "\n".join(
             (
-                _svg_text(centers["stdlib"], _PLOT_TOP + _PLOT_HEIGHT + 28, "stdlib json", "series stdlib", "middle"),
-                _svg_text(centers["orjson"], _PLOT_TOP + _PLOT_HEIGHT + 28, "orjson", "series orjson", "middle"),
-                _svg_text(centers["stdlib"], _PLOT_TOP + _PLOT_HEIGHT + 50, f"median {_duration(stdlib_median)}", "detail", "middle"),
-                _svg_text(centers["orjson"], _PLOT_TOP + _PLOT_HEIGHT + 50, f"median {_duration(orjson_median)}", "detail", "middle"),
+                _svg_text(centers["stdlib"], plot_top + _PLOT_HEIGHT + 28, "stdlib json", "series stdlib", "middle"),
+                _svg_text(centers["orjson"], plot_top + _PLOT_HEIGHT + 28, "orjson", "series orjson", "middle"),
+                _svg_text(
+                    centers["stdlib"],
+                    plot_top + _PLOT_HEIGHT + 50,
+                    f"median {_duration(stdlib_median)}",
+                    "detail",
+                    "middle",
+                ),
+                _svg_text(
+                    centers["orjson"],
+                    plot_top + _PLOT_HEIGHT + 50,
+                    f"median {_duration(orjson_median)}",
+                    "detail",
+                    "middle",
+                ),
             )
         )
         panels.append(
             "\n".join(
                 (
-                    f'<rect x="{x:.1f}" y="122" width="{_PANEL_WIDTH}" height="350" rx="10" class="panel" />',
-                    _svg_text(x + 18, 150, _payload_label(target_size_bytes), "panel-title"),
-                    _svg_text(x + _PANEL_WIDTH - 18, 150, f"{speedup:.2f}x faster", "speedup", "end"),
+                    f'<rect x="{x:.1f}" y="{panel_top:.1f}" width="{_PANEL_WIDTH}" height="{_PANEL_HEIGHT}" rx="10" class="panel" />',
+                    _svg_text(x + 18, panel_top + 28, _payload_label(target_size_bytes), "panel-title"),
+                    _svg_text(x + _PANEL_WIDTH - 18, panel_top + 28, f"{speedup:.2f}x faster", "speedup", "end"),
                     *tick_lines,
                     distributions,
                     labels,
@@ -199,8 +243,11 @@ def render_svg(records: Mapping[int, Mapping[str, Mapping[str, float]]], theme_n
         )
 
     rendered_panels = "\n  ".join(panels)
-    return f'''<svg xmlns="http://www.w3.org/2000/svg" width="{_WIDTH}" height="{_HEIGHT}" viewBox="0 0 {_WIDTH} {_HEIGHT}" role="img" aria-labelledby="title desc">
-  <title id="title">JSON serializer benchmark distributions</title>
+    rows = (len(records) + _COLUMNS - 1) // _COLUMNS
+    height = _PANEL_TOP + rows * _PANEL_HEIGHT + (rows - 1) * _ROW_GAP + 74
+    footer_y = height - 34
+    return f'''<svg xmlns="http://www.w3.org/2000/svg" width="{_WIDTH}" height="{height}" viewBox="0 0 {_WIDTH} {height}" role="img" aria-labelledby="title desc">
+  <title id="title">{_escape(chart["title"])}</title>
   <desc id="desc">Paired stdlib JSON and orjson distributions for three encoded payload sizes. Boxes show the interquartile range, horizontal lines show the median, whiskers show minimum and maximum, and dots show the mean.</desc>
   <style>
     svg {{ background: {theme["background"]}; color: {theme["text"]}; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }}
@@ -216,28 +263,32 @@ def render_svg(records: Mapping[int, Mapping[str, Mapping[str, float]]], theme_n
     .orjson {{ fill: {theme["orjson"]}; }}
   </style>
   <rect width="100%" height="100%" fill="{theme["background"]}" />
-  <text x="40" y="48" class="title">Request-body JSON serialization distribution</text>
+  <text x="40" y="48" class="title">{_escape(chart["title"])}</text>
   <text x="40" y="74" class="subtitle">Box = interquartile range · line = median · whiskers = min/max · dot = mean</text>
   <rect x="985" y="37" width="14" height="14" rx="3" fill="{theme["stdlib"]}" />
   <text x="1007" y="49" class="subtitle">stdlib json</text>
   <rect x="1130" y="37" width="14" height="14" rx="3" fill="{theme["orjson"]}" />
   <text x="1152" y="49" class="subtitle">orjson</text>
   {rendered_panels}
-  <text x="40" y="534" class="subtitle">Synthetic Pydantic chat-style payloads · serializer CPU only · lower is better</text>
+  <text x="40" y="{footer_y}" class="subtitle">{_escape(chart["footer"])}</text>
 </svg>
 '''
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--chart", choices=tuple(_CHARTS), required=True, help="benchmark group to render")
     parser.add_argument("--input", type=Path, required=True, help="pytest-benchmark JSON output")
     parser.add_argument("--output-dir", type=Path, required=True, help="directory for themed SVGs")
     args = parser.parse_args()
-    records = _benchmark_records(cast(Mapping[str, Any], json.loads(args.input.read_text())))
+    chart_kind = cast(ChartKind, args.chart)
+    records = _benchmark_records(
+        cast(Mapping[str, Any], json.loads(args.input.read_text())), _CHARTS[chart_kind]["benchmark_prefix"]
+    )
     args.output_dir.mkdir(parents=True, exist_ok=True)
     for theme_name in _THEMES:
-        output = args.output_dir / f"json-serialization-{theme_name}.svg"
-        output.write_text(render_svg(records, theme_name))
+        output = args.output_dir / f"{chart_kind}-{theme_name}.svg"
+        output.write_text(render_svg(records, theme_name, chart_kind))
 
 
 if __name__ == "__main__":

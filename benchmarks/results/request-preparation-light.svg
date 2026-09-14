@@ -1,0 +1,211 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="922" viewBox="0 0 1320 922" role="img" aria-labelledby="title desc">
+  <title id="title">SDK REST request-preparation distribution</title>
+  <desc id="desc">Paired stdlib JSON and orjson distributions for three encoded payload sizes. Boxes show the interquartile range, horizontal lines show the median, whiskers show minimum and maximum, and dots show the mean.</desc>
+  <style>
+    svg { background: #ffffff; color: #0f172a; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .title { fill: #0f172a; font-size: 25px; font-weight: 700; }
+    .subtitle, .detail, .axis { fill: #475569; font-size: 13px; }
+    .panel { fill: #f8fafc; stroke: #cbd5e1; stroke-width: 1; }
+    .panel-title { fill: #0f172a; font-size: 16px; font-weight: 700; }
+    .speedup { fill: #16a34a; font-size: 15px; font-weight: 700; }
+    .grid { stroke: #cbd5e1; stroke-width: 1; stroke-dasharray: 3 5; }
+    .whisker { stroke: currentColor; stroke-width: 1.5; }
+    .series { font-size: 14px; font-weight: 700; }
+    .stdlib { fill: #2563eb; }
+    .orjson { fill: #16a34a; }
+  </style>
+  <rect width="100%" height="100%" fill="#ffffff" />
+  <text x="40" y="48" class="title">SDK REST request-preparation distribution</text>
+  <text x="40" y="74" class="subtitle">Box = interquartile range · line = median · whiskers = min/max · dot = mean</text>
+  <rect x="985" y="37" width="14" height="14" rx="3" fill="#2563eb" />
+  <text x="1007" y="49" class="subtitle">stdlib json</text>
+  <rect x="1130" y="37" width="14" height="14" rx="3" fill="#16a34a" />
+  <text x="1152" y="49" class="subtitle">orjson</text>
+  <rect x="90.0" y="122.0" width="370" height="350" rx="10" class="panel" />
+<text x="108.0" y="150.0" class="panel-title" text-anchor="start">~1 KB tool/stream payload</text>
+<text x="442.0" y="150.0" class="speedup" text-anchor="end">1.07x faster</text>
+<line x1="90.0" y1="438.0" x2="460.0" y2="438.0" class="grid" />
+<text x="98.0" y="442.0" class="axis" text-anchor="start">47.6 us</text>
+<line x1="90.0" y1="368.0" x2="460.0" y2="368.0" class="grid" />
+<text x="98.0" y="372.0" class="axis" text-anchor="start">49.6 us</text>
+<line x1="90.0" y1="298.0" x2="460.0" y2="298.0" class="grid" />
+<text x="98.0" y="302.0" class="axis" text-anchor="start">51.6 us</text>
+<line x1="90.0" y1="228.0" x2="460.0" y2="228.0" class="grid" />
+<text x="98.0" y="232.0" class="axis" text-anchor="start">53.6 us</text>
+<line x1="90.0" y1="158.0" x2="460.0" y2="158.0" class="grid" />
+<text x="98.0" y="162.0" class="axis" text-anchor="start">55.6 us</text>
+<line x1="208.0" y1="214.8" x2="208.0" y2="230.0" class="whisker" />
+<line x1="208.0" y1="252.7" x2="208.0" y2="266.2" class="whisker" />
+<line x1="186.0" y1="214.8" x2="230.0" y2="214.8" class="whisker" />
+<line x1="186.0" y1="266.2" x2="230.0" y2="266.2" class="whisker" />
+<rect x="156.0" y="230.0" width="104" height="22.7" fill="#2563eb" fill-opacity="0.28" stroke="#2563eb" stroke-width="2" />
+<line x1="156.0" y1="244.1" x2="260.0" y2="244.1" stroke="#2563eb" stroke-width="3" />
+<circle cx="208.0" cy="241.2" r="5" fill="#2563eb" stroke="currentColor" stroke-width="1.5" />
+<line x1="362.0" y1="227.3" x2="362.0" y2="321.2" class="whisker" />
+<line x1="362.0" y1="374.3" x2="362.0" y2="381.2" class="whisker" />
+<line x1="340.0" y1="227.3" x2="384.0" y2="227.3" class="whisker" />
+<line x1="340.0" y1="381.2" x2="384.0" y2="381.2" class="whisker" />
+<rect x="310.0" y="321.2" width="104" height="53.1" fill="#16a34a" fill-opacity="0.28" stroke="#16a34a" stroke-width="2" />
+<line x1="310.0" y1="362.7" x2="414.0" y2="362.7" stroke="#16a34a" stroke-width="3" />
+<circle cx="362.0" cy="348.7" r="5" fill="#16a34a" stroke="currentColor" stroke-width="1.5" />
+<text x="208.0" y="466.0" class="series stdlib" text-anchor="middle">stdlib json</text>
+<text x="362.0" y="466.0" class="series orjson" text-anchor="middle">orjson</text>
+<text x="208.0" y="488.0" class="detail" text-anchor="middle">median 53.1 us</text>
+<text x="362.0" y="488.0" class="detail" text-anchor="middle">median 49.7 us</text>
+  <rect x="480.0" y="122.0" width="370" height="350" rx="10" class="panel" />
+<text x="498.0" y="150.0" class="panel-title" text-anchor="start">~4 KB short request/response</text>
+<text x="832.0" y="150.0" class="speedup" text-anchor="end">1.18x faster</text>
+<line x1="480.0" y1="438.0" x2="850.0" y2="438.0" class="grid" />
+<text x="488.0" y="442.0" class="axis" text-anchor="start">52.3 us</text>
+<line x1="480.0" y1="368.0" x2="850.0" y2="368.0" class="grid" />
+<text x="488.0" y="372.0" class="axis" text-anchor="start">56.0 us</text>
+<line x1="480.0" y1="298.0" x2="850.0" y2="298.0" class="grid" />
+<text x="488.0" y="302.0" class="axis" text-anchor="start">59.6 us</text>
+<line x1="480.0" y1="228.0" x2="850.0" y2="228.0" class="grid" />
+<text x="488.0" y="232.0" class="axis" text-anchor="start">63.3 us</text>
+<line x1="480.0" y1="158.0" x2="850.0" y2="158.0" class="grid" />
+<text x="488.0" y="162.0" class="axis" text-anchor="start">66.9 us</text>
+<line x1="598.0" y1="195.3" x2="598.0" y2="199.9" class="whisker" />
+<line x1="598.0" y1="206.7" x2="598.0" y2="211.9" class="whisker" />
+<line x1="576.0" y1="195.3" x2="620.0" y2="195.3" class="whisker" />
+<line x1="576.0" y1="211.9" x2="620.0" y2="211.9" class="whisker" />
+<rect x="546.0" y="199.9" width="104" height="6.8" fill="#2563eb" fill-opacity="0.28" stroke="#2563eb" stroke-width="2" />
+<line x1="546.0" y1="203.9" x2="650.0" y2="203.9" stroke="#2563eb" stroke-width="3" />
+<circle cx="598.0" cy="203.3" r="5" fill="#2563eb" stroke="currentColor" stroke-width="1.5" />
+<line x1="752.0" y1="378.7" x2="752.0" y2="384.7" class="whisker" />
+<line x1="752.0" y1="394.0" x2="752.0" y2="400.7" class="whisker" />
+<line x1="730.0" y1="378.7" x2="774.0" y2="378.7" class="whisker" />
+<line x1="730.0" y1="400.7" x2="774.0" y2="400.7" class="whisker" />
+<rect x="700.0" y="384.7" width="104" height="9.3" fill="#16a34a" fill-opacity="0.28" stroke="#16a34a" stroke-width="2" />
+<line x1="700.0" y1="389.3" x2="804.0" y2="389.3" stroke="#16a34a" stroke-width="3" />
+<circle cx="752.0" cy="389.2" r="5" fill="#16a34a" stroke="currentColor" stroke-width="1.5" />
+<text x="598.0" y="466.0" class="series stdlib" text-anchor="middle">stdlib json</text>
+<text x="752.0" y="466.0" class="series orjson" text-anchor="middle">orjson</text>
+<text x="598.0" y="488.0" class="detail" text-anchor="middle">median 64.5 us</text>
+<text x="752.0" y="488.0" class="detail" text-anchor="middle">median 54.9 us</text>
+  <rect x="870.0" y="122.0" width="370" height="350" rx="10" class="panel" />
+<text x="888.0" y="150.0" class="panel-title" text-anchor="start">18 KB moderate chat payload</text>
+<text x="1222.0" y="150.0" class="speedup" text-anchor="end">1.56x faster</text>
+<line x1="870.0" y1="438.0" x2="1240.0" y2="438.0" class="grid" />
+<text x="878.0" y="442.0" class="axis" text-anchor="start">67.4 us</text>
+<line x1="870.0" y1="368.0" x2="1240.0" y2="368.0" class="grid" />
+<text x="878.0" y="372.0" class="axis" text-anchor="start">80.9 us</text>
+<line x1="870.0" y1="298.0" x2="1240.0" y2="298.0" class="grid" />
+<text x="878.0" y="302.0" class="axis" text-anchor="start">94.5 us</text>
+<line x1="870.0" y1="228.0" x2="1240.0" y2="228.0" class="grid" />
+<text x="878.0" y="232.0" class="axis" text-anchor="start">108.0 us</text>
+<line x1="870.0" y1="158.0" x2="1240.0" y2="158.0" class="grid" />
+<text x="878.0" y="162.0" class="axis" text-anchor="start">121.5 us</text>
+<line x1="988.0" y1="185.1" x2="988.0" y2="190.8" class="whisker" />
+<line x1="988.0" y1="193.7" x2="988.0" y2="195.0" class="whisker" />
+<line x1="966.0" y1="185.1" x2="1010.0" y2="185.1" class="whisker" />
+<line x1="966.0" y1="195.0" x2="1010.0" y2="195.0" class="whisker" />
+<rect x="936.0" y="190.8" width="104" height="3.0" fill="#2563eb" fill-opacity="0.28" stroke="#2563eb" stroke-width="2" />
+<line x1="936.0" y1="191.8" x2="1040.0" y2="191.8" stroke="#2563eb" stroke-width="3" />
+<circle cx="988.0" cy="191.7" r="5" fill="#2563eb" stroke="currentColor" stroke-width="1.5" />
+<line x1="1142.0" y1="393.1" x2="1142.0" y2="402.3" class="whisker" />
+<line x1="1142.0" y1="406.2" x2="1142.0" y2="410.9" class="whisker" />
+<line x1="1120.0" y1="393.1" x2="1164.0" y2="393.1" class="whisker" />
+<line x1="1120.0" y1="410.9" x2="1164.0" y2="410.9" class="whisker" />
+<rect x="1090.0" y="402.3" width="104" height="4.0" fill="#16a34a" fill-opacity="0.28" stroke="#16a34a" stroke-width="2" />
+<line x1="1090.0" y1="405.3" x2="1194.0" y2="405.3" stroke="#16a34a" stroke-width="3" />
+<circle cx="1142.0" cy="404.2" r="5" fill="#16a34a" stroke="currentColor" stroke-width="1.5" />
+<text x="988.0" y="466.0" class="series stdlib" text-anchor="middle">stdlib json</text>
+<text x="1142.0" y="466.0" class="series orjson" text-anchor="middle">orjson</text>
+<text x="988.0" y="488.0" class="detail" text-anchor="middle">median 114.9 us</text>
+<text x="1142.0" y="488.0" class="detail" text-anchor="middle">median 73.8 us</text>
+  <rect x="90.0" y="498.0" width="370" height="350" rx="10" class="panel" />
+<text x="108.0" y="526.0" class="panel-title" text-anchor="start">64 KB medium context payload</text>
+<text x="442.0" y="526.0" class="speedup" text-anchor="end">1.99x faster</text>
+<line x1="90.0" y1="814.0" x2="460.0" y2="814.0" class="grid" />
+<text x="98.0" y="818.0" class="axis" text-anchor="start">118.1 us</text>
+<line x1="90.0" y1="744.0" x2="460.0" y2="744.0" class="grid" />
+<text x="98.0" y="748.0" class="axis" text-anchor="start">162.1 us</text>
+<line x1="90.0" y1="674.0" x2="460.0" y2="674.0" class="grid" />
+<text x="98.0" y="678.0" class="axis" text-anchor="start">206.2 us</text>
+<line x1="90.0" y1="604.0" x2="460.0" y2="604.0" class="grid" />
+<text x="98.0" y="608.0" class="axis" text-anchor="start">250.3 us</text>
+<line x1="90.0" y1="534.0" x2="460.0" y2="534.0" class="grid" />
+<text x="98.0" y="538.0" class="axis" text-anchor="start">294.4 us</text>
+<line x1="208.0" y1="561.1" x2="208.0" y2="566.7" class="whisker" />
+<line x1="208.0" y1="569.1" x2="208.0" y2="571.3" class="whisker" />
+<line x1="186.0" y1="561.1" x2="230.0" y2="561.1" class="whisker" />
+<line x1="186.0" y1="571.3" x2="230.0" y2="571.3" class="whisker" />
+<rect x="156.0" y="566.7" width="104" height="2.4" fill="#2563eb" fill-opacity="0.28" stroke="#2563eb" stroke-width="2" />
+<line x1="156.0" y1="568.2" x2="260.0" y2="568.2" stroke="#2563eb" stroke-width="3" />
+<circle cx="208.0" cy="567.7" r="5" fill="#2563eb" stroke="currentColor" stroke-width="1.5" />
+<line x1="362.0" y1="776.8" x2="362.0" y2="781.9" class="whisker" />
+<line x1="362.0" y1="784.8" x2="362.0" y2="786.9" class="whisker" />
+<line x1="340.0" y1="776.8" x2="384.0" y2="776.8" class="whisker" />
+<line x1="340.0" y1="786.9" x2="384.0" y2="786.9" class="whisker" />
+<rect x="310.0" y="781.9" width="104" height="3.0" fill="#16a34a" fill-opacity="0.28" stroke="#16a34a" stroke-width="2" />
+<line x1="310.0" y1="784.0" x2="414.0" y2="784.0" stroke="#16a34a" stroke-width="3" />
+<circle cx="362.0" cy="783.3" r="5" fill="#16a34a" stroke="currentColor" stroke-width="1.5" />
+<text x="208.0" y="842.0" class="series stdlib" text-anchor="middle">stdlib json</text>
+<text x="362.0" y="842.0" class="series orjson" text-anchor="middle">orjson</text>
+<text x="208.0" y="864.0" class="detail" text-anchor="middle">median 272.9 us</text>
+<text x="362.0" y="864.0" class="detail" text-anchor="middle">median 137.0 us</text>
+  <rect x="480.0" y="498.0" width="370" height="350" rx="10" class="panel" />
+<text x="498.0" y="526.0" class="panel-title" text-anchor="start">289 KB RAG context payload</text>
+<text x="832.0" y="526.0" class="speedup" text-anchor="end">2.42x faster</text>
+<line x1="480.0" y1="814.0" x2="850.0" y2="814.0" class="grid" />
+<text x="488.0" y="818.0" class="axis" text-anchor="start">350.1 us</text>
+<line x1="480.0" y1="744.0" x2="850.0" y2="744.0" class="grid" />
+<text x="488.0" y="748.0" class="axis" text-anchor="start">547.2 us</text>
+<line x1="480.0" y1="674.0" x2="850.0" y2="674.0" class="grid" />
+<text x="488.0" y="678.0" class="axis" text-anchor="start">744.2 us</text>
+<line x1="480.0" y1="604.0" x2="850.0" y2="604.0" class="grid" />
+<text x="488.0" y="608.0" class="axis" text-anchor="start">941.3 us</text>
+<line x1="480.0" y1="534.0" x2="850.0" y2="534.0" class="grid" />
+<text x="488.0" y="538.0" class="axis" text-anchor="start">1.14 ms</text>
+<line x1="598.0" y1="561.1" x2="598.0" y2="564.6" class="whisker" />
+<line x1="598.0" y1="566.3" x2="598.0" y2="567.5" class="whisker" />
+<line x1="576.0" y1="561.1" x2="620.0" y2="561.1" class="whisker" />
+<line x1="576.0" y1="567.5" x2="620.0" y2="567.5" class="whisker" />
+<rect x="546.0" y="564.6" width="104" height="1.7" fill="#2563eb" fill-opacity="0.28" stroke="#2563eb" stroke-width="2" />
+<line x1="546.0" y1="565.5" x2="650.0" y2="565.5" stroke="#2563eb" stroke-width="3" />
+<circle cx="598.0" cy="565.3" r="5" fill="#2563eb" stroke="currentColor" stroke-width="1.5" />
+<line x1="752.0" y1="780.8" x2="752.0" y2="783.6" class="whisker" />
+<line x1="752.0" y1="785.2" x2="752.0" y2="786.9" class="whisker" />
+<line x1="730.0" y1="780.8" x2="774.0" y2="780.8" class="whisker" />
+<line x1="730.0" y1="786.9" x2="774.0" y2="786.9" class="whisker" />
+<rect x="700.0" y="783.6" width="104" height="1.6" fill="#16a34a" fill-opacity="0.28" stroke="#16a34a" stroke-width="2" />
+<line x1="700.0" y1="784.4" x2="804.0" y2="784.4" stroke="#16a34a" stroke-width="3" />
+<circle cx="752.0" cy="784.3" r="5" fill="#16a34a" stroke="currentColor" stroke-width="1.5" />
+<text x="598.0" y="842.0" class="series stdlib" text-anchor="middle">stdlib json</text>
+<text x="752.0" y="842.0" class="series orjson" text-anchor="middle">orjson</text>
+<text x="598.0" y="864.0" class="detail" text-anchor="middle">median 1.05 ms</text>
+<text x="752.0" y="864.0" class="detail" text-anchor="middle">median 433.4 us</text>
+  <rect x="870.0" y="498.0" width="370" height="350" rx="10" class="panel" />
+<text x="888.0" y="526.0" class="panel-title" text-anchor="start">1.13 MB large context payload</text>
+<text x="1222.0" y="526.0" class="speedup" text-anchor="end">2.56x faster</text>
+<line x1="870.0" y1="814.0" x2="1240.0" y2="814.0" class="grid" />
+<text x="878.0" y="818.0" class="axis" text-anchor="start">1.20 ms</text>
+<line x1="870.0" y1="744.0" x2="1240.0" y2="744.0" class="grid" />
+<text x="878.0" y="748.0" class="axis" text-anchor="start">1.98 ms</text>
+<line x1="870.0" y1="674.0" x2="1240.0" y2="674.0" class="grid" />
+<text x="878.0" y="678.0" class="axis" text-anchor="start">2.76 ms</text>
+<line x1="870.0" y1="604.0" x2="1240.0" y2="604.0" class="grid" />
+<text x="878.0" y="608.0" class="axis" text-anchor="start">3.53 ms</text>
+<line x1="870.0" y1="534.0" x2="1240.0" y2="534.0" class="grid" />
+<text x="878.0" y="538.0" class="axis" text-anchor="start">4.31 ms</text>
+<line x1="988.0" y1="561.1" x2="988.0" y2="567.2" class="whisker" />
+<line x1="988.0" y1="570.6" x2="988.0" y2="571.4" class="whisker" />
+<line x1="966.0" y1="561.1" x2="1010.0" y2="561.1" class="whisker" />
+<line x1="966.0" y1="571.4" x2="1010.0" y2="571.4" class="whisker" />
+<rect x="936.0" y="567.2" width="104" height="3.3" fill="#2563eb" fill-opacity="0.28" stroke="#2563eb" stroke-width="2" />
+<line x1="936.0" y1="568.6" x2="1040.0" y2="568.6" stroke="#2563eb" stroke-width="3" />
+<circle cx="988.0" cy="568.6" r="5" fill="#2563eb" stroke="currentColor" stroke-width="1.5" />
+<line x1="1142.0" y1="782.1" x2="1142.0" y2="783.2" class="whisker" />
+<line x1="1142.0" y1="785.2" x2="1142.0" y2="786.9" class="whisker" />
+<line x1="1120.0" y1="782.1" x2="1164.0" y2="782.1" class="whisker" />
+<line x1="1120.0" y1="786.9" x2="1164.0" y2="786.9" class="whisker" />
+<rect x="1090.0" y="783.2" width="104" height="2.0" fill="#16a34a" fill-opacity="0.28" stroke="#16a34a" stroke-width="2" />
+<line x1="1090.0" y1="784.0" x2="1194.0" y2="784.0" stroke="#16a34a" stroke-width="3" />
+<circle cx="1142.0" cy="784.2" r="5" fill="#16a34a" stroke="currentColor" stroke-width="1.5" />
+<text x="988.0" y="842.0" class="series stdlib" text-anchor="middle">stdlib json</text>
+<text x="1142.0" y="842.0" class="series orjson" text-anchor="middle">orjson</text>
+<text x="988.0" y="864.0" class="detail" text-anchor="middle">median 3.93 ms</text>
+<text x="1142.0" y="864.0" class="detail" text-anchor="middle">median 1.54 ms</text>
+  <text x="40" y="888" class="subtitle">Same outbound path used to start REST and streaming requests · excludes network and SSE parsing · lower is better</text>
+</svg>
