@@ -147,6 +147,59 @@ def test_shared_sigv4_fixture_matches_node(monkeypatch: pytest.MonkeyPatch) -> N
     assert signed_headers["x-amz-date"] == fixture["expected"]["date"]
 
 
+# Volatile transport headers that intermediaries may add or rewrite in transit.
+# These must be excluded from the SigV4 signature (but left on the request) so a
+# rewrite does not cause a signature mismatch. Mirrors botocore's
+# SIGNED_HEADERS_BLACKLIST and the AWS SigV4 guidance:
+# https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_sigv-create-signed-request.html
+_UNSIGNED_TRANSPORT_HEADERS = [
+    "connection",
+    "expect",
+    "keep-alive",
+    "proxy-authenticate",
+    "proxy-authorization",
+    "te",
+    "trailer",
+    "transfer-encoding",
+    "upgrade",
+    "user-agent",
+    "x-amzn-trace-id",
+]
+
+
+@pytest.mark.parametrize("header_name", _UNSIGNED_TRANSPORT_HEADERS)
+def test_sign_excludes_volatile_transport_header(header_name: str) -> None:
+    auth = BedrockAwsAuth(
+        BedrockAwsAuthConfig(
+            region="us-east-1",
+            source="static",
+            access_key_id="AKIDEXAMPLE",
+            secret_access_key="wJalrXUtnFEMI/K7MDENG+bPxRfiCYEXAMPLEKEY",
+            session_token="session-token",
+        )
+    )
+    # Send the header with a mixed-case name to exercise case-insensitive matching.
+    mixed_case_name = header_name.title()
+    result = auth.sign(
+        method="POST",
+        url="https://bedrock-mantle.us-east-1.api.aws/openai/v1/responses",
+        headers={
+            "content-type": "application/json",
+            "host": "bedrock-mantle.us-east-1.api.aws",
+            mixed_case_name: "example-value",
+        },
+        body=b"{}",
+    )
+    signed_headers = _lower_headers(result)
+    signed_header_names = signed_headers["authorization"].split("SignedHeaders=", 1)[1].split(",", 1)[0].split(";")
+
+    # Excluded from the signature so an intermediary rewriting it cannot break signing.
+    assert header_name not in signed_header_names
+    # But preserved on the outgoing request (unsigned), matching botocore's behavior.
+    assert header_name in signed_headers
+    assert signed_headers[header_name] == "example-value"
+
+
 @pytest.mark.parametrize("case", _cases("auth_selection"), ids=lambda case: case["id"])
 def test_auth_selection_fixture(case: dict[str, Any], monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("AWS_BEARER_TOKEN_BEDROCK", raising=False)
