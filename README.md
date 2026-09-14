@@ -810,7 +810,9 @@ You can enable logging by setting the environment variable `OPENAI_LOG` to `info
 $ export OPENAI_LOG=info
 ```
 
-Or to `debug` for more verbose logging.
+Or to `debug` for more verbose logging. Set it to `warning`, `error`, or `critical`
+to show only messages at that level or higher. `OPENAI_LOG` configures the `openai`
+logger; configure HTTP transport loggers separately using Python logging.
 
 ### How to tell whether `None` means `null` or missing
 
