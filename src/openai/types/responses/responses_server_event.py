@@ -16,7 +16,10 @@ from .response_text_delta_event import ResponseTextDeltaEvent
 from .response_audio_delta_event import ResponseAudioDeltaEvent
 from .response_in_progress_event import ResponseInProgressEvent
 from .response_refusal_done_event import ResponseRefusalDoneEvent
+from .response_steer_failed_event import ResponseSteerFailedEvent
 from .response_refusal_delta_event import ResponseRefusalDeltaEvent
+from .response_steer_pending_event import ResponseSteerPendingEvent
+from .response_steer_accepted_event import ResponseSteerAcceptedEvent
 from .response_mcp_call_failed_event import ResponseMcpCallFailedEvent
 from .response_output_item_done_event import ResponseOutputItemDoneEvent
 from .response_content_part_done_event import ResponseContentPartDoneEvent
@@ -124,6 +127,8 @@ __all__ = [
     "ResponseCustomToolCallInputWsDone",
     "ResponseWsError",
     "ResponseWsErrorError",
+    "ResponseWsErrorErrorMisalignment",
+    "ResponseWsErrorErrorMisalignmentSteer",
 ]
 
 
@@ -403,7 +408,12 @@ class ResponseWsFailed(ResponseFailedEvent):
 
 
 class ResponseWsIncomplete(ResponseIncompleteEvent):
-    """An event that is emitted when a response finishes as incomplete."""
+    """An event that is emitted when a response finishes as incomplete.
+
+    Over WebSocket, steering can finish a response with
+    `response.incomplete_details.reason` set to `steered`, followed automatically
+    by a successor `response.created` that commits the queued steering input.
+    """
 
     stream_id: Optional[str] = None
     """The WebSocket lane that emitted this event.
@@ -762,6 +772,33 @@ class ResponseCustomToolCallInputWsDone(ResponseCustomToolCallInputDoneEvent):
     """
 
 
+class ResponseWsErrorErrorMisalignmentSteer(BaseModel):
+    """An optional public continuation instruction."""
+
+    message: str
+    """The public continuation instruction."""
+
+
+class ResponseWsErrorErrorMisalignment(BaseModel):
+    detailed_explanation: Optional[str] = None
+    """The public explanation for this block."""
+
+    error_type: Union[
+        str,
+        Literal[
+            "potentially_unintended_data_transfer",
+            "potentially_unintended_data_access",
+            "potentially_unintended_destructive_activity",
+            "other",
+        ],
+        None,
+    ] = None
+    """An optional classification; clients must accept additional values."""
+
+    steer: Optional[ResponseWsErrorErrorMisalignmentSteer] = None
+    """An optional public continuation instruction."""
+
+
 class ResponseWsErrorError(BaseModel):
     """Details about the error."""
 
@@ -779,6 +816,8 @@ class ResponseWsErrorError(BaseModel):
 
     headers: Optional[Dict[str, str]] = None
     """The response headers that were emitted with the error, if any."""
+
+    misalignment: Optional[ResponseWsErrorErrorMisalignment] = None
 
 
 class ResponseWsError(BaseModel):
@@ -864,6 +903,9 @@ ResponsesServerEvent: TypeAlias = Annotated[
         ResponseCustomToolCallInputWsDelta,
         ResponseCustomToolCallInputWsDone,
         ResponseWsError,
+        ResponseSteerAcceptedEvent,
+        ResponseSteerPendingEvent,
+        ResponseSteerFailedEvent,
     ],
     PropertyInfo(discriminator="type"),
 ]

@@ -15,11 +15,14 @@ from openai.types.webhooks import (
     FineTuningJobFailedWebhookEvent,
     FineTuningJobSucceededWebhookEvent,
     LiveCallIncomingWebhookEvent,
+    LiveTransportIncomingWebhookEvent,
     RealtimeCallIncomingWebhookEvent,
     ResponseCancelledWebhookEvent,
     ResponseCompletedWebhookEvent,
     ResponseFailedWebhookEvent,
     ResponseIncompleteWebhookEvent,
+    SafetyAlertCreatedWebhookEvent,
+    SafetyOrgAlertCreatedWebhookEvent,
     UnwrapWebhookEvent,
 )
 ```

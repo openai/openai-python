@@ -1,6 +1,6 @@
 # File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
-from typing import List, Optional
+from typing import List, Union, Optional
 from typing_extensions import Literal
 
 from .image import Image
@@ -66,14 +66,14 @@ class ImagesResponse(BaseModel):
     output_format: Optional[Literal["png", "webp", "jpeg"]] = None
     """The output format of the image generation. Either `png`, `webp`, or `jpeg`."""
 
-    quality: Optional[Literal["low", "medium", "high"]] = None
-    """The quality of the image generated. Either `low`, `medium`, or `high`."""
+    quality: Optional[Literal["low", "medium", "high", "xhigh", "max"]] = None
+    """The quality of the image generated.
 
-    size: Optional[Literal["1024x1024", "1024x1536", "1536x1024"]] = None
-    """The size of the image generated.
-
-    Either `1024x1024`, `1024x1536`, or `1536x1024`.
+    One of `low`, `medium`, `high`, `xhigh`, or `max`.
     """
+
+    size: Union[str, Literal["1024x1024", "1024x1536", "1536x1024"], None] = None
+    """The image dimensions as a `WIDTHxHEIGHT` string, for example `1536x864`."""
 
     usage: Optional[Usage] = None
     """For `gpt-image-1` only, the token usage information for the image generation."""

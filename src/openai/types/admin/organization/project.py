@@ -4,6 +4,7 @@ from typing import Optional
 from typing_extensions import Literal
 
 from ...._models import BaseModel
+from .project_residency import ProjectResidency
 
 __all__ = ["Project"]
 
@@ -28,6 +29,9 @@ class Project(BaseModel):
 
     name: Optional[str] = None
     """The name of the project. This appears in reporting."""
+
+    residency: Optional[ProjectResidency] = None
+    """The residency configuration for the project."""
 
     status: Optional[str] = None
     """`active` or `archived`"""
