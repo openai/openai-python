@@ -98,21 +98,36 @@ def test_client_copying_override_options(client: Client) -> None:
     ],
 )
 @pytest.mark.parametrize("method", ["copy", "with_options"])
-def test_copy_preserves_deployment_routing(client: Client, method: Literal["copy", "with_options"]) -> None:
-    copied = client.copy() if method == "copy" else client.with_options()
+@pytest.mark.parametrize("base_url", [None, "https://replacement.example.test/gateway"])
+async def test_copy_preserves_deployment_routing(
+    client: Client, method: Literal["copy", "with_options"], base_url: str | None
+) -> None:
+    copied = (
+        client.copy(timeout=5, base_url=base_url)
+        if method == "copy"
+        else client.with_options(timeout=5, base_url=base_url)
+    )
+    copied = copied.with_options(max_retries=0)
+    root = base_url or "https://example-resource.azure.openai.com/openai"
+    deployment = "body-model" if base_url else "deployment-client"
 
-    # a non-deployment endpoint must not be nested under `/deployments/<deployment>/`
-    req = copied._build_request(FinalRequestOptions.construct(method="get", url="/models", json_data={}))
-    assert req.url == "https://example-resource.azure.openai.com/openai/models?api-version=2024-02-01"
-
-    # a deployment endpoint must keep the deployment path
+    # Non-deployment endpoints use the root; deployment endpoints retain their routing.
+    req = copied._build_request(FinalRequestOptions.construct(method="get", url="/models"))
+    assert req.url == root + "/models?api-version=2024-02-01"
     req = copied._build_request(
-        FinalRequestOptions.construct(method="post", url="/chat/completions", json_data={"model": "ignored"})
+        FinalRequestOptions.construct(method="post", url="/chat/completions", json_data={"model": "body-model"})
     )
-    assert req.url == (
-        "https://example-resource.azure.openai.com/openai/deployments/deployment-client"
-        "/chat/completions?api-version=2024-02-01"
-    )
+    assert req.url == root + f"/deployments/{deployment}/chat/completions?api-version=2024-02-01"
+
+    if isinstance(copied, AsyncAzureOpenAI):
+        url, headers = await copied._configure_realtime("body-model", {})
+    else:
+        url, headers = copied._configure_realtime("body-model", {})
+    assert url == root.replace("https://", "wss://") + (f"/realtime?api-version=2024-02-01&deployment={deployment}")
+    assert headers == {"api-key": "example API key"}
+
+    # Changing a copy's destination must not change the original client.
+    assert client._prepare_url("/models") == "https://example-resource.azure.openai.com/openai/models"
 
 
 @pytest.mark.parametrize("client", [sync_client, async_client])
