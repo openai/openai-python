@@ -341,13 +341,7 @@ def _token_exchange_request(
     )
 
 
-def _retry_delay(
-    response: httpx2.Response | None,
-    attempt: int,
-    *,
-    initial_retry_delay: float = INITIAL_RETRY_DELAY,
-    max_retry_delay: float = MAX_RETRY_DELAY,
-) -> float | None:
+def _retry_delay(response: httpx2.Response | None, attempt: int) -> float | None:
     if response is not None:
         should_retry = response.headers.get("x-should-retry")
         if response.status_code in (400, 401, 403) or should_retry == "false":
@@ -382,7 +376,7 @@ def _retry_delay(
             if delay > MAX_RETRY_AFTER_DELAY:
                 return None
 
-    return float(min(initial_retry_delay * 2**attempt, max_retry_delay))
+    return float(min(INITIAL_RETRY_DELAY * 2**attempt, MAX_RETRY_DELAY))
 
 
 def _is_replayable_request(request: httpx2.Request) -> bool:
@@ -440,28 +434,11 @@ def _raise_transport_error(error: Exception, *, request: httpx2.Request) -> NoRe
 
 
 class _X509WorkloadIdentityAuth(_WorkloadIdentityAuth[X509WorkloadIdentity]):
-    def __init__(
-        self,
-        *,
-        workload_identity: X509WorkloadIdentity,
-        max_retries: int,
-        initial_retry_delay: float = INITIAL_RETRY_DELAY,
-        max_retry_delay: float = MAX_RETRY_DELAY,
-    ) -> None:
+    def __init__(self, *, workload_identity: X509WorkloadIdentity, max_retries: int) -> None:
         _validate_identity(workload_identity)
         super().__init__(workload_identity=workload_identity, token_exchange_url=_X509_TOKEN_EXCHANGE_URL)
         self._max_exchange_retries = min(max(max_retries, 0), _MAX_EXCHANGE_RETRIES)
-        self.initial_retry_delay = initial_retry_delay
-        self.max_retry_delay = max_retry_delay
         self._follow_redirects = False
-
-    def _retry_delay(self, response: httpx2.Response | None, attempt: int) -> float | None:
-        return _retry_delay(
-            response,
-            attempt,
-            initial_retry_delay=self.initial_retry_delay,
-            max_retry_delay=self.max_retry_delay,
-        )
 
     @override
     def _handle_token_response(self, response: httpx2.Response) -> dict[str, Any]:
@@ -545,20 +522,9 @@ class SyncX509WorkloadIdentityAuth(_X509WorkloadIdentityAuth):
     _http_client: httpx2.Client
 
     def __init__(
-        self,
-        *,
-        workload_identity: X509WorkloadIdentity,
-        http_client: httpx2.Client,
-        max_retries: int,
-        initial_retry_delay: float = INITIAL_RETRY_DELAY,
-        max_retry_delay: float = MAX_RETRY_DELAY,
+        self, *, workload_identity: X509WorkloadIdentity, http_client: httpx2.Client, max_retries: int
     ) -> None:
-        super().__init__(
-            workload_identity=workload_identity,
-            max_retries=max_retries,
-            initial_retry_delay=initial_retry_delay,
-            max_retry_delay=max_retry_delay,
-        )
+        super().__init__(workload_identity=workload_identity, max_retries=max_retries)
         self._http_client = http_client
 
     def send_api_request(
@@ -609,9 +575,9 @@ class SyncX509WorkloadIdentityAuth(_X509WorkloadIdentityAuth):
             except _transport_errors() as error:
                 if attempt >= self._max_exchange_retries:
                     _raise_transport_error(error, request=exchange_request)
-                delay = self._retry_delay(None, attempt)
+                delay = _retry_delay(None, attempt)
             else:
-                delay = self._retry_delay(response, attempt)
+                delay = _retry_delay(response, attempt)
                 if attempt >= self._max_exchange_retries or delay is None:
                     return self._handle_exchange_response(response)
 
@@ -625,20 +591,9 @@ class AsyncX509WorkloadIdentityAuth(_X509WorkloadIdentityAuth):
     _http_client: httpx2.AsyncClient
 
     def __init__(
-        self,
-        *,
-        workload_identity: X509WorkloadIdentity,
-        http_client: httpx2.AsyncClient,
-        max_retries: int,
-        initial_retry_delay: float = INITIAL_RETRY_DELAY,
-        max_retry_delay: float = MAX_RETRY_DELAY,
+        self, *, workload_identity: X509WorkloadIdentity, http_client: httpx2.AsyncClient, max_retries: int
     ) -> None:
-        super().__init__(
-            workload_identity=workload_identity,
-            max_retries=max_retries,
-            initial_retry_delay=initial_retry_delay,
-            max_retry_delay=max_retry_delay,
-        )
+        super().__init__(workload_identity=workload_identity, max_retries=max_retries)
         self._http_client = http_client
         self._async_lock = anyio.Lock()
 
@@ -707,9 +662,9 @@ class AsyncX509WorkloadIdentityAuth(_X509WorkloadIdentityAuth):
             except _transport_errors() as error:
                 if attempt >= self._max_exchange_retries:
                     _raise_transport_error(error, request=exchange_request)
-                delay = self._retry_delay(None, attempt)
+                delay = _retry_delay(None, attempt)
             else:
-                delay = self._retry_delay(response, attempt)
+                delay = _retry_delay(response, attempt)
                 if attempt >= self._max_exchange_retries or delay is None:
                     return self._handle_exchange_response(response)
 

@@ -33,7 +33,6 @@ from ._httpx2 import normalize_httpx_url, is_httpx2_sync_client, is_httpx2_async
 from ._models import SecurityOptions, FinalRequestOptions
 from ._version import __version__
 from ._provider import _Provider, _provider_name, _ProviderRuntime, _configure_provider
-from ._constants import MAX_RETRY_DELAY, INITIAL_RETRY_DELAY
 from ._streaming import Stream as Stream, AsyncStream as AsyncStream
 from .auth._x509 import (
     MTLS_API_BASE_URL,
@@ -174,8 +173,6 @@ class OpenAI(SyncAPIClient):
         websocket_base_url: str | httpx2.URL | None = None,
         timeout: float | Timeout | None | NotGiven = not_given,
         max_retries: int = DEFAULT_MAX_RETRIES,
-        initial_retry_delay: float = INITIAL_RETRY_DELAY,
-        max_retry_delay: float = MAX_RETRY_DELAY,
         default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
         # Configure a custom httpx2 client.
@@ -338,8 +335,6 @@ class OpenAI(SyncAPIClient):
             version=__version__,
             base_url=base_url,
             max_retries=max_retries,
-            initial_retry_delay=initial_retry_delay,
-            max_retry_delay=max_retry_delay,
             timeout=timeout,
             http_client=http_client,
             custom_headers=default_headers,
@@ -349,11 +344,7 @@ class OpenAI(SyncAPIClient):
 
         if x509_identity is not None:
             self._workload_identity_auth = SyncX509WorkloadIdentityAuth(
-                workload_identity=x509_identity.copy(),
-                http_client=self._client,
-                max_retries=max_retries,
-                initial_retry_delay=initial_retry_delay,
-                max_retry_delay=max_retry_delay,
+                workload_identity=x509_identity.copy(), http_client=self._client, max_retries=max_retries
             )
         elif subject_token_identity is not None:
             self._workload_identity_auth = WorkloadIdentityAuth(
@@ -716,8 +707,6 @@ class OpenAI(SyncAPIClient):
         timeout: float | Timeout | None | NotGiven = not_given,
         http_client: httpx2.Client | None = None,
         max_retries: int | NotGiven = not_given,
-        initial_retry_delay: float | NotGiven = not_given,
-        max_retry_delay: float | NotGiven = not_given,
         default_headers: Mapping[str, str] | None = None,
         set_default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
@@ -826,12 +815,6 @@ class OpenAI(SyncAPIClient):
             **auth_options,
             **_extra_kwargs,
         )
-        copied.initial_retry_delay = initial_retry_delay if is_given(initial_retry_delay) else self.initial_retry_delay
-        copied.max_retry_delay = max_retry_delay if is_given(max_retry_delay) else self.max_retry_delay
-        copied._validate_retry_options(copied.max_retries)
-        if isinstance(copied._workload_identity_auth, SyncX509WorkloadIdentityAuth):
-            copied._workload_identity_auth.initial_retry_delay = copied.initial_retry_delay
-            copied._workload_identity_auth.max_retry_delay = copied.max_retry_delay
         if preserve_default_base_url:
             copied._base_url_was_default = True
         overridden_authorizations = default_headers if default_headers is not None else set_default_headers
@@ -944,8 +927,6 @@ class AsyncOpenAI(AsyncAPIClient):
         websocket_base_url: str | httpx2.URL | None = None,
         timeout: float | Timeout | None | NotGiven = not_given,
         max_retries: int = DEFAULT_MAX_RETRIES,
-        initial_retry_delay: float = INITIAL_RETRY_DELAY,
-        max_retry_delay: float = MAX_RETRY_DELAY,
         default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
         # Configure a custom httpx2 client.
@@ -1108,8 +1089,6 @@ class AsyncOpenAI(AsyncAPIClient):
             version=__version__,
             base_url=base_url,
             max_retries=max_retries,
-            initial_retry_delay=initial_retry_delay,
-            max_retry_delay=max_retry_delay,
             timeout=timeout,
             http_client=http_client,
             custom_headers=default_headers,
@@ -1119,11 +1098,7 @@ class AsyncOpenAI(AsyncAPIClient):
 
         if x509_identity is not None:
             self._workload_identity_auth = AsyncX509WorkloadIdentityAuth(
-                workload_identity=x509_identity.copy(),
-                http_client=self._client,
-                max_retries=max_retries,
-                initial_retry_delay=initial_retry_delay,
-                max_retry_delay=max_retry_delay,
+                workload_identity=x509_identity.copy(), http_client=self._client, max_retries=max_retries
             )
         elif subject_token_identity is not None:
             self._workload_identity_auth = WorkloadIdentityAuth(
@@ -1499,8 +1474,6 @@ class AsyncOpenAI(AsyncAPIClient):
         timeout: float | Timeout | None | NotGiven = not_given,
         http_client: httpx2.AsyncClient | None = None,
         max_retries: int | NotGiven = not_given,
-        initial_retry_delay: float | NotGiven = not_given,
-        max_retry_delay: float | NotGiven = not_given,
         default_headers: Mapping[str, str] | None = None,
         set_default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
@@ -1608,12 +1581,6 @@ class AsyncOpenAI(AsyncAPIClient):
             **auth_options,
             **_extra_kwargs,
         )
-        copied.initial_retry_delay = initial_retry_delay if is_given(initial_retry_delay) else self.initial_retry_delay
-        copied.max_retry_delay = max_retry_delay if is_given(max_retry_delay) else self.max_retry_delay
-        copied._validate_retry_options(copied.max_retries)
-        if isinstance(copied._workload_identity_auth, AsyncX509WorkloadIdentityAuth):
-            copied._workload_identity_auth.initial_retry_delay = copied.initial_retry_delay
-            copied._workload_identity_auth.max_retry_delay = copied.max_retry_delay
         if preserve_default_base_url:
             copied._base_url_was_default = True
         overridden_authorizations = default_headers if default_headers is not None else set_default_headers

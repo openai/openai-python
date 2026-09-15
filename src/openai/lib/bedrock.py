@@ -16,7 +16,6 @@ from .._client import OpenAI, AsyncOpenAI
 from .._httpx2 import normalize_httpx_url
 from .._models import FinalRequestOptions
 from .._provider import _Provider, _configure_provider
-from .._constants import MAX_RETRY_DELAY, INITIAL_RETRY_DELAY
 from .._exceptions import OpenAIError
 from .._base_client import DEFAULT_MAX_RETRIES
 from .._data_residency import DataResidency
@@ -437,8 +436,6 @@ class BedrockOpenAI(OpenAI):
         websocket_base_url: str | httpx2.URL | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
         max_retries: int = DEFAULT_MAX_RETRIES,
-        initial_retry_delay: float = INITIAL_RETRY_DELAY,
-        max_retry_delay: float = MAX_RETRY_DELAY,
         default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
         http_client: httpx2.Client | None = None,
@@ -476,8 +473,6 @@ class BedrockOpenAI(OpenAI):
             websocket_base_url=websocket_base_url,
             timeout=timeout,
             max_retries=max_retries,
-            initial_retry_delay=initial_retry_delay,
-            max_retry_delay=max_retry_delay,
             default_headers=default_headers,
             default_query=default_query,
             http_client=http_client,
@@ -560,8 +555,6 @@ class BedrockOpenAI(OpenAI):
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
         http_client: httpx2.Client | None = None,
         max_retries: int | NotGiven = NOT_GIVEN,
-        initial_retry_delay: float | NotGiven = NOT_GIVEN,
-        max_retry_delay: float | NotGiven = NOT_GIVEN,
         default_headers: Mapping[str, str] | None = None,
         set_default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
@@ -646,11 +639,7 @@ class BedrockOpenAI(OpenAI):
                 for name, value in constructor_kwargs.items()
                 if value is not None or _constructor_accepts_keyword(self.__class__.__init__, name)
             }
-        copied = self.__class__(**constructor_kwargs)
-        copied.initial_retry_delay = initial_retry_delay if is_given(initial_retry_delay) else self.initial_retry_delay
-        copied.max_retry_delay = max_retry_delay if is_given(max_retry_delay) else self.max_retry_delay
-        copied._validate_retry_options(copied.max_retries)
-        return copied
+        return self.__class__(**constructor_kwargs)
 
     with_options = copy
 
@@ -683,8 +672,6 @@ class AsyncBedrockOpenAI(AsyncOpenAI):
         websocket_base_url: str | httpx2.URL | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
         max_retries: int = DEFAULT_MAX_RETRIES,
-        initial_retry_delay: float = INITIAL_RETRY_DELAY,
-        max_retry_delay: float = MAX_RETRY_DELAY,
         default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
         http_client: httpx2.AsyncClient | None = None,
@@ -722,8 +709,6 @@ class AsyncBedrockOpenAI(AsyncOpenAI):
             websocket_base_url=websocket_base_url,
             timeout=timeout,
             max_retries=max_retries,
-            initial_retry_delay=initial_retry_delay,
-            max_retry_delay=max_retry_delay,
             default_headers=default_headers,
             default_query=default_query,
             http_client=http_client,
@@ -808,8 +793,6 @@ class AsyncBedrockOpenAI(AsyncOpenAI):
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
         http_client: httpx2.AsyncClient | None = None,
         max_retries: int | NotGiven = NOT_GIVEN,
-        initial_retry_delay: float | NotGiven = NOT_GIVEN,
-        max_retry_delay: float | NotGiven = NOT_GIVEN,
         default_headers: Mapping[str, str] | None = None,
         set_default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
@@ -894,11 +877,7 @@ class AsyncBedrockOpenAI(AsyncOpenAI):
                 for name, value in constructor_kwargs.items()
                 if value is not None or _constructor_accepts_keyword(self.__class__.__init__, name)
             }
-        copied = self.__class__(**constructor_kwargs)
-        copied.initial_retry_delay = initial_retry_delay if is_given(initial_retry_delay) else self.initial_retry_delay
-        copied.max_retry_delay = max_retry_delay if is_given(max_retry_delay) else self.max_retry_delay
-        copied._validate_retry_options(copied.max_retries)
-        return copied
+        return self.__class__(**constructor_kwargs)
 
     with_options = copy
 
