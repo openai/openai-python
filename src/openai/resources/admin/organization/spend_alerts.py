@@ -1,10 +1,10 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 from typing_extensions import Literal
 
-import httpx
+import httpx2
 
 from .... import _legacy_response
 from ...._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
@@ -53,7 +53,7 @@ class SpendAlerts(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> OrganizationSpendAlert:
         """
         Creates an organization spend alert.
@@ -96,6 +96,43 @@ class SpendAlerts(SyncAPIResource):
             cast_to=OrganizationSpendAlert,
         )
 
+    def retrieve(
+        self,
+        alert_id: str,
+        *,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> OrganizationSpendAlert:
+        """
+        Retrieves an organization spend alert.
+
+        Args:
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not alert_id:
+            raise ValueError(f"Expected a non-empty value for `alert_id` but received {alert_id!r}")
+        return self._get(
+            path_template("/organization/spend_alerts/{alert_id}", alert_id=alert_id),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"admin_api_key_auth": True},
+            ),
+            cast_to=OrganizationSpendAlert,
+        )
+
     def update(
         self,
         alert_id: str,
@@ -109,7 +146,7 @@ class SpendAlerts(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> OrganizationSpendAlert:
         """
         Updates an organization spend alert.
@@ -166,7 +203,7 @@ class SpendAlerts(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncConversationCursorPage[OrganizationSpendAlert]:
         """Lists organization spend alerts.
 
@@ -222,7 +259,7 @@ class SpendAlerts(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> OrganizationSpendAlertDeleted:
         """
         Deletes an organization spend alert.
@@ -283,7 +320,7 @@ class AsyncSpendAlerts(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> OrganizationSpendAlert:
         """
         Creates an organization spend alert.
@@ -326,6 +363,43 @@ class AsyncSpendAlerts(AsyncAPIResource):
             cast_to=OrganizationSpendAlert,
         )
 
+    async def retrieve(
+        self,
+        alert_id: str,
+        *,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> OrganizationSpendAlert:
+        """
+        Retrieves an organization spend alert.
+
+        Args:
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not alert_id:
+            raise ValueError(f"Expected a non-empty value for `alert_id` but received {alert_id!r}")
+        return await self._get(
+            path_template("/organization/spend_alerts/{alert_id}", alert_id=alert_id),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"admin_api_key_auth": True},
+            ),
+            cast_to=OrganizationSpendAlert,
+        )
+
     async def update(
         self,
         alert_id: str,
@@ -339,7 +413,7 @@ class AsyncSpendAlerts(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> OrganizationSpendAlert:
         """
         Updates an organization spend alert.
@@ -396,7 +470,7 @@ class AsyncSpendAlerts(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[OrganizationSpendAlert, AsyncConversationCursorPage[OrganizationSpendAlert]]:
         """Lists organization spend alerts.
 
@@ -452,7 +526,7 @@ class AsyncSpendAlerts(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> OrganizationSpendAlertDeleted:
         """
         Deletes an organization spend alert.
@@ -488,6 +562,9 @@ class SpendAlertsWithRawResponse:
         self.create = _legacy_response.to_raw_response_wrapper(
             spend_alerts.create,
         )
+        self.retrieve = _legacy_response.to_raw_response_wrapper(
+            spend_alerts.retrieve,
+        )
         self.update = _legacy_response.to_raw_response_wrapper(
             spend_alerts.update,
         )
@@ -505,6 +582,9 @@ class AsyncSpendAlertsWithRawResponse:
 
         self.create = _legacy_response.async_to_raw_response_wrapper(
             spend_alerts.create,
+        )
+        self.retrieve = _legacy_response.async_to_raw_response_wrapper(
+            spend_alerts.retrieve,
         )
         self.update = _legacy_response.async_to_raw_response_wrapper(
             spend_alerts.update,
@@ -524,6 +604,9 @@ class SpendAlertsWithStreamingResponse:
         self.create = to_streamed_response_wrapper(
             spend_alerts.create,
         )
+        self.retrieve = to_streamed_response_wrapper(
+            spend_alerts.retrieve,
+        )
         self.update = to_streamed_response_wrapper(
             spend_alerts.update,
         )
@@ -541,6 +624,9 @@ class AsyncSpendAlertsWithStreamingResponse:
 
         self.create = async_to_streamed_response_wrapper(
             spend_alerts.create,
+        )
+        self.retrieve = async_to_streamed_response_wrapper(
+            spend_alerts.retrieve,
         )
         self.update = async_to_streamed_response_wrapper(
             spend_alerts.update,

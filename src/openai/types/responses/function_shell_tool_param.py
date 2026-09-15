@@ -1,8 +1,8 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
-from typing import Union, Optional
+from typing import List, Union, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from .container_auto_param import ContainerAutoParam
@@ -19,5 +19,8 @@ class FunctionShellToolParam(TypedDict, total=False):
 
     type: Required[Literal["shell"]]
     """The type of the shell tool. Always `shell`."""
+
+    allowed_callers: Optional[List[Literal["direct", "programmatic"]]]
+    """The tool invocation context(s)."""
 
     environment: Optional[Environment]
