@@ -324,9 +324,9 @@ class ModelNestedObjects(BaseModel):
 @parametrize
 @pytest.mark.asyncio
 async def test_pydantic_nested_objects(use_async: bool) -> None:
-    model = ModelNestedObjects.construct(nested={"foo": "stainless"})
+    model = ModelNestedObjects.construct(nested={"foo": "openai"})
     assert isinstance(model.nested, MyModel)
-    assert cast(Any, await transform(model, Any, use_async)) == {"nested": {"foo": "stainless"}}
+    assert cast(Any, await transform(model, Any, use_async)) == {"nested": {"foo": "openai"}}
 
 
 class ModelWithDefaultField(BaseModel):
@@ -395,6 +395,38 @@ async def test_dictionary_items(use_async: bool) -> None:
         foo_baz: Annotated[str, PropertyInfo(alias="fooBaz")]
 
     assert await transform({"foo": {"foo_baz": "bar"}}, Dict[str, DictItems], use_async) == {"foo": {"fooBaz": "bar"}}
+
+
+@parametrize
+@pytest.mark.asyncio
+async def test_bare_dict_annotation(use_async: bool) -> None:
+    """Bare dictionaries still serialize their values."""
+
+    class BareDict(TypedDict):
+        metadata: dict  # type: ignore[type-arg]
+
+    assert await transform({"metadata": {"key": "value"}}, BareDict, use_async) == {"metadata": {"key": "value"}}
+    assert await transform({"key": "value"}, dict, use_async) == {"key": "value"}
+    assert await transform({"key": "value"}, Dict, use_async) == {"key": "value"}
+    model = ModelWithDefaultField(foo="value")
+    assert cast(object, await transform({"metadata": {"model": model}}, BareDict, use_async)) == {
+        "metadata": {"model": {"foo": "value"}}
+    }
+
+
+@parametrize
+@pytest.mark.asyncio
+async def test_bare_list_annotation(use_async: bool) -> None:
+    """Bare lists still serialize their entries."""
+
+    class BareList(TypedDict):
+        items: list  # type: ignore[type-arg]
+
+    assert await transform({"items": [{"foo_baz": "bar"}]}, BareList, use_async) == {"items": [{"foo_baz": "bar"}]}
+    assert await transform([1, 2, 3], list, use_async) == [1, 2, 3]
+    assert await transform([1, 2, 3], List, use_async) == [1, 2, 3]
+    model = ModelWithDefaultField(foo="value")
+    assert cast(object, await transform({"items": [model]}, BareList, use_async)) == {"items": [{"foo": "value"}]}
 
 
 class TypedDictIterableUnionStr(TypedDict):

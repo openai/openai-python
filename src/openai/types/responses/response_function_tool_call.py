@@ -1,7 +1,9 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
+
+from pydantic import Field as FieldInfo
 
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
@@ -27,7 +29,7 @@ class ResponseFunctionToolCall(BaseModel):
     """A tool call to run a function.
 
     See the
-    [function calling guide](https://platform.openai.com/docs/guides/function-calling) for more information.
+    [function calling guide](https://developers.openai.com/api/docs/guides/function-calling) for more information.
     """
 
     arguments: str
@@ -44,6 +46,9 @@ class ResponseFunctionToolCall(BaseModel):
 
     id: Optional[str] = None
     """The unique ID of the function tool call."""
+
+    async_: Optional[bool] = FieldInfo(alias="async", default=None)
+    """Whether the function tool call runs asynchronously."""
 
     caller: Optional[Caller] = None
     """The execution context that produced this tool call."""

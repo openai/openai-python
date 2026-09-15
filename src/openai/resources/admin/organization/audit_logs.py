@@ -1,11 +1,11 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 from typing import List
 from typing_extensions import Literal
 
-import httpx
+import httpx2
 
 from .... import _legacy_response
 from ...._types import Body, Omit, Query, Headers, NotGiven, SequenceNotStr, omit, not_given
@@ -123,10 +123,13 @@ class AuditLogs(SyncAPIResource):
                 "tenant.workload_identity.mapping.archived",
                 "tenant.workload_identity.binding.created",
                 "tenant.workload_identity.principal.provisioned",
+                "tenant.workload_identity.access_token.issued",
                 "tenant.admin_api_key.created",
                 "tenant.admin_api_key.updated",
                 "tenant.admin_api_key.deleted",
                 "tenant.project_api_key.created",
+                "tenant.trusted_access.business_verification.started",
+                "tenant.trusted_access.application.submitted",
                 "tenant.chatgpt_access_token.revoked",
                 "tenant.migration.completed",
                 "tenant.sso.migrated",
@@ -179,6 +182,7 @@ class AuditLogs(SyncAPIResource):
                 "tenant.resource_role_assignment.deleted",
                 "tenant.resource_access.updated",
                 "tenant.resource_access.deleted",
+                "tenant.ads_account.onboarding.redemption",
                 "tenant.session_policy.created",
                 "tenant.session_policy.updated",
                 "tenant.session_policy.deleted",
@@ -208,7 +212,7 @@ class AuditLogs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncConversationCursorPage[AuditLogListResponse]:
         """
         List user actions and configuration changes within this organization.
@@ -233,7 +237,7 @@ class AuditLogs(SyncAPIResource):
 
           event_types: Return only events with a `type` in one of these values. For example,
               `project.created`. For all options, see the documentation for the
-              [audit log object](https://platform.openai.com/docs/api-reference/audit-logs/object).
+              [audit log object](https://developers.openai.com/api/reference/resources/admin/subresources/organization/subresources/audit_logs).
 
           limit: A limit on the number of objects to be returned. Limit can range between 1 and
               100, and the default is 20.
@@ -388,10 +392,13 @@ class AsyncAuditLogs(AsyncAPIResource):
                 "tenant.workload_identity.mapping.archived",
                 "tenant.workload_identity.binding.created",
                 "tenant.workload_identity.principal.provisioned",
+                "tenant.workload_identity.access_token.issued",
                 "tenant.admin_api_key.created",
                 "tenant.admin_api_key.updated",
                 "tenant.admin_api_key.deleted",
                 "tenant.project_api_key.created",
+                "tenant.trusted_access.business_verification.started",
+                "tenant.trusted_access.application.submitted",
                 "tenant.chatgpt_access_token.revoked",
                 "tenant.migration.completed",
                 "tenant.sso.migrated",
@@ -444,6 +451,7 @@ class AsyncAuditLogs(AsyncAPIResource):
                 "tenant.resource_role_assignment.deleted",
                 "tenant.resource_access.updated",
                 "tenant.resource_access.deleted",
+                "tenant.ads_account.onboarding.redemption",
                 "tenant.session_policy.created",
                 "tenant.session_policy.updated",
                 "tenant.session_policy.deleted",
@@ -473,7 +481,7 @@ class AsyncAuditLogs(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[AuditLogListResponse, AsyncConversationCursorPage[AuditLogListResponse]]:
         """
         List user actions and configuration changes within this organization.
@@ -498,7 +506,7 @@ class AsyncAuditLogs(AsyncAPIResource):
 
           event_types: Return only events with a `type` in one of these values. For example,
               `project.created`. For all options, see the documentation for the
-              [audit log object](https://platform.openai.com/docs/api-reference/audit-logs/object).
+              [audit log object](https://developers.openai.com/api/reference/resources/admin/subresources/organization/subresources/audit_logs).
 
           limit: A limit on the number of objects to be returned. Limit can range between 1 and
               100, and the default is 20.
