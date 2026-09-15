@@ -7,7 +7,10 @@ import pytest
 from pydantic import BaseModel
 
 from openai import OpenAI, AsyncOpenAI
-from openai.types.responses import ToolParam
+from openai._types import omit
+from openai._models import construct_type_unchecked
+from openai.types.responses import Response, ToolParam
+from openai.lib._parsing._responses import parse_response
 
 
 class Answer(BaseModel):
@@ -123,3 +126,29 @@ async def test_stream_recovers_finalized_output(sync: bool, terminal_output: str
         assert tool.type == "function_call" and tool.status == "completed"
         assert tool.id == "fc_test"
         assert tool.parsed_arguments == {"answer": 4}
+
+
+def test_parse_response_with_null_message_content() -> None:
+    response = construct_type_unchecked(
+        type_=Response,
+        value={
+            "id": "resp_test",
+            "status": "completed",
+            "output": [
+                {
+                    "id": "msg_test",
+                    "type": "message",
+                    "role": "assistant",
+                    "status": "completed",
+                    "content": None,
+                }
+            ],
+        },
+    )
+
+    parsed = parse_response(text_format=omit, input_tools=omit, response=response)
+
+    assert len(parsed.output) == 1
+    message = parsed.output[0]
+    assert message.type == "message"
+    assert message.content == []
