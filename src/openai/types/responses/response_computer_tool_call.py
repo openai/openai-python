@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import List, Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
@@ -55,9 +55,15 @@ class ActionClick(BaseModel):
     y: int
     """The y-coordinate where the click occurred."""
 
+    keys: Optional[List[str]] = None
+    """The keys being held while clicking."""
+
 
 class ActionDoubleClick(BaseModel):
     """A double click action."""
+
+    keys: Optional[List[str]] = None
+    """The keys being held while double-clicking."""
 
     type: Literal["double_click"]
     """Specifies the event type.
@@ -104,6 +110,9 @@ class ActionDrag(BaseModel):
     For a drag action, this property is always set to `drag`.
     """
 
+    keys: Optional[List[str]] = None
+    """The keys being held while dragging the mouse."""
+
 
 class ActionKeypress(BaseModel):
     """A collection of keypresses the model would like to perform."""
@@ -136,6 +145,9 @@ class ActionMove(BaseModel):
     y: int
     """The y-coordinate to move to."""
 
+    keys: Optional[List[str]] = None
+    """The keys being held while moving the mouse."""
+
 
 class ActionScreenshot(BaseModel):
     """A screenshot action."""
@@ -167,6 +179,9 @@ class ActionScroll(BaseModel):
 
     y: int
     """The y-coordinate where the scroll occurred."""
+
+    keys: Optional[List[str]] = None
+    """The keys being held while scrolling."""
 
 
 class ActionType(BaseModel):
@@ -212,7 +227,7 @@ class ResponseComputerToolCall(BaseModel):
     """A tool call to a computer use tool.
 
     See the
-    [computer use guide](https://platform.openai.com/docs/guides/tools-computer-use) for more information.
+    [computer use guide](https://developers.openai.com/api/docs/guides/tools-computer-use) for more information.
     """
 
     id: str

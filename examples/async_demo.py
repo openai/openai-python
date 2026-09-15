@@ -1,4 +1,4 @@
-#!/usr/bin/env -S rye run python
+#!/usr/bin/env -S uv run python
 
 import asyncio
 
@@ -10,7 +10,7 @@ client = AsyncOpenAI()
 
 async def main() -> None:
     stream = await client.chat.completions.create(
-        model="gpt-4o",
+        model="gpt-5.5",
         messages=[
             {
                 "role": "user",

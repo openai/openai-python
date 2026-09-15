@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -7,6 +7,7 @@ from typing_extensions import Literal, TypeAlias, TypedDict
 
 from ..shared_params.metadata import Metadata
 from .conversation_item_param import ConversationItemParam
+from .realtime_reasoning_param import RealtimeReasoningParam
 from .realtime_function_tool_param import RealtimeFunctionToolParam
 from ..responses.tool_choice_options import ToolChoiceOptions
 from ..responses.response_prompt_param import ResponsePromptParam
@@ -85,11 +86,20 @@ class RealtimeResponseCreateParamsParam(TypedDict, total=False):
     model.
     """
 
+    parallel_tool_calls: bool
+    """Whether the model may call multiple tools in parallel.
+
+    Only supported by reasoning Realtime models such as `gpt-realtime-2`.
+    """
+
     prompt: Optional[ResponsePromptParam]
     """
     Reference to a prompt template and its variables.
-    [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
+    [Learn more](https://developers.openai.com/api/docs/guides/text?api-mode=responses#version-prompts-in-code).
     """
+
+    reasoning: RealtimeReasoningParam
+    """Configuration for reasoning-capable Realtime models such as `gpt-realtime-2`."""
 
     tool_choice: ToolChoice
     """How the model chooses tools.

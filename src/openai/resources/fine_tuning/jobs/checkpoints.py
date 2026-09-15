@@ -1,20 +1,17 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
-import httpx
+import httpx2
 
 from .... import _legacy_response
 from ...._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
-from ...._utils import maybe_transform
+from ...._utils import path_template, maybe_transform
 from ...._compat import cached_property
 from ...._resource import SyncAPIResource, AsyncAPIResource
 from ...._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from ....pagination import SyncCursorPage, AsyncCursorPage
-from ...._base_client import (
-    AsyncPaginator,
-    make_request_options,
-)
+from ...._base_client import AsyncPaginator, make_request_options
 from ....types.fine_tuning.jobs import checkpoint_list_params
 from ....types.fine_tuning.jobs.fine_tuning_job_checkpoint import FineTuningJobCheckpoint
 
@@ -54,7 +51,7 @@ class Checkpoints(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncCursorPage[FineTuningJobCheckpoint]:
         """
         List checkpoints for a fine-tuning job.
@@ -75,7 +72,7 @@ class Checkpoints(SyncAPIResource):
         if not fine_tuning_job_id:
             raise ValueError(f"Expected a non-empty value for `fine_tuning_job_id` but received {fine_tuning_job_id!r}")
         return self._get_api_list(
-            f"/fine_tuning/jobs/{fine_tuning_job_id}/checkpoints",
+            path_template("/fine_tuning/jobs/{fine_tuning_job_id}/checkpoints", fine_tuning_job_id=fine_tuning_job_id),
             page=SyncCursorPage[FineTuningJobCheckpoint],
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -89,6 +86,7 @@ class Checkpoints(SyncAPIResource):
                     },
                     checkpoint_list_params.CheckpointListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=FineTuningJobCheckpoint,
         )
@@ -127,7 +125,7 @@ class AsyncCheckpoints(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[FineTuningJobCheckpoint, AsyncCursorPage[FineTuningJobCheckpoint]]:
         """
         List checkpoints for a fine-tuning job.
@@ -148,7 +146,7 @@ class AsyncCheckpoints(AsyncAPIResource):
         if not fine_tuning_job_id:
             raise ValueError(f"Expected a non-empty value for `fine_tuning_job_id` but received {fine_tuning_job_id!r}")
         return self._get_api_list(
-            f"/fine_tuning/jobs/{fine_tuning_job_id}/checkpoints",
+            path_template("/fine_tuning/jobs/{fine_tuning_job_id}/checkpoints", fine_tuning_job_id=fine_tuning_job_id),
             page=AsyncCursorPage[FineTuningJobCheckpoint],
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -162,6 +160,7 @@ class AsyncCheckpoints(AsyncAPIResource):
                     },
                     checkpoint_list_params.CheckpointListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=FineTuningJobCheckpoint,
         )

@@ -1,4 +1,4 @@
-#!/usr/bin/env -S rye run python
+#!/usr/bin/env -S uv run python
 
 import asyncio
 
@@ -13,7 +13,7 @@ from openai import OpenAI, AsyncOpenAI
 def sync_main() -> None:
     client = OpenAI()
     response = client.chat.completions.create(
-        model="gpt-4o",
+        model="gpt-5.5",
         messages=[
             {
                 "role": "user",
@@ -36,7 +36,7 @@ def sync_main() -> None:
 async def async_main() -> None:
     client = AsyncOpenAI()
     response = await client.chat.completions.create(
-        model="gpt-4o",
+        model="gpt-5.5",
         messages=[
             {
                 "role": "user",

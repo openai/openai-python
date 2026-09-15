@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://openai.com/sdk-fixtures/bedrock-auth/v1/schema.json",
+  "title": "OpenAI SDK AWS Bedrock authentication conformance fixtures",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "suite", "cases"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "suite": { "const": "aws-bedrock-auth" },
+    "cases": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/case" }
+    }
+  },
+  "$defs": {
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "given", "expected"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "kind": {
+          "enum": ["auth_selection", "sigv4", "retry_signing", "body_replay", "redaction"]
+        },
+        "given": { "type": "object" },
+        "expected": { "type": "object" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "kind": { "const": "auth_selection" } } },
+          "then": {
+            "properties": {
+              "given": { "required": ["explicit", "environment", "default_chain_available"] }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "sigv4" } } },
+          "then": {
+            "properties": {
+              "given": { "required": ["credentials", "signing", "request"] },
+              "expected": { "required": ["payload_sha256", "canonical_request_sha256", "headers"] }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "retry_signing" } } },
+          "then": {
+            "properties": {
+              "given": { "required": ["response_statuses", "timestamps", "access_key_ids", "body_base64"] },
+              "expected": { "required": ["attempts", "credential_provider_calls", "x_amz_dates", "body_sha256"] }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "body_replay" } } },
+          "then": {
+            "properties": {
+              "given": { "required": ["body_kind"] },
+              "expected": { "required": ["result"] }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "redaction" } } },
+          "then": {
+            "properties": {
+              "given": { "required": ["headers"] },
+              "expected": { "required": ["headers", "forbidden_substrings"] }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

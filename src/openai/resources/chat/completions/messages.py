@@ -1,14 +1,14 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 from typing_extensions import Literal
 
-import httpx
+import httpx2
 
 from .... import _legacy_response
 from ...._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
-from ...._utils import maybe_transform
+from ...._utils import path_template, maybe_transform
 from ...._compat import cached_property
 from ...._resource import SyncAPIResource, AsyncAPIResource
 from ...._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -56,7 +56,7 @@ class Messages(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncCursorPage[ChatCompletionStoreMessage]:
         """Get the messages in a stored chat completion.
 
@@ -82,7 +82,7 @@ class Messages(SyncAPIResource):
         if not completion_id:
             raise ValueError(f"Expected a non-empty value for `completion_id` but received {completion_id!r}")
         return self._get_api_list(
-            f"/chat/completions/{completion_id}/messages",
+            path_template("/chat/completions/{completion_id}/messages", completion_id=completion_id),
             page=SyncCursorPage[ChatCompletionStoreMessage],
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -97,6 +97,7 @@ class Messages(SyncAPIResource):
                     },
                     message_list_params.MessageListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=ChatCompletionStoreMessage,
         )
@@ -138,7 +139,7 @@ class AsyncMessages(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[ChatCompletionStoreMessage, AsyncCursorPage[ChatCompletionStoreMessage]]:
         """Get the messages in a stored chat completion.
 
@@ -164,7 +165,7 @@ class AsyncMessages(AsyncAPIResource):
         if not completion_id:
             raise ValueError(f"Expected a non-empty value for `completion_id` but received {completion_id!r}")
         return self._get_api_list(
-            f"/chat/completions/{completion_id}/messages",
+            path_template("/chat/completions/{completion_id}/messages", completion_id=completion_id),
             page=AsyncCursorPage[ChatCompletionStoreMessage],
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -179,6 +180,7 @@ class AsyncMessages(AsyncAPIResource):
                     },
                     message_list_params.MessageListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=ChatCompletionStoreMessage,
         )
