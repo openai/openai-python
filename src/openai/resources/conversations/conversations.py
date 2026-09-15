@@ -1,10 +1,10 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 from typing import Iterable, Optional
 
-import httpx
+import httpx2
 
 from ... import _legacy_response
 from .items import (
@@ -67,7 +67,7 @@ class Conversations(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Conversation:
         """
         Create a conversation.
@@ -101,7 +101,11 @@ class Conversations(SyncAPIResource):
                 conversation_create_params.ConversationCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Conversation,
         )
@@ -115,7 +119,7 @@ class Conversations(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Conversation:
         """
         Get a conversation
@@ -134,7 +138,11 @@ class Conversations(SyncAPIResource):
         return self._get(
             path_template("/conversations/{conversation_id}", conversation_id=conversation_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Conversation,
         )
@@ -149,7 +157,7 @@ class Conversations(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Conversation:
         """
         Update a conversation
@@ -176,7 +184,11 @@ class Conversations(SyncAPIResource):
             path_template("/conversations/{conversation_id}", conversation_id=conversation_id),
             body=maybe_transform({"metadata": metadata}, conversation_update_params.ConversationUpdateParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Conversation,
         )
@@ -190,7 +202,7 @@ class Conversations(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ConversationDeletedResource:
         """Delete a conversation.
 
@@ -210,7 +222,11 @@ class Conversations(SyncAPIResource):
         return self._delete(
             path_template("/conversations/{conversation_id}", conversation_id=conversation_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ConversationDeletedResource,
         )
@@ -253,7 +269,7 @@ class AsyncConversations(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Conversation:
         """
         Create a conversation.
@@ -287,7 +303,11 @@ class AsyncConversations(AsyncAPIResource):
                 conversation_create_params.ConversationCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Conversation,
         )
@@ -301,7 +321,7 @@ class AsyncConversations(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Conversation:
         """
         Get a conversation
@@ -320,7 +340,11 @@ class AsyncConversations(AsyncAPIResource):
         return await self._get(
             path_template("/conversations/{conversation_id}", conversation_id=conversation_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Conversation,
         )
@@ -335,7 +359,7 @@ class AsyncConversations(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Conversation:
         """
         Update a conversation
@@ -364,7 +388,11 @@ class AsyncConversations(AsyncAPIResource):
                 {"metadata": metadata}, conversation_update_params.ConversationUpdateParams
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Conversation,
         )
@@ -378,7 +406,7 @@ class AsyncConversations(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ConversationDeletedResource:
         """Delete a conversation.
 
@@ -398,7 +426,11 @@ class AsyncConversations(AsyncAPIResource):
         return await self._delete(
             path_template("/conversations/{conversation_id}", conversation_id=conversation_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ConversationDeletedResource,
         )

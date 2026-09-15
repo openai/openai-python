@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import List, Optional
 from typing_extensions import Literal
@@ -33,7 +33,7 @@ class ResponseReasoningItem(BaseModel):
     A description of the chain of thought used by a reasoning model while generating
     a response. Be sure to include these items in your `input` to the Responses API
     for subsequent turns of a conversation if you are manually
-    [managing context](https://platform.openai.com/docs/guides/conversation-state).
+    [managing context](https://developers.openai.com/api/docs/guides/conversation-state).
     """
 
     id: str
@@ -49,9 +49,15 @@ class ResponseReasoningItem(BaseModel):
     """Reasoning text content."""
 
     encrypted_content: Optional[str] = None
-    """
-    The encrypted content of the reasoning item - populated when a response is
-    generated with `reasoning.encrypted_content` in the `include` parameter.
+    """The encrypted content of the reasoning item.
+
+    This is populated by default for reasoning items returned by
+    `POST /v1/responses` and WebSocket `response.create` requests.
+
+    When streaming, use the completed reasoning item and its `encrypted_content`
+    from the `response.output_item.done` event in subsequent requests. The
+    `encrypted_content` in `response.output_item.added` may be incomplete. This is
+    especially important when `store` is `false` or when using Zero Data Retention.
     """
 
     status: Optional[Literal["in_progress", "completed", "incomplete"]] = None
