@@ -43144,9 +43144,10 @@ components:
         role:
           type: string
           description: |
-            The role of the message input. One of `user`, `system`, or `developer`.
+            The role of the message input. One of `user`, `assistant`, `system`, or `developer`.
           enum:
           - user
+          - assistant
           - system
           - developer
         status:
@@ -87495,9 +87496,10 @@ components:
         role:
           type: string
           description: |
-            The role of the message input. One of `user`, `system`, or `developer`.
+            The role of the message input. One of `user`, `assistant`, `system`, or `developer`.
           enum:
           - user
+          - assistant
           - system
           - developer
         status:
