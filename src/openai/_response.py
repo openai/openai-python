@@ -199,7 +199,7 @@ class BaseAPIResponse(Generic[R]):
             return cast(R, float(response.text))
 
         if cast_to == bool:
-            return cast(R, response.text.lower() == "true")
+            return cast(R, response.text.strip().lower() == "true")
 
         # handle the legacy binary response case
         if inspect.isclass(cast_to) and cast_to.__name__ == "HttpxBinaryResponseContent":
