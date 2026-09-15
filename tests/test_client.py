@@ -1375,8 +1375,9 @@ class TestOpenAI:
 
     def test_proxy_environment_variables(self, monkeypatch: pytest.MonkeyPatch) -> None:
         # Test that the proxy environment variables are set correctly
-        monkeypatch.setenv("HTTPS_PROXY", "https://example.org")
-        # Delete in case our environment has any proxy env vars set
+        # Delete in case our environment has any proxy env vars set. This must
+        # happen before setting HTTPS_PROXY: os.environ is case-insensitive on
+        # Windows, so deleting "https_proxy" afterwards would remove it again.
         monkeypatch.delenv("HTTP_PROXY", raising=False)
         monkeypatch.delenv("ALL_PROXY", raising=False)
         monkeypatch.delenv("NO_PROXY", raising=False)
@@ -1384,6 +1385,7 @@ class TestOpenAI:
         monkeypatch.delenv("https_proxy", raising=False)
         monkeypatch.delenv("all_proxy", raising=False)
         monkeypatch.delenv("no_proxy", raising=False)
+        monkeypatch.setenv("HTTPS_PROXY", "https://example.org")
 
         client = DefaultHttpxClient()
 
@@ -2727,8 +2729,9 @@ class TestAsyncOpenAI:
 
     async def test_proxy_environment_variables(self, monkeypatch: pytest.MonkeyPatch) -> None:
         # Test that the proxy environment variables are set correctly
-        monkeypatch.setenv("HTTPS_PROXY", "https://example.org")
-        # Delete in case our environment has any proxy env vars set
+        # Delete in case our environment has any proxy env vars set. This must
+        # happen before setting HTTPS_PROXY: os.environ is case-insensitive on
+        # Windows, so deleting "https_proxy" afterwards would remove it again.
         monkeypatch.delenv("HTTP_PROXY", raising=False)
         monkeypatch.delenv("ALL_PROXY", raising=False)
         monkeypatch.delenv("NO_PROXY", raising=False)
@@ -2736,6 +2739,7 @@ class TestAsyncOpenAI:
         monkeypatch.delenv("https_proxy", raising=False)
         monkeypatch.delenv("all_proxy", raising=False)
         monkeypatch.delenv("no_proxy", raising=False)
+        monkeypatch.setenv("HTTPS_PROXY", "https://example.org")
 
         client = DefaultAsyncHttpxClient()
 
