@@ -38,7 +38,7 @@ from ..._parsing import (
 from ...._streaming import Stream, AsyncStream
 from ....types.chat import ChatCompletionChunk, ParsedChatCompletion, ChatCompletionToolUnionParam
 from ...._exceptions import LengthFinishReasonError, ContentFilterFinishReasonError
-from ....types.chat.chat_completion import ChoiceLogprobs
+from ....types.chat.chat_completion import Moderation, ChoiceLogprobs
 from ....types.chat.chat_completion_chunk import Choice as ChoiceChunk
 from ....types.chat.completion_create_params import ResponseFormat as ResponseFormatParam
 
@@ -487,6 +487,10 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
 
         completion_snapshot.usage = chunk.usage
         completion_snapshot.system_fingerprint = chunk.system_fingerprint
+        if chunk.moderation is not None:
+            completion_snapshot.moderation = cast(
+                Moderation, construct_type(type_=Moderation, value=chunk.moderation.to_dict())
+            )
 
         return completion_snapshot
 
