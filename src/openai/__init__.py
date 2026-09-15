@@ -6,7 +6,10 @@ import os as _os
 import typing as _t
 from typing_extensions import override
 
-from . import types
+if _t.TYPE_CHECKING:
+    from . import types as types
+else:
+    from ._utils._types_proxy import types as types
 from ._types import NOT_GIVEN, Omit, NoneType, NotGiven, Transport, ProxiesTypes, omit, not_given
 from ._utils import file_from_path
 from ._client import Client, OpenAI, Stream, Timeout, Transport, AsyncClient, AsyncOpenAI, AsyncStream, RequestOptions
@@ -121,7 +124,7 @@ _setup_logging()
 # openai._exceptions.NotFoundError -> openai.NotFoundError
 __locals = locals()
 for __name in __all__:
-    if not __name.startswith("__"):
+    if not __name.startswith("__") and __name not in ("types", "resources"):
         try:
             __locals[__name].__module__ = "openai"
         except (TypeError, AttributeError):
