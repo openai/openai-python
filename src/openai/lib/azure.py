@@ -155,6 +155,24 @@ class BaseAzureClient(BaseClient[_HttpxClientT, _DefaultStreamT]):
         request.extensions[_AZURE_AUTH_ORIGIN] = _origin(request.url)
         return request
 
+    async def _build_request_async(
+        self,
+        options: FinalRequestOptions,
+        *,
+        retries_taken: int = 0,
+    ) -> httpx2.Request:
+        """Async variant of _build_request for use in async contexts."""
+        if options.url in _deployments_endpoints and is_mapping(options.json_data):
+            model = options.json_data.get("model")
+            if model is not None and "/deployments" not in str(self.base_url.path):
+                options.url = path_template("/deployments/{model}", model=model) + options.url
+
+        request = await super()._build_request_async(options, retries_taken=retries_taken)
+        # HTTPX preserves request extensions through redirects. Scope the hook
+        # to this Azure request, including when its HTTP client is shared.
+        request.extensions[_AZURE_AUTH_ORIGIN] = _origin(request.url)
+        return request
+
     @override
     def _prepare_url(self, url: str) -> httpx2.URL:
         """Adjust the URL if the client was configured with an Azure endpoint + deployment
