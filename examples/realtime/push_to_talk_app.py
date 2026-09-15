@@ -1,4 +1,4 @@
-#!/usr/bin/env uv run
+#!/usr/bin/env -S uv run
 ####################################################################
 # Sample TUI app with a push to talk interface to the Realtime API #
 # If you have `uv` installed and the `OPENAI_API_KEY`              #
