@@ -434,10 +434,10 @@ def _raise_transport_error(error: Exception, *, request: httpx2.Request) -> NoRe
 
 
 class _X509WorkloadIdentityAuth(_WorkloadIdentityAuth[X509WorkloadIdentity]):
-    def __init__(self, *, workload_identity: X509WorkloadIdentity, max_retries: int) -> None:
+    def __init__(self, *, workload_identity: X509WorkloadIdentity, max_retries: int | float) -> None:
         _validate_identity(workload_identity)
         super().__init__(workload_identity=workload_identity, token_exchange_url=_X509_TOKEN_EXCHANGE_URL)
-        self._max_exchange_retries = min(max(max_retries, 0), _MAX_EXCHANGE_RETRIES)
+        self._max_exchange_retries = int(min(max(max_retries, 0), _MAX_EXCHANGE_RETRIES))
         self._follow_redirects = False
 
     @override
@@ -522,7 +522,7 @@ class SyncX509WorkloadIdentityAuth(_X509WorkloadIdentityAuth):
     _http_client: httpx2.Client
 
     def __init__(
-        self, *, workload_identity: X509WorkloadIdentity, http_client: httpx2.Client, max_retries: int
+        self, *, workload_identity: X509WorkloadIdentity, http_client: httpx2.Client, max_retries: int | float
     ) -> None:
         super().__init__(workload_identity=workload_identity, max_retries=max_retries)
         self._http_client = http_client
@@ -591,7 +591,7 @@ class AsyncX509WorkloadIdentityAuth(_X509WorkloadIdentityAuth):
     _http_client: httpx2.AsyncClient
 
     def __init__(
-        self, *, workload_identity: X509WorkloadIdentity, http_client: httpx2.AsyncClient, max_retries: int
+        self, *, workload_identity: X509WorkloadIdentity, http_client: httpx2.AsyncClient, max_retries: int | float
     ) -> None:
         super().__init__(workload_identity=workload_identity, max_retries=max_retries)
         self._http_client = http_client

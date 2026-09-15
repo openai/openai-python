@@ -22,6 +22,8 @@ def reset_state() -> None:
     openai.base_url = None
     openai.timeout = DEFAULT_TIMEOUT
     openai.max_retries = DEFAULT_MAX_RETRIES
+    openai.backoff_factor = 0.5
+    openai.max_backoff = 8
     openai.default_headers = None
     openai.default_query = None
     openai.http_client = None
@@ -67,6 +69,13 @@ def test_max_retries_option() -> None:
 
     assert openai.max_retries == 1
     assert openai.completions._client.max_retries == 1
+
+
+@pytest.mark.parametrize("name,default,value", [("backoff_factor", 0.5, 2.0), ("max_backoff", 8.0, 30.0)])
+def test_backoff_options(name: str, default: float, value: float) -> None:
+    assert getattr(openai.completions._client, name) == default
+    setattr(openai, name, value)
+    assert getattr(openai.completions._client, name) == value
 
 
 def test_default_headers_option() -> None:

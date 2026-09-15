@@ -4,6 +4,7 @@ import gc
 import os
 import sys
 import json
+import math
 import asyncio
 import inspect
 import dataclasses
@@ -1158,8 +1159,7 @@ class TestOpenAI:
         self, remaining_retries: int, retry_after: str, timeout: float, client: OpenAI
     ) -> None:
         headers = httpx2.Headers({"retry-after": retry_after})
-        options = FinalRequestOptions(method="get", url="/foo", max_retries=3)
-        calculated = client._calculate_retry_timeout(remaining_retries, options, headers)
+        calculated = client._calculate_retry_timeout(3 - remaining_retries, headers)
         assert calculated == pytest.approx(timeout, 0.5 * 0.875)  # pyright: ignore[reportUnknownMemberType]
 
     @pytest.mark.parametrize(
@@ -1243,14 +1243,16 @@ class TestOpenAI:
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx2(base_url=base_url)
     @pytest.mark.parametrize("failure_mode", ["status", "exception"])
+    @pytest.mark.parametrize("max_retries", [4, math.inf])
     def test_retries_taken(
         self,
         client: OpenAI,
         failures_before_success: int,
+        max_retries: int | float,
         failure_mode: Literal["status", "exception"],
         respx2_mock: MockRouter,
     ) -> None:
-        client = client.with_options(max_retries=4)
+        client = client.with_options(max_retries=max_retries)
 
         nb_retries = 0
 
@@ -2516,8 +2518,7 @@ class TestAsyncOpenAI:
         self, remaining_retries: int, retry_after: str, timeout: float, async_client: AsyncOpenAI
     ) -> None:
         headers = httpx2.Headers({"retry-after": retry_after})
-        options = FinalRequestOptions(method="get", url="/foo", max_retries=3)
-        calculated = async_client._calculate_retry_timeout(remaining_retries, options, headers)
+        calculated = async_client._calculate_retry_timeout(3 - remaining_retries, headers)
         assert calculated == pytest.approx(timeout, 0.5 * 0.875)  # pyright: ignore[reportUnknownMemberType]
 
     @pytest.mark.respx2(base_url=base_url)
@@ -2591,14 +2592,16 @@ class TestAsyncOpenAI:
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx2(base_url=base_url)
     @pytest.mark.parametrize("failure_mode", ["status", "exception"])
+    @pytest.mark.parametrize("max_retries", [4, math.inf])
     async def test_retries_taken(
         self,
         async_client: AsyncOpenAI,
         failures_before_success: int,
+        max_retries: int | float,
         failure_mode: Literal["status", "exception"],
         respx2_mock: MockRouter,
     ) -> None:
-        client = async_client.with_options(max_retries=4)
+        client = async_client.with_options(max_retries=max_retries)
 
         nb_retries = 0
 
@@ -3141,6 +3144,80 @@ class TestAsyncWorkloadIdentity401Retry:
 
             assert provider_call_count == 1
 
+
+@pytest.mark.parametrize("is_async", [False, True])
+@pytest.mark.parametrize(
+    "max_retries,backoff_factor,max_backoff,retry_after,failures,expected_delays",
+    [
+        (0, 0.5, 8, None, 1, []),
+        (2, 0.5, 8, None, 3, [0.5, 1]),
+        (math.inf, 0.5, 8, None, 6, [0.5, 1, 2, 4, 8, 8]),
+        (math.inf, 2, 3, None, 3, [2, 3, 3]),
+        (math.inf, 0, 8, None, 2, [0, 0]),
+        (math.inf, 2, 0, None, 2, [0, 0]),
+        (math.inf, 0.5, 1, "3", 2, [3, 3]),
+    ],
+)
+async def test_retry_limits_and_backoff(
+    is_async: bool,
+    max_retries: int | float,
+    backoff_factor: float,
+    max_backoff: float,
+    retry_after: str | None,
+    failures: int,
+    expected_delays: list[float],
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    responses: list[httpx2.Response] = []
+
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        assert request.headers["x-stainless-retry-count"] == str(len(responses))
+        response = httpx2.Response(
+            500 if len(responses) < failures else 200,
+            json={},
+            headers={"retry-after": retry_after} if retry_after else {},
+        )
+        responses.append(response)
+        return response
+
+    transport = httpx2.MockTransport(handler)
+    client = (
+        AsyncOpenAI(api_key="fake-key", http_client=httpx2.AsyncClient(transport=transport))
+        if is_async
+        else OpenAI(api_key="fake-key", http_client=httpx2.Client(transport=transport))
+    )
+    copied = client.with_options(backoff_factor=backoff_factor, max_backoff=max_backoff)
+    caplog.set_level("DEBUG", logger="openai._base_client")
+    try:
+        with (
+            mock.patch("openai._base_client.random", return_value=0),
+            mock.patch("openai._base_client.time.sleep") as sync_sleep,
+            mock.patch("openai._base_client.anyio.sleep") as async_sleep,
+        ):
+            try:
+                # Exercise request-level limits independently of constructor/copy validation.
+                if isinstance(copied, AsyncOpenAI):
+                    await copied.get("/test", cast_to=object, options={"max_retries": max_retries})
+                else:
+                    copied.get("/test", cast_to=object, options={"max_retries": max_retries})
+            except APIStatusError:
+                assert failures > max_retries
+            else:
+                assert failures <= max_retries
+            sleep = async_sleep if is_async else sync_sleep
+            assert [call.args[0] for call in sleep.call_args_list] == expected_delays
+        assert len(responses) == len(expected_delays) + 1
+        assert all(response.is_closed for response in responses)
+        messages = [record.getMessage() for record in caplog.records if record.levelname == "INFO"]
+        for attempt in range(1, len(expected_delays) + 1):
+            assert any(f"retry {attempt} of {max_retries}" in message for message in messages)
+    finally:
+        if isinstance(client, AsyncOpenAI):
+            await client.close()
+        else:
+            client.close()
+
+
 @pytest.mark.parametrize("is_async", [False, True])
 @pytest.mark.parametrize(
     "error", [RuntimeError("application failed"), OSError("local failure"), asyncio.CancelledError()]
@@ -3167,6 +3244,61 @@ async def test_application_exceptions_are_not_retried(is_async: bool, error: Bas
                 client.get("/test", cast_to=object)
         assert caught.value is error
         assert calls == 1
+    finally:
+        if isinstance(client, AsyncOpenAI):
+            await client.close()
+        else:
+            client.close()
+
+
+@pytest.mark.parametrize("is_async", [False, True])
+@pytest.mark.parametrize("value", [None, "2", -1, 2.5, 2.0, math.nan, -math.inf])
+async def test_invalid_request_retry_limit(is_async: bool, value: Any) -> None:
+    client = AsyncOpenAI(api_key="fake-key") if is_async else OpenAI(api_key="fake-key")
+    error = TypeError if value is None or isinstance(value, str) else ValueError
+    try:
+        with pytest.raises(error, match="max_retries"):
+            client.with_options(max_retries=cast(Any, value))
+        with pytest.raises(error, match="max_retries"):
+            if isinstance(client, AsyncOpenAI):
+                await client.get("/test", cast_to=object, options={"max_retries": cast(Any, value)})
+            else:
+                client.get("/test", cast_to=object, options={"max_retries": cast(Any, value)})
+    finally:
+        if isinstance(client, AsyncOpenAI):
+            await client.close()
+        else:
+            client.close()
+
+
+@pytest.mark.parametrize("is_async", [False, True])
+@pytest.mark.parametrize("provider", ["openai", "azure", "bedrock"])
+async def test_retry_configuration_copy(is_async: bool, provider: str) -> None:
+    from openai import AzureOpenAI, BedrockOpenAI, AsyncAzureOpenAI, AsyncBedrockOpenAI
+
+    cls = {
+        (False, "openai"): OpenAI,
+        (True, "openai"): AsyncOpenAI,
+        (False, "azure"): AzureOpenAI,
+        (True, "azure"): AsyncAzureOpenAI,
+        (False, "bedrock"): BedrockOpenAI,
+        (True, "bedrock"): AsyncBedrockOpenAI,
+    }[is_async, provider]
+    kwargs: dict[str, Any] = {"api_key": "fake-key", "base_url": "https://example.test"}
+    if provider == "azure":
+        kwargs["api_version"] = "2024-02-01"
+    client = cls(**kwargs, max_retries=math.inf, backoff_factor=2, max_backoff=30)
+    try:
+        copied = client.copy().with_options()
+        assert (copied.max_retries, copied.backoff_factor, copied.max_backoff) == (math.inf, 2, 30)
+        overridden = copied.with_options(max_retries=0, backoff_factor=0, max_backoff=0)
+        assert (overridden.max_retries, overridden.backoff_factor, overridden.max_backoff) == (0, 0, 0)
+        assert (client.max_retries, client.backoff_factor, client.max_backoff) == (math.inf, 2, 30)
+        for option in ("backoff_factor", "max_backoff"):
+            for value in (-1, math.inf, math.nan):
+                with pytest.raises(ValueError, match=option):
+                    invalid_options: dict[str, Any] = {option: value}
+                    client.with_options(**invalid_options)
     finally:
         if isinstance(client, AsyncOpenAI):
             await client.close()

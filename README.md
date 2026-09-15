@@ -776,6 +776,26 @@ client.with_options(max_retries=5).chat.completions.create(
 )
 ```
 
+`max_retries` accepts non-negative integers, or `math.inf` to keep retrying eligible
+failures until success or cancellation. `0` disables retries. Other values raise
+an error before a request is sent.
+
+To customize exponential backoff, set `backoff_factor` (the initial delay, default
+`0.5` seconds) and `max_backoff` (the delay cap, default `8.0` seconds). Both must
+be finite, non-negative numbers. Delays are reduced by up to 25% jitter. A valid
+server `Retry-After` takes precedence over these settings; server delays above two
+minutes are surfaced without retrying.
+
+```python
+import math
+
+client = OpenAI(max_retries=math.inf, backoff_factor=1.0, max_backoff=30.0)
+# The same options can be set with client.with_options(...).
+```
+
+Transport failures are retried. Application exceptions raised by custom transports
+or hooks propagate unchanged, including task-executor cancellation signals.
+
 ## Timeouts
 
 By default requests time out after 10 minutes. You can configure this with a `timeout` option,
