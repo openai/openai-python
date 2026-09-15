@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import inspect
 from typing import Any, TypeVar
+from urllib.parse import unquote
 from typing_extensions import TypeGuard
 
 import pydantic
@@ -116,10 +117,14 @@ def _ensure_strict_json_schema(
 
 
 def resolve_ref(*, root: dict[str, object], ref: str) -> object:
-    if not ref.startswith("#/"):
-        raise ValueError(f"Unexpected $ref format {ref!r}; Does not start with #/")
+    if not ref.startswith("#"):
+        raise ValueError(f"Unexpected $ref format {ref!r}; Does not start with #")
 
-    path = ref[2:].split("/")
+    fragment = unquote(ref[1:])
+    if not fragment.startswith("/"):
+        raise ValueError(f"Unexpected $ref format {ref!r}; Does not decode to a JSON Pointer")
+
+    path = [key.replace("~1", "/").replace("~0", "~") for key in fragment[1:].split("/")]
     resolved = root
     for key in path:
         value = resolved[key]
