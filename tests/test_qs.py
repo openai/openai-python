@@ -22,6 +22,14 @@ def test_basic() -> None:
     assert stringify({"a": None}) == ""
 
 
+def test_empty_string_scalar_is_kept_distinct_from_none() -> None:
+    # An explicit empty string is a real value ("a=") and must not be
+    # conflated with omitting the key entirely (None).
+    assert unquote(stringify({"a": ""})) == "a="
+    assert stringify({"a": None}) == ""
+    assert unquote(stringify({"a": "", "b": 1})) == "a=&b=1"
+
+
 @pytest.mark.parametrize("method", ["class", "function"])
 def test_nested_dotted(method: str) -> None:
     if method == "class":
