@@ -12,6 +12,14 @@ from openai._types import Omit
 from openai.types.responses import ParsedResponse
 from openai.lib.streaming.responses import ResponseStreamEvent
 
+# Pydantic v2 warns when serializing a response containing a future enum value.
+# These probes retain the SDK's default warning behavior, rather than treating it
+# as an error under the test suite's global warnings policy.
+NON_FINAL_PHASES = [
+    "commentary",
+    pytest.param("future_phase", marks=pytest.mark.filterwarnings("ignore:Pydantic serializer warnings:UserWarning")),
+]
+
 
 class Result(BaseModel):
     answer: str
@@ -79,8 +87,15 @@ async def _parse(
         return await client.responses.parse(model="test-model", input="test", text_format=text_format)
 
 
-def _events(commentary: str, final_text: str, completion: str = "supplied") -> list[dict[str, Any]]:
-    messages = [_message(commentary, "commentary"), _message(final_text)]
+def _events(
+    commentary: str,
+    final_text: str,
+    completion: str = "supplied",
+    *,
+    commentary_phase: str = "commentary",
+    final_phase: str | None = "final_answer",
+) -> list[dict[str, Any]]:
+    messages = [_message(commentary, commentary_phase), _message(final_text, final_phase)]
     tool = {"type": "function_call", "id": "fc_test", "call_id": "call_test", "name": "lookup", "arguments": "{}"}
     events: list[dict[str, Any]] = [{"type": "response.created", "response": _response([])}]
     for index, message in zip((0, 2), messages, strict=True):
@@ -153,10 +168,13 @@ async def _stream(
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
 @pytest.mark.parametrize("phase", ["final_answer", None, "missing"])
 @pytest.mark.parametrize("commentary", [None, "Preparing.", '{"answer":"intermediate"}'])
-async def test_parse_skips_commentary(sync: bool, phase: str | None, commentary: str | None) -> None:
+@pytest.mark.parametrize("intermediate_phase", NON_FINAL_PHASES)
+async def test_parse_skips_commentary(
+    sync: bool, phase: str | None, commentary: str | None, intermediate_phase: str
+) -> None:
     output = [_message('{"answer":"final"}', phase)]
     if commentary is not None:
-        output.insert(0, _message(commentary, "commentary"))
+        output.insert(0, _message(commentary, intermediate_phase))
     response = await _parse(sync, output)
     assert response.output_parsed == Result(answer="final")
     assert response.output_text == (commentary or "") + '{"answer":"final"}'
@@ -167,7 +185,7 @@ async def test_parse_skips_commentary(sync: bool, phase: str | None, commentary:
         assert content.type == "output_text"
         assert content.text == expected["content"][0]["text"]
         assert content.annotations == []
-        assert content.parsed == (None if actual.phase == "commentary" else Result(answer="final"))
+        assert content.parsed == (Result(answer="final") if actual.phase in (None, "final_answer") else None)
 
 
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
@@ -204,8 +222,11 @@ async def test_parse_preserves_unphased_selection_and_unstructured_text(sync: bo
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
 @pytest.mark.parametrize("commentary", ["Preparing.", '{"answer":"intermediate"}'])
 @pytest.mark.parametrize("completion", ["supplied", "null", "missing", "empty"])
-async def test_stream_skips_commentary_without_losing_events(sync: bool, commentary: str, completion: str) -> None:
-    events = _events(commentary, '{"answer":"final"}', completion)
+@pytest.mark.parametrize("intermediate_phase", NON_FINAL_PHASES)
+async def test_stream_skips_commentary_without_losing_events(
+    sync: bool, commentary: str, completion: str, intermediate_phase: str
+) -> None:
+    events = _events(commentary, '{"answer":"final"}', completion, commentary_phase=intermediate_phase)
     emitted, final = await _stream(sync, events)
     assert len(emitted) == len(events)
     deltas = [event for event in emitted if event.type == "response.output_text.delta"]
@@ -242,3 +263,49 @@ async def test_stream_still_rejects_invalid_final_output(sync: bool, completion_
         events = [events[0], events[-1]]
     with pytest.raises(ValidationError):
         await _stream(sync, events)
+
+
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+@pytest.mark.parametrize("phase", [None, "missing", "final_answer"])
+async def test_stream_preserves_legacy_and_final_phase_parsing(sync: bool, phase: str | None) -> None:
+    events = _events("Preparing.", '{"answer":"final"}', final_phase=phase)
+    emitted, response = await _stream(sync, events)
+    done = [event for event in emitted if event.type == "response.output_text.done"]
+    assert [event.parsed for event in done] == [None, Result(answer="final")]
+    assert response.output_parsed == Result(answer="final")
+
+
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+@pytest.mark.parametrize("streaming", [False, True], ids=["parse", "stream-completion"])
+@pytest.mark.parametrize("phase", NON_FINAL_PHASES)
+@pytest.mark.parametrize("final_kind", ["text", "refusal", "absent"])
+async def test_phase_selection_preserves_content(sync: bool, streaming: bool, phase: str, final_kind: str) -> None:
+    # Unknown phases probe forward compatibility; they do not represent a known live model.
+    intermediate = _message('{"answer":"intermediate"}', phase)
+    intermediate["content"].append({"type": "output_text", "text": "Still working.", "annotations": []})
+    output = [intermediate]
+    if final_kind != "absent":
+        final = _message('{"answer":"final"}')
+        if final_kind == "refusal":
+            final["content"] = [{"type": "refusal", "refusal": "Cannot comply"}]
+        output.extend([final, {**intermediate, "id": "msg_after_final"}])
+    if streaming:
+        _, response = await _stream(
+            sync,
+            [
+                {"type": "response.created", "response": _response([])},
+                {"type": "response.completed", "response": _response(output)},
+            ],
+        )
+    else:
+        response = await _parse(sync, output)
+    assert response.output_parsed == (Result(answer="final") if final_kind == "text" else None)
+    for actual, expected in zip(response.output, output, strict=True):
+        assert actual.type == "message"
+        assert actual.phase == expected["phase"]
+        for content, raw in zip(actual.content, expected["content"], strict=True):
+            if content.type == "output_text":
+                assert content.text == raw["text"]
+                assert content.parsed == (Result(answer="final") if actual.phase == "final_answer" else None)
+            else:
+                assert content.refusal == raw["refusal"]
