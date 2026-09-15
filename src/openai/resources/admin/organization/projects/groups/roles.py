@@ -1,10 +1,10 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 from typing_extensions import Literal
 
-import httpx
+import httpx2
 
 from ...... import _legacy_response
 from ......_types import Body, Omit, Query, Headers, NotGiven, omit, not_given
@@ -18,6 +18,7 @@ from ......types.admin.organization.projects.groups import role_list_params, rol
 from ......types.admin.organization.projects.groups.role_list_response import RoleListResponse
 from ......types.admin.organization.projects.groups.role_create_response import RoleCreateResponse
 from ......types.admin.organization.projects.groups.role_delete_response import RoleDeleteResponse
+from ......types.admin.organization.projects.groups.role_retrieve_response import RoleRetrieveResponse
 
 __all__ = ["Roles", "AsyncRoles"]
 
@@ -53,7 +54,7 @@ class Roles(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> RoleCreateResponse:
         """
         Assigns a project role to a group within a project.
@@ -86,6 +87,54 @@ class Roles(SyncAPIResource):
             cast_to=RoleCreateResponse,
         )
 
+    def retrieve(
+        self,
+        role_id: str,
+        *,
+        project_id: str,
+        group_id: str,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> RoleRetrieveResponse:
+        """
+        Retrieves a project role assigned to a group.
+
+        Args:
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not project_id:
+            raise ValueError(f"Expected a non-empty value for `project_id` but received {project_id!r}")
+        if not group_id:
+            raise ValueError(f"Expected a non-empty value for `group_id` but received {group_id!r}")
+        if not role_id:
+            raise ValueError(f"Expected a non-empty value for `role_id` but received {role_id!r}")
+        return self._get(
+            path_template(
+                "/projects/{project_id}/groups/{group_id}/roles/{role_id}",
+                project_id=project_id,
+                group_id=group_id,
+                role_id=role_id,
+            ),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"admin_api_key_auth": True},
+            ),
+            cast_to=RoleRetrieveResponse,
+        )
+
     def list(
         self,
         group_id: str,
@@ -99,7 +148,7 @@ class Roles(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncNextCursorPage[RoleListResponse]:
         """
         Lists the project roles assigned to a group within a project.
@@ -156,7 +205,7 @@ class Roles(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> RoleDeleteResponse:
         """
         Unassigns a project role from a group within a project.
@@ -225,7 +274,7 @@ class AsyncRoles(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> RoleCreateResponse:
         """
         Assigns a project role to a group within a project.
@@ -258,6 +307,54 @@ class AsyncRoles(AsyncAPIResource):
             cast_to=RoleCreateResponse,
         )
 
+    async def retrieve(
+        self,
+        role_id: str,
+        *,
+        project_id: str,
+        group_id: str,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> RoleRetrieveResponse:
+        """
+        Retrieves a project role assigned to a group.
+
+        Args:
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not project_id:
+            raise ValueError(f"Expected a non-empty value for `project_id` but received {project_id!r}")
+        if not group_id:
+            raise ValueError(f"Expected a non-empty value for `group_id` but received {group_id!r}")
+        if not role_id:
+            raise ValueError(f"Expected a non-empty value for `role_id` but received {role_id!r}")
+        return await self._get(
+            path_template(
+                "/projects/{project_id}/groups/{group_id}/roles/{role_id}",
+                project_id=project_id,
+                group_id=group_id,
+                role_id=role_id,
+            ),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"admin_api_key_auth": True},
+            ),
+            cast_to=RoleRetrieveResponse,
+        )
+
     def list(
         self,
         group_id: str,
@@ -271,7 +368,7 @@ class AsyncRoles(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[RoleListResponse, AsyncNextCursorPage[RoleListResponse]]:
         """
         Lists the project roles assigned to a group within a project.
@@ -328,7 +425,7 @@ class AsyncRoles(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> RoleDeleteResponse:
         """
         Unassigns a project role from a group within a project.
@@ -373,6 +470,9 @@ class RolesWithRawResponse:
         self.create = _legacy_response.to_raw_response_wrapper(
             roles.create,
         )
+        self.retrieve = _legacy_response.to_raw_response_wrapper(
+            roles.retrieve,
+        )
         self.list = _legacy_response.to_raw_response_wrapper(
             roles.list,
         )
@@ -387,6 +487,9 @@ class AsyncRolesWithRawResponse:
 
         self.create = _legacy_response.async_to_raw_response_wrapper(
             roles.create,
+        )
+        self.retrieve = _legacy_response.async_to_raw_response_wrapper(
+            roles.retrieve,
         )
         self.list = _legacy_response.async_to_raw_response_wrapper(
             roles.list,
@@ -403,6 +506,9 @@ class RolesWithStreamingResponse:
         self.create = to_streamed_response_wrapper(
             roles.create,
         )
+        self.retrieve = to_streamed_response_wrapper(
+            roles.retrieve,
+        )
         self.list = to_streamed_response_wrapper(
             roles.list,
         )
@@ -417,6 +523,9 @@ class AsyncRolesWithStreamingResponse:
 
         self.create = async_to_streamed_response_wrapper(
             roles.create,
+        )
+        self.retrieve = async_to_streamed_response_wrapper(
+            roles.retrieve,
         )
         self.list = async_to_streamed_response_wrapper(
             roles.list,

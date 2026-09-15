@@ -1,11 +1,11 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 from typing import List
 from typing_extensions import Literal
 
-import httpx
+import httpx2
 
 from .... import _legacy_response
 from ...._types import Body, Omit, Query, Headers, NotGiven, SequenceNotStr, omit, not_given
@@ -22,6 +22,8 @@ from ....types.admin.organization import (
     usage_moderations_params,
     usage_vector_stores_params,
     usage_audio_speeches_params,
+    usage_web_search_calls_params,
+    usage_file_search_calls_params,
     usage_audio_transcriptions_params,
     usage_code_interpreter_sessions_params,
 )
@@ -32,6 +34,8 @@ from ....types.admin.organization.usage_completions_response import UsageComplet
 from ....types.admin.organization.usage_moderations_response import UsageModerationsResponse
 from ....types.admin.organization.usage_vector_stores_response import UsageVectorStoresResponse
 from ....types.admin.organization.usage_audio_speeches_response import UsageAudioSpeechesResponse
+from ....types.admin.organization.usage_web_search_calls_response import UsageWebSearchCallsResponse
+from ....types.admin.organization.usage_file_search_calls_response import UsageFileSearchCallsResponse
 from ....types.admin.organization.usage_audio_transcriptions_response import UsageAudioTranscriptionsResponse
 from ....types.admin.organization.usage_code_interpreter_sessions_response import UsageCodeInterpreterSessionsResponse
 
@@ -76,7 +80,7 @@ class Usage(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageAudioSpeechesResponse:
         """
         Get audio speeches usage details for the organization.
@@ -162,7 +166,7 @@ class Usage(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageAudioTranscriptionsResponse:
         """
         Get audio transcriptions usage details for the organization.
@@ -245,7 +249,7 @@ class Usage(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageCodeInterpreterSessionsResponse:
         """
         Get code interpreter sessions usage details for the organization.
@@ -323,7 +327,7 @@ class Usage(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageCompletionsResponse:
         """
         Get completions usage details for the organization.
@@ -405,6 +409,7 @@ class Usage(SyncAPIResource):
         end_time: int | Omit = omit,
         group_by: List[Literal["project_id", "line_item", "api_key_id"]] | Omit = omit,
         limit: int | Omit = omit,
+        line_items: SequenceNotStr[str] | Omit = omit,
         page: str | Omit = omit,
         project_ids: SequenceNotStr[str] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -412,7 +417,7 @@ class Usage(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageCostsResponse:
         """
         Get costs details for the organization.
@@ -432,6 +437,9 @@ class Usage(SyncAPIResource):
 
           limit: A limit on the number of buckets to be returned. Limit can range between 1 and
               180, and the default is 7.
+
+          line_items: Return only costs for these exact line item names. Each value must match the
+              complete `line_item` value, for example `gpt-6-astra, input_tokens`.
 
           page: A cursor for use in pagination. Corresponding to the `next_page` field from the
               previous response.
@@ -461,6 +469,7 @@ class Usage(SyncAPIResource):
                         "end_time": end_time,
                         "group_by": group_by,
                         "limit": limit,
+                        "line_items": line_items,
                         "page": page,
                         "project_ids": project_ids,
                     },
@@ -489,7 +498,7 @@ class Usage(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageEmbeddingsResponse:
         """
         Get embeddings usage details for the organization.
@@ -557,6 +566,93 @@ class Usage(SyncAPIResource):
             cast_to=UsageEmbeddingsResponse,
         )
 
+    def file_search_calls(
+        self,
+        *,
+        start_time: int,
+        api_key_ids: SequenceNotStr[str] | Omit = omit,
+        bucket_width: Literal["1m", "1h", "1d"] | Omit = omit,
+        end_time: int | Omit = omit,
+        group_by: List[Literal["project_id", "user_id", "api_key_id", "vector_store_id"]] | Omit = omit,
+        limit: int | Omit = omit,
+        page: str | Omit = omit,
+        project_ids: SequenceNotStr[str] | Omit = omit,
+        user_ids: SequenceNotStr[str] | Omit = omit,
+        vector_store_ids: SequenceNotStr[str] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> UsageFileSearchCallsResponse:
+        """
+        Get file search calls usage details for the organization.
+
+        Args:
+          start_time: Start time (Unix seconds) of the query time range, inclusive.
+
+          api_key_ids: Return only usage for these API keys.
+
+          bucket_width: Width of each time bucket in response. Currently `1m`, `1h` and `1d` are
+              supported, default to `1d`.
+
+          end_time: End time (Unix seconds) of the query time range, exclusive.
+
+          group_by: Group the usage data by the specified fields. Support fields include
+              `project_id`, `user_id`, `api_key_id`, `vector_store_id` or any combination of
+              them.
+
+          limit: Specifies the number of buckets to return.
+
+              - `bucket_width=1d`: default: 7, max: 31
+              - `bucket_width=1h`: default: 24, max: 168
+              - `bucket_width=1m`: default: 60, max: 1440
+
+          page: A cursor for use in pagination. Corresponding to the `next_page` field from the
+              previous response.
+
+          project_ids: Return only usage for these projects.
+
+          user_ids: Return only usage for these users.
+
+          vector_store_ids: Return only usage for these vector stores.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        return self._get(
+            "/organization/usage/file_search_calls",
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                query=maybe_transform(
+                    {
+                        "start_time": start_time,
+                        "api_key_ids": api_key_ids,
+                        "bucket_width": bucket_width,
+                        "end_time": end_time,
+                        "group_by": group_by,
+                        "limit": limit,
+                        "page": page,
+                        "project_ids": project_ids,
+                        "user_ids": user_ids,
+                        "vector_store_ids": vector_store_ids,
+                    },
+                    usage_file_search_calls_params.UsageFileSearchCallsParams,
+                ),
+                security={"admin_api_key_auth": True},
+            ),
+            cast_to=UsageFileSearchCallsResponse,
+        )
+
     def images(
         self,
         *,
@@ -577,7 +673,7 @@ class Usage(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageImagesResponse:
         """
         Get images usage details for the organization.
@@ -672,7 +768,7 @@ class Usage(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageModerationsResponse:
         """
         Get moderations usage details for the organization.
@@ -755,7 +851,7 @@ class Usage(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageVectorStoresResponse:
         """
         Get vector stores usage details for the organization.
@@ -814,6 +910,97 @@ class Usage(SyncAPIResource):
             cast_to=UsageVectorStoresResponse,
         )
 
+    def web_search_calls(
+        self,
+        *,
+        start_time: int,
+        api_key_ids: SequenceNotStr[str] | Omit = omit,
+        bucket_width: Literal["1m", "1h", "1d"] | Omit = omit,
+        context_levels: List[Literal["low", "medium", "high"]] | Omit = omit,
+        end_time: int | Omit = omit,
+        group_by: List[Literal["project_id", "user_id", "api_key_id", "model", "context_level"]] | Omit = omit,
+        limit: int | Omit = omit,
+        models: SequenceNotStr[str] | Omit = omit,
+        page: str | Omit = omit,
+        project_ids: SequenceNotStr[str] | Omit = omit,
+        user_ids: SequenceNotStr[str] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> UsageWebSearchCallsResponse:
+        """
+        Get web search calls usage details for the organization.
+
+        Args:
+          start_time: Start time (Unix seconds) of the query time range, inclusive.
+
+          api_key_ids: Return only usage for these API keys.
+
+          bucket_width: Width of each time bucket in response. Currently `1m`, `1h` and `1d` are
+              supported, default to `1d`.
+
+          context_levels: Return only web search usage for these context levels.
+
+          end_time: End time (Unix seconds) of the query time range, exclusive.
+
+          group_by: Group the usage data by the specified fields. Support fields include
+              `project_id`, `user_id`, `api_key_id`, `model`, `context_level` or any
+              combination of them.
+
+          limit: Specifies the number of buckets to return.
+
+              - `bucket_width=1d`: default: 7, max: 31
+              - `bucket_width=1h`: default: 24, max: 168
+              - `bucket_width=1m`: default: 60, max: 1440
+
+          models: Return only usage for these models.
+
+          page: A cursor for use in pagination. Corresponding to the `next_page` field from the
+              previous response.
+
+          project_ids: Return only usage for these projects.
+
+          user_ids: Return only usage for these users.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        return self._get(
+            "/organization/usage/web_search_calls",
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                query=maybe_transform(
+                    {
+                        "start_time": start_time,
+                        "api_key_ids": api_key_ids,
+                        "bucket_width": bucket_width,
+                        "context_levels": context_levels,
+                        "end_time": end_time,
+                        "group_by": group_by,
+                        "limit": limit,
+                        "models": models,
+                        "page": page,
+                        "project_ids": project_ids,
+                        "user_ids": user_ids,
+                    },
+                    usage_web_search_calls_params.UsageWebSearchCallsParams,
+                ),
+                security={"admin_api_key_auth": True},
+            ),
+            cast_to=UsageWebSearchCallsResponse,
+        )
+
 
 class AsyncUsage(AsyncAPIResource):
     @cached_property
@@ -853,7 +1040,7 @@ class AsyncUsage(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageAudioSpeechesResponse:
         """
         Get audio speeches usage details for the organization.
@@ -939,7 +1126,7 @@ class AsyncUsage(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageAudioTranscriptionsResponse:
         """
         Get audio transcriptions usage details for the organization.
@@ -1022,7 +1209,7 @@ class AsyncUsage(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageCodeInterpreterSessionsResponse:
         """
         Get code interpreter sessions usage details for the organization.
@@ -1100,7 +1287,7 @@ class AsyncUsage(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageCompletionsResponse:
         """
         Get completions usage details for the organization.
@@ -1182,6 +1369,7 @@ class AsyncUsage(AsyncAPIResource):
         end_time: int | Omit = omit,
         group_by: List[Literal["project_id", "line_item", "api_key_id"]] | Omit = omit,
         limit: int | Omit = omit,
+        line_items: SequenceNotStr[str] | Omit = omit,
         page: str | Omit = omit,
         project_ids: SequenceNotStr[str] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -1189,7 +1377,7 @@ class AsyncUsage(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageCostsResponse:
         """
         Get costs details for the organization.
@@ -1209,6 +1397,9 @@ class AsyncUsage(AsyncAPIResource):
 
           limit: A limit on the number of buckets to be returned. Limit can range between 1 and
               180, and the default is 7.
+
+          line_items: Return only costs for these exact line item names. Each value must match the
+              complete `line_item` value, for example `gpt-6-astra, input_tokens`.
 
           page: A cursor for use in pagination. Corresponding to the `next_page` field from the
               previous response.
@@ -1238,6 +1429,7 @@ class AsyncUsage(AsyncAPIResource):
                         "end_time": end_time,
                         "group_by": group_by,
                         "limit": limit,
+                        "line_items": line_items,
                         "page": page,
                         "project_ids": project_ids,
                     },
@@ -1266,7 +1458,7 @@ class AsyncUsage(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageEmbeddingsResponse:
         """
         Get embeddings usage details for the organization.
@@ -1334,6 +1526,93 @@ class AsyncUsage(AsyncAPIResource):
             cast_to=UsageEmbeddingsResponse,
         )
 
+    async def file_search_calls(
+        self,
+        *,
+        start_time: int,
+        api_key_ids: SequenceNotStr[str] | Omit = omit,
+        bucket_width: Literal["1m", "1h", "1d"] | Omit = omit,
+        end_time: int | Omit = omit,
+        group_by: List[Literal["project_id", "user_id", "api_key_id", "vector_store_id"]] | Omit = omit,
+        limit: int | Omit = omit,
+        page: str | Omit = omit,
+        project_ids: SequenceNotStr[str] | Omit = omit,
+        user_ids: SequenceNotStr[str] | Omit = omit,
+        vector_store_ids: SequenceNotStr[str] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> UsageFileSearchCallsResponse:
+        """
+        Get file search calls usage details for the organization.
+
+        Args:
+          start_time: Start time (Unix seconds) of the query time range, inclusive.
+
+          api_key_ids: Return only usage for these API keys.
+
+          bucket_width: Width of each time bucket in response. Currently `1m`, `1h` and `1d` are
+              supported, default to `1d`.
+
+          end_time: End time (Unix seconds) of the query time range, exclusive.
+
+          group_by: Group the usage data by the specified fields. Support fields include
+              `project_id`, `user_id`, `api_key_id`, `vector_store_id` or any combination of
+              them.
+
+          limit: Specifies the number of buckets to return.
+
+              - `bucket_width=1d`: default: 7, max: 31
+              - `bucket_width=1h`: default: 24, max: 168
+              - `bucket_width=1m`: default: 60, max: 1440
+
+          page: A cursor for use in pagination. Corresponding to the `next_page` field from the
+              previous response.
+
+          project_ids: Return only usage for these projects.
+
+          user_ids: Return only usage for these users.
+
+          vector_store_ids: Return only usage for these vector stores.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        return await self._get(
+            "/organization/usage/file_search_calls",
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                query=await async_maybe_transform(
+                    {
+                        "start_time": start_time,
+                        "api_key_ids": api_key_ids,
+                        "bucket_width": bucket_width,
+                        "end_time": end_time,
+                        "group_by": group_by,
+                        "limit": limit,
+                        "page": page,
+                        "project_ids": project_ids,
+                        "user_ids": user_ids,
+                        "vector_store_ids": vector_store_ids,
+                    },
+                    usage_file_search_calls_params.UsageFileSearchCallsParams,
+                ),
+                security={"admin_api_key_auth": True},
+            ),
+            cast_to=UsageFileSearchCallsResponse,
+        )
+
     async def images(
         self,
         *,
@@ -1354,7 +1633,7 @@ class AsyncUsage(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageImagesResponse:
         """
         Get images usage details for the organization.
@@ -1449,7 +1728,7 @@ class AsyncUsage(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageModerationsResponse:
         """
         Get moderations usage details for the organization.
@@ -1532,7 +1811,7 @@ class AsyncUsage(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UsageVectorStoresResponse:
         """
         Get vector stores usage details for the organization.
@@ -1591,6 +1870,97 @@ class AsyncUsage(AsyncAPIResource):
             cast_to=UsageVectorStoresResponse,
         )
 
+    async def web_search_calls(
+        self,
+        *,
+        start_time: int,
+        api_key_ids: SequenceNotStr[str] | Omit = omit,
+        bucket_width: Literal["1m", "1h", "1d"] | Omit = omit,
+        context_levels: List[Literal["low", "medium", "high"]] | Omit = omit,
+        end_time: int | Omit = omit,
+        group_by: List[Literal["project_id", "user_id", "api_key_id", "model", "context_level"]] | Omit = omit,
+        limit: int | Omit = omit,
+        models: SequenceNotStr[str] | Omit = omit,
+        page: str | Omit = omit,
+        project_ids: SequenceNotStr[str] | Omit = omit,
+        user_ids: SequenceNotStr[str] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> UsageWebSearchCallsResponse:
+        """
+        Get web search calls usage details for the organization.
+
+        Args:
+          start_time: Start time (Unix seconds) of the query time range, inclusive.
+
+          api_key_ids: Return only usage for these API keys.
+
+          bucket_width: Width of each time bucket in response. Currently `1m`, `1h` and `1d` are
+              supported, default to `1d`.
+
+          context_levels: Return only web search usage for these context levels.
+
+          end_time: End time (Unix seconds) of the query time range, exclusive.
+
+          group_by: Group the usage data by the specified fields. Support fields include
+              `project_id`, `user_id`, `api_key_id`, `model`, `context_level` or any
+              combination of them.
+
+          limit: Specifies the number of buckets to return.
+
+              - `bucket_width=1d`: default: 7, max: 31
+              - `bucket_width=1h`: default: 24, max: 168
+              - `bucket_width=1m`: default: 60, max: 1440
+
+          models: Return only usage for these models.
+
+          page: A cursor for use in pagination. Corresponding to the `next_page` field from the
+              previous response.
+
+          project_ids: Return only usage for these projects.
+
+          user_ids: Return only usage for these users.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        return await self._get(
+            "/organization/usage/web_search_calls",
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                query=await async_maybe_transform(
+                    {
+                        "start_time": start_time,
+                        "api_key_ids": api_key_ids,
+                        "bucket_width": bucket_width,
+                        "context_levels": context_levels,
+                        "end_time": end_time,
+                        "group_by": group_by,
+                        "limit": limit,
+                        "models": models,
+                        "page": page,
+                        "project_ids": project_ids,
+                        "user_ids": user_ids,
+                    },
+                    usage_web_search_calls_params.UsageWebSearchCallsParams,
+                ),
+                security={"admin_api_key_auth": True},
+            ),
+            cast_to=UsageWebSearchCallsResponse,
+        )
+
 
 class UsageWithRawResponse:
     def __init__(self, usage: Usage) -> None:
@@ -1614,6 +1984,9 @@ class UsageWithRawResponse:
         self.embeddings = _legacy_response.to_raw_response_wrapper(
             usage.embeddings,
         )
+        self.file_search_calls = _legacy_response.to_raw_response_wrapper(
+            usage.file_search_calls,
+        )
         self.images = _legacy_response.to_raw_response_wrapper(
             usage.images,
         )
@@ -1622,6 +1995,9 @@ class UsageWithRawResponse:
         )
         self.vector_stores = _legacy_response.to_raw_response_wrapper(
             usage.vector_stores,
+        )
+        self.web_search_calls = _legacy_response.to_raw_response_wrapper(
+            usage.web_search_calls,
         )
 
 
@@ -1647,6 +2023,9 @@ class AsyncUsageWithRawResponse:
         self.embeddings = _legacy_response.async_to_raw_response_wrapper(
             usage.embeddings,
         )
+        self.file_search_calls = _legacy_response.async_to_raw_response_wrapper(
+            usage.file_search_calls,
+        )
         self.images = _legacy_response.async_to_raw_response_wrapper(
             usage.images,
         )
@@ -1655,6 +2034,9 @@ class AsyncUsageWithRawResponse:
         )
         self.vector_stores = _legacy_response.async_to_raw_response_wrapper(
             usage.vector_stores,
+        )
+        self.web_search_calls = _legacy_response.async_to_raw_response_wrapper(
+            usage.web_search_calls,
         )
 
 
@@ -1680,6 +2062,9 @@ class UsageWithStreamingResponse:
         self.embeddings = to_streamed_response_wrapper(
             usage.embeddings,
         )
+        self.file_search_calls = to_streamed_response_wrapper(
+            usage.file_search_calls,
+        )
         self.images = to_streamed_response_wrapper(
             usage.images,
         )
@@ -1688,6 +2073,9 @@ class UsageWithStreamingResponse:
         )
         self.vector_stores = to_streamed_response_wrapper(
             usage.vector_stores,
+        )
+        self.web_search_calls = to_streamed_response_wrapper(
+            usage.web_search_calls,
         )
 
 
@@ -1713,6 +2101,9 @@ class AsyncUsageWithStreamingResponse:
         self.embeddings = async_to_streamed_response_wrapper(
             usage.embeddings,
         )
+        self.file_search_calls = async_to_streamed_response_wrapper(
+            usage.file_search_calls,
+        )
         self.images = async_to_streamed_response_wrapper(
             usage.images,
         )
@@ -1721,4 +2112,7 @@ class AsyncUsageWithStreamingResponse:
         )
         self.vector_stores = async_to_streamed_response_wrapper(
             usage.vector_stores,
+        )
+        self.web_search_calls = async_to_streamed_response_wrapper(
+            usage.web_search_calls,
         )

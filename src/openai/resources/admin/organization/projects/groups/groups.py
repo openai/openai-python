@@ -1,10 +1,10 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 from typing_extensions import Literal
 
-import httpx
+import httpx2
 
 from ...... import _legacy_response
 from .roles import (
@@ -22,7 +22,7 @@ from ......_resource import SyncAPIResource, AsyncAPIResource
 from ......_response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from ......pagination import SyncNextCursorPage, AsyncNextCursorPage
 from ......_base_client import AsyncPaginator, make_request_options
-from ......types.admin.organization.projects import group_list_params, group_create_params
+from ......types.admin.organization.projects import group_list_params, group_create_params, group_retrieve_params
 from ......types.admin.organization.projects.project_group import ProjectGroup
 from ......types.admin.organization.projects.group_delete_response import GroupDeleteResponse
 
@@ -64,7 +64,7 @@ class Groups(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ProjectGroup:
         """
         Grants a group access to a project.
@@ -103,6 +103,52 @@ class Groups(SyncAPIResource):
             cast_to=ProjectGroup,
         )
 
+    def retrieve(
+        self,
+        group_id: str,
+        *,
+        project_id: str,
+        group_type: Literal["group", "tenant_group"] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> ProjectGroup:
+        """
+        Retrieves a project's group.
+
+        Args:
+          group_type: The type of group to retrieve.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not project_id:
+            raise ValueError(f"Expected a non-empty value for `project_id` but received {project_id!r}")
+        if not group_id:
+            raise ValueError(f"Expected a non-empty value for `group_id` but received {group_id!r}")
+        return self._get(
+            path_template(
+                "/organization/projects/{project_id}/groups/{group_id}", project_id=project_id, group_id=group_id
+            ),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                query=maybe_transform({"group_type": group_type}, group_retrieve_params.GroupRetrieveParams),
+                security={"admin_api_key_auth": True},
+            ),
+            cast_to=ProjectGroup,
+        )
+
     def list(
         self,
         project_id: str,
@@ -115,7 +161,7 @@ class Groups(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncNextCursorPage[ProjectGroup]:
         """
         Lists the groups that have access to a project.
@@ -169,7 +215,7 @@ class Groups(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> GroupDeleteResponse:
         """
         Revokes a group's access to a project.
@@ -237,7 +283,7 @@ class AsyncGroups(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ProjectGroup:
         """
         Grants a group access to a project.
@@ -276,6 +322,54 @@ class AsyncGroups(AsyncAPIResource):
             cast_to=ProjectGroup,
         )
 
+    async def retrieve(
+        self,
+        group_id: str,
+        *,
+        project_id: str,
+        group_type: Literal["group", "tenant_group"] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> ProjectGroup:
+        """
+        Retrieves a project's group.
+
+        Args:
+          group_type: The type of group to retrieve.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not project_id:
+            raise ValueError(f"Expected a non-empty value for `project_id` but received {project_id!r}")
+        if not group_id:
+            raise ValueError(f"Expected a non-empty value for `group_id` but received {group_id!r}")
+        return await self._get(
+            path_template(
+                "/organization/projects/{project_id}/groups/{group_id}", project_id=project_id, group_id=group_id
+            ),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                query=await async_maybe_transform(
+                    {"group_type": group_type}, group_retrieve_params.GroupRetrieveParams
+                ),
+                security={"admin_api_key_auth": True},
+            ),
+            cast_to=ProjectGroup,
+        )
+
     def list(
         self,
         project_id: str,
@@ -288,7 +382,7 @@ class AsyncGroups(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[ProjectGroup, AsyncNextCursorPage[ProjectGroup]]:
         """
         Lists the groups that have access to a project.
@@ -342,7 +436,7 @@ class AsyncGroups(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> GroupDeleteResponse:
         """
         Revokes a group's access to a project.
@@ -382,6 +476,9 @@ class GroupsWithRawResponse:
         self.create = _legacy_response.to_raw_response_wrapper(
             groups.create,
         )
+        self.retrieve = _legacy_response.to_raw_response_wrapper(
+            groups.retrieve,
+        )
         self.list = _legacy_response.to_raw_response_wrapper(
             groups.list,
         )
@@ -400,6 +497,9 @@ class AsyncGroupsWithRawResponse:
 
         self.create = _legacy_response.async_to_raw_response_wrapper(
             groups.create,
+        )
+        self.retrieve = _legacy_response.async_to_raw_response_wrapper(
+            groups.retrieve,
         )
         self.list = _legacy_response.async_to_raw_response_wrapper(
             groups.list,
@@ -420,6 +520,9 @@ class GroupsWithStreamingResponse:
         self.create = to_streamed_response_wrapper(
             groups.create,
         )
+        self.retrieve = to_streamed_response_wrapper(
+            groups.retrieve,
+        )
         self.list = to_streamed_response_wrapper(
             groups.list,
         )
@@ -438,6 +541,9 @@ class AsyncGroupsWithStreamingResponse:
 
         self.create = async_to_streamed_response_wrapper(
             groups.create,
+        )
+        self.retrieve = async_to_streamed_response_wrapper(
+            groups.retrieve,
         )
         self.list = async_to_streamed_response_wrapper(
             groups.list,

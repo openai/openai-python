@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -7,7 +7,9 @@ from .response import Response as Response
 from .tool_param import ToolParam as ToolParam
 from .custom_tool import CustomTool as CustomTool
 from .local_skill import LocalSkill as LocalSkill
+from .image_detail import ImageDetail as ImageDetail
 from .inline_skill import InlineSkill as InlineSkill
+from .service_tier import ServiceTier as ServiceTier
 from .computer_tool import ComputerTool as ComputerTool
 from .function_tool import FunctionTool as FunctionTool
 from .response_item import ResponseItem as ResponseItem
@@ -48,6 +50,7 @@ from .container_reference import ContainerReference as ContainerReference
 from .function_shell_tool import FunctionShellTool as FunctionShellTool
 from .function_tool_param import FunctionToolParam as FunctionToolParam
 from .inline_skill_source import InlineSkillSource as InlineSkillSource
+from .mcp_tool_call_error import McpToolCallError as McpToolCallError
 from .response_includable import ResponseIncludable as ResponseIncludable
 from .response_input_file import ResponseInputFile as ResponseInputFile
 from .response_input_item import ResponseInputItem as ResponseInputItem
@@ -63,6 +66,8 @@ from .response_input_image import ResponseInputImage as ResponseInputImage
 from .response_input_param import ResponseInputParam as ResponseInputParam
 from .response_output_item import ResponseOutputItem as ResponseOutputItem
 from .response_output_text import ResponseOutputText as ResponseOutputText
+from .response_steer_event import ResponseSteerEvent as ResponseSteerEvent
+from .response_steer_input import ResponseSteerInput as ResponseSteerInput
 from .response_text_config import ResponseTextConfig as ResponseTextConfig
 from .tool_choice_function import ToolChoiceFunction as ToolChoiceFunction
 from .computer_action_param import ComputerActionParam as ComputerActionParam
@@ -102,12 +107,14 @@ from .computer_use_preview_tool import ComputerUsePreviewTool as ComputerUsePrev
 from .container_reference_param import ContainerReferenceParam as ContainerReferenceParam
 from .function_shell_tool_param import FunctionShellToolParam as FunctionShellToolParam
 from .inline_skill_source_param import InlineSkillSourceParam as InlineSkillSourceParam
+from .mcp_tool_call_error_param import McpToolCallErrorParam as McpToolCallErrorParam
 from .response_audio_done_event import ResponseAudioDoneEvent as ResponseAudioDoneEvent
 from .response_custom_tool_call import ResponseCustomToolCall as ResponseCustomToolCall
 from .response_incomplete_event import ResponseIncompleteEvent as ResponseIncompleteEvent
 from .response_input_file_param import ResponseInputFileParam as ResponseInputFileParam
 from .response_input_item_param import ResponseInputItemParam as ResponseInputItemParam
 from .response_input_text_param import ResponseInputTextParam as ResponseInputTextParam
+from .response_steer_error_code import ResponseSteerErrorCode as ResponseSteerErrorCode
 from .response_text_delta_event import ResponseTextDeltaEvent as ResponseTextDeltaEvent
 from .response_tool_search_call import ResponseToolSearchCall as ResponseToolSearchCall
 from .tool_choice_allowed_param import ToolChoiceAllowedParam as ToolChoiceAllowedParam
@@ -119,6 +126,8 @@ from .response_input_audio_param import ResponseInputAudioParam as ResponseInput
 from .response_input_image_param import ResponseInputImageParam as ResponseInputImageParam
 from .response_local_environment import ResponseLocalEnvironment as ResponseLocalEnvironment
 from .response_output_text_param import ResponseOutputTextParam as ResponseOutputTextParam
+from .response_steer_event_param import ResponseSteerEventParam as ResponseSteerEventParam
+from .response_steer_input_param import ResponseSteerInputParam as ResponseSteerInputParam
 from .response_text_config_param import ResponseTextConfigParam as ResponseTextConfigParam
 from .tool_choice_function_param import ToolChoiceFunctionParam as ToolChoiceFunctionParam
 from .response_computer_tool_call import ResponseComputerToolCall as ResponseComputerToolCall
@@ -129,15 +138,21 @@ from .response_input_file_content import ResponseInputFileContent as ResponseInp
 from .response_input_message_item import ResponseInputMessageItem as ResponseInputMessageItem
 from .response_input_text_content import ResponseInputTextContent as ResponseInputTextContent
 from .response_refusal_done_event import ResponseRefusalDoneEvent as ResponseRefusalDoneEvent
+from .response_steer_failed_event import ResponseSteerFailedEvent as ResponseSteerFailedEvent
 from .response_container_reference import ResponseContainerReference as ResponseContainerReference
 from .response_function_web_search import ResponseFunctionWebSearch as ResponseFunctionWebSearch
 from .response_input_content_param import ResponseInputContentParam as ResponseInputContentParam
 from .response_input_image_content import ResponseInputImageContent as ResponseInputImageContent
 from .response_refusal_delta_event import ResponseRefusalDeltaEvent as ResponseRefusalDeltaEvent
+from .response_steer_input_content import ResponseSteerInputContent as ResponseSteerInputContent
+from .response_steer_pending_event import ResponseSteerPendingEvent as ResponseSteerPendingEvent
 from .responses_client_event_param import ResponsesClientEventParam as ResponsesClientEventParam
 from .response_output_message_param import ResponseOutputMessageParam as ResponseOutputMessageParam
 from .response_output_refusal_param import ResponseOutputRefusalParam as ResponseOutputRefusalParam
 from .response_reasoning_item_param import ResponseReasoningItemParam as ResponseReasoningItemParam
+from .response_steer_accepted_event import ResponseSteerAcceptedEvent as ResponseSteerAcceptedEvent
+from .response_steer_pending_reason import ResponseSteerPendingReason as ResponseSteerPendingReason
+from .response_steer_required_input import ResponseSteerRequiredInput as ResponseSteerRequiredInput
 from .tool_choice_apply_patch_param import ToolChoiceApplyPatchParam as ToolChoiceApplyPatchParam
 from .web_search_preview_tool_param import WebSearchPreviewToolParam as WebSearchPreviewToolParam
 from .response_apply_patch_tool_call import ResponseApplyPatchToolCall as ResponseApplyPatchToolCall
@@ -164,10 +179,12 @@ from .response_input_file_content_param import ResponseInputFileContentParam as 
 from .response_input_text_content_param import ResponseInputTextContentParam as ResponseInputTextContentParam
 from .response_mcp_call_completed_event import ResponseMcpCallCompletedEvent as ResponseMcpCallCompletedEvent
 from .container_network_policy_allowlist import ContainerNetworkPolicyAllowlist as ContainerNetworkPolicyAllowlist
+from .response_configuration_update_item import ResponseConfigurationUpdateItem as ResponseConfigurationUpdateItem
 from .response_function_call_output_item import ResponseFunctionCallOutputItem as ResponseFunctionCallOutputItem
 from .response_function_web_search_param import ResponseFunctionWebSearchParam as ResponseFunctionWebSearchParam
 from .response_input_image_content_param import ResponseInputImageContentParam as ResponseInputImageContentParam
 from .response_reasoning_text_done_event import ResponseReasoningTextDoneEvent as ResponseReasoningTextDoneEvent
+from .response_steer_input_content_param import ResponseSteerInputContentParam as ResponseSteerInputContentParam
 from .response_code_interpreter_tool_call import ResponseCodeInterpreterToolCall as ResponseCodeInterpreterToolCall
 from .response_input_message_content_list import ResponseInputMessageContentList as ResponseInputMessageContentList
 from .response_mcp_call_in_progress_event import ResponseMcpCallInProgressEvent as ResponseMcpCallInProgressEvent
@@ -189,6 +206,9 @@ from .response_custom_tool_call_output_param import (
 )
 from .response_mcp_call_arguments_done_event import (
     ResponseMcpCallArgumentsDoneEvent as ResponseMcpCallArgumentsDoneEvent,
+)
+from .response_shell_call_command_done_event import (
+    ResponseShellCallCommandDoneEvent as ResponseShellCallCommandDoneEvent,
 )
 from .response_tool_search_output_item_param import (
     ResponseToolSearchOutputItemParam as ResponseToolSearchOutputItemParam,
@@ -217,8 +237,17 @@ from .response_mcp_call_arguments_delta_event import (
 from .response_mcp_list_tools_completed_event import (
     ResponseMcpListToolsCompletedEvent as ResponseMcpListToolsCompletedEvent,
 )
+from .response_shell_call_command_added_event import (
+    ResponseShellCallCommandAddedEvent as ResponseShellCallCommandAddedEvent,
+)
+from .response_shell_call_command_delta_event import (
+    ResponseShellCallCommandDeltaEvent as ResponseShellCallCommandDeltaEvent,
+)
 from .container_network_policy_allowlist_param import (
     ContainerNetworkPolicyAllowlistParam as ContainerNetworkPolicyAllowlistParam,
+)
+from .response_configuration_update_item_param import (
+    ResponseConfigurationUpdateItemParam as ResponseConfigurationUpdateItemParam,
 )
 from .response_function_call_output_item_param import (
     ResponseFunctionCallOutputItemParam as ResponseFunctionCallOutputItemParam,
@@ -307,11 +336,20 @@ from .response_format_text_json_schema_config_param import (
 from .response_function_call_output_item_list_param import (
     ResponseFunctionCallOutputItemListParam as ResponseFunctionCallOutputItemListParam,
 )
+from .response_shell_call_output_content_done_event import (
+    ResponseShellCallOutputContentDoneEvent as ResponseShellCallOutputContentDoneEvent,
+)
 from .response_code_interpreter_call_code_done_event import (
     ResponseCodeInterpreterCallCodeDoneEvent as ResponseCodeInterpreterCallCodeDoneEvent,
 )
 from .response_code_interpreter_call_completed_event import (
     ResponseCodeInterpreterCallCompletedEvent as ResponseCodeInterpreterCallCompletedEvent,
+)
+from .response_configuration_update_item_param_param import (
+    ResponseConfigurationUpdateItemParamParam as ResponseConfigurationUpdateItemParamParam,
+)
+from .response_shell_call_output_content_delta_event import (
+    ResponseShellCallOutputContentDeltaEvent as ResponseShellCallOutputContentDeltaEvent,
 )
 from .response_code_interpreter_call_code_delta_event import (
     ResponseCodeInterpreterCallCodeDeltaEvent as ResponseCodeInterpreterCallCodeDeltaEvent,
