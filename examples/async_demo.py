@@ -23,7 +23,7 @@ async def main() -> None:
         if not chunk.choices:
             continue
 
-        print(chunk.choices[0].delta.content, end="")
+        print(chunk.choices[0].delta.content or "", end="")
     print()
 
 
