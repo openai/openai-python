@@ -923,7 +923,7 @@ class FinalRequestOptionsInput(TypedDict, total=False):
     url: Required[str]
     params: Query
     headers: Headers
-    max_retries: int | float
+    max_retries: int
     timeout: float | Timeout | None
     files: HttpxRequestFiles | None
     idempotency_key: str
@@ -941,7 +941,7 @@ class FinalRequestOptions(pydantic.BaseModel):
     url: str
     params: Query = {}
     headers: Union[Headers, NotGiven] = NotGiven()
-    max_retries: Union[int, float, NotGiven] = NotGiven()
+    max_retries: Union[int, NotGiven] = NotGiven()
     timeout: Union[float, Timeout, None, NotGiven] = NotGiven()
     files: Union[HttpxRequestFiles, None] = None
     idempotency_key: Union[str, None] = None
@@ -966,7 +966,7 @@ class FinalRequestOptions(pydantic.BaseModel):
     else:
         model_config: ClassVar[ConfigDict] = ConfigDict(arbitrary_types_allowed=True)
 
-    def get_max_retries(self, max_retries: int | float) -> int | float:
+    def get_max_retries(self, max_retries: int) -> int:
         if isinstance(self.max_retries, NotGiven):
             return max_retries
         return self.max_retries

@@ -1243,12 +1243,12 @@ class TestOpenAI:
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx2(base_url=base_url)
     @pytest.mark.parametrize("failure_mode", ["status", "exception"])
-    @pytest.mark.parametrize("max_retries", [4, math.inf])
+    @pytest.mark.parametrize("max_retries", [4, 10**100])
     def test_retries_taken(
         self,
         client: OpenAI,
         failures_before_success: int,
-        max_retries: int | float,
+        max_retries: int,
         failure_mode: Literal["status", "exception"],
         respx2_mock: MockRouter,
     ) -> None:
@@ -2592,12 +2592,12 @@ class TestAsyncOpenAI:
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx2(base_url=base_url)
     @pytest.mark.parametrize("failure_mode", ["status", "exception"])
-    @pytest.mark.parametrize("max_retries", [4, math.inf])
+    @pytest.mark.parametrize("max_retries", [4, 10**100])
     async def test_retries_taken(
         self,
         async_client: AsyncOpenAI,
         failures_before_success: int,
-        max_retries: int | float,
+        max_retries: int,
         failure_mode: Literal["status", "exception"],
         respx2_mock: MockRouter,
     ) -> None:
@@ -3151,16 +3151,16 @@ class TestAsyncWorkloadIdentity401Retry:
     [
         (0, 0.5, 8, None, 1, []),
         (2, 0.5, 8, None, 3, [0.5, 1]),
-        (math.inf, 0.5, 8, None, 6, [0.5, 1, 2, 4, 8, 8]),
-        (math.inf, 2, 3, None, 3, [2, 3, 3]),
-        (math.inf, 0, 8, None, 2, [0, 0]),
-        (math.inf, 2, 0, None, 2, [0, 0]),
-        (math.inf, 0.5, 1, "3", 2, [3, 3]),
+        (10**100, 0.5, 8, None, 6, [0.5, 1, 2, 4, 8, 8]),
+        (10**100, 2, 3, None, 3, [2, 3, 3]),
+        (10**100, 0, 8, None, 2, [0, 0]),
+        (10**100, 2, 0, None, 2, [0, 0]),
+        (10**100, 0.5, 1, "3", 2, [3, 3]),
     ],
 )
 async def test_retry_limits_and_backoff(
     is_async: bool,
-    max_retries: int | float,
+    max_retries: int,
     backoff_factor: float,
     max_backoff: float,
     retry_after: str | None,
@@ -3252,10 +3252,10 @@ async def test_application_exceptions_are_not_retried(is_async: bool, error: Bas
 
 
 @pytest.mark.parametrize("is_async", [False, True])
-@pytest.mark.parametrize("value", [None, "2", -1, 2.5, 2.0, math.nan, -math.inf])
+@pytest.mark.parametrize("value", [None, "2", -1, 2.5, 2.0, math.nan, math.inf, -math.inf])
 async def test_invalid_request_retry_limit(is_async: bool, value: Any) -> None:
     client = AsyncOpenAI(api_key="fake-key") if is_async else OpenAI(api_key="fake-key")
-    error = TypeError if value is None or isinstance(value, str) else ValueError
+    error = ValueError if isinstance(value, int) else TypeError
     try:
         with pytest.raises(error, match="max_retries"):
             client.with_options(max_retries=cast(Any, value))
@@ -3287,13 +3287,13 @@ async def test_retry_configuration_copy(is_async: bool, provider: str) -> None:
     kwargs: dict[str, Any] = {"api_key": "fake-key", "base_url": "https://example.test"}
     if provider == "azure":
         kwargs["api_version"] = "2024-02-01"
-    client = cls(**kwargs, max_retries=math.inf, backoff_factor=2, max_backoff=30)
+    client = cls(**kwargs, max_retries=10**100, backoff_factor=2, max_backoff=30)
     try:
         copied = client.copy().with_options()
-        assert (copied.max_retries, copied.backoff_factor, copied.max_backoff) == (math.inf, 2, 30)
+        assert (copied.max_retries, copied.backoff_factor, copied.max_backoff) == (10**100, 2, 30)
         overridden = copied.with_options(max_retries=0, backoff_factor=0, max_backoff=0)
         assert (overridden.max_retries, overridden.backoff_factor, overridden.max_backoff) == (0, 0, 0)
-        assert (client.max_retries, client.backoff_factor, client.max_backoff) == (math.inf, 2, 30)
+        assert (client.max_retries, client.backoff_factor, client.max_backoff) == (10**100, 2, 30)
         for option in ("backoff_factor", "max_backoff"):
             for value in (-1, math.inf, math.nan):
                 with pytest.raises(ValueError, match=option):

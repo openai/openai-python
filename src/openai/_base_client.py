@@ -31,7 +31,6 @@ from typing import (
     cast,
     overload,
 )
-from itertools import count
 from typing_extensions import Unpack, Literal, override, get_origin
 
 import anyio
@@ -386,7 +385,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
     _client: _HttpxClientT
     _version: str
     _base_url: URL
-    max_retries: int | float
+    max_retries: int
     timeout: Union[float, Timeout, None]
     _strict_response_validation: bool
     _idempotency_header: str | None
@@ -398,7 +397,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         version: str,
         base_url: str | URL,
         _strict_response_validation: bool,
-        max_retries: int | float = DEFAULT_MAX_RETRIES,
+        max_retries: int = DEFAULT_MAX_RETRIES,
         backoff_factor: float = INITIAL_RETRY_DELAY,
         max_backoff: float = MAX_RETRY_DELAY,
         timeout: float | Timeout | None = DEFAULT_TIMEOUT,
@@ -793,11 +792,13 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
 
     def _validate_retry_options(self, value: object) -> None:
         if value is None:
-            raise TypeError("max_retries cannot be None. Use 0 to disable retries or math.inf for unlimited retries.")
-        if not isinstance(value, (int, float)):
-            raise TypeError("max_retries must be a non-negative integer or math.inf")
-        if not (isinstance(value, int) and value >= 0) and value != math.inf:
-            raise ValueError("max_retries must be a non-negative integer or math.inf")
+            raise TypeError(
+                "max_retries cannot be None. Use 0 to disable retries or a large integer for a larger retry budget."
+            )
+        if not isinstance(value, int):
+            raise TypeError("max_retries must be a non-negative integer")
+        if value < 0:
+            raise ValueError("max_retries must be a non-negative integer")
         for name, value in (("backoff_factor", self.backoff_factor), ("max_backoff", self.max_backoff)):
             if not math.isfinite(value) or value < 0:
                 raise ValueError(f"{name} must be a finite, non-negative number")
@@ -911,7 +912,7 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
         *,
         version: str,
         base_url: str | URL,
-        max_retries: int | float = DEFAULT_MAX_RETRIES,
+        max_retries: int = DEFAULT_MAX_RETRIES,
         backoff_factor: float = INITIAL_RETRY_DELAY,
         max_backoff: float = MAX_RETRY_DELAY,
         timeout: float | Timeout | None | NotGiven = not_given,
@@ -1065,7 +1066,7 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
         self._validate_retry_options(max_retries)
 
         retries_taken = 0
-        for retries_taken in count():
+        for retries_taken in range(max_retries + 1):
             options = model_copy(input_options)
             options = self._prepare_options(options)
 
@@ -1165,9 +1166,7 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
             retries_taken=retries_taken,
         )
 
-    def _sleep_for_retry(
-        self, *, retries_taken: int, max_retries: int | float, response: httpx2.Response | None
-    ) -> None:
+    def _sleep_for_retry(self, *, retries_taken: int, max_retries: int, response: httpx2.Response | None) -> None:
         remaining_retries = max_retries - retries_taken
         if remaining_retries == 1:
             log.debug("1 retry left")
@@ -1536,7 +1535,7 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
         version: str,
         base_url: str | URL,
         _strict_response_validation: bool,
-        max_retries: int | float = DEFAULT_MAX_RETRIES,
+        max_retries: int = DEFAULT_MAX_RETRIES,
         backoff_factor: float = INITIAL_RETRY_DELAY,
         max_backoff: float = MAX_RETRY_DELAY,
         timeout: float | Timeout | None | NotGiven = not_given,
@@ -1691,7 +1690,7 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
         self._validate_retry_options(max_retries)
 
         retries_taken = 0
-        for retries_taken in count():
+        for retries_taken in range(max_retries + 1):
             options = model_copy(input_options)
             options = await self._prepare_options(options)
 
@@ -1790,9 +1789,7 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
             retries_taken=retries_taken,
         )
 
-    async def _sleep_for_retry(
-        self, *, retries_taken: int, max_retries: int | float, response: httpx2.Response | None
-    ) -> None:
+    async def _sleep_for_retry(self, *, retries_taken: int, max_retries: int, response: httpx2.Response | None) -> None:
         remaining_retries = max_retries - retries_taken
         if remaining_retries == 1:
             log.debug("1 retry left")

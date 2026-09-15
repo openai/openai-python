@@ -151,7 +151,7 @@ base_url: str | _httpx.URL | None = None
 
 timeout: float | Timeout | None = DEFAULT_TIMEOUT
 
-max_retries: int | float = DEFAULT_MAX_RETRIES
+max_retries: int = DEFAULT_MAX_RETRIES
 
 backoff_factor: float = INITIAL_RETRY_DELAY
 
@@ -265,11 +265,11 @@ class _ModuleClient(OpenAI):
 
     @property  # type: ignore
     @override
-    def max_retries(self) -> int | float:
+    def max_retries(self) -> int:
         return max_retries
 
     @max_retries.setter  # type: ignore
-    def max_retries(self, value: int | float) -> None:  # type: ignore
+    def max_retries(self, value: int) -> None:  # type: ignore
         global max_retries
 
         max_retries = value

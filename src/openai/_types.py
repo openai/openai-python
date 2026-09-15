@@ -119,7 +119,7 @@ else:
 
 class RequestOptions(TypedDict, total=False):
     headers: Headers
-    max_retries: int | float
+    max_retries: int
     timeout: float | Timeout | None
     params: Query
     extra_json: AnyMapping
