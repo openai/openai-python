@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -26,6 +26,14 @@ class TestAdminAPIKeys:
     def test_method_create(self, client: OpenAI) -> None:
         admin_api_key = client.admin.organization.admin_api_keys.create(
             name="New Admin Key",
+        )
+        assert_matches_type(AdminAPIKeyCreateResponse, admin_api_key, path=["response"])
+
+    @parametrize
+    def test_method_create_with_all_params(self, client: OpenAI) -> None:
+        admin_api_key = client.admin.organization.admin_api_keys.create(
+            name="New Admin Key",
+            expires_in_seconds=2592000,
         )
         assert_matches_type(AdminAPIKeyCreateResponse, admin_api_key, path=["response"])
 
@@ -173,6 +181,14 @@ class TestAsyncAdminAPIKeys:
     async def test_method_create(self, async_client: AsyncOpenAI) -> None:
         admin_api_key = await async_client.admin.organization.admin_api_keys.create(
             name="New Admin Key",
+        )
+        assert_matches_type(AdminAPIKeyCreateResponse, admin_api_key, path=["response"])
+
+    @parametrize
+    async def test_method_create_with_all_params(self, async_client: AsyncOpenAI) -> None:
+        admin_api_key = await async_client.admin.organization.admin_api_keys.create(
+            name="New Admin Key",
+            expires_in_seconds=2592000,
         )
         assert_matches_type(AdminAPIKeyCreateResponse, admin_api_key, path=["response"])
 

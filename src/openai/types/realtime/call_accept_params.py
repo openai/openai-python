@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -59,6 +59,8 @@ class CallAcceptParams(TypedDict, total=False):
             "gpt-realtime",
             "gpt-realtime-1.5",
             "gpt-realtime-2",
+            "gpt-realtime-2.1",
+            "gpt-realtime-2.1-mini",
             "gpt-realtime-2025-08-28",
             "gpt-4o-realtime-preview",
             "gpt-4o-realtime-preview-2024-10-01",
@@ -94,7 +96,7 @@ class CallAcceptParams(TypedDict, total=False):
     prompt: Optional[ResponsePromptParam]
     """
     Reference to a prompt template and its variables.
-    [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
+    [Learn more](https://developers.openai.com/api/docs/guides/text?api-mode=responses#version-prompts-in-code).
     """
 
     reasoning: RealtimeReasoningParam
