@@ -1,8 +1,8 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
-from typing import Union, Iterable
+from typing import Union
 from typing_extensions import Required, TypeAlias, TypedDict
 
 from ...graders.multi_grader_param import MultiGraderParam
@@ -19,10 +19,21 @@ class GraderRunParams(TypedDict, total=False):
     """The grader used for the fine-tuning job."""
 
     model_sample: Required[str]
-    """The model sample to be evaluated."""
+    """The model sample to be evaluated.
 
-    reference_answer: Required[Union[str, Iterable[object], float, object]]
-    """The reference answer for the evaluation."""
+    This value will be used to populate the `sample` namespace. See
+    [the guide](https://developers.openai.com/api/docs/guides/graders) for more
+    details. The `output_json` variable will be populated if the model sample is a
+    valid JSON string.
+    """
+
+    item: object
+    """The dataset item provided to the grader.
+
+    This will be used to populate the `item` namespace. See
+    [the guide](https://developers.openai.com/api/docs/guides/graders) for more
+    details.
+    """
 
 
 Grader: TypeAlias = Union[

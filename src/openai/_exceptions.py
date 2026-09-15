@@ -1,14 +1,13 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
-
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Optional, cast
 from typing_extensions import Literal
 
-import httpx
+import httpx2
 
 from ._utils import is_dict
 from ._models import construct_type
+from .types.shared.oauth_error_code import OAuthErrorCode
 
 if TYPE_CHECKING:
     from .types.chat import ChatCompletion
@@ -16,6 +15,7 @@ if TYPE_CHECKING:
 __all__ = [
     "BadRequestError",
     "AuthenticationError",
+    "OAuthError",
     "PermissionDeniedError",
     "NotFoundError",
     "ConflictError",
@@ -24,6 +24,10 @@ __all__ = [
     "InternalServerError",
     "LengthFinishReasonError",
     "ContentFilterFinishReasonError",
+    "InvalidWebhookSignatureError",
+    "SubjectTokenProviderError",
+    "WebSocketConnectionClosedError",
+    "WebSocketQueueFullError",
 ]
 
 
@@ -31,9 +35,17 @@ class OpenAIError(Exception):
     pass
 
 
+class SubjectTokenProviderError(OpenAIError):
+    response: httpx2.Response | None
+
+    def __init__(self, message: str, *, response: httpx2.Response | None = None) -> None:
+        super().__init__(message)
+        self.response = response
+
+
 class APIError(OpenAIError):
     message: str
-    request: httpx.Request
+    request: httpx2.Request
 
     body: object | None
     """The API response body.
@@ -50,14 +62,15 @@ class APIError(OpenAIError):
     param: Optional[str] = None
     type: Optional[str]
 
-    def __init__(self, message: str, request: httpx.Request, *, body: object | None) -> None:
+    def __init__(self, message: str, request: httpx2.Request, *, body: object | None) -> None:
         super().__init__(message)
         self.request = request
         self.message = message
         self.body = body
 
         if is_dict(body):
-            self.code = cast(Any, construct_type(type_=Optional[str], value=body.get("code")))
+            code = body.get("code")
+            self.code = str(code) if code is not None else None
             self.param = cast(Any, construct_type(type_=Optional[str], value=body.get("param")))
             self.type = cast(Any, construct_type(type_=str, value=body.get("type")))
         else:
@@ -67,10 +80,10 @@ class APIError(OpenAIError):
 
 
 class APIResponseValidationError(APIError):
-    response: httpx.Response
+    response: httpx2.Response
     status_code: int
 
-    def __init__(self, response: httpx.Response, body: object | None, *, message: str | None = None) -> None:
+    def __init__(self, response: httpx2.Response, body: object | None, *, message: str | None = None) -> None:
         super().__init__(message or "Data returned by API invalid for expected schema.", response.request, body=body)
         self.response = response
         self.status_code = response.status_code
@@ -79,11 +92,11 @@ class APIResponseValidationError(APIError):
 class APIStatusError(APIError):
     """Raised when an API response has a status code of 4xx or 5xx."""
 
-    response: httpx.Response
+    response: httpx2.Response
     status_code: int
     request_id: str | None
 
-    def __init__(self, message: str, *, response: httpx.Response, body: object | None) -> None:
+    def __init__(self, message: str, *, response: httpx2.Response, body: object | None) -> None:
         super().__init__(message, response.request, body=body)
         self.response = response
         self.status_code = response.status_code
@@ -91,12 +104,12 @@ class APIStatusError(APIError):
 
 
 class APIConnectionError(APIError):
-    def __init__(self, *, message: str = "Connection error.", request: httpx.Request) -> None:
+    def __init__(self, *, message: str = "Connection error.", request: httpx2.Request) -> None:
         super().__init__(message, request, body=None)
 
 
 class APITimeoutError(APIConnectionError):
-    def __init__(self, request: httpx.Request) -> None:
+    def __init__(self, request: httpx2.Request) -> None:
         super().__init__(message="Request timed out.", request=request)
 
 
@@ -106,6 +119,23 @@ class BadRequestError(APIStatusError):
 
 class AuthenticationError(APIStatusError):
     status_code: Literal[401] = 401  # pyright: ignore[reportIncompatibleVariableOverride]
+
+
+class OAuthError(AuthenticationError):
+    error: Optional[OAuthErrorCode]
+
+    def __init__(self, *, response: httpx2.Response, body: object | None) -> None:
+        message = "OAuth authentication error."
+        error = None
+
+        if is_dict(body):
+            error = body.get("error")
+            description = body.get("error_description")
+            if description and isinstance(description, str):
+                message = description
+
+        super().__init__(message, response=response, body=body)
+        self.error = cast(Optional[OAuthErrorCode], error)
 
 
 class PermissionDeniedError(APIStatusError):
@@ -150,7 +180,34 @@ class LengthFinishReasonError(OpenAIError):
 
 
 class ContentFilterFinishReasonError(OpenAIError):
-    def __init__(self) -> None:
+    completion: ChatCompletion | None
+    """The completion that caused this error, if provided.
+
+    When streaming, this is the accumulated completion and may not include usage.
+    """
+
+    def __init__(self, *, completion: ChatCompletion | None = None) -> None:
         super().__init__(
-            f"Could not parse response content as the request was rejected by the content filter",
+            "Could not parse response content as the request was rejected by the content filter",
         )
+        self.completion = completion
+
+
+class InvalidWebhookSignatureError(ValueError):
+    """Raised when a webhook signature is invalid, meaning the computed signature does not match the expected signature."""
+
+
+class WebSocketConnectionClosedError(OpenAIError):
+    """Raised when a WebSocket connection closes with unsent messages."""
+
+    unsent_messages: list[str]
+
+    def __init__(self, message: str, *, unsent_messages: list[str]) -> None:
+        super().__init__(message)
+        self.unsent_messages = unsent_messages
+
+
+class WebSocketQueueFullError(OpenAIError):
+    """Raised when the outgoing WebSocket message queue exceeds its byte-size limit."""
+
+    pass

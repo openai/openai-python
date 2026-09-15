@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import List, Optional
 from typing_extensions import Literal
@@ -9,6 +9,10 @@ __all__ = ["PermissionRetrieveResponse", "Data"]
 
 
 class Data(BaseModel):
+    """
+    The `checkpoint.permission` object represents a permission for a fine-tuned model checkpoint.
+    """
+
     id: str
     """The permission identifier, which can be referenced in the API endpoints."""
 

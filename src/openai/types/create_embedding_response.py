@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import List
 from typing_extensions import Literal
@@ -10,6 +10,8 @@ __all__ = ["CreateEmbeddingResponse", "Usage"]
 
 
 class Usage(BaseModel):
+    """The usage information for the request."""
+
     prompt_tokens: int
     """The number of tokens used by the prompt."""
 

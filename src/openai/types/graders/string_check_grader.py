@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing_extensions import Literal
 
@@ -8,6 +8,10 @@ __all__ = ["StringCheckGrader"]
 
 
 class StringCheckGrader(BaseModel):
+    """
+    A StringCheckGrader object that performs a string comparison between input and reference using a specified operation.
+    """
+
     input: str
     """The input text. This may include template strings."""
 

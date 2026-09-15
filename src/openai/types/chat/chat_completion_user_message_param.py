@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -11,6 +11,11 @@ __all__ = ["ChatCompletionUserMessageParam"]
 
 
 class ChatCompletionUserMessageParam(TypedDict, total=False):
+    """
+    Messages sent by an end user, containing prompts or additional context
+    information.
+    """
+
     content: Required[Union[str, Iterable[ChatCompletionContentPartParam]]]
     """The contents of the user message."""
 

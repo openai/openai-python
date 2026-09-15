@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -22,6 +22,9 @@ class ContainerListParams(TypedDict, total=False):
 
     Limit can range between 1 and 100, and the default is 20.
     """
+
+    name: str
+    """Filter results by container name."""
 
     order: Literal["asc", "desc"]
     """Sort order by the `created_at` timestamp of the objects.

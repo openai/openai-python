@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing_extensions import Literal
 
@@ -9,6 +9,8 @@ __all__ = ["ImageURLContentBlock"]
 
 
 class ImageURLContentBlock(BaseModel):
+    """References an image URL in the content of a message."""
+
     image_url: ImageURL
 
     type: Literal["image_url"]

@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -29,6 +29,8 @@ class VectorStoreUpdateParams(TypedDict, total=False):
 
 
 class ExpiresAfter(TypedDict, total=False):
+    """The expiration policy for a vector store."""
+
     anchor: Required[Literal["last_active_at"]]
     """Anchor timestamp after which the expiration policy applies.
 

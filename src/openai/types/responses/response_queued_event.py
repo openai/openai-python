@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing_extensions import Literal
 
@@ -9,6 +9,8 @@ __all__ = ["ResponseQueuedEvent"]
 
 
 class ResponseQueuedEvent(BaseModel):
+    """Emitted when a response is queued and waiting to be processed."""
+
     response: Response
     """The full response object that is queued."""
 

@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import List, Union, Optional
 from typing_extensions import Literal
@@ -14,6 +14,10 @@ __all__ = ["FineTuningJob", "Error", "Hyperparameters", "Method"]
 
 
 class Error(BaseModel):
+    """
+    For fine-tuning jobs that have `failed`, this will contain more information on the cause of the failure.
+    """
+
     code: str
     """A machine-readable error code."""
 
@@ -28,7 +32,12 @@ class Error(BaseModel):
 
 
 class Hyperparameters(BaseModel):
-    batch_size: Union[Literal["auto"], int, Optional[object], None] = None
+    """The hyperparameters used for the fine-tuning job.
+
+    This value will only be returned when running `supervised` jobs.
+    """
+
+    batch_size: Union[Literal["auto"], int, None] = None
     """Number of examples in each batch.
 
     A larger batch size means that model parameters are updated less frequently, but
@@ -49,6 +58,8 @@ class Hyperparameters(BaseModel):
 
 
 class Method(BaseModel):
+    """The method used for fine-tuning."""
+
     type: Literal["supervised", "dpo", "reinforcement"]
     """The type of method. Is either `supervised`, `dpo`, or `reinforcement`."""
 
@@ -63,6 +74,10 @@ class Method(BaseModel):
 
 
 class FineTuningJob(BaseModel):
+    """
+    The `fine_tuning.job` object represents a fine-tuning job that has been created through the API.
+    """
+
     id: str
     """The object identifier, which can be referenced in the API endpoints."""
 
@@ -106,7 +121,7 @@ class FineTuningJob(BaseModel):
     """The compiled results file ID(s) for the fine-tuning job.
 
     You can retrieve the results with the
-    [Files API](https://platform.openai.com/docs/api-reference/files/retrieve-contents).
+    [Files API](https://developers.openai.com/api/reference/resources/files/methods/content).
     """
 
     seed: int
@@ -128,14 +143,14 @@ class FineTuningJob(BaseModel):
     """The file ID used for training.
 
     You can retrieve the training data with the
-    [Files API](https://platform.openai.com/docs/api-reference/files/retrieve-contents).
+    [Files API](https://developers.openai.com/api/reference/resources/files/methods/content).
     """
 
     validation_file: Optional[str] = None
     """The file ID used for validation.
 
     You can retrieve the validation results with the
-    [Files API](https://platform.openai.com/docs/api-reference/files/retrieve-contents).
+    [Files API](https://developers.openai.com/api/reference/resources/files/methods/content).
     """
 
     estimated_finish: Optional[int] = None

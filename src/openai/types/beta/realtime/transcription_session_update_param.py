@@ -1,5 +1,3 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
-
 from __future__ import annotations
 
 from typing import List
@@ -8,10 +6,31 @@ from typing_extensions import Literal, Required, TypedDict
 __all__ = [
     "TranscriptionSessionUpdateParam",
     "Session",
+    "SessionClientSecret",
+    "SessionClientSecretExpiresAt",
     "SessionInputAudioNoiseReduction",
     "SessionInputAudioTranscription",
     "SessionTurnDetection",
 ]
+
+
+class SessionClientSecretExpiresAt(TypedDict, total=False):
+    anchor: Literal["created_at"]
+    """The anchor point for the ephemeral token expiration.
+
+    Only `created_at` is currently supported.
+    """
+
+    seconds: int
+    """The number of seconds from the anchor point to the expiration.
+
+    Select a value between `10` and `7200`.
+    """
+
+
+class SessionClientSecret(TypedDict, total=False):
+    expires_at: SessionClientSecretExpiresAt
+    """Configuration for the ephemeral token expiration."""
 
 
 class SessionInputAudioNoiseReduction(TypedDict, total=False):
@@ -99,6 +118,9 @@ class SessionTurnDetection(TypedDict, total=False):
 
 
 class Session(TypedDict, total=False):
+    client_secret: SessionClientSecret
+    """Configuration options for the generated client secret."""
+
     include: List[str]
     """The set of items to include in the transcription. Current available items are:
 
@@ -141,7 +163,7 @@ class Session(TypedDict, total=False):
     This can be set to `null` to turn off, in which case the client must manually
     trigger model response. Server VAD means that the model will detect the start
     and end of speech based on audio volume and respond at the end of user speech.
-    Semantic VAD is more advanced and uses a turn detection model (in conjuction
+    Semantic VAD is more advanced and uses a turn detection model (in conjunction
     with VAD) to semantically estimate whether the user has finished speaking, then
     dynamically sets a timeout based on this probability. For example, if user audio
     trails off with "uhhm", the model will score a low probability of turn end and

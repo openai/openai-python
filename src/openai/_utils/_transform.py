@@ -16,18 +16,19 @@ from ._utils import (
     lru_cache,
     is_mapping,
     is_iterable,
+    is_sequence,
 )
 from .._files import is_base64_file_input
+from ._compat import get_origin, is_typeddict
 from ._typing import (
     is_list_type,
     is_union_type,
-    extract_type_arg,
     is_iterable_type,
     is_required_type,
+    is_sequence_type,
     is_annotated_type,
     strip_annotated_type,
 )
-from .._compat import get_origin, model_dump, is_typeddict
 
 _T = TypeVar("_T")
 
@@ -167,6 +168,8 @@ def _transform_recursive(
 
             Defaults to the same value as the `annotation` argument.
     """
+    from .._compat import model_dump
+
     if inner_type is None:
         inner_type = annotation
 
@@ -176,7 +179,8 @@ def _transform_recursive(
         return _transform_typeddict(data, stripped_type)
 
     if origin == dict and is_mapping(data):
-        items_type = get_args(stripped_type)[1]
+        args = get_args(stripped_type)
+        items_type = args[1] if len(args) > 1 else object
         return {key: _transform_recursive(value, annotation=items_type) for key, value in data.items()}
 
     if (
@@ -184,13 +188,16 @@ def _transform_recursive(
         (is_list_type(stripped_type) and is_list(data))
         # Iterable[T]
         or (is_iterable_type(stripped_type) and is_iterable(data) and not isinstance(data, str))
+        # Sequence[T]
+        or (is_sequence_type(stripped_type) and is_sequence(data) and not isinstance(data, str))
     ):
         # dicts are technically iterable, but it is an iterable on the keys of the dict and is not usually
         # intended as an iterable, so we don't transform it.
         if isinstance(data, dict):
             return cast(object, data)
 
-        inner_type = extract_type_arg(stripped_type, 0)
+        args = get_args(stripped_type)
+        inner_type = cast(type, args[0]) if args else object
         if _no_transform_needed(inner_type):
             # for some types there is no need to transform anything, so we can get a small
             # perf boost from skipping that work.
@@ -212,7 +219,7 @@ def _transform_recursive(
         return data
 
     if isinstance(data, pydantic.BaseModel):
-        return model_dump(data, exclude_unset=True, mode="json", exclude=getattr(data, '__api_exclude__', None))
+        return model_dump(data, exclude_unset=True, mode="json", exclude=getattr(data, "__api_exclude__", None))
 
     annotated_type = _get_annotated_type(annotation)
     if annotated_type is None:
@@ -262,7 +269,7 @@ def _transform_typeddict(
     annotations = get_type_hints(expected_type, include_extras=True)
     for key, value in data.items():
         if not is_given(value):
-            # we don't need to include `NotGiven` values here as they'll
+            # we don't need to include omitted values here as they'll
             # be stripped out before the request is sent anyway
             continue
 
@@ -329,6 +336,8 @@ async def _async_transform_recursive(
 
             Defaults to the same value as the `annotation` argument.
     """
+    from .._compat import model_dump
+
     if inner_type is None:
         inner_type = annotation
 
@@ -338,7 +347,8 @@ async def _async_transform_recursive(
         return await _async_transform_typeddict(data, stripped_type)
 
     if origin == dict and is_mapping(data):
-        items_type = get_args(stripped_type)[1]
+        args = get_args(stripped_type)
+        items_type = args[1] if len(args) > 1 else object
         return {key: _transform_recursive(value, annotation=items_type) for key, value in data.items()}
 
     if (
@@ -346,13 +356,16 @@ async def _async_transform_recursive(
         (is_list_type(stripped_type) and is_list(data))
         # Iterable[T]
         or (is_iterable_type(stripped_type) and is_iterable(data) and not isinstance(data, str))
+        # Sequence[T]
+        or (is_sequence_type(stripped_type) and is_sequence(data) and not isinstance(data, str))
     ):
         # dicts are technically iterable, but it is an iterable on the keys of the dict and is not usually
         # intended as an iterable, so we don't transform it.
         if isinstance(data, dict):
             return cast(object, data)
 
-        inner_type = extract_type_arg(stripped_type, 0)
+        args = get_args(stripped_type)
+        inner_type = cast(type, args[0]) if args else object
         if _no_transform_needed(inner_type):
             # for some types there is no need to transform anything, so we can get a small
             # perf boost from skipping that work.
@@ -424,7 +437,7 @@ async def _async_transform_typeddict(
     annotations = get_type_hints(expected_type, include_extras=True)
     for key, value in data.items():
         if not is_given(value):
-            # we don't need to include `NotGiven` values here as they'll
+            # we don't need to include omitted values here as they'll
             # be stripped out before the request is sent anyway
             continue
 

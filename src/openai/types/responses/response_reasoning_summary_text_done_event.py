@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing_extensions import Literal
 
@@ -8,6 +8,8 @@ __all__ = ["ResponseReasoningSummaryTextDoneEvent"]
 
 
 class ResponseReasoningSummaryTextDoneEvent(BaseModel):
+    """Emitted when a reasoning summary text is completed."""
+
     item_id: str
     """The ID of the item this summary text is associated with."""
 

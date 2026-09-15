@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing_extensions import Literal
 
@@ -8,6 +8,8 @@ __all__ = ["ResponseWebSearchCallSearchingEvent"]
 
 
 class ResponseWebSearchCallSearchingEvent(BaseModel):
+    """Emitted when a web search call is executing."""
+
     item_id: str
     """Unique ID for the output item associated with the web search call."""
 

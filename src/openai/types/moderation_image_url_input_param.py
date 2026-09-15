@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -8,11 +8,15 @@ __all__ = ["ModerationImageURLInputParam", "ImageURL"]
 
 
 class ImageURL(TypedDict, total=False):
+    """Contains either an image URL or a data URL for a base64 encoded image."""
+
     url: Required[str]
     """Either a URL of the image or the base64 encoded image data."""
 
 
 class ModerationImageURLInputParam(TypedDict, total=False):
+    """An object describing an image to classify."""
+
     image_url: Required[ImageURL]
     """Contains either an image URL or a data URL for a base64 encoded image."""
 

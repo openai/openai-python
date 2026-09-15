@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import Optional
 from typing_extensions import Literal
@@ -9,6 +9,8 @@ __all__ = ["FineTuningJobCheckpoint", "Metrics"]
 
 
 class Metrics(BaseModel):
+    """Metrics at the step number during the fine-tuning job."""
+
     full_valid_loss: Optional[float] = None
 
     full_valid_mean_token_accuracy: Optional[float] = None
@@ -25,6 +27,10 @@ class Metrics(BaseModel):
 
 
 class FineTuningJobCheckpoint(BaseModel):
+    """
+    The `fine_tuning.job.checkpoint` object represents a model checkpoint for a fine-tuning job that is ready to use.
+    """
+
     id: str
     """The checkpoint identifier, which can be referenced in the API endpoints."""
 

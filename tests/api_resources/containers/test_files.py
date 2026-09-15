@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -33,7 +33,7 @@ class TestFiles:
     def test_method_create_with_all_params(self, client: OpenAI) -> None:
         file = client.containers.files.create(
             container_id="container_id",
-            file=b"raw file contents",
+            file=b"Example data",
             file_id="file_id",
         )
         assert_matches_type(FileCreateResponse, file, path=["response"])
@@ -215,7 +215,9 @@ class TestFiles:
 
 
 class TestAsyncFiles:
-    parametrize = pytest.mark.parametrize("async_client", [False, True], indirect=True, ids=["loose", "strict"])
+    parametrize = pytest.mark.parametrize(
+        "async_client", [False, True, {"http_client": "aiohttp"}], indirect=True, ids=["loose", "strict", "aiohttp"]
+    )
 
     @parametrize
     async def test_method_create(self, async_client: AsyncOpenAI) -> None:
@@ -228,7 +230,7 @@ class TestAsyncFiles:
     async def test_method_create_with_all_params(self, async_client: AsyncOpenAI) -> None:
         file = await async_client.containers.files.create(
             container_id="container_id",
-            file=b"raw file contents",
+            file=b"Example data",
             file_id="file_id",
         )
         assert_matches_type(FileCreateResponse, file, path=["response"])

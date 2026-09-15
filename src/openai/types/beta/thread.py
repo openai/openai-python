@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import List, Optional
 from typing_extensions import Literal
@@ -12,9 +12,9 @@ __all__ = ["Thread", "ToolResources", "ToolResourcesCodeInterpreter", "ToolResou
 class ToolResourcesCodeInterpreter(BaseModel):
     file_ids: Optional[List[str]] = None
     """
-    A list of [file](https://platform.openai.com/docs/api-reference/files) IDs made
-    available to the `code_interpreter` tool. There can be a maximum of 20 files
-    associated with the tool.
+    A list of [file](https://developers.openai.com/api/reference/resources/files)
+    IDs made available to the `code_interpreter` tool. There can be a maximum of 20
+    files associated with the tool.
     """
 
 
@@ -22,19 +22,27 @@ class ToolResourcesFileSearch(BaseModel):
     vector_store_ids: Optional[List[str]] = None
     """
     The
-    [vector store](https://platform.openai.com/docs/api-reference/vector-stores/object)
+    [vector store](https://developers.openai.com/api/reference/resources/vector_stores)
     attached to this thread. There can be a maximum of 1 vector store attached to
     the thread.
     """
 
 
 class ToolResources(BaseModel):
+    """
+    A set of resources that are made available to the assistant's tools in this thread. The resources are specific to the type of tool. For example, the `code_interpreter` tool requires a list of file IDs, while the `file_search` tool requires a list of vector store IDs.
+    """
+
     code_interpreter: Optional[ToolResourcesCodeInterpreter] = None
 
     file_search: Optional[ToolResourcesFileSearch] = None
 
 
 class Thread(BaseModel):
+    """
+    Represents a thread that contains [messages](https://developers.openai.com/api/docs/assistants/migration).
+    """
+
     id: str
     """The identifier, which can be referenced in API endpoints."""
 

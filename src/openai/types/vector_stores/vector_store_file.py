@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import Dict, Union, Optional
 from typing_extensions import Literal
@@ -10,14 +10,21 @@ __all__ = ["VectorStoreFile", "LastError"]
 
 
 class LastError(BaseModel):
+    """The last error associated with this vector store file.
+
+    Will be `null` if there are no errors.
+    """
+
     code: Literal["server_error", "unsupported_file", "invalid_file"]
-    """One of `server_error` or `rate_limit_exceeded`."""
+    """One of `server_error`, `unsupported_file`, or `invalid_file`."""
 
     message: str
     """A human-readable description of the error."""
 
 
 class VectorStoreFile(BaseModel):
+    """A list of files attached to a vector store."""
+
     id: str
     """The identifier, which can be referenced in API endpoints."""
 
@@ -49,8 +56,8 @@ class VectorStoreFile(BaseModel):
     vector_store_id: str
     """
     The ID of the
-    [vector store](https://platform.openai.com/docs/api-reference/vector-stores/object)
-    that the [File](https://platform.openai.com/docs/api-reference/files) is
+    [vector store](https://developers.openai.com/api/reference/resources/vector_stores)
+    that the [File](https://developers.openai.com/api/reference/resources/files) is
     attached to.
     """
 

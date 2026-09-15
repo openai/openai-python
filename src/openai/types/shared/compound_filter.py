@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import List, Union
 from typing_extensions import Literal, TypeAlias
@@ -12,6 +12,8 @@ Filter: TypeAlias = Union[ComparisonFilter, object]
 
 
 class CompoundFilter(BaseModel):
+    """Combine multiple filters using `and` or `or`."""
+
     filters: List[Filter]
     """Array of filters to combine.
 

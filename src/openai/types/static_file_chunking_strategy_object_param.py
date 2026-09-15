@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -10,6 +10,8 @@ __all__ = ["StaticFileChunkingStrategyObjectParam"]
 
 
 class StaticFileChunkingStrategyObjectParam(TypedDict, total=False):
+    """Customize your own chunking strategy by setting chunk size and chunk overlap."""
+
     static: Required[StaticFileChunkingStrategyParam]
 
     type: Required[Literal["static"]]

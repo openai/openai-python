@@ -1,8 +1,8 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
-from typing import Dict, Union
+from typing import Union
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from .python_grader_param import PythonGraderParam
@@ -19,10 +19,18 @@ Graders: TypeAlias = Union[
 
 
 class MultiGraderParam(TypedDict, total=False):
+    """
+    A MultiGrader object combines the output of multiple graders to produce a single score.
+    """
+
     calculate_output: Required[str]
     """A formula to calculate the output based on grader results."""
 
-    graders: Required[Dict[str, Graders]]
+    graders: Required[Graders]
+    """
+    A StringCheckGrader object that performs a string comparison between input and
+    reference using a specified operation.
+    """
 
     name: Required[str]
     """The name of the grader."""

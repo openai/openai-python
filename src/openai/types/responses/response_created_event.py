@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing_extensions import Literal
 
@@ -9,6 +9,8 @@ __all__ = ["ResponseCreatedEvent"]
 
 
 class ResponseCreatedEvent(BaseModel):
+    """An event that is emitted when a response is created."""
+
     response: Response
     """The response that was created."""
 

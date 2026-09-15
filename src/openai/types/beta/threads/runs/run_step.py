@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
@@ -13,6 +13,11 @@ __all__ = ["RunStep", "LastError", "StepDetails", "Usage"]
 
 
 class LastError(BaseModel):
+    """The last error associated with this run step.
+
+    Will be `null` if there are no errors.
+    """
+
     code: Literal["server_error", "rate_limit_exceeded"]
     """One of `server_error` or `rate_limit_exceeded`."""
 
@@ -26,6 +31,11 @@ StepDetails: TypeAlias = Annotated[
 
 
 class Usage(BaseModel):
+    """Usage statistics related to the run step.
+
+    This value will be `null` while the run step's status is `in_progress`.
+    """
+
     completion_tokens: int
     """Number of completion tokens used over the course of the run step."""
 
@@ -37,13 +47,15 @@ class Usage(BaseModel):
 
 
 class RunStep(BaseModel):
+    """Represents a step in execution of a run."""
+
     id: str
     """The identifier of the run step, which can be referenced in API endpoints."""
 
     assistant_id: str
     """
     The ID of the
-    [assistant](https://platform.openai.com/docs/api-reference/assistants)
+    [assistant](https://developers.openai.com/api/docs/assistants/migration)
     associated with the run step.
     """
 
@@ -86,8 +98,8 @@ class RunStep(BaseModel):
 
     run_id: str
     """
-    The ID of the [run](https://platform.openai.com/docs/api-reference/runs) that
-    this run step is a part of.
+    The ID of the [run](https://developers.openai.com/api/docs/assistants/migration)
+    that this run step is a part of.
     """
 
     status: Literal["in_progress", "cancelled", "failed", "completed", "expired"]
@@ -101,8 +113,9 @@ class RunStep(BaseModel):
 
     thread_id: str
     """
-    The ID of the [thread](https://platform.openai.com/docs/api-reference/threads)
-    that was run.
+    The ID of the
+    [thread](https://developers.openai.com/api/docs/assistants/migration) that was
+    run.
     """
 
     type: Literal["message_creation", "tool_calls"]

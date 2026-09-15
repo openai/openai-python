@@ -1,10 +1,11 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
-from typing import List, Union, Iterable, Optional
+from typing import Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
+from ..._types import SequenceNotStr
 from ..shared.chat_model import ChatModel
 from .assistant_tool_param import AssistantToolParam
 from ..shared_params.metadata import Metadata
@@ -29,10 +30,10 @@ class AssistantCreateParams(TypedDict, total=False):
     """ID of the model to use.
 
     You can use the
-    [List models](https://platform.openai.com/docs/api-reference/models/list) API to
-    see all of your available models, or see our
-    [Model overview](https://platform.openai.com/docs/models) for descriptions of
-    them.
+    [List models](https://developers.openai.com/api/reference/resources/models/methods/list)
+    API to see all of your available models, or see our
+    [Model overview](https://developers.openai.com/api/docs/models) for descriptions
+    of them.
     """
 
     description: Optional[str]
@@ -58,25 +59,27 @@ class AssistantCreateParams(TypedDict, total=False):
     """The name of the assistant. The maximum length is 256 characters."""
 
     reasoning_effort: Optional[ReasoningEffort]
-    """**o-series models only**
+    """Constrains effort on reasoning for reasoning models.
 
-    Constrains effort on reasoning for
-    [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
-    supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
-    result in faster responses and fewer tokens used on reasoning in a response.
+    Currently supported values are `none`, `minimal`, `low`, `medium`, `high`,
+    `xhigh`, and `max`. Reducing reasoning effort can result in faster responses and
+    fewer tokens used on reasoning in a response. Not all reasoning models support
+    every value. See the
+    [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning) for
+    model-specific support.
     """
 
     response_format: Optional[AssistantResponseFormatOptionParam]
     """Specifies the format that the model must output.
 
-    Compatible with [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
-    [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4),
-    and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+    Compatible with [GPT-4o](https://developers.openai.com/api/docs/models/gpt-4o),
+    [GPT-4 Turbo](https://developers.openai.com/api/docs/models/gpt-4-turbo), and
+    all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
     Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
     Outputs which ensures the model will match your supplied JSON schema. Learn more
     in the
-    [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+    [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
 
     Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
     message the model generates is valid JSON.
@@ -123,15 +126,20 @@ class AssistantCreateParams(TypedDict, total=False):
 
 
 class ToolResourcesCodeInterpreter(TypedDict, total=False):
-    file_ids: List[str]
+    file_ids: SequenceNotStr[str]
     """
-    A list of [file](https://platform.openai.com/docs/api-reference/files) IDs made
-    available to the `code_interpreter` tool. There can be a maximum of 20 files
-    associated with the tool.
+    A list of [file](https://developers.openai.com/api/reference/resources/files)
+    IDs made available to the `code_interpreter` tool. There can be a maximum of 20
+    files associated with the tool.
     """
 
 
 class ToolResourcesFileSearchVectorStoreChunkingStrategyAuto(TypedDict, total=False):
+    """The default strategy.
+
+    This strategy currently uses a `max_chunk_size_tokens` of `800` and `chunk_overlap_tokens` of `400`.
+    """
+
     type: Required[Literal["auto"]]
     """Always `auto`."""
 
@@ -170,11 +178,12 @@ class ToolResourcesFileSearchVectorStore(TypedDict, total=False):
     If not set, will use the `auto` strategy.
     """
 
-    file_ids: List[str]
+    file_ids: SequenceNotStr[str]
     """
-    A list of [file](https://platform.openai.com/docs/api-reference/files) IDs to
-    add to the vector store. There can be a maximum of 10000 files in a vector
-    store.
+    A list of [file](https://developers.openai.com/api/reference/resources/files)
+    IDs to add to the vector store. For vector stores created before Nov 2025, there
+    can be a maximum of 10,000 files in a vector store. For vector stores created
+    starting in Nov 2025, the limit is 100,000,000 files.
     """
 
     metadata: Optional[Metadata]
@@ -189,10 +198,10 @@ class ToolResourcesFileSearchVectorStore(TypedDict, total=False):
 
 
 class ToolResourcesFileSearch(TypedDict, total=False):
-    vector_store_ids: List[str]
+    vector_store_ids: SequenceNotStr[str]
     """
     The
-    [vector store](https://platform.openai.com/docs/api-reference/vector-stores/object)
+    [vector store](https://developers.openai.com/api/reference/resources/vector_stores)
     attached to this assistant. There can be a maximum of 1 vector store attached to
     the assistant.
     """
@@ -200,13 +209,18 @@ class ToolResourcesFileSearch(TypedDict, total=False):
     vector_stores: Iterable[ToolResourcesFileSearchVectorStore]
     """
     A helper to create a
-    [vector store](https://platform.openai.com/docs/api-reference/vector-stores/object)
+    [vector store](https://developers.openai.com/api/reference/resources/vector_stores)
     with file_ids and attach it to this assistant. There can be a maximum of 1
     vector store attached to the assistant.
     """
 
 
 class ToolResources(TypedDict, total=False):
+    """A set of resources that are used by the assistant's tools.
+
+    The resources are specific to the type of tool. For example, the `code_interpreter` tool requires a list of file IDs, while the `file_search` tool requires a list of vector store IDs.
+    """
+
     code_interpreter: ToolResourcesCodeInterpreter
 
     file_search: ToolResourcesFileSearch

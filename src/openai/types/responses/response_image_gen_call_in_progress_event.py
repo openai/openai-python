@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing_extensions import Literal
 
@@ -8,6 +8,8 @@ __all__ = ["ResponseImageGenCallInProgressEvent"]
 
 
 class ResponseImageGenCallInProgressEvent(BaseModel):
+    """Emitted when an image generation tool call is in progress."""
+
     item_id: str
     """The unique identifier of the image generation item being processed."""
 

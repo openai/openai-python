@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing_extensions import Literal
 
@@ -8,6 +8,8 @@ __all__ = ["ResponseAudioDeltaEvent"]
 
 
 class ResponseAudioDeltaEvent(BaseModel):
+    """Emitted when there is a partial audio response."""
+
     delta: str
     """A chunk of Base64 encoded response audio bytes."""
 

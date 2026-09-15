@@ -1,11 +1,20 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
-
 from typing import Any, List, Generic, TypeVar, Optional, cast
 from typing_extensions import Protocol, override, runtime_checkable
 
 from ._base_client import BasePage, PageInfo, BaseSyncPage, BaseAsyncPage
 
-__all__ = ["SyncPage", "AsyncPage", "SyncCursorPage", "AsyncCursorPage"]
+__all__ = [
+    "SyncPage",
+    "AsyncPage",
+    "SyncCursorPage",
+    "AsyncCursorPage",
+    "SyncConversationCursorPage",
+    "AsyncConversationCursorPage",
+    "SyncNextCursorPage",
+    "AsyncNextCursorPage",
+    "SyncTokenPage",
+    "AsyncTokenPage",
+]
 
 _T = TypeVar("_T")
 
@@ -123,3 +132,177 @@ class AsyncCursorPage(BaseAsyncPage[_T], BasePage[_T], Generic[_T]):
             return None
 
         return PageInfo(params={"after": item.id})
+
+
+class SyncConversationCursorPage(BaseSyncPage[_T], BasePage[_T], Generic[_T]):
+    data: List[_T]
+    has_more: Optional[bool] = None
+    last_id: Optional[str] = None
+
+    @override
+    def _get_page_items(self) -> List[_T]:
+        data = self.data
+        if not data:
+            return []
+        return data
+
+    @override
+    def has_next_page(self) -> bool:
+        has_more = self.has_more
+        if has_more is not None and has_more is False:
+            return False
+
+        return super().has_next_page()
+
+    @override
+    def next_page_info(self) -> Optional[PageInfo]:
+        last_id = self.last_id
+        if not last_id:
+            return None
+
+        return PageInfo(params={"after": last_id})
+
+
+class AsyncConversationCursorPage(BaseAsyncPage[_T], BasePage[_T], Generic[_T]):
+    data: List[_T]
+    has_more: Optional[bool] = None
+    last_id: Optional[str] = None
+
+    @override
+    def _get_page_items(self) -> List[_T]:
+        data = self.data
+        if not data:
+            return []
+        return data
+
+    @override
+    def has_next_page(self) -> bool:
+        has_more = self.has_more
+        if has_more is not None and has_more is False:
+            return False
+
+        return super().has_next_page()
+
+    @override
+    def next_page_info(self) -> Optional[PageInfo]:
+        last_id = self.last_id
+        if not last_id:
+            return None
+
+        return PageInfo(params={"after": last_id})
+
+
+class SyncNextCursorPage(BaseSyncPage[_T], BasePage[_T], Generic[_T]):
+    data: List[_T]
+    has_more: Optional[bool] = None
+    next: Optional[str] = None
+
+    @override
+    def _get_page_items(self) -> List[_T]:
+        data = self.data
+        if not data:
+            return []
+        return data
+
+    @override
+    def has_next_page(self) -> bool:
+        has_more = self.has_more
+        if has_more is not None and has_more is False:
+            return False
+
+        return super().has_next_page()
+
+    @override
+    def next_page_info(self) -> Optional[PageInfo]:
+        next = self.next
+        if not next:
+            return None
+
+        return PageInfo(params={"after": next})
+
+
+class AsyncNextCursorPage(BaseAsyncPage[_T], BasePage[_T], Generic[_T]):
+    data: List[_T]
+    has_more: Optional[bool] = None
+    next: Optional[str] = None
+
+    @override
+    def _get_page_items(self) -> List[_T]:
+        data = self.data
+        if not data:
+            return []
+        return data
+
+    @override
+    def has_next_page(self) -> bool:
+        has_more = self.has_more
+        if has_more is not None and has_more is False:
+            return False
+
+        return super().has_next_page()
+
+    @override
+    def next_page_info(self) -> Optional[PageInfo]:
+        next = self.next
+        if not next:
+            return None
+
+        return PageInfo(params={"after": next})
+
+
+class SyncTokenPage(BaseSyncPage[_T], BasePage[_T], Generic[_T]):
+    data: List[_T]
+    has_more: Optional[bool] = None
+    next: Optional[str] = None
+
+    @override
+    def _get_page_items(self) -> List[_T]:
+        data = self.data
+        if not data:
+            return []
+        return data
+
+    @override
+    def has_next_page(self) -> bool:
+        has_more = self.has_more
+        if has_more is not None and has_more is False:
+            return False
+
+        return super().has_next_page()
+
+    @override
+    def next_page_info(self) -> Optional[PageInfo]:
+        next = self.next
+        if not next:
+            return None
+
+        return PageInfo(params={"page": next})
+
+
+class AsyncTokenPage(BaseAsyncPage[_T], BasePage[_T], Generic[_T]):
+    data: List[_T]
+    has_more: Optional[bool] = None
+    next: Optional[str] = None
+
+    @override
+    def _get_page_items(self) -> List[_T]:
+        data = self.data
+        if not data:
+            return []
+        return data
+
+    @override
+    def has_next_page(self) -> bool:
+        has_more = self.has_more
+        if has_more is not None and has_more is False:
+            return False
+
+        return super().has_next_page()
+
+    @override
+    def next_page_info(self) -> Optional[PageInfo]:
+        next = self.next
+        if not next:
+            return None
+
+        return PageInfo(params={"page": next})

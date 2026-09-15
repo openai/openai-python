@@ -8,7 +8,7 @@ import pydantic
 
 from .._types import NOT_GIVEN
 from .._utils import is_dict as _is_dict, is_list
-from .._compat import PYDANTIC_V2, model_json_schema
+from .._compat import PYDANTIC_V1, model_json_schema
 
 _T = TypeVar("_T")
 
@@ -16,7 +16,7 @@ _T = TypeVar("_T")
 def to_strict_json_schema(model: type[pydantic.BaseModel] | pydantic.TypeAdapter[Any]) -> dict[str, Any]:
     if inspect.isclass(model) and is_basemodel_type(model):
         schema = model_json_schema(model)
-    elif PYDANTIC_V2 and isinstance(model, pydantic.TypeAdapter):
+    elif (not PYDANTIC_V1) and isinstance(model, pydantic.TypeAdapter):
         schema = model.json_schema()
     else:
         raise TypeError(f"Non BaseModel types are only supported with Pydantic v2 - {model}")

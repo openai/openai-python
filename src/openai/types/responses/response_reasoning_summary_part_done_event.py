@@ -1,5 +1,6 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
+from typing import Optional
 from typing_extensions import Literal
 
 from ..._models import BaseModel
@@ -8,6 +9,8 @@ __all__ = ["ResponseReasoningSummaryPartDoneEvent", "Part"]
 
 
 class Part(BaseModel):
+    """The completed summary part."""
+
     text: str
     """The text of the summary part."""
 
@@ -16,6 +19,8 @@ class Part(BaseModel):
 
 
 class ResponseReasoningSummaryPartDoneEvent(BaseModel):
+    """Emitted when a reasoning summary part is completed."""
+
     item_id: str
     """The ID of the item this summary part is associated with."""
 
@@ -33,3 +38,10 @@ class ResponseReasoningSummaryPartDoneEvent(BaseModel):
 
     type: Literal["response.reasoning_summary_part.done"]
     """The type of the event. Always `response.reasoning_summary_part.done`."""
+
+    status: Optional[Literal["incomplete"]] = None
+    """The completion status of the summary part.
+
+    Omitted when the part completed normally and set to `incomplete` when generation
+    was interrupted.
+    """

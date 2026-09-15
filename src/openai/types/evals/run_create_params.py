@@ -1,14 +1,19 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
-from typing import Dict, List, Union, Iterable, Optional
+from typing import Dict, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
+from ..._types import SequenceNotStr
+from ..responses.tool_param import ToolParam
 from ..shared_params.metadata import Metadata
 from ..shared.reasoning_effort import ReasoningEffort
+from ..graders.grader_inputs_param import GraderInputsParam
 from ..responses.response_input_text_param import ResponseInputTextParam
+from ..responses.response_input_audio_param import ResponseInputAudioParam
 from .create_eval_jsonl_run_data_source_param import CreateEvalJSONLRunDataSourceParam
+from ..responses.response_format_text_config_param import ResponseFormatTextConfigParam
 from .create_eval_completions_run_data_source_param import CreateEvalCompletionsRunDataSourceParam
 
 __all__ = [
@@ -27,8 +32,10 @@ __all__ = [
     "DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItem",
     "DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemContent",
     "DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemContentOutputText",
+    "DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemContentInputImage",
     "DataSourceCreateEvalResponsesRunDataSourceInputMessagesItemReference",
     "DataSourceCreateEvalResponsesRunDataSourceSamplingParams",
+    "DataSourceCreateEvalResponsesRunDataSourceSamplingParamsText",
 ]
 
 
@@ -73,6 +80,8 @@ class DataSourceCreateEvalResponsesRunDataSourceSourceFileID(TypedDict, total=Fa
 
 
 class DataSourceCreateEvalResponsesRunDataSourceSourceResponses(TypedDict, total=False):
+    """A EvalResponsesSource object describing a run data source configuration."""
+
     type: Required[Literal["responses"]]
     """The type of run data source. Always `responses`."""
 
@@ -107,21 +116,26 @@ class DataSourceCreateEvalResponsesRunDataSourceSourceResponses(TypedDict, total
     """
 
     reasoning_effort: Optional[ReasoningEffort]
-    """Optional reasoning effort parameter.
+    """Constrains effort on reasoning for reasoning models.
 
-    This is a query parameter used to select responses.
+    Currently supported values are `none`, `minimal`, `low`, `medium`, `high`,
+    `xhigh`, and `max`. Reducing reasoning effort can result in faster responses and
+    fewer tokens used on reasoning in a response. Not all reasoning models support
+    every value. See the
+    [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning) for
+    model-specific support.
     """
 
     temperature: Optional[float]
     """Sampling temperature. This is a query parameter used to select responses."""
 
-    tools: Optional[List[str]]
+    tools: Optional[SequenceNotStr[str]]
     """List of tool names. This is a query parameter used to select responses."""
 
     top_p: Optional[float]
     """Nucleus sampling parameter. This is a query parameter used to select responses."""
 
-    users: Optional[List[str]]
+    users: Optional[SequenceNotStr[str]]
     """List of user identifiers. This is a query parameter used to select responses."""
 
 
@@ -143,6 +157,8 @@ class DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateCha
 class DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemContentOutputText(
     TypedDict, total=False
 ):
+    """A text output from the model."""
+
     text: Required[str]
     """The text output from the model."""
 
@@ -150,16 +166,49 @@ class DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEva
     """The type of the output text. Always `output_text`."""
 
 
+class DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemContentInputImage(
+    TypedDict, total=False
+):
+    """An image input block used within EvalItem content arrays."""
+
+    image_url: Required[str]
+    """The URL of the image input."""
+
+    type: Required[Literal["input_image"]]
+    """The type of the image input. Always `input_image`."""
+
+    detail: str
+    """The detail level of the image to be sent to the model.
+
+    One of `high`, `low`, or `auto`. Defaults to `auto`.
+    """
+
+
 DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemContent: TypeAlias = Union[
     str,
     ResponseInputTextParam,
     DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemContentOutputText,
+    DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemContentInputImage,
+    ResponseInputAudioParam,
+    GraderInputsParam,
 ]
 
 
 class DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItem(TypedDict, total=False):
+    """
+    A message input to the model with a role indicating instruction following
+    hierarchy. Instructions given with the `developer` or `system` role take
+    precedence over instructions given with the `user` role. Messages with the
+    `assistant` role are presumed to have been generated by the model in previous
+    interactions.
+    """
+
     content: Required[DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemContent]
-    """Text inputs to the model - can contain template strings."""
+    """Inputs to the model - can contain template strings.
+
+    Supports text, output text, input images, and input audio, either as a single
+    item or an array of items.
+    """
 
     role: Required[Literal["user", "assistant", "system", "developer"]]
     """The role of the message input.
@@ -202,9 +251,46 @@ DataSourceCreateEvalResponsesRunDataSourceInputMessages: TypeAlias = Union[
 ]
 
 
+class DataSourceCreateEvalResponsesRunDataSourceSamplingParamsText(TypedDict, total=False):
+    """Configuration options for a text response from the model.
+
+    Can be plain
+    text or structured JSON data. Learn more:
+    - [Text inputs and outputs](https://developers.openai.com/api/docs/guides/text)
+    - [Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs)
+    """
+
+    format: ResponseFormatTextConfigParam
+    """An object specifying the format that the model must output.
+
+    Configuring `{ "type": "json_schema" }` enables Structured Outputs, which
+    ensures the model will match your supplied JSON schema. Learn more in the
+    [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
+
+    The default format is `{ "type": "text" }` with no additional options.
+
+    **Not recommended for gpt-4o and newer models:**
+
+    Setting to `{ "type": "json_object" }` enables the older JSON mode, which
+    ensures the message the model generates is valid JSON. Using `json_schema` is
+    preferred for models that support it.
+    """
+
+
 class DataSourceCreateEvalResponsesRunDataSourceSamplingParams(TypedDict, total=False):
     max_completion_tokens: int
     """The maximum number of tokens in the generated output."""
+
+    reasoning_effort: Optional[ReasoningEffort]
+    """Constrains effort on reasoning for reasoning models.
+
+    Currently supported values are `none`, `minimal`, `low`, `medium`, `high`,
+    `xhigh`, and `max`. Reducing reasoning effort can result in faster responses and
+    fewer tokens used on reasoning in a response. Not all reasoning models support
+    every value. See the
+    [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning) for
+    model-specific support.
+    """
 
     seed: int
     """A seed value to initialize the randomness, during sampling."""
@@ -212,11 +298,41 @@ class DataSourceCreateEvalResponsesRunDataSourceSamplingParams(TypedDict, total=
     temperature: float
     """A higher temperature increases randomness in the outputs."""
 
+    text: DataSourceCreateEvalResponsesRunDataSourceSamplingParamsText
+    """Configuration options for a text response from the model.
+
+    Can be plain text or structured JSON data. Learn more:
+
+    - [Text inputs and outputs](https://developers.openai.com/api/docs/guides/text)
+    - [Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs)
+    """
+
+    tools: Iterable[ToolParam]
+    """An array of tools the model may call while generating a response.
+
+    You can specify which tool to use by setting the `tool_choice` parameter.
+
+    The two categories of tools you can provide the model are:
+
+    - **Built-in tools**: Tools that are provided by OpenAI that extend the model's
+      capabilities, like
+      [web search](https://developers.openai.com/api/docs/guides/tools-web-search)
+      or
+      [file search](https://developers.openai.com/api/docs/guides/tools-file-search).
+      Learn more about
+      [built-in tools](https://developers.openai.com/api/docs/guides/tools).
+    - **Function calls (custom tools)**: Functions that are defined by you, enabling
+      the model to call your own code. Learn more about
+      [function calling](https://developers.openai.com/api/docs/guides/function-calling).
+    """
+
     top_p: float
     """An alternative to temperature for nucleus sampling; 1.0 includes all tokens."""
 
 
 class DataSourceCreateEvalResponsesRunDataSource(TypedDict, total=False):
+    """A ResponsesRunDataSource object describing a model sampling configuration."""
+
     source: Required[DataSourceCreateEvalResponsesRunDataSourceSource]
     """Determines what populates the `item` namespace in this run's data source."""
 

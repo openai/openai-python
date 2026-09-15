@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing_extensions import Literal
 
@@ -8,6 +8,8 @@ __all__ = ["ResponseReasoningSummaryPartAddedEvent", "Part"]
 
 
 class Part(BaseModel):
+    """The summary part that was added."""
+
     text: str
     """The text of the summary part."""
 
@@ -16,6 +18,8 @@ class Part(BaseModel):
 
 
 class ResponseReasoningSummaryPartAddedEvent(BaseModel):
+    """Emitted when a new reasoning summary part is added."""
+
     item_id: str
     """The ID of the item this summary part is associated with."""
 

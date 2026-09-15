@@ -1,16 +1,30 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 from typing import Optional
 from typing_extensions import Literal, Required, TypedDict
 
-__all__ = ["WebSearchToolParam", "UserLocation"]
+from ..._types import SequenceNotStr
+
+__all__ = ["WebSearchToolParam", "Filters", "UserLocation"]
+
+
+class Filters(TypedDict, total=False):
+    """Filters for the search."""
+
+    allowed_domains: Optional[SequenceNotStr[str]]
+    """Allowed domains for the search.
+
+    If not provided, all domains are allowed. Subdomains of the provided domains are
+    allowed as well.
+
+    Example: `["pubmed.ncbi.nlm.nih.gov"]`
+    """
 
 
 class UserLocation(TypedDict, total=False):
-    type: Required[Literal["approximate"]]
-    """The type of location approximation. Always `approximate`."""
+    """The approximate location of the user."""
 
     city: Optional[str]
     """Free text input for the city of the user, e.g. `San Francisco`."""
@@ -30,13 +44,32 @@ class UserLocation(TypedDict, total=False):
     user, e.g. `America/Los_Angeles`.
     """
 
+    type: Literal["approximate"]
+    """The type of location approximation. Always `approximate`."""
+
 
 class WebSearchToolParam(TypedDict, total=False):
-    type: Required[Literal["web_search_preview", "web_search_preview_2025_03_11"]]
+    """Search the Internet for sources related to the prompt.
+
+    Learn more about the
+    [web search tool](https://developers.openai.com/api/docs/guides/tools-web-search).
+    """
+
+    type: Required[Literal["web_search", "web_search_2025_08_26"]]
     """The type of the web search tool.
 
-    One of `web_search_preview` or `web_search_preview_2025_03_11`.
+    One of `web_search` or `web_search_2025_08_26`.
     """
+
+    external_web_access: bool
+    """Allow live internet access for web search.
+
+    Defaults to true when omitted. When false, the web search tool runs in
+    offline/cache-only mode and will not fetch new external content.
+    """
+
+    filters: Optional[Filters]
+    """Filters for the search."""
 
     search_context_size: Literal["low", "medium", "high"]
     """High level guidance for the amount of context window space to use for the
@@ -46,4 +79,4 @@ class WebSearchToolParam(TypedDict, total=False):
     """
 
     user_location: Optional[UserLocation]
-    """The user's location."""
+    """The approximate location of the user."""

@@ -1,31 +1,260 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
-from typing import List, Union, Optional
-from typing_extensions import Literal, TypeAlias
+from typing import Dict, List, Union, Optional
+from typing_extensions import Literal, Annotated, TypeAlias
 
 from .tool import Tool
+from ..._utils import PropertyInfo
 from ..._models import BaseModel
+from .service_tier import ServiceTier
 from .response_error import ResponseError
 from .response_usage import ResponseUsage
+from .response_prompt import ResponsePrompt
 from .response_status import ResponseStatus
+from .tool_choice_mcp import ToolChoiceMcp
 from ..shared.metadata import Metadata
 from ..shared.reasoning import Reasoning
+from .tool_choice_shell import ToolChoiceShell
 from .tool_choice_types import ToolChoiceTypes
+from .tool_choice_custom import ToolChoiceCustom
+from .response_input_item import ResponseInputItem
+from .tool_choice_allowed import ToolChoiceAllowed
 from .tool_choice_options import ToolChoiceOptions
 from .response_output_item import ResponseOutputItem
 from .response_text_config import ResponseTextConfig
 from .tool_choice_function import ToolChoiceFunction
 from ..shared.responses_model import ResponsesModel
+from .tool_choice_apply_patch import ToolChoiceApplyPatch
 
-__all__ = ["Response", "IncompleteDetails", "ToolChoice"]
+__all__ = [
+    "Response",
+    "IncompleteDetails",
+    "ToolChoice",
+    "ToolChoiceSpecificProgrammaticToolCallingParam",
+    "Conversation",
+    "Moderation",
+    "ModerationInput",
+    "ModerationInputModerationResult",
+    "ModerationInputError",
+    "ModerationOutput",
+    "ModerationOutputModerationResult",
+    "ModerationOutputError",
+    "PromptCacheDiagnostics",
+    "PromptCacheDiagnosticsCacheMiss",
+    "PromptCacheDiagnosticsCacheHit",
+    "PromptCacheDiagnosticsComparisonResponseNotFound",
+    "PromptCacheDiagnosticsUnavailable",
+    "PromptCacheOptions",
+]
 
 
 class IncompleteDetails(BaseModel):
-    reason: Optional[Literal["max_output_tokens", "content_filter"]] = None
-    """The reason why the response is incomplete."""
+    """Details about why the response is incomplete."""
+
+    reason: Optional[Literal["max_output_tokens", "max_messages", "content_filter", "steered"]] = None
+    """The reason why the response is incomplete.
+
+    `steered` means the response stopped at a safe output boundary after a WebSocket
+    `response.steer` event. The server can then create a successor response
+    automatically with the queued input.
+    """
 
 
-ToolChoice: TypeAlias = Union[ToolChoiceOptions, ToolChoiceTypes, ToolChoiceFunction]
+class ToolChoiceSpecificProgrammaticToolCallingParam(BaseModel):
+    type: Literal["programmatic_tool_calling"]
+    """The tool to call. Always `programmatic_tool_calling`."""
+
+
+ToolChoice: TypeAlias = Union[
+    ToolChoiceOptions,
+    ToolChoiceAllowed,
+    ToolChoiceTypes,
+    ToolChoiceFunction,
+    ToolChoiceMcp,
+    ToolChoiceCustom,
+    ToolChoiceSpecificProgrammaticToolCallingParam,
+    ToolChoiceApplyPatch,
+    ToolChoiceShell,
+]
+
+
+class Conversation(BaseModel):
+    """The conversation that this response belonged to.
+
+    Input items and output items from this response were automatically added to this conversation.
+    """
+
+    id: str
+    """The unique ID of the conversation that this response was associated with."""
+
+
+class ModerationInputModerationResult(BaseModel):
+    """A moderation result produced for the response input or output."""
+
+    categories: Dict[str, bool]
+    """
+    A dictionary of moderation categories to booleans, True if the input is flagged
+    under this category.
+    """
+
+    category_applied_input_types: Dict[str, List[Literal["text", "image"]]]
+    """Which modalities of input are reflected by the score for each category."""
+
+    category_scores: Dict[str, float]
+    """A dictionary of moderation categories to scores."""
+
+    flagged: bool
+    """A boolean indicating whether the content was flagged by any category."""
+
+    model: str
+    """The moderation model that produced this result."""
+
+    type: Literal["moderation_result"]
+    """
+    The object type, which was always `moderation_result` for successful moderation
+    results.
+    """
+
+
+class ModerationInputError(BaseModel):
+    """An error produced while attempting moderation for the response input or output."""
+
+    code: str
+    """The error code."""
+
+    message: str
+    """The error message."""
+
+    type: Literal["error"]
+    """The object type, which was always `error` for moderation failures."""
+
+
+ModerationInput: TypeAlias = Annotated[
+    Union[ModerationInputModerationResult, ModerationInputError], PropertyInfo(discriminator="type")
+]
+
+
+class ModerationOutputModerationResult(BaseModel):
+    """A moderation result produced for the response input or output."""
+
+    categories: Dict[str, bool]
+    """
+    A dictionary of moderation categories to booleans, True if the input is flagged
+    under this category.
+    """
+
+    category_applied_input_types: Dict[str, List[Literal["text", "image"]]]
+    """Which modalities of input are reflected by the score for each category."""
+
+    category_scores: Dict[str, float]
+    """A dictionary of moderation categories to scores."""
+
+    flagged: bool
+    """A boolean indicating whether the content was flagged by any category."""
+
+    model: str
+    """The moderation model that produced this result."""
+
+    type: Literal["moderation_result"]
+    """
+    The object type, which was always `moderation_result` for successful moderation
+    results.
+    """
+
+
+class ModerationOutputError(BaseModel):
+    """An error produced while attempting moderation for the response input or output."""
+
+    code: str
+    """The error code."""
+
+    message: str
+    """The error message."""
+
+    type: Literal["error"]
+    """The object type, which was always `error` for moderation failures."""
+
+
+ModerationOutput: TypeAlias = Annotated[
+    Union[ModerationOutputModerationResult, ModerationOutputError], PropertyInfo(discriminator="type")
+]
+
+
+class Moderation(BaseModel):
+    """
+    Moderation results for the response input and output, if moderated completions were requested.
+    """
+
+    input: ModerationInput
+    """Moderation for the response input."""
+
+    output: ModerationOutput
+    """Moderation for the response output."""
+
+
+class PromptCacheDiagnosticsCacheMiss(BaseModel):
+    cache_missed_tokens: int
+    """
+    The estimated number of input tokens affected after the first detected
+    divergence.
+    """
+
+    reason: Literal[
+        "model_changed",
+        "prompt_cache_key_changed",
+        "tools_changed",
+        "text_format_changed",
+        "reasoning_effort_changed",
+        "verbosity_changed",
+        "context_compacted",
+        "input_changed",
+        "service_tier_changed",
+    ]
+    """The reason prompt cache reuse did not occur."""
+
+    type: Literal["cache_miss"]
+
+    comparison_reusable_tokens: Optional[int] = None
+    """The raw token count of the reusable prefix in the compared response."""
+
+
+class PromptCacheDiagnosticsCacheHit(BaseModel):
+    type: Literal["cache_hit"]
+
+
+class PromptCacheDiagnosticsComparisonResponseNotFound(BaseModel):
+    type: Literal["comparison_response_not_found"]
+
+
+class PromptCacheDiagnosticsUnavailable(BaseModel):
+    type: Literal["unavailable"]
+
+
+PromptCacheDiagnostics: TypeAlias = Annotated[
+    Union[
+        PromptCacheDiagnosticsCacheMiss,
+        PromptCacheDiagnosticsCacheHit,
+        PromptCacheDiagnosticsComparisonResponseNotFound,
+        PromptCacheDiagnosticsUnavailable,
+    ],
+    PropertyInfo(discriminator="type"),
+]
+
+
+class PromptCacheOptions(BaseModel):
+    """The prompt-caching options that were applied to the response.
+
+    Supported for `gpt-5.6` and later models.
+    """
+
+    mode: Literal["implicit", "explicit"]
+    """Whether implicit prompt-cache breakpoints were enabled."""
+
+    ttl: Literal["30m"]
+    """The minimum lifetime applied to each cache breakpoint."""
+
+    comparison_response_id: Optional[str] = None
+    """The response ID supplied as the prompt cache diagnostics comparison."""
 
 
 class Response(BaseModel):
@@ -41,10 +270,8 @@ class Response(BaseModel):
     incomplete_details: Optional[IncompleteDetails] = None
     """Details about why the response is incomplete."""
 
-    instructions: Optional[str] = None
-    """
-    Inserts a system (or developer) message as the first item in the model's
-    context.
+    instructions: Union[str, List[ResponseInputItem], None] = None
+    """A system (or developer) message inserted into the model's context.
 
     When using along with `previous_response_id`, the instructions from a previous
     response will not be carried over to the next response. This makes it simple to
@@ -62,12 +289,12 @@ class Response(BaseModel):
     """
 
     model: ResponsesModel
-    """Model ID used to generate the response, like `gpt-4o` or `o3`.
+    """Model ID used to generate the response, like `gpt-6-astra`.
 
     OpenAI offers a wide range of models with different capabilities, performance
     characteristics, and price points. Refer to the
-    [model guide](https://platform.openai.com/docs/models) to browse and compare
-    available models.
+    [model guide](https://developers.openai.com/api/docs/models) to browse and
+    compare available models.
     """
 
     object: Literal["response"]
@@ -106,17 +333,23 @@ class Response(BaseModel):
 
     You can specify which tool to use by setting the `tool_choice` parameter.
 
-    The two categories of tools you can provide the model are:
+    We support the following categories of tools:
 
     - **Built-in tools**: Tools that are provided by OpenAI that extend the model's
       capabilities, like
-      [web search](https://platform.openai.com/docs/guides/tools-web-search) or
-      [file search](https://platform.openai.com/docs/guides/tools-file-search).
+      [web search](https://developers.openai.com/api/docs/guides/tools-web-search)
+      or
+      [file search](https://developers.openai.com/api/docs/guides/tools-file-search).
       Learn more about
-      [built-in tools](https://platform.openai.com/docs/guides/tools).
+      [built-in tools](https://developers.openai.com/api/docs/guides/tools).
+    - **MCP Tools**: Integrations with third-party systems via custom MCP servers or
+      predefined connectors such as Google Drive and SharePoint. Learn more about
+      [MCP Tools](https://developers.openai.com/api/docs/guides/tools-connectors-mcp).
     - **Function calls (custom tools)**: Functions that are defined by you, enabling
-      the model to call your own code. Learn more about
-      [function calling](https://platform.openai.com/docs/guides/function-calling).
+      the model to call your own code with strongly typed arguments and outputs.
+      Learn more about
+      [function calling](https://developers.openai.com/api/docs/guides/function-calling).
+      You can also use custom tools to call your own code.
     """
 
     top_p: Optional[float] = None
@@ -129,51 +362,138 @@ class Response(BaseModel):
     """
 
     background: Optional[bool] = None
-    """Whether to run the model response in the background.
+    """
+    Whether to run the model response in the background.
+    [Learn more](https://developers.openai.com/api/docs/guides/background).
+    """
 
-    [Learn more](https://platform.openai.com/docs/guides/background).
+    completed_at: Optional[float] = None
+    """
+    Unix timestamp (in seconds) of when this Response was completed. Only present
+    when the status is `completed`.
+    """
+
+    conversation: Optional[Conversation] = None
+    """The conversation that this response belonged to.
+
+    Input items and output items from this response were automatically added to this
+    conversation.
     """
 
     max_output_tokens: Optional[int] = None
     """
     An upper bound for the number of tokens that can be generated for a response,
     including visible output tokens and
-    [reasoning tokens](https://platform.openai.com/docs/guides/reasoning).
+    [reasoning tokens](https://developers.openai.com/api/docs/guides/reasoning).
+    """
+
+    max_tool_calls: Optional[int] = None
+    """
+    The maximum number of total calls to built-in tools that can be processed in a
+    response. This maximum number applies across all built-in tool calls, not per
+    individual tool. Any further attempts to call a tool by the model will be
+    ignored.
+    """
+
+    moderation: Optional[Moderation] = None
+    """
+    Moderation results for the response input and output, if moderated completions
+    were requested.
     """
 
     previous_response_id: Optional[str] = None
     """The unique ID of the previous response to the model.
 
     Use this to create multi-turn conversations. Learn more about
-    [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+    [conversation state](https://developers.openai.com/api/docs/guides/conversation-state).
+    Cannot be used in conjunction with `conversation`.
+    """
+
+    prompt: Optional[ResponsePrompt] = None
+    """
+    Reference to a prompt template and its variables.
+    [Learn more](https://developers.openai.com/api/docs/guides/text?api-mode=responses#version-prompts-in-code).
+    """
+
+    prompt_cache_diagnostics: Optional[PromptCacheDiagnostics] = None
+    """Prompt cache diagnostics requested for this response."""
+
+    prompt_cache_key: Optional[str] = None
+    """
+    Used by OpenAI to cache responses for similar requests to optimize your cache
+    hit rates. Replaces the `user` field.
+    [Learn more](https://developers.openai.com/api/docs/guides/prompt-caching).
+    """
+
+    prompt_cache_options: Optional[PromptCacheOptions] = None
+    """The prompt-caching options that were applied to the response.
+
+    Supported for `gpt-5.6` and later models.
+    """
+
+    prompt_cache_retention: Optional[Literal["in_memory", "24h"]] = None
+    """Deprecated. Use `prompt_cache_options.ttl` instead.
+
+    The retention policy for the prompt cache. Set to `24h` to enable extended
+    prompt caching, which keeps cached prefixes active for longer, up to a maximum
+    of 24 hours.
+    [Learn more](https://developers.openai.com/api/docs/guides/prompt-caching#prompt-cache-retention).
+    This field expresses a maximum retention policy, while
+    `prompt_cache_options.ttl` expresses a minimum cache lifetime. The two fields
+    are independent and do not interact. For `gpt-5.5`, `gpt-5.5-pro`, and future
+    models, only `24h` is supported.
+
+    For older models that support both `in_memory` and `24h`, the default depends on
+    your organization's data retention policy:
+
+    - Organizations without ZDR enabled default to `24h`.
+    - Organizations with ZDR enabled default to `in_memory` when
+      `prompt_cache_retention` is not specified.
     """
 
     reasoning: Optional[Reasoning] = None
-    """**o-series models only**
-
+    """
     Configuration options for
-    [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+    [reasoning models](https://developers.openai.com/api/docs/guides/reasoning).
     """
 
-    service_tier: Optional[Literal["auto", "default", "flex"]] = None
-    """Specifies the latency tier to use for processing the request.
+    safety_identifier: Optional[str] = None
+    """
+    A stable identifier used to help detect users of your application that may be
+    violating OpenAI's usage policies. The IDs should be a string that uniquely
+    identifies each user, with a maximum length of 64 characters. We recommend
+    hashing their username or email address, in order to avoid sending us any
+    identifying information.
+    [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
+    """
 
-    This parameter is relevant for customers subscribed to the scale tier service:
+    service_tier: Optional[ServiceTier] = None
+    """Specifies the processing type used for serving the request.
 
-    - If set to 'auto', and the Project is Scale tier enabled, the system will
-      utilize scale tier credits until they are exhausted.
-    - If set to 'auto', and the Project is not Scale tier enabled, the request will
-      be processed using the default service tier with a lower uptime SLA and no
-      latency guarentee.
-    - If set to 'default', the request will be processed using the default service
-      tier with a lower uptime SLA and no latency guarentee.
-    - If set to 'flex', the request will be processed with the Flex Processing
-      service tier.
-      [Learn more](https://platform.openai.com/docs/guides/flex-processing).
+    - If set to 'auto', then the request will be processed with the service tier
+      configured in the Project settings. Unless otherwise configured, the Project
+      will use 'default'.
+    - If set to 'default', then the request will be processed with the standard
+      pricing and performance for the selected model.
+    - If set to
+      '[flex](https://developers.openai.com/api/docs/guides/flex-processing)', then
+      the request will be processed with the Flex Processing service tier.
+    - To opt-in to
+      [Fast mode](https://developers.openai.com/api/docs/guides/fast-mode) at the
+      request level, include the `service_tier=fast` or `service_tier=priority`
+      parameter for Responses or Chat Completions. The response will show
+      `service_tier=priority` regardless of if you specify `service_tier=fast` or
+      `priority` in your request.
+    - If set to 'ultrafast', then the request will be processed with the
+      access-controlled Ultrafast Processing service tier. This tier is currently
+      available for `gpt-5.6-sol`; a response served through it will show
+      `service_tier=ultrafast`.
     - When not set, the default behavior is 'auto'.
 
-    When this parameter is set, the response body will include the `service_tier`
-    utilized.
+    When the `service_tier` parameter is set, the response body will include the
+    `service_tier` value based on the processing mode actually used to serve the
+    request. This response value may be different from the value set in the
+    parameter.
     """
 
     status: Optional[ResponseStatus] = None
@@ -188,17 +508,24 @@ class Response(BaseModel):
 
     Can be plain text or structured JSON data. Learn more:
 
-    - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
-    - [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs)
+    - [Text inputs and outputs](https://developers.openai.com/api/docs/guides/text)
+    - [Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs)
+    """
+
+    top_logprobs: Optional[int] = None
+    """
+    An integer between 0 and 20 specifying the maximum number of most likely tokens
+    to return at each token position, each with an associated log probability. In
+    some cases, the number of returned tokens may be fewer than requested.
     """
 
     truncation: Optional[Literal["auto", "disabled"]] = None
     """The truncation strategy to use for the model response.
 
-    - `auto`: If the context of this response and previous ones exceeds the model's
-      context window size, the model will truncate the response to fit the context
-      window by dropping input items in the middle of the conversation.
-    - `disabled` (default): If a model response will exceed the context window size
+    - `auto`: If the input to this Response exceeds the model's context window size,
+      the model will truncate the response to fit the context window by dropping
+      items from the beginning of the conversation.
+    - `disabled` (default): If the input size will exceed the context window size
       for a model, the request will fail with a 400 error.
     """
 
@@ -209,17 +536,17 @@ class Response(BaseModel):
     """
 
     user: Optional[str] = None
-    """A stable identifier for your end-users.
+    """This field is being replaced by `safety_identifier` and `prompt_cache_key`.
 
-    Used to boost cache hit rates by better bucketing similar requests and to help
-    OpenAI detect and prevent abuse.
-    [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
+    Use `prompt_cache_key` instead to maintain caching optimizations. A stable
+    identifier for your end-users. Used to boost cache hit rates by better bucketing
+    similar requests and to help OpenAI detect and prevent abuse.
+    [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
     """
 
     @property
     def output_text(self) -> str:
-        """Convenience property that aggregates all `output_text` items from the `output`
-        list.
+        """Convenience property that aggregates all `output_text` items from the `output` list.
 
         If no `output_text` content blocks exist, then an empty string is returned.
         """
@@ -227,7 +554,8 @@ class Response(BaseModel):
         for output in self.output:
             if output.type == "message":
                 for content in output.content:
-                    if content.type == "output_text":
+                    # Tolerate null text from compatible providers without changing the public string type.
+                    if content.type == "output_text" and content.text is not None:  # pyright: ignore[reportUnnecessaryComparison]
                         texts.append(content.text)
 
         return "".join(texts)

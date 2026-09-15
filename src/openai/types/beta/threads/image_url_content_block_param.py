@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -10,6 +10,8 @@ __all__ = ["ImageURLContentBlockParam"]
 
 
 class ImageURLContentBlockParam(TypedDict, total=False):
+    """References an image URL in the content of a message."""
+
     image_url: Required[ImageURLParam]
 
     type: Required[Literal["image_url"]]

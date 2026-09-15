@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing_extensions import Literal
 
@@ -8,6 +8,14 @@ __all__ = ["ResponseMcpListToolsFailedEvent"]
 
 
 class ResponseMcpListToolsFailedEvent(BaseModel):
+    """Emitted when the attempt to list available MCP tools has failed."""
+
+    item_id: str
+    """The ID of the MCP tool call item that failed."""
+
+    output_index: int
+    """The index of the output item that failed."""
+
     sequence_number: int
     """The sequence number of this event."""
 

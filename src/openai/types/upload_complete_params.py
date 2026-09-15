@@ -1,15 +1,16 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
-from typing import List
 from typing_extensions import Required, TypedDict
+
+from .._types import SequenceNotStr
 
 __all__ = ["UploadCompleteParams"]
 
 
 class UploadCompleteParams(TypedDict, total=False):
-    part_ids: Required[List[str]]
+    part_ids: Required[SequenceNotStr[str]]
     """The ordered list of Part IDs."""
 
     md5: str

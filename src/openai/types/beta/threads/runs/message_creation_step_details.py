@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing_extensions import Literal
 
@@ -13,6 +13,8 @@ class MessageCreation(BaseModel):
 
 
 class MessageCreationStepDetails(BaseModel):
+    """Details of the message creation by the run step."""
+
     message_creation: MessageCreation
 
     type: Literal["message_creation"]

@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing_extensions import Literal
 
@@ -8,6 +8,8 @@ __all__ = ["ResponseReasoningSummaryTextDeltaEvent"]
 
 
 class ResponseReasoningSummaryTextDeltaEvent(BaseModel):
+    """Emitted when a delta is added to a reasoning summary text."""
+
     delta: str
     """The text delta that was added to the summary."""
 

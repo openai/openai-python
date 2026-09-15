@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing_extensions import Literal
 
@@ -8,6 +8,8 @@ __all__ = ["ResponseFunctionCallArgumentsDeltaEvent"]
 
 
 class ResponseFunctionCallArgumentsDeltaEvent(BaseModel):
+    """Emitted when there is a partial function-call arguments delta."""
+
     delta: str
     """The function-call arguments delta that is added."""
 

@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import Dict, Optional
 from typing_extensions import Literal
@@ -11,6 +11,12 @@ __all__ = ["ResponseFormatTextJSONSchemaConfig"]
 
 
 class ResponseFormatTextJSONSchemaConfig(BaseModel):
+    """JSON Schema response format.
+
+    Used to generate structured JSON responses.
+    Learn more about [Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs).
+    """
+
     name: str
     """The name of the response format.
 
@@ -39,5 +45,5 @@ class ResponseFormatTextJSONSchemaConfig(BaseModel):
     true, the model will always follow the exact schema defined in the `schema`
     field. Only a subset of JSON Schema is supported when `strict` is `true`. To
     learn more, read the
-    [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+    [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
     """

@@ -1,11 +1,9 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
-
 from __future__ import annotations
 
 from typing import List, Union, Iterable
 from typing_extensions import Literal
 
-import httpx
+import httpx2
 
 from .... import _legacy_response
 from ...._types import NOT_GIVEN, Body, Query, Headers, NotGiven
@@ -43,6 +41,7 @@ class Sessions(SyncAPIResource):
     def create(
         self,
         *,
+        client_secret: session_create_params.ClientSecret | NotGiven = NOT_GIVEN,
         input_audio_format: Literal["pcm16", "g711_ulaw", "g711_alaw"] | NotGiven = NOT_GIVEN,
         input_audio_noise_reduction: session_create_params.InputAudioNoiseReduction | NotGiven = NOT_GIVEN,
         input_audio_transcription: session_create_params.InputAudioTranscription | NotGiven = NOT_GIVEN,
@@ -50,28 +49,31 @@ class Sessions(SyncAPIResource):
         max_response_output_tokens: Union[int, Literal["inf"]] | NotGiven = NOT_GIVEN,
         modalities: List[Literal["text", "audio"]] | NotGiven = NOT_GIVEN,
         model: Literal[
+            "gpt-realtime",
+            "gpt-realtime-2025-08-28",
             "gpt-4o-realtime-preview",
             "gpt-4o-realtime-preview-2024-10-01",
             "gpt-4o-realtime-preview-2024-12-17",
+            "gpt-4o-realtime-preview-2025-06-03",
             "gpt-4o-mini-realtime-preview",
             "gpt-4o-mini-realtime-preview-2024-12-17",
         ]
         | NotGiven = NOT_GIVEN,
         output_audio_format: Literal["pcm16", "g711_ulaw", "g711_alaw"] | NotGiven = NOT_GIVEN,
+        speed: float | NotGiven = NOT_GIVEN,
         temperature: float | NotGiven = NOT_GIVEN,
         tool_choice: str | NotGiven = NOT_GIVEN,
         tools: Iterable[session_create_params.Tool] | NotGiven = NOT_GIVEN,
+        tracing: session_create_params.Tracing | NotGiven = NOT_GIVEN,
         turn_detection: session_create_params.TurnDetection | NotGiven = NOT_GIVEN,
-        voice: Union[
-            str, Literal["alloy", "ash", "ballad", "coral", "echo", "fable", "onyx", "nova", "sage", "shimmer", "verse"]
-        ]
+        voice: Union[str, Literal["alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse"]]
         | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> SessionCreateResponse:
         """
         Create an ephemeral API token for use in client-side applications with the
@@ -83,6 +85,8 @@ class Sessions(SyncAPIResource):
         the Realtime API.
 
         Args:
+          client_secret: Configuration options for the generated client secret.
+
           input_audio_format: The format of input audio. Options are `pcm16`, `g711_ulaw`, or `g711_alaw`. For
               `pcm16`, input audio must be 16-bit PCM at a 24kHz sample rate, single channel
               (mono), and little-endian byte order.
@@ -126,6 +130,10 @@ class Sessions(SyncAPIResource):
           output_audio_format: The format of output audio. Options are `pcm16`, `g711_ulaw`, or `g711_alaw`.
               For `pcm16`, output audio is sampled at a rate of 24kHz.
 
+          speed: The speed of the model's spoken response. 1.0 is the default speed. 0.25 is the
+              minimum speed. 1.5 is the maximum speed. This value can only be changed in
+              between model turns, not while a response is in progress.
+
           temperature: Sampling temperature for the model, limited to [0.6, 1.2]. For audio models a
               temperature of 0.8 is highly recommended for best performance.
 
@@ -134,11 +142,17 @@ class Sessions(SyncAPIResource):
 
           tools: Tools (functions) available to the model.
 
+          tracing: Configuration options for tracing. Set to null to disable tracing. Once tracing
+              is enabled for a session, the configuration cannot be modified.
+
+              `auto` will create a trace for the session with default values for the workflow
+              name, group id, and metadata.
+
           turn_detection: Configuration for turn detection, ether Server VAD or Semantic VAD. This can be
               set to `null` to turn off, in which case the client must manually trigger model
               response. Server VAD means that the model will detect the start and end of
               speech based on audio volume and respond at the end of user speech. Semantic VAD
-              is more advanced and uses a turn detection model (in conjuction with VAD) to
+              is more advanced and uses a turn detection model (in conjunction with VAD) to
               semantically estimate whether the user has finished speaking, then dynamically
               sets a timeout based on this probability. For example, if user audio trails off
               with "uhhm", the model will score a low probability of turn end and wait longer
@@ -147,8 +161,7 @@ class Sessions(SyncAPIResource):
 
           voice: The voice the model uses to respond. Voice cannot be changed during the session
               once the model has responded with audio at least once. Current voice options are
-              `alloy`, `ash`, `ballad`, `coral`, `echo`, `fable`, `onyx`, `nova`, `sage`,
-              `shimmer`, and `verse`.
+              `alloy`, `ash`, `ballad`, `coral`, `echo`, `sage`, `shimmer`, and `verse`.
 
           extra_headers: Send extra headers
 
@@ -163,6 +176,7 @@ class Sessions(SyncAPIResource):
             "/realtime/sessions",
             body=maybe_transform(
                 {
+                    "client_secret": client_secret,
                     "input_audio_format": input_audio_format,
                     "input_audio_noise_reduction": input_audio_noise_reduction,
                     "input_audio_transcription": input_audio_transcription,
@@ -171,9 +185,11 @@ class Sessions(SyncAPIResource):
                     "modalities": modalities,
                     "model": model,
                     "output_audio_format": output_audio_format,
+                    "speed": speed,
                     "temperature": temperature,
                     "tool_choice": tool_choice,
                     "tools": tools,
+                    "tracing": tracing,
                     "turn_detection": turn_detection,
                     "voice": voice,
                 },
@@ -209,6 +225,7 @@ class AsyncSessions(AsyncAPIResource):
     async def create(
         self,
         *,
+        client_secret: session_create_params.ClientSecret | NotGiven = NOT_GIVEN,
         input_audio_format: Literal["pcm16", "g711_ulaw", "g711_alaw"] | NotGiven = NOT_GIVEN,
         input_audio_noise_reduction: session_create_params.InputAudioNoiseReduction | NotGiven = NOT_GIVEN,
         input_audio_transcription: session_create_params.InputAudioTranscription | NotGiven = NOT_GIVEN,
@@ -216,28 +233,31 @@ class AsyncSessions(AsyncAPIResource):
         max_response_output_tokens: Union[int, Literal["inf"]] | NotGiven = NOT_GIVEN,
         modalities: List[Literal["text", "audio"]] | NotGiven = NOT_GIVEN,
         model: Literal[
+            "gpt-realtime",
+            "gpt-realtime-2025-08-28",
             "gpt-4o-realtime-preview",
             "gpt-4o-realtime-preview-2024-10-01",
             "gpt-4o-realtime-preview-2024-12-17",
+            "gpt-4o-realtime-preview-2025-06-03",
             "gpt-4o-mini-realtime-preview",
             "gpt-4o-mini-realtime-preview-2024-12-17",
         ]
         | NotGiven = NOT_GIVEN,
         output_audio_format: Literal["pcm16", "g711_ulaw", "g711_alaw"] | NotGiven = NOT_GIVEN,
+        speed: float | NotGiven = NOT_GIVEN,
         temperature: float | NotGiven = NOT_GIVEN,
         tool_choice: str | NotGiven = NOT_GIVEN,
         tools: Iterable[session_create_params.Tool] | NotGiven = NOT_GIVEN,
+        tracing: session_create_params.Tracing | NotGiven = NOT_GIVEN,
         turn_detection: session_create_params.TurnDetection | NotGiven = NOT_GIVEN,
-        voice: Union[
-            str, Literal["alloy", "ash", "ballad", "coral", "echo", "fable", "onyx", "nova", "sage", "shimmer", "verse"]
-        ]
+        voice: Union[str, Literal["alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse"]]
         | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> SessionCreateResponse:
         """
         Create an ephemeral API token for use in client-side applications with the
@@ -249,6 +269,8 @@ class AsyncSessions(AsyncAPIResource):
         the Realtime API.
 
         Args:
+          client_secret: Configuration options for the generated client secret.
+
           input_audio_format: The format of input audio. Options are `pcm16`, `g711_ulaw`, or `g711_alaw`. For
               `pcm16`, input audio must be 16-bit PCM at a 24kHz sample rate, single channel
               (mono), and little-endian byte order.
@@ -292,6 +314,10 @@ class AsyncSessions(AsyncAPIResource):
           output_audio_format: The format of output audio. Options are `pcm16`, `g711_ulaw`, or `g711_alaw`.
               For `pcm16`, output audio is sampled at a rate of 24kHz.
 
+          speed: The speed of the model's spoken response. 1.0 is the default speed. 0.25 is the
+              minimum speed. 1.5 is the maximum speed. This value can only be changed in
+              between model turns, not while a response is in progress.
+
           temperature: Sampling temperature for the model, limited to [0.6, 1.2]. For audio models a
               temperature of 0.8 is highly recommended for best performance.
 
@@ -300,11 +326,17 @@ class AsyncSessions(AsyncAPIResource):
 
           tools: Tools (functions) available to the model.
 
+          tracing: Configuration options for tracing. Set to null to disable tracing. Once tracing
+              is enabled for a session, the configuration cannot be modified.
+
+              `auto` will create a trace for the session with default values for the workflow
+              name, group id, and metadata.
+
           turn_detection: Configuration for turn detection, ether Server VAD or Semantic VAD. This can be
               set to `null` to turn off, in which case the client must manually trigger model
               response. Server VAD means that the model will detect the start and end of
               speech based on audio volume and respond at the end of user speech. Semantic VAD
-              is more advanced and uses a turn detection model (in conjuction with VAD) to
+              is more advanced and uses a turn detection model (in conjunction with VAD) to
               semantically estimate whether the user has finished speaking, then dynamically
               sets a timeout based on this probability. For example, if user audio trails off
               with "uhhm", the model will score a low probability of turn end and wait longer
@@ -313,8 +345,7 @@ class AsyncSessions(AsyncAPIResource):
 
           voice: The voice the model uses to respond. Voice cannot be changed during the session
               once the model has responded with audio at least once. Current voice options are
-              `alloy`, `ash`, `ballad`, `coral`, `echo`, `fable`, `onyx`, `nova`, `sage`,
-              `shimmer`, and `verse`.
+              `alloy`, `ash`, `ballad`, `coral`, `echo`, `sage`, `shimmer`, and `verse`.
 
           extra_headers: Send extra headers
 
@@ -329,6 +360,7 @@ class AsyncSessions(AsyncAPIResource):
             "/realtime/sessions",
             body=await async_maybe_transform(
                 {
+                    "client_secret": client_secret,
                     "input_audio_format": input_audio_format,
                     "input_audio_noise_reduction": input_audio_noise_reduction,
                     "input_audio_transcription": input_audio_transcription,
@@ -337,9 +369,11 @@ class AsyncSessions(AsyncAPIResource):
                     "modalities": modalities,
                     "model": model,
                     "output_audio_format": output_audio_format,
+                    "speed": speed,
                     "temperature": temperature,
                     "tool_choice": tool_choice,
                     "tools": tools,
+                    "tracing": tracing,
                     "turn_detection": turn_detection,
                     "voice": voice,
                 },

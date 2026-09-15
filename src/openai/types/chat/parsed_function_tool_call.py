@@ -1,8 +1,6 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
-
 from typing import Optional
 
-from .chat_completion_message_tool_call import Function, ChatCompletionMessageToolCall
+from .chat_completion_message_function_tool_call import Function, ChatCompletionMessageFunctionToolCall
 
 __all__ = ["ParsedFunctionToolCall", "ParsedFunction"]
 
@@ -24,6 +22,6 @@ class ParsedFunction(Function):
     """
 
 
-class ParsedFunctionToolCall(ChatCompletionMessageToolCall):
+class ParsedFunctionToolCall(ChatCompletionMessageFunctionToolCall):
     function: ParsedFunction
     """The function that the model called."""

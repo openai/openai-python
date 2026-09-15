@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -10,6 +10,11 @@ __all__ = ["AssistantToolChoiceParam"]
 
 
 class AssistantToolChoiceParam(TypedDict, total=False):
+    """Specifies a tool the model should use.
+
+    Use to force the model to call a specific tool.
+    """
+
     type: Required[Literal["function", "code_interpreter", "file_search"]]
     """The type of the tool. If type is `function`, the function name must be set"""
 

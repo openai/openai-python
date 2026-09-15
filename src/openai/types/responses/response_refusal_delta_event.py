@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing_extensions import Literal
 
@@ -8,6 +8,8 @@ __all__ = ["ResponseRefusalDeltaEvent"]
 
 
 class ResponseRefusalDeltaEvent(BaseModel):
+    """Emitted when there is a partial refusal text."""
+
     content_index: int
     """The index of the content part that the refusal text is added to."""
 

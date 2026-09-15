@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing_extensions import Literal
 
@@ -8,6 +8,14 @@ __all__ = ["ResponseMcpListToolsCompletedEvent"]
 
 
 class ResponseMcpListToolsCompletedEvent(BaseModel):
+    """Emitted when the list of available MCP tools has been successfully retrieved."""
+
+    item_id: str
+    """The ID of the MCP tool call item that produced this output."""
+
+    output_index: int
+    """The index of the output item that was processed."""
+
     sequence_number: int
     """The sequence number of this event."""
 

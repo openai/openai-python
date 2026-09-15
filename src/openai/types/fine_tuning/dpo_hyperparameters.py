@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import Union
 from typing_extensions import Literal
@@ -9,6 +9,8 @@ __all__ = ["DpoHyperparameters"]
 
 
 class DpoHyperparameters(BaseModel):
+    """The hyperparameters used for the DPO fine-tuning job."""
+
     batch_size: Union[Literal["auto"], int, None] = None
     """Number of examples in each batch.
 

@@ -1,30 +1,33 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
-import array
-import base64
-from typing import List, Union, Iterable, cast
+from typing import Union, Iterable
+from functools import partial
 from typing_extensions import Literal
 
-import httpx
+import httpx2
 
 from .. import _legacy_response
 from ..types import embedding_create_params
-from .._types import NOT_GIVEN, Body, Query, Headers, NotGiven
+from .._types import Body, Omit, Query, Headers, NotGiven, SequenceNotStr, omit, not_given
 from .._utils import is_given, maybe_transform
 from .._compat import cached_property
-from .._extras import numpy as np, has_numpy
 from .._resource import SyncAPIResource, AsyncAPIResource
 from .._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from .._base_client import make_request_options
 from ..types.embedding_model import EmbeddingModel
+from ..lib._parsing._embeddings import parse_embedding_response as _parse_embedding_response
 from ..types.create_embedding_response import CreateEmbeddingResponse
 
 __all__ = ["Embeddings", "AsyncEmbeddings"]
 
 
 class Embeddings(SyncAPIResource):
+    """
+    Get a vector representation of a given input that can be easily consumed by machine learning models and algorithms.
+    """
+
     @cached_property
     def with_raw_response(self) -> EmbeddingsWithRawResponse:
         """
@@ -47,17 +50,17 @@ class Embeddings(SyncAPIResource):
     def create(
         self,
         *,
-        input: Union[str, List[str], Iterable[int], Iterable[Iterable[int]]],
+        input: Union[str, SequenceNotStr[str], Iterable[int], Iterable[Iterable[int]]],
         model: Union[str, EmbeddingModel],
-        dimensions: int | NotGiven = NOT_GIVEN,
-        encoding_format: Literal["float", "base64"] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        dimensions: int | Omit = omit,
+        encoding_format: Literal["float", "base64"] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> CreateEmbeddingResponse:
         """
         Creates an embedding vector representing the input text.
@@ -74,10 +77,10 @@ class Embeddings(SyncAPIResource):
               request.
 
           model: ID of the model to use. You can use the
-              [List models](https://platform.openai.com/docs/api-reference/models/list) API to
-              see all of your available models, or see our
-              [Model overview](https://platform.openai.com/docs/models) for descriptions of
-              them.
+              [List models](https://developers.openai.com/api/reference/resources/models/methods/list)
+              API to see all of your available models, or see our
+              [Model overview](https://developers.openai.com/api/docs/models) for descriptions
+              of them.
 
           dimensions: The number of dimensions the resulting output embeddings should have. Only
               supported in `text-embedding-3` and later models.
@@ -87,7 +90,7 @@ class Embeddings(SyncAPIResource):
 
           user: A unique identifier representing your end-user, which can help OpenAI to monitor
               and detect abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           extra_headers: Send extra headers
 
@@ -107,25 +110,6 @@ class Embeddings(SyncAPIResource):
         if not is_given(encoding_format):
             params["encoding_format"] = "base64"
 
-        def parser(obj: CreateEmbeddingResponse) -> CreateEmbeddingResponse:
-            if is_given(encoding_format):
-                # don't modify the response object if a user explicitly asked for a format
-                return obj
-
-            for embedding in obj.data:
-                data = cast(object, embedding.embedding)
-                if not isinstance(data, str):
-                    continue
-                if not has_numpy():
-                    # use array for base64 optimisation
-                    embedding.embedding = array.array("f", base64.b64decode(data)).tolist()
-                else:
-                    embedding.embedding = np.frombuffer(  # type: ignore[no-untyped-call]
-                        base64.b64decode(data), dtype="float32"
-                    ).tolist()
-
-            return obj
-
         return self._post(
             "/embeddings",
             body=maybe_transform(params, embedding_create_params.EmbeddingCreateParams),
@@ -134,13 +118,18 @@ class Embeddings(SyncAPIResource):
                 extra_query=extra_query,
                 extra_body=extra_body,
                 timeout=timeout,
-                post_parser=parser,
+                post_parser=partial(_parse_embedding_response, encoding_format=encoding_format),
+                security={"bearer_auth": True},
             ),
             cast_to=CreateEmbeddingResponse,
         )
 
 
 class AsyncEmbeddings(AsyncAPIResource):
+    """
+    Get a vector representation of a given input that can be easily consumed by machine learning models and algorithms.
+    """
+
     @cached_property
     def with_raw_response(self) -> AsyncEmbeddingsWithRawResponse:
         """
@@ -163,17 +152,17 @@ class AsyncEmbeddings(AsyncAPIResource):
     async def create(
         self,
         *,
-        input: Union[str, List[str], Iterable[int], Iterable[Iterable[int]]],
+        input: Union[str, SequenceNotStr[str], Iterable[int], Iterable[Iterable[int]]],
         model: Union[str, EmbeddingModel],
-        dimensions: int | NotGiven = NOT_GIVEN,
-        encoding_format: Literal["float", "base64"] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        dimensions: int | Omit = omit,
+        encoding_format: Literal["float", "base64"] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> CreateEmbeddingResponse:
         """
         Creates an embedding vector representing the input text.
@@ -190,10 +179,10 @@ class AsyncEmbeddings(AsyncAPIResource):
               request.
 
           model: ID of the model to use. You can use the
-              [List models](https://platform.openai.com/docs/api-reference/models/list) API to
-              see all of your available models, or see our
-              [Model overview](https://platform.openai.com/docs/models) for descriptions of
-              them.
+              [List models](https://developers.openai.com/api/reference/resources/models/methods/list)
+              API to see all of your available models, or see our
+              [Model overview](https://developers.openai.com/api/docs/models) for descriptions
+              of them.
 
           dimensions: The number of dimensions the resulting output embeddings should have. Only
               supported in `text-embedding-3` and later models.
@@ -203,7 +192,7 @@ class AsyncEmbeddings(AsyncAPIResource):
 
           user: A unique identifier representing your end-user, which can help OpenAI to monitor
               and detect abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
+              [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
 
           extra_headers: Send extra headers
 
@@ -223,25 +212,6 @@ class AsyncEmbeddings(AsyncAPIResource):
         if not is_given(encoding_format):
             params["encoding_format"] = "base64"
 
-        def parser(obj: CreateEmbeddingResponse) -> CreateEmbeddingResponse:
-            if is_given(encoding_format):
-                # don't modify the response object if a user explicitly asked for a format
-                return obj
-
-            for embedding in obj.data:
-                data = cast(object, embedding.embedding)
-                if not isinstance(data, str):
-                    continue
-                if not has_numpy():
-                    # use array for base64 optimisation
-                    embedding.embedding = array.array("f", base64.b64decode(data)).tolist()
-                else:
-                    embedding.embedding = np.frombuffer(  # type: ignore[no-untyped-call]
-                        base64.b64decode(data), dtype="float32"
-                    ).tolist()
-
-            return obj
-
         return await self._post(
             "/embeddings",
             body=maybe_transform(params, embedding_create_params.EmbeddingCreateParams),
@@ -250,7 +220,8 @@ class AsyncEmbeddings(AsyncAPIResource):
                 extra_query=extra_query,
                 extra_body=extra_body,
                 timeout=timeout,
-                post_parser=parser,
+                post_parser=partial(_parse_embedding_response, encoding_format=encoding_format),
+                security={"bearer_auth": True},
             ),
             cast_to=CreateEmbeddingResponse,
         )

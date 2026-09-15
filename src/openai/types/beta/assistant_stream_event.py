@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
@@ -43,10 +43,14 @@ __all__ = [
 
 
 class ThreadCreated(BaseModel):
+    """
+    Occurs when a new [thread](https://developers.openai.com/api/docs/assistants/migration) is created.
+    """
+
     data: Thread
     """
     Represents a thread that contains
-    [messages](https://platform.openai.com/docs/api-reference/messages).
+    [messages](https://developers.openai.com/api/docs/assistants/migration).
     """
 
     event: Literal["thread.created"]
@@ -56,106 +60,150 @@ class ThreadCreated(BaseModel):
 
 
 class ThreadRunCreated(BaseModel):
+    """
+    Occurs when a new [run](https://developers.openai.com/api/docs/assistants/migration) is created.
+    """
+
     data: Run
     """
     Represents an execution run on a
-    [thread](https://platform.openai.com/docs/api-reference/threads).
+    [thread](https://developers.openai.com/api/docs/assistants/migration).
     """
 
     event: Literal["thread.run.created"]
 
 
 class ThreadRunQueued(BaseModel):
+    """
+    Occurs when a [run](https://developers.openai.com/api/docs/assistants/migration) moves to a `queued` status.
+    """
+
     data: Run
     """
     Represents an execution run on a
-    [thread](https://platform.openai.com/docs/api-reference/threads).
+    [thread](https://developers.openai.com/api/docs/assistants/migration).
     """
 
     event: Literal["thread.run.queued"]
 
 
 class ThreadRunInProgress(BaseModel):
+    """
+    Occurs when a [run](https://developers.openai.com/api/docs/assistants/migration) moves to an `in_progress` status.
+    """
+
     data: Run
     """
     Represents an execution run on a
-    [thread](https://platform.openai.com/docs/api-reference/threads).
+    [thread](https://developers.openai.com/api/docs/assistants/migration).
     """
 
     event: Literal["thread.run.in_progress"]
 
 
 class ThreadRunRequiresAction(BaseModel):
+    """
+    Occurs when a [run](https://developers.openai.com/api/docs/assistants/migration) moves to a `requires_action` status.
+    """
+
     data: Run
     """
     Represents an execution run on a
-    [thread](https://platform.openai.com/docs/api-reference/threads).
+    [thread](https://developers.openai.com/api/docs/assistants/migration).
     """
 
     event: Literal["thread.run.requires_action"]
 
 
 class ThreadRunCompleted(BaseModel):
+    """
+    Occurs when a [run](https://developers.openai.com/api/docs/assistants/migration) is completed.
+    """
+
     data: Run
     """
     Represents an execution run on a
-    [thread](https://platform.openai.com/docs/api-reference/threads).
+    [thread](https://developers.openai.com/api/docs/assistants/migration).
     """
 
     event: Literal["thread.run.completed"]
 
 
 class ThreadRunIncomplete(BaseModel):
+    """
+    Occurs when a [run](https://developers.openai.com/api/docs/assistants/migration) ends with status `incomplete`.
+    """
+
     data: Run
     """
     Represents an execution run on a
-    [thread](https://platform.openai.com/docs/api-reference/threads).
+    [thread](https://developers.openai.com/api/docs/assistants/migration).
     """
 
     event: Literal["thread.run.incomplete"]
 
 
 class ThreadRunFailed(BaseModel):
+    """
+    Occurs when a [run](https://developers.openai.com/api/docs/assistants/migration) fails.
+    """
+
     data: Run
     """
     Represents an execution run on a
-    [thread](https://platform.openai.com/docs/api-reference/threads).
+    [thread](https://developers.openai.com/api/docs/assistants/migration).
     """
 
     event: Literal["thread.run.failed"]
 
 
 class ThreadRunCancelling(BaseModel):
+    """
+    Occurs when a [run](https://developers.openai.com/api/docs/assistants/migration) moves to a `cancelling` status.
+    """
+
     data: Run
     """
     Represents an execution run on a
-    [thread](https://platform.openai.com/docs/api-reference/threads).
+    [thread](https://developers.openai.com/api/docs/assistants/migration).
     """
 
     event: Literal["thread.run.cancelling"]
 
 
 class ThreadRunCancelled(BaseModel):
+    """
+    Occurs when a [run](https://developers.openai.com/api/docs/assistants/migration) is cancelled.
+    """
+
     data: Run
     """
     Represents an execution run on a
-    [thread](https://platform.openai.com/docs/api-reference/threads).
+    [thread](https://developers.openai.com/api/docs/assistants/migration).
     """
 
     event: Literal["thread.run.cancelled"]
 
 
 class ThreadRunExpired(BaseModel):
+    """
+    Occurs when a [run](https://developers.openai.com/api/docs/assistants/migration) expires.
+    """
+
     data: Run
     """
     Represents an execution run on a
-    [thread](https://platform.openai.com/docs/api-reference/threads).
+    [thread](https://developers.openai.com/api/docs/assistants/migration).
     """
 
     event: Literal["thread.run.expired"]
 
 
 class ThreadRunStepCreated(BaseModel):
+    """
+    Occurs when a [run step](https://developers.openai.com/api/docs/assistants/migration) is created.
+    """
+
     data: RunStep
     """Represents a step in execution of a run."""
 
@@ -163,6 +211,10 @@ class ThreadRunStepCreated(BaseModel):
 
 
 class ThreadRunStepInProgress(BaseModel):
+    """
+    Occurs when a [run step](https://developers.openai.com/api/docs/assistants/migration) moves to an `in_progress` state.
+    """
+
     data: RunStep
     """Represents a step in execution of a run."""
 
@@ -170,6 +222,10 @@ class ThreadRunStepInProgress(BaseModel):
 
 
 class ThreadRunStepDelta(BaseModel):
+    """
+    Occurs when parts of a [run step](https://developers.openai.com/api/docs/assistants/migration) are being streamed.
+    """
+
     data: RunStepDeltaEvent
     """Represents a run step delta i.e.
 
@@ -180,6 +236,10 @@ class ThreadRunStepDelta(BaseModel):
 
 
 class ThreadRunStepCompleted(BaseModel):
+    """
+    Occurs when a [run step](https://developers.openai.com/api/docs/assistants/migration) is completed.
+    """
+
     data: RunStep
     """Represents a step in execution of a run."""
 
@@ -187,6 +247,10 @@ class ThreadRunStepCompleted(BaseModel):
 
 
 class ThreadRunStepFailed(BaseModel):
+    """
+    Occurs when a [run step](https://developers.openai.com/api/docs/assistants/migration) fails.
+    """
+
     data: RunStep
     """Represents a step in execution of a run."""
 
@@ -194,6 +258,10 @@ class ThreadRunStepFailed(BaseModel):
 
 
 class ThreadRunStepCancelled(BaseModel):
+    """
+    Occurs when a [run step](https://developers.openai.com/api/docs/assistants/migration) is cancelled.
+    """
+
     data: RunStep
     """Represents a step in execution of a run."""
 
@@ -201,6 +269,10 @@ class ThreadRunStepCancelled(BaseModel):
 
 
 class ThreadRunStepExpired(BaseModel):
+    """
+    Occurs when a [run step](https://developers.openai.com/api/docs/assistants/migration) expires.
+    """
+
     data: RunStep
     """Represents a step in execution of a run."""
 
@@ -208,26 +280,38 @@ class ThreadRunStepExpired(BaseModel):
 
 
 class ThreadMessageCreated(BaseModel):
+    """
+    Occurs when a [message](https://developers.openai.com/api/docs/assistants/migration) is created.
+    """
+
     data: Message
     """
     Represents a message within a
-    [thread](https://platform.openai.com/docs/api-reference/threads).
+    [thread](https://developers.openai.com/api/docs/assistants/migration).
     """
 
     event: Literal["thread.message.created"]
 
 
 class ThreadMessageInProgress(BaseModel):
+    """
+    Occurs when a [message](https://developers.openai.com/api/docs/assistants/migration) moves to an `in_progress` state.
+    """
+
     data: Message
     """
     Represents a message within a
-    [thread](https://platform.openai.com/docs/api-reference/threads).
+    [thread](https://developers.openai.com/api/docs/assistants/migration).
     """
 
     event: Literal["thread.message.in_progress"]
 
 
 class ThreadMessageDelta(BaseModel):
+    """
+    Occurs when parts of a [Message](https://developers.openai.com/api/docs/assistants/migration) are being streamed.
+    """
+
     data: MessageDeltaEvent
     """Represents a message delta i.e.
 
@@ -238,26 +322,38 @@ class ThreadMessageDelta(BaseModel):
 
 
 class ThreadMessageCompleted(BaseModel):
+    """
+    Occurs when a [message](https://developers.openai.com/api/docs/assistants/migration) is completed.
+    """
+
     data: Message
     """
     Represents a message within a
-    [thread](https://platform.openai.com/docs/api-reference/threads).
+    [thread](https://developers.openai.com/api/docs/assistants/migration).
     """
 
     event: Literal["thread.message.completed"]
 
 
 class ThreadMessageIncomplete(BaseModel):
+    """
+    Occurs when a [message](https://developers.openai.com/api/docs/assistants/migration) ends before it is completed.
+    """
+
     data: Message
     """
     Represents a message within a
-    [thread](https://platform.openai.com/docs/api-reference/threads).
+    [thread](https://developers.openai.com/api/docs/assistants/migration).
     """
 
     event: Literal["thread.message.incomplete"]
 
 
 class ErrorEvent(BaseModel):
+    """
+    Occurs when an [error](https://developers.openai.com/api/docs/guides/error-codes#api-errors) occurs. This can happen due to an internal server error or a timeout.
+    """
+
     data: ErrorObject
 
     event: Literal["error"]

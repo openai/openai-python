@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import Dict, Optional
 from typing_extensions import Literal
@@ -12,6 +12,8 @@ __all__ = ["EvalStoredCompletionsDataSourceConfig"]
 
 
 class EvalStoredCompletionsDataSourceConfig(BaseModel):
+    """Deprecated in favor of LogsDataSourceConfig."""
+
     schema_: Dict[str, object] = FieldInfo(alias="schema")
     """
     The json schema for the run data source items. Learn how to build JSON schemas

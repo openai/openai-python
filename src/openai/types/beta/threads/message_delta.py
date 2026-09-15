@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import List, Optional
 from typing_extensions import Literal
@@ -10,6 +10,8 @@ __all__ = ["MessageDelta"]
 
 
 class MessageDelta(BaseModel):
+    """The delta containing the fields that have changed on the Message."""
+
     content: Optional[List[MessageContentDelta]] = None
     """The content of the message in array of text and/or images."""
 

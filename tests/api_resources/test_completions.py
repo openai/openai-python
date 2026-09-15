@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -20,7 +20,7 @@ class TestCompletions:
     @parametrize
     def test_method_create_overload_1(self, client: OpenAI) -> None:
         completion = client.completions.create(
-            model="string",
+            model="gpt-3.5-turbo-instruct",
             prompt="This is a test.",
         )
         assert_matches_type(Completion, completion, path=["response"])
@@ -28,7 +28,7 @@ class TestCompletions:
     @parametrize
     def test_method_create_with_all_params_overload_1(self, client: OpenAI) -> None:
         completion = client.completions.create(
-            model="string",
+            model="gpt-3.5-turbo-instruct",
             prompt="This is a test.",
             best_of=0,
             echo=True,
@@ -41,7 +41,10 @@ class TestCompletions:
             seed=0,
             stop="\n",
             stream=False,
-            stream_options={"include_usage": True},
+            stream_options={
+                "include_obfuscation": True,
+                "include_usage": True,
+            },
             suffix="test.",
             temperature=1,
             top_p=1,
@@ -52,7 +55,7 @@ class TestCompletions:
     @parametrize
     def test_raw_response_create_overload_1(self, client: OpenAI) -> None:
         response = client.completions.with_raw_response.create(
-            model="string",
+            model="gpt-3.5-turbo-instruct",
             prompt="This is a test.",
         )
 
@@ -64,7 +67,7 @@ class TestCompletions:
     @parametrize
     def test_streaming_response_create_overload_1(self, client: OpenAI) -> None:
         with client.completions.with_streaming_response.create(
-            model="string",
+            model="gpt-3.5-turbo-instruct",
             prompt="This is a test.",
         ) as response:
             assert not response.is_closed
@@ -78,7 +81,7 @@ class TestCompletions:
     @parametrize
     def test_method_create_overload_2(self, client: OpenAI) -> None:
         completion_stream = client.completions.create(
-            model="string",
+            model="gpt-3.5-turbo-instruct",
             prompt="This is a test.",
             stream=True,
         )
@@ -87,7 +90,7 @@ class TestCompletions:
     @parametrize
     def test_method_create_with_all_params_overload_2(self, client: OpenAI) -> None:
         completion_stream = client.completions.create(
-            model="string",
+            model="gpt-3.5-turbo-instruct",
             prompt="This is a test.",
             stream=True,
             best_of=0,
@@ -100,7 +103,10 @@ class TestCompletions:
             presence_penalty=-2,
             seed=0,
             stop="\n",
-            stream_options={"include_usage": True},
+            stream_options={
+                "include_obfuscation": True,
+                "include_usage": True,
+            },
             suffix="test.",
             temperature=1,
             top_p=1,
@@ -111,7 +117,7 @@ class TestCompletions:
     @parametrize
     def test_raw_response_create_overload_2(self, client: OpenAI) -> None:
         response = client.completions.with_raw_response.create(
-            model="string",
+            model="gpt-3.5-turbo-instruct",
             prompt="This is a test.",
             stream=True,
         )
@@ -123,7 +129,7 @@ class TestCompletions:
     @parametrize
     def test_streaming_response_create_overload_2(self, client: OpenAI) -> None:
         with client.completions.with_streaming_response.create(
-            model="string",
+            model="gpt-3.5-turbo-instruct",
             prompt="This is a test.",
             stream=True,
         ) as response:
@@ -137,12 +143,14 @@ class TestCompletions:
 
 
 class TestAsyncCompletions:
-    parametrize = pytest.mark.parametrize("async_client", [False, True], indirect=True, ids=["loose", "strict"])
+    parametrize = pytest.mark.parametrize(
+        "async_client", [False, True, {"http_client": "aiohttp"}], indirect=True, ids=["loose", "strict", "aiohttp"]
+    )
 
     @parametrize
     async def test_method_create_overload_1(self, async_client: AsyncOpenAI) -> None:
         completion = await async_client.completions.create(
-            model="string",
+            model="gpt-3.5-turbo-instruct",
             prompt="This is a test.",
         )
         assert_matches_type(Completion, completion, path=["response"])
@@ -150,7 +158,7 @@ class TestAsyncCompletions:
     @parametrize
     async def test_method_create_with_all_params_overload_1(self, async_client: AsyncOpenAI) -> None:
         completion = await async_client.completions.create(
-            model="string",
+            model="gpt-3.5-turbo-instruct",
             prompt="This is a test.",
             best_of=0,
             echo=True,
@@ -163,7 +171,10 @@ class TestAsyncCompletions:
             seed=0,
             stop="\n",
             stream=False,
-            stream_options={"include_usage": True},
+            stream_options={
+                "include_obfuscation": True,
+                "include_usage": True,
+            },
             suffix="test.",
             temperature=1,
             top_p=1,
@@ -174,7 +185,7 @@ class TestAsyncCompletions:
     @parametrize
     async def test_raw_response_create_overload_1(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.completions.with_raw_response.create(
-            model="string",
+            model="gpt-3.5-turbo-instruct",
             prompt="This is a test.",
         )
 
@@ -186,7 +197,7 @@ class TestAsyncCompletions:
     @parametrize
     async def test_streaming_response_create_overload_1(self, async_client: AsyncOpenAI) -> None:
         async with async_client.completions.with_streaming_response.create(
-            model="string",
+            model="gpt-3.5-turbo-instruct",
             prompt="This is a test.",
         ) as response:
             assert not response.is_closed
@@ -200,7 +211,7 @@ class TestAsyncCompletions:
     @parametrize
     async def test_method_create_overload_2(self, async_client: AsyncOpenAI) -> None:
         completion_stream = await async_client.completions.create(
-            model="string",
+            model="gpt-3.5-turbo-instruct",
             prompt="This is a test.",
             stream=True,
         )
@@ -209,7 +220,7 @@ class TestAsyncCompletions:
     @parametrize
     async def test_method_create_with_all_params_overload_2(self, async_client: AsyncOpenAI) -> None:
         completion_stream = await async_client.completions.create(
-            model="string",
+            model="gpt-3.5-turbo-instruct",
             prompt="This is a test.",
             stream=True,
             best_of=0,
@@ -222,7 +233,10 @@ class TestAsyncCompletions:
             presence_penalty=-2,
             seed=0,
             stop="\n",
-            stream_options={"include_usage": True},
+            stream_options={
+                "include_obfuscation": True,
+                "include_usage": True,
+            },
             suffix="test.",
             temperature=1,
             top_p=1,
@@ -233,7 +247,7 @@ class TestAsyncCompletions:
     @parametrize
     async def test_raw_response_create_overload_2(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.completions.with_raw_response.create(
-            model="string",
+            model="gpt-3.5-turbo-instruct",
             prompt="This is a test.",
             stream=True,
         )
@@ -245,7 +259,7 @@ class TestAsyncCompletions:
     @parametrize
     async def test_streaming_response_create_overload_2(self, async_client: AsyncOpenAI) -> None:
         async with async_client.completions.with_streaming_response.create(
-            model="string",
+            model="gpt-3.5-turbo-instruct",
             prompt="This is a test.",
             stream=True,
         ) as response:

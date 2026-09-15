@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import List, Union, Optional
 from typing_extensions import Literal, TypeAlias
@@ -34,18 +34,24 @@ class Attachment(BaseModel):
 
 
 class IncompleteDetails(BaseModel):
+    """On an incomplete message, details about why the message is incomplete."""
+
     reason: Literal["content_filter", "max_tokens", "run_cancelled", "run_expired", "run_failed"]
     """The reason the message is incomplete."""
 
 
 class Message(BaseModel):
+    """
+    Represents a message within a [thread](https://developers.openai.com/api/docs/assistants/migration).
+    """
+
     id: str
     """The identifier, which can be referenced in API endpoints."""
 
     assistant_id: Optional[str] = None
     """
     If applicable, the ID of the
-    [assistant](https://platform.openai.com/docs/api-reference/assistants) that
+    [assistant](https://developers.openai.com/api/docs/assistants/migration) that
     authored this message.
     """
 
@@ -85,7 +91,7 @@ class Message(BaseModel):
 
     run_id: Optional[str] = None
     """
-    The ID of the [run](https://platform.openai.com/docs/api-reference/runs)
+    The ID of the [run](https://developers.openai.com/api/docs/assistants/migration)
     associated with the creation of this message. Value is `null` when messages are
     created manually using the create message or create thread endpoints.
     """
@@ -98,6 +104,6 @@ class Message(BaseModel):
 
     thread_id: str
     """
-    The [thread](https://platform.openai.com/docs/api-reference/threads) ID that
-    this message belongs to.
+    The [thread](https://developers.openai.com/api/docs/assistants/migration) ID
+    that this message belongs to.
     """

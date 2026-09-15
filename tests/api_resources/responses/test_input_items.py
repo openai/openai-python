@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -30,7 +30,6 @@ class TestInputItems:
         input_item = client.responses.input_items.list(
             response_id="response_id",
             after="after",
-            before="before",
             include=["file_search_call.results"],
             limit=0,
             order="asc",
@@ -70,7 +69,9 @@ class TestInputItems:
 
 
 class TestAsyncInputItems:
-    parametrize = pytest.mark.parametrize("async_client", [False, True], indirect=True, ids=["loose", "strict"])
+    parametrize = pytest.mark.parametrize(
+        "async_client", [False, True, {"http_client": "aiohttp"}], indirect=True, ids=["loose", "strict", "aiohttp"]
+    )
 
     @parametrize
     async def test_method_list(self, async_client: AsyncOpenAI) -> None:
@@ -84,7 +85,6 @@ class TestAsyncInputItems:
         input_item = await async_client.responses.input_items.list(
             response_id="response_id",
             after="after",
-            before="before",
             include=["file_search_call.results"],
             limit=0,
             order="asc",

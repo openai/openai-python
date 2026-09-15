@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -13,9 +13,6 @@ __all__ = ["InputItemListParams"]
 class InputItemListParams(TypedDict, total=False):
     after: str
     """An item ID to list items after, used in pagination."""
-
-    before: str
-    """An item ID to list items before, used in pagination."""
 
     include: List[ResponseIncludable]
     """Additional fields to include in the response.

@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -11,6 +11,12 @@ __all__ = ["ChatCompletionSystemMessageParam"]
 
 
 class ChatCompletionSystemMessageParam(TypedDict, total=False):
+    """
+    Developer-provided instructions that the model should follow, regardless of
+    messages sent by the user. With o1 models and newer, use `developer` messages
+    for this purpose instead.
+    """
+
     content: Required[Union[str, Iterable[ChatCompletionContentPartTextParam]]]
     """The contents of the system message."""
 

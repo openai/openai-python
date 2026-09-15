@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import Optional
 from typing_extensions import Literal
@@ -10,6 +10,10 @@ __all__ = ["ImageFileDeltaBlock"]
 
 
 class ImageFileDeltaBlock(BaseModel):
+    """
+    References an image [File](https://developers.openai.com/api/reference/resources/files) in the content of a message.
+    """
+
     index: int
     """The index of the content part in the message."""
 

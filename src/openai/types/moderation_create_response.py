@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import List
 
@@ -9,6 +9,8 @@ __all__ = ["ModerationCreateResponse"]
 
 
 class ModerationCreateResponse(BaseModel):
+    """Represents if a given text input is potentially harmful."""
+
     id: str
     """The unique identifier for the moderation request."""
 

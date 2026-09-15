@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -8,8 +8,10 @@ __all__ = ["ResponseOutputRefusalParam"]
 
 
 class ResponseOutputRefusalParam(TypedDict, total=False):
+    """A refusal from the model."""
+
     refusal: Required[str]
-    """The refusal explanationfrom the model."""
+    """The refusal explanation from the model."""
 
     type: Required[Literal["refusal"]]
     """The type of the refusal. Always `refusal`."""

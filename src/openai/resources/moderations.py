@@ -1,14 +1,14 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
-from typing import List, Union, Iterable
+from typing import Union, Iterable
 
-import httpx
+import httpx2
 
 from .. import _legacy_response
 from ..types import moderation_create_params
-from .._types import NOT_GIVEN, Body, Query, Headers, NotGiven
+from .._types import Body, Omit, Query, Headers, NotGiven, SequenceNotStr, omit, not_given
 from .._utils import maybe_transform, async_maybe_transform
 from .._compat import cached_property
 from .._resource import SyncAPIResource, AsyncAPIResource
@@ -22,6 +22,10 @@ __all__ = ["Moderations", "AsyncModerations"]
 
 
 class Moderations(SyncAPIResource):
+    """
+    Given text and/or image inputs, classifies if those inputs are potentially harmful.
+    """
+
     @cached_property
     def with_raw_response(self) -> ModerationsWithRawResponse:
         """
@@ -44,28 +48,29 @@ class Moderations(SyncAPIResource):
     def create(
         self,
         *,
-        input: Union[str, List[str], Iterable[ModerationMultiModalInputParam]],
-        model: Union[str, ModerationModel] | NotGiven = NOT_GIVEN,
+        input: Union[str, SequenceNotStr[str], Iterable[ModerationMultiModalInputParam]],
+        model: Union[str, ModerationModel] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ModerationCreateResponse:
         """Classifies if text and/or image inputs are potentially harmful.
 
         Learn more in
-        the [moderation guide](https://platform.openai.com/docs/guides/moderation).
+        the
+        [moderation guide](https://developers.openai.com/api/docs/guides/moderation).
 
         Args:
           input: Input (or inputs) to classify. Can be a single string, an array of strings, or
               an array of multi-modal input objects similar to other models.
 
           model: The content moderation model you would like to use. Learn more in
-              [the moderation guide](https://platform.openai.com/docs/guides/moderation), and
-              learn about available models
-              [here](https://platform.openai.com/docs/models#moderation).
+              [the moderation guide](https://developers.openai.com/api/docs/guides/moderation),
+              and learn about available models
+              [here](https://developers.openai.com/api/docs/guides/moderation).
 
           extra_headers: Send extra headers
 
@@ -85,13 +90,21 @@ class Moderations(SyncAPIResource):
                 moderation_create_params.ModerationCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ModerationCreateResponse,
         )
 
 
 class AsyncModerations(AsyncAPIResource):
+    """
+    Given text and/or image inputs, classifies if those inputs are potentially harmful.
+    """
+
     @cached_property
     def with_raw_response(self) -> AsyncModerationsWithRawResponse:
         """
@@ -114,28 +127,29 @@ class AsyncModerations(AsyncAPIResource):
     async def create(
         self,
         *,
-        input: Union[str, List[str], Iterable[ModerationMultiModalInputParam]],
-        model: Union[str, ModerationModel] | NotGiven = NOT_GIVEN,
+        input: Union[str, SequenceNotStr[str], Iterable[ModerationMultiModalInputParam]],
+        model: Union[str, ModerationModel] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ModerationCreateResponse:
         """Classifies if text and/or image inputs are potentially harmful.
 
         Learn more in
-        the [moderation guide](https://platform.openai.com/docs/guides/moderation).
+        the
+        [moderation guide](https://developers.openai.com/api/docs/guides/moderation).
 
         Args:
           input: Input (or inputs) to classify. Can be a single string, an array of strings, or
               an array of multi-modal input objects similar to other models.
 
           model: The content moderation model you would like to use. Learn more in
-              [the moderation guide](https://platform.openai.com/docs/guides/moderation), and
-              learn about available models
-              [here](https://platform.openai.com/docs/models#moderation).
+              [the moderation guide](https://developers.openai.com/api/docs/guides/moderation),
+              and learn about available models
+              [here](https://developers.openai.com/api/docs/guides/moderation).
 
           extra_headers: Send extra headers
 
@@ -155,7 +169,11 @@ class AsyncModerations(AsyncAPIResource):
                 moderation_create_params.ModerationCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ModerationCreateResponse,
         )

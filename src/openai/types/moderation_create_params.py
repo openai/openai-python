@@ -1,10 +1,11 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
-from typing import List, Union, Iterable
+from typing import Union, Iterable
 from typing_extensions import Required, TypedDict
 
+from .._types import SequenceNotStr
 from .moderation_model import ModerationModel
 from .moderation_multi_modal_input_param import ModerationMultiModalInputParam
 
@@ -12,7 +13,7 @@ __all__ = ["ModerationCreateParams"]
 
 
 class ModerationCreateParams(TypedDict, total=False):
-    input: Required[Union[str, List[str], Iterable[ModerationMultiModalInputParam]]]
+    input: Required[Union[str, SequenceNotStr[str], Iterable[ModerationMultiModalInputParam]]]
     """Input (or inputs) to classify.
 
     Can be a single string, an array of strings, or an array of multi-modal input
@@ -23,7 +24,7 @@ class ModerationCreateParams(TypedDict, total=False):
     """The content moderation model you would like to use.
 
     Learn more in
-    [the moderation guide](https://platform.openai.com/docs/guides/moderation), and
-    learn about available models
-    [here](https://platform.openai.com/docs/models#moderation).
+    [the moderation guide](https://developers.openai.com/api/docs/guides/moderation),
+    and learn about available models
+    [here](https://developers.openai.com/api/docs/guides/moderation).
     """

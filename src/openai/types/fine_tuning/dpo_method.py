@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import Optional
 
@@ -9,5 +9,7 @@ __all__ = ["DpoMethod"]
 
 
 class DpoMethod(BaseModel):
+    """Configuration for the DPO fine-tuning method."""
+
     hyperparameters: Optional[DpoHyperparameters] = None
     """The hyperparameters used for the DPO fine-tuning job."""

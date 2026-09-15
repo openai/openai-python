@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -10,5 +10,7 @@ __all__ = ["DpoMethodParam"]
 
 
 class DpoMethodParam(TypedDict, total=False):
+    """Configuration for the DPO fine-tuning method."""
+
     hyperparameters: DpoHyperparametersParam
     """The hyperparameters used for the DPO fine-tuning job."""

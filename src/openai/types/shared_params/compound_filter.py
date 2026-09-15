@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -13,6 +13,8 @@ Filter: TypeAlias = Union[ComparisonFilter, object]
 
 
 class CompoundFilter(TypedDict, total=False):
+    """Combine multiple filters using `and` or `or`."""
+
     filters: Required[Iterable[Filter]]
     """Array of filters to combine.
 

@@ -2,16 +2,34 @@ from __future__ import annotations
 
 import os
 import inspect
-from typing import TYPE_CHECKING, Any, Type, Tuple, Union, Generic, TypeVar, Callable, Optional, cast
+import weakref
+from typing import (
+    IO,
+    TYPE_CHECKING,
+    Any,
+    Type,
+    Tuple,
+    Union,
+    Generic,
+    TypeVar,
+    Callable,
+    Iterable,
+    Optional,
+    AsyncIterable,
+    cast,
+)
 from datetime import date, datetime
 from typing_extensions import (
+    List,
     Unpack,
     Literal,
     ClassVar,
     Protocol,
     Required,
     Sequence,
+    Annotated,
     ParamSpec,
+    TypeAlias,
     TypedDict,
     TypeGuard,
     final,
@@ -50,7 +68,7 @@ from ._utils import (
     strip_annotated_type,
 )
 from ._compat import (
-    PYDANTIC_V2,
+    PYDANTIC_V1,
     ConfigDict,
     GenericModel as BaseGenericModel,
     get_args,
@@ -65,7 +83,15 @@ from ._compat import (
 from ._constants import RAW_RESPONSE_HEADER
 
 if TYPE_CHECKING:
+    from pydantic import GetCoreSchemaHandler, ValidatorFunctionWrapHandler
+    from pydantic_core import CoreSchema, core_schema
     from pydantic_core.core_schema import ModelField, ModelSchema, LiteralSchema, ModelFieldsSchema
+else:
+    try:
+        from pydantic_core import CoreSchema, core_schema
+    except ImportError:
+        CoreSchema = None
+        core_schema = None
 
 __all__ = ["BaseModel", "GenericModel"]
 
@@ -83,11 +109,7 @@ class _ConfigProtocol(Protocol):
 
 
 class BaseModel(pydantic.BaseModel):
-    if PYDANTIC_V2:
-        model_config: ClassVar[ConfigDict] = ConfigDict(
-            extra="allow", defer_build=coerce_boolean(os.environ.get("DEFER_PYDANTIC_BUILD", "true"))
-        )
-    else:
+    if PYDANTIC_V1:
 
         @property
         @override
@@ -102,6 +124,10 @@ class BaseModel(pydantic.BaseModel):
         def __repr_args__(self) -> ReprArgs:
             # we don't want these attributes to be included when something like `rich.print` is used
             return [arg for arg in super().__repr_args__() if arg[0] not in {"_request_id", "__exclude_fields__"}]
+    else:
+        model_config: ClassVar[ConfigDict] = ConfigDict(
+            extra="allow", defer_build=coerce_boolean(os.environ.get("DEFER_PYDANTIC_BUILD", "true"))
+        )
 
     if TYPE_CHECKING:
         _request_id: Optional[str] = None
@@ -232,28 +258,32 @@ class BaseModel(pydantic.BaseModel):
             else:
                 fields_values[name] = field_get_default(field)
 
+        extra_field_type = _get_extra_fields_type(__cls)
+
         _extra = {}
         for key, value in values.items():
             if key not in model_fields:
-                if PYDANTIC_V2:
-                    _extra[key] = value
-                else:
+                parsed = construct_type(value=value, type_=extra_field_type) if extra_field_type is not None else value
+
+                if PYDANTIC_V1:
                     _fields_set.add(key)
-                    fields_values[key] = value
+                    fields_values[key] = parsed
+                else:
+                    _extra[key] = parsed
 
         object.__setattr__(m, "__dict__", fields_values)
 
-        if PYDANTIC_V2:
-            # these properties are copied from Pydantic's `model_construct()` method
-            object.__setattr__(m, "__pydantic_private__", None)
-            object.__setattr__(m, "__pydantic_extra__", _extra)
-            object.__setattr__(m, "__pydantic_fields_set__", _fields_set)
-        else:
+        if PYDANTIC_V1:
             # init_private_attributes() does not exist in v2
             m._init_private_attributes()  # type: ignore
 
             # copied from Pydantic v1's `construct()` method
             object.__setattr__(m, "__fields_set__", _fields_set)
+        else:
+            # these properties are copied from Pydantic's `model_construct()` method
+            object.__setattr__(m, "__pydantic_private__", None)
+            object.__setattr__(m, "__pydantic_extra__", _extra)
+            object.__setattr__(m, "__pydantic_fields_set__", _fields_set)
 
         return m
 
@@ -263,7 +293,7 @@ class BaseModel(pydantic.BaseModel):
         # although not in practice
         model_construct = construct
 
-    if not PYDANTIC_V2:
+    if PYDANTIC_V1:
         # we define aliases for some of the new pydantic v2 methods so
         # that we can just document these methods without having to specify
         # a specific pydantic version as some users may not know which
@@ -276,13 +306,15 @@ class BaseModel(pydantic.BaseModel):
             mode: Literal["json", "python"] | str = "python",
             include: IncEx | None = None,
             exclude: IncEx | None = None,
-            by_alias: bool = False,
+            context: Any | None = None,
+            by_alias: bool | None = None,
             exclude_unset: bool = False,
             exclude_defaults: bool = False,
             exclude_none: bool = False,
+            exclude_computed_fields: bool = False,
             round_trip: bool = False,
             warnings: bool | Literal["none", "warn", "error"] = True,
-            context: dict[str, Any] | None = None,
+            fallback: Callable[[Any], Any] | None = None,
             serialize_as_any: bool = False,
         ) -> dict[str, Any]:
             """Usage docs: https://docs.pydantic.dev/2.4/concepts/serialization/#modelmodel_dump
@@ -291,16 +323,24 @@ class BaseModel(pydantic.BaseModel):
 
             Args:
                 mode: The mode in which `to_python` should run.
-                    If mode is 'json', the dictionary will only contain JSON serializable types.
-                    If mode is 'python', the dictionary may contain any Python objects.
-                include: A list of fields to include in the output.
-                exclude: A list of fields to exclude from the output.
+                    If mode is 'json', the output will only contain JSON serializable types.
+                    If mode is 'python', the output may contain non-JSON-serializable Python objects.
+                include: A set of fields to include in the output.
+                exclude: A set of fields to exclude from the output.
+                context: Additional context to pass to the serializer.
                 by_alias: Whether to use the field's alias in the dictionary key if defined.
-                exclude_unset: Whether to exclude fields that are unset or None from the output.
-                exclude_defaults: Whether to exclude fields that are set to their default value from the output.
-                exclude_none: Whether to exclude fields that have a value of `None` from the output.
-                round_trip: Whether to enable serialization and deserialization round-trip support.
-                warnings: Whether to log warnings when invalid fields are encountered.
+                exclude_unset: Whether to exclude fields that have not been explicitly set.
+                exclude_defaults: Whether to exclude fields that are set to their default value.
+                exclude_none: Whether to exclude fields that have a value of `None`.
+                exclude_computed_fields: Whether to exclude computed fields.
+                    While this can be useful for round-tripping, it is usually recommended to use the dedicated
+                    `round_trip` parameter instead.
+                round_trip: If True, dumped values should be valid as input for non-idempotent types such as Json[T].
+                warnings: How to handle serialization errors. False/"none" ignores them, True/"warn" logs errors,
+                    "error" raises a [`PydanticSerializationError`][pydantic_core.PydanticSerializationError].
+                fallback: A function to call when an unknown value is encountered. If not provided,
+                    a [`PydanticSerializationError`][pydantic_core.PydanticSerializationError] error is raised.
+                serialize_as_any: Whether to serialize fields with duck-typing serialization behavior.
 
             Returns:
                 A dictionary representation of the model.
@@ -315,31 +355,38 @@ class BaseModel(pydantic.BaseModel):
                 raise ValueError("context is only supported in Pydantic v2")
             if serialize_as_any != False:
                 raise ValueError("serialize_as_any is only supported in Pydantic v2")
+            if fallback is not None:
+                raise ValueError("fallback is only supported in Pydantic v2")
+            if exclude_computed_fields != False:
+                raise ValueError("exclude_computed_fields is only supported in Pydantic v2")
             dumped = super().dict(  # pyright: ignore[reportDeprecated]
                 include=include,
                 exclude=exclude,
-                by_alias=by_alias,
+                by_alias=by_alias if by_alias is not None else False,
                 exclude_unset=exclude_unset,
                 exclude_defaults=exclude_defaults,
                 exclude_none=exclude_none,
             )
 
-            return cast(dict[str, Any], json_safe(dumped)) if mode == "json" else dumped
+            return cast("dict[str, Any]", json_safe(dumped)) if mode == "json" else dumped
 
         @override
         def model_dump_json(
             self,
             *,
             indent: int | None = None,
+            ensure_ascii: bool = False,
             include: IncEx | None = None,
             exclude: IncEx | None = None,
-            by_alias: bool = False,
+            context: Any | None = None,
+            by_alias: bool | None = None,
             exclude_unset: bool = False,
             exclude_defaults: bool = False,
             exclude_none: bool = False,
+            exclude_computed_fields: bool = False,
             round_trip: bool = False,
             warnings: bool | Literal["none", "warn", "error"] = True,
-            context: dict[str, Any] | None = None,
+            fallback: Callable[[Any], Any] | None = None,
             serialize_as_any: bool = False,
         ) -> str:
             """Usage docs: https://docs.pydantic.dev/2.4/concepts/serialization/#modelmodel_dump_json
@@ -368,30 +415,123 @@ class BaseModel(pydantic.BaseModel):
                 raise ValueError("context is only supported in Pydantic v2")
             if serialize_as_any != False:
                 raise ValueError("serialize_as_any is only supported in Pydantic v2")
+            if fallback is not None:
+                raise ValueError("fallback is only supported in Pydantic v2")
+            if ensure_ascii != False:
+                raise ValueError("ensure_ascii is only supported in Pydantic v2")
+            if exclude_computed_fields != False:
+                raise ValueError("exclude_computed_fields is only supported in Pydantic v2")
             return super().json(  # type: ignore[reportDeprecated]
                 indent=indent,
                 include=include,
                 exclude=exclude,
-                by_alias=by_alias,
+                by_alias=by_alias if by_alias is not None else False,
                 exclude_unset=exclude_unset,
                 exclude_defaults=exclude_defaults,
                 exclude_none=exclude_none,
             )
 
 
+class _EagerIterable(list[_T], Generic[_T]):
+    """
+    Accepts any Iterable[T] input (including generators), consumes it
+    eagerly, and validates all items upfront.
+
+    Validation preserves the original container type where possible
+    (e.g. a set[T] stays a set[T]).  Serialization (model_dump / JSON)
+    always emits a list — round-tripping through model_dump() will not
+    restore the original container type.
+    """
+
+    @classmethod
+    def __get_pydantic_core_schema__(
+        cls,
+        source_type: Any,
+        handler: GetCoreSchemaHandler,
+    ) -> CoreSchema:
+        (item_type,) = get_args(source_type) or (Any,)
+        item_schema: CoreSchema = handler.generate_schema(item_type)
+        list_of_items_schema: CoreSchema = core_schema.list_schema(item_schema)
+
+        return core_schema.no_info_wrap_validator_function(
+            cls._validate,
+            list_of_items_schema,
+            serialization=core_schema.plain_serializer_function_ser_schema(
+                cls._serialize,
+                info_arg=False,
+            ),
+        )
+
+    @staticmethod
+    def _validate(v: Iterable[_T], handler: "ValidatorFunctionWrapHandler") -> Any:
+        original_type: type[Any] = type(v)
+
+        # Normalize to list so list_schema can validate each item
+        if isinstance(v, list):
+            items: list[_T] = v
+        else:
+            try:
+                items = list(v)
+            except TypeError as e:
+                raise TypeError("Value is not iterable") from e
+
+        # Validate items against the inner schema
+        validated: list[_T] = handler(items)
+
+        # Reconstruct original container type
+        if original_type is list:
+            return validated
+        # str(list) produces the list's repr, not a string built from items,
+        # so skip reconstruction for str and its subclasses.
+        if issubclass(original_type, str):
+            return validated
+        try:
+            return original_type(validated)
+        except (TypeError, ValueError):
+            # If the type cannot be reconstructed, just return the validated list
+            return validated
+
+    @staticmethod
+    def _serialize(v: Iterable[_T]) -> list[_T]:
+        """Always serialize as a list so Pydantic's JSON encoder is happy."""
+        if isinstance(v, list):
+            return v
+        return list(v)
+
+
+EagerIterable: TypeAlias = Annotated[Iterable[_T], _EagerIterable]
+
+
 def _construct_field(value: object, field: FieldInfo, key: str) -> object:
     if value is None:
         return field_get_default(field)
 
-    if PYDANTIC_V2:
-        type_ = field.annotation
-    else:
+    if PYDANTIC_V1:
         type_ = cast(type, field.outer_type_)  # type: ignore
+    else:
+        type_ = field.annotation  # type: ignore
 
     if type_ is None:
         raise RuntimeError(f"Unexpected field type is None for {key}")
 
-    return construct_type(value=value, type_=type_)
+    return construct_type(value=value, type_=type_, metadata=getattr(field, "metadata", None))
+
+
+def _get_extra_fields_type(cls: type[pydantic.BaseModel]) -> type | None:
+    if PYDANTIC_V1:
+        # TODO
+        return None
+
+    schema = cls.__pydantic_core_schema__
+    if schema["type"] == "model":
+        fields = schema["schema"]
+        if fields["type"] == "model-fields":
+            extras = fields.get("extras_schema")
+            if extras and "cls" in extras:
+                # mypy can't narrow the type
+                return extras["cls"]  # type: ignore[no-any-return]
+
+    return None
 
 
 def is_basemodel(type_: type) -> bool:
@@ -445,7 +585,7 @@ def construct_type_unchecked(*, value: object, type_: type[_T]) -> _T:
     return cast(_T, construct_type(value=value, type_=type_))
 
 
-def construct_type(*, value: object, type_: object) -> object:
+def construct_type(*, value: object, type_: object, metadata: Optional[List[Any]] = None) -> object:
     """Loose coercion to the expected type with construction of nested values.
 
     If the given value does not match the expected type then it is returned as-is.
@@ -463,8 +603,10 @@ def construct_type(*, value: object, type_: object) -> object:
         type_ = type_.__value__  # type: ignore[unreachable]
 
     # unwrap `Annotated[T, ...]` -> `T`
-    if is_annotated_type(type_):
-        meta: tuple[Any, ...] = get_args(type_)[1:]
+    if metadata is not None and len(metadata) > 0:
+        meta: tuple[Any, ...] = tuple(metadata)
+    elif is_annotated_type(type_):
+        meta = get_args(type_)[1:]
         type_ = extract_type_arg(type_, 0)
     else:
         meta = tuple()
@@ -515,7 +657,8 @@ def construct_type(*, value: object, type_: object) -> object:
         if not is_mapping(value):
             return value
 
-        _, items_type = get_args(type_)  # Dict[_, items_type]
+        # Bare containers have no type arguments; leave their contents untyped.
+        items_type = args[1] if len(args) > 1 else object  # Dict[_, items_type]
         return {key: construct_type(value=item, type_=items_type) for key, item in value.items()}
 
     if (
@@ -536,7 +679,7 @@ def construct_type(*, value: object, type_: object) -> object:
         if not is_list(value):
             return value
 
-        inner_type = args[0]  # List[inner_type]
+        inner_type = args[0] if args else object  # List[inner_type]
         return [construct_type(value=entry, type_=inner_type) for entry in value]
 
     if origin == float:
@@ -566,6 +709,9 @@ def construct_type(*, value: object, type_: object) -> object:
 @runtime_checkable
 class CachedDiscriminatorType(Protocol):
     __discriminator__: DiscriminatorDetails
+
+
+DISCRIMINATOR_CACHE: weakref.WeakKeyDictionary[type, DiscriminatorDetails] = weakref.WeakKeyDictionary()
 
 
 class DiscriminatorDetails:
@@ -610,8 +756,9 @@ class DiscriminatorDetails:
 
 
 def _build_discriminated_union_meta(*, union: type, meta_annotations: tuple[Any, ...]) -> DiscriminatorDetails | None:
-    if isinstance(union, CachedDiscriminatorType):
-        return union.__discriminator__
+    cached = DISCRIMINATOR_CACHE.get(union)
+    if cached is not None:
+        return cached
 
     discriminator_field_name: str | None = None
 
@@ -629,7 +776,19 @@ def _build_discriminated_union_meta(*, union: type, meta_annotations: tuple[Any,
     for variant in get_args(union):
         variant = strip_annotated_type(variant)
         if is_basemodel_type(variant):
-            if PYDANTIC_V2:
+            if PYDANTIC_V1:
+                field_info = cast("dict[str, FieldInfo]", variant.__fields__).get(discriminator_field_name)  # pyright: ignore[reportDeprecated, reportUnnecessaryCast]
+                if not field_info:
+                    continue
+
+                # Note: if one variant defines an alias then they all should
+                discriminator_alias = field_info.alias
+
+                if (annotation := getattr(field_info, "annotation", None)) and is_literal_type(annotation):
+                    for entry in get_args(annotation):
+                        if isinstance(entry, str):
+                            mapping[entry] = variant
+            else:
                 field = _extract_field_schema_pv2(variant, discriminator_field_name)
                 if not field:
                     continue
@@ -643,18 +802,6 @@ def _build_discriminated_union_meta(*, union: type, meta_annotations: tuple[Any,
                     for entry in cast("LiteralSchema", field_schema)["expected"]:
                         if isinstance(entry, str):
                             mapping[entry] = variant
-            else:
-                field_info = cast("dict[str, FieldInfo]", variant.__fields__).get(discriminator_field_name)  # pyright: ignore[reportDeprecated, reportUnnecessaryCast]
-                if not field_info:
-                    continue
-
-                # Note: if one variant defines an alias then they all should
-                discriminator_alias = field_info.alias
-
-                if (annotation := getattr(field_info, "annotation", None)) and is_literal_type(annotation):
-                    for entry in get_args(annotation):
-                        if isinstance(entry, str):
-                            mapping[entry] = variant
 
     if not mapping:
         return None
@@ -664,7 +811,7 @@ def _build_discriminated_union_meta(*, union: type, meta_annotations: tuple[Any,
         discriminator_field=discriminator_field_name,
         discriminator_alias=discriminator_alias,
     )
-    cast(CachedDiscriminatorType, union).__discriminator__ = details
+    DISCRIMINATOR_CACHE.setdefault(union, details)
     return details
 
 
@@ -711,7 +858,7 @@ def add_request_id(obj: BaseModel, request_id: str | None) -> None:
     # in Pydantic v1, using setattr like we do above causes the attribute
     # to be included when serializing the model which we don't want in this
     # case so we need to explicitly exclude it
-    if not PYDANTIC_V2:
+    if PYDANTIC_V1:
         try:
             exclude_fields = obj.__exclude_fields__  # type: ignore
         except AttributeError:
@@ -730,7 +877,7 @@ else:
         pass
 
 
-if PYDANTIC_V2:
+if not PYDANTIC_V1:
     from pydantic import TypeAdapter as _TypeAdapter
 
     _CachedTypeAdapter = cast("TypeAdapter[object]", lru_cache(maxsize=None)(_TypeAdapter))
@@ -766,6 +913,11 @@ elif not TYPE_CHECKING:  # TODO: condition is weird
         return RootModel[type_]  # type: ignore
 
 
+class SecurityOptions(TypedDict, total=False):
+    bearer_auth: bool
+    admin_api_key_auth: bool
+
+
 class FinalRequestOptionsInput(TypedDict, total=False):
     method: Required[str]
     url: Required[str]
@@ -775,8 +927,12 @@ class FinalRequestOptionsInput(TypedDict, total=False):
     timeout: float | Timeout | None
     files: HttpxRequestFiles | None
     idempotency_key: str
+    content: Union[bytes, bytearray, IO[bytes], Iterable[bytes], AsyncIterable[bytes], None]
     json_data: Body
     extra_json: AnyMapping
+    follow_redirects: bool
+    security: SecurityOptions
+    synthesize_event_and_data: bool
 
 
 @final
@@ -790,18 +946,25 @@ class FinalRequestOptions(pydantic.BaseModel):
     files: Union[HttpxRequestFiles, None] = None
     idempotency_key: Union[str, None] = None
     post_parser: Union[Callable[[Any], Any], NotGiven] = NotGiven()
+    follow_redirects: Union[bool, None] = None
+    security: SecurityOptions = {
+        "bearer_auth": True,
+        "admin_api_key_auth": True,
+    }
+    synthesize_event_and_data: Optional[bool] = None
 
+    content: Union[bytes, bytearray, IO[bytes], Iterable[bytes], AsyncIterable[bytes], None] = None
     # It should be noted that we cannot use `json` here as that would override
     # a BaseModel method in an incompatible fashion.
     json_data: Union[Body, None] = None
     extra_json: Union[AnyMapping, None] = None
 
-    if PYDANTIC_V2:
-        model_config: ClassVar[ConfigDict] = ConfigDict(arbitrary_types_allowed=True)
-    else:
+    if PYDANTIC_V1:
 
         class Config(pydantic.BaseConfig):  # pyright: ignore[reportDeprecated]
             arbitrary_types_allowed: bool = True
+    else:
+        model_config: ClassVar[ConfigDict] = ConfigDict(arbitrary_types_allowed=True)
 
     def get_max_retries(self, max_retries: int) -> int:
         if isinstance(self.max_retries, NotGiven):
@@ -834,9 +997,9 @@ class FinalRequestOptions(pydantic.BaseModel):
             key: strip_not_given(value)
             for key, value in values.items()
         }
-        if PYDANTIC_V2:
-            return super().model_construct(_fields_set, **kwargs)
-        return cast(FinalRequestOptions, super().construct(_fields_set, **kwargs))  # pyright: ignore[reportDeprecated]
+        if PYDANTIC_V1:
+            return cast(FinalRequestOptions, super().construct(_fields_set, **kwargs))  # pyright: ignore[reportDeprecated]
+        return super().model_construct(_fields_set, **kwargs)
 
     if not TYPE_CHECKING:
         # type checkers incorrectly complain about this assignment

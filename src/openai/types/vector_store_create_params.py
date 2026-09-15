@@ -1,10 +1,11 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
-from typing import List, Optional
+from typing import Optional
 from typing_extensions import Literal, Required, TypedDict
 
+from .._types import SequenceNotStr
 from .shared_params.metadata import Metadata
 from .file_chunking_strategy_param import FileChunkingStrategyParam
 
@@ -19,14 +20,20 @@ class VectorStoreCreateParams(TypedDict, total=False):
     non-empty.
     """
 
+    description: str
+    """A description for the vector store.
+
+    Can be used to describe the vector store's purpose.
+    """
+
     expires_after: ExpiresAfter
     """The expiration policy for a vector store."""
 
-    file_ids: List[str]
+    file_ids: SequenceNotStr[str]
     """
-    A list of [File](https://platform.openai.com/docs/api-reference/files) IDs that
-    the vector store should use. Useful for tools like `file_search` that can access
-    files.
+    A list of [File](https://developers.openai.com/api/reference/resources/files)
+    IDs that the vector store should use. Useful for tools like `file_search` that
+    can access files.
     """
 
     metadata: Optional[Metadata]
@@ -44,6 +51,8 @@ class VectorStoreCreateParams(TypedDict, total=False):
 
 
 class ExpiresAfter(TypedDict, total=False):
+    """The expiration policy for a vector store."""
+
     anchor: Required[Literal["last_active_at"]]
     """Anchor timestamp after which the expiration policy applies.
 

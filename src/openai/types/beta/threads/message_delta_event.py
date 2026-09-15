@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing_extensions import Literal
 
@@ -9,6 +9,11 @@ __all__ = ["MessageDeltaEvent"]
 
 
 class MessageDeltaEvent(BaseModel):
+    """Represents a message delta i.e.
+
+    any changed fields on a message during streaming.
+    """
+
     id: str
     """The identifier of the message, which can be referenced in API endpoints."""
 

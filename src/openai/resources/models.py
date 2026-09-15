@@ -1,26 +1,26 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
-import httpx
+import httpx2
 
 from .. import _legacy_response
-from .._types import NOT_GIVEN, Body, Query, Headers, NotGiven
+from .._types import Body, Query, Headers, NotGiven, not_given
+from .._utils import path_template
 from .._compat import cached_property
 from .._resource import SyncAPIResource, AsyncAPIResource
 from .._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from ..pagination import SyncPage, AsyncPage
 from ..types.model import Model
-from .._base_client import (
-    AsyncPaginator,
-    make_request_options,
-)
+from .._base_client import AsyncPaginator, make_request_options
 from ..types.model_deleted import ModelDeleted
 
 __all__ = ["Models", "AsyncModels"]
 
 
 class Models(SyncAPIResource):
+    """List and describe the various models available in the API."""
+
     @cached_property
     def with_raw_response(self) -> ModelsWithRawResponse:
         """
@@ -49,7 +49,7 @@ class Models(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Model:
         """
         Retrieves a model instance, providing basic information about the model such as
@@ -67,9 +67,13 @@ class Models(SyncAPIResource):
         if not model:
             raise ValueError(f"Expected a non-empty value for `model` but received {model!r}")
         return self._get(
-            f"/models/{model}",
+            path_template("/models/{model}", model=model),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Model,
         )
@@ -82,7 +86,7 @@ class Models(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncPage[Model]:
         """
         Lists the currently available models, and provides basic information about each
@@ -92,7 +96,11 @@ class Models(SyncAPIResource):
             "/models",
             page=SyncPage[Model],
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             model=Model,
         )
@@ -106,7 +114,7 @@ class Models(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ModelDeleted:
         """Delete a fine-tuned model.
 
@@ -125,15 +133,21 @@ class Models(SyncAPIResource):
         if not model:
             raise ValueError(f"Expected a non-empty value for `model` but received {model!r}")
         return self._delete(
-            f"/models/{model}",
+            path_template("/models/{model}", model=model),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ModelDeleted,
         )
 
 
 class AsyncModels(AsyncAPIResource):
+    """List and describe the various models available in the API."""
+
     @cached_property
     def with_raw_response(self) -> AsyncModelsWithRawResponse:
         """
@@ -162,7 +176,7 @@ class AsyncModels(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Model:
         """
         Retrieves a model instance, providing basic information about the model such as
@@ -180,9 +194,13 @@ class AsyncModels(AsyncAPIResource):
         if not model:
             raise ValueError(f"Expected a non-empty value for `model` but received {model!r}")
         return await self._get(
-            f"/models/{model}",
+            path_template("/models/{model}", model=model),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Model,
         )
@@ -195,7 +213,7 @@ class AsyncModels(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[Model, AsyncPage[Model]]:
         """
         Lists the currently available models, and provides basic information about each
@@ -205,7 +223,11 @@ class AsyncModels(AsyncAPIResource):
             "/models",
             page=AsyncPage[Model],
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             model=Model,
         )
@@ -219,7 +241,7 @@ class AsyncModels(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ModelDeleted:
         """Delete a fine-tuned model.
 
@@ -238,9 +260,13 @@ class AsyncModels(AsyncAPIResource):
         if not model:
             raise ValueError(f"Expected a non-empty value for `model` but received {model!r}")
         return await self._delete(
-            f"/models/{model}",
+            path_template("/models/{model}", model=model),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ModelDeleted,
         )

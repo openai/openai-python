@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -8,6 +8,8 @@ __all__ = ["PythonGraderParam"]
 
 
 class PythonGraderParam(TypedDict, total=False):
+    """A PythonGrader object that runs a python script on the input."""
+
     name: Required[str]
     """The name of the grader."""
 

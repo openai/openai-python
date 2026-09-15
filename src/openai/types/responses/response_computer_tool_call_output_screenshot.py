@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import Optional
 from typing_extensions import Literal
@@ -9,6 +9,8 @@ __all__ = ["ResponseComputerToolCallOutputScreenshot"]
 
 
 class ResponseComputerToolCallOutputScreenshot(BaseModel):
+    """A computer screenshot image used with the computer use tool."""
+
     type: Literal["computer_screenshot"]
     """Specifies the event type.
 

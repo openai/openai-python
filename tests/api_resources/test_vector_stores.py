@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -31,6 +31,7 @@ class TestVectorStores:
     def test_method_create_with_all_params(self, client: OpenAI) -> None:
         vector_store = client.vector_stores.create(
             chunking_strategy={"type": "auto"},
+            description="description",
             expires_after={
                 "anchor": "last_active_at",
                 "days": 1,
@@ -243,7 +244,7 @@ class TestVectorStores:
             },
             max_num_results=1,
             ranking_options={
-                "ranker": "auto",
+                "ranker": "none",
                 "score_threshold": 0,
             },
             rewrite_query=True,
@@ -286,7 +287,9 @@ class TestVectorStores:
 
 
 class TestAsyncVectorStores:
-    parametrize = pytest.mark.parametrize("async_client", [False, True], indirect=True, ids=["loose", "strict"])
+    parametrize = pytest.mark.parametrize(
+        "async_client", [False, True, {"http_client": "aiohttp"}], indirect=True, ids=["loose", "strict", "aiohttp"]
+    )
 
     @parametrize
     async def test_method_create(self, async_client: AsyncOpenAI) -> None:
@@ -297,6 +300,7 @@ class TestAsyncVectorStores:
     async def test_method_create_with_all_params(self, async_client: AsyncOpenAI) -> None:
         vector_store = await async_client.vector_stores.create(
             chunking_strategy={"type": "auto"},
+            description="description",
             expires_after={
                 "anchor": "last_active_at",
                 "days": 1,
@@ -509,7 +513,7 @@ class TestAsyncVectorStores:
             },
             max_num_results=1,
             ranking_options={
-                "ranker": "auto",
+                "ranker": "none",
                 "score_threshold": 0,
             },
             rewrite_query=True,

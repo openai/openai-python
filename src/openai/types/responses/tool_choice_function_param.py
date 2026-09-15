@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -8,6 +8,8 @@ __all__ = ["ToolChoiceFunctionParam"]
 
 
 class ToolChoiceFunctionParam(TypedDict, total=False):
+    """Use this option to force the model to call a specific function."""
+
     name: Required[str]
     """The name of the function to call."""
 

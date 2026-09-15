@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import Optional
 
@@ -9,5 +9,7 @@ __all__ = ["SupervisedMethod"]
 
 
 class SupervisedMethod(BaseModel):
+    """Configuration for the supervised fine-tuning method."""
+
     hyperparameters: Optional[SupervisedHyperparameters] = None
     """The hyperparameters used for the fine-tuning job."""

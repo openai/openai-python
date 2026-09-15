@@ -1,11 +1,9 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
-
 from __future__ import annotations
 
 from typing import List
 from typing_extensions import Literal
 
-import httpx
+import httpx2
 
 from .... import _legacy_response
 from ...._types import NOT_GIVEN, Body, Query, Headers, NotGiven
@@ -43,6 +41,7 @@ class TranscriptionSessions(SyncAPIResource):
     def create(
         self,
         *,
+        client_secret: transcription_session_create_params.ClientSecret | NotGiven = NOT_GIVEN,
         include: List[str] | NotGiven = NOT_GIVEN,
         input_audio_format: Literal["pcm16", "g711_ulaw", "g711_alaw"] | NotGiven = NOT_GIVEN,
         input_audio_noise_reduction: transcription_session_create_params.InputAudioNoiseReduction
@@ -55,7 +54,7 @@ class TranscriptionSessions(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> TranscriptionSession:
         """
         Create an ephemeral API token for use in client-side applications with the
@@ -67,6 +66,8 @@ class TranscriptionSessions(SyncAPIResource):
         the Realtime API.
 
         Args:
+          client_secret: Configuration options for the generated client secret.
+
           include:
               The set of items to include in the transcription. Current available items are:
 
@@ -93,7 +94,7 @@ class TranscriptionSessions(SyncAPIResource):
               set to `null` to turn off, in which case the client must manually trigger model
               response. Server VAD means that the model will detect the start and end of
               speech based on audio volume and respond at the end of user speech. Semantic VAD
-              is more advanced and uses a turn detection model (in conjuction with VAD) to
+              is more advanced and uses a turn detection model (in conjunction with VAD) to
               semantically estimate whether the user has finished speaking, then dynamically
               sets a timeout based on this probability. For example, if user audio trails off
               with "uhhm", the model will score a low probability of turn end and wait longer
@@ -113,6 +114,7 @@ class TranscriptionSessions(SyncAPIResource):
             "/realtime/transcription_sessions",
             body=maybe_transform(
                 {
+                    "client_secret": client_secret,
                     "include": include,
                     "input_audio_format": input_audio_format,
                     "input_audio_noise_reduction": input_audio_noise_reduction,
@@ -152,6 +154,7 @@ class AsyncTranscriptionSessions(AsyncAPIResource):
     async def create(
         self,
         *,
+        client_secret: transcription_session_create_params.ClientSecret | NotGiven = NOT_GIVEN,
         include: List[str] | NotGiven = NOT_GIVEN,
         input_audio_format: Literal["pcm16", "g711_ulaw", "g711_alaw"] | NotGiven = NOT_GIVEN,
         input_audio_noise_reduction: transcription_session_create_params.InputAudioNoiseReduction
@@ -164,7 +167,7 @@ class AsyncTranscriptionSessions(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> TranscriptionSession:
         """
         Create an ephemeral API token for use in client-side applications with the
@@ -176,6 +179,8 @@ class AsyncTranscriptionSessions(AsyncAPIResource):
         the Realtime API.
 
         Args:
+          client_secret: Configuration options for the generated client secret.
+
           include:
               The set of items to include in the transcription. Current available items are:
 
@@ -202,7 +207,7 @@ class AsyncTranscriptionSessions(AsyncAPIResource):
               set to `null` to turn off, in which case the client must manually trigger model
               response. Server VAD means that the model will detect the start and end of
               speech based on audio volume and respond at the end of user speech. Semantic VAD
-              is more advanced and uses a turn detection model (in conjuction with VAD) to
+              is more advanced and uses a turn detection model (in conjunction with VAD) to
               semantically estimate whether the user has finished speaking, then dynamically
               sets a timeout based on this probability. For example, if user audio trails off
               with "uhhm", the model will score a low probability of turn end and wait longer
@@ -222,6 +227,7 @@ class AsyncTranscriptionSessions(AsyncAPIResource):
             "/realtime/transcription_sessions",
             body=await async_maybe_transform(
                 {
+                    "client_secret": client_secret,
                     "include": include,
                     "input_audio_format": input_audio_format,
                     "input_audio_noise_reduction": input_audio_noise_reduction,

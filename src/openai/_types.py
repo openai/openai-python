@@ -13,17 +13,30 @@ from typing import (
     Mapping,
     TypeVar,
     Callable,
+    Iterable,
+    Iterator,
     Optional,
     Sequence,
+    AsyncIterable,
 )
-from typing_extensions import Set, Literal, Protocol, TypeAlias, TypedDict, override, runtime_checkable
+from typing_extensions import (
+    Set,
+    Literal,
+    Protocol,
+    TypeAlias,
+    TypedDict,
+    SupportsIndex,
+    overload,
+    override,
+    runtime_checkable,
+)
 
-import httpx
+import httpx2
 import pydantic
-from httpx import URL, Proxy, Timeout, Response, BaseTransport, AsyncBaseTransport
+from httpx2 import URL, Proxy, Timeout, Response, BaseTransport, AsyncBaseTransport
 
 if TYPE_CHECKING:
-    from ._models import BaseModel
+    from ._models import BaseModel, SecurityOptions
     from ._response import APIResponse, AsyncAPIResponse
     from ._legacy_response import HttpxBinaryResponseContent
 
@@ -34,6 +47,9 @@ Body = object
 AnyMapping = Mapping[str, object]
 ModelT = TypeVar("ModelT", bound=pydantic.BaseModel)
 _T = TypeVar("_T")
+
+ArrayFormat = Literal["comma", "repeat", "indices", "brackets"]
+NestedFormat = Literal["dots", "brackets"]
 
 
 # Approximates httpx internal ProxiesTypes and RequestFiles types
@@ -46,6 +62,13 @@ if TYPE_CHECKING:
 else:
     Base64FileInput = Union[IO[bytes], PathLike]
     FileContent = Union[IO[bytes], bytes, PathLike]  # PathLike is not subscriptable in Python 3.8.
+
+
+# Used for sending raw binary data / streaming data in request bodies
+# e.g. for file uploads without multipart encoding
+BinaryTypes = Union[bytes, bytearray, IO[bytes], Iterable[bytes]]
+AsyncBinaryTypes = Union[bytes, bytearray, IO[bytes], AsyncIterable[bytes]]
+
 FileTypes = Union[
     # file (or bytes)
     FileContent,
@@ -101,23 +124,29 @@ class RequestOptions(TypedDict, total=False):
     params: Query
     extra_json: AnyMapping
     idempotency_key: str
+    follow_redirects: bool
+    security: SecurityOptions
+    synthesize_event_and_data: bool
 
 
 # Sentinel class used until PEP 0661 is accepted
 class NotGiven:
     """
-    A sentinel singleton class used to distinguish omitted keyword arguments
-    from those passed in with the value None (which may have different behavior).
+    For parameters with a meaningful None value, we need to distinguish between
+    the user explicitly passing None, and the user not passing the parameter at
+    all.
+
+    User code shouldn't need to use not_given directly.
 
     For example:
 
     ```py
-    def get(timeout: Union[int, NotGiven, None] = NotGiven()) -> Response: ...
+    def create(timeout: Timeout | None | NotGiven = not_given): ...
 
 
-    get(timeout=1)  # 1s timeout
-    get(timeout=None)  # No timeout
-    get()  # Default timeout behavior, which may not be statically known at the method definition.
+    create(timeout=1)  # 1s timeout
+    create(timeout=None)  # No timeout
+    create()  # Default timeout behavior
     ```
     """
 
@@ -129,13 +158,14 @@ class NotGiven:
         return "NOT_GIVEN"
 
 
-NotGivenOr = Union[_T, NotGiven]
+not_given = NotGiven()
+# for backwards compatibility:
 NOT_GIVEN = NotGiven()
 
 
 class Omit:
-    """In certain situations you need to be able to represent a case where a default value has
-    to be explicitly removed and `None` is not an appropriate substitute, for example:
+    """
+    To explicitly omit something from being sent in a request, use `omit`.
 
     ```py
     # as the default `Content-Type` header is `application/json` that will be sent
@@ -145,13 +175,18 @@ class Omit:
     # to look something like: 'multipart/form-data; boundary=0d8382fcf5f8c3be01ca2e11002d2983'
     client.post(..., headers={"Content-Type": "multipart/form-data"})
 
-    # instead you can remove the default `application/json` header by passing Omit
-    client.post(..., headers={"Content-Type": Omit()})
+    # instead you can remove the default `application/json` header by passing omit
+    client.post(..., headers={"Content-Type": omit})
     ```
     """
 
     def __bool__(self) -> Literal[False]:
         return False
+
+
+omit = Omit()
+
+Omittable = Union[_T, Omit]
 
 
 @runtime_checkable
@@ -216,4 +251,29 @@ class _GenericAlias(Protocol):
 
 
 class HttpxSendArgs(TypedDict, total=False):
-    auth: httpx.Auth
+    auth: httpx2.Auth
+    follow_redirects: bool
+
+
+_T_co = TypeVar("_T_co", covariant=True)
+
+
+if TYPE_CHECKING:
+    # This works because str.__contains__ does not accept object (either in typeshed or at runtime)
+    # https://github.com/hauntsaninja/useful_types/blob/5e9710f3875107d068e7679fd7fec9cfab0eff3b/useful_types/__init__.py#L285
+    #
+    # Note: index() and count() methods are intentionally omitted to allow pyright to properly
+    # infer TypedDict types when dict literals are used in lists assigned to SequenceNotStr.
+    class SequenceNotStr(Protocol[_T_co]):
+        @overload
+        def __getitem__(self, index: SupportsIndex, /) -> _T_co: ...
+        @overload
+        def __getitem__(self, index: slice, /) -> Sequence[_T_co]: ...
+        def __contains__(self, value: object, /) -> bool: ...
+        def __len__(self) -> int: ...
+        def __iter__(self) -> Iterator[_T_co]: ...
+        def __reversed__(self) -> Iterator[_T_co]: ...
+else:
+    # just point this to a normal `Sequence` at runtime to avoid having to special case
+    # deserializing our custom sequence type
+    SequenceNotStr = Sequence

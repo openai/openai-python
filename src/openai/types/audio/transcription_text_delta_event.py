@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import List, Optional
 from typing_extensions import Literal
@@ -12,7 +12,7 @@ class Logprob(BaseModel):
     token: Optional[str] = None
     """The token that was used to generate the log probability."""
 
-    bytes: Optional[List[object]] = None
+    bytes: Optional[List[int]] = None
     """The bytes that were used to generate the log probability."""
 
     logprob: Optional[float] = None
@@ -20,6 +20,11 @@ class Logprob(BaseModel):
 
 
 class TranscriptionTextDeltaEvent(BaseModel):
+    """Emitted when there is an additional text delta.
+
+    This is also the first event emitted when the transcription starts. Only emitted when you [create a transcription](https://developers.openai.com/api/reference/resources/audio/subresources/transcriptions/methods/create) with the `Stream` parameter set to `true`.
+    """
+
     delta: str
     """The text delta that was additionally transcribed."""
 
@@ -30,6 +35,12 @@ class TranscriptionTextDeltaEvent(BaseModel):
     """The log probabilities of the delta.
 
     Only included if you
-    [create a transcription](https://platform.openai.com/docs/api-reference/audio/create-transcription)
+    [create a transcription](https://developers.openai.com/api/reference/resources/audio/subresources/transcriptions/methods/create)
     with the `include[]` parameter set to `logprobs`.
+    """
+
+    segment_id: Optional[str] = None
+    """Identifier of the diarized segment that this delta belongs to.
+
+    Only present when using `gpt-4o-transcribe-diarize`.
     """

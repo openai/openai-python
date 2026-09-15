@@ -1,10 +1,11 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
-from typing import List, Union, Iterable, Optional
+from typing import Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
+from ..._types import SequenceNotStr
 from ..shared_params.metadata import Metadata
 from .code_interpreter_tool_param import CodeInterpreterToolParam
 from .threads.message_content_part_param import MessageContentPartParam
@@ -29,8 +30,9 @@ __all__ = [
 class ThreadCreateParams(TypedDict, total=False):
     messages: Iterable[Message]
     """
-    A list of [messages](https://platform.openai.com/docs/api-reference/messages) to
-    start the thread with.
+    A list of
+    [messages](https://developers.openai.com/api/docs/assistants/migration) to start
+    the thread with.
     """
 
     metadata: Optional[Metadata]
@@ -96,15 +98,20 @@ class Message(TypedDict, total=False):
 
 
 class ToolResourcesCodeInterpreter(TypedDict, total=False):
-    file_ids: List[str]
+    file_ids: SequenceNotStr[str]
     """
-    A list of [file](https://platform.openai.com/docs/api-reference/files) IDs made
-    available to the `code_interpreter` tool. There can be a maximum of 20 files
-    associated with the tool.
+    A list of [file](https://developers.openai.com/api/reference/resources/files)
+    IDs made available to the `code_interpreter` tool. There can be a maximum of 20
+    files associated with the tool.
     """
 
 
 class ToolResourcesFileSearchVectorStoreChunkingStrategyAuto(TypedDict, total=False):
+    """The default strategy.
+
+    This strategy currently uses a `max_chunk_size_tokens` of `800` and `chunk_overlap_tokens` of `400`.
+    """
+
     type: Required[Literal["auto"]]
     """Always `auto`."""
 
@@ -143,11 +150,12 @@ class ToolResourcesFileSearchVectorStore(TypedDict, total=False):
     If not set, will use the `auto` strategy.
     """
 
-    file_ids: List[str]
+    file_ids: SequenceNotStr[str]
     """
-    A list of [file](https://platform.openai.com/docs/api-reference/files) IDs to
-    add to the vector store. There can be a maximum of 10000 files in a vector
-    store.
+    A list of [file](https://developers.openai.com/api/reference/resources/files)
+    IDs to add to the vector store. For vector stores created before Nov 2025, there
+    can be a maximum of 10,000 files in a vector store. For vector stores created
+    starting in Nov 2025, the limit is 100,000,000 files.
     """
 
     metadata: Optional[Metadata]
@@ -162,10 +170,10 @@ class ToolResourcesFileSearchVectorStore(TypedDict, total=False):
 
 
 class ToolResourcesFileSearch(TypedDict, total=False):
-    vector_store_ids: List[str]
+    vector_store_ids: SequenceNotStr[str]
     """
     The
-    [vector store](https://platform.openai.com/docs/api-reference/vector-stores/object)
+    [vector store](https://developers.openai.com/api/reference/resources/vector_stores)
     attached to this thread. There can be a maximum of 1 vector store attached to
     the thread.
     """
@@ -173,13 +181,17 @@ class ToolResourcesFileSearch(TypedDict, total=False):
     vector_stores: Iterable[ToolResourcesFileSearchVectorStore]
     """
     A helper to create a
-    [vector store](https://platform.openai.com/docs/api-reference/vector-stores/object)
+    [vector store](https://developers.openai.com/api/reference/resources/vector_stores)
     with file_ids and attach it to this thread. There can be a maximum of 1 vector
     store attached to the thread.
     """
 
 
 class ToolResources(TypedDict, total=False):
+    """
+    A set of resources that are made available to the assistant's tools in this thread. The resources are specific to the type of tool. For example, the `code_interpreter` tool requires a list of file IDs, while the `file_search` tool requires a list of vector store IDs.
+    """
+
     code_interpreter: ToolResourcesCodeInterpreter
 
     file_search: ToolResourcesFileSearch

@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from ..._models import BaseModel
 
@@ -6,19 +6,31 @@ __all__ = ["ResponseUsage", "InputTokensDetails", "OutputTokensDetails"]
 
 
 class InputTokensDetails(BaseModel):
-    cached_tokens: int
-    """The number of tokens that were retrieved from the cache.
+    """A detailed breakdown of the input tokens."""
 
-    [More on prompt caching](https://platform.openai.com/docs/guides/prompt-caching).
+    cache_write_tokens: int
+    """The number of input tokens that were written to the cache."""
+
+    cached_tokens: int
+    """
+    The number of tokens that were retrieved from the cache.
+    [More on prompt caching](https://developers.openai.com/api/docs/guides/prompt-caching).
     """
 
 
 class OutputTokensDetails(BaseModel):
+    """A detailed breakdown of the output tokens."""
+
     reasoning_tokens: int
     """The number of reasoning tokens."""
 
 
 class ResponseUsage(BaseModel):
+    """
+    Represents token usage details including input tokens, output tokens,
+    a breakdown of output tokens, and the total tokens used.
+    """
+
     input_tokens: int
     """The number of input tokens."""
 

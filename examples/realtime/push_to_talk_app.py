@@ -5,10 +5,12 @@
 # environment variable set, you can run this example with just     #
 #                                                                  #
 # `./examples/realtime/push_to_talk_app.py`                        #
+#                                                                  #
+# On Mac, you'll also need `brew install portaudio ffmpeg`           #
 ####################################################################
 #
 # /// script
-# requires-python = ">=3.9"
+# requires-python = ">=3.10"
 # dependencies = [
 #     "textual",
 #     "numpy",
@@ -17,6 +19,9 @@
 #     "sounddevice",
 #     "openai[realtime]",
 # ]
+#
+# [tool.uv]
+# exclude-newer = "P8D"
 #
 # [tool.uv.sources]
 # openai = { path = "../../", editable = true }
@@ -36,8 +41,8 @@ from textual.reactive import reactive
 from textual.containers import Container
 
 from openai import AsyncOpenAI
-from openai.types.beta.realtime.session import Session
-from openai.resources.beta.realtime.realtime import AsyncRealtimeConnection
+from openai.resources.realtime.realtime import AsyncRealtimeConnection
+from openai.types.realtime.session_created_event import Session
 
 
 class SessionDisplay(Static):
@@ -152,13 +157,21 @@ class RealtimeApp(App[None]):
         self.run_worker(self.send_mic_audio())
 
     async def handle_realtime_connection(self) -> None:
-        async with self.client.beta.realtime.connect(model="gpt-4o-realtime-preview") as conn:
+        async with self.client.realtime.connect(model="gpt-realtime") as conn:
             self.connection = conn
             self.connected.set()
 
             # note: this is the default and can be omitted
             # if you want to manually handle VAD yourself, then set `'turn_detection': None`
-            await conn.session.update(session={"turn_detection": {"type": "server_vad"}})
+            await conn.session.update(
+                session={
+                    "audio": {
+                        "input": {"turn_detection": {"type": "server_vad"}},
+                    },
+                    "model": "gpt-realtime",
+                    "type": "realtime",
+                }
+            )
 
             acc_items: dict[str, Any] = {}
 
@@ -166,15 +179,17 @@ class RealtimeApp(App[None]):
                 if event.type == "session.created":
                     self.session = event.session
                     session_display = self.query_one(SessionDisplay)
-                    assert event.session.id is not None
-                    session_display.session_id = event.session.id
+                    # The session ID is returned as an extra field on the session configuration.
+                    session_id = getattr(event.session, "id", None)
+                    assert isinstance(session_id, str)
+                    session_display.session_id = session_id
                     continue
 
                 if event.type == "session.updated":
                     self.session = event.session
                     continue
 
-                if event.type == "response.audio.delta":
+                if event.type == "response.output_audio.delta":
                     if event.item_id != self.last_audio_item_id:
                         self.audio_player.reset_frame_count()
                         self.last_audio_item_id = event.item_id
@@ -183,7 +198,7 @@ class RealtimeApp(App[None]):
                     self.audio_player.add_data(bytes_data)
                     continue
 
-                if event.type == "response.audio_transcript.delta":
+                if event.type == "response.output_audio_transcript.delta":
                     try:
                         text = acc_items[event.item_id]
                     except KeyError:
@@ -262,7 +277,12 @@ class RealtimeApp(App[None]):
                 self.should_send_audio.clear()
                 status_indicator.is_recording = False
 
-                if self.session and self.session.turn_detection is None:
+                if (
+                    self.session
+                    and self.session.audio
+                    and self.session.audio.input
+                    and self.session.audio.input.turn_detection is None
+                ):
                     # The default in the API is that the model will automatically detect when the user has
                     # stopped talking and then start responding itself.
                     #

@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import Optional
 from typing_extensions import Literal
@@ -9,6 +9,8 @@ __all__ = ["FileObject"]
 
 
 class FileObject(BaseModel):
+    """The `File` object represents a document that has been uploaded to OpenAI."""
+
     id: str
     """The file identifier, which can be referenced in the API endpoints."""
 
@@ -25,12 +27,19 @@ class FileObject(BaseModel):
     """The object type, which is always `file`."""
 
     purpose: Literal[
-        "assistants", "assistants_output", "batch", "batch_output", "fine-tune", "fine-tune-results", "vision"
+        "assistants",
+        "assistants_output",
+        "batch",
+        "batch_output",
+        "fine-tune",
+        "fine-tune-results",
+        "vision",
+        "user_data",
     ]
     """The intended purpose of the file.
 
     Supported values are `assistants`, `assistants_output`, `batch`, `batch_output`,
-    `fine-tune`, `fine-tune-results` and `vision`.
+    `fine-tune`, `fine-tune-results`, `vision`, and `user_data`.
     """
 
     status: Literal["uploaded", "processed", "error"]

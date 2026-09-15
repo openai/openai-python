@@ -18,12 +18,11 @@ from typing import (
 )
 from pathlib import Path
 from datetime import date, datetime
-from typing_extensions import TypeGuard
+from typing_extensions import TypeGuard, get_args
 
 import sniffio
 
-from .._types import NotGiven, FileTypes, NotGivenOr, HeadersLike
-from .._compat import parse_date as parse_date, parse_datetime as parse_datetime
+from .._types import Omit, NotGiven, FileTypes, ArrayFormat, HeadersLike
 
 _T = TypeVar("_T")
 _TupleT = TypeVar("_TupleT", bound=Tuple[object, ...])
@@ -45,17 +44,36 @@ def extract_files(
     query: Mapping[str, object],
     *,
     paths: Sequence[Sequence[str]],
+    array_format: ArrayFormat = "brackets",
 ) -> list[tuple[str, FileTypes]]:
     """Recursively extract files from the given dictionary based on specified paths.
 
     A path may look like this ['foo', 'files', '<array>', 'data'].
 
+    ``array_format`` controls how ``<array>`` segments contribute to the emitted
+    field name. Supported values: ``"brackets"`` (``foo[]``), ``"repeat"`` and
+    ``"comma"`` (``foo``), ``"indices"`` (``foo[0]``, ``foo[1]``).
+
     Note: this mutates the given dictionary.
     """
     files: list[tuple[str, FileTypes]] = []
     for path in paths:
-        files.extend(_extract_items(query, path, index=0, flattened_key=None))
+        files.extend(_extract_items(query, path, index=0, flattened_key=None, array_format=array_format))
     return files
+
+
+def _array_suffix(array_format: ArrayFormat, array_index: int) -> str:
+    if array_format == "brackets":
+        return "[]"
+    if array_format == "indices":
+        return f"[{array_index}]"
+    if array_format == "repeat" or array_format == "comma":
+        # Both repeat the bare field name for each file part; there is no
+        # meaningful way to comma-join binary parts.
+        return ""
+    raise NotImplementedError(
+        f"Unknown array_format value: {array_format}, choose from {', '.join(get_args(ArrayFormat))}"
+    )
 
 
 def _extract_items(
@@ -64,11 +82,12 @@ def _extract_items(
     *,
     index: int,
     flattened_key: str | None,
+    array_format: ArrayFormat,
 ) -> list[tuple[str, FileTypes]]:
     try:
         key = path[index]
     except IndexError:
-        if isinstance(obj, NotGiven):
+        if not is_given(obj):
             # no value was provided - we can safely ignore
             return []
 
@@ -80,9 +99,11 @@ def _extract_items(
 
         if is_list(obj):
             files: list[tuple[str, FileTypes]] = []
-            for entry in obj:
-                assert_is_file_content(entry, key=flattened_key + "[]" if flattened_key else "")
-                files.append((flattened_key + "[]", cast(FileTypes, entry)))
+            for array_index, entry in enumerate(obj):
+                suffix = _array_suffix(array_format, array_index)
+                emitted_key = (flattened_key + suffix) if flattened_key else suffix
+                assert_is_file_content(entry, key=emitted_key)
+                files.append((emitted_key, cast(FileTypes, entry)))
             return files
 
         assert_is_file_content(obj, key=flattened_key)
@@ -91,8 +112,9 @@ def _extract_items(
     index += 1
     if is_dict(obj):
         try:
-            # We are at the last entry in the path so we must remove the field
-            if (len(path)) == index:
+            # Remove the field if there are no more dict keys in the path,
+            # only "<array>" traversal markers or end.
+            if all(p == "<array>" for p in path[index:]):
                 item = obj.pop(key)
             else:
                 item = obj[key]
@@ -110,6 +132,7 @@ def _extract_items(
             path,
             index=index,
             flattened_key=flattened_key,
+            array_format=array_format,
         )
     elif is_list(obj):
         if key != "<array>":
@@ -121,9 +144,12 @@ def _extract_items(
                     item,
                     path,
                     index=index,
-                    flattened_key=flattened_key + "[]" if flattened_key is not None else "[]",
+                    flattened_key=(
+                        (flattened_key if flattened_key is not None else "") + _array_suffix(array_format, array_index)
+                    ),
+                    array_format=array_format,
                 )
-                for item in obj
+                for array_index, item in enumerate(obj)
             ]
         )
 
@@ -131,14 +157,14 @@ def _extract_items(
     return []
 
 
-def is_given(obj: NotGivenOr[_T]) -> TypeGuard[_T]:
-    return not isinstance(obj, NotGiven)
+def is_given(obj: _T | NotGiven | Omit) -> TypeGuard[_T]:
+    return not isinstance(obj, NotGiven) and not isinstance(obj, Omit)
 
 
 # Type safe methods for narrowing types with TypeVars.
 # The default narrowing for isinstance(obj, dict) is dict[unknown, unknown],
 # however this cause Pyright to rightfully report errors. As we know we don't
-# care about the contained types we can safely use `object` in it's place.
+# care about the contained types we can safely use `object` in its place.
 #
 # There are two separate functions defined, `is_*` and `is_*_t` for different use cases.
 # `is_*` is for when you're dealing with an unknown input
@@ -179,21 +205,6 @@ def is_list(obj: object) -> TypeGuard[list[object]]:
 
 def is_iterable(obj: object) -> TypeGuard[Iterable[object]]:
     return isinstance(obj, Iterable)
-
-
-def deepcopy_minimal(item: _T) -> _T:
-    """Minimal reimplementation of copy.deepcopy() that will only copy certain object types:
-
-    - mappings, e.g. `dict`
-    - list
-
-    This is done for performance reasons.
-    """
-    if is_mapping(item):
-        return cast(_T, {k: deepcopy_minimal(v) for k, v in item.items()})
-    if is_list(item):
-        return cast(_T, [deepcopy_minimal(entry) for entry in item])
-    return item
 
 
 # copied from https://github.com/Rapptz/RoboDanny
@@ -382,7 +393,7 @@ def get_required_header(headers: HeadersLike, header: str) -> str:
             if k.lower() == lower_header and isinstance(v, str):
                 return v
 
-    # to deal with the case where the header looks like Stainless-Event-Id
+    # to deal with the case where the header looks like X-Request-Id
     intercaps_header = re.sub(r"([^\w])(\w)", lambda pat: pat.group(1) + pat.group(2).upper(), header.capitalize())
 
     for normalized_header in [header, lower_header, header.upper(), intercaps_header]:

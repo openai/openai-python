@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing_extensions import Literal
 
@@ -8,6 +8,8 @@ __all__ = ["RequiredActionFunctionToolCall", "Function"]
 
 
 class Function(BaseModel):
+    """The function definition."""
+
     arguments: str
     """The arguments that the model expects you to pass to the function."""
 
@@ -16,11 +18,13 @@ class Function(BaseModel):
 
 
 class RequiredActionFunctionToolCall(BaseModel):
+    """Tool call objects"""
+
     id: str
     """The ID of the tool call.
 
     This ID must be referenced when you submit the tool outputs in using the
-    [Submit tool outputs to run](https://platform.openai.com/docs/api-reference/runs/submitToolOutputs)
+    [Submit tool outputs to run](https://developers.openai.com/api/docs/assistants/migration)
     endpoint.
     """
 

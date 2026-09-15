@@ -5,16 +5,21 @@ from typing import Any, Generic, Callable, Iterator, cast, overload
 from typing_extensions import Literal, TypeVar
 
 import rich
-import httpx
+import httpx2
 import pytest
-from respx import MockRouter
 from pydantic import BaseModel
-from inline_snapshot import external, snapshot, outsource
+from inline_snapshot import (
+    external,
+    snapshot,
+    outsource,  # pyright: ignore[reportUnknownVariableType]
+    get_snapshot_value,
+)
 
 import openai
 from openai import OpenAI, AsyncOpenAI
+from tests.respx2 import MockRouter
 from openai._utils import consume_sync_iterator, assert_signatures_in_sync
-from openai._compat import model_copy
+from openai._compat import model_copy, model_parse
 from openai.types.chat import ChatCompletionChunk
 from openai.lib.streaming.chat import (
     ContentDoneEvent,
@@ -26,7 +31,7 @@ from openai.lib.streaming.chat import (
 )
 from openai.lib._parsing._completions import ResponseFormatT
 
-from ._utils import print_obj
+from ..utils import print_obj
 from ...conftest import base_url
 
 _T = TypeVar("_T")
@@ -35,13 +40,13 @@ _T = TypeVar("_T")
 #
 # you can update them with
 #
-# `OPENAI_LIVE=1 pytest --inline-snapshot=fix`
+# `OPENAI_LIVE=1 pytest --inline-snapshot=fix -p no:xdist -o addopts=""`
 
 
-@pytest.mark.respx(base_url=base_url)
-def test_parse_nothing(client: OpenAI, respx_mock: MockRouter, monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.respx2(base_url=base_url)
+def test_parse_nothing(client: OpenAI, respx2_mock: MockRouter, monkeypatch: pytest.MonkeyPatch) -> None:
     listener = _make_stream_snapshot_request(
-        lambda c: c.beta.chat.completions.stream(
+        lambda c: c.chat.completions.stream(
             model="gpt-4o-2024-08-06",
             messages=[
                 {
@@ -52,17 +57,17 @@ def test_parse_nothing(client: OpenAI, respx_mock: MockRouter, monkeypatch: pyte
         ),
         content_snapshot=snapshot(external("e2aad469b71d*.bin")),
         mock_client=client,
-        respx_mock=respx_mock,
+        respx2_mock=respx2_mock,
     )
 
     assert print_obj(listener.stream.get_final_completion().choices, monkeypatch) == snapshot(
         """\
 [
-    ParsedChoice[NoneType](
+    ParsedChoice(
         finish_reason='stop',
         index=0,
         logprobs=None,
-        message=ParsedChatCompletionMessage[NoneType](
+        message=ParsedChatCompletionMessage(
             annotations=None,
             audio=None,
             content="I'm unable to provide real-time weather updates. To get the current weather in San Francisco, I 
@@ -79,7 +84,7 @@ recommend checking a reliable weather website or a weather app.",
     )
     assert print_obj(listener.get_event_by_type("content.done"), monkeypatch) == snapshot(
         """\
-ContentDoneEvent[NoneType](
+ContentDoneEvent(
     content="I'm unable to provide real-time weather updates. To get the current weather in San Francisco, I recommend 
 checking a reliable weather website or a weather app.",
     parsed=None,
@@ -89,8 +94,8 @@ checking a reliable weather website or a weather app.",
     )
 
 
-@pytest.mark.respx(base_url=base_url)
-def test_parse_pydantic_model(client: OpenAI, respx_mock: MockRouter, monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.respx2(base_url=base_url)
+def test_parse_pydantic_model(client: OpenAI, respx2_mock: MockRouter, monkeypatch: pytest.MonkeyPatch) -> None:
     class Location(BaseModel):
         city: str
         temperature: float
@@ -103,7 +108,7 @@ def test_parse_pydantic_model(client: OpenAI, respx_mock: MockRouter, monkeypatc
             done_snapshots.append(model_copy(stream.current_completion_snapshot, deep=True))
 
     listener = _make_stream_snapshot_request(
-        lambda c: c.beta.chat.completions.stream(
+        lambda c: c.chat.completions.stream(
             model="gpt-4o-2024-08-06",
             messages=[
                 {
@@ -115,7 +120,7 @@ def test_parse_pydantic_model(client: OpenAI, respx_mock: MockRouter, monkeypatc
         ),
         content_snapshot=snapshot(external("7e5ea4d12e7c*.bin")),
         mock_client=client,
-        respx_mock=respx_mock,
+        respx2_mock=respx2_mock,
         on_event=on_event,
     )
 
@@ -135,13 +140,13 @@ def test_parse_pydantic_model(client: OpenAI, respx_mock: MockRouter, monkeypatc
 
     assert print_obj(listener.stream.get_final_completion(), monkeypatch) == snapshot(
         """\
-ParsedChatCompletion[Location](
+ParsedChatCompletion(
     choices=[
-        ParsedChoice[Location](
+        ParsedChoice(
             finish_reason='stop',
             index=0,
             logprobs=None,
-            message=ParsedChatCompletionMessage[Location](
+            message=ParsedChatCompletionMessage(
                 annotations=None,
                 audio=None,
                 content='{"city":"San Francisco","temperature":61,"units":"f"}',
@@ -155,7 +160,9 @@ ParsedChatCompletion[Location](
     ],
     created=1727346169,
     id='chatcmpl-ABfw1e5abtU8OwGr15vOreYVb2MiF',
+    metadata=None,
     model='gpt-4o-2024-08-06',
+    moderation=None,
     object='chat.completion',
     service_tier=None,
     system_fingerprint='fp_5050236cbd',
@@ -165,7 +172,8 @@ ParsedChatCompletion[Location](
             accepted_prediction_tokens=None,
             audio_tokens=None,
             reasoning_tokens=0,
-            rejected_prediction_tokens=None
+            rejected_prediction_tokens=None,
+            text_tokens=None
         ),
         prompt_tokens=79,
         prompt_tokens_details=None,
@@ -176,7 +184,7 @@ ParsedChatCompletion[Location](
     )
     assert print_obj(listener.get_event_by_type("content.done"), monkeypatch) == snapshot(
         """\
-ContentDoneEvent[Location](
+ContentDoneEvent(
     content='{"city":"San Francisco","temperature":61,"units":"f"}',
     parsed=Location(city='San Francisco', temperature=61.0, units='f'),
     type='content.done'
@@ -185,9 +193,9 @@ ContentDoneEvent[Location](
     )
 
 
-@pytest.mark.respx(base_url=base_url)
+@pytest.mark.respx2(base_url=base_url)
 def test_parse_pydantic_model_multiple_choices(
-    client: OpenAI, respx_mock: MockRouter, monkeypatch: pytest.MonkeyPatch
+    client: OpenAI, respx2_mock: MockRouter, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     class Location(BaseModel):
         city: str
@@ -195,7 +203,7 @@ def test_parse_pydantic_model_multiple_choices(
         units: Literal["c", "f"]
 
     listener = _make_stream_snapshot_request(
-        lambda c: c.beta.chat.completions.stream(
+        lambda c: c.chat.completions.stream(
             model="gpt-4o-2024-08-06",
             messages=[
                 {
@@ -208,7 +216,7 @@ def test_parse_pydantic_model_multiple_choices(
         ),
         content_snapshot=snapshot(external("a491adda08c3*.bin")),
         mock_client=client,
-        respx_mock=respx_mock,
+        respx2_mock=respx2_mock,
     )
 
     assert [e.type for e in listener.events] == snapshot(
@@ -315,11 +323,11 @@ def test_parse_pydantic_model_multiple_choices(
     assert print_obj(listener.stream.get_final_completion().choices, monkeypatch) == snapshot(
         """\
 [
-    ParsedChoice[Location](
+    ParsedChoice(
         finish_reason='stop',
         index=0,
         logprobs=None,
-        message=ParsedChatCompletionMessage[Location](
+        message=ParsedChatCompletionMessage(
             annotations=None,
             audio=None,
             content='{"city":"San Francisco","temperature":65,"units":"f"}',
@@ -330,11 +338,11 @@ def test_parse_pydantic_model_multiple_choices(
             tool_calls=None
         )
     ),
-    ParsedChoice[Location](
+    ParsedChoice(
         finish_reason='stop',
         index=1,
         logprobs=None,
-        message=ParsedChatCompletionMessage[Location](
+        message=ParsedChatCompletionMessage(
             annotations=None,
             audio=None,
             content='{"city":"San Francisco","temperature":61,"units":"f"}',
@@ -345,11 +353,11 @@ def test_parse_pydantic_model_multiple_choices(
             tool_calls=None
         )
     ),
-    ParsedChoice[Location](
+    ParsedChoice(
         finish_reason='stop',
         index=2,
         logprobs=None,
-        message=ParsedChatCompletionMessage[Location](
+        message=ParsedChatCompletionMessage(
             annotations=None,
             audio=None,
             content='{"city":"San Francisco","temperature":59,"units":"f"}',
@@ -365,8 +373,8 @@ def test_parse_pydantic_model_multiple_choices(
     )
 
 
-@pytest.mark.respx(base_url=base_url)
-def test_parse_max_tokens_reached(client: OpenAI, respx_mock: MockRouter) -> None:
+@pytest.mark.respx2(base_url=base_url)
+def test_parse_max_tokens_reached(client: OpenAI, respx2_mock: MockRouter) -> None:
     class Location(BaseModel):
         city: str
         temperature: float
@@ -374,7 +382,7 @@ def test_parse_max_tokens_reached(client: OpenAI, respx_mock: MockRouter) -> Non
 
     with pytest.raises(openai.LengthFinishReasonError):
         _make_stream_snapshot_request(
-            lambda c: c.beta.chat.completions.stream(
+            lambda c: c.chat.completions.stream(
                 model="gpt-4o-2024-08-06",
                 messages=[
                     {
@@ -387,19 +395,19 @@ def test_parse_max_tokens_reached(client: OpenAI, respx_mock: MockRouter) -> Non
             ),
             content_snapshot=snapshot(external("4cc50a6135d2*.bin")),
             mock_client=client,
-            respx_mock=respx_mock,
+            respx2_mock=respx2_mock,
         )
 
 
-@pytest.mark.respx(base_url=base_url)
-def test_parse_pydantic_model_refusal(client: OpenAI, respx_mock: MockRouter, monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.respx2(base_url=base_url)
+def test_parse_pydantic_model_refusal(client: OpenAI, respx2_mock: MockRouter, monkeypatch: pytest.MonkeyPatch) -> None:
     class Location(BaseModel):
         city: str
         temperature: float
         units: Literal["c", "f"]
 
     listener = _make_stream_snapshot_request(
-        lambda c: c.beta.chat.completions.stream(
+        lambda c: c.chat.completions.stream(
             model="gpt-4o-2024-08-06",
             messages=[
                 {
@@ -411,7 +419,7 @@ def test_parse_pydantic_model_refusal(client: OpenAI, respx_mock: MockRouter, mo
         ),
         content_snapshot=snapshot(external("173417d55340*.bin")),
         mock_client=client,
-        respx_mock=respx_mock,
+        respx2_mock=respx2_mock,
     )
 
     assert print_obj(listener.get_event_by_type("refusal.done"), monkeypatch) == snapshot("""\
@@ -421,11 +429,11 @@ RefusalDoneEvent(refusal="I'm sorry, I can't assist with that request.", type='r
     assert print_obj(listener.stream.get_final_completion().choices, monkeypatch) == snapshot(
         """\
 [
-    ParsedChoice[Location](
+    ParsedChoice(
         finish_reason='stop',
         index=0,
         logprobs=None,
-        message=ParsedChatCompletionMessage[Location](
+        message=ParsedChatCompletionMessage(
             annotations=None,
             audio=None,
             content=None,
@@ -441,10 +449,10 @@ RefusalDoneEvent(refusal="I'm sorry, I can't assist with that request.", type='r
     )
 
 
-@pytest.mark.respx(base_url=base_url)
-def test_content_logprobs_events(client: OpenAI, respx_mock: MockRouter, monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.respx2(base_url=base_url)
+def test_content_logprobs_events(client: OpenAI, respx2_mock: MockRouter, monkeypatch: pytest.MonkeyPatch) -> None:
     listener = _make_stream_snapshot_request(
-        lambda c: c.beta.chat.completions.stream(
+        lambda c: c.chat.completions.stream(
             model="gpt-4o-2024-08-06",
             messages=[
                 {
@@ -456,7 +464,7 @@ def test_content_logprobs_events(client: OpenAI, respx_mock: MockRouter, monkeyp
         ),
         content_snapshot=snapshot(external("83b060bae42e*.bin")),
         mock_client=client,
-        respx_mock=respx_mock,
+        respx2_mock=respx2_mock,
     )
 
     assert print_obj([e for e in listener.events if e.type.startswith("logprobs")], monkeypatch) == snapshot("""\
@@ -490,7 +498,7 @@ def test_content_logprobs_events(client: OpenAI, respx_mock: MockRouter, monkeyp
 
     assert print_obj(listener.stream.get_final_completion().choices, monkeypatch) == snapshot("""\
 [
-    ParsedChoice[NoneType](
+    ParsedChoice(
         finish_reason='stop',
         index=0,
         logprobs=ChoiceLogprobs(
@@ -500,7 +508,7 @@ def test_content_logprobs_events(client: OpenAI, respx_mock: MockRouter, monkeyp
             ],
             refusal=None
         ),
-        message=ParsedChatCompletionMessage[NoneType](
+        message=ParsedChatCompletionMessage(
             annotations=None,
             audio=None,
             content='Foo!',
@@ -515,15 +523,15 @@ def test_content_logprobs_events(client: OpenAI, respx_mock: MockRouter, monkeyp
 """)
 
 
-@pytest.mark.respx(base_url=base_url)
-def test_refusal_logprobs_events(client: OpenAI, respx_mock: MockRouter, monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.respx2(base_url=base_url)
+def test_refusal_logprobs_events(client: OpenAI, respx2_mock: MockRouter, monkeypatch: pytest.MonkeyPatch) -> None:
     class Location(BaseModel):
         city: str
         temperature: float
         units: Literal["c", "f"]
 
     listener = _make_stream_snapshot_request(
-        lambda c: c.beta.chat.completions.stream(
+        lambda c: c.chat.completions.stream(
             model="gpt-4o-2024-08-06",
             messages=[
                 {
@@ -536,7 +544,7 @@ def test_refusal_logprobs_events(client: OpenAI, respx_mock: MockRouter, monkeyp
         ),
         content_snapshot=snapshot(external("569c877e6942*.bin")),
         mock_client=client,
-        respx_mock=respx_mock,
+        respx2_mock=respx2_mock,
     )
 
     assert print_obj([e.type for e in listener.events if e.type.startswith("logprobs")], monkeypatch) == snapshot("""\
@@ -558,7 +566,7 @@ def test_refusal_logprobs_events(client: OpenAI, respx_mock: MockRouter, monkeyp
 
     assert print_obj(listener.stream.get_final_completion().choices, monkeypatch) == snapshot("""\
 [
-    ParsedChoice[Location](
+    ParsedChoice(
         finish_reason='stop',
         index=0,
         logprobs=ChoiceLogprobs(
@@ -612,7 +620,7 @@ def test_refusal_logprobs_events(client: OpenAI, respx_mock: MockRouter, monkeyp
                 ChatCompletionTokenLogprob(bytes=[46], logprob=-0.57687104, token='.', top_logprobs=[])
             ]
         ),
-        message=ParsedChatCompletionMessage[Location](
+        message=ParsedChatCompletionMessage(
             annotations=None,
             audio=None,
             content=None,
@@ -627,15 +635,15 @@ def test_refusal_logprobs_events(client: OpenAI, respx_mock: MockRouter, monkeyp
 """)
 
 
-@pytest.mark.respx(base_url=base_url)
-def test_parse_pydantic_tool(client: OpenAI, respx_mock: MockRouter, monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.respx2(base_url=base_url)
+def test_parse_pydantic_tool(client: OpenAI, respx2_mock: MockRouter, monkeypatch: pytest.MonkeyPatch) -> None:
     class GetWeatherArgs(BaseModel):
         city: str
         country: str
         units: Literal["c", "f"] = "c"
 
     listener = _make_stream_snapshot_request(
-        lambda c: c.beta.chat.completions.stream(
+        lambda c: c.chat.completions.stream(
             model="gpt-4o-2024-08-06",
             messages=[
                 {
@@ -649,17 +657,17 @@ def test_parse_pydantic_tool(client: OpenAI, respx_mock: MockRouter, monkeypatch
         ),
         content_snapshot=snapshot(external("c6aa7e397b71*.bin")),
         mock_client=client,
-        respx_mock=respx_mock,
+        respx2_mock=respx2_mock,
     )
 
     assert print_obj(listener.stream.current_completion_snapshot.choices, monkeypatch) == snapshot(
         """\
 [
-    ParsedChoice[object](
+    ParsedChoice(
         finish_reason='tool_calls',
         index=0,
         logprobs=None,
-        message=ParsedChatCompletionMessage[object](
+        message=ParsedChatCompletionMessage(
             annotations=None,
             audio=None,
             content=None,
@@ -688,11 +696,11 @@ def test_parse_pydantic_tool(client: OpenAI, respx_mock: MockRouter, monkeypatch
     assert print_obj(listener.stream.get_final_completion().choices, monkeypatch) == snapshot(
         """\
 [
-    ParsedChoice[NoneType](
+    ParsedChoice(
         finish_reason='tool_calls',
         index=0,
         logprobs=None,
-        message=ParsedChatCompletionMessage[NoneType](
+        message=ParsedChatCompletionMessage(
             annotations=None,
             audio=None,
             content=None,
@@ -719,8 +727,10 @@ def test_parse_pydantic_tool(client: OpenAI, respx_mock: MockRouter, monkeypatch
     )
 
 
-@pytest.mark.respx(base_url=base_url)
-def test_parse_multiple_pydantic_tools(client: OpenAI, respx_mock: MockRouter, monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.respx2(base_url=base_url)
+def test_parse_multiple_pydantic_tools(
+    client: OpenAI, respx2_mock: MockRouter, monkeypatch: pytest.MonkeyPatch
+) -> None:
     class GetWeatherArgs(BaseModel):
         """Get the temperature for the given country/city combo"""
 
@@ -733,7 +743,7 @@ def test_parse_multiple_pydantic_tools(client: OpenAI, respx_mock: MockRouter, m
         exchange: str
 
     listener = _make_stream_snapshot_request(
-        lambda c: c.beta.chat.completions.stream(
+        lambda c: c.chat.completions.stream(
             model="gpt-4o-2024-08-06",
             messages=[
                 {
@@ -754,17 +764,17 @@ def test_parse_multiple_pydantic_tools(client: OpenAI, respx_mock: MockRouter, m
         ),
         content_snapshot=snapshot(external("f82268f2fefd*.bin")),
         mock_client=client,
-        respx_mock=respx_mock,
+        respx2_mock=respx2_mock,
     )
 
     assert print_obj(listener.stream.current_completion_snapshot.choices, monkeypatch) == snapshot(
         """\
 [
-    ParsedChoice[object](
+    ParsedChoice(
         finish_reason='tool_calls',
         index=0,
         logprobs=None,
-        message=ParsedChatCompletionMessage[object](
+        message=ParsedChatCompletionMessage(
             annotations=None,
             audio=None,
             content=None,
@@ -828,10 +838,10 @@ def test_parse_multiple_pydantic_tools(client: OpenAI, respx_mock: MockRouter, m
     )
 
 
-@pytest.mark.respx(base_url=base_url)
-def test_parse_strict_tools(client: OpenAI, respx_mock: MockRouter, monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.respx2(base_url=base_url)
+def test_parse_strict_tools(client: OpenAI, respx2_mock: MockRouter, monkeypatch: pytest.MonkeyPatch) -> None:
     listener = _make_stream_snapshot_request(
-        lambda c: c.beta.chat.completions.stream(
+        lambda c: c.chat.completions.stream(
             model="gpt-4o-2024-08-06",
             messages=[
                 {
@@ -863,17 +873,17 @@ def test_parse_strict_tools(client: OpenAI, respx_mock: MockRouter, monkeypatch:
         ),
         content_snapshot=snapshot(external("a247c49c5fcd*.bin")),
         mock_client=client,
-        respx_mock=respx_mock,
+        respx2_mock=respx2_mock,
     )
 
     assert print_obj(listener.stream.current_completion_snapshot.choices, monkeypatch) == snapshot(
         """\
 [
-    ParsedChoice[object](
+    ParsedChoice(
         finish_reason='tool_calls',
         index=0,
         logprobs=None,
-        message=ParsedChatCompletionMessage[object](
+        message=ParsedChatCompletionMessage(
             annotations=None,
             audio=None,
             content=None,
@@ -900,10 +910,10 @@ def test_parse_strict_tools(client: OpenAI, respx_mock: MockRouter, monkeypatch:
     )
 
 
-@pytest.mark.respx(base_url=base_url)
-def test_non_pydantic_response_format(client: OpenAI, respx_mock: MockRouter, monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.respx2(base_url=base_url)
+def test_non_pydantic_response_format(client: OpenAI, respx2_mock: MockRouter, monkeypatch: pytest.MonkeyPatch) -> None:
     listener = _make_stream_snapshot_request(
-        lambda c: c.beta.chat.completions.stream(
+        lambda c: c.chat.completions.stream(
             model="gpt-4o-2024-08-06",
             messages=[
                 {
@@ -915,17 +925,17 @@ def test_non_pydantic_response_format(client: OpenAI, respx_mock: MockRouter, mo
         ),
         content_snapshot=snapshot(external("d61558011839*.bin")),
         mock_client=client,
-        respx_mock=respx_mock,
+        respx2_mock=respx2_mock,
     )
 
     assert print_obj(listener.stream.get_final_completion().choices, monkeypatch) == snapshot(
         """\
 [
-    ParsedChoice[NoneType](
+    ParsedChoice(
         finish_reason='stop',
         index=0,
         logprobs=None,
-        message=ParsedChatCompletionMessage[NoneType](
+        message=ParsedChatCompletionMessage(
             annotations=None,
             audio=None,
             content='\\n  {\\n    "location": "San Francisco, CA",\\n    "weather": {\\n      "temperature": "18°C",\\n      
@@ -946,12 +956,12 @@ def test_non_pydantic_response_format(client: OpenAI, respx_mock: MockRouter, mo
     )
 
 
-@pytest.mark.respx(base_url=base_url)
+@pytest.mark.respx2(base_url=base_url)
 def test_allows_non_strict_tools_but_no_parsing(
-    client: OpenAI, respx_mock: MockRouter, monkeypatch: pytest.MonkeyPatch
+    client: OpenAI, respx2_mock: MockRouter, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     listener = _make_stream_snapshot_request(
-        lambda c: c.beta.chat.completions.stream(
+        lambda c: c.chat.completions.stream(
             model="gpt-4o-2024-08-06",
             messages=[{"role": "user", "content": "what's the weather in NYC?"}],
             tools=[
@@ -966,7 +976,7 @@ def test_allows_non_strict_tools_but_no_parsing(
         ),
         content_snapshot=snapshot(external("2018feb66ae1*.bin")),
         mock_client=client,
-        respx_mock=respx_mock,
+        respx2_mock=respx2_mock,
     )
 
     assert print_obj(listener.get_event_by_type("tool_calls.function.arguments.done"), monkeypatch) == snapshot("""\
@@ -982,11 +992,11 @@ FunctionToolCallArgumentsDoneEvent(
     assert print_obj(listener.stream.get_final_completion().choices, monkeypatch) == snapshot(
         """\
 [
-    ParsedChoice[NoneType](
+    ParsedChoice(
         finish_reason='tool_calls',
         index=0,
         logprobs=None,
-        message=ParsedChatCompletionMessage[NoneType](
+        message=ParsedChatCompletionMessage(
             annotations=None,
             audio=None,
             content=None,
@@ -1013,8 +1023,45 @@ FunctionToolCallArgumentsDoneEvent(
     )
 
 
-@pytest.mark.respx(base_url=base_url)
-def test_chat_completion_state_helper(client: OpenAI, respx_mock: MockRouter, monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.parametrize("padding", [("first-padding", "last-padding"), (None, "last-padding"), ("", "")])
+def test_stream_obfuscation_stays_on_raw_chunks(padding: tuple[str | None, str | None]) -> None:
+    state = ChatCompletionStreamState()
+    for index, value in enumerate(padding):
+        chunk = model_parse(
+            ChatCompletionChunk,
+            {
+                "id": "chatcmpl-test",
+                "object": "chat.completion.chunk",
+                "created": 0,
+                "model": "gpt-test",
+                **({"obfuscation": value} if value is not None else {}),
+                "choices": [
+                    {
+                        "index": 0,
+                        "delta": {"role": "assistant", "content": "Hello"} if index == 0 else {"content": " world"},
+                        "finish_reason": "stop" if index == 1 else None,
+                        "logprobs": None,
+                    }
+                ],
+            },
+        )
+        raw = chunk.to_dict()
+        events = list(state.handle_chunk(chunk))
+        event = next(event for event in events if event.type == "chunk")
+        assert event.chunk.to_dict() == raw
+        assert event.chunk.obfuscation == value
+        assert "obfuscation" not in event.snapshot.to_dict()
+        assert "obfuscation" not in state.current_completion_snapshot.to_dict()
+        assert chunk.to_dict() == raw
+
+    completion = state.get_final_completion()
+    assert completion.choices[0].message.content == "Hello world"
+    assert "obfuscation" not in completion.to_dict()
+    assert "obfuscation" not in completion.to_json()
+
+
+@pytest.mark.respx2(base_url=base_url)
+def test_chat_completion_state_helper(client: OpenAI, respx2_mock: MockRouter, monkeypatch: pytest.MonkeyPatch) -> None:
     state = ChatCompletionStreamState()
 
     def streamer(client: OpenAI) -> Iterator[ChatCompletionChunk]:
@@ -1036,17 +1083,17 @@ def test_chat_completion_state_helper(client: OpenAI, respx_mock: MockRouter, mo
         streamer,
         content_snapshot=snapshot(external("e2aad469b71d*.bin")),
         mock_client=client,
-        respx_mock=respx_mock,
+        respx2_mock=respx2_mock,
     )
 
     assert print_obj(state.get_final_completion().choices, monkeypatch) == snapshot(
         """\
 [
-    ParsedChoice[NoneType](
+    ParsedChoice(
         finish_reason='stop',
         index=0,
         logprobs=None,
-        message=ParsedChatCompletionMessage[NoneType](
+        message=ParsedChatCompletionMessage(
             annotations=None,
             audio=None,
             content="I'm unable to provide real-time weather updates. To get the current weather in San Francisco, I 
@@ -1069,7 +1116,7 @@ def test_stream_method_in_sync(sync: bool, client: OpenAI, async_client: AsyncOp
 
     assert_signatures_in_sync(
         checking_client.chat.completions.create,
-        checking_client.beta.chat.completions.stream,
+        checking_client.chat.completions.stream,
         exclude_params={"response_format", "stream"},
     )
 
@@ -1098,7 +1145,7 @@ def _make_stream_snapshot_request(
     func: Callable[[OpenAI], ChatCompletionStreamManager[ResponseFormatT]],
     *,
     content_snapshot: Any,
-    respx_mock: MockRouter,
+    respx2_mock: MockRouter,
     mock_client: OpenAI,
     on_event: Callable[[ChatCompletionStream[ResponseFormatT], ChatCompletionStreamEvent[ResponseFormatT]], Any]
     | None = None,
@@ -1106,24 +1153,24 @@ def _make_stream_snapshot_request(
     live = os.environ.get("OPENAI_LIVE") == "1"
     if live:
 
-        def _on_response(response: httpx.Response) -> None:
+        def _on_response(response: httpx2.Response) -> None:
             # update the content snapshot
             assert outsource(response.read()) == content_snapshot
 
-        respx_mock.stop()
+        respx2_mock.stop()
 
         client = OpenAI(
-            http_client=httpx.Client(
+            http_client=httpx2.Client(
                 event_hooks={
                     "response": [_on_response],
                 }
             )
         )
     else:
-        respx_mock.post("/chat/completions").mock(
-            return_value=httpx.Response(
+        respx2_mock.post("/chat/completions").mock(
+            return_value=httpx2.Response(
                 200,
-                content=content_snapshot._old_value._load_value(),
+                content=get_snapshot_value(content_snapshot),
                 headers={"content-type": "text/event-stream"},
             )
         )
@@ -1147,30 +1194,30 @@ def _make_raw_stream_snapshot_request(
     func: Callable[[OpenAI], Iterator[ChatCompletionChunk]],
     *,
     content_snapshot: Any,
-    respx_mock: MockRouter,
+    respx2_mock: MockRouter,
     mock_client: OpenAI,
 ) -> None:
     live = os.environ.get("OPENAI_LIVE") == "1"
     if live:
 
-        def _on_response(response: httpx.Response) -> None:
+        def _on_response(response: httpx2.Response) -> None:
             # update the content snapshot
             assert outsource(response.read()) == content_snapshot
 
-        respx_mock.stop()
+        respx2_mock.stop()
 
         client = OpenAI(
-            http_client=httpx.Client(
+            http_client=httpx2.Client(
                 event_hooks={
                     "response": [_on_response],
                 }
             )
         )
     else:
-        respx_mock.post("/chat/completions").mock(
-            return_value=httpx.Response(
+        respx2_mock.post("/chat/completions").mock(
+            return_value=httpx2.Response(
                 200,
-                content=content_snapshot._old_value._load_value(),
+                content=get_snapshot_value(content_snapshot),
                 headers={"content-type": "text/event-stream"},
             )
         )

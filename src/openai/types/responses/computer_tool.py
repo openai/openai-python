@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing_extensions import Literal
 
@@ -8,14 +8,10 @@ __all__ = ["ComputerTool"]
 
 
 class ComputerTool(BaseModel):
-    display_height: int
-    """The height of the computer display."""
+    """A tool that controls a virtual computer.
 
-    display_width: int
-    """The width of the computer display."""
+    Learn more about the [computer tool](https://developers.openai.com/api/docs/guides/tools-computer-use).
+    """
 
-    environment: Literal["windows", "mac", "linux", "ubuntu", "browser"]
-    """The type of computer environment to control."""
-
-    type: Literal["computer_use_preview"]
-    """The type of the computer use tool. Always `computer_use_preview`."""
+    type: Literal["computer"]
+    """The type of the computer tool. Always `computer`."""

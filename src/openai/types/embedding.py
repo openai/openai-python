@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import List
 from typing_extensions import Literal
@@ -9,11 +9,13 @@ __all__ = ["Embedding"]
 
 
 class Embedding(BaseModel):
+    """Represents an embedding vector returned by embedding endpoint."""
+
     embedding: List[float]
     """The embedding vector, which is a list of floats.
 
     The length of vector depends on the model as listed in the
-    [embedding guide](https://platform.openai.com/docs/guides/embeddings).
+    [embedding guide](https://developers.openai.com/api/docs/guides/embeddings).
     """
 
     index: int

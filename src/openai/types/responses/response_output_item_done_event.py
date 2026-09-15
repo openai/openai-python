@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing_extensions import Literal
 
@@ -9,6 +9,8 @@ __all__ = ["ResponseOutputItemDoneEvent"]
 
 
 class ResponseOutputItemDoneEvent(BaseModel):
+    """Emitted when an output item is marked done."""
+
     item: ResponseOutputItem
     """The output item that was marked done."""
 

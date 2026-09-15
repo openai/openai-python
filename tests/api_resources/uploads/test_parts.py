@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ class TestParts:
     def test_method_create(self, client: OpenAI) -> None:
         part = client.uploads.parts.create(
             upload_id="upload_abc123",
-            data=b"raw file contents",
+            data=b"Example data",
         )
         assert_matches_type(UploadPart, part, path=["response"])
 
@@ -29,7 +29,7 @@ class TestParts:
     def test_raw_response_create(self, client: OpenAI) -> None:
         response = client.uploads.parts.with_raw_response.create(
             upload_id="upload_abc123",
-            data=b"raw file contents",
+            data=b"Example data",
         )
 
         assert response.is_closed is True
@@ -41,7 +41,7 @@ class TestParts:
     def test_streaming_response_create(self, client: OpenAI) -> None:
         with client.uploads.parts.with_streaming_response.create(
             upload_id="upload_abc123",
-            data=b"raw file contents",
+            data=b"Example data",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -56,18 +56,20 @@ class TestParts:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `upload_id` but received ''"):
             client.uploads.parts.with_raw_response.create(
                 upload_id="",
-                data=b"raw file contents",
+                data=b"Example data",
             )
 
 
 class TestAsyncParts:
-    parametrize = pytest.mark.parametrize("async_client", [False, True], indirect=True, ids=["loose", "strict"])
+    parametrize = pytest.mark.parametrize(
+        "async_client", [False, True, {"http_client": "aiohttp"}], indirect=True, ids=["loose", "strict", "aiohttp"]
+    )
 
     @parametrize
     async def test_method_create(self, async_client: AsyncOpenAI) -> None:
         part = await async_client.uploads.parts.create(
             upload_id="upload_abc123",
-            data=b"raw file contents",
+            data=b"Example data",
         )
         assert_matches_type(UploadPart, part, path=["response"])
 
@@ -75,7 +77,7 @@ class TestAsyncParts:
     async def test_raw_response_create(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.uploads.parts.with_raw_response.create(
             upload_id="upload_abc123",
-            data=b"raw file contents",
+            data=b"Example data",
         )
 
         assert response.is_closed is True
@@ -87,7 +89,7 @@ class TestAsyncParts:
     async def test_streaming_response_create(self, async_client: AsyncOpenAI) -> None:
         async with async_client.uploads.parts.with_streaming_response.create(
             upload_id="upload_abc123",
-            data=b"raw file contents",
+            data=b"Example data",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -102,5 +104,5 @@ class TestAsyncParts:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `upload_id` but received ''"):
             await async_client.uploads.parts.with_raw_response.create(
                 upload_id="",
-                data=b"raw file contents",
+                data=b"Example data",
             )

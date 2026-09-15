@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -8,6 +8,10 @@ __all__ = ["StringCheckGraderParam"]
 
 
 class StringCheckGraderParam(TypedDict, total=False):
+    """
+    A StringCheckGrader object that performs a string comparison between input and reference using a specified operation.
+    """
+
     input: Required[str]
     """The input text. This may include template strings."""
 

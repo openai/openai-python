@@ -1,22 +1,26 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
-from typing import List, Union, Optional
+from typing import Union, Optional
 from typing_extensions import Literal, Required, TypedDict
 
-from .._types import FileTypes
+from .._types import FileTypes, SequenceNotStr
 from .image_model import ImageModel
 
-__all__ = ["ImageEditParams"]
+__all__ = ["ImageEditParamsBase", "ImageEditParamsNonStreaming", "ImageEditParamsStreaming"]
 
 
-class ImageEditParams(TypedDict, total=False):
-    image: Required[Union[FileTypes, List[FileTypes]]]
+class ImageEditParamsBase(TypedDict, total=False):
+    image: Required[Union[FileTypes, SequenceNotStr[FileTypes]]]
     """The image(s) to edit. Must be a supported image file or an array of images.
 
-    For `gpt-image-1`, each image should be a `png`, `webp`, or `jpg` file less than
-    25MB. You can provide up to 16 images.
+    For the GPT image models (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`,
+    `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
+    `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`,
+    `gpt-image-2.5-flare-2026-09-08`, and `chatgpt-image-latest`), each image should
+    be a `png`, `webp`, or `jpg` file less than 50MB. You can provide up to 16
+    images.
 
     For `dall-e-2`, you can only provide one image, and it should be a square `png`
     file less than 4MB.
@@ -26,18 +30,29 @@ class ImageEditParams(TypedDict, total=False):
     """A text description of the desired image(s).
 
     The maximum length is 1000 characters for `dall-e-2`, and 32000 characters for
-    `gpt-image-1`.
+    the GPT image models.
     """
 
     background: Optional[Literal["transparent", "opaque", "auto"]]
     """Allows to set transparency for the background of the generated image(s).
 
-    This parameter is only supported for `gpt-image-1`. Must be one of
-    `transparent`, `opaque` or `auto` (default value). When `auto` is used, the
-    model will automatically determine the best background for the image.
+    Must be one of `transparent`, `opaque`, or `auto` (default value). When `auto`
+    is used, the model will automatically determine the best background for the
+    image.
 
-    If `transparent`, the output format needs to support transparency, so it should
-    be set to either `png` (default value) or `webp`.
+    `gpt-image-2.5-sunburst` and `gpt-image-2.5-flare`, including their `2026-09-08`
+    snapshots, support `opaque` and `transparent` backgrounds. Transparent
+    backgrounds are available for supported GPT Image models. For `gpt-image-2` and
+    `gpt-image-2-2026-04-21`, this support is in preview. When using `transparent`,
+    set the output format to `png` or `webp`.
+    """
+
+    input_fidelity: Optional[Literal["high", "low"]]
+    """
+    Control how much effort the model will exert to match the style and features,
+    especially facial features, of input images. This parameter is only supported
+    for `gpt-image-1` and `gpt-image-1.5` and later models, unsupported for
+    `gpt-image-1-mini`. Supports `high` and `low`. Defaults to `low`.
     """
 
     mask: FileTypes
@@ -51,39 +66,101 @@ class ImageEditParams(TypedDict, total=False):
     model: Union[str, ImageModel, None]
     """The model to use for image generation.
 
-    Only `dall-e-2` and `gpt-image-1` are supported. Defaults to `dall-e-2` unless a
-    parameter specific to `gpt-image-1` is used.
+    One of `dall-e-2` or a GPT image model (`gpt-image-1`, `gpt-image-1-mini`,
+    `gpt-image-1.5`, `gpt-image-2`, `gpt-image-2-2026-04-21`,
+    `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`,
+    `gpt-image-2.5-flare`, `gpt-image-2.5-flare-2026-09-08`, or
+    `chatgpt-image-latest`). Defaults to `gpt-image-1.5`.
     """
 
     n: Optional[int]
     """The number of images to generate. Must be between 1 and 10."""
 
-    quality: Optional[Literal["standard", "low", "medium", "high", "auto"]]
-    """The quality of the image that will be generated.
+    output_compression: Optional[int]
+    """The compression level (0-100%) for the generated images.
 
-    `high`, `medium` and `low` are only supported for `gpt-image-1`. `dall-e-2` only
-    supports `standard` quality. Defaults to `auto`.
+    This parameter is only supported for the GPT image models with the `webp` or
+    `jpeg` output formats, and defaults to 100.
+    """
+
+    output_format: Optional[Literal["png", "jpeg", "webp"]]
+    """The format in which the generated images are returned.
+
+    This parameter is only supported for the GPT image models. Must be one of `png`,
+    `jpeg`, or `webp`. The default value is `png`.
+    """
+
+    partial_images: Optional[int]
+    """The number of partial images to generate.
+
+    This parameter is used for streaming responses that return partial images. Value
+    must be between 0 and 3. When set to 0, the response will be a single image sent
+    in one streaming event.
+
+    Note that the final image may be sent before the full number of partial images
+    are generated if the full image is generated more quickly.
+    """
+
+    quality: Optional[Literal["standard", "low", "medium", "high", "xhigh", "max", "auto"]]
+    """The quality of the image that will be generated for GPT image models.
+
+    The GPT image models support `low`, `medium`, and `high`.
+    `gpt-image-2.5-sunburst` and `gpt-image-2.5-flare`, including their `2026-09-08`
+    snapshots, also support `xhigh` and `max`. Defaults to `auto`.
     """
 
     response_format: Optional[Literal["url", "b64_json"]]
     """The format in which the generated images are returned.
 
     Must be one of `url` or `b64_json`. URLs are only valid for 60 minutes after the
-    image has been generated. This parameter is only supported for `dall-e-2`, as
-    `gpt-image-1` will always return base64-encoded images.
+    image has been generated. This parameter is only supported for `dall-e-2`
+    (default is `url` for `dall-e-2`), as GPT image models always return
+    base64-encoded images.
     """
 
-    size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]]
+    size: Union[str, Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"], None]
     """The size of the generated images.
 
-    Must be one of `1024x1024`, `1536x1024` (landscape), `1024x1536` (portrait), or
-    `auto` (default value) for `gpt-image-1`, and one of `256x256`, `512x512`, or
-    `1024x1024` for `dall-e-2`.
+    For `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`,
+    `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, and
+    `gpt-image-2.5-flare-2026-09-08`, arbitrary resolutions are supported as
+    `WIDTHxHEIGHT` strings, for example `1536x864`. Width and height must both be
+    divisible by 16 and the requested aspect ratio must be between 1:3 and 3:1.
+    Resolutions above `2560x1440` are experimental, and the maximum supported
+    resolution is `3840x2160`. The requested size must also satisfy the model's
+    current pixel and edge limits. The standard sizes `1024x1024`, `1536x1024`, and
+    `1024x1536` are supported by the GPT image models; `auto` is supported for
+    models that allow automatic sizing. For `dall-e-2`, use one of `256x256`,
+    `512x512`, or `1024x1024`. For `dall-e-3`, use one of `1024x1024`, `1792x1024`,
+    or `1024x1792`.
     """
 
     user: str
     """
     A unique identifier representing your end-user, which can help OpenAI to monitor
     and detect abuse.
-    [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
+    [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
     """
+
+
+class ImageEditParamsNonStreaming(ImageEditParamsBase, total=False):
+    stream: Optional[Literal[False]]
+    """Edit the image in streaming mode.
+
+    Defaults to `false`. See the
+    [Image generation guide](https://developers.openai.com/api/docs/guides/image-generation)
+    for more information.
+    """
+
+
+class ImageEditParamsStreaming(ImageEditParamsBase):
+    stream: Required[Literal[True]]
+    """Edit the image in streaming mode.
+
+    Defaults to `false`. See the
+    [Image generation guide](https://developers.openai.com/api/docs/guides/image-generation)
+    for more information.
+    """
+
+
+ImageEditParams = Union[ImageEditParamsNonStreaming, ImageEditParamsStreaming]

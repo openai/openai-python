@@ -1,16 +1,16 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 from typing import Iterable, Optional
 from typing_extensions import Literal
 
-import httpx
+import httpx2
 
 from ... import _legacy_response
 from ...types import eval_list_params, eval_create_params, eval_update_params
-from ..._types import NOT_GIVEN, Body, Query, Headers, NotGiven
-from ..._utils import maybe_transform, async_maybe_transform
+from ..._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
+from ..._utils import path_template, maybe_transform, async_maybe_transform
 from ..._compat import cached_property
 from .runs.runs import (
     Runs,
@@ -35,8 +35,11 @@ __all__ = ["Evals", "AsyncEvals"]
 
 
 class Evals(SyncAPIResource):
+    """Manage and run evals in the OpenAI platform."""
+
     @cached_property
     def runs(self) -> Runs:
+        """Manage and run evals in the OpenAI platform."""
         return Runs(self._client)
 
     @cached_property
@@ -63,14 +66,14 @@ class Evals(SyncAPIResource):
         *,
         data_source_config: eval_create_params.DataSourceConfig,
         testing_criteria: Iterable[eval_create_params.TestingCriterion],
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        name: str | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | Omit = omit,
+        name: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> EvalCreateResponse:
         """
         Create the structure of an evaluation that can be used to test a model's
@@ -78,7 +81,7 @@ class Evals(SyncAPIResource):
         data source, which dictates the schema of the data used in the evaluation. After
         creating an evaluation, you can run it on different models and model parameters.
         We support several types of graders and datasources. For more information, see
-        the [Evals guide](https://platform.openai.com/docs/guides/evals).
+        the [Evals guide](https://developers.openai.com/api/docs/guides/evals).
 
         Args:
           data_source_config: The configuration for the data source used for the evaluation runs. Dictates the
@@ -118,7 +121,11 @@ class Evals(SyncAPIResource):
                 eval_create_params.EvalCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=EvalCreateResponse,
         )
@@ -132,7 +139,7 @@ class Evals(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> EvalRetrieveResponse:
         """
         Get an evaluation by ID.
@@ -149,9 +156,13 @@ class Evals(SyncAPIResource):
         if not eval_id:
             raise ValueError(f"Expected a non-empty value for `eval_id` but received {eval_id!r}")
         return self._get(
-            f"/evals/{eval_id}",
+            path_template("/evals/{eval_id}", eval_id=eval_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=EvalRetrieveResponse,
         )
@@ -160,14 +171,14 @@ class Evals(SyncAPIResource):
         self,
         eval_id: str,
         *,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        name: str | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | Omit = omit,
+        name: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> EvalUpdateResponse:
         """
         Update certain properties of an evaluation.
@@ -193,7 +204,7 @@ class Evals(SyncAPIResource):
         if not eval_id:
             raise ValueError(f"Expected a non-empty value for `eval_id` but received {eval_id!r}")
         return self._post(
-            f"/evals/{eval_id}",
+            path_template("/evals/{eval_id}", eval_id=eval_id),
             body=maybe_transform(
                 {
                     "metadata": metadata,
@@ -202,7 +213,11 @@ class Evals(SyncAPIResource):
                 eval_update_params.EvalUpdateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=EvalUpdateResponse,
         )
@@ -210,16 +225,16 @@ class Evals(SyncAPIResource):
     def list(
         self,
         *,
-        after: str | NotGiven = NOT_GIVEN,
-        limit: int | NotGiven = NOT_GIVEN,
-        order: Literal["asc", "desc"] | NotGiven = NOT_GIVEN,
-        order_by: Literal["created_at", "updated_at"] | NotGiven = NOT_GIVEN,
+        after: str | Omit = omit,
+        limit: int | Omit = omit,
+        order: Literal["asc", "desc"] | Omit = omit,
+        order_by: Literal["created_at", "updated_at"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncCursorPage[EvalListResponse]:
         """
         List evaluations for a project.
@@ -260,6 +275,7 @@ class Evals(SyncAPIResource):
                     },
                     eval_list_params.EvalListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=EvalListResponse,
         )
@@ -273,7 +289,7 @@ class Evals(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> EvalDeleteResponse:
         """
         Delete an evaluation.
@@ -290,17 +306,24 @@ class Evals(SyncAPIResource):
         if not eval_id:
             raise ValueError(f"Expected a non-empty value for `eval_id` but received {eval_id!r}")
         return self._delete(
-            f"/evals/{eval_id}",
+            path_template("/evals/{eval_id}", eval_id=eval_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=EvalDeleteResponse,
         )
 
 
 class AsyncEvals(AsyncAPIResource):
+    """Manage and run evals in the OpenAI platform."""
+
     @cached_property
     def runs(self) -> AsyncRuns:
+        """Manage and run evals in the OpenAI platform."""
         return AsyncRuns(self._client)
 
     @cached_property
@@ -327,14 +350,14 @@ class AsyncEvals(AsyncAPIResource):
         *,
         data_source_config: eval_create_params.DataSourceConfig,
         testing_criteria: Iterable[eval_create_params.TestingCriterion],
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        name: str | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | Omit = omit,
+        name: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> EvalCreateResponse:
         """
         Create the structure of an evaluation that can be used to test a model's
@@ -342,7 +365,7 @@ class AsyncEvals(AsyncAPIResource):
         data source, which dictates the schema of the data used in the evaluation. After
         creating an evaluation, you can run it on different models and model parameters.
         We support several types of graders and datasources. For more information, see
-        the [Evals guide](https://platform.openai.com/docs/guides/evals).
+        the [Evals guide](https://developers.openai.com/api/docs/guides/evals).
 
         Args:
           data_source_config: The configuration for the data source used for the evaluation runs. Dictates the
@@ -382,7 +405,11 @@ class AsyncEvals(AsyncAPIResource):
                 eval_create_params.EvalCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=EvalCreateResponse,
         )
@@ -396,7 +423,7 @@ class AsyncEvals(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> EvalRetrieveResponse:
         """
         Get an evaluation by ID.
@@ -413,9 +440,13 @@ class AsyncEvals(AsyncAPIResource):
         if not eval_id:
             raise ValueError(f"Expected a non-empty value for `eval_id` but received {eval_id!r}")
         return await self._get(
-            f"/evals/{eval_id}",
+            path_template("/evals/{eval_id}", eval_id=eval_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=EvalRetrieveResponse,
         )
@@ -424,14 +455,14 @@ class AsyncEvals(AsyncAPIResource):
         self,
         eval_id: str,
         *,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        name: str | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | Omit = omit,
+        name: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> EvalUpdateResponse:
         """
         Update certain properties of an evaluation.
@@ -457,7 +488,7 @@ class AsyncEvals(AsyncAPIResource):
         if not eval_id:
             raise ValueError(f"Expected a non-empty value for `eval_id` but received {eval_id!r}")
         return await self._post(
-            f"/evals/{eval_id}",
+            path_template("/evals/{eval_id}", eval_id=eval_id),
             body=await async_maybe_transform(
                 {
                     "metadata": metadata,
@@ -466,7 +497,11 @@ class AsyncEvals(AsyncAPIResource):
                 eval_update_params.EvalUpdateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=EvalUpdateResponse,
         )
@@ -474,16 +509,16 @@ class AsyncEvals(AsyncAPIResource):
     def list(
         self,
         *,
-        after: str | NotGiven = NOT_GIVEN,
-        limit: int | NotGiven = NOT_GIVEN,
-        order: Literal["asc", "desc"] | NotGiven = NOT_GIVEN,
-        order_by: Literal["created_at", "updated_at"] | NotGiven = NOT_GIVEN,
+        after: str | Omit = omit,
+        limit: int | Omit = omit,
+        order: Literal["asc", "desc"] | Omit = omit,
+        order_by: Literal["created_at", "updated_at"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[EvalListResponse, AsyncCursorPage[EvalListResponse]]:
         """
         List evaluations for a project.
@@ -524,6 +559,7 @@ class AsyncEvals(AsyncAPIResource):
                     },
                     eval_list_params.EvalListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=EvalListResponse,
         )
@@ -537,7 +573,7 @@ class AsyncEvals(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> EvalDeleteResponse:
         """
         Delete an evaluation.
@@ -554,9 +590,13 @@ class AsyncEvals(AsyncAPIResource):
         if not eval_id:
             raise ValueError(f"Expected a non-empty value for `eval_id` but received {eval_id!r}")
         return await self._delete(
-            f"/evals/{eval_id}",
+            path_template("/evals/{eval_id}", eval_id=eval_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=EvalDeleteResponse,
         )
@@ -584,6 +624,7 @@ class EvalsWithRawResponse:
 
     @cached_property
     def runs(self) -> RunsWithRawResponse:
+        """Manage and run evals in the OpenAI platform."""
         return RunsWithRawResponse(self._evals.runs)
 
 
@@ -609,6 +650,7 @@ class AsyncEvalsWithRawResponse:
 
     @cached_property
     def runs(self) -> AsyncRunsWithRawResponse:
+        """Manage and run evals in the OpenAI platform."""
         return AsyncRunsWithRawResponse(self._evals.runs)
 
 
@@ -634,6 +676,7 @@ class EvalsWithStreamingResponse:
 
     @cached_property
     def runs(self) -> RunsWithStreamingResponse:
+        """Manage and run evals in the OpenAI platform."""
         return RunsWithStreamingResponse(self._evals.runs)
 
 
@@ -659,4 +702,5 @@ class AsyncEvalsWithStreamingResponse:
 
     @cached_property
     def runs(self) -> AsyncRunsWithStreamingResponse:
+        """Manage and run evals in the OpenAI platform."""
         return AsyncRunsWithStreamingResponse(self._evals.runs)

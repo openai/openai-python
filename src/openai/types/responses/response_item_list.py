@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import List
 from typing_extensions import Literal
@@ -10,6 +10,8 @@ __all__ = ["ResponseItemList"]
 
 
 class ResponseItemList(BaseModel):
+    """A list of Response items."""
+
     data: List[ResponseItem]
     """A list of items used to generate this response."""
 

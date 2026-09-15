@@ -1,18 +1,39 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
-
 from __future__ import annotations
 
 from typing import List, Union, Iterable
-from typing_extensions import Literal, Required, TypedDict
+from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 __all__ = [
     "SessionUpdateEventParam",
     "Session",
+    "SessionClientSecret",
+    "SessionClientSecretExpiresAfter",
     "SessionInputAudioNoiseReduction",
     "SessionInputAudioTranscription",
     "SessionTool",
+    "SessionTracing",
+    "SessionTracingTracingConfiguration",
     "SessionTurnDetection",
 ]
+
+
+class SessionClientSecretExpiresAfter(TypedDict, total=False):
+    anchor: Required[Literal["created_at"]]
+    """The anchor point for the ephemeral token expiration.
+
+    Only `created_at` is currently supported.
+    """
+
+    seconds: int
+    """The number of seconds from the anchor point to the expiration.
+
+    Select a value between `10` and `7200`.
+    """
+
+
+class SessionClientSecret(TypedDict, total=False):
+    expires_after: SessionClientSecretExpiresAfter
+    """Configuration for the ephemeral token expiration."""
 
 
 class SessionInputAudioNoiseReduction(TypedDict, total=False):
@@ -66,6 +87,29 @@ class SessionTool(TypedDict, total=False):
     """The type of the tool, i.e. `function`."""
 
 
+class SessionTracingTracingConfiguration(TypedDict, total=False):
+    group_id: str
+    """
+    The group id to attach to this trace to enable filtering and grouping in the
+    traces dashboard.
+    """
+
+    metadata: object
+    """
+    The arbitrary metadata to attach to this trace to enable filtering in the traces
+    dashboard.
+    """
+
+    workflow_name: str
+    """The name of the workflow to attach to this trace.
+
+    This is used to name the trace in the traces dashboard.
+    """
+
+
+SessionTracing: TypeAlias = Union[Literal["auto"], SessionTracingTracingConfiguration]
+
+
 class SessionTurnDetection(TypedDict, total=False):
     create_response: bool
     """
@@ -116,6 +160,9 @@ class SessionTurnDetection(TypedDict, total=False):
 
 
 class Session(TypedDict, total=False):
+    client_secret: SessionClientSecret
+    """Configuration options for the generated client secret."""
+
     input_audio_format: Literal["pcm16", "g711_ulaw", "g711_alaw"]
     """The format of input audio.
 
@@ -175,9 +222,12 @@ class Session(TypedDict, total=False):
     """
 
     model: Literal[
+        "gpt-realtime",
+        "gpt-realtime-2025-08-28",
         "gpt-4o-realtime-preview",
         "gpt-4o-realtime-preview-2024-10-01",
         "gpt-4o-realtime-preview-2024-12-17",
+        "gpt-4o-realtime-preview-2025-06-03",
         "gpt-4o-mini-realtime-preview",
         "gpt-4o-mini-realtime-preview-2024-12-17",
     ]
@@ -188,6 +238,14 @@ class Session(TypedDict, total=False):
 
     Options are `pcm16`, `g711_ulaw`, or `g711_alaw`. For `pcm16`, output audio is
     sampled at a rate of 24kHz.
+    """
+
+    speed: float
+    """The speed of the model's spoken response.
+
+    1.0 is the default speed. 0.25 is the minimum speed. 1.5 is the maximum speed.
+    This value can only be changed in between model turns, not while a response is
+    in progress.
     """
 
     temperature: float
@@ -206,13 +264,23 @@ class Session(TypedDict, total=False):
     tools: Iterable[SessionTool]
     """Tools (functions) available to the model."""
 
+    tracing: SessionTracing
+    """Configuration options for tracing.
+
+    Set to null to disable tracing. Once tracing is enabled for a session, the
+    configuration cannot be modified.
+
+    `auto` will create a trace for the session with default values for the workflow
+    name, group id, and metadata.
+    """
+
     turn_detection: SessionTurnDetection
     """Configuration for turn detection, ether Server VAD or Semantic VAD.
 
     This can be set to `null` to turn off, in which case the client must manually
     trigger model response. Server VAD means that the model will detect the start
     and end of speech based on audio volume and respond at the end of user speech.
-    Semantic VAD is more advanced and uses a turn detection model (in conjuction
+    Semantic VAD is more advanced and uses a turn detection model (in conjunction
     with VAD) to semantically estimate whether the user has finished speaking, then
     dynamically sets a timeout based on this probability. For example, if user audio
     trails off with "uhhm", the model will score a low probability of turn end and
@@ -220,14 +288,12 @@ class Session(TypedDict, total=False):
     natural conversations, but may have a higher latency.
     """
 
-    voice: Union[
-        str, Literal["alloy", "ash", "ballad", "coral", "echo", "fable", "onyx", "nova", "sage", "shimmer", "verse"]
-    ]
+    voice: Union[str, Literal["alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse"]]
     """The voice the model uses to respond.
 
     Voice cannot be changed during the session once the model has responded with
     audio at least once. Current voice options are `alloy`, `ash`, `ballad`,
-    `coral`, `echo`, `fable`, `onyx`, `nova`, `sage`, `shimmer`, and `verse`.
+    `coral`, `echo`, `sage`, `shimmer`, and `verse`.
     """
 
 
