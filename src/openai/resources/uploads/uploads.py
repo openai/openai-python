@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from typing import overload
 from pathlib import Path
 
 import anyio
-import httpx
+import httpx2
 
 from ... import _legacy_response
 from .parts import (
@@ -23,7 +23,7 @@ from .parts import (
 )
 from ...types import FilePurpose, upload_create_params, upload_complete_params
 from ..._types import Body, Omit, Query, Headers, NotGiven, SequenceNotStr, omit, not_given
-from ..._utils import maybe_transform, async_maybe_transform
+from ..._utils import path_template, maybe_transform, async_maybe_transform
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -41,8 +41,11 @@ log: logging.Logger = logging.getLogger(__name__)
 
 
 class Uploads(SyncAPIResource):
+    """Use Uploads to upload large files in multiple parts."""
+
     @cached_property
     def parts(self) -> Parts:
+        """Use Uploads to upload large files in multiple parts."""
         return Parts(self._client)
 
     @cached_property
@@ -175,28 +178,30 @@ class Uploads(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Upload:
         """
         Creates an intermediate
-        [Upload](https://platform.openai.com/docs/api-reference/uploads/object) object
+        [Upload](https://developers.openai.com/api/reference/resources/uploads) object
         that you can add
-        [Parts](https://platform.openai.com/docs/api-reference/uploads/part-object) to.
-        Currently, an Upload can accept at most 8 GB in total and expires after an hour
-        after you create it.
+        [Parts](https://developers.openai.com/api/reference/resources/uploads/subresources/parts)
+        to. Currently, an Upload can accept at most 8 GB in total and expires after an
+        hour after you create it.
 
         Once you complete the Upload, we will create a
-        [File](https://platform.openai.com/docs/api-reference/files/object) object that
+        [File](https://developers.openai.com/api/reference/resources/files) object that
         contains all the parts you uploaded. This File is usable in the rest of our
         platform as a regular File object.
 
         For certain `purpose` values, the correct `mime_type` must be specified. Please
         refer to documentation for the
-        [supported MIME types for your use case](https://platform.openai.com/docs/assistants/tools/file-search#supported-files).
+        [supported MIME types for your use case](https://developers.openai.com/api/docs/guides/tools-file-search#supported-files).
 
         For guidance on the proper filename extensions for each purpose, please follow
         the documentation on
-        [creating a File](https://platform.openai.com/docs/api-reference/files/create).
+        [creating a File](https://developers.openai.com/api/reference/resources/files/methods/create).
+
+        Returns the Upload object with status `pending`.
 
         Args:
           bytes: The number of bytes in the file you are uploading.
@@ -211,7 +216,7 @@ class Uploads(SyncAPIResource):
           purpose: The intended purpose of the uploaded file.
 
               See the
-              [documentation on File purposes](https://platform.openai.com/docs/api-reference/files/create#files-create-purpose).
+              [documentation on File purposes](https://developers.openai.com/api/reference/resources/files/methods/create#%28resource%29%20files%20%3E%20%28method%29%20create%20%3E%20%28params%29%200%20%3E%20%28param%29%20purpose%20%3E%20%28schema%29).
 
           expires_after: The expiration policy for a file. By default, files with `purpose=batch` expire
               after 30 days and all other files are persisted until they are manually deleted.
@@ -237,7 +242,11 @@ class Uploads(SyncAPIResource):
                 upload_create_params.UploadCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Upload,
         )
@@ -251,11 +260,13 @@ class Uploads(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Upload:
         """Cancels the Upload.
 
         No Parts may be added after an Upload is cancelled.
+
+        Returns the Upload object with status `cancelled`.
 
         Args:
           extra_headers: Send extra headers
@@ -269,9 +280,13 @@ class Uploads(SyncAPIResource):
         if not upload_id:
             raise ValueError(f"Expected a non-empty value for `upload_id` but received {upload_id!r}")
         return self._post(
-            f"/uploads/{upload_id}/cancel",
+            path_template("/uploads/{upload_id}/cancel", upload_id=upload_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Upload,
         )
@@ -287,14 +302,14 @@ class Uploads(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Upload:
         """
         Completes the
-        [Upload](https://platform.openai.com/docs/api-reference/uploads/object).
+        [Upload](https://developers.openai.com/api/reference/resources/uploads).
 
         Within the returned Upload object, there is a nested
-        [File](https://platform.openai.com/docs/api-reference/files/object) object that
+        [File](https://developers.openai.com/api/reference/resources/files) object that
         is ready to use in the rest of the platform.
 
         You can specify the order of the Parts by passing in an ordered list of the Part
@@ -302,7 +317,9 @@ class Uploads(SyncAPIResource):
 
         The number of bytes uploaded upon completion must match the number of bytes
         initially specified when creating the Upload object. No Parts may be added after
-        an Upload is completed.
+        an Upload is completed. Returns the Upload object with status `completed`,
+        including an additional `file` property containing the created usable File
+        object.
 
         Args:
           part_ids: The ordered list of Part IDs.
@@ -321,7 +338,7 @@ class Uploads(SyncAPIResource):
         if not upload_id:
             raise ValueError(f"Expected a non-empty value for `upload_id` but received {upload_id!r}")
         return self._post(
-            f"/uploads/{upload_id}/complete",
+            path_template("/uploads/{upload_id}/complete", upload_id=upload_id),
             body=maybe_transform(
                 {
                     "part_ids": part_ids,
@@ -330,15 +347,22 @@ class Uploads(SyncAPIResource):
                 upload_complete_params.UploadCompleteParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Upload,
         )
 
 
 class AsyncUploads(AsyncAPIResource):
+    """Use Uploads to upload large files in multiple parts."""
+
     @cached_property
     def parts(self) -> AsyncParts:
+        """Use Uploads to upload large files in multiple parts."""
         return AsyncParts(self._client)
 
     @cached_property
@@ -482,28 +506,30 @@ class AsyncUploads(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Upload:
         """
         Creates an intermediate
-        [Upload](https://platform.openai.com/docs/api-reference/uploads/object) object
+        [Upload](https://developers.openai.com/api/reference/resources/uploads) object
         that you can add
-        [Parts](https://platform.openai.com/docs/api-reference/uploads/part-object) to.
-        Currently, an Upload can accept at most 8 GB in total and expires after an hour
-        after you create it.
+        [Parts](https://developers.openai.com/api/reference/resources/uploads/subresources/parts)
+        to. Currently, an Upload can accept at most 8 GB in total and expires after an
+        hour after you create it.
 
         Once you complete the Upload, we will create a
-        [File](https://platform.openai.com/docs/api-reference/files/object) object that
+        [File](https://developers.openai.com/api/reference/resources/files) object that
         contains all the parts you uploaded. This File is usable in the rest of our
         platform as a regular File object.
 
         For certain `purpose` values, the correct `mime_type` must be specified. Please
         refer to documentation for the
-        [supported MIME types for your use case](https://platform.openai.com/docs/assistants/tools/file-search#supported-files).
+        [supported MIME types for your use case](https://developers.openai.com/api/docs/guides/tools-file-search#supported-files).
 
         For guidance on the proper filename extensions for each purpose, please follow
         the documentation on
-        [creating a File](https://platform.openai.com/docs/api-reference/files/create).
+        [creating a File](https://developers.openai.com/api/reference/resources/files/methods/create).
+
+        Returns the Upload object with status `pending`.
 
         Args:
           bytes: The number of bytes in the file you are uploading.
@@ -518,7 +544,7 @@ class AsyncUploads(AsyncAPIResource):
           purpose: The intended purpose of the uploaded file.
 
               See the
-              [documentation on File purposes](https://platform.openai.com/docs/api-reference/files/create#files-create-purpose).
+              [documentation on File purposes](https://developers.openai.com/api/reference/resources/files/methods/create#%28resource%29%20files%20%3E%20%28method%29%20create%20%3E%20%28params%29%200%20%3E%20%28param%29%20purpose%20%3E%20%28schema%29).
 
           expires_after: The expiration policy for a file. By default, files with `purpose=batch` expire
               after 30 days and all other files are persisted until they are manually deleted.
@@ -544,7 +570,11 @@ class AsyncUploads(AsyncAPIResource):
                 upload_create_params.UploadCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Upload,
         )
@@ -558,11 +588,13 @@ class AsyncUploads(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Upload:
         """Cancels the Upload.
 
         No Parts may be added after an Upload is cancelled.
+
+        Returns the Upload object with status `cancelled`.
 
         Args:
           extra_headers: Send extra headers
@@ -576,9 +608,13 @@ class AsyncUploads(AsyncAPIResource):
         if not upload_id:
             raise ValueError(f"Expected a non-empty value for `upload_id` but received {upload_id!r}")
         return await self._post(
-            f"/uploads/{upload_id}/cancel",
+            path_template("/uploads/{upload_id}/cancel", upload_id=upload_id),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Upload,
         )
@@ -594,14 +630,14 @@ class AsyncUploads(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Upload:
         """
         Completes the
-        [Upload](https://platform.openai.com/docs/api-reference/uploads/object).
+        [Upload](https://developers.openai.com/api/reference/resources/uploads).
 
         Within the returned Upload object, there is a nested
-        [File](https://platform.openai.com/docs/api-reference/files/object) object that
+        [File](https://developers.openai.com/api/reference/resources/files) object that
         is ready to use in the rest of the platform.
 
         You can specify the order of the Parts by passing in an ordered list of the Part
@@ -609,7 +645,9 @@ class AsyncUploads(AsyncAPIResource):
 
         The number of bytes uploaded upon completion must match the number of bytes
         initially specified when creating the Upload object. No Parts may be added after
-        an Upload is completed.
+        an Upload is completed. Returns the Upload object with status `completed`,
+        including an additional `file` property containing the created usable File
+        object.
 
         Args:
           part_ids: The ordered list of Part IDs.
@@ -628,7 +666,7 @@ class AsyncUploads(AsyncAPIResource):
         if not upload_id:
             raise ValueError(f"Expected a non-empty value for `upload_id` but received {upload_id!r}")
         return await self._post(
-            f"/uploads/{upload_id}/complete",
+            path_template("/uploads/{upload_id}/complete", upload_id=upload_id),
             body=await async_maybe_transform(
                 {
                     "part_ids": part_ids,
@@ -637,7 +675,11 @@ class AsyncUploads(AsyncAPIResource):
                 upload_complete_params.UploadCompleteParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Upload,
         )
@@ -659,6 +701,7 @@ class UploadsWithRawResponse:
 
     @cached_property
     def parts(self) -> PartsWithRawResponse:
+        """Use Uploads to upload large files in multiple parts."""
         return PartsWithRawResponse(self._uploads.parts)
 
 
@@ -678,6 +721,7 @@ class AsyncUploadsWithRawResponse:
 
     @cached_property
     def parts(self) -> AsyncPartsWithRawResponse:
+        """Use Uploads to upload large files in multiple parts."""
         return AsyncPartsWithRawResponse(self._uploads.parts)
 
 
@@ -697,6 +741,7 @@ class UploadsWithStreamingResponse:
 
     @cached_property
     def parts(self) -> PartsWithStreamingResponse:
+        """Use Uploads to upload large files in multiple parts."""
         return PartsWithStreamingResponse(self._uploads.parts)
 
 
@@ -716,4 +761,5 @@ class AsyncUploadsWithStreamingResponse:
 
     @cached_property
     def parts(self) -> AsyncPartsWithStreamingResponse:
+        """Use Uploads to upload large files in multiple parts."""
         return AsyncPartsWithStreamingResponse(self._uploads.parts)

@@ -1,8 +1,8 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
-import httpx
+import httpx2
 
 from ... import _legacy_response
 from ..._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
@@ -47,10 +47,24 @@ class ClientSecrets(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ClientSecretCreateResponse:
         """
         Create a Realtime client secret with an associated session configuration.
+
+        Client secrets are short-lived tokens that can be passed to a client app, such
+        as a web frontend or mobile client, which grants access to the Realtime API
+        without leaking your main API key. You can configure a custom TTL for each
+        client secret.
+
+        You can also attach session configuration options to the client secret, which
+        will be applied to any sessions created using that client secret, but these can
+        also be overridden by the client connection.
+
+        [Learn more about authentication with client secrets over WebRTC](https://developers.openai.com/api/docs/guides/realtime-webrtc).
+
+        Returns the created client secret and the effective session object. The client
+        secret is a string that looks like `ek_1234`.
 
         Args:
           expires_after: Configuration for the client secret expiration. Expiration refers to the time
@@ -79,7 +93,11 @@ class ClientSecrets(SyncAPIResource):
                 client_secret_create_params.ClientSecretCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ClientSecretCreateResponse,
         )
@@ -115,10 +133,24 @@ class AsyncClientSecrets(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ClientSecretCreateResponse:
         """
         Create a Realtime client secret with an associated session configuration.
+
+        Client secrets are short-lived tokens that can be passed to a client app, such
+        as a web frontend or mobile client, which grants access to the Realtime API
+        without leaking your main API key. You can configure a custom TTL for each
+        client secret.
+
+        You can also attach session configuration options to the client secret, which
+        will be applied to any sessions created using that client secret, but these can
+        also be overridden by the client connection.
+
+        [Learn more about authentication with client secrets over WebRTC](https://developers.openai.com/api/docs/guides/realtime-webrtc).
+
+        Returns the created client secret and the effective session object. The client
+        secret is a string that looks like `ek_1234`.
 
         Args:
           expires_after: Configuration for the client secret expiration. Expiration refers to the time
@@ -147,7 +179,11 @@ class AsyncClientSecrets(AsyncAPIResource):
                 client_secret_create_params.ClientSecretCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ClientSecretCreateResponse,
         )

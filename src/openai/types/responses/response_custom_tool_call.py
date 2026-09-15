@@ -1,11 +1,28 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
-from typing import Optional
-from typing_extensions import Literal
+from typing import Union, Optional
+from typing_extensions import Literal, Annotated, TypeAlias
 
+from pydantic import Field as FieldInfo
+
+from ..._utils import PropertyInfo
 from ..._models import BaseModel
 
-__all__ = ["ResponseCustomToolCall"]
+__all__ = ["ResponseCustomToolCall", "Caller", "CallerDirect", "CallerProgram"]
+
+
+class CallerDirect(BaseModel):
+    type: Literal["direct"]
+
+
+class CallerProgram(BaseModel):
+    caller_id: str
+    """The call ID of the program item that produced this tool call."""
+
+    type: Literal["program"]
+
+
+Caller: TypeAlias = Annotated[Union[CallerDirect, CallerProgram, None], PropertyInfo(discriminator="type")]
 
 
 class ResponseCustomToolCall(BaseModel):
@@ -25,3 +42,12 @@ class ResponseCustomToolCall(BaseModel):
 
     id: Optional[str] = None
     """The unique ID of the custom tool call in the OpenAI platform."""
+
+    async_: Optional[bool] = FieldInfo(alias="async", default=None)
+    """Whether the custom tool call runs asynchronously."""
+
+    caller: Optional[Caller] = None
+    """The execution context that produced this tool call."""
+
+    namespace: Optional[str] = None
+    """The namespace of the custom tool being called."""

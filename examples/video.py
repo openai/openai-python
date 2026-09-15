@@ -8,7 +8,7 @@ client = AsyncOpenAI()
 
 
 async def main() -> None:
-    video = await client.videos.create_and_poll(
+    video = await client.videos.create_and_poll(  # pyright: ignore[reportDeprecated]
         model="sora-2",
         prompt="A video of the words 'Thank you' in sparkling letters",
     )

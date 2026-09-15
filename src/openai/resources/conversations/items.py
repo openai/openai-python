@@ -1,15 +1,15 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 from typing import Any, List, Iterable, cast
 from typing_extensions import Literal
 
-import httpx
+import httpx2
 
 from ... import _legacy_response
 from ..._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
-from ..._utils import maybe_transform, async_maybe_transform
+from ..._utils import path_template, maybe_transform, async_maybe_transform
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -26,6 +26,8 @@ __all__ = ["Items", "AsyncItems"]
 
 
 class Items(SyncAPIResource):
+    """Manage conversations and conversation items."""
+
     @cached_property
     def with_raw_response(self) -> ItemsWithRawResponse:
         """
@@ -56,7 +58,7 @@ class Items(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ConversationItemList:
         """
         Create items in a conversation with the given ID.
@@ -65,7 +67,7 @@ class Items(SyncAPIResource):
           items: The items to add to the conversation. You may add up to 20 items at a time.
 
           include: Additional fields to include in the response. See the `include` parameter for
-              [listing Conversation items above](https://platform.openai.com/docs/api-reference/conversations/list-items#conversations_list_items-include)
+              [listing Conversation items above](https://developers.openai.com/api/reference/resources/conversations/subresources/items/methods/list#%28resource%29%20conversations.items%20%3E%20%28method%29%20list%20%3E%20%28params%29%20default%20%3E%20%28param%29%20include%20%3E%20%28schema%29)
               for more information.
 
           extra_headers: Send extra headers
@@ -79,7 +81,7 @@ class Items(SyncAPIResource):
         if not conversation_id:
             raise ValueError(f"Expected a non-empty value for `conversation_id` but received {conversation_id!r}")
         return self._post(
-            f"/conversations/{conversation_id}/items",
+            path_template("/conversations/{conversation_id}/items", conversation_id=conversation_id),
             body=maybe_transform({"items": items}, item_create_params.ItemCreateParams),
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -87,6 +89,7 @@ class Items(SyncAPIResource):
                 extra_body=extra_body,
                 timeout=timeout,
                 query=maybe_transform({"include": include}, item_create_params.ItemCreateParams),
+                security={"bearer_auth": True},
             ),
             cast_to=ConversationItemList,
         )
@@ -102,14 +105,14 @@ class Items(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ConversationItem:
         """
         Get a single item from a conversation with the given IDs.
 
         Args:
           include: Additional fields to include in the response. See the `include` parameter for
-              [listing Conversation items above](https://platform.openai.com/docs/api-reference/conversations/list-items#conversations_list_items-include)
+              [listing Conversation items above](https://developers.openai.com/api/reference/resources/conversations/subresources/items/methods/list#%28resource%29%20conversations.items%20%3E%20%28method%29%20list%20%3E%20%28params%29%20default%20%3E%20%28param%29%20include%20%3E%20%28schema%29)
               for more information.
 
           extra_headers: Send extra headers
@@ -127,13 +130,16 @@ class Items(SyncAPIResource):
         return cast(
             ConversationItem,
             self._get(
-                f"/conversations/{conversation_id}/items/{item_id}",
+                path_template(
+                    "/conversations/{conversation_id}/items/{item_id}", conversation_id=conversation_id, item_id=item_id
+                ),
                 options=make_request_options(
                     extra_headers=extra_headers,
                     extra_query=extra_query,
                     extra_body=extra_body,
                     timeout=timeout,
                     query=maybe_transform({"include": include}, item_retrieve_params.ItemRetrieveParams),
+                    security={"bearer_auth": True},
                 ),
                 cast_to=cast(Any, ConversationItem),  # Union types cannot be passed in as arguments in the type system
             ),
@@ -152,7 +158,7 @@ class Items(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncConversationCursorPage[ConversationItem]:
         """
         List all items for a conversation with the given ID.
@@ -198,7 +204,7 @@ class Items(SyncAPIResource):
         if not conversation_id:
             raise ValueError(f"Expected a non-empty value for `conversation_id` but received {conversation_id!r}")
         return self._get_api_list(
-            f"/conversations/{conversation_id}/items",
+            path_template("/conversations/{conversation_id}/items", conversation_id=conversation_id),
             page=SyncConversationCursorPage[ConversationItem],
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -214,6 +220,7 @@ class Items(SyncAPIResource):
                     },
                     item_list_params.ItemListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=cast(Any, ConversationItem),  # Union types cannot be passed in as arguments in the type system
         )
@@ -228,7 +235,7 @@ class Items(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Conversation:
         """
         Delete an item from a conversation with the given IDs.
@@ -247,15 +254,23 @@ class Items(SyncAPIResource):
         if not item_id:
             raise ValueError(f"Expected a non-empty value for `item_id` but received {item_id!r}")
         return self._delete(
-            f"/conversations/{conversation_id}/items/{item_id}",
+            path_template(
+                "/conversations/{conversation_id}/items/{item_id}", conversation_id=conversation_id, item_id=item_id
+            ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Conversation,
         )
 
 
 class AsyncItems(AsyncAPIResource):
+    """Manage conversations and conversation items."""
+
     @cached_property
     def with_raw_response(self) -> AsyncItemsWithRawResponse:
         """
@@ -286,7 +301,7 @@ class AsyncItems(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ConversationItemList:
         """
         Create items in a conversation with the given ID.
@@ -295,7 +310,7 @@ class AsyncItems(AsyncAPIResource):
           items: The items to add to the conversation. You may add up to 20 items at a time.
 
           include: Additional fields to include in the response. See the `include` parameter for
-              [listing Conversation items above](https://platform.openai.com/docs/api-reference/conversations/list-items#conversations_list_items-include)
+              [listing Conversation items above](https://developers.openai.com/api/reference/resources/conversations/subresources/items/methods/list#%28resource%29%20conversations.items%20%3E%20%28method%29%20list%20%3E%20%28params%29%20default%20%3E%20%28param%29%20include%20%3E%20%28schema%29)
               for more information.
 
           extra_headers: Send extra headers
@@ -309,7 +324,7 @@ class AsyncItems(AsyncAPIResource):
         if not conversation_id:
             raise ValueError(f"Expected a non-empty value for `conversation_id` but received {conversation_id!r}")
         return await self._post(
-            f"/conversations/{conversation_id}/items",
+            path_template("/conversations/{conversation_id}/items", conversation_id=conversation_id),
             body=await async_maybe_transform({"items": items}, item_create_params.ItemCreateParams),
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -317,6 +332,7 @@ class AsyncItems(AsyncAPIResource):
                 extra_body=extra_body,
                 timeout=timeout,
                 query=await async_maybe_transform({"include": include}, item_create_params.ItemCreateParams),
+                security={"bearer_auth": True},
             ),
             cast_to=ConversationItemList,
         )
@@ -332,14 +348,14 @@ class AsyncItems(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ConversationItem:
         """
         Get a single item from a conversation with the given IDs.
 
         Args:
           include: Additional fields to include in the response. See the `include` parameter for
-              [listing Conversation items above](https://platform.openai.com/docs/api-reference/conversations/list-items#conversations_list_items-include)
+              [listing Conversation items above](https://developers.openai.com/api/reference/resources/conversations/subresources/items/methods/list#%28resource%29%20conversations.items%20%3E%20%28method%29%20list%20%3E%20%28params%29%20default%20%3E%20%28param%29%20include%20%3E%20%28schema%29)
               for more information.
 
           extra_headers: Send extra headers
@@ -357,13 +373,16 @@ class AsyncItems(AsyncAPIResource):
         return cast(
             ConversationItem,
             await self._get(
-                f"/conversations/{conversation_id}/items/{item_id}",
+                path_template(
+                    "/conversations/{conversation_id}/items/{item_id}", conversation_id=conversation_id, item_id=item_id
+                ),
                 options=make_request_options(
                     extra_headers=extra_headers,
                     extra_query=extra_query,
                     extra_body=extra_body,
                     timeout=timeout,
                     query=await async_maybe_transform({"include": include}, item_retrieve_params.ItemRetrieveParams),
+                    security={"bearer_auth": True},
                 ),
                 cast_to=cast(Any, ConversationItem),  # Union types cannot be passed in as arguments in the type system
             ),
@@ -382,7 +401,7 @@ class AsyncItems(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[ConversationItem, AsyncConversationCursorPage[ConversationItem]]:
         """
         List all items for a conversation with the given ID.
@@ -428,7 +447,7 @@ class AsyncItems(AsyncAPIResource):
         if not conversation_id:
             raise ValueError(f"Expected a non-empty value for `conversation_id` but received {conversation_id!r}")
         return self._get_api_list(
-            f"/conversations/{conversation_id}/items",
+            path_template("/conversations/{conversation_id}/items", conversation_id=conversation_id),
             page=AsyncConversationCursorPage[ConversationItem],
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -444,6 +463,7 @@ class AsyncItems(AsyncAPIResource):
                     },
                     item_list_params.ItemListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=cast(Any, ConversationItem),  # Union types cannot be passed in as arguments in the type system
         )
@@ -458,7 +478,7 @@ class AsyncItems(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Conversation:
         """
         Delete an item from a conversation with the given IDs.
@@ -477,9 +497,15 @@ class AsyncItems(AsyncAPIResource):
         if not item_id:
             raise ValueError(f"Expected a non-empty value for `item_id` but received {item_id!r}")
         return await self._delete(
-            f"/conversations/{conversation_id}/items/{item_id}",
+            path_template(
+                "/conversations/{conversation_id}/items/{item_id}", conversation_id=conversation_id, item_id=item_id
+            ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=Conversation,
         )

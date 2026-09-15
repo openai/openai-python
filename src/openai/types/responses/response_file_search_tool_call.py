@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import Dict, List, Union, Optional
 from typing_extensions import Literal
@@ -35,7 +35,7 @@ class ResponseFileSearchToolCall(BaseModel):
     """The results of a file search tool call.
 
     See the
-    [file search guide](https://platform.openai.com/docs/guides/tools-file-search) for more information.
+    [file search guide](https://developers.openai.com/api/docs/guides/tools-file-search) for more information.
     """
 
     id: str
