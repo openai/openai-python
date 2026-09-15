@@ -14,6 +14,7 @@ class SessionTurnError(BaseModel):
         "context_length_exceeded",
         "session_budget_exceeded",
         "usage_limit_exceeded",
+        "credit_balance_exhausted",
         "rate_limit_exceeded",
         "server_overloaded",
         "cyber_policy",
@@ -34,6 +35,7 @@ class SessionTurnError(BaseModel):
     - `session_budget_exceeded` - The session has reached its usage budget.
     - `usage_limit_exceeded` - The organization has reached a usage, plan, or
       billing limit.
+    - `credit_balance_exhausted` - The organization has no API credits remaining.
     - `rate_limit_exceeded` - The request exceeds the available rate limit.
     - `server_overloaded` - The model service is temporarily overloaded.
     - `cyber_policy` - The request was rejected by a safety policy.

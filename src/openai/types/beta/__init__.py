@@ -354,6 +354,9 @@ from .agent_session_turn_output_text_done_event import (
 from .beta_response_audio_transcript_done_event import (
     BetaResponseAudioTranscriptDoneEvent as BetaResponseAudioTranscriptDoneEvent,
 )
+from .beta_response_compaction_compacting_event import (
+    BetaResponseCompactionCompactingEvent as BetaResponseCompactionCompactingEvent,
+)
 from .beta_response_compaction_item_param_param import (
     BetaResponseCompactionItemParamParam as BetaResponseCompactionItemParamParam,
 )
