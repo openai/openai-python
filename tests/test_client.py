@@ -1259,7 +1259,7 @@ class TestOpenAI:
             if nb_retries < failures_before_success:
                 nb_retries += 1
                 if failure_mode == "exception":
-                    raise RuntimeError("oops")
+                    raise httpx2.ConnectError("oops")
                 return httpx2.Response(500)
             return httpx2.Response(200)
 
@@ -2607,7 +2607,7 @@ class TestAsyncOpenAI:
             if nb_retries < failures_before_success:
                 nb_retries += 1
                 if failure_mode == "exception":
-                    raise RuntimeError("oops")
+                    raise httpx2.ConnectError("oops")
                 return httpx2.Response(500)
             return httpx2.Response(200)
 
@@ -3140,3 +3140,35 @@ class TestAsyncWorkloadIdentity401Retry:
             assert len(calls) == 2
 
             assert provider_call_count == 1
+
+@pytest.mark.parametrize("is_async", [False, True])
+@pytest.mark.parametrize(
+    "error", [RuntimeError("application failed"), OSError("local failure"), asyncio.CancelledError()]
+)
+async def test_application_exceptions_are_not_retried(is_async: bool, error: BaseException) -> None:
+    calls = 0
+
+    def handler(_request: httpx2.Request) -> httpx2.Response:
+        nonlocal calls
+        calls += 1
+        raise error
+
+    transport = httpx2.MockTransport(handler)
+    client = (
+        AsyncOpenAI(api_key="fake-key", max_retries=1, http_client=httpx2.AsyncClient(transport=transport))
+        if is_async
+        else OpenAI(api_key="fake-key", max_retries=1, http_client=httpx2.Client(transport=transport))
+    )
+    try:
+        with pytest.raises(type(error)) as caught:
+            if isinstance(client, AsyncOpenAI):
+                await client.get("/test", cast_to=object)
+            else:
+                client.get("/test", cast_to=object)
+        assert caught.value is error
+        assert calls == 1
+    finally:
+        if isinstance(client, AsyncOpenAI):
+            await client.close()
+        else:
+            client.close()
