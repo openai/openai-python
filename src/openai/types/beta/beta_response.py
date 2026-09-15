@@ -258,7 +258,7 @@ class PromptCacheOptions(BaseModel):
 class Reasoning(BaseModel):
     """
     Configuration options for
-    [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+    [reasoning models](https://developers.openai.com/api/docs/guides/reasoning).
     """
 
     context: Optional[Literal["auto", "current_turn", "all_turns"]] = None
@@ -278,7 +278,7 @@ class Reasoning(BaseModel):
     `xhigh`, and `max`. Reducing reasoning effort can result in faster responses and
     fewer tokens used on reasoning in a response. Not all reasoning models support
     every value. See the
-    [reasoning guide](https://platform.openai.com/docs/guides/reasoning) for
+    [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning) for
     model-specific support.
     """
 
@@ -450,8 +450,8 @@ class BetaResponse(BaseModel):
 
     OpenAI offers a wide range of models with different capabilities, performance
     characteristics, and price points. Refer to the
-    [model guide](https://platform.openai.com/docs/models) to browse and compare
-    available models.
+    [model guide](https://developers.openai.com/api/docs/models) to browse and
+    compare available models.
     """
 
     object: Literal["response"]
@@ -494,17 +494,18 @@ class BetaResponse(BaseModel):
 
     - **Built-in tools**: Tools that are provided by OpenAI that extend the model's
       capabilities, like
-      [web search](https://platform.openai.com/docs/guides/tools-web-search) or
-      [file search](https://platform.openai.com/docs/guides/tools-file-search).
+      [web search](https://developers.openai.com/api/docs/guides/tools-web-search)
+      or
+      [file search](https://developers.openai.com/api/docs/guides/tools-file-search).
       Learn more about
-      [built-in tools](https://platform.openai.com/docs/guides/tools).
+      [built-in tools](https://developers.openai.com/api/docs/guides/tools).
     - **MCP Tools**: Integrations with third-party systems via custom MCP servers or
       predefined connectors such as Google Drive and SharePoint. Learn more about
-      [MCP Tools](https://platform.openai.com/docs/guides/tools-connectors-mcp).
+      [MCP Tools](https://developers.openai.com/api/docs/guides/tools-connectors-mcp).
     - **Function calls (custom tools)**: Functions that are defined by you, enabling
       the model to call your own code with strongly typed arguments and outputs.
       Learn more about
-      [function calling](https://platform.openai.com/docs/guides/function-calling).
+      [function calling](https://developers.openai.com/api/docs/guides/function-calling).
       You can also use custom tools to call your own code.
     """
 
@@ -520,7 +521,7 @@ class BetaResponse(BaseModel):
     background: Optional[bool] = None
     """
     Whether to run the model response in the background.
-    [Learn more](https://platform.openai.com/docs/guides/background).
+    [Learn more](https://developers.openai.com/api/docs/guides/background).
     """
 
     completed_at: Optional[float] = None
@@ -540,7 +541,7 @@ class BetaResponse(BaseModel):
     """
     An upper bound for the number of tokens that can be generated for a response,
     including visible output tokens and
-    [reasoning tokens](https://platform.openai.com/docs/guides/reasoning).
+    [reasoning tokens](https://developers.openai.com/api/docs/guides/reasoning).
     """
 
     max_tool_calls: Optional[int] = None
@@ -561,14 +562,14 @@ class BetaResponse(BaseModel):
     """The unique ID of the previous response to the model.
 
     Use this to create multi-turn conversations. Learn more about
-    [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+    [conversation state](https://developers.openai.com/api/docs/guides/conversation-state).
     Cannot be used in conjunction with `conversation`.
     """
 
     prompt: Optional[BetaResponsePrompt] = None
     """
     Reference to a prompt template and its variables.
-    [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
+    [Learn more](https://developers.openai.com/api/docs/guides/text?api-mode=responses#version-prompts-in-code).
     """
 
     prompt_cache_diagnostics: Optional[PromptCacheDiagnostics] = None
@@ -578,7 +579,7 @@ class BetaResponse(BaseModel):
     """
     Used by OpenAI to cache responses for similar requests to optimize your cache
     hit rates. Replaces the `user` field.
-    [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
+    [Learn more](https://developers.openai.com/api/docs/guides/prompt-caching).
     """
 
     prompt_cache_options: Optional[PromptCacheOptions] = None
@@ -593,7 +594,7 @@ class BetaResponse(BaseModel):
     The retention policy for the prompt cache. Set to `24h` to enable extended
     prompt caching, which keeps cached prefixes active for longer, up to a maximum
     of 24 hours.
-    [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
+    [Learn more](https://developers.openai.com/api/docs/guides/prompt-caching#prompt-cache-retention).
     This field expresses a maximum retention policy, while
     `prompt_cache_options.ttl` expresses a minimum cache lifetime. The two fields
     are independent and do not interact. For `gpt-5.5`, `gpt-5.5-pro`, and future
@@ -610,7 +611,7 @@ class BetaResponse(BaseModel):
     reasoning: Optional[Reasoning] = None
     """
     Configuration options for
-    [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+    [reasoning models](https://developers.openai.com/api/docs/guides/reasoning).
     """
 
     safety_identifier: Optional[str] = None
@@ -620,7 +621,7 @@ class BetaResponse(BaseModel):
     identifies each user, with a maximum length of 64 characters. We recommend
     hashing their username or email address, in order to avoid sending us any
     identifying information.
-    [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+    [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
     """
 
     service_tier: Optional[BetaServiceTier] = None
@@ -631,13 +632,15 @@ class BetaResponse(BaseModel):
       will use 'default'.
     - If set to 'default', then the request will be processed with the standard
       pricing and performance for the selected model.
-    - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)',
-      then the request will be processed with the Flex Processing service tier.
-    - To opt-in to [Fast mode](/api/docs/guides/fast-mode) at the request level,
-      include the `service_tier=fast` or `service_tier=priority` parameter for
-      Responses or Chat Completions. The response will show `service_tier=priority`
-      regardless of if you specify `service_tier=fast` or `priority` in your
-      request.
+    - If set to
+      '[flex](https://developers.openai.com/api/docs/guides/flex-processing)', then
+      the request will be processed with the Flex Processing service tier.
+    - To opt-in to
+      [Fast mode](https://developers.openai.com/api/docs/guides/fast-mode) at the
+      request level, include the `service_tier=fast` or `service_tier=priority`
+      parameter for Responses or Chat Completions. The response will show
+      `service_tier=priority` regardless of if you specify `service_tier=fast` or
+      `priority` in your request.
     - If set to 'ultrafast', then the request will be processed with the
       access-controlled Ultrafast Processing service tier. This tier is currently
       available for `gpt-5.6-sol`; a response served through it will show
@@ -662,8 +665,8 @@ class BetaResponse(BaseModel):
 
     Can be plain text or structured JSON data. Learn more:
 
-    - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
-    - [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs)
+    - [Text inputs and outputs](https://developers.openai.com/api/docs/guides/text)
+    - [Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs)
     """
 
     top_logprobs: Optional[int] = None
@@ -695,5 +698,5 @@ class BetaResponse(BaseModel):
     Use `prompt_cache_key` instead to maintain caching optimizations. A stable
     identifier for your end-users. Used to boost cache hit rates by better bucketing
     similar requests and to help OpenAI detect and prevent abuse.
-    [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+    [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
     """

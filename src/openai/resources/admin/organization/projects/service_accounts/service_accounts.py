@@ -65,6 +65,7 @@ class ServiceAccounts(SyncAPIResource):
         *,
         name: str,
         create_service_account_only: Optional[bool] | Omit = omit,
+        expires_in_seconds: Optional[int] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -82,6 +83,12 @@ class ServiceAccounts(SyncAPIResource):
 
           create_service_account_only: Create the service account without default roles or an API key.
 
+          expires_in_seconds: Number of seconds until the initial API key expires. If omitted or null, the key
+              does not expire unless the effective organization or project policy requires an
+              expiration. When a policy sets a maximum lifetime, this value must be provided
+              and must not exceed that limit. A non-null value cannot be used when
+              `create_service_account_only` is true.
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -98,6 +105,7 @@ class ServiceAccounts(SyncAPIResource):
                 {
                     "name": name,
                     "create_service_account_only": create_service_account_only,
+                    "expires_in_seconds": expires_in_seconds,
                 },
                 service_account_create_params.ServiceAccountCreateParams,
             ),
@@ -345,6 +353,7 @@ class AsyncServiceAccounts(AsyncAPIResource):
         *,
         name: str,
         create_service_account_only: Optional[bool] | Omit = omit,
+        expires_in_seconds: Optional[int] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -362,6 +371,12 @@ class AsyncServiceAccounts(AsyncAPIResource):
 
           create_service_account_only: Create the service account without default roles or an API key.
 
+          expires_in_seconds: Number of seconds until the initial API key expires. If omitted or null, the key
+              does not expire unless the effective organization or project policy requires an
+              expiration. When a policy sets a maximum lifetime, this value must be provided
+              and must not exceed that limit. A non-null value cannot be used when
+              `create_service_account_only` is true.
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -378,6 +393,7 @@ class AsyncServiceAccounts(AsyncAPIResource):
                 {
                     "name": name,
                     "create_service_account_only": create_service_account_only,
+                    "expires_in_seconds": expires_in_seconds,
                 },
                 service_account_create_params.ServiceAccountCreateParams,
             ),

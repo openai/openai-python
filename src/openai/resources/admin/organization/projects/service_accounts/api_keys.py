@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Optional
+
 import httpx2
 
 from ...... import _legacy_response
@@ -42,6 +44,7 @@ class APIKeys(SyncAPIResource):
         service_account_id: str,
         *,
         project_id: str,
+        expires_in_seconds: Optional[int] | Omit = omit,
         name: str | Omit = omit,
         scopes: SequenceNotStr[str] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -58,6 +61,8 @@ class APIKeys(SyncAPIResource):
           project_id: The ID of the project.
 
           service_account_id: The ID of the service account.
+
+          expires_in_seconds: Number of seconds until the API key expires.
 
           name: API key name.
 
@@ -83,6 +88,7 @@ class APIKeys(SyncAPIResource):
             ),
             body=maybe_transform(
                 {
+                    "expires_in_seconds": expires_in_seconds,
                     "name": name,
                     "scopes": scopes,
                 },
@@ -124,6 +130,7 @@ class AsyncAPIKeys(AsyncAPIResource):
         service_account_id: str,
         *,
         project_id: str,
+        expires_in_seconds: Optional[int] | Omit = omit,
         name: str | Omit = omit,
         scopes: SequenceNotStr[str] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -140,6 +147,8 @@ class AsyncAPIKeys(AsyncAPIResource):
           project_id: The ID of the project.
 
           service_account_id: The ID of the service account.
+
+          expires_in_seconds: Number of seconds until the API key expires.
 
           name: API key name.
 
@@ -165,6 +174,7 @@ class AsyncAPIKeys(AsyncAPIResource):
             ),
             body=await async_maybe_transform(
                 {
+                    "expires_in_seconds": expires_in_seconds,
                     "name": name,
                     "scopes": scopes,
                 },
