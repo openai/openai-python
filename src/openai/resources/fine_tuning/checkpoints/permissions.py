@@ -1,15 +1,15 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 import typing_extensions
 from typing_extensions import Literal
 
-import httpx
+import httpx2
 
 from .... import _legacy_response
 from ...._types import Body, Omit, Query, Headers, NotGiven, SequenceNotStr, omit, not_given
-from ...._utils import maybe_transform, async_maybe_transform
+from ...._utils import path_template, maybe_transform, async_maybe_transform
 from ...._compat import cached_property
 from ...._resource import SyncAPIResource, AsyncAPIResource
 from ...._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -60,10 +60,11 @@ class Permissions(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncPage[PermissionCreateResponse]:
         """
-        **NOTE:** Calling this endpoint requires an [admin API key](../admin-api-keys).
+        **NOTE:** Calling this endpoint requires an
+        [admin API key](https://developers.openai.com/api/reference/resources/admin/subresources/organization/subresources/admin_api_keys).
 
         This enables organization owners to share fine-tuned models with other projects
         in their organization.
@@ -84,11 +85,18 @@ class Permissions(SyncAPIResource):
                 f"Expected a non-empty value for `fine_tuned_model_checkpoint` but received {fine_tuned_model_checkpoint!r}"
             )
         return self._get_api_list(
-            f"/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions",
+            path_template(
+                "/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions",
+                fine_tuned_model_checkpoint=fine_tuned_model_checkpoint,
+            ),
             page=SyncPage[PermissionCreateResponse],
             body=maybe_transform({"project_ids": project_ids}, permission_create_params.PermissionCreateParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             model=PermissionCreateResponse,
             method="post",
@@ -108,10 +116,11 @@ class Permissions(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> PermissionRetrieveResponse:
         """
-        **NOTE:** This endpoint requires an [admin API key](../admin-api-keys).
+        **NOTE:** This endpoint requires an
+        [admin API key](https://developers.openai.com/api/reference/resources/admin/subresources/organization/subresources/admin_api_keys).
 
         Organization owners can use this endpoint to view all permissions for a
         fine-tuned model checkpoint.
@@ -138,7 +147,10 @@ class Permissions(SyncAPIResource):
                 f"Expected a non-empty value for `fine_tuned_model_checkpoint` but received {fine_tuned_model_checkpoint!r}"
             )
         return self._get(
-            f"/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions",
+            path_template(
+                "/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions",
+                fine_tuned_model_checkpoint=fine_tuned_model_checkpoint,
+            ),
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -153,6 +165,7 @@ class Permissions(SyncAPIResource):
                     },
                     permission_retrieve_params.PermissionRetrieveParams,
                 ),
+                security={"bearer_auth": True},
             ),
             cast_to=PermissionRetrieveResponse,
         )
@@ -170,10 +183,11 @@ class Permissions(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncConversationCursorPage[PermissionListResponse]:
         """
-        **NOTE:** This endpoint requires an [admin API key](../admin-api-keys).
+        **NOTE:** This endpoint requires an
+        [admin API key](https://developers.openai.com/api/reference/resources/admin/subresources/organization/subresources/admin_api_keys).
 
         Organization owners can use this endpoint to view all permissions for a
         fine-tuned model checkpoint.
@@ -200,7 +214,10 @@ class Permissions(SyncAPIResource):
                 f"Expected a non-empty value for `fine_tuned_model_checkpoint` but received {fine_tuned_model_checkpoint!r}"
             )
         return self._get_api_list(
-            f"/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions",
+            path_template(
+                "/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions",
+                fine_tuned_model_checkpoint=fine_tuned_model_checkpoint,
+            ),
             page=SyncConversationCursorPage[PermissionListResponse],
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -216,6 +233,7 @@ class Permissions(SyncAPIResource):
                     },
                     permission_list_params.PermissionListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=PermissionListResponse,
         )
@@ -230,10 +248,11 @@ class Permissions(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> PermissionDeleteResponse:
         """
-        **NOTE:** This endpoint requires an [admin API key](../admin-api-keys).
+        **NOTE:** This endpoint requires an
+        [admin API key](https://developers.openai.com/api/reference/resources/admin/subresources/organization/subresources/admin_api_keys).
 
         Organization owners can use this endpoint to delete a permission for a
         fine-tuned model checkpoint.
@@ -254,9 +273,17 @@ class Permissions(SyncAPIResource):
         if not permission_id:
             raise ValueError(f"Expected a non-empty value for `permission_id` but received {permission_id!r}")
         return self._delete(
-            f"/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions/{permission_id}",
+            path_template(
+                "/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions/{permission_id}",
+                fine_tuned_model_checkpoint=fine_tuned_model_checkpoint,
+                permission_id=permission_id,
+            ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=PermissionDeleteResponse,
         )
@@ -294,10 +321,11 @@ class AsyncPermissions(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[PermissionCreateResponse, AsyncPage[PermissionCreateResponse]]:
         """
-        **NOTE:** Calling this endpoint requires an [admin API key](../admin-api-keys).
+        **NOTE:** Calling this endpoint requires an
+        [admin API key](https://developers.openai.com/api/reference/resources/admin/subresources/organization/subresources/admin_api_keys).
 
         This enables organization owners to share fine-tuned models with other projects
         in their organization.
@@ -318,11 +346,18 @@ class AsyncPermissions(AsyncAPIResource):
                 f"Expected a non-empty value for `fine_tuned_model_checkpoint` but received {fine_tuned_model_checkpoint!r}"
             )
         return self._get_api_list(
-            f"/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions",
+            path_template(
+                "/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions",
+                fine_tuned_model_checkpoint=fine_tuned_model_checkpoint,
+            ),
             page=AsyncPage[PermissionCreateResponse],
             body=maybe_transform({"project_ids": project_ids}, permission_create_params.PermissionCreateParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             model=PermissionCreateResponse,
             method="post",
@@ -342,10 +377,11 @@ class AsyncPermissions(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> PermissionRetrieveResponse:
         """
-        **NOTE:** This endpoint requires an [admin API key](../admin-api-keys).
+        **NOTE:** This endpoint requires an
+        [admin API key](https://developers.openai.com/api/reference/resources/admin/subresources/organization/subresources/admin_api_keys).
 
         Organization owners can use this endpoint to view all permissions for a
         fine-tuned model checkpoint.
@@ -372,7 +408,10 @@ class AsyncPermissions(AsyncAPIResource):
                 f"Expected a non-empty value for `fine_tuned_model_checkpoint` but received {fine_tuned_model_checkpoint!r}"
             )
         return await self._get(
-            f"/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions",
+            path_template(
+                "/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions",
+                fine_tuned_model_checkpoint=fine_tuned_model_checkpoint,
+            ),
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -387,6 +426,7 @@ class AsyncPermissions(AsyncAPIResource):
                     },
                     permission_retrieve_params.PermissionRetrieveParams,
                 ),
+                security={"bearer_auth": True},
             ),
             cast_to=PermissionRetrieveResponse,
         )
@@ -404,10 +444,11 @@ class AsyncPermissions(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[PermissionListResponse, AsyncConversationCursorPage[PermissionListResponse]]:
         """
-        **NOTE:** This endpoint requires an [admin API key](../admin-api-keys).
+        **NOTE:** This endpoint requires an
+        [admin API key](https://developers.openai.com/api/reference/resources/admin/subresources/organization/subresources/admin_api_keys).
 
         Organization owners can use this endpoint to view all permissions for a
         fine-tuned model checkpoint.
@@ -434,7 +475,10 @@ class AsyncPermissions(AsyncAPIResource):
                 f"Expected a non-empty value for `fine_tuned_model_checkpoint` but received {fine_tuned_model_checkpoint!r}"
             )
         return self._get_api_list(
-            f"/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions",
+            path_template(
+                "/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions",
+                fine_tuned_model_checkpoint=fine_tuned_model_checkpoint,
+            ),
             page=AsyncConversationCursorPage[PermissionListResponse],
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -450,6 +494,7 @@ class AsyncPermissions(AsyncAPIResource):
                     },
                     permission_list_params.PermissionListParams,
                 ),
+                security={"bearer_auth": True},
             ),
             model=PermissionListResponse,
         )
@@ -464,10 +509,11 @@ class AsyncPermissions(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> PermissionDeleteResponse:
         """
-        **NOTE:** This endpoint requires an [admin API key](../admin-api-keys).
+        **NOTE:** This endpoint requires an
+        [admin API key](https://developers.openai.com/api/reference/resources/admin/subresources/organization/subresources/admin_api_keys).
 
         Organization owners can use this endpoint to delete a permission for a
         fine-tuned model checkpoint.
@@ -488,9 +534,17 @@ class AsyncPermissions(AsyncAPIResource):
         if not permission_id:
             raise ValueError(f"Expected a non-empty value for `permission_id` but received {permission_id!r}")
         return await self._delete(
-            f"/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions/{permission_id}",
+            path_template(
+                "/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions/{permission_id}",
+                fine_tuned_model_checkpoint=fine_tuned_model_checkpoint,
+                permission_id=permission_id,
+            ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=PermissionDeleteResponse,
         )

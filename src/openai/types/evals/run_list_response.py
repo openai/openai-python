@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import Dict, List, Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
@@ -103,20 +103,14 @@ class DataSourceResponsesSourceResponses(BaseModel):
     """
 
     reasoning_effort: Optional[ReasoningEffort] = None
-    """
-    Constrains effort on reasoning for
-    [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
-    supported values are `none`, `minimal`, `low`, `medium`, `high`, and `xhigh`.
-    Reducing reasoning effort can result in faster responses and fewer tokens used
-    on reasoning in a response.
+    """Constrains effort on reasoning for reasoning models.
 
-    - `gpt-5.1` defaults to `none`, which does not perform reasoning. The supported
-      reasoning values for `gpt-5.1` are `none`, `low`, `medium`, and `high`. Tool
-      calls are supported for all reasoning values in gpt-5.1.
-    - All models before `gpt-5.1` default to `medium` reasoning effort, and do not
-      support `none`.
-    - The `gpt-5-pro` model defaults to (and only supports) `high` reasoning effort.
-    - `xhigh` is supported for all models after `gpt-5.1-codex-max`.
+    Currently supported values are `none`, `minimal`, `low`, `medium`, `high`,
+    `xhigh`, and `max`. Reducing reasoning effort can result in faster responses and
+    fewer tokens used on reasoning in a response. Not all reasoning models support
+    every value. See the
+    [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning) for
+    model-specific support.
     """
 
     temperature: Optional[float] = None
@@ -244,8 +238,8 @@ class DataSourceResponsesSamplingParamsText(BaseModel):
 
     Can be plain
     text or structured JSON data. Learn more:
-    - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
-    - [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs)
+    - [Text inputs and outputs](https://developers.openai.com/api/docs/guides/text)
+    - [Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs)
     """
 
     format: Optional[ResponseFormatTextConfig] = None
@@ -253,7 +247,7 @@ class DataSourceResponsesSamplingParamsText(BaseModel):
 
     Configuring `{ "type": "json_schema" }` enables Structured Outputs, which
     ensures the model will match your supplied JSON schema. Learn more in the
-    [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+    [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
 
     The default format is `{ "type": "text" }` with no additional options.
 
@@ -270,20 +264,14 @@ class DataSourceResponsesSamplingParams(BaseModel):
     """The maximum number of tokens in the generated output."""
 
     reasoning_effort: Optional[ReasoningEffort] = None
-    """
-    Constrains effort on reasoning for
-    [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
-    supported values are `none`, `minimal`, `low`, `medium`, `high`, and `xhigh`.
-    Reducing reasoning effort can result in faster responses and fewer tokens used
-    on reasoning in a response.
+    """Constrains effort on reasoning for reasoning models.
 
-    - `gpt-5.1` defaults to `none`, which does not perform reasoning. The supported
-      reasoning values for `gpt-5.1` are `none`, `low`, `medium`, and `high`. Tool
-      calls are supported for all reasoning values in gpt-5.1.
-    - All models before `gpt-5.1` default to `medium` reasoning effort, and do not
-      support `none`.
-    - The `gpt-5-pro` model defaults to (and only supports) `high` reasoning effort.
-    - `xhigh` is supported for all models after `gpt-5.1-codex-max`.
+    Currently supported values are `none`, `minimal`, `low`, `medium`, `high`,
+    `xhigh`, and `max`. Reducing reasoning effort can result in faster responses and
+    fewer tokens used on reasoning in a response. Not all reasoning models support
+    every value. See the
+    [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning) for
+    model-specific support.
     """
 
     seed: Optional[int] = None
@@ -297,8 +285,8 @@ class DataSourceResponsesSamplingParams(BaseModel):
 
     Can be plain text or structured JSON data. Learn more:
 
-    - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
-    - [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs)
+    - [Text inputs and outputs](https://developers.openai.com/api/docs/guides/text)
+    - [Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs)
     """
 
     tools: Optional[List[Tool]] = None
@@ -310,13 +298,14 @@ class DataSourceResponsesSamplingParams(BaseModel):
 
     - **Built-in tools**: Tools that are provided by OpenAI that extend the model's
       capabilities, like
-      [web search](https://platform.openai.com/docs/guides/tools-web-search) or
-      [file search](https://platform.openai.com/docs/guides/tools-file-search).
+      [web search](https://developers.openai.com/api/docs/guides/tools-web-search)
+      or
+      [file search](https://developers.openai.com/api/docs/guides/tools-file-search).
       Learn more about
-      [built-in tools](https://platform.openai.com/docs/guides/tools).
+      [built-in tools](https://developers.openai.com/api/docs/guides/tools).
     - **Function calls (custom tools)**: Functions that are defined by you, enabling
       the model to call your own code. Learn more about
-      [function calling](https://platform.openai.com/docs/guides/function-calling).
+      [function calling](https://developers.openai.com/api/docs/guides/function-calling).
     """
 
     top_p: Optional[float] = None
