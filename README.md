@@ -776,6 +776,13 @@ client.with_options(max_retries=5).chat.completions.create(
 )
 ```
 
+`max_retries` must be a non-negative integer. `0` disables retries. Use a large
+integer, such as `1000`, for a larger retry budget. Other values raise an error
+before a request is sent.
+
+Transport failures are retried. Application exceptions raised by custom transports
+or hooks propagate unchanged, including task-executor cancellation signals.
+
 ## Timeouts
 
 By default requests time out after 10 minutes. You can configure this with a `timeout` option,

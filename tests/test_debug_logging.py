@@ -161,7 +161,7 @@ async def test_failure_and_retry_metadata(failure: str, asynchronous: bool, capl
         if failure == "timeout":
             raise httpx2.ReadTimeout(FAKE_SECRET, request=request)
         if failure == "connection":
-            raise RuntimeError(FAKE_SECRET)
+            raise httpx2.ConnectError(FAKE_SECRET)
         return httpx2.Response(
             500, json={"error": {"message": FAKE_SECRET}}, headers={"x-private": FAKE_SECRET, "retry-after-ms": "1"}
         )
