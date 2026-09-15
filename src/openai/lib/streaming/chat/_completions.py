@@ -379,7 +379,7 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
                                     choice_snapshot.message,
                                     # we don't want to serialise / deserialise our custom properties
                                     # as they won't appear in the delta and we don't want to have to
-                                    # continuosly reparse the content
+                                    # continuously reparse the content
                                     exclude=cast(
                                         # cast required as mypy isn't smart enough to infer `True` here to `Literal[True]`
                                         IncEx,
@@ -415,7 +415,7 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
                         type_=ParsedChoiceSnapshot,
                         value={
                             **choice.model_dump(exclude_unset=True, exclude={"delta"}),
-                            "message": choice.delta.to_dict(),
+                            "message": accumulate_delta({}, cast("dict[object, object]", choice.delta.to_dict())),
                         },
                     ),
                 )
@@ -431,7 +431,7 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
                         raise LengthFinishReasonError(completion=completion_snapshot)
 
                     if choice.finish_reason == "content_filter":
-                        raise ContentFilterFinishReasonError()
+                        raise ContentFilterFinishReasonError(completion=completion_snapshot)
 
             if (
                 choice_snapshot.message.content
@@ -739,12 +739,13 @@ class ChoiceEventState:
 
 def _convert_initial_chunk_into_snapshot(chunk: ChatCompletionChunk) -> ParsedChatCompletionSnapshot:
     data = chunk.to_dict()
+    data.pop("obfuscation", None)
     choices = cast("list[object]", data["choices"])
 
     for choice in chunk.choices:
         choices[choice.index] = {
             **choice.model_dump(exclude_unset=True, exclude={"delta"}),
-            "message": choice.delta.to_dict(),
+            "message": accumulate_delta({}, cast("dict[object, object]", choice.delta.to_dict())),
         }
 
     return cast(

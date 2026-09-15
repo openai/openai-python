@@ -100,7 +100,7 @@ def parse_chat_completion(
             raise LengthFinishReasonError(completion=chat_completion)
 
         if choice.finish_reason == "content_filter":
-            raise ContentFilterFinishReasonError()
+            raise ContentFilterFinishReasonError(completion=chat_completion)
 
         message = choice.message
 

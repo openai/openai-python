@@ -59,6 +59,7 @@
   ],
   "release-type": "python",
   "extra-files": [
-    "src/openai/_version.py"
+    "src/openai/_version.py",
+    "uv.lock"
   ]
 }

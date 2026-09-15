@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import Optional
 from typing_extensions import Literal
@@ -23,9 +23,6 @@ class BetaResponseFunctionCallArgumentsDoneEvent(BaseModel):
 
     item_id: str
     """The ID of the item."""
-
-    name: str
-    """The name of the function that was called."""
 
     output_index: int
     """The index of the output item."""
