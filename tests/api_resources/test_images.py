@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import json
 import os
 from typing import Any, cast
 
+import httpx
 import pytest
+from respx import MockRouter
 
 from openai import OpenAI, AsyncOpenAI
 from tests.utils import assert_matches_type
@@ -98,6 +101,26 @@ class TestImages:
 
         assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        image = response.parse()
+        assert_matches_type(ImagesResponse, image, path=["response"])
+
+    @parametrize
+    @pytest.mark.respx(base_url=base_url)
+    def test_raw_response_edit_with_image_url(self, client: OpenAI, respx_mock: MockRouter) -> None:
+        respx_mock.post("/images/edits").mock(return_value=httpx.Response(200, json={"created": 0, "data": []}))
+
+        response = client.images.with_raw_response.edit(
+            image_url="https://example.com/image.png",
+            prompt="A cute baby sea otter wearing a beret",
+        )
+
+        content_type = response.http_request.headers.get("content-type")
+        assert content_type is None or not content_type.startswith("multipart/form-data")
+        assert json.loads(response.http_request.content) == {
+            "images": [{"image_url": "https://example.com/image.png"}],
+            "prompt": "A cute baby sea otter wearing a beret",
+        }
+
         image = response.parse()
         assert_matches_type(ImagesResponse, image, path=["response"])
 
@@ -363,6 +386,28 @@ class TestAsyncImages:
 
         assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        image = response.parse()
+        assert_matches_type(ImagesResponse, image, path=["response"])
+
+    @parametrize
+    @pytest.mark.respx(base_url=base_url)
+    async def test_raw_response_edit_with_image_url(
+        self, async_client: AsyncOpenAI, respx_mock: MockRouter
+    ) -> None:
+        respx_mock.post("/images/edits").mock(return_value=httpx.Response(200, json={"created": 0, "data": []}))
+
+        response = await async_client.images.with_raw_response.edit(
+            image_url="https://example.com/image.png",
+            prompt="A cute baby sea otter wearing a beret",
+        )
+
+        content_type = response.http_request.headers.get("content-type")
+        assert content_type is None or not content_type.startswith("multipart/form-data")
+        assert json.loads(response.http_request.content) == {
+            "images": [{"image_url": "https://example.com/image.png"}],
+            "prompt": "A cute baby sea otter wearing a beret",
+        }
+
         image = response.parse()
         assert_matches_type(ImagesResponse, image, path=["response"])
 
