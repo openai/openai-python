@@ -1072,6 +1072,25 @@ with OpenAI() as client:
 # HTTP client is now closed
 ```
 
+For `AsyncOpenAI`, use `async with` or `await client.close()` before shutting down
+the event loop. Garbage collection cannot reliably await asynchronous cleanup.
+
+```py
+import asyncio
+from openai import AsyncOpenAI
+
+
+async def main() -> None:
+    async with AsyncOpenAI() as client:
+        response = await client.responses.create(
+            model="gpt-5.5", input="Say this is a test"
+        )
+        print(response.output_text)
+
+
+asyncio.run(main())
+```
+
 ## Microsoft Azure OpenAI
 
 To use this library with [Azure OpenAI](https://learn.microsoft.com/azure/ai-services/openai/overview), use the `AzureOpenAI`
