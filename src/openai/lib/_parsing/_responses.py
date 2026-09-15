@@ -71,7 +71,7 @@ def parse_response(
                         type_=ParsedResponseOutputText[TextFormatT],
                         value={
                             **item.to_dict(),
-                            "parsed": parse_text(item.text, text_format=text_format),
+                            "parsed": parse_text(item.text, text_format=text_format, phase=output.phase),
                         },
                     )
                 )
@@ -141,7 +141,16 @@ def parse_response(
     )
 
 
-def parse_text(text: str, text_format: type[TextFormatT] | Omit) -> TextFormatT | None:
+def parse_text(text: str, text_format: type[TextFormatT] | Omit, *, phase: str | None) -> TextFormatT | None:
+    """Parse final-answer text, retaining legacy behavior for messages without a phase.
+
+    Explicit phases other than `final_answer` are not structured results. Leave
+    their text unparsed, including phases introduced by future API versions.
+    Both completed responses and streamed text-done events use this rule.
+    """
+    if phase is not None and phase != "final_answer":
+        return None
+
     if not is_given(text_format):
         return None
 
