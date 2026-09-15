@@ -174,8 +174,8 @@ class OpenAI(SyncAPIClient):
         websocket_base_url: str | httpx2.URL | None = None,
         timeout: float | Timeout | None | NotGiven = not_given,
         max_retries: int = DEFAULT_MAX_RETRIES,
-        backoff_factor: float = INITIAL_RETRY_DELAY,
-        max_backoff: float = MAX_RETRY_DELAY,
+        initial_retry_delay: float = INITIAL_RETRY_DELAY,
+        max_retry_delay: float = MAX_RETRY_DELAY,
         default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
         # Configure a custom httpx2 client.
@@ -338,8 +338,8 @@ class OpenAI(SyncAPIClient):
             version=__version__,
             base_url=base_url,
             max_retries=max_retries,
-            backoff_factor=backoff_factor,
-            max_backoff=max_backoff,
+            initial_retry_delay=initial_retry_delay,
+            max_retry_delay=max_retry_delay,
             timeout=timeout,
             http_client=http_client,
             custom_headers=default_headers,
@@ -712,8 +712,8 @@ class OpenAI(SyncAPIClient):
         timeout: float | Timeout | None | NotGiven = not_given,
         http_client: httpx2.Client | None = None,
         max_retries: int | NotGiven = not_given,
-        backoff_factor: float | NotGiven = not_given,
-        max_backoff: float | NotGiven = not_given,
+        initial_retry_delay: float | NotGiven = not_given,
+        max_retry_delay: float | NotGiven = not_given,
         default_headers: Mapping[str, str] | None = None,
         set_default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
@@ -822,8 +822,8 @@ class OpenAI(SyncAPIClient):
             **auth_options,
             **_extra_kwargs,
         )
-        copied.backoff_factor = backoff_factor if is_given(backoff_factor) else self.backoff_factor
-        copied.max_backoff = max_backoff if is_given(max_backoff) else self.max_backoff
+        copied.initial_retry_delay = initial_retry_delay if is_given(initial_retry_delay) else self.initial_retry_delay
+        copied.max_retry_delay = max_retry_delay if is_given(max_retry_delay) else self.max_retry_delay
         copied._validate_retry_options(copied.max_retries)
         if preserve_default_base_url:
             copied._base_url_was_default = True
@@ -937,8 +937,8 @@ class AsyncOpenAI(AsyncAPIClient):
         websocket_base_url: str | httpx2.URL | None = None,
         timeout: float | Timeout | None | NotGiven = not_given,
         max_retries: int = DEFAULT_MAX_RETRIES,
-        backoff_factor: float = INITIAL_RETRY_DELAY,
-        max_backoff: float = MAX_RETRY_DELAY,
+        initial_retry_delay: float = INITIAL_RETRY_DELAY,
+        max_retry_delay: float = MAX_RETRY_DELAY,
         default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
         # Configure a custom httpx2 client.
@@ -1101,8 +1101,8 @@ class AsyncOpenAI(AsyncAPIClient):
             version=__version__,
             base_url=base_url,
             max_retries=max_retries,
-            backoff_factor=backoff_factor,
-            max_backoff=max_backoff,
+            initial_retry_delay=initial_retry_delay,
+            max_retry_delay=max_retry_delay,
             timeout=timeout,
             http_client=http_client,
             custom_headers=default_headers,
@@ -1488,8 +1488,8 @@ class AsyncOpenAI(AsyncAPIClient):
         timeout: float | Timeout | None | NotGiven = not_given,
         http_client: httpx2.AsyncClient | None = None,
         max_retries: int | NotGiven = not_given,
-        backoff_factor: float | NotGiven = not_given,
-        max_backoff: float | NotGiven = not_given,
+        initial_retry_delay: float | NotGiven = not_given,
+        max_retry_delay: float | NotGiven = not_given,
         default_headers: Mapping[str, str] | None = None,
         set_default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
@@ -1597,8 +1597,8 @@ class AsyncOpenAI(AsyncAPIClient):
             **auth_options,
             **_extra_kwargs,
         )
-        copied.backoff_factor = backoff_factor if is_given(backoff_factor) else self.backoff_factor
-        copied.max_backoff = max_backoff if is_given(max_backoff) else self.max_backoff
+        copied.initial_retry_delay = initial_retry_delay if is_given(initial_retry_delay) else self.initial_retry_delay
+        copied.max_retry_delay = max_retry_delay if is_given(max_retry_delay) else self.max_retry_delay
         copied._validate_retry_options(copied.max_retries)
         if preserve_default_base_url:
             copied._base_url_was_default = True

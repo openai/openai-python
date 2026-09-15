@@ -3147,7 +3147,7 @@ class TestAsyncWorkloadIdentity401Retry:
 
 @pytest.mark.parametrize("is_async", [False, True])
 @pytest.mark.parametrize(
-    "max_retries,backoff_factor,max_backoff,retry_after,failures,expected_delays",
+    "max_retries,initial_retry_delay,max_retry_delay,retry_after,failures,expected_delays",
     [
         (0, 0.5, 8, None, 1, []),
         (2, 0.5, 8, None, 3, [0.5, 1]),
@@ -3161,8 +3161,8 @@ class TestAsyncWorkloadIdentity401Retry:
 async def test_retry_limits_and_backoff(
     is_async: bool,
     max_retries: int,
-    backoff_factor: float,
-    max_backoff: float,
+    initial_retry_delay: float,
+    max_retry_delay: float,
     retry_after: str | None,
     failures: int,
     expected_delays: list[float],
@@ -3186,7 +3186,7 @@ async def test_retry_limits_and_backoff(
         if is_async
         else OpenAI(api_key="fake-key", http_client=httpx2.Client(transport=transport))
     )
-    copied = client.with_options(backoff_factor=backoff_factor, max_backoff=max_backoff)
+    copied = client.with_options(initial_retry_delay=initial_retry_delay, max_retry_delay=max_retry_delay)
     caplog.set_level("DEBUG", logger="openai._base_client")
     try:
         with (
@@ -3287,14 +3287,14 @@ async def test_retry_configuration_copy(is_async: bool, provider: str) -> None:
     kwargs: dict[str, Any] = {"api_key": "fake-key", "base_url": "https://example.test"}
     if provider == "azure":
         kwargs["api_version"] = "2024-02-01"
-    client = cls(**kwargs, max_retries=10**100, backoff_factor=2, max_backoff=30)
+    client = cls(**kwargs, max_retries=10**100, initial_retry_delay=2, max_retry_delay=30)
     try:
         copied = client.copy().with_options()
-        assert (copied.max_retries, copied.backoff_factor, copied.max_backoff) == (10**100, 2, 30)
-        overridden = copied.with_options(max_retries=0, backoff_factor=0, max_backoff=0)
-        assert (overridden.max_retries, overridden.backoff_factor, overridden.max_backoff) == (0, 0, 0)
-        assert (client.max_retries, client.backoff_factor, client.max_backoff) == (10**100, 2, 30)
-        for option in ("backoff_factor", "max_backoff"):
+        assert (copied.max_retries, copied.initial_retry_delay, copied.max_retry_delay) == (10**100, 2, 30)
+        overridden = copied.with_options(max_retries=0, initial_retry_delay=0, max_retry_delay=0)
+        assert (overridden.max_retries, overridden.initial_retry_delay, overridden.max_retry_delay) == (0, 0, 0)
+        assert (client.max_retries, client.initial_retry_delay, client.max_retry_delay) == (10**100, 2, 30)
+        for option in ("initial_retry_delay", "max_retry_delay"):
             for value in (-1, math.inf, math.nan):
                 with pytest.raises(ValueError, match=option):
                     invalid_options: dict[str, Any] = {option: value}

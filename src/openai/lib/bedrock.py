@@ -437,8 +437,8 @@ class BedrockOpenAI(OpenAI):
         websocket_base_url: str | httpx2.URL | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
         max_retries: int = DEFAULT_MAX_RETRIES,
-        backoff_factor: float = INITIAL_RETRY_DELAY,
-        max_backoff: float = MAX_RETRY_DELAY,
+        initial_retry_delay: float = INITIAL_RETRY_DELAY,
+        max_retry_delay: float = MAX_RETRY_DELAY,
         default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
         http_client: httpx2.Client | None = None,
@@ -476,8 +476,8 @@ class BedrockOpenAI(OpenAI):
             websocket_base_url=websocket_base_url,
             timeout=timeout,
             max_retries=max_retries,
-            backoff_factor=backoff_factor,
-            max_backoff=max_backoff,
+            initial_retry_delay=initial_retry_delay,
+            max_retry_delay=max_retry_delay,
             default_headers=default_headers,
             default_query=default_query,
             http_client=http_client,
@@ -560,8 +560,8 @@ class BedrockOpenAI(OpenAI):
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
         http_client: httpx2.Client | None = None,
         max_retries: int | NotGiven = NOT_GIVEN,
-        backoff_factor: float | NotGiven = NOT_GIVEN,
-        max_backoff: float | NotGiven = NOT_GIVEN,
+        initial_retry_delay: float | NotGiven = NOT_GIVEN,
+        max_retry_delay: float | NotGiven = NOT_GIVEN,
         default_headers: Mapping[str, str] | None = None,
         set_default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
@@ -647,8 +647,8 @@ class BedrockOpenAI(OpenAI):
                 if value is not None or _constructor_accepts_keyword(self.__class__.__init__, name)
             }
         copied = self.__class__(**constructor_kwargs)
-        copied.backoff_factor = backoff_factor if is_given(backoff_factor) else self.backoff_factor
-        copied.max_backoff = max_backoff if is_given(max_backoff) else self.max_backoff
+        copied.initial_retry_delay = initial_retry_delay if is_given(initial_retry_delay) else self.initial_retry_delay
+        copied.max_retry_delay = max_retry_delay if is_given(max_retry_delay) else self.max_retry_delay
         copied._validate_retry_options(copied.max_retries)
         return copied
 
@@ -683,8 +683,8 @@ class AsyncBedrockOpenAI(AsyncOpenAI):
         websocket_base_url: str | httpx2.URL | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
         max_retries: int = DEFAULT_MAX_RETRIES,
-        backoff_factor: float = INITIAL_RETRY_DELAY,
-        max_backoff: float = MAX_RETRY_DELAY,
+        initial_retry_delay: float = INITIAL_RETRY_DELAY,
+        max_retry_delay: float = MAX_RETRY_DELAY,
         default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
         http_client: httpx2.AsyncClient | None = None,
@@ -722,8 +722,8 @@ class AsyncBedrockOpenAI(AsyncOpenAI):
             websocket_base_url=websocket_base_url,
             timeout=timeout,
             max_retries=max_retries,
-            backoff_factor=backoff_factor,
-            max_backoff=max_backoff,
+            initial_retry_delay=initial_retry_delay,
+            max_retry_delay=max_retry_delay,
             default_headers=default_headers,
             default_query=default_query,
             http_client=http_client,
@@ -808,8 +808,8 @@ class AsyncBedrockOpenAI(AsyncOpenAI):
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
         http_client: httpx2.AsyncClient | None = None,
         max_retries: int | NotGiven = NOT_GIVEN,
-        backoff_factor: float | NotGiven = NOT_GIVEN,
-        max_backoff: float | NotGiven = NOT_GIVEN,
+        initial_retry_delay: float | NotGiven = NOT_GIVEN,
+        max_retry_delay: float | NotGiven = NOT_GIVEN,
         default_headers: Mapping[str, str] | None = None,
         set_default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
@@ -895,8 +895,8 @@ class AsyncBedrockOpenAI(AsyncOpenAI):
                 if value is not None or _constructor_accepts_keyword(self.__class__.__init__, name)
             }
         copied = self.__class__(**constructor_kwargs)
-        copied.backoff_factor = backoff_factor if is_given(backoff_factor) else self.backoff_factor
-        copied.max_backoff = max_backoff if is_given(max_backoff) else self.max_backoff
+        copied.initial_retry_delay = initial_retry_delay if is_given(initial_retry_delay) else self.initial_retry_delay
+        copied.max_retry_delay = max_retry_delay if is_given(max_retry_delay) else self.max_retry_delay
         copied._validate_retry_options(copied.max_retries)
         return copied
 

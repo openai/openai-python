@@ -398,8 +398,8 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         base_url: str | URL,
         _strict_response_validation: bool,
         max_retries: int = DEFAULT_MAX_RETRIES,
-        backoff_factor: float = INITIAL_RETRY_DELAY,
-        max_backoff: float = MAX_RETRY_DELAY,
+        initial_retry_delay: float = INITIAL_RETRY_DELAY,
+        max_retry_delay: float = MAX_RETRY_DELAY,
         timeout: float | Timeout | None = DEFAULT_TIMEOUT,
         custom_headers: Mapping[str, str] | None = None,
         custom_query: Mapping[str, object] | None = None,
@@ -407,8 +407,8 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         self._version = version
         self._base_url = self._enforce_trailing_slash(normalize_httpx_url(base_url))
         self.max_retries = max_retries
-        self.backoff_factor = backoff_factor
-        self.max_backoff = max_backoff
+        self.initial_retry_delay = initial_retry_delay
+        self.max_retry_delay = max_retry_delay
         self.timeout = timeout
         self._custom_headers = custom_headers or {}
         self._custom_query = custom_query or {}
@@ -799,7 +799,10 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
             raise TypeError("max_retries must be a non-negative integer")
         if value < 0:
             raise ValueError("max_retries must be a non-negative integer")
-        for name, value in (("backoff_factor", self.backoff_factor), ("max_backoff", self.max_backoff)):
+        for name, value in (
+            ("initial_retry_delay", self.initial_retry_delay),
+            ("max_retry_delay", self.max_retry_delay),
+        ):
             if not math.isfinite(value) or value < 0:
                 raise ValueError(f"{name} must be a finite, non-negative number")
 
@@ -817,7 +820,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         nb_retries = min(retries_taken, 1000)
 
         # Apply exponential backoff, but not more than the max.
-        sleep_seconds = min(self.backoff_factor * pow(2.0, nb_retries), self.max_backoff)
+        sleep_seconds = min(self.initial_retry_delay * pow(2.0, nb_retries), self.max_retry_delay)
 
         # Reduce the calculated timeout by a random range between 0-25%
         jitter = 1 - 0.25 * random()
@@ -913,8 +916,8 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
         version: str,
         base_url: str | URL,
         max_retries: int = DEFAULT_MAX_RETRIES,
-        backoff_factor: float = INITIAL_RETRY_DELAY,
-        max_backoff: float = MAX_RETRY_DELAY,
+        initial_retry_delay: float = INITIAL_RETRY_DELAY,
+        max_retry_delay: float = MAX_RETRY_DELAY,
         timeout: float | Timeout | None | NotGiven = not_given,
         http_client: httpx2.Client | None = None,
         custom_headers: Mapping[str, str] | None = None,
@@ -951,8 +954,8 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
             timeout=cast(Timeout, timeout),
             base_url=base_url,
             max_retries=max_retries,
-            backoff_factor=backoff_factor,
-            max_backoff=max_backoff,
+            initial_retry_delay=initial_retry_delay,
+            max_retry_delay=max_retry_delay,
             custom_query=custom_query,
             custom_headers=custom_headers,
             _strict_response_validation=_strict_response_validation,
@@ -1536,8 +1539,8 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
         base_url: str | URL,
         _strict_response_validation: bool,
         max_retries: int = DEFAULT_MAX_RETRIES,
-        backoff_factor: float = INITIAL_RETRY_DELAY,
-        max_backoff: float = MAX_RETRY_DELAY,
+        initial_retry_delay: float = INITIAL_RETRY_DELAY,
+        max_retry_delay: float = MAX_RETRY_DELAY,
         timeout: float | Timeout | None | NotGiven = not_given,
         http_client: httpx2.AsyncClient | None = None,
         custom_headers: Mapping[str, str] | None = None,
@@ -1573,8 +1576,8 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
             # cast to a valid type because mypy doesn't understand our type narrowing
             timeout=cast(Timeout, timeout),
             max_retries=max_retries,
-            backoff_factor=backoff_factor,
-            max_backoff=max_backoff,
+            initial_retry_delay=initial_retry_delay,
+            max_retry_delay=max_retry_delay,
             custom_query=custom_query,
             custom_headers=custom_headers,
             _strict_response_validation=_strict_response_validation,

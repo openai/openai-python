@@ -780,14 +780,14 @@ client.with_options(max_retries=5).chat.completions.create(
 integer, such as `1000`, for a larger retry budget. Other values raise an error
 before a request is sent.
 
-To customize exponential backoff, set `backoff_factor` (the initial delay, default
-`0.5` seconds) and `max_backoff` (the delay cap, default `8.0` seconds). Both must
-be finite, non-negative numbers. Delays are reduced by up to 25% jitter. A valid
-server `Retry-After` takes precedence over these settings; server delays above two
-minutes are surfaced without retrying.
+To customize exponential backoff, set `initial_retry_delay` (the initial delay, default
+`0.5` seconds) and `max_retry_delay` (the delay cap, default `8.0` seconds). Both must
+be finite, non-negative numbers. Delays are reduced by up to 25% jitter. A positive
+server `Retry-After` of up to two minutes takes precedence over these settings.
+Longer server delays are surfaced without retrying.
 
 ```python
-client = OpenAI(max_retries=1000, backoff_factor=1.0, max_backoff=30.0)
+client = OpenAI(max_retries=1000, initial_retry_delay=1.0, max_retry_delay=30.0)
 # The same options can be set with client.with_options(...).
 ```
 

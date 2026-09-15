@@ -153,9 +153,9 @@ timeout: float | Timeout | None = DEFAULT_TIMEOUT
 
 max_retries: int = DEFAULT_MAX_RETRIES
 
-backoff_factor: float = INITIAL_RETRY_DELAY
+initial_retry_delay: float = INITIAL_RETRY_DELAY
 
-max_backoff: float = MAX_RETRY_DELAY
+max_retry_delay: float = MAX_RETRY_DELAY
 
 default_headers: _t.Mapping[str, str] | None = None
 
@@ -276,23 +276,23 @@ class _ModuleClient(OpenAI):
 
     @property  # type: ignore
     @override
-    def backoff_factor(self) -> float:
-        return backoff_factor
+    def initial_retry_delay(self) -> float:
+        return initial_retry_delay
 
-    @backoff_factor.setter  # type: ignore
-    def backoff_factor(self, value: float) -> None:  # type: ignore
-        global backoff_factor
-        backoff_factor = value
+    @initial_retry_delay.setter  # type: ignore
+    def initial_retry_delay(self, value: float) -> None:  # type: ignore
+        global initial_retry_delay
+        initial_retry_delay = value
 
     @property  # type: ignore
     @override
-    def max_backoff(self) -> float:
-        return max_backoff
+    def max_retry_delay(self) -> float:
+        return max_retry_delay
 
-    @max_backoff.setter  # type: ignore
-    def max_backoff(self, value: float) -> None:  # type: ignore
-        global max_backoff
-        max_backoff = value
+    @max_retry_delay.setter  # type: ignore
+    def max_retry_delay(self, value: float) -> None:  # type: ignore
+        global max_retry_delay
+        max_retry_delay = value
 
     @property  # type: ignore
     @override
@@ -420,8 +420,8 @@ def _load_client() -> OpenAI:  # type: ignore[reportUnusedFunction]
                 base_url=base_url,
                 timeout=timeout,
                 max_retries=max_retries,
-                backoff_factor=backoff_factor,
-                max_backoff=max_backoff,
+                initial_retry_delay=initial_retry_delay,
+                max_retry_delay=max_retry_delay,
                 default_headers=default_headers,
                 default_query=default_query,
                 http_client=http_client,
@@ -438,8 +438,8 @@ def _load_client() -> OpenAI:  # type: ignore[reportUnusedFunction]
                 base_url=base_url,
                 timeout=timeout,
                 max_retries=max_retries,
-                backoff_factor=backoff_factor,
-                max_backoff=max_backoff,
+                initial_retry_delay=initial_retry_delay,
+                max_retry_delay=max_retry_delay,
                 default_headers=default_headers,
                 default_query=default_query,
                 http_client=http_client,
@@ -455,8 +455,8 @@ def _load_client() -> OpenAI:  # type: ignore[reportUnusedFunction]
             base_url=base_url,
             timeout=timeout,
             max_retries=max_retries,
-            backoff_factor=backoff_factor,
-            max_backoff=max_backoff,
+            initial_retry_delay=initial_retry_delay,
+            max_retry_delay=max_retry_delay,
             default_headers=default_headers,
             default_query=default_query,
             http_client=http_client,
