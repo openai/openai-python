@@ -28,6 +28,40 @@ def test_base_import_does_not_load_legacy_httpx() -> None:
     )
 
 
+@pytest.mark.skipif(importlib.util.find_spec("aiohttp") is None, reason="the aiohttp extra is not installed")
+def test_base_import_with_older_aiohttp() -> None:
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            """
+import asyncio
+import aiohttp
+
+# aiohttp before 3.10 did not export this exception.
+del aiohttp.SocketTimeoutError
+
+import openai
+
+with openai.OpenAI(api_key="test"):
+    pass
+asyncio.run(openai.AsyncOpenAI(api_key="test").close())
+
+try:
+    openai.DefaultAioHttpClient()
+except RuntimeError as exc:
+    assert "aiohttp" in str(exc) and "extra" in str(exc)
+else:
+    raise AssertionError("The incompatible aiohttp client should be unavailable")
+""",
+        ],
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    assert result.returncode == 0, result.stderr
+
+
 @pytest.mark.respx2(base_url="https://example.test/v1")
 def test_default_client_and_respx_use_httpx2(respx2_mock: MockRouter) -> None:
     route = respx2_mock.get("/models").mock(return_value=httpx2.Response(200, json={"object": "list", "data": []}))
