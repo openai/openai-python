@@ -118,6 +118,8 @@ class AuditLogListParams(TypedDict, total=False):
             "tenant.admin_api_key.updated",
             "tenant.admin_api_key.deleted",
             "tenant.project_api_key.created",
+            "tenant.trusted_access.business_verification.started",
+            "tenant.trusted_access.application.submitted",
             "tenant.chatgpt_access_token.revoked",
             "tenant.migration.completed",
             "tenant.sso.migrated",
@@ -193,7 +195,7 @@ class AuditLogListParams(TypedDict, total=False):
     """Return only events with a `type` in one of these values.
 
     For example, `project.created`. For all options, see the documentation for the
-    [audit log object](https://platform.openai.com/docs/api-reference/audit-logs/object).
+    [audit log object](https://developers.openai.com/api/reference/resources/admin/subresources/organization/subresources/audit_logs).
     """
 
     limit: int

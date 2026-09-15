@@ -232,7 +232,7 @@ With an image URL:
 
 ```python
 prompt = "What is in this image?"
-img_url = "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/2023_06_08_Raccoon1.jpg/1599px-2023_06_08_Raccoon1.jpg"
+img_url = "https://api.nga.gov/iiif/a2e6da57-3cd1-4235-b20e-95dcaefed6c8/full/!800,800/0/default.jpg"
 
 response = client.responses.create(
     model="gpt-5.5",
@@ -346,7 +346,7 @@ HTTPX2 is the default HTTP client. If you configure a custom HTTP client, transp
 
 ## Streaming responses
 
-We provide support for streaming responses using Server Side Events (SSE).
+We provide support for streaming responses using Server-Sent Events (SSE).
 
 ```python
 from openai import OpenAI
@@ -671,6 +671,14 @@ response), a subclass of `openai.APIStatusError` is raised, containing `status_c
 
 All errors inherit from `openai.APIError`.
 
+When consuming a `Stream` or `AsyncStream`, read timeouts raise `APITimeoutError`
+and other HTTPX request failures raise `APIConnectionError`. Catch these SDK
+exceptions instead of raw HTTPX exceptions; the original exception is available
+as `__cause__`. Stream consumption is not automatically retried, because replaying
+a request could duplicate output already delivered to your application.
+The Assistants event-handler helpers and raw `with_streaming_response` iterators
+retain their existing exception behavior.
+
 ```python
 import openai
 from openai import OpenAI
@@ -816,7 +824,9 @@ You can enable logging by setting the environment variable `OPENAI_LOG` to `info
 $ export OPENAI_LOG=info
 ```
 
-Or to `debug` for more verbose logging.
+Or to `debug` for more verbose logging. Set it to `warning`, `error`, or `critical`
+to show only messages at that level or higher. `OPENAI_LOG` configures the `openai`
+logger; configure HTTP transport loggers separately using Python logging.
 
 ### How to tell whether `None` means `null` or missing
 

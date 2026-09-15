@@ -123,6 +123,40 @@ def _get_open_connections(client: OpenAI | AsyncOpenAI) -> int:
 
 
 class TestOpenAI:
+    @pytest.mark.parametrize(
+        "code_fields,expected_code",
+        [
+            ({"code": 404}, "404"),
+            ({"code": 0}, "0"),
+            ({"code": "invalid_request"}, "invalid_request"),
+            ({"code": ""}, ""),
+            ({"code": None}, None),
+            ({}, None),
+        ],
+    )
+    @pytest.mark.respx2(base_url=base_url)
+    def test_api_error_code_is_string(
+        self,
+        code_fields: dict[str, object],
+        expected_code: str | None,
+        respx2_mock: MockRouter,
+        client: OpenAI,
+    ) -> None:
+        body = {"message": "Example error", "type": "invalid_request_error", "param": "model", **code_fields}
+        response = httpx2.Response(400, json={"error": body})
+        respx2_mock.get("/foo").mock(return_value=response)
+
+        with pytest.raises(APIStatusError) as exc_info:
+            client.get("/foo", cast_to=httpx2.Response)
+
+        error = exc_info.value
+        assert error.code == expected_code
+        assert error.body == body
+        assert error.response.json() == {"error": body}
+        assert error.status_code == 400
+        assert error.type == "invalid_request_error"
+        assert error.param == "model"
+
     @pytest.mark.respx2(base_url=base_url)
     def test_raw_response(self, respx2_mock: MockRouter, client: OpenAI) -> None:
         respx2_mock.post("/foo").mock(return_value=httpx2.Response(200, json={"foo": "bar"}))
@@ -828,6 +862,23 @@ class TestOpenAI:
         assert response.content == file_content
 
     @pytest.mark.respx2(base_url=base_url)
+    @pytest.mark.parametrize("client", [False], indirect=True)
+    def test_bare_container_response(self, respx2_mock: MockRouter, client: OpenAI) -> None:
+        class Model(BaseModel):
+            metadata: dict  # type: ignore[type-arg]
+            items: list  # type: ignore[type-arg]
+
+        data = {"metadata": {"key": "value"}, "items": [1, "two"]}
+        respx2_mock.get("/foo").mock(return_value=httpx2.Response(200, json=data))
+
+        assert client.get("/foo", cast_to=dict) == data
+        response = client.get("/foo", cast_to=Model)
+        assert response.model_dump() == data
+
+        respx2_mock.get("/items").mock(return_value=httpx2.Response(200, json=[1, "two"]))
+        assert client.get("/items", cast_to=list) == [1, "two"]
+
+    @pytest.mark.respx2(base_url=base_url)
     def test_basic_union_response(self, respx2_mock: MockRouter, client: OpenAI) -> None:
         class Model1(BaseModel):
             name: str
@@ -1437,6 +1488,40 @@ class TestOpenAI:
 
 
 class TestAsyncOpenAI:
+    @pytest.mark.parametrize(
+        "code_fields,expected_code",
+        [
+            ({"code": 404}, "404"),
+            ({"code": 0}, "0"),
+            ({"code": "invalid_request"}, "invalid_request"),
+            ({"code": ""}, ""),
+            ({"code": None}, None),
+            ({}, None),
+        ],
+    )
+    @pytest.mark.respx2(base_url=base_url)
+    async def test_api_error_code_is_string(
+        self,
+        code_fields: dict[str, object],
+        expected_code: str | None,
+        respx2_mock: MockRouter,
+        async_client: AsyncOpenAI,
+    ) -> None:
+        body = {"message": "Example error", "type": "invalid_request_error", "param": "model", **code_fields}
+        response = httpx2.Response(400, json={"error": body})
+        respx2_mock.get("/foo").mock(return_value=response)
+
+        with pytest.raises(APIStatusError) as exc_info:
+            await async_client.get("/foo", cast_to=httpx2.Response)
+
+        error = exc_info.value
+        assert error.code == expected_code
+        assert error.body == body
+        assert error.response.json() == {"error": body}
+        assert error.status_code == 400
+        assert error.type == "invalid_request_error"
+        assert error.param == "model"
+
     @pytest.mark.respx2(base_url=base_url)
     async def test_raw_response(self, respx2_mock: MockRouter, async_client: AsyncOpenAI) -> None:
         respx2_mock.post("/foo").mock(return_value=httpx2.Response(200, json={"foo": "bar"}))
@@ -2130,6 +2215,23 @@ class TestAsyncOpenAI:
         assert response.status_code == 200
         assert response.request.headers["Content-Type"] == "application/octet-stream"
         assert response.content == file_content
+
+    @pytest.mark.respx2(base_url=base_url)
+    @pytest.mark.parametrize("async_client", [False], indirect=True)
+    async def test_bare_container_response(self, respx2_mock: MockRouter, async_client: AsyncOpenAI) -> None:
+        class Model(BaseModel):
+            metadata: dict  # type: ignore[type-arg]
+            items: list  # type: ignore[type-arg]
+
+        data = {"metadata": {"key": "value"}, "items": [1, "two"]}
+        respx2_mock.get("/foo").mock(return_value=httpx2.Response(200, json=data))
+
+        assert await async_client.get("/foo", cast_to=dict) == data
+        response = await async_client.get("/foo", cast_to=Model)
+        assert response.model_dump() == data
+
+        respx2_mock.get("/items").mock(return_value=httpx2.Response(200, json=[1, "two"]))
+        assert await async_client.get("/items", cast_to=list) == [1, "two"]
 
     @pytest.mark.respx2(base_url=base_url)
     async def test_basic_union_response(self, respx2_mock: MockRouter, async_client: AsyncOpenAI) -> None:

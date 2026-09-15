@@ -1,9 +1,10 @@
 # File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import List, Union, Optional
-from typing_extensions import Literal, TypeAlias
+from typing_extensions import Literal, Annotated, TypeAlias
 
 from .tool import Tool
+from ..._utils import PropertyInfo
 from ..._models import BaseModel
 from .service_tier import ServiceTier
 from .response_input import ResponseInput
@@ -17,6 +18,7 @@ from .tool_choice_custom import ToolChoiceCustom
 from .response_includable import ResponseIncludable
 from .tool_choice_allowed import ToolChoiceAllowed
 from .tool_choice_options import ToolChoiceOptions
+from .response_steer_event import ResponseSteerEvent
 from .response_text_config import ResponseTextConfig
 from .tool_choice_function import ToolChoiceFunction
 from ..shared.responses_model import ResponsesModel
@@ -25,6 +27,21 @@ from .response_conversation_param import ResponseConversationParam
 
 __all__ = [
     "ResponsesClientEvent",
+    "ResponseCreate",
+    "ResponseCreateContextManagement",
+    "ResponseCreateConversation",
+    "ResponseCreateModeration",
+    "ResponseCreateModerationPolicy",
+    "ResponseCreateModerationPolicyInput",
+    "ResponseCreateModerationPolicyOutput",
+    "ResponseCreatePromptCacheOptions",
+    "ResponseCreateStreamOptions",
+    "ResponseCreateToolChoice",
+    "ResponseCreateToolChoiceSpecificProgrammaticToolCallingParam",
+]
+
+# custom code for back compat exports
+__all__ += [
     "ContextManagement",
     "Conversation",
     "Moderation",
@@ -36,9 +53,10 @@ __all__ = [
     "ToolChoice",
     "ToolChoiceSpecificProgrammaticToolCallingParam",
 ]
+# end custom code for back compat exports
 
 
-class ContextManagement(BaseModel):
+class ResponseCreateContextManagement(BaseModel):
     type: str
     """The context management entry type. Currently only 'compaction' is supported."""
 
@@ -46,32 +64,32 @@ class ContextManagement(BaseModel):
     """Token threshold at which compaction should be triggered for this entry."""
 
 
-Conversation: TypeAlias = Union[str, ResponseConversationParam, None]
+ResponseCreateConversation: TypeAlias = Union[str, ResponseConversationParam, None]
 
 
-class ModerationPolicyInput(BaseModel):
+class ResponseCreateModerationPolicyInput(BaseModel):
     """The moderation policy for the response input."""
 
     mode: Literal["score", "block"]
 
 
-class ModerationPolicyOutput(BaseModel):
+class ResponseCreateModerationPolicyOutput(BaseModel):
     """The moderation policy for the response output."""
 
     mode: Literal["score", "block"]
 
 
-class ModerationPolicy(BaseModel):
+class ResponseCreateModerationPolicy(BaseModel):
     """The policy to apply to moderated response input and output."""
 
-    input: Optional[ModerationPolicyInput] = None
+    input: Optional[ResponseCreateModerationPolicyInput] = None
     """The moderation policy for the response input."""
 
-    output: Optional[ModerationPolicyOutput] = None
+    output: Optional[ResponseCreateModerationPolicyOutput] = None
     """The moderation policy for the response output."""
 
 
-class Moderation(BaseModel):
+class ResponseCreateModeration(BaseModel):
     """Configuration for running moderation on the input and output of this response."""
 
     model: str
@@ -80,14 +98,21 @@ class Moderation(BaseModel):
     'omni-moderation-latest'.
     """
 
-    policy: Optional[ModerationPolicy] = None
+    policy: Optional[ResponseCreateModerationPolicy] = None
     """The policy to apply to moderated response input and output."""
 
 
-class PromptCacheOptions(BaseModel):
+class ResponseCreatePromptCacheOptions(BaseModel):
     """Options for prompt caching.
 
-    Supported for `gpt-5.6` and later models. By default, OpenAI automatically chooses one implicit cache breakpoint. You can add explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each request can write up to four breakpoints. For cache matching, OpenAI considers up to the latest 80 breakpoints in the conversation, without a content-block lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The `ttl` defaults to `30m`, which is currently the only supported value. See the [prompt caching guide](https://platform.openai.com/docs/guides/prompt-caching) for current details.
+    Supported for `gpt-5.6` and later models. By default, OpenAI automatically chooses one implicit cache breakpoint. You can add explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each request can write up to four breakpoints. For cache matching, OpenAI considers up to the latest 80 breakpoints in the conversation, without a content-block lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The `ttl` defaults to `30m`, which is currently the only supported value. See the [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching) for current details.
+    """
+
+    comparison_response_id: Optional[str] = None
+    """The ID of a response to compare when diagnosing prompt cache reuse.
+
+    Supplying this field requests prompt cache diagnostics when the feature is
+    enabled.
     """
 
     mode: Optional[Literal["implicit", "explicit"]] = None
@@ -108,7 +133,7 @@ class PromptCacheOptions(BaseModel):
     """
 
 
-class StreamOptions(BaseModel):
+class ResponseCreateStreamOptions(BaseModel):
     """Options for streaming responses. Only set this when you set `stream: true`."""
 
     include_obfuscation: Optional[bool] = None
@@ -123,38 +148,49 @@ class StreamOptions(BaseModel):
     """
 
 
-class ToolChoiceSpecificProgrammaticToolCallingParam(BaseModel):
+class ResponseCreateToolChoiceSpecificProgrammaticToolCallingParam(BaseModel):
     type: Literal["programmatic_tool_calling"]
     """The tool to call. Always `programmatic_tool_calling`."""
 
 
-ToolChoice: TypeAlias = Union[
+ResponseCreateToolChoice: TypeAlias = Union[
     ToolChoiceOptions,
     ToolChoiceAllowed,
     ToolChoiceTypes,
     ToolChoiceFunction,
     ToolChoiceMcp,
     ToolChoiceCustom,
-    ToolChoiceSpecificProgrammaticToolCallingParam,
+    ResponseCreateToolChoiceSpecificProgrammaticToolCallingParam,
     ToolChoiceApplyPatch,
     ToolChoiceShell,
 ]
 
 
-class ResponsesClientEvent(BaseModel):
+class ResponseCreate(BaseModel):
+    """
+    Client event for creating a response over a persistent WebSocket connection.
+    This payload uses the same top-level fields as `POST /v1/responses`, plus
+    WebSocket-only envelope metadata.
+
+    Notes:
+    - `stream` is implicit over WebSocket and should not be sent.
+    - `background` is not supported over WebSocket.
+    - `stream_id` is WebSocket-only and is not part of `POST /v1/responses`.
+    """
+
     type: Literal["response.create"]
     """The type of the client event. Always `response.create`."""
 
     background: Optional[bool] = None
     """
     Whether to run the model response in the background.
-    [Learn more](https://platform.openai.com/docs/guides/background).
+    [Learn more](https://developers.openai.com/api/docs/guides/background).
     """
 
-    context_management: Optional[List[ContextManagement]] = None
+    context_management: Optional[List[ResponseCreateContextManagement]] = None
     """Context management configuration for this request."""
 
-    conversation: Optional[Conversation] = None
+    conversation: Optional[ResponseCreateConversation] = None
     """The conversation that this response belongs to.
 
     Items from this conversation are prepended to `input_items` for this response
@@ -189,11 +225,11 @@ class ResponsesClientEvent(BaseModel):
 
     Learn more:
 
-    - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
-    - [Image inputs](https://platform.openai.com/docs/guides/images)
-    - [File inputs](https://platform.openai.com/docs/guides/pdf-files)
-    - [Conversation state](https://platform.openai.com/docs/guides/conversation-state)
-    - [Function calling](https://platform.openai.com/docs/guides/function-calling)
+    - [Text inputs and outputs](https://developers.openai.com/api/docs/guides/text)
+    - [Image inputs](https://developers.openai.com/api/docs/guides/images-vision)
+    - [File inputs](https://developers.openai.com/api/docs/guides/file-inputs)
+    - [Conversation state](https://developers.openai.com/api/docs/guides/conversation-state)
+    - [Function calling](https://developers.openai.com/api/docs/guides/function-calling)
     """
 
     instructions: Optional[str] = None
@@ -208,7 +244,7 @@ class ResponsesClientEvent(BaseModel):
     """
     An upper bound for the number of tokens that can be generated for a response,
     including visible output tokens and
-    [reasoning tokens](https://platform.openai.com/docs/guides/reasoning).
+    [reasoning tokens](https://developers.openai.com/api/docs/guides/reasoning).
     """
 
     max_tool_calls: Optional[int] = None
@@ -230,15 +266,15 @@ class ResponsesClientEvent(BaseModel):
     """
 
     model: Optional[ResponsesModel] = None
-    """Model ID used to generate the response, like `gpt-4o` or `o3`.
+    """Model ID used to generate the response, like `gpt-6-astra`.
 
     OpenAI offers a wide range of models with different capabilities, performance
     characteristics, and price points. Refer to the
-    [model guide](https://platform.openai.com/docs/models) to browse and compare
-    available models.
+    [model guide](https://developers.openai.com/api/docs/models) to browse and
+    compare available models.
     """
 
-    moderation: Optional[Moderation] = None
+    moderation: Optional[ResponseCreateModeration] = None
     """Configuration for running moderation on the input and output of this response."""
 
     parallel_tool_calls: Optional[bool] = None
@@ -248,24 +284,24 @@ class ResponsesClientEvent(BaseModel):
     """The unique ID of the previous response to the model.
 
     Use this to create multi-turn conversations. Learn more about
-    [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+    [conversation state](https://developers.openai.com/api/docs/guides/conversation-state).
     Cannot be used in conjunction with `conversation`.
     """
 
     prompt: Optional[ResponsePrompt] = None
     """
     Reference to a prompt template and its variables.
-    [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
+    [Learn more](https://developers.openai.com/api/docs/guides/text?api-mode=responses#version-prompts-in-code).
     """
 
     prompt_cache_key: Optional[str] = None
     """
     Used by OpenAI to cache responses for similar requests to optimize your cache
     hit rates. Replaces the `user` field.
-    [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
+    [Learn more](https://developers.openai.com/api/docs/guides/prompt-caching).
     """
 
-    prompt_cache_options: Optional[PromptCacheOptions] = None
+    prompt_cache_options: Optional[ResponseCreatePromptCacheOptions] = None
     """Options for prompt caching.
 
     Supported for `gpt-5.6` and later models. By default, OpenAI automatically
@@ -275,7 +311,7 @@ class ResponsesClientEvent(BaseModel):
     breakpoints in the conversation, without a content-block lookback limit. Set
     `mode` to `explicit` to disable the implicit breakpoint. The `ttl` defaults to
     `30m`, which is currently the only supported value. See the
-    [prompt caching guide](https://platform.openai.com/docs/guides/prompt-caching)
+    [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching)
     for current details.
     """
 
@@ -285,7 +321,7 @@ class ResponsesClientEvent(BaseModel):
     The retention policy for the prompt cache. Set to `24h` to enable extended
     prompt caching, which keeps cached prefixes active for longer, up to a maximum
     of 24 hours.
-    [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
+    [Learn more](https://developers.openai.com/api/docs/guides/prompt-caching#prompt-cache-retention).
     This field expresses a maximum retention policy, while
     `prompt_cache_options.ttl` expresses a minimum cache lifetime. The two fields
     are independent and do not interact. For `gpt-5.5`, `gpt-5.5-pro`, and future
@@ -300,10 +336,9 @@ class ResponsesClientEvent(BaseModel):
     """
 
     reasoning: Optional[Reasoning] = None
-    """**gpt-5 and o-series models only**
-
+    """
     Configuration options for
-    [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+    [reasoning models](https://developers.openai.com/api/docs/guides/reasoning).
     """
 
     safety_identifier: Optional[str] = None
@@ -313,7 +348,7 @@ class ResponsesClientEvent(BaseModel):
     identifies each user, with a maximum length of 64 characters. We recommend
     hashing their username or email address, in order to avoid sending us any
     identifying information.
-    [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+    [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
     """
 
     service_tier: Optional[ServiceTier] = None
@@ -324,13 +359,15 @@ class ResponsesClientEvent(BaseModel):
       will use 'default'.
     - If set to 'default', then the request will be processed with the standard
       pricing and performance for the selected model.
-    - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)',
-      then the request will be processed with the Flex Processing service tier.
-    - To opt-in to [Fast mode](/api/docs/guides/fast-mode) at the request level,
-      include the `service_tier=fast` or `service_tier=priority` parameter for
-      Responses or Chat Completions. The response will show `service_tier=priority`
-      regardless of if you specify `service_tier=fast` or `priority` in your
-      request.
+    - If set to
+      '[flex](https://developers.openai.com/api/docs/guides/flex-processing)', then
+      the request will be processed with the Flex Processing service tier.
+    - To opt-in to
+      [Fast mode](https://developers.openai.com/api/docs/guides/fast-mode) at the
+      request level, include the `service_tier=fast` or `service_tier=priority`
+      parameter for Responses or Chat Completions. The response will show
+      `service_tier=priority` regardless of if you specify `service_tier=fast` or
+      `priority` in your request.
     - If set to 'ultrafast', then the request will be processed with the
       access-controlled Ultrafast Processing service tier. This tier is currently
       available for `gpt-5.6-sol`; a response served through it will show
@@ -344,7 +381,12 @@ class ResponsesClientEvent(BaseModel):
     """
 
     store: Optional[bool] = None
-    """Whether to store the generated model response for later retrieval via API."""
+    """Whether to store the generated model response for later retrieval via API.
+
+    Defaults to true when omitted. If set to true, response data will be stored for
+    at least 30 days, subject to the
+    [data retention exceptions](https://developers.openai.com/api/docs/guides/your-data#v1responses).
+    """
 
     stream: Optional[bool] = None
     """
@@ -352,7 +394,7 @@ class ResponsesClientEvent(BaseModel):
     generated using
     [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
     See the
-    [Streaming section below](https://platform.openai.com/docs/api-reference/responses-streaming)
+    [Streaming section below](https://developers.openai.com/api/reference/resources/responses/streaming-events)
     for more information.
     """
 
@@ -366,7 +408,7 @@ class ResponsesClientEvent(BaseModel):
     lineage, so a new lane can fork from a response created on another lane.
     """
 
-    stream_options: Optional[StreamOptions] = None
+    stream_options: Optional[ResponseCreateStreamOptions] = None
     """Options for streaming responses. Only set this when you set `stream: true`."""
 
     temperature: Optional[float] = None
@@ -382,11 +424,11 @@ class ResponsesClientEvent(BaseModel):
 
     Can be plain text or structured JSON data. Learn more:
 
-    - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
-    - [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs)
+    - [Text inputs and outputs](https://developers.openai.com/api/docs/guides/text)
+    - [Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs)
     """
 
-    tool_choice: Optional[ToolChoice] = None
+    tool_choice: Optional[ResponseCreateToolChoice] = None
     """
     How the model should select which tool (or tools) to use when generating a
     response. See the `tools` parameter to see how to specify which tools the model
@@ -402,17 +444,18 @@ class ResponsesClientEvent(BaseModel):
 
     - **Built-in tools**: Tools that are provided by OpenAI that extend the model's
       capabilities, like
-      [web search](https://platform.openai.com/docs/guides/tools-web-search) or
-      [file search](https://platform.openai.com/docs/guides/tools-file-search).
+      [web search](https://developers.openai.com/api/docs/guides/tools-web-search)
+      or
+      [file search](https://developers.openai.com/api/docs/guides/tools-file-search).
       Learn more about
-      [built-in tools](https://platform.openai.com/docs/guides/tools).
+      [built-in tools](https://developers.openai.com/api/docs/guides/tools).
     - **MCP Tools**: Integrations with third-party systems via custom MCP servers or
       predefined connectors such as Google Drive and SharePoint. Learn more about
-      [MCP Tools](https://platform.openai.com/docs/guides/tools-connectors-mcp).
+      [MCP Tools](https://developers.openai.com/api/docs/guides/tools-connectors-mcp).
     - **Function calls (custom tools)**: Functions that are defined by you, enabling
       the model to call your own code with strongly typed arguments and outputs.
       Learn more about
-      [function calling](https://platform.openai.com/docs/guides/function-calling).
+      [function calling](https://developers.openai.com/api/docs/guides/function-calling).
       You can also use custom tools to call your own code.
     """
 
@@ -448,5 +491,25 @@ class ResponsesClientEvent(BaseModel):
     Use `prompt_cache_key` instead to maintain caching optimizations. A stable
     identifier for your end-users. Used to boost cache hit rates by better bucketing
     similar requests and to help OpenAI detect and prevent abuse.
-    [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+    [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
     """
+
+
+ResponsesClientEvent: TypeAlias = Annotated[
+    Union[ResponseCreate, ResponseSteerEvent], PropertyInfo(discriminator="type")
+]
+
+
+# custom code for back compat aliases
+# Preserve the names exposed before ResponsesClientEvent became a union.
+ContextManagement: TypeAlias = ResponseCreateContextManagement
+Conversation: TypeAlias = ResponseCreateConversation
+Moderation: TypeAlias = ResponseCreateModeration
+ModerationPolicy: TypeAlias = ResponseCreateModerationPolicy
+ModerationPolicyInput: TypeAlias = ResponseCreateModerationPolicyInput
+ModerationPolicyOutput: TypeAlias = ResponseCreateModerationPolicyOutput
+PromptCacheOptions: TypeAlias = ResponseCreatePromptCacheOptions
+StreamOptions: TypeAlias = ResponseCreateStreamOptions
+ToolChoice: TypeAlias = ResponseCreateToolChoice
+ToolChoiceSpecificProgrammaticToolCallingParam: TypeAlias = ResponseCreateToolChoiceSpecificProgrammaticToolCallingParam
+# end custom code for back compat aliases
