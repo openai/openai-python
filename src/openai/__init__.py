@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import os as _os
 import typing as _t
+import importlib as _importlib
 from typing_extensions import override
 
-from . import types
 from ._types import NOT_GIVEN, Omit, NoneType, NotGiven, Transport, ProxiesTypes, omit, not_given
 from ._utils import file_from_path
 from ._client import Client, OpenAI, Stream, Timeout, Transport, AsyncClient, AsyncOpenAI, AsyncStream, RequestOptions
@@ -41,8 +41,6 @@ from ._base_client import DefaultHttpxClient, DefaultAioHttpClient, DefaultAsync
 from ._utils._logs import setup_logging as _setup_logging
 from ._data_residency import DataResidency
 from ._legacy_response import HttpxBinaryResponseContent as HttpxBinaryResponseContent
-from .types.websocket_reconnection import ReconnectingEvent, ReconnectingOverrides
-
 __all__ = [
     "types",
     "__version__",
@@ -100,18 +98,46 @@ __all__ = [
     "WebSocketConnectionClosedError",
 ]
 
-if not _t.TYPE_CHECKING:
+if _t.TYPE_CHECKING:
+    from . import types as types
+    from .lib import pydantic_function_tool as pydantic_function_tool
+    from .lib.streaming import (
+        AssistantEventHandler as AssistantEventHandler,
+        AsyncAssistantEventHandler as AsyncAssistantEventHandler,
+    )
+    from .types.websocket_reconnection import ReconnectingEvent, ReconnectingOverrides
+else:
     from ._utils._resources_proxy import resources as resources
+    from ._utils._types_proxy import types as types
 
-from .lib import azure as _azure, bedrock as _bedrock, pydantic_function_tool as pydantic_function_tool
+from .lib import azure as _azure, bedrock as _bedrock
 from .version import VERSION as VERSION
 from .lib.azure import AzureOpenAI as AzureOpenAI, AsyncAzureOpenAI as AsyncAzureOpenAI
 from .lib.bedrock import BedrockOpenAI as BedrockOpenAI, AsyncBedrockOpenAI as AsyncBedrockOpenAI
 from .lib._old_api import *
-from .lib.streaming import (
-    AssistantEventHandler as AssistantEventHandler,
-    AsyncAssistantEventHandler as AsyncAssistantEventHandler,
-)
+
+_LAZY_IMPORTS = {
+    "pydantic_function_tool": (".lib", "pydantic_function_tool"),
+    "AssistantEventHandler": (".lib.streaming", "AssistantEventHandler"),
+    "AsyncAssistantEventHandler": (".lib.streaming", "AsyncAssistantEventHandler"),
+    "ReconnectingEvent": (".types.websocket_reconnection", "ReconnectingEvent"),
+    "ReconnectingOverrides": (".types.websocket_reconnection", "ReconnectingOverrides"),
+}
+
+
+def __getattr__(name: str) -> _t.Any:
+    lazy_import = _LAZY_IMPORTS.get(name)
+    if lazy_import is None:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+    module_name, attribute_name = lazy_import
+    value = getattr(_importlib.import_module(module_name, __name__), attribute_name)
+    globals()[name] = value
+    return value
+
+
+def __dir__() -> list[str]:
+    return sorted(set(globals()) | set(_LAZY_IMPORTS))
 
 _setup_logging()
 
@@ -123,7 +149,9 @@ __locals = locals()
 for __name in __all__:
     if not __name.startswith("__"):
         try:
-            __locals[__name].__module__ = "openai"
+            __object = __locals.get(__name)
+            if __object is not None:
+                __object.__module__ = "openai"
         except (TypeError, AttributeError):
             # Some of our exported symbols are builtins which we can't set attributes for.
             pass
