@@ -24,7 +24,7 @@ pip install openai
 
 The full API of this library can be found in [api.md](api.md).
 
-The primary API for interacting with OpenAI models is the [Responses API](https://platform.openai.com/docs/api-reference/responses). You can generate text from the model with the code below.
+The primary API for interacting with OpenAI models is the [Responses API](https://developers.openai.com/api/reference/resources/responses). You can generate text from the model with the code below.
 
 ```python
 import os
@@ -346,7 +346,7 @@ HTTPX2 is the default HTTP client. If you configure a custom HTTP client, transp
 
 ## Streaming responses
 
-We provide support for streaming responses using Server Side Events (SSE).
+We provide support for streaming responses using Server-Sent Events (SSE).
 
 ```python
 from openai import OpenAI
@@ -552,7 +552,7 @@ response = client.responses.create(
 
 ## File uploads
 
-Request parameters that correspond to file uploads can be passed as `bytes`, or a [`PathLike`](https://docs.python.org/3/library/os.html#os.PathLike) instance or a tuple of `(filename, contents, media type)`.
+Request parameters that correspond to file uploads can be passed as `bytes`, a file-like object, a [`PathLike`](https://docs.python.org/3/library/os.html#os.PathLike) instance, or a tuple of `(filename, contents, media type)`.
 
 ```python
 from pathlib import Path
@@ -565,6 +565,20 @@ client.files.create(
     purpose="fine-tune",
 )
 ```
+
+When uploading an in-memory file-like object such as `io.BytesIO`, include a filename when the API needs the file extension to determine its format. Passing a tuple is the most explicit option:
+
+```python
+import io
+
+audio = io.BytesIO(audio_bytes)
+transcription = client.audio.transcriptions.create(
+    model="gpt-4o-transcribe",
+    file=("audio.wav", audio, "audio/wav"),
+)
+```
+
+You can also set a `.name` attribute such as `audio.name = "audio.wav"` on a mutable file-like object before passing it directly. Without a filename, multipart transports may use a generic name such as `upload`, which does not provide an audio extension for format detection.
 
 The async client uses the exact same interface. If you pass a [`PathLike`](https://docs.python.org/3/library/os.html#os.PathLike) instance, the file contents will be read asynchronously automatically.
 
@@ -1056,6 +1070,25 @@ with OpenAI() as client:
   ...
 
 # HTTP client is now closed
+```
+
+For `AsyncOpenAI`, use `async with` or `await client.close()` before shutting down
+the event loop. Garbage collection cannot reliably await asynchronous cleanup.
+
+```py
+import asyncio
+from openai import AsyncOpenAI
+
+
+async def main() -> None:
+    async with AsyncOpenAI() as client:
+        response = await client.responses.create(
+            model="gpt-5.5", input="Say this is a test"
+        )
+        print(response.output_text)
+
+
+asyncio.run(main())
 ```
 
 ## Microsoft Azure OpenAI
