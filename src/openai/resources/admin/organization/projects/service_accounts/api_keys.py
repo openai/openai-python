@@ -1,8 +1,10 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
-import httpx
+from typing import Optional
+
+import httpx2
 
 from ...... import _legacy_response
 from ......_types import Body, Omit, Query, Headers, NotGiven, SequenceNotStr, omit, not_given
@@ -42,6 +44,7 @@ class APIKeys(SyncAPIResource):
         service_account_id: str,
         *,
         project_id: str,
+        expires_in_seconds: Optional[int] | Omit = omit,
         name: str | Omit = omit,
         scopes: SequenceNotStr[str] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -49,7 +52,7 @@ class APIKeys(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> APIKeyCreateResponse:
         """
         Creates an API key for a service account in the project.
@@ -58,6 +61,8 @@ class APIKeys(SyncAPIResource):
           project_id: The ID of the project.
 
           service_account_id: The ID of the service account.
+
+          expires_in_seconds: Number of seconds until the API key expires.
 
           name: API key name.
 
@@ -83,6 +88,7 @@ class APIKeys(SyncAPIResource):
             ),
             body=maybe_transform(
                 {
+                    "expires_in_seconds": expires_in_seconds,
                     "name": name,
                     "scopes": scopes,
                 },
@@ -124,6 +130,7 @@ class AsyncAPIKeys(AsyncAPIResource):
         service_account_id: str,
         *,
         project_id: str,
+        expires_in_seconds: Optional[int] | Omit = omit,
         name: str | Omit = omit,
         scopes: SequenceNotStr[str] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -131,7 +138,7 @@ class AsyncAPIKeys(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> APIKeyCreateResponse:
         """
         Creates an API key for a service account in the project.
@@ -140,6 +147,8 @@ class AsyncAPIKeys(AsyncAPIResource):
           project_id: The ID of the project.
 
           service_account_id: The ID of the service account.
+
+          expires_in_seconds: Number of seconds until the API key expires.
 
           name: API key name.
 
@@ -165,6 +174,7 @@ class AsyncAPIKeys(AsyncAPIResource):
             ),
             body=await async_maybe_transform(
                 {
+                    "expires_in_seconds": expires_in_seconds,
                     "name": name,
                     "scopes": scopes,
                 },

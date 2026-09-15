@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import json
 import base64
 import hashlib
@@ -9,9 +10,8 @@ from typing import Any, Iterator, AsyncIterator, cast
 from pathlib import Path
 from datetime import datetime
 
-import httpx
+import httpx2
 import pytest
-import jsonschema
 
 from openai import OpenAI, AsyncOpenAI, OpenAIError, APIStatusError
 from openai._utils import SensitiveHeadersFilter
@@ -25,6 +25,40 @@ SHARED_SIGV4_FIXTURE_PATH = Path(__file__).parents[1] / "fixtures" / "bedrock" /
 FIXTURES = cast(dict[str, Any], json.loads(FIXTURE_PATH.read_text()))
 SCHEMA = cast(dict[str, Any], json.loads(SCHEMA_PATH.read_text()))
 SHARED_SIGV4_FIXTURE = cast(dict[str, Any], json.loads(SHARED_SIGV4_FIXTURE_PATH.read_text()))
+
+# This is deliberately specific to the small, checked-in v1 fixture contract.
+_REQUIRED_CASE_FIELDS: dict[str, dict[str, list[str]]] = {
+    "auth_selection": {"given": ["explicit", "environment", "default_chain_available"]},
+    "sigv4": {
+        "given": ["credentials", "signing", "request"],
+        "expected": ["payload_sha256", "canonical_request_sha256", "headers"],
+    },
+    "retry_signing": {
+        "given": ["response_statuses", "timestamps", "access_key_ids", "body_base64"],
+        "expected": ["attempts", "credential_provider_calls", "x_amz_dates", "body_sha256"],
+    },
+    "body_replay": {"given": ["body_kind"], "expected": ["result"]},
+    "redaction": {"given": ["headers"], "expected": ["headers", "forbidden_substrings"]},
+}
+
+
+def _validate_fixture_envelope(fixtures: dict[str, Any]) -> None:
+    assert set(fixtures) == {"schema_version", "suite", "cases"}
+    assert type(fixtures["schema_version"]) is int and fixtures["schema_version"] == 1
+    assert fixtures["suite"] == "aws-bedrock-auth"
+    assert isinstance(fixtures["cases"], list) and fixtures["cases"]
+    ids: set[str] = set()
+    for value in cast(list[object], fixtures["cases"]):
+        assert isinstance(value, dict)
+        case = cast(dict[str, Any], value)
+        assert set(case) == {"id", "kind", "given", "expected"}
+        assert isinstance(case["id"], str) and case["id"]
+        assert case["id"] not in ids
+        ids.add(case["id"])
+        assert isinstance(case["kind"], str) and case["kind"] in _REQUIRED_CASE_FIELDS
+        assert isinstance(case["given"], dict) and isinstance(case["expected"], dict)
+        for section, fields in _REQUIRED_CASE_FIELDS[case["kind"]].items():
+            assert set(fields) <= cast(dict[str, Any], case[section]).keys(), f"{case['id']}: missing {section} fields"
 
 
 def _cases(kind: str) -> list[dict[str, Any]]:
@@ -50,7 +84,7 @@ def _freeze_botocore_time(monkeypatch: pytest.MonkeyPatch, timestamps: Iterator[
     monkeypatch.setattr(botocore_auth.datetime, "datetime", FrozenDatetime)
 
 
-def _lower_headers(headers: httpx.Headers | dict[str, str]) -> dict[str, str]:
+def _lower_headers(headers: httpx2.Headers | dict[str, str]) -> dict[str, str]:
     return {name.lower(): value for name, value in headers.items()}
 
 
@@ -59,7 +93,7 @@ def _canonical_request_sha256(case: dict[str, Any], signed_headers: dict[str, st
     authorization = signed_headers["authorization"]
     signed_header_names = authorization.split("SignedHeaders=", 1)[1].split(",", 1)[0].split(";")
     canonical_headers = "".join(f"{name}:{' '.join(signed_headers[name].split())}\n" for name in signed_header_names)
-    url = httpx.URL(request["url"])
+    url = httpx2.URL(request["url"])
     canonical_request = "\n".join(
         (
             request["method"],
@@ -96,7 +130,7 @@ def test_shared_sigv4_fixture_matches_node(monkeypatch: pytest.MonkeyPatch) -> N
             url=request["url"],
             headers={
                 "content-type": request["contentType"],
-                "host": httpx.URL(request["url"]).host,
+                "host": httpx2.URL(request["url"]).host,
             },
             body=body,
         )
@@ -123,7 +157,7 @@ def test_auth_selection_fixture(case: dict[str, Any], monkeypatch: pytest.Monkey
     explicit = case["given"]["explicit"]
     kwargs: dict[str, Any] = {
         "aws_region": "us-east-1",
-        "http_client": httpx.Client(trust_env=False),
+        "http_client": httpx2.Client(trust_env=False),
         "_enforce_credentials": False,
     }
     if "bearer" in explicit:
@@ -217,12 +251,12 @@ def test_retry_signing_fixture(monkeypatch: pytest.MonkeyPatch) -> None:
 
     _freeze_botocore_time(monkeypatch, timestamps)
 
-    requests: list[httpx.Request] = []
+    requests: list[httpx2.Request] = []
     statuses = iter(case["given"]["response_statuses"])
 
-    def handler(request: httpx.Request) -> httpx.Response:
+    def handler(request: httpx2.Request) -> httpx2.Response:
         requests.append(request)
-        return httpx.Response(next(statuses), request=request, json={})
+        return httpx2.Response(next(statuses), request=request, json={})
 
     body = base64.b64decode(case["given"]["body_base64"])
     with OpenAI(
@@ -232,12 +266,12 @@ def test_retry_signing_fixture(monkeypatch: pytest.MonkeyPatch) -> None:
             credential_provider=credentials_provider,
         ),
         max_retries=case["given"].get("max_retries", 1),
-        http_client=httpx.Client(transport=httpx.MockTransport(handler), trust_env=False),
+        http_client=httpx2.Client(transport=httpx2.MockTransport(handler), trust_env=False),
     ) as client:
         client.post(
             "/responses",
             content=body,
-            cast_to=httpx.Response,
+            cast_to=httpx2.Response,
             options={"headers": {"Content-Type": "application/json"}},
         )
 
@@ -254,7 +288,7 @@ def test_body_replay_fixture(case: dict[str, Any]) -> None:
     provider_calls = 0
     network_calls = 0
     body_reads = 0
-    requests: list[httpx.Request] = []
+    requests: list[httpx2.Request] = []
 
     def credentials_provider() -> _Credentials:
         nonlocal provider_calls
@@ -267,12 +301,12 @@ def test_body_replay_fixture(case: dict[str, Any]) -> None:
         for chunk in case["given"].get("chunks_base64", []):
             yield base64.b64decode(chunk)
 
-    def handler(request: httpx.Request) -> httpx.Response:
+    def handler(request: httpx2.Request) -> httpx2.Response:
         nonlocal network_calls
         network_calls += 1
         requests.append(request)
         statuses = case["given"].get("response_statuses", [200])
-        return httpx.Response(statuses[network_calls - 1], request=request, json={})
+        return httpx2.Response(statuses[network_calls - 1], request=request, json={})
 
     body_kind = case["given"]["body_kind"]
     content: bytes | Iterator[bytes]
@@ -289,13 +323,13 @@ def test_body_replay_fixture(case: dict[str, Any]) -> None:
             credential_provider=credentials_provider,
         ),
         max_retries=case["given"].get("max_retries", 1),
-        http_client=httpx.Client(transport=httpx.MockTransport(handler), trust_env=False),
+        http_client=httpx2.Client(transport=httpx2.MockTransport(handler), trust_env=False),
     ) as client:
         if case["expected"]["result"] == "bedrock_non_replayable_body":
             with pytest.raises(OpenAIError, match="requires a replayable request body"):
-                client.post("/responses", content=content, cast_to=httpx.Response)
+                client.post("/responses", content=content, cast_to=httpx2.Response)
         else:
-            client.post("/responses", content=content, cast_to=httpx.Response)
+            client.post("/responses", content=content, cast_to=httpx2.Response)
 
     assert network_calls == case["expected"].get("network_attempts", case["expected"].get("attempts"))
     if body_kind == "bytes":
@@ -321,10 +355,10 @@ async def test_non_replayable_async_body_fails_before_credentials_or_network() -
         body_reads += 1
         yield b"body"
 
-    async def handler(request: httpx.Request) -> httpx.Response:
+    async def handler(request: httpx2.Request) -> httpx2.Response:
         nonlocal network_calls
         network_calls += 1
-        return httpx.Response(200, request=request)
+        return httpx2.Response(200, request=request)
 
     async with AsyncOpenAI(
         provider=bedrock(
@@ -332,10 +366,10 @@ async def test_non_replayable_async_body_fails_before_credentials_or_network() -
             region="us-east-1",
             credential_provider=credentials_provider,
         ),
-        http_client=httpx.AsyncClient(transport=httpx.MockTransport(handler), trust_env=False),
+        http_client=httpx2.AsyncClient(transport=httpx2.MockTransport(handler), trust_env=False),
     ) as client:
         with pytest.raises(OpenAIError, match="requires a replayable request body"):
-            await client.post("/responses", content=body(), cast_to=httpx.Response)
+            await client.post("/responses", content=body(), cast_to=httpx2.Response)
 
     assert (body_reads, provider_calls, network_calls) == (0, 0, 0)
 
@@ -349,8 +383,8 @@ async def test_async_credentials_are_resolved_off_event_loop() -> None:
         provider_threads.append(threading.get_ident())
         return _Credentials("access-key", "secret-key")
 
-    async def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(200, request=request, json={})
+    async def handler(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(200, request=request, json={})
 
     async with AsyncOpenAI(
         provider=bedrock(
@@ -358,20 +392,20 @@ async def test_async_credentials_are_resolved_off_event_loop() -> None:
             region="us-east-1",
             credential_provider=credentials_provider,
         ),
-        http_client=httpx.AsyncClient(transport=httpx.MockTransport(handler), trust_env=False),
+        http_client=httpx2.AsyncClient(transport=httpx2.MockTransport(handler), trust_env=False),
     ) as client:
-        await client.post("/responses", content=b"{}", cast_to=httpx.Response)
+        await client.post("/responses", content=b"{}", cast_to=httpx2.Response)
 
     assert provider_threads
     assert all(thread_id != event_loop_thread for thread_id in provider_threads)
 
 
 def test_custom_http_client_auth_cannot_replace_sigv4() -> None:
-    requests: list[httpx.Request] = []
+    requests: list[httpx2.Request] = []
 
-    def handler(request: httpx.Request) -> httpx.Response:
+    def handler(request: httpx2.Request) -> httpx2.Response:
         requests.append(request)
-        return httpx.Response(200, request=request, json={})
+        return httpx2.Response(200, request=request, json={})
 
     with OpenAI(
         provider=bedrock(
@@ -380,25 +414,25 @@ def test_custom_http_client_auth_cannot_replace_sigv4() -> None:
             access_key_id="access-key",
             secret_access_key="secret-key",
         ),
-        http_client=httpx.Client(
-            auth=httpx.BasicAuth("username", "password"),
-            transport=httpx.MockTransport(handler),
+        http_client=httpx2.Client(
+            auth=httpx2.BasicAuth("username", "password"),
+            transport=httpx2.MockTransport(handler),
             trust_env=False,
         ),
     ) as client:
-        client.get("/models", cast_to=httpx.Response)
+        client.get("/models", cast_to=httpx2.Response)
 
     assert requests[0].headers["Authorization"].startswith("AWS4-HMAC-SHA256 Credential=access-key/")
 
 
 def test_sigv4_redirects_are_not_followed() -> None:
-    requests: list[httpx.Request] = []
+    requests: list[httpx2.Request] = []
 
-    def handler(request: httpx.Request) -> httpx.Response:
+    def handler(request: httpx2.Request) -> httpx2.Response:
         requests.append(request)
         if len(requests) == 1:
-            return httpx.Response(307, request=request, headers={"Location": "/redirected"})
-        return httpx.Response(200, request=request)
+            return httpx2.Response(307, request=request, headers={"Location": "/redirected"})
+        return httpx2.Response(200, request=request)
 
     with OpenAI(
         provider=bedrock(
@@ -407,10 +441,10 @@ def test_sigv4_redirects_are_not_followed() -> None:
             access_key_id="access-key",
             secret_access_key="secret-key",
         ),
-        http_client=httpx.Client(transport=httpx.MockTransport(handler), trust_env=False),
+        http_client=httpx2.Client(transport=httpx2.MockTransport(handler), trust_env=False),
     ) as client:
         with pytest.raises(APIStatusError) as exc:
-            client.get("/models", cast_to=httpx.Response)
+            client.get("/models", cast_to=httpx2.Response)
 
     assert exc.value.status_code == 307
     assert len(requests) == 1
@@ -431,8 +465,85 @@ def test_redaction_fixture(caplog: pytest.LogCaptureFixture) -> None:
 
 
 def test_fixture_envelope_is_versioned_and_ids_are_unique() -> None:
-    jsonschema.Draft202012Validator(SCHEMA).validate(FIXTURES)  # pyright: ignore[reportUnknownMemberType]
-    assert FIXTURES["schema_version"] == 1
-    assert FIXTURES["suite"] == "aws-bedrock-auth"
-    ids = [case["id"] for case in FIXTURES["cases"]]
-    assert len(ids) == len(set(ids))
+    _validate_fixture_envelope(FIXTURES)
+
+
+def test_fixture_schema_matches_manual_checks() -> None:
+    # Fail explicitly if the shared schema grows beyond what the checks cover.
+    assert SCHEMA == {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "https://openai.com/sdk-fixtures/bedrock-auth/v1/schema.json",
+        "title": "OpenAI SDK AWS Bedrock authentication conformance fixtures",
+        "type": "object",
+        "additionalProperties": False,
+        "required": ["schema_version", "suite", "cases"],
+        "properties": {
+            "schema_version": {"const": 1},
+            "suite": {"const": "aws-bedrock-auth"},
+            "cases": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/case"}},
+        },
+        "$defs": {
+            "case": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": ["id", "kind", "given", "expected"],
+                "properties": {
+                    "id": {"type": "string", "minLength": 1},
+                    "kind": {"enum": list(_REQUIRED_CASE_FIELDS)},
+                    "given": {"type": "object"},
+                    "expected": {"type": "object"},
+                },
+                "allOf": [
+                    {
+                        "if": {"properties": {"kind": {"const": kind}}},
+                        "then": {"properties": {section: {"required": fields} for section, fields in sections.items()}},
+                    }
+                    for kind, sections in _REQUIRED_CASE_FIELDS.items()
+                ],
+            }
+        },
+    }
+
+
+@pytest.mark.parametrize(
+    "field,value",
+    [("schema_version", True), ("schema_version", 2), ("suite", "other"), ("cases", []), ("cases", {})],
+)
+def test_fixture_envelope_rejects_invalid_values(field: str, value: object) -> None:
+    fixtures = {**FIXTURES, field: value}
+    with pytest.raises(AssertionError):
+        _validate_fixture_envelope(fixtures)
+
+
+@pytest.mark.parametrize("field,value", [("id", ""), ("id", 1), ("kind", "other"), ("given", []), ("expected", [])])
+def test_fixture_case_rejects_invalid_values(field: str, value: object) -> None:
+    case = {**FIXTURES["cases"][0], field: value}
+    with pytest.raises(AssertionError):
+        _validate_fixture_envelope({**FIXTURES, "cases": [case]})
+
+
+def test_fixture_rejects_missing_extra_and_duplicate_fields() -> None:
+    for original in [FIXTURES, FIXTURES["cases"][0]]:
+        for field in [*original, "unexpected"]:
+            value = dict(original)
+            if field == "unexpected":
+                value[field] = None
+            else:
+                del value[field]
+            fixtures = value if original is FIXTURES else {**FIXTURES, "cases": [value]}
+            with pytest.raises(AssertionError):
+                _validate_fixture_envelope(fixtures)
+
+    case = FIXTURES["cases"][0]
+    with pytest.raises(AssertionError):
+        _validate_fixture_envelope({**FIXTURES, "cases": [case, case]})
+
+
+def test_fixture_rejects_missing_kind_specific_fields() -> None:
+    for kind, sections in _REQUIRED_CASE_FIELDS.items():
+        for section, fields in sections.items():
+            for field in fields:
+                case = copy.deepcopy(_cases(kind)[0])
+                del case[section][field]
+                with pytest.raises(AssertionError):
+                    _validate_fixture_envelope({**FIXTURES, "cases": [case]})
