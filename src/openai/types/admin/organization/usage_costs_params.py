@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -37,6 +37,13 @@ class UsageCostsParams(TypedDict, total=False):
     """A limit on the number of buckets to be returned.
 
     Limit can range between 1 and 180, and the default is 7.
+    """
+
+    line_items: SequenceNotStr[str]
+    """Return only costs for these exact line item names.
+
+    Each value must match the complete `line_item` value, for example
+    `gpt-6-astra, input_tokens`.
     """
 
     page: str

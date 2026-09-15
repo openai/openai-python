@@ -1,11 +1,11 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 from typing import Optional
 from typing_extensions import Literal
 
-import httpx
+import httpx2
 
 from .... import _legacy_response
 from ...._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
@@ -47,17 +47,21 @@ class AdminAPIKeys(SyncAPIResource):
         self,
         *,
         name: str,
+        expires_in_seconds: int | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AdminAPIKeyCreateResponse:
         """
         Create an organization admin API key
 
         Args:
+          expires_in_seconds: The number of seconds until the API key expires. Omit this field for a key that
+              does not expire.
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -68,7 +72,13 @@ class AdminAPIKeys(SyncAPIResource):
         """
         return self._post(
             "/organization/admin_api_keys",
-            body=maybe_transform({"name": name}, admin_api_key_create_params.AdminAPIKeyCreateParams),
+            body=maybe_transform(
+                {
+                    "name": name,
+                    "expires_in_seconds": expires_in_seconds,
+                },
+                admin_api_key_create_params.AdminAPIKeyCreateParams,
+            ),
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -88,7 +98,7 @@ class AdminAPIKeys(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AdminAPIKey:
         """
         Retrieve a single organization API key
@@ -129,7 +139,7 @@ class AdminAPIKeys(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncCursorPage[AdminAPIKey]:
         """
         List organization API keys
@@ -179,7 +189,7 @@ class AdminAPIKeys(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AdminAPIKeyDeleteResponse:
         """
         Delete an organization admin API key
@@ -234,17 +244,21 @@ class AsyncAdminAPIKeys(AsyncAPIResource):
         self,
         *,
         name: str,
+        expires_in_seconds: int | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AdminAPIKeyCreateResponse:
         """
         Create an organization admin API key
 
         Args:
+          expires_in_seconds: The number of seconds until the API key expires. Omit this field for a key that
+              does not expire.
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -255,7 +269,13 @@ class AsyncAdminAPIKeys(AsyncAPIResource):
         """
         return await self._post(
             "/organization/admin_api_keys",
-            body=await async_maybe_transform({"name": name}, admin_api_key_create_params.AdminAPIKeyCreateParams),
+            body=await async_maybe_transform(
+                {
+                    "name": name,
+                    "expires_in_seconds": expires_in_seconds,
+                },
+                admin_api_key_create_params.AdminAPIKeyCreateParams,
+            ),
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -275,7 +295,7 @@ class AsyncAdminAPIKeys(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AdminAPIKey:
         """
         Retrieve a single organization API key
@@ -316,7 +336,7 @@ class AsyncAdminAPIKeys(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[AdminAPIKey, AsyncCursorPage[AdminAPIKey]]:
         """
         List organization API keys
@@ -366,7 +386,7 @@ class AsyncAdminAPIKeys(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AdminAPIKeyDeleteResponse:
         """
         Delete an organization admin API key

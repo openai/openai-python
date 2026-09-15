@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ __all__ = ["ComputerUsePreviewToolParam"]
 class ComputerUsePreviewToolParam(TypedDict, total=False):
     """A tool that controls a virtual computer.
 
-    Learn more about the [computer tool](https://platform.openai.com/docs/guides/tools-computer-use).
+    Learn more about the [computer tool](https://developers.openai.com/api/docs/guides/tools-computer-use).
     """
 
     display_height: Required[int]
