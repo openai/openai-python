@@ -109,15 +109,25 @@ def parse_chat_completion(
             for tool_call in message.tool_calls:
                 if tool_call.type == "function":
                     tool_call_dict = tool_call.to_dict()
+                    try:
+                        parsed_arguments = parse_function_tool_arguments(
+                            input_tools=input_tools, function=tool_call.function
+                        )
+                    except (pydantic.ValidationError, json.JSONDecodeError) as exc:
+                        # The model returned a function-call whose arguments are not
+                        # valid JSON for the declared tool schema (e.g. truncated by a
+                        # stream cut-off). Surface the call with parsed_arguments=None
+                        # instead of letting the exception escape the best-effort parse
+                        # boundary. See issue #1763.
+                        log.debug("Failed to parse tool call arguments: %s", exc)
+                        parsed_arguments = None
                     tool_calls.append(
                         construct_type_unchecked(
                             value={
                                 **tool_call_dict,
                                 "function": {
                                     **cast(Any, tool_call_dict["function"]),
-                                    "parsed_arguments": parse_function_tool_arguments(
-                                        input_tools=input_tools, function=tool_call.function
-                                    ),
+                                    "parsed_arguments": parsed_arguments,
                                 },
                             },
                             type_=ParsedFunctionToolCall,
@@ -143,7 +153,7 @@ def parse_chat_completion(
                     **choice.to_dict(),
                     "message": {
                         **message.to_dict(),
-                        "parsed": maybe_parse_content(
+                        "parsed": _safe_maybe_parse_content(
                             response_format=response_format,
                             message=message,
                         ),
@@ -196,6 +206,21 @@ def maybe_parse_content(
         return _parse_content(response_format, message.content)
 
     return None
+
+
+def _safe_maybe_parse_content(
+    *,
+    response_format: type[ResponseFormatT] | ResponseFormatParam | Omit,
+    message: ChatCompletionMessage | ParsedChatCompletionMessage[object],
+) -> ResponseFormatT | None:
+    """Same contract as ``maybe_parse_content`` but catches JSON-decode and
+    pydantic validation errors so the best-effort parsing boundary in
+    ``parse_chat_completion`` never lets them escape. See issue #1763."""
+    try:
+        return maybe_parse_content(response_format=response_format, message=message)
+    except (pydantic.ValidationError, json.JSONDecodeError) as exc:
+        log.debug("Failed to parse structured-output content: %s", exc)
+        return None
 
 
 def has_parseable_input(
