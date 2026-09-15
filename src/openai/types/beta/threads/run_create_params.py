@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -31,8 +31,8 @@ class RunCreateParamsBase(TypedDict, total=False):
     assistant_id: Required[str]
     """
     The ID of the
-    [assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
-    execute this run.
+    [assistant](https://developers.openai.com/api/docs/assistants/migration) to use
+    to execute this run.
     """
 
     include: List[RunStepInclude]
@@ -43,7 +43,7 @@ class RunCreateParamsBase(TypedDict, total=False):
     search result content.
 
     See the
-    [file search tool documentation](https://platform.openai.com/docs/assistants/tools/file-search#customizing-file-search-settings)
+    [file search tool documentation](https://developers.openai.com/api/docs/guides/tools-file-search#retrieval-customization)
     for more information.
     """
 
@@ -60,8 +60,8 @@ class RunCreateParamsBase(TypedDict, total=False):
     instructions: Optional[str]
     """
     Overrides the
-    [instructions](https://platform.openai.com/docs/api-reference/assistants/createAssistant)
-    of the assistant. This is useful for modifying the behavior on a per-run basis.
+    [instructions](https://developers.openai.com/api/docs/assistants/migration) of
+    the assistant. This is useful for modifying the behavior on a per-run basis.
     """
 
     max_completion_tokens: Optional[int]
@@ -94,47 +94,42 @@ class RunCreateParamsBase(TypedDict, total=False):
 
     model: Union[str, ChatModel, None]
     """
-    The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
-    be used to execute this run. If a value is provided here, it will override the
-    model associated with the assistant. If not, the model associated with the
-    assistant will be used.
+    The ID of the
+    [Model](https://developers.openai.com/api/reference/resources/models) to be used
+    to execute this run. If a value is provided here, it will override the model
+    associated with the assistant. If not, the model associated with the assistant
+    will be used.
     """
 
     parallel_tool_calls: bool
     """
     Whether to enable
-    [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
+    [parallel function calling](https://developers.openai.com/api/docs/guides/function-calling#parallel-function-calling)
     during tool use.
     """
 
     reasoning_effort: Optional[ReasoningEffort]
-    """
-    Constrains effort on reasoning for
-    [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
-    supported values are `none`, `minimal`, `low`, `medium`, `high`, and `xhigh`.
-    Reducing reasoning effort can result in faster responses and fewer tokens used
-    on reasoning in a response.
+    """Constrains effort on reasoning for reasoning models.
 
-    - `gpt-5.1` defaults to `none`, which does not perform reasoning. The supported
-      reasoning values for `gpt-5.1` are `none`, `low`, `medium`, and `high`. Tool
-      calls are supported for all reasoning values in gpt-5.1.
-    - All models before `gpt-5.1` default to `medium` reasoning effort, and do not
-      support `none`.
-    - The `gpt-5-pro` model defaults to (and only supports) `high` reasoning effort.
-    - `xhigh` is supported for all models after `gpt-5.1-codex-max`.
+    Currently supported values are `none`, `minimal`, `low`, `medium`, `high`,
+    `xhigh`, and `max`. Reducing reasoning effort can result in faster responses and
+    fewer tokens used on reasoning in a response. Not all reasoning models support
+    every value. See the
+    [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning) for
+    model-specific support.
     """
 
     response_format: Optional[AssistantResponseFormatOptionParam]
     """Specifies the format that the model must output.
 
-    Compatible with [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
-    [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4),
-    and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+    Compatible with [GPT-4o](https://developers.openai.com/api/docs/models/gpt-4o),
+    [GPT-4 Turbo](https://developers.openai.com/api/docs/models/gpt-4-turbo), and
+    all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
     Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
     Outputs which ensures the model will match your supplied JSON schema. Learn more
     in the
-    [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+    [Structured Outputs guide](https://developers.openai.com/api/docs/guides/structured-outputs).
 
     Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
     message the model generates is valid JSON.

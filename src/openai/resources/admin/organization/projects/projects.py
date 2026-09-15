@@ -1,10 +1,10 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 from typing import Optional
 
-import httpx
+import httpx2
 
 from ..... import _legacy_response
 from .roles import (
@@ -33,6 +33,14 @@ from .rate_limits import (
     AsyncRateLimitsWithRawResponse,
     RateLimitsWithStreamingResponse,
     AsyncRateLimitsWithStreamingResponse,
+)
+from .spend_limit import (
+    SpendLimit,
+    AsyncSpendLimit,
+    SpendLimitWithRawResponse,
+    AsyncSpendLimitWithRawResponse,
+    SpendLimitWithStreamingResponse,
+    AsyncSpendLimitWithStreamingResponse,
 )
 from .users.users import (
     Users,
@@ -78,14 +86,6 @@ from .data_retention import (
     AsyncDataRetentionWithStreamingResponse,
 )
 from ....._base_client import AsyncPaginator, make_request_options
-from .service_accounts import (
-    ServiceAccounts,
-    AsyncServiceAccounts,
-    ServiceAccountsWithRawResponse,
-    AsyncServiceAccountsWithRawResponse,
-    ServiceAccountsWithStreamingResponse,
-    AsyncServiceAccountsWithStreamingResponse,
-)
 from .model_permissions import (
     ModelPermissions,
     AsyncModelPermissions,
@@ -102,8 +102,22 @@ from .hosted_tool_permissions import (
     HostedToolPermissionsWithStreamingResponse,
     AsyncHostedToolPermissionsWithStreamingResponse,
 )
-from .....types.admin.organization import project_list_params, project_create_params, project_update_params
+from .....types.admin.organization import (
+    ProjectResidency,
+    project_list_params,
+    project_create_params,
+    project_update_params,
+)
+from .service_accounts.service_accounts import (
+    ServiceAccounts,
+    AsyncServiceAccounts,
+    ServiceAccountsWithRawResponse,
+    AsyncServiceAccountsWithRawResponse,
+    ServiceAccountsWithStreamingResponse,
+    AsyncServiceAccountsWithStreamingResponse,
+)
 from .....types.admin.organization.project import Project
+from .....types.admin.organization.project_residency import ProjectResidency
 
 __all__ = ["Projects", "AsyncProjects"]
 
@@ -146,6 +160,10 @@ class Projects(SyncAPIResource):
         return DataRetention(self._client)
 
     @cached_property
+    def spend_limit(self) -> SpendLimit:
+        return SpendLimit(self._client)
+
+    @cached_property
     def spend_alerts(self) -> SpendAlerts:
         return SpendAlerts(self._client)
 
@@ -178,12 +196,13 @@ class Projects(SyncAPIResource):
         name: str,
         external_key_id: Optional[str] | Omit = omit,
         geography: Optional[str] | Omit = omit,
+        residency: Optional[ProjectResidency] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Project:
         """Create a new project in the organization.
 
@@ -197,7 +216,14 @@ class Projects(SyncAPIResource):
 
           geography: Create the project with the specified data residency region. Your organization
               must have access to Data residency functionality in order to use. See
-              [data residency controls](https://platform.openai.com/docs/guides/your-data#data-residency-controls)
+              [data residency controls](https://developers.openai.com/api/docs/guides/your-data#data-residency-controls)
+              to review the functionality and limitations of setting this field. Deprecated:
+              use `residency` instead. Do not provide both `geography` and `residency`.
+
+          residency: Create the project with the specified residency configuration. Your organization
+              must have access to the requested residency configuration in order to use it.
+              See
+              [data residency controls](https://developers.openai.com/api/docs/guides/your-data#data-residency-controls)
               to review the functionality and limitations of setting this field.
 
           extra_headers: Send extra headers
@@ -215,6 +241,7 @@ class Projects(SyncAPIResource):
                     "name": name,
                     "external_key_id": external_key_id,
                     "geography": geography,
+                    "residency": residency,
                 },
                 project_create_params.ProjectCreateParams,
             ),
@@ -237,7 +264,7 @@ class Projects(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Project:
         """
         Retrieves a project.
@@ -277,7 +304,7 @@ class Projects(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Project:
         """
         Modifies a project in the organization.
@@ -285,7 +312,8 @@ class Projects(SyncAPIResource):
         Args:
           external_key_id: External key ID to associate with the project.
 
-          geography: Geography for the project.
+          geography: Geography for the project. Deprecated: use `residency` when creating a project
+              to configure data residency. This field is retained for backward compatibility.
 
           name: The updated name of the project, this name appears in reports.
 
@@ -330,7 +358,7 @@ class Projects(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncConversationCursorPage[Project]:
         """Returns a list of projects.
 
@@ -386,7 +414,7 @@ class Projects(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Project:
         """Archives a project in the organization.
 
@@ -455,6 +483,10 @@ class AsyncProjects(AsyncAPIResource):
         return AsyncDataRetention(self._client)
 
     @cached_property
+    def spend_limit(self) -> AsyncSpendLimit:
+        return AsyncSpendLimit(self._client)
+
+    @cached_property
     def spend_alerts(self) -> AsyncSpendAlerts:
         return AsyncSpendAlerts(self._client)
 
@@ -487,12 +519,13 @@ class AsyncProjects(AsyncAPIResource):
         name: str,
         external_key_id: Optional[str] | Omit = omit,
         geography: Optional[str] | Omit = omit,
+        residency: Optional[ProjectResidency] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Project:
         """Create a new project in the organization.
 
@@ -506,7 +539,14 @@ class AsyncProjects(AsyncAPIResource):
 
           geography: Create the project with the specified data residency region. Your organization
               must have access to Data residency functionality in order to use. See
-              [data residency controls](https://platform.openai.com/docs/guides/your-data#data-residency-controls)
+              [data residency controls](https://developers.openai.com/api/docs/guides/your-data#data-residency-controls)
+              to review the functionality and limitations of setting this field. Deprecated:
+              use `residency` instead. Do not provide both `geography` and `residency`.
+
+          residency: Create the project with the specified residency configuration. Your organization
+              must have access to the requested residency configuration in order to use it.
+              See
+              [data residency controls](https://developers.openai.com/api/docs/guides/your-data#data-residency-controls)
               to review the functionality and limitations of setting this field.
 
           extra_headers: Send extra headers
@@ -524,6 +564,7 @@ class AsyncProjects(AsyncAPIResource):
                     "name": name,
                     "external_key_id": external_key_id,
                     "geography": geography,
+                    "residency": residency,
                 },
                 project_create_params.ProjectCreateParams,
             ),
@@ -546,7 +587,7 @@ class AsyncProjects(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Project:
         """
         Retrieves a project.
@@ -586,7 +627,7 @@ class AsyncProjects(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Project:
         """
         Modifies a project in the organization.
@@ -594,7 +635,8 @@ class AsyncProjects(AsyncAPIResource):
         Args:
           external_key_id: External key ID to associate with the project.
 
-          geography: Geography for the project.
+          geography: Geography for the project. Deprecated: use `residency` when creating a project
+              to configure data residency. This field is retained for backward compatibility.
 
           name: The updated name of the project, this name appears in reports.
 
@@ -639,7 +681,7 @@ class AsyncProjects(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[Project, AsyncConversationCursorPage[Project]]:
         """Returns a list of projects.
 
@@ -695,7 +737,7 @@ class AsyncProjects(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Project:
         """Archives a project in the organization.
 
@@ -783,6 +825,10 @@ class ProjectsWithRawResponse:
         return DataRetentionWithRawResponse(self._projects.data_retention)
 
     @cached_property
+    def spend_limit(self) -> SpendLimitWithRawResponse:
+        return SpendLimitWithRawResponse(self._projects.spend_limit)
+
+    @cached_property
     def spend_alerts(self) -> SpendAlertsWithRawResponse:
         return SpendAlertsWithRawResponse(self._projects.spend_alerts)
 
@@ -846,6 +892,10 @@ class AsyncProjectsWithRawResponse:
     @cached_property
     def data_retention(self) -> AsyncDataRetentionWithRawResponse:
         return AsyncDataRetentionWithRawResponse(self._projects.data_retention)
+
+    @cached_property
+    def spend_limit(self) -> AsyncSpendLimitWithRawResponse:
+        return AsyncSpendLimitWithRawResponse(self._projects.spend_limit)
 
     @cached_property
     def spend_alerts(self) -> AsyncSpendAlertsWithRawResponse:
@@ -913,6 +963,10 @@ class ProjectsWithStreamingResponse:
         return DataRetentionWithStreamingResponse(self._projects.data_retention)
 
     @cached_property
+    def spend_limit(self) -> SpendLimitWithStreamingResponse:
+        return SpendLimitWithStreamingResponse(self._projects.spend_limit)
+
+    @cached_property
     def spend_alerts(self) -> SpendAlertsWithStreamingResponse:
         return SpendAlertsWithStreamingResponse(self._projects.spend_alerts)
 
@@ -976,6 +1030,10 @@ class AsyncProjectsWithStreamingResponse:
     @cached_property
     def data_retention(self) -> AsyncDataRetentionWithStreamingResponse:
         return AsyncDataRetentionWithStreamingResponse(self._projects.data_retention)
+
+    @cached_property
+    def spend_limit(self) -> AsyncSpendLimitWithStreamingResponse:
+        return AsyncSpendLimitWithStreamingResponse(self._projects.spend_limit)
 
     @cached_property
     def spend_alerts(self) -> AsyncSpendAlertsWithStreamingResponse:
