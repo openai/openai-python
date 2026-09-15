@@ -23,9 +23,11 @@ from typing import (
     Generic,
     Mapping,
     TypeVar,
+    Callable,
     Iterable,
     Iterator,
     Optional,
+    Awaitable,
     Generator,
     AsyncIterator,
     cast,
@@ -105,6 +107,7 @@ from ._exceptions import (
 )
 from ._utils._json import openapi_dumps
 from ._utils._logs import get_http_method_for_logging
+from .lib._resumable import _PartialDownload, _resume_validator, read_resumable_body, aread_resumable_body
 from ._legacy_response import LegacyAPIResponse
 
 log: logging.Logger = logging.getLogger(__name__)
@@ -120,6 +123,7 @@ _T_co = TypeVar("_T_co", covariant=True)
 
 _StreamT = TypeVar("_StreamT", bound=Stream[Any])
 _AsyncStreamT = TypeVar("_AsyncStreamT", bound=AsyncStream[Any])
+
 
 if TYPE_CHECKING:
     from httpx2._config import (
@@ -994,9 +998,15 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
         request: httpx2.Request,
         *,
         stream: bool,
+        body_reader: Callable[[httpx2.Response], httpx2.Response] | None = None,
         **kwargs: Unpack[HttpxSendArgs],
     ) -> httpx2.Response:
-        return self._client.send(request, stream=stream, **kwargs)
+        response = self._client.send(request, stream=stream, **kwargs)
+        if body_reader is not None:
+            # consumes a streamed body before any subclass-level response
+            # normalisation sees it, preserving the non-streaming contract
+            response = body_reader(response)
+        return response
 
     @overload
     def request(
@@ -1048,6 +1058,11 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
         response: httpx2.Response | None = None
         max_retries = input_options.get_max_retries(self.max_retries)
 
+        # GET responses are idempotent, so an interrupted body can be resumed
+        # with a `Range` request once the server told us it supports byte ranges
+        resumable_download = input_options.method.lower() == "get" and not stream
+        partial_download = _PartialDownload()
+
         retries_taken = 0
         for retries_taken in range(max_retries + 1):
             options = model_copy(input_options)
@@ -1055,6 +1070,20 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
 
             remaining_retries = max_retries - retries_taken
             request = self._build_request(options, retries_taken=retries_taken)
+
+            resumable_attempt = resumable_download and not self._should_stream_response_body(request)
+            if resumable_attempt and partial_download:
+                log.debug("Resuming interrupted download from byte %i", len(partial_download.data))
+                request.headers["Range"] = f"bytes={len(partial_download.data)}-"
+                representation = partial_download.representation
+                assert representation is not None
+                # make the range conditional so a changed resource is re-downloaded
+                # in full instead of being spliced from two different versions
+                validator = _resume_validator(representation)
+                if validator is not None:
+                    request.headers["If-Range"] = validator
+
+            # prepare (and sign) the request only after every header is final
             self._prepare_request(request)
 
             kwargs: HttpxSendArgs = {}
@@ -1071,11 +1100,15 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
 
             log.debug("Sending HTTP Request: %s", get_http_method_for_logging(request.method))
 
+            def resumable_reader(response_: httpx2.Response) -> httpx2.Response:
+                return read_resumable_body(response_, partial_download)
+
             response = None
             try:
                 response = self._send_request(
                     request,
-                    stream=stream or self._should_stream_response_body(request=request),
+                    stream=stream or self._should_stream_response_body(request=request) or resumable_attempt,
+                    body_reader=resumable_reader if resumable_attempt else None,
                     **kwargs,
                 )
             except timeout_exceptions() as err:
@@ -1613,9 +1646,15 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
         request: httpx2.Request,
         *,
         stream: bool,
+        body_reader: Callable[[httpx2.Response], Awaitable[httpx2.Response]] | None = None,
         **kwargs: Unpack[HttpxSendArgs],
     ) -> httpx2.Response:
-        return await self._client.send(request, stream=stream, **kwargs)
+        response = await self._client.send(request, stream=stream, **kwargs)
+        if body_reader is not None:
+            # consumes a streamed body before any subclass-level response
+            # normalisation sees it, preserving the non-streaming contract
+            response = await body_reader(response)
+        return response
 
     @overload
     async def request(
@@ -1672,6 +1711,11 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
         response: httpx2.Response | None = None
         max_retries = input_options.get_max_retries(self.max_retries)
 
+        # GET responses are idempotent, so an interrupted body can be resumed
+        # with a `Range` request once the server told us it supports byte ranges
+        resumable_download = input_options.method.lower() == "get" and not stream
+        partial_download = _PartialDownload()
+
         retries_taken = 0
         for retries_taken in range(max_retries + 1):
             options = model_copy(input_options)
@@ -1679,6 +1723,20 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
 
             remaining_retries = max_retries - retries_taken
             request = self._build_request(options, retries_taken=retries_taken)
+
+            resumable_attempt = resumable_download and not self._should_stream_response_body(request)
+            if resumable_attempt and partial_download:
+                log.debug("Resuming interrupted download from byte %i", len(partial_download.data))
+                request.headers["Range"] = f"bytes={len(partial_download.data)}-"
+                representation = partial_download.representation
+                assert representation is not None
+                # make the range conditional so a changed resource is re-downloaded
+                # in full instead of being spliced from two different versions
+                validator = _resume_validator(representation)
+                if validator is not None:
+                    request.headers["If-Range"] = validator
+
+            # prepare (and sign) the request only after every header is final
             await self._prepare_request(request)
 
             kwargs: HttpxSendArgs = {}
@@ -1694,11 +1752,15 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
 
             log.debug("Sending HTTP Request: %s", get_http_method_for_logging(request.method))
 
+            async def resumable_reader(response_: httpx2.Response) -> httpx2.Response:
+                return await aread_resumable_body(response_, partial_download)
+
             response = None
             try:
                 response = await self._send_request(
                     request,
-                    stream=stream or self._should_stream_response_body(request=request),
+                    stream=stream or self._should_stream_response_body(request=request) or resumable_attempt,
+                    body_reader=resumable_reader if resumable_attempt else None,
                     **kwargs,
                 )
             except timeout_exceptions() as err:
