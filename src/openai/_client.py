@@ -349,7 +349,11 @@ class OpenAI(SyncAPIClient):
 
         if x509_identity is not None:
             self._workload_identity_auth = SyncX509WorkloadIdentityAuth(
-                workload_identity=x509_identity.copy(), http_client=self._client, max_retries=max_retries
+                workload_identity=x509_identity.copy(),
+                http_client=self._client,
+                max_retries=max_retries,
+                initial_retry_delay=initial_retry_delay,
+                max_retry_delay=max_retry_delay,
             )
         elif subject_token_identity is not None:
             self._workload_identity_auth = WorkloadIdentityAuth(
@@ -825,6 +829,9 @@ class OpenAI(SyncAPIClient):
         copied.initial_retry_delay = initial_retry_delay if is_given(initial_retry_delay) else self.initial_retry_delay
         copied.max_retry_delay = max_retry_delay if is_given(max_retry_delay) else self.max_retry_delay
         copied._validate_retry_options(copied.max_retries)
+        if isinstance(copied._workload_identity_auth, SyncX509WorkloadIdentityAuth):
+            copied._workload_identity_auth.initial_retry_delay = copied.initial_retry_delay
+            copied._workload_identity_auth.max_retry_delay = copied.max_retry_delay
         if preserve_default_base_url:
             copied._base_url_was_default = True
         overridden_authorizations = default_headers if default_headers is not None else set_default_headers
@@ -1112,7 +1119,11 @@ class AsyncOpenAI(AsyncAPIClient):
 
         if x509_identity is not None:
             self._workload_identity_auth = AsyncX509WorkloadIdentityAuth(
-                workload_identity=x509_identity.copy(), http_client=self._client, max_retries=max_retries
+                workload_identity=x509_identity.copy(),
+                http_client=self._client,
+                max_retries=max_retries,
+                initial_retry_delay=initial_retry_delay,
+                max_retry_delay=max_retry_delay,
             )
         elif subject_token_identity is not None:
             self._workload_identity_auth = WorkloadIdentityAuth(
@@ -1600,6 +1611,9 @@ class AsyncOpenAI(AsyncAPIClient):
         copied.initial_retry_delay = initial_retry_delay if is_given(initial_retry_delay) else self.initial_retry_delay
         copied.max_retry_delay = max_retry_delay if is_given(max_retry_delay) else self.max_retry_delay
         copied._validate_retry_options(copied.max_retries)
+        if isinstance(copied._workload_identity_auth, AsyncX509WorkloadIdentityAuth):
+            copied._workload_identity_auth.initial_retry_delay = copied.initial_retry_delay
+            copied._workload_identity_auth.max_retry_delay = copied.max_retry_delay
         if preserve_default_base_url:
             copied._base_url_was_default = True
         overridden_authorizations = default_headers if default_headers is not None else set_default_headers

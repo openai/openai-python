@@ -387,8 +387,9 @@ async def test_async_x509_cancelled_refresh_owner_releases_waiters() -> None:
 
 
 @pytest.mark.parametrize("status_code", [408, 409, 429, 500, 503])
+@pytest.mark.parametrize("max_retry_delay", [0.0, 8.0])
 def test_sync_x509_retries_transient_exchange_and_honors_retry_after(
-    status_code: int, monkeypatch: pytest.MonkeyPatch
+    status_code: int, max_retry_delay: float, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     exchange_calls = 0
     delays: list[float] = []
@@ -404,7 +405,9 @@ def test_sync_x509_retries_transient_exchange_and_honors_retry_after(
 
     monkeypatch.setattr(x509_auth.time, "sleep", delays.append)
     http_client = httpx2.Client(transport=httpx2.MockTransport(handler), trust_env=False)
-    with OpenAI(workload_identity=_identity(), http_client=http_client, max_retries=2) as client:
+    with OpenAI(
+        workload_identity=_identity(), http_client=http_client, max_retries=2, max_retry_delay=max_retry_delay
+    ) as client:
         assert client.models.list().object == "list"
 
     assert exchange_calls == 2
@@ -430,7 +433,10 @@ async def test_async_x509_retries_transient_exchange() -> None:
     assert exchange_calls == 2
 
 
-async def test_async_x509_honors_retry_after_without_blocking(monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.parametrize("max_retry_delay", [0.0, 8.0])
+async def test_async_x509_honors_retry_after_without_blocking(
+    max_retry_delay: float, monkeypatch: pytest.MonkeyPatch
+) -> None:
     exchange_calls = 0
     delays: list[float] = []
 
@@ -448,7 +454,9 @@ async def test_async_x509_honors_retry_after_without_blocking(monkeypatch: pytes
 
     monkeypatch.setattr(x509_auth.anyio, "sleep", record_sleep)
     http_client = httpx2.AsyncClient(transport=httpx2.MockTransport(handler), trust_env=False)
-    async with AsyncOpenAI(workload_identity=_identity(), http_client=http_client, max_retries=2) as client:
+    async with AsyncOpenAI(
+        workload_identity=_identity(), http_client=http_client, max_retries=2, max_retry_delay=max_retry_delay
+    ) as client:
         assert (await client.models.list()).object == "list"
 
     assert delays == [0.25]
@@ -840,3 +848,74 @@ def test_x509_rollout_examples_construct_clients_without_network(
         client.close()
     else:
         anyio.run(client.close)
+
+
+@pytest.mark.parametrize("is_async", [False, True])
+@pytest.mark.parametrize("connection_error", [False, True])
+@pytest.mark.parametrize(
+    "options,expected_delays",
+    [
+        ({}, [0.5, 1.0]),
+        ({"initial_retry_delay": 2.0, "max_retry_delay": 3.0}, [2.0, 3.0]),
+        ({"initial_retry_delay": 0.0}, [0.0, 0.0]),
+        ({"max_retry_delay": 0.0}, [0.0, 0.0]),
+    ],
+)
+async def test_x509_retry_delays_follow_client_options(
+    is_async: bool,
+    connection_error: bool,
+    options: dict[str, Any],
+    expected_delays: list[float],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    exchange_calls = 0
+    delays: list[float] = []
+
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        nonlocal exchange_calls
+        if str(request.url) != _TOKEN_URL:
+            return _models_response(request)
+        exchange_calls += 1
+        if exchange_calls % 3:
+            if connection_error:
+                raise httpx2.ConnectError("test connection failure", request=request)
+            return httpx2.Response(503, request=request)
+        return _token_response(request)
+
+    async def record_sleep(delay: float) -> None:
+        delays.append(delay)
+
+    monkeypatch.setattr(x509_auth.time, "sleep", delays.append)
+    monkeypatch.setattr(x509_auth.anyio, "sleep", record_sleep)
+    transport = httpx2.MockTransport(handler)
+    client = (
+        AsyncOpenAI(
+            workload_identity=_identity(),
+            http_client=httpx2.AsyncClient(transport=transport, trust_env=False),
+            **options,
+        )
+        if is_async
+        else OpenAI(
+            workload_identity=_identity(),
+            http_client=httpx2.Client(transport=transport, trust_env=False),
+            **options,
+        )
+    )
+    try:
+        inherited = client.copy().with_options()
+        overridden = client.with_options(initial_retry_delay=0, max_retry_delay=0)
+        # Exercise the original last to catch copies mutating its auth settings.
+        for current, expected in ((inherited, expected_delays), (overridden, [0.0, 0.0]), (client, expected_delays)):
+            delays.clear()
+            before = exchange_calls
+            if isinstance(current, AsyncOpenAI):
+                assert (await current.models.list()).object == "list"
+            else:
+                assert current.models.list().object == "list"
+            assert exchange_calls - before == 3
+            assert delays == expected
+    finally:
+        if isinstance(client, AsyncOpenAI):
+            await client.close()
+        else:
+            client.close()
