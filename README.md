@@ -24,7 +24,7 @@ pip install openai
 
 The full API of this library can be found in [api.md](api.md).
 
-The primary API for interacting with OpenAI models is the [Responses API](https://platform.openai.com/docs/api-reference/responses). You can generate text from the model with the code below.
+The primary API for interacting with OpenAI models is the [Responses API](https://developers.openai.com/api/reference/resources/responses). You can generate text from the model with the code below.
 
 ```python
 import os
