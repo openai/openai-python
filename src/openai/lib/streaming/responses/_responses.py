@@ -291,7 +291,9 @@ class ResponseStreamState(Generic[TextFormatT]):
                     logprobs=event.logprobs,
                     type="response.output_text.done",
                     text=event.text,
-                    parsed=parse_text(event.text, text_format=self._text_format),
+                    parsed=None
+                    if output.phase == "commentary"
+                    else parse_text(event.text, text_format=self._text_format),
                 )
             )
         elif event.type == "response.function_call_arguments.delta":
