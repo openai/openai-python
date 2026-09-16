@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.15.0](https://github.com/openai/openai-python/compare/v3.14.1...v3.15.0) (2026-09-16)
+
+
+### Features
+
+* **api:** add compaction progress events ([#3866](https://github.com/openai/openai-python/issues/3866)) ([98e1d24](https://github.com/openai/openai-python/commit/98e1d24f4902ab58830adf0e2b6a729a5d5429b1))
+
+
+### Documentation
+
+* **realtime:** remove nonexistent type imports ([#3869](https://github.com/openai/openai-python/issues/3869)) ([2971aaf](https://github.com/openai/openai-python/commit/2971aafce5c1966fc56efd00918b16314063284e))
+
 ## [3.14.1](https://github.com/openai/openai-python/compare/v3.14.0...v3.14.1) (2026-09-15)
 
 
