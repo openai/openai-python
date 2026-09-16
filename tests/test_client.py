@@ -935,6 +935,31 @@ class TestOpenAI:
         assert response.status_code == 200
         assert request_bodies == [file_content, file_content]
 
+    def test_binary_content_retry_checks_prepared_options(self) -> None:
+        file_content = b"Hello, this prepared body must not be replayed."
+        prepared_content = _OneShotIterable([file_content])
+        request_bodies: list[bytes] = []
+
+        def prepare_options(options: FinalRequestOptions) -> FinalRequestOptions:
+            options.content = prepared_content
+            return options
+
+        def mock_handler(request: httpx2.Request) -> httpx2.Response:
+            request_bodies.append(request.read())
+            return httpx2.Response(500 if len(request_bodies) == 1 else 200, json={"error": {}})
+
+        with OpenAI(
+            base_url=base_url,
+            api_key=api_key,
+            max_retries=1,
+            http_client=httpx2.Client(transport=MockTransport(handler=mock_handler)),
+        ) as client:
+            with mock.patch.object(client, "_prepare_options", side_effect=prepare_options):
+                with pytest.raises(APIStatusError):
+                    client.post("/upload", content=file_content, cast_to=httpx2.Response)
+
+        assert request_bodies == [file_content]
+
     def test_multipart_retry_does_not_reuse_non_seekable_file(self) -> None:
         file_content = b"Hello, this multipart file must not be replayed."
         request_bodies: list[bytes] = []
@@ -2402,6 +2427,31 @@ class TestAsyncOpenAI:
                     content=content_factory([file_content]),
                     cast_to=httpx2.Response,
                 )
+
+        assert request_bodies == [file_content]
+
+    async def test_binary_content_retry_checks_prepared_options(self) -> None:
+        file_content = b"Hello, this prepared body must not be replayed."
+        prepared_content = _OneShotAsyncIterable([file_content])
+        request_bodies: list[bytes] = []
+
+        async def prepare_options(options: FinalRequestOptions) -> FinalRequestOptions:
+            options.content = prepared_content
+            return options
+
+        async def mock_handler(request: httpx2.Request) -> httpx2.Response:
+            request_bodies.append(await request.aread())
+            return httpx2.Response(500 if len(request_bodies) == 1 else 200, json={"error": {}})
+
+        async with AsyncOpenAI(
+            base_url=base_url,
+            api_key=api_key,
+            max_retries=1,
+            http_client=httpx2.AsyncClient(transport=MockTransport(handler=mock_handler)),
+        ) as client:
+            with mock.patch.object(client, "_prepare_options", side_effect=prepare_options):
+                with pytest.raises(APIStatusError):
+                    await client.post("/upload", content=file_content, cast_to=httpx2.Response)
 
         assert request_bodies == [file_content]
 

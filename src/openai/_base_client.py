@@ -1118,15 +1118,15 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
         response: httpx2.Response | None = None
         max_retries = input_options.get_max_retries(self.max_retries)
         self._validate_max_retries(max_retries)
-        request_body_replays = [
-            _RequestContentReplay(input_options.content),
-            *(_RequestContentReplay(content) for content in _iter_file_contents(input_options.files)),
-        ]
 
         retries_taken = 0
         for retries_taken in range(max_retries + 1):
             options = model_copy(input_options)
             options = self._prepare_options(options)
+            request_body_replays = [
+                _RequestContentReplay(options.content),
+                *(_RequestContentReplay(content) for content in _iter_file_contents(options.files)),
+            ]
 
             remaining_retries = max_retries - retries_taken
             request = self._build_request(options, retries_taken=retries_taken)
@@ -1751,15 +1751,15 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
         response: httpx2.Response | None = None
         max_retries = input_options.get_max_retries(self.max_retries)
         self._validate_max_retries(max_retries)
-        request_body_replays = [
-            _RequestContentReplay(input_options.content),
-            *(_RequestContentReplay(content) for content in _iter_file_contents(input_options.files)),
-        ]
 
         retries_taken = 0
         for retries_taken in range(max_retries + 1):
             options = model_copy(input_options)
             options = await self._prepare_options(options)
+            request_body_replays = [
+                _RequestContentReplay(options.content),
+                *(_RequestContentReplay(content) for content in _iter_file_contents(options.files)),
+            ]
 
             remaining_retries = max_retries - retries_taken
             request = self._build_request(options, retries_taken=retries_taken)
