@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from anyio import CancelScope
+from anyio import move_on_after
 
 from .._types import Query, Headers
 from .._utils import is_azure_client, is_async_azure_client
@@ -21,6 +21,8 @@ from .._base_client import _merge_mappings
 from ..types.websocket_connection_options import WebSocketConnectionOptions
 
 __all__ = ["_connect", "_async_connect"]
+
+_FAILURE_CLOSE_TIMEOUT = 10.0
 
 if TYPE_CHECKING:
     from websockets.sync.client import ClientConnection
@@ -107,14 +109,23 @@ class _AsyncTranslationConnection:
         await self._connection.close(code=code, reason=reason)
 
     async def _close_after_failure(self) -> None:
-        # AnyIO cancellation is level-triggered: cleanup must be allowed to
-        # finish before the original cancellation is propagated to the caller.
-        with CancelScope(shield=True):
-            try:
+        closed = False
+        try:
+            # Shield against AnyIO cancellation, but bound the entire close:
+            # websockets' own close timeout doesn't cover a stalled write drain.
+            with move_on_after(_FAILURE_CLOSE_TIMEOUT, shield=True):
                 await self.close()
-            except Exception:
-                # Cleanup must not mask the original failure or cancellation.
-                return
+                closed = True
+        except Exception:
+            # A failed graceful close also needs transport cleanup below.
+            pass
+        finally:
+            if not closed:
+                try:
+                    self._connection.transport.abort()
+                except Exception:
+                    # Cleanup must not mask the original failure or cancellation.
+                    pass
 
 
 def _connect(

@@ -6,6 +6,9 @@ from unittest.mock import Mock, AsyncMock
 import anyio
 import httpx2
 import pytest
+from websockets.uri import parse_uri
+from websockets.client import ClientProtocol
+from websockets.protocol import State
 from websockets.exceptions import InvalidStatus, SecurityError, ConnectionClosedOK
 from websockets.sync.client import ClientConnection
 from websockets.asyncio.client import ClientConnection as AsyncClientConnection
@@ -152,6 +155,8 @@ def test_sync_failed_sends(monkeypatch: pytest.MonkeyPatch, cleanup_fails: bool)
 @pytest.mark.parametrize("cleanup_fails", [False, True])
 async def test_async_failed_sends(monkeypatch: pytest.MonkeyPatch, cleanup_fails: bool) -> None:
     socket = AsyncMock(spec=AsyncClientConnection)
+    transport = Mock(spec=asyncio.Transport)
+    socket.transport = transport
     socket.send.side_effect = [None, RuntimeError("fake sensitive transport detail")]
     socket.close.side_effect = RuntimeError("fake cleanup detail") if cleanup_fails else None
     monkeypatch.setattr("openai.lib._websocket._WebSocketConnect", AsyncMock(return_value=socket))
@@ -163,6 +168,7 @@ async def test_async_failed_sends(monkeypatch: pytest.MonkeyPatch, cleanup_fails
         assert "fake" not in str(caught.value)
         assert pending.drain() == []
         socket.close.assert_awaited_once()
+        assert transport.abort.call_count == (1 if cleanup_fails else 0)
 
         socket.send.side_effect = RuntimeError("fake send detail")
         connection = await _async_connect(client, model="fake-model")
@@ -286,6 +292,8 @@ async def test_async_enqueue_during_startup(monkeypatch: pytest.MonkeyPatch) -> 
 @pytest.mark.parametrize("startup", [False, True])
 async def test_anyio_cancellation_finishes_cleanup(monkeypatch: pytest.MonkeyPatch, startup: bool) -> None:
     socket = AsyncMock(spec=AsyncClientConnection)
+    transport = Mock(spec=asyncio.Transport)
+    socket.transport = transport
     cleanup_completed = Mock()
     pending = queue()
 
@@ -312,4 +320,97 @@ async def test_anyio_cancellation_finishes_cleanup(monkeypatch: pytest.MonkeyPat
             pytest.fail("Cancellation must propagate")
         assert scope.cancelled_caught
         cleanup_completed.assert_called_once()
+        transport.abort.assert_not_called()
         assert pending.drain() == ["first", "second", "third"]
+
+
+@pytest.mark.parametrize("startup", [False, True])
+@pytest.mark.parametrize("cancel_kind", ["asyncio", "anyio"])
+async def test_cancelled_flow_control_has_bounded_cleanup(
+    monkeypatch: pytest.MonkeyPatch, startup: bool, cancel_kind: str
+) -> None:
+    # Exercise the installed connection's send/drain/close code without sockets.
+    # pause_writing is the protocol callback for transport backpressure.
+    socket = AsyncClientConnection(ClientProtocol(parse_uri("ws://example.test"), state=State.OPEN))
+    transport = Mock(spec=asyncio.Transport)
+    transport.is_closing.return_value = False
+    socket.connection_made(transport)
+    socket.pause_writing()
+    transport.abort.side_effect = lambda: socket.connection_lost(None)
+    written = asyncio.Event()
+
+    def write(_data: bytes) -> None:
+        written.set()
+
+    transport.write.side_effect = write
+    monkeypatch.setattr("openai.lib._websocket._WebSocketConnect", AsyncMock(return_value=socket))
+    monkeypatch.setattr("openai.lib._realtime_translation._FAILURE_CLOSE_TIMEOUT", 0.01)
+    pending = queue()
+    scopes: list[anyio.CancelScope] = []
+    async with AsyncOpenAI(api_key="fake-key", http_client=async_http_client()) as client:
+        connection = None if startup else await _async_connect(client, model="fake-model")
+
+        async def send() -> None:
+            with anyio.CancelScope() as scope:
+                scopes.append(scope)
+                if connection is None:
+                    await _async_connect(client, model="fake-model", send_queue=pending)
+                else:
+                    await connection.send("fake frame")
+                pytest.fail("The interrupted send must not complete")
+
+        task = asyncio.create_task(send())
+        try:
+            await asyncio.wait_for(written.wait(), timeout=1)
+            if cancel_kind == "asyncio":
+                task.cancel()
+                with pytest.raises(asyncio.CancelledError):
+                    await asyncio.wait_for(task, timeout=1)
+            else:
+                scopes[0].cancel()
+                await asyncio.wait_for(task, timeout=1)
+                assert scopes[0].cancelled_caught
+            transport.abort.assert_called_once()
+            assert socket.state is State.CLOSED
+            assert socket.connection_lost_waiter.done()
+            assert pending.drain() == ["first", "second", "third"]
+        finally:
+            if not socket.connection_lost_waiter.done():
+                socket.connection_lost(None)
+            if not task.done():
+                task.cancel()
+            await asyncio.gather(task, return_exceptions=True)
+
+
+@pytest.mark.parametrize("startup", [False, True])
+@pytest.mark.parametrize("abort_fails", [False, True])
+async def test_stalled_cleanup_preserves_failed_send(
+    monkeypatch: pytest.MonkeyPatch, startup: bool, abort_fails: bool
+) -> None:
+    socket = AsyncMock(spec=AsyncClientConnection)
+    transport = Mock(spec=asyncio.Transport)
+    socket.transport = transport
+    if abort_fails:
+        transport.abort.side_effect = RuntimeError("fake abort failure")
+    original = RuntimeError("fake send failure")
+    socket.send.side_effect = original
+
+    async def close(*, code: int, reason: str) -> None:
+        assert code == 1000 and reason == ""
+        await anyio.sleep_forever()
+
+    socket.close.side_effect = close
+    monkeypatch.setattr("openai.lib._websocket._WebSocketConnect", AsyncMock(return_value=socket))
+    monkeypatch.setattr("openai.lib._realtime_translation._FAILURE_CLOSE_TIMEOUT", 0.01)
+    pending = queue()
+    async with AsyncOpenAI(api_key="fake-key", http_client=async_http_client()) as client:
+        connection = None if startup else await _async_connect(client, model="fake-model")
+        with pytest.raises(WebSocketConnectionClosedError) as caught:
+            if connection is None:
+                await asyncio.wait_for(_async_connect(client, model="fake-model", send_queue=pending), timeout=1)
+            else:
+                await asyncio.wait_for(connection.send("fake frame"), timeout=1)
+        assert caught.value.__cause__ is original
+        assert caught.value.unsent_messages == (["first", "second", "third"] if startup else ["fake frame"])
+        assert pending.drain() == ([] if startup else ["first", "second", "third"])
+        transport.abort.assert_called_once()
