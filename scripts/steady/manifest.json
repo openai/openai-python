@@ -1,8 +1,8 @@
 {
   "steady": {
     "repository": "https://github.com/openai-oss-forks/steady.git",
-    "revision": "195de4e71f6f87282110b044b454582e7fbc34bb",
-    "sha256": "755931a91126dca657813a3116411e7f02c501e3c510aa1c315cb22ed898104c"
+    "revision": "557276ca22e1d766404af7fd35ebfc1be3e83e62",
+    "sha256": "de29f5b0bae4d4b45fdde51268fdf2144eaa53fc883ea5e0fccdc16eac7d1942"
   },
   "deno": {
     "version": "2.7.11",

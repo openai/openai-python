@@ -80,12 +80,12 @@ class FileBatches(SyncAPIResource):
           chunking_strategy: The chunking strategy used to chunk the file(s). If not set, will use the `auto`
               strategy. Only applicable if `file_ids` is non-empty.
 
-          file_ids: A list of [File](https://platform.openai.com/docs/api-reference/files) IDs that
-              the vector store should use. Useful for tools like `file_search` that can access
-              files. If `attributes` or `chunking_strategy` are provided, they will be applied
-              to all files in the batch. The maximum batch size is 2000 files. This endpoint
-              is recommended for multi-file ingestion and helps reduce per-vector-store write
-              request pressure. Mutually exclusive with `files`.
+          file_ids: A list of [File](https://developers.openai.com/api/reference/resources/files)
+              IDs that the vector store should use. Useful for tools like `file_search` that
+              can access files. If `attributes` or `chunking_strategy` are provided, they will
+              be applied to all files in the batch. The maximum batch size is 2000 files. This
+              endpoint is recommended for multi-file ingestion and helps reduce
+              per-vector-store write request pressure. Mutually exclusive with `files`.
 
           files: A list of objects that each include a `file_id` plus optional `attributes` or
               `chunking_strategy`. Use this when you need to override metadata for specific
@@ -450,12 +450,12 @@ class AsyncFileBatches(AsyncAPIResource):
           chunking_strategy: The chunking strategy used to chunk the file(s). If not set, will use the `auto`
               strategy. Only applicable if `file_ids` is non-empty.
 
-          file_ids: A list of [File](https://platform.openai.com/docs/api-reference/files) IDs that
-              the vector store should use. Useful for tools like `file_search` that can access
-              files. If `attributes` or `chunking_strategy` are provided, they will be applied
-              to all files in the batch. The maximum batch size is 2000 files. This endpoint
-              is recommended for multi-file ingestion and helps reduce per-vector-store write
-              request pressure. Mutually exclusive with `files`.
+          file_ids: A list of [File](https://developers.openai.com/api/reference/resources/files)
+              IDs that the vector store should use. Useful for tools like `file_search` that
+              can access files. If `attributes` or `chunking_strategy` are provided, they will
+              be applied to all files in the batch. The maximum batch size is 2000 files. This
+              endpoint is recommended for multi-file ingestion and helps reduce
+              per-vector-store write request pressure. Mutually exclusive with `files`.
 
           files: A list of objects that each include a `file_id` plus optional `attributes` or
               `chunking_strategy`. Use this when you need to override metadata for specific

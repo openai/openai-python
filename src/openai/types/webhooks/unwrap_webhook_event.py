@@ -12,13 +12,14 @@ from .eval_run_failed_webhook_event import EvalRunFailedWebhookEvent
 from .response_failed_webhook_event import ResponseFailedWebhookEvent
 from .eval_run_canceled_webhook_event import EvalRunCanceledWebhookEvent
 from .eval_run_succeeded_webhook_event import EvalRunSucceededWebhookEvent
-from .live_call_incoming_webhook_event import LiveCallIncomingWebhookEvent
+from .live_call_incoming_webhook_event import LiveCallIncomingWebhookEvent  # pyright: ignore[reportDeprecated]
 from .response_cancelled_webhook_event import ResponseCancelledWebhookEvent
 from .response_completed_webhook_event import ResponseCompletedWebhookEvent
 from .response_incomplete_webhook_event import ResponseIncompleteWebhookEvent
 from .safety_alert_created_webhook_event import SafetyAlertCreatedWebhookEvent
 from .fine_tuning_job_failed_webhook_event import FineTuningJobFailedWebhookEvent
 from .realtime_call_incoming_webhook_event import RealtimeCallIncomingWebhookEvent
+from .live_transport_incoming_webhook_event import LiveTransportIncomingWebhookEvent
 from .safety_org_alert_created_webhook_event import SafetyOrgAlertCreatedWebhookEvent
 from .fine_tuning_job_cancelled_webhook_event import FineTuningJobCancelledWebhookEvent
 from .fine_tuning_job_succeeded_webhook_event import FineTuningJobSucceededWebhookEvent
@@ -37,7 +38,8 @@ UnwrapWebhookEvent: TypeAlias = Annotated[
         FineTuningJobCancelledWebhookEvent,
         FineTuningJobFailedWebhookEvent,
         FineTuningJobSucceededWebhookEvent,
-        LiveCallIncomingWebhookEvent,
+        LiveCallIncomingWebhookEvent,  # pyright: ignore[reportDeprecated]  # Preserve legacy payload parsing.
+        LiveTransportIncomingWebhookEvent,
         RealtimeCallIncomingWebhookEvent,
         ResponseCancelledWebhookEvent,
         ResponseCompletedWebhookEvent,

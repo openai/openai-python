@@ -216,14 +216,14 @@ class Projects(SyncAPIResource):
 
           geography: Create the project with the specified data residency region. Your organization
               must have access to Data residency functionality in order to use. See
-              [data residency controls](https://platform.openai.com/docs/guides/your-data#data-residency-controls)
+              [data residency controls](https://developers.openai.com/api/docs/guides/your-data#data-residency-controls)
               to review the functionality and limitations of setting this field. Deprecated:
               use `residency` instead. Do not provide both `geography` and `residency`.
 
           residency: Create the project with the specified residency configuration. Your organization
               must have access to the requested residency configuration in order to use it.
               See
-              [data residency controls](https://platform.openai.com/docs/guides/your-data#data-residency-controls)
+              [data residency controls](https://developers.openai.com/api/docs/guides/your-data#data-residency-controls)
               to review the functionality and limitations of setting this field.
 
           extra_headers: Send extra headers
@@ -539,14 +539,14 @@ class AsyncProjects(AsyncAPIResource):
 
           geography: Create the project with the specified data residency region. Your organization
               must have access to Data residency functionality in order to use. See
-              [data residency controls](https://platform.openai.com/docs/guides/your-data#data-residency-controls)
+              [data residency controls](https://developers.openai.com/api/docs/guides/your-data#data-residency-controls)
               to review the functionality and limitations of setting this field. Deprecated:
               use `residency` instead. Do not provide both `geography` and `residency`.
 
           residency: Create the project with the specified residency configuration. Your organization
               must have access to the requested residency configuration in order to use it.
               See
-              [data residency controls](https://platform.openai.com/docs/guides/your-data#data-residency-controls)
+              [data residency controls](https://developers.openai.com/api/docs/guides/your-data#data-residency-controls)
               to review the functionality and limitations of setting this field.
 
           extra_headers: Send extra headers

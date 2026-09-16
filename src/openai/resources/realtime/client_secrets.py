@@ -61,7 +61,7 @@ class ClientSecrets(SyncAPIResource):
         will be applied to any sessions created using that client secret, but these can
         also be overridden by the client connection.
 
-        [Learn more about authentication with client secrets over WebRTC](https://platform.openai.com/docs/guides/realtime-webrtc).
+        [Learn more about authentication with client secrets over WebRTC](https://developers.openai.com/api/docs/guides/realtime-webrtc).
 
         Returns the created client secret and the effective session object. The client
         secret is a string that looks like `ek_1234`.
@@ -147,7 +147,7 @@ class AsyncClientSecrets(AsyncAPIResource):
         will be applied to any sessions created using that client secret, but these can
         also be overridden by the client connection.
 
-        [Learn more about authentication with client secrets over WebRTC](https://platform.openai.com/docs/guides/realtime-webrtc).
+        [Learn more about authentication with client secrets over WebRTC](https://developers.openai.com/api/docs/guides/realtime-webrtc).
 
         Returns the created client secret and the effective session object. The client
         secret is a string that looks like `ek_1234`.
