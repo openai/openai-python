@@ -113,7 +113,8 @@ class _AsyncTranslationConnection:
             try:
                 await self.close()
             except Exception:
-                pass
+                # Cleanup must not mask the original failure or cancellation.
+                return
 
 
 def _connect(
