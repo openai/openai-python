@@ -28092,6 +28092,195 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse-2'
+  /webhook_endpoints:
+    get:
+      summary: List Webhook Endpoints
+      description: Returns webhook endpoints for the authenticated project in newest-first order.
+      operationId: ListWebhookEndpoints
+      parameters:
+      - name: limit
+        in: query
+        description: Maximum number of webhook endpoints to return. Defaults to 20.
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+      - name: after
+        in: query
+        description: ID of the last webhook endpoint from the previous page.
+        required: false
+        schema:
+          anyOf:
+          - example: whe_123
+            type: string
+          - type: 'null'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookEndpointListResource'
+      x-oaiMeta:
+        beta: true
+    post:
+      summary: Create Webhook Endpoint
+      description: Creates a webhook endpoint for the authenticated project.
+      operationId: CreateWebhookEndpoint
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PublicCreateEndpointBody'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookEndpointWithSecretResource'
+      x-oaiMeta:
+        beta: true
+  /webhook_endpoints/{webhook_endpoint_id}:
+    get:
+      summary: Retrieve Webhook Endpoint
+      description: Retrieves a webhook endpoint for the authenticated project.
+      operationId: RetrieveWebhookEndpoint
+      parameters:
+      - name: webhook_endpoint_id
+        in: path
+        description: The ID of the webhook endpoint to retrieve.
+        required: true
+        schema:
+          example: whe_123
+          type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookEndpointBody'
+      x-oaiMeta:
+        beta: true
+    post:
+      summary: Update Webhook Endpoint
+      description: Updates a webhook endpoint for the authenticated project.
+      operationId: UpdateWebhookEndpoint
+      parameters:
+      - name: webhook_endpoint_id
+        in: path
+        description: The ID of the webhook endpoint to update.
+        required: true
+        schema:
+          example: whe_123
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PublicUpdateEndpointBody'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookEndpointBody'
+      x-oaiMeta:
+        beta: true
+    delete:
+      summary: Delete Webhook Endpoint
+      description: Deletes a webhook endpoint for the authenticated project.
+      operationId: DeleteWebhookEndpoint
+      parameters:
+      - name: webhook_endpoint_id
+        in: path
+        description: The ID of the webhook endpoint to delete.
+        required: true
+        schema:
+          example: whe_123
+          type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeletedWebhookEndpointResource'
+      x-oaiMeta:
+        beta: true
+  /webhook_endpoints/{webhook_endpoint_id}/rotate_secret:
+    post:
+      summary: Rotate Webhook Endpoint Signing Secret
+      description: Rotates the signing secret for a webhook endpoint in the authenticated project.
+      operationId: RotateWebhookEndpointSigningSecret
+      parameters:
+      - name: webhook_endpoint_id
+        in: path
+        description: The ID of the webhook endpoint whose signing secret will be rotated.
+        required: true
+        schema:
+          example: whe_123
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PublicRotateSecretBody'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookEndpointWithSecretResource'
+      x-oaiMeta:
+        beta: true
+  /webhook_endpoints/{webhook_endpoint_id}/test:
+    post:
+      summary: Test Webhook Endpoint
+      description: Sends a sample event to a webhook endpoint for the authenticated project.
+      operationId: TestWebhookEndpoint
+      parameters:
+      - name: webhook_endpoint_id
+        in: path
+        description: The ID of the webhook endpoint to test.
+        required: true
+        schema:
+          example: whe_123
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PublicTestEndpointBody'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookEndpointTestResultResource'
+      x-oaiMeta:
+        beta: true
+  /webhook_event_types:
+    get:
+      summary: List Webhook Event Types
+      description: Returns webhook event types visible to the authenticated project.
+      operationId: ListWebhookEventTypes
+      parameters: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookEventTypeListResource'
+      x-oaiMeta:
+        beta: true
   /responses?beta=true:
     post:
       operationId: beta_createResponse
@@ -80359,6 +80548,283 @@ components:
       - deleted
       additionalProperties: false
       description: Confirmation that a vault credential was deleted.
+    WebhookEndpointBody:
+      properties:
+        id:
+          type: string
+          description: The unique ID of the webhook endpoint.
+        object:
+          type: string
+          enum:
+          - webhook_endpoint
+          description: The object type, which is always webhook_endpoint.
+          default: webhook_endpoint
+          x-stainless-const: true
+        created_at:
+          type: integer
+          format: unixtime
+          description: The Unix timestamp when the endpoint was created.
+        updated_at:
+          type: integer
+          format: unixtime
+          description: The Unix timestamp of the last endpoint configuration or signing-secret change. Initialized at creation; tests and unchanged updates do not advance it.
+        name:
+          type: string
+          description: The human-readable name of the endpoint.
+        url:
+          type: string
+          description: The HTTPS URL that receives webhook deliveries.
+        event_types:
+          items:
+            type: string
+          type: array
+          description: The event types that trigger deliveries to this endpoint.
+        signing_secret_hint:
+          anyOf:
+          - type: string
+            description: A masked hint for the endpoint's signing secret.
+          - type: 'null'
+      type: object
+      required:
+      - id
+      - object
+      - created_at
+      - name
+      - url
+      - event_types
+      - signing_secret_hint
+    WebhookEndpointListResource:
+      properties:
+        object:
+          type: string
+          enum:
+          - list
+          description: The object type, which is always list.
+          default: list
+          x-stainless-const: true
+        data:
+          items:
+            $ref: '#/components/schemas/WebhookEndpointBody'
+          type: array
+          description: The webhook endpoints in this page.
+        first_id:
+          anyOf:
+          - type: string
+            description: The ID of the first endpoint in this page.
+          - type: 'null'
+        last_id:
+          anyOf:
+          - type: string
+            description: The ID of the last endpoint in this page.
+          - type: 'null'
+        has_more:
+          type: boolean
+          description: Whether more webhook endpoints are available.
+      type: object
+      required:
+      - object
+      - data
+      - first_id
+      - last_id
+      - has_more
+    ProjectEventTypeEnum:
+      type: string
+      enum:
+      - batch.completed
+      - batch.failed
+      - batch.expired
+      - batch.cancelled
+      - response.completed
+      - response.failed
+      - response.cancelled
+      - response.incomplete
+      - eval.run.succeeded
+      - eval.run.failed
+      - eval.run.canceled
+      - fine_tuning.job.succeeded
+      - fine_tuning.job.failed
+      - fine_tuning.job.cancelled
+      - realtime.call.incoming
+      - video.completed
+      - video.failed
+      - safety.alert.created
+    PublicCreateEndpointBody:
+      properties:
+        name:
+          type: string
+          maxLength: 256
+          minLength: 1
+          description: A human-readable name for the webhook endpoint.
+        url:
+          type: string
+          maxLength: 2048
+          pattern: ^https://
+          description: The HTTPS URL that receives webhook deliveries.
+        event_types:
+          items:
+            $ref: '#/components/schemas/ProjectEventTypeEnum'
+          type: array
+          minItems: 1
+          description: The event types that trigger deliveries to this endpoint.
+      type: object
+      required:
+      - name
+      - url
+      - event_types
+    WebhookEndpointWithSecretResource:
+      properties:
+        id:
+          type: string
+          description: The unique ID of the webhook endpoint.
+        object:
+          type: string
+          enum:
+          - webhook_endpoint
+          description: The object type, which is always webhook_endpoint.
+          default: webhook_endpoint
+          x-stainless-const: true
+        created_at:
+          type: integer
+          format: unixtime
+          description: The Unix timestamp when the endpoint was created.
+        updated_at:
+          type: integer
+          format: unixtime
+          description: The Unix timestamp of the last endpoint configuration or signing-secret change. Initialized at creation; tests and unchanged updates do not advance it.
+        name:
+          type: string
+          description: The human-readable name of the endpoint.
+        url:
+          type: string
+          description: The HTTPS URL that receives webhook deliveries.
+        event_types:
+          items:
+            type: string
+          type: array
+          description: The event types that trigger deliveries to this endpoint.
+        signing_secret_hint:
+          anyOf:
+          - type: string
+            description: A masked hint for the endpoint's signing secret.
+          - type: 'null'
+        signing_secret:
+          type: string
+          description: The endpoint's signing secret. This is returned only when the endpoint is created or the secret is rotated.
+      type: object
+      required:
+      - id
+      - object
+      - created_at
+      - name
+      - url
+      - event_types
+      - signing_secret_hint
+      - signing_secret
+    PublicUpdateEndpointBody:
+      properties:
+        name:
+          type: string
+          maxLength: 256
+          minLength: 1
+          description: A new human-readable name for the webhook endpoint.
+        url:
+          type: string
+          maxLength: 2048
+          pattern: ^https://
+          description: A new HTTPS URL that receives webhook deliveries.
+        event_types:
+          items:
+            $ref: '#/components/schemas/ProjectEventTypeEnum'
+          type: array
+          minItems: 1
+          description: The complete set of event types that should trigger deliveries.
+      type: object
+      required: []
+    DeletedWebhookEndpointResource:
+      properties:
+        id:
+          type: string
+          description: The ID of the deleted webhook endpoint.
+        object:
+          type: string
+          enum:
+          - webhook_endpoint.deleted
+          description: The object type, which is always webhook_endpoint.deleted.
+          default: webhook_endpoint.deleted
+          x-stainless-const: true
+        deleted:
+          type: boolean
+          description: Whether the endpoint was deleted.
+      type: object
+      required:
+      - id
+      - object
+      - deleted
+    PublicRotateSecretBody:
+      properties:
+        keep_old_secret_active_for_24_hours:
+          type: boolean
+          description: Whether to keep the previous signing secret valid for 24 hours after rotation. Defaults to false, which invalidates the previous secret immediately.
+      type: object
+      required: []
+    PublicTestEndpointBody:
+      properties:
+        event_type:
+          $ref: '#/components/schemas/ProjectEventTypeEnum'
+          description: The event type to send as a sample delivery.
+      type: object
+      required:
+      - event_type
+    WebhookEndpointTestResultResource:
+      properties:
+        object:
+          type: string
+          enum:
+          - webhook_endpoint.test
+          description: The object type, which is always webhook_endpoint.test.
+          default: webhook_endpoint.test
+          x-stainless-const: true
+        webhook_endpoint_id:
+          type: string
+          description: The ID of the webhook endpoint that received the test.
+        event_type:
+          type: string
+          description: The event type sent in the test.
+        status_code:
+          type: integer
+          description: The HTTP status code returned by the endpoint.
+        success:
+          type: boolean
+          enum:
+          - true
+          description: Whether the test request completed. Always true for returned results; use status_code to determine the endpoint response.
+          default: true
+          x-stainless-const: true
+      type: object
+      required:
+      - object
+      - webhook_endpoint_id
+      - event_type
+      - status_code
+      - success
+    WebhookEventTypeListResource:
+      properties:
+        object:
+          type: string
+          enum:
+          - list
+          description: The object type, which is always list.
+          default: list
+          x-stainless-const: true
+        data:
+          items:
+            type: string
+          type: array
+          description: The webhook event types available to the authenticated project.
+      type: object
+      required:
+      - object
+      - data
     DragPoint:
       properties:
         x:
