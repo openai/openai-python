@@ -665,6 +665,11 @@ class OpenAI(SyncAPIClient):
 
     @override
     def _prepare_options(self, options: FinalRequestOptions) -> FinalRequestOptions:
+        if options.url.startswith(("ws://", "wss://")) and (
+            self._provider_runtime is not None or self.workload_identity is not None
+        ):
+            raise OpenAIError("This authentication method is not supported by WebSocket connections")
+
         if self._provider_runtime is not None:
             if self._provider_runtime.transform_request is not None:
                 options = self._provider_runtime.transform_request(options)
@@ -1422,6 +1427,11 @@ class AsyncOpenAI(AsyncAPIClient):
 
     @override
     async def _prepare_options(self, options: FinalRequestOptions) -> FinalRequestOptions:
+        if options.url.startswith(("ws://", "wss://")) and (
+            self._provider_runtime is not None or self.workload_identity is not None
+        ):
+            raise OpenAIError("This authentication method is not supported by WebSocket connections")
+
         if self._provider_runtime is not None:
             if self._provider_runtime.transform_async_request is not None:
                 options = await self._provider_runtime.transform_async_request(options)
