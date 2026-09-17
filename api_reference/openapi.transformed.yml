@@ -25246,7 +25246,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse-2'
         '403':
-          description: The API key lacks the required Responses permission.
+          description: The API key lacks the required permission.
           content:
             application/json:
               schema:
@@ -25319,7 +25319,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse-2'
         '403':
-          description: The API key lacks the required Responses permission.
+          description: The API key lacks the required permission.
           content:
             application/json:
               schema:
@@ -25417,7 +25417,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse-2'
         '403':
-          description: The API key lacks the required Responses permission.
+          description: The API key lacks the required permission.
           content:
             application/json:
               schema:
@@ -25516,7 +25516,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse-2'
         '403':
-          description: The API key lacks the required Responses permission.
+          description: The API key lacks the required permission.
           content:
             application/json:
               schema:
@@ -25597,7 +25597,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse-2'
         '403':
-          description: The API key lacks the required Responses permission.
+          description: The API key lacks the required permission.
           content:
             application/json:
               schema:
@@ -25703,7 +25703,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse-2'
         '403':
-          description: The API key lacks the required Responses permission.
+          description: The API key lacks the required permission.
           content:
             application/json:
               schema:
@@ -26428,7 +26428,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse-2'
         '403':
-          description: The API key lacks the required Responses permission.
+          description: The API key lacks the required permission.
           content:
             application/json:
               schema:
@@ -26491,7 +26491,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse-2'
         '403':
-          description: The API key lacks the required Responses permission.
+          description: The API key lacks the required permission.
           content:
             application/json:
               schema:
@@ -26559,7 +26559,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse-2'
         '403':
-          description: The API key lacks the required Responses permission.
+          description: The API key lacks the required permission.
           content:
             application/json:
               schema:
@@ -26591,7 +26591,7 @@ paths:
     post:
       operationId: updateAgentSession
       summary: Update an agent session
-      description: Updates session metadata. Omitted fields are unchanged. See [managing sessions](https://developers.openai.com/api/docs/guides/agents-api/sessions/manage).
+      description: Updates session metadata, model, reasoning effort, or service tier. Model settings apply to subsequent turns. Omitted fields are unchanged. See [managing sessions](https://developers.openai.com/api/docs/guides/agents-api/sessions/manage).
       tags:
       - Agents
       parameters:
@@ -26628,7 +26628,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse-2'
         '403':
-          description: The API key lacks the required Responses permission.
+          description: The API key lacks the required permission.
           content:
             application/json:
               schema:
@@ -26692,7 +26692,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse-2'
         '403':
-          description: The API key lacks the required Responses permission.
+          description: The API key lacks the required permission.
           content:
             application/json:
               schema:
@@ -26795,7 +26795,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse-2'
         '403':
-          description: The API key lacks the required Responses permission.
+          description: The API key lacks the required permission.
           content:
             application/json:
               schema:
@@ -26868,7 +26868,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse-2'
         '403':
-          description: The API key lacks the required Responses permission.
+          description: The API key lacks the required permission.
           content:
             application/json:
               schema:
@@ -26940,7 +26940,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse-2'
         '403':
-          description: The API key lacks the required Responses permission.
+          description: The API key lacks the required permission.
           content:
             application/json:
               schema:
@@ -27014,7 +27014,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse-2'
         '403':
-          description: The API key lacks the required Responses permission.
+          description: The API key lacks the required permission.
           content:
             application/json:
               schema:
@@ -27079,7 +27079,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse-2'
         '403':
-          description: The API key lacks the required Responses permission.
+          description: The API key lacks the required permission.
           content:
             application/json:
               schema:
@@ -27155,7 +27155,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse-2'
         '403':
-          description: The API key lacks the required Responses permission.
+          description: The API key lacks the required permission.
           content:
             application/json:
               schema:
@@ -27245,7 +27245,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse-2'
         '403':
-          description: The API key lacks the required Responses permission.
+          description: The API key lacks the required permission.
           content:
             application/json:
               schema:
@@ -79282,9 +79282,40 @@ components:
       - $ref: '#/components/schemas/SessionEventAgentSessionTurnReasoningSummaryPartDone'
       - $ref: '#/components/schemas/SessionEventAgentSessionTurnReasoningSummaryTextDelta'
       - $ref: '#/components/schemas/SessionEventAgentSessionTurnReasoningSummaryTextDone'
+    UpdateSessionReasoningParam:
+      type: object
+      properties:
+        effort:
+          anyOf:
+          - $ref: '#/components/schemas/ReasoningEffortParam'
+          - type: 'null'
+          description: Omit to keep the current effort. Null selects the model's default effort.
+      additionalProperties: false
+      description: Reasoning effort for subsequent turns. The reasoning summary stays unchanged.
+    UpdateSessionAgentParam:
+      type: object
+      properties:
+        model:
+          type: string
+          minLength: 0
+          maxLength: 1048576
+          description: The model for subsequent turns. Omit to keep the current model.
+        reasoning:
+          $ref: '#/components/schemas/UpdateSessionReasoningParam'
+          description: Reasoning settings to update. Omit to keep the current effort.
+        service_tier:
+          anyOf:
+          - $ref: '#/components/schemas/ServiceTierParam'
+          - type: 'null'
+          description: Omit to keep the current tier. Null resets it to auto.
+      additionalProperties: false
+      description: Model settings that can change after session creation.
     UpdateAgentSessionParams:
       type: object
       properties:
+        agent:
+          $ref: '#/components/schemas/UpdateSessionAgentParam'
+          description: Model settings for subsequent turns. Omitted fields stay unchanged.
         metadata:
           type:
           - object
