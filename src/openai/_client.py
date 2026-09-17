@@ -55,6 +55,7 @@ if TYPE_CHECKING:
         batches,
         uploads,
         realtime,
+        webhooks,
         responses,
         containers,
         embeddings,
@@ -1045,6 +1046,12 @@ class OpenAIWithRawResponse:
         return SafetyWithRawResponse(self._client.safety)
 
     @cached_property
+    def webhooks(self) -> webhooks.WebhooksWithRawResponse:
+        from .resources.webhooks import WebhooksWithRawResponse
+
+        return WebhooksWithRawResponse(self._client.webhooks)
+
+    @cached_property
     def beta(self) -> beta.BetaWithRawResponse:
         from .resources.beta import BetaWithRawResponse
 
@@ -1212,6 +1219,12 @@ class AsyncOpenAIWithRawResponse:
         from .resources.safety import AsyncSafetyWithRawResponse
 
         return AsyncSafetyWithRawResponse(self._client.safety)
+
+    @cached_property
+    def webhooks(self) -> webhooks.AsyncWebhooksWithRawResponse:
+        from .resources.webhooks import AsyncWebhooksWithRawResponse
+
+        return AsyncWebhooksWithRawResponse(self._client.webhooks)
 
     @cached_property
     def beta(self) -> beta.AsyncBetaWithRawResponse:
@@ -1383,6 +1396,12 @@ class OpenAIWithStreamedResponse:
         return SafetyWithStreamingResponse(self._client.safety)
 
     @cached_property
+    def webhooks(self) -> webhooks.WebhooksWithStreamingResponse:
+        from .resources.webhooks import WebhooksWithStreamingResponse
+
+        return WebhooksWithStreamingResponse(self._client.webhooks)
+
+    @cached_property
     def beta(self) -> beta.BetaWithStreamingResponse:
         from .resources.beta import BetaWithStreamingResponse
 
@@ -1550,6 +1569,12 @@ class AsyncOpenAIWithStreamedResponse:
         from .resources.safety import AsyncSafetyWithStreamingResponse
 
         return AsyncSafetyWithStreamingResponse(self._client.safety)
+
+    @cached_property
+    def webhooks(self) -> webhooks.AsyncWebhooksWithStreamingResponse:
+        from .resources.webhooks import AsyncWebhooksWithStreamingResponse
+
+        return AsyncWebhooksWithStreamingResponse(self._client.webhooks)
 
     @cached_property
     def beta(self) -> beta.AsyncBetaWithStreamingResponse:
