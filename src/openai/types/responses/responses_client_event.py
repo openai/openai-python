@@ -125,6 +125,13 @@ class ResponseCreatePromptCacheOptions(BaseModel):
     request does not use prompt caching.
     """
 
+    prewarm: Optional[bool] = None
+    """Prepares the prompt cache without generating output.
+
+    Defaults to `false`. When set to `true`, overrides the `generate` field to
+    `false`.
+    """
+
     ttl: Optional[Literal["30m"]] = None
     """
     The minimum lifetime applied to every implicit and explicit cache breakpoint

@@ -70030,6 +70030,9 @@ components:
         mode:
           $ref: '#/components/schemas/PromptCacheModeEnum'
           description: Controls whether OpenAI automatically creates an implicit cache breakpoint. Defaults to `implicit`. With `implicit`, OpenAI creates one implicit breakpoint and writes up to the latest three explicit breakpoints in the request. With `explicit`, OpenAI does not create an implicit breakpoint and writes up to the latest four explicit breakpoints. If there are no explicit breakpoints, the request does not use prompt caching.
+        prewarm:
+          type: boolean
+          description: Prepares the prompt cache without generating output. Defaults to `false`. When set to `true`, overrides the `generate` field to `false`.
         comparison_response_id:
           anyOf:
           - type: string
@@ -94439,6 +94442,9 @@ components:
         mode:
           $ref: '#/components/schemas/BetaPromptCacheModeEnum'
           description: Controls whether OpenAI automatically creates an implicit cache breakpoint. Defaults to `implicit`. With `implicit`, OpenAI creates one implicit breakpoint and writes up to the latest three explicit breakpoints in the request. With `explicit`, OpenAI does not create an implicit breakpoint and writes up to the latest four explicit breakpoints. If there are no explicit breakpoints, the request does not use prompt caching.
+        prewarm:
+          type: boolean
+          description: Prepares the prompt cache without generating output. Defaults to `false`. When set to `true`, overrides the `generate` field to `false`.
         comparison_response_id:
           anyOf:
           - type: string
