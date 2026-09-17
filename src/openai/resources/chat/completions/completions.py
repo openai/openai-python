@@ -211,7 +211,7 @@ class Completions(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> ParsedChatCompletion[ResponseFormatT]: ...
+    ) -> Never: ...
  
     # --- 4. General overload: everything else, temperature is any float -----
     @overload
