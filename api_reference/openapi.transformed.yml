@@ -7929,7 +7929,7 @@ paths:
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -d '{
-                  "model": "gpt-image-1.5",
+                  "model": "gpt-image-2.5-flare",
                   "prompt": "A cute baby sea otter",
                   "n": 1,
                   "size": "1024x1024"
@@ -7940,7 +7940,7 @@ paths:
               client = OpenAI()
 
               img = client.images.generate(
-                  model="gpt-image-1.5",
+                  model="gpt-image-2.5-flare",
                   prompt="A cute baby sea otter",
                   n=1,
                   size="1024x1024"
@@ -7956,7 +7956,7 @@ paths:
               const client = new OpenAI();
 
               const img = await client.images.generate({
-                model: "gpt-image-1.5",
+                model: "gpt-image-2.5-flare",
                 prompt: "A cute baby sea otter",
                 n: 1,
                 size: "1024x1024"
@@ -7989,7 +7989,7 @@ paths:
                 -H "Content-Type: application/json" \
                 -H "Authorization: Bearer $OPENAI_API_KEY" \
                 -d '{
-                  "model": "gpt-image-1.5",
+                  "model": "gpt-image-2.5-flare",
                   "prompt": "A cute baby sea otter",
                   "n": 1,
                   "size": "1024x1024",
@@ -8002,7 +8002,7 @@ paths:
               client = OpenAI()
 
               stream = client.images.generate(
-                  model="gpt-image-1.5",
+                  model="gpt-image-2.5-flare",
                   prompt="A cute baby sea otter",
                   n=1,
                   size="1024x1024",
@@ -8017,7 +8017,7 @@ paths:
               const client = new OpenAI();
 
               const stream = await client.images.generate({
-                model: "gpt-image-1.5",
+                model: "gpt-image-2.5-flare",
                 prompt: "A cute baby sea otter",
                 n: 1,
                 size: "1024x1024",
