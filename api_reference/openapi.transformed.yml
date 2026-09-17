@@ -65423,10 +65423,9 @@ components:
             call_id:
               type: string
               description: |
-                The Transceiver `rtc_...` ID of the pending SIP session. The paired
-                `live.transport.incoming` event derives its `session_id` by replacing the
-                `rtc_` prefix with `live_`. Use the ID returned by the event with the
-                corresponding Realtime or Live API.
+                The ID of the pending SIP call. Pass this value unchanged when
+                accepting or rejecting the call through the Realtime API. For the
+                Live API, use the `session_id` from `live.transport.incoming` instead.
             sip_headers:
               type: array
               description: |
@@ -65472,7 +65471,7 @@ components:
             "type": "realtime.call.incoming",
             "created_at": 1719168000,
             "data": {
-              "call_id": "rtc_479a275623b54bdb9b6fbae2f7cbd408",
+              "call_id": "rtc_u0_479a275623b54bdb9b6fbae2f7cbd408",
               "sip_headers": [
                 {"name": "Max-Forwards", "value": "63"},
                 {"name": "CSeq", "value": "851287 INVITE"},
@@ -79290,6 +79289,7 @@ components:
           - $ref: '#/components/schemas/ReasoningEffortParam'
           - type: 'null'
           description: Omit to keep the current effort. Null selects the model's default effort.
+          x-openai-go-optional-enum: true
       additionalProperties: false
       description: Reasoning effort for subsequent turns. The reasoning summary stays unchanged.
     UpdateSessionAgentParam:
@@ -79308,6 +79308,7 @@ components:
           - $ref: '#/components/schemas/ServiceTierParam'
           - type: 'null'
           description: Omit to keep the current tier. Null resets it to auto.
+          x-openai-go-optional-enum: true
       additionalProperties: false
       description: Model settings that can change after session creation.
     UpdateAgentSessionParams:
