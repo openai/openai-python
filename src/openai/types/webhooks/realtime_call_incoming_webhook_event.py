@@ -22,11 +22,11 @@ class Data(BaseModel):
     """Event data payload."""
 
     call_id: str
-    """The Transceiver `rtc_...` ID of the pending SIP session.
+    """The ID of the pending SIP call.
 
-    The paired `live.transport.incoming` event derives its `session_id` by replacing
-    the `rtc_` prefix with `live_`. Use the ID returned by the event with the
-    corresponding Realtime or Live API.
+    Pass this value unchanged when accepting or rejecting the call through the
+    Realtime API. For the Live API, use the `session_id` from
+    `live.transport.incoming` instead.
     """
 
     sip_headers: List[DataSipHeader]
