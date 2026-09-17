@@ -65,6 +65,7 @@ class TestResponses:
             prompt_cache_options={
                 "comparison_response_id": "resp_123",
                 "mode": "implicit",
+                "prewarm": True,
                 "ttl": "30m",
             },
             prompt_cache_retention="in_memory",
@@ -175,6 +176,7 @@ class TestResponses:
             prompt_cache_options={
                 "comparison_response_id": "resp_123",
                 "mode": "implicit",
+                "prewarm": True,
                 "ttl": "30m",
             },
             prompt_cache_retention="in_memory",
@@ -534,6 +536,7 @@ class TestAsyncResponses:
             prompt_cache_options={
                 "comparison_response_id": "resp_123",
                 "mode": "implicit",
+                "prewarm": True,
                 "ttl": "30m",
             },
             prompt_cache_retention="in_memory",
@@ -644,6 +647,7 @@ class TestAsyncResponses:
             prompt_cache_options={
                 "comparison_response_id": "resp_123",
                 "mode": "implicit",
+                "prewarm": True,
                 "ttl": "30m",
             },
             prompt_cache_retention="in_memory",
