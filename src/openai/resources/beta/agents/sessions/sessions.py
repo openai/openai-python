@@ -377,6 +377,7 @@ class Sessions(SyncAPIResource):
         self,
         session_id: str,
         *,
+        agent: session_update_params.Agent | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -385,12 +386,15 @@ class Sessions(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AgentSession:
-        """Updates session metadata.
+        """Updates session metadata, model, reasoning effort, or service tier.
 
-        Omitted fields are unchanged. See
+        Model
+        settings apply to subsequent turns. Omitted fields are unchanged. See
         [managing sessions](https://developers.openai.com/api/docs/guides/agents-api/sessions/manage).
 
         Args:
+          agent: Model settings for subsequent turns. Omitted fields stay unchanged.
+
           metadata: Replaces all metadata. Omit to leave unchanged, or pass null or {} to clear it.
               Up to 16 string key-value pairs, with keys up to 64 and values up to 512
               characters.
@@ -408,7 +412,13 @@ class Sessions(SyncAPIResource):
         extra_headers = {"OpenAI-Beta": "agents=v1", **(extra_headers or {})}
         return self._post(
             path_template("/agents/sessions/{session_id}", session_id=session_id),
-            body=maybe_transform({"metadata": metadata}, session_update_params.SessionUpdateParams),
+            body=maybe_transform(
+                {
+                    "agent": agent,
+                    "metadata": metadata,
+                },
+                session_update_params.SessionUpdateParams,
+            ),
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -834,6 +844,7 @@ class AsyncSessions(AsyncAPIResource):
         self,
         session_id: str,
         *,
+        agent: session_update_params.Agent | Omit = omit,
         metadata: Optional[Dict[str, str]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -842,12 +853,15 @@ class AsyncSessions(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AgentSession:
-        """Updates session metadata.
+        """Updates session metadata, model, reasoning effort, or service tier.
 
-        Omitted fields are unchanged. See
+        Model
+        settings apply to subsequent turns. Omitted fields are unchanged. See
         [managing sessions](https://developers.openai.com/api/docs/guides/agents-api/sessions/manage).
 
         Args:
+          agent: Model settings for subsequent turns. Omitted fields stay unchanged.
+
           metadata: Replaces all metadata. Omit to leave unchanged, or pass null or {} to clear it.
               Up to 16 string key-value pairs, with keys up to 64 and values up to 512
               characters.
@@ -865,7 +879,13 @@ class AsyncSessions(AsyncAPIResource):
         extra_headers = {"OpenAI-Beta": "agents=v1", **(extra_headers or {})}
         return await self._post(
             path_template("/agents/sessions/{session_id}", session_id=session_id),
-            body=await async_maybe_transform({"metadata": metadata}, session_update_params.SessionUpdateParams),
+            body=await async_maybe_transform(
+                {
+                    "agent": agent,
+                    "metadata": metadata,
+                },
+                session_update_params.SessionUpdateParams,
+            ),
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
