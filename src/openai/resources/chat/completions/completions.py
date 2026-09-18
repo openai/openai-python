@@ -88,7 +88,134 @@ class Completions(SyncAPIResource):
         """
         return CompletionsWithStreamingResponse(self)
 
-    def parse(
+    @overload
+    async def parse(
+        self,
+        *,
+        messages: Iterable[ChatCompletionMessageParam],
+        model: FixedTemperatureModel,
+        audio: Optional[ChatCompletionAudioParam] | Omit = omit,
+        response_format: type[ResponseFormatT] | Omit = omit,
+        frequency_penalty: Optional[float] | Omit = omit,
+        function_call: completion_create_params.FunctionCall | Omit = omit,
+        functions: Iterable[completion_create_params.Function] | Omit = omit,
+        logit_bias: Optional[Dict[str, int]] | Omit = omit,
+        logprobs: Optional[bool] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        modalities: Optional[List[Literal["text", "audio"]]] | Omit = omit,
+        n: Optional[int] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
+        presence_penalty: Optional[float] | Omit = omit,
+        prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
+        reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
+        safety_identifier: str | Omit = omit,
+        seed: Optional[int] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
+        store: Optional[bool] | Omit = omit,
+        stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
+        # <-- the only line that differs from the general overload
+        temperature: Optional[Literal[1]] | Omit = omit,
+        tool_choice: ChatCompletionToolChoiceOptionParam | Omit = omit,
+        tools: Iterable[ChatCompletionToolUnionParam] | Omit = omit,
+        top_logprobs: Optional[int] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        user: str | Omit = omit,
+        verbosity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
+        web_search_options: completion_create_params.WebSearchOptions | Omit = omit,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> ParsedChatCompletion[ResponseFormatT]: ...
+ 
+    # --- 3. Interceptor overload: same restricted models, but ANY temperature.
+    # `ChatModel` isn't a closed Literal here (it includes plain `str` for
+    # forward-compat / custom model IDs), so overload 1 alone can't be made
+    # mutually exclusive with overload 4 below — if overload 1 fails to
+    # match (wrong temperature), the checker would otherwise fall straight
+    # through to the permissive `str`-accepting overload 4 and see nothing
+    # wrong. This overload exists purely to intercept that case before it
+    # gets there. Marking it @deprecated makes type checkers flag any call
+    # that resolves here as an error/warning instead of silently passing.
+    #
+    # IMPORTANT: this is NOT enabled by default in either checker:
+    #   mypy:    pass --enable-error-code deprecated (or set
+    #            `enable_error_code = ["deprecated"]` in mypy.ini/pyproject.toml)
+    #   pyright: set "reportDeprecated": "warning" (or "error") in
+    #            pyrightconfig.json / pyproject.toml
+    # Without one of those, this overload still resolves correctly, it just
+    # won't surface a diagnostic — so the runtime check in the real
+    # implementation below is still the actual enforcement, not this.
+    #
+    # Do NOT annotate this overload as `-> NoReturn`/`Never`, even though the
+    # real implementation always raises for this path. Tested both ways:
+    #   - `NoReturn` alone produces *no* diagnostic at all, on its own or
+    #     when the result is assigned to a `str` — it's a bottom type, so
+    #     it's structurally compatible with anything.
+    #   - `NoReturn` combined with `@deprecated` is worse than `@deprecated`
+    #     alone: mypy's control-flow analysis treats code after the first
+    #     matching call as unreachable and silently stops checking the rest
+    #     of that function, so a second bad call later in the same function
+    #     goes undetected. Verified: two bad calls in one function → only
+    #     the first is reported; split into two functions → both are.
+    # Keep the return type identical to the other overloads.
+    @overload
+    @deprecated(
+        "This model only supports temperature=1. Passing any other value "
+        "is invalid and will raise ValueError at runtime."
+    )
+    async def parse(
+        self,
+        *,
+        messages: Iterable[ChatCompletionMessageParam],
+        model: FixedTemperatureModel,
+        audio: Optional[ChatCompletionAudioParam] | Omit = omit,
+        response_format: type[ResponseFormatT] | Omit = omit,
+        frequency_penalty: Optional[float] | Omit = omit,
+        function_call: completion_create_params.FunctionCall | Omit = omit,
+        functions: Iterable[completion_create_params.Function] | Omit = omit,
+        logit_bias: Optional[Dict[str, int]] | Omit = omit,
+        logprobs: Optional[bool] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        modalities: Optional[List[Literal["text", "audio"]]] | Omit = omit,
+        n: Optional[int] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
+        presence_penalty: Optional[float] | Omit = omit,
+        prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
+        reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
+        safety_identifier: str | Omit = omit,
+        seed: Optional[int] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
+        store: Optional[bool] | Omit = omit,
+        stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
+        # <-- same restricted `model`, but temperature is unrestricted here
+        temperature: Optional[float] | Omit = omit,
+        tool_choice: ChatCompletionToolChoiceOptionParam | Omit = omit,
+        tools: Iterable[ChatCompletionToolUnionParam] | Omit = omit,
+        top_logprobs: Optional[int] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        user: str | Omit = omit,
+        verbosity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
+        web_search_options: completion_create_params.WebSearchOptions | Omit = omit,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> Never: ...
+ 
+    # --- 4. General overload: everything else, temperature is any float -----
+    @overload
+    async def parse(
         self,
         *,
         messages: Iterable[ChatCompletionMessageParam],
@@ -104,18 +231,16 @@ class Completions(SyncAPIResource):
         max_tokens: Optional[int] | Omit = omit,
         metadata: Optional[Metadata] | Omit = omit,
         modalities: Optional[List[Literal["text", "audio"]]] | Omit = omit,
-        moderation: Optional[completion_create_params.Moderation] | Omit = omit,
         n: Optional[int] | Omit = omit,
         parallel_tool_calls: bool | Omit = omit,
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
         presence_penalty: Optional[float] | Omit = omit,
-        prompt_cache_key: Optional[str] | Omit = omit,
-        prompt_cache_options: completion_create_params.PromptCacheOptions | Omit = omit,
+        prompt_cache_key: str | Omit = omit,
         prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
         reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
-        safety_identifier: Optional[str] | Omit = omit,
+        safety_identifier: str | Omit = omit,
         seed: Optional[int] | Omit = omit,
-        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority", "fast"]] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
         stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
         store: Optional[bool] | Omit = omit,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
@@ -127,12 +252,53 @@ class Completions(SyncAPIResource):
         user: str | Omit = omit,
         verbosity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
         web_search_options: completion_create_params.WebSearchOptions | Omit = omit,
-        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
-        # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> ParsedChatCompletion[ResponseFormatT]: ...
+ 
+    async def parse(
+        self,
+        *,
+        messages: Iterable[ChatCompletionMessageParam],
+        model: Union[str, ChatModel],
+        audio: Optional[ChatCompletionAudioParam] | Omit = omit,
+        response_format: type[ResponseFormatT] | Omit = omit,
+        frequency_penalty: Optional[float] | Omit = omit,
+        function_call: completion_create_params.FunctionCall | Omit = omit,
+        functions: Iterable[completion_create_params.Function] | Omit = omit,
+        logit_bias: Optional[Dict[str, int]] | Omit = omit,
+        logprobs: Optional[bool] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        modalities: Optional[List[Literal["text", "audio"]]] | Omit = omit,
+        n: Optional[int] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
+        presence_penalty: Optional[float] | Omit = omit,
+        prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in_memory", "24h"]] | Omit = omit,
+        reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
+        safety_identifier: str | Omit = omit,
+        seed: Optional[int] | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        stop: Union[Optional[str], SequenceNotStr[str], None] | Omit = omit,
+        store: Optional[bool] | Omit = omit,
+        stream_options: Optional[ChatCompletionStreamOptionsParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        tool_choice: ChatCompletionToolChoiceOptionParam | Omit = omit,
+        tools: Iterable[ChatCompletionToolUnionParam] | Omit = omit,
+        top_logprobs: Optional[int] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        user: str | Omit = omit,
+        verbosity: Optional[Literal["low", "medium", "high"]] | Omit = omit,
+        web_search_options: completion_create_params.WebSearchOptions | Omit = omit,
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ParsedChatCompletion[ResponseFormatT]:
         """Wrapper over the `client.chat.completions.create()` method that provides richer integrations with Python specific types
         & returns a `ParsedChatCompletion` object, which is a subclass of the standard `ChatCompletion` class.
