@@ -6,6 +6,6 @@
     "node": "22.22.3"
   },
   "devDependencies": {
-    "pyright": "1.1.413"
+    "pyright": "1.1.414"
   }
 }
