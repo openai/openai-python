@@ -785,6 +785,7 @@ from openai.types.beta import (
     BetaResponseCodeInterpreterCallInProgressEvent,
     BetaResponseCodeInterpreterCallInterpretingEvent,
     BetaResponseCodeInterpreterToolCall,
+    BetaResponseCompactionCompactingEvent,
     BetaResponseCompactionItem,
     BetaResponseCompactionItemParam,
     BetaResponseCompletedEvent,

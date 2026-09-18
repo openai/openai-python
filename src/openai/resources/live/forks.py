@@ -14,9 +14,9 @@ import httpx2
 from pydantic import BaseModel
 
 from ..._types import Omit, Query, Headers, omit
-from ..._utils import path_template, maybe_transform, strip_not_given, async_maybe_transform
+from ..._utils import is_given, path_template, maybe_transform, strip_not_given, async_maybe_transform
 from ..._compat import cached_property
-from ..._models import construct_type_unchecked
+from ..._models import FinalRequestOptions, construct_type_unchecked
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._exceptions import OpenAIError, WebSocketConnectionClosedError
 from ..._send_queue import SendQueue
@@ -194,7 +194,7 @@ class AsyncForksConnection:
         then you can call `.parse_event(data)`.
         """
         message = await self._connection.recv(decode=False)
-        log.debug(f"Received WebSocket message: %s", message)
+        log.debug("Received WebSocket message: %i bytes", len(message))
         if self._reconnect_attempt:
             # Account for raw application progress without changing frame delivery.
             try:
@@ -326,7 +326,7 @@ class AsyncForksConnection:
         try:
             await self._send_queue.flush_async(_send)
         except Exception:
-            log.warning("Failed to flush send queue after reconnect", exc_info=True)
+            log.warning("Failed to flush send queue after reconnect")
 
     def on(
         self, event_type: str, handler: Callable[..., Any] | None = None
@@ -552,19 +552,37 @@ class AsyncForksConnectionManager:
                 **extra_query,
             },
         )
-        log.debug("Connecting to %s", url)
+        url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
+        options = await self.__client._prepare_options(
+            FinalRequestOptions.construct(
+                method="get",
+                url=str(url),
+                headers=dict(extra_headers),
+                security={"bearer_auth": True},
+            )
+        )
+        url = self.__client._prepare_url(options.url).copy_merge_params(
+            self.__client.qs.stringify(cast(Any, options.params))
+        )
+        url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
+        headers = {
+            key.lower(): (key, value)
+            for header_set in (
+                self.__client.auth_headers,
+                {},
+                self.__client.default_headers,
+                options.headers if is_given(options.headers) else {},
+            )
+            for key, value in header_set.items()
+        }
+        log.debug("Connecting to WebSocket API")
         if self.__websocket_connection_options:
-            log.debug("Connection options: %s", self.__websocket_connection_options)
+            log.debug("Custom WebSocket connection options provided")
 
         return await connect(
             str(url),
-            user_agent_header=self.__client.user_agent,
-            additional_headers=_merge_mappings(
-                {
-                    **self.__client.auth_headers,
-                },
-                extra_headers,
-            ),
+            user_agent_header=None,
+            additional_headers=_merge_mappings(dict(headers.values()), {}),
             **self.__websocket_connection_options,
         )
 
@@ -675,7 +693,7 @@ class ForksConnection:
         then you can call `.parse_event(data)`.
         """
         message = self._connection.recv(decode=False)
-        log.debug(f"Received WebSocket message: %s", message)
+        log.debug("Received WebSocket message: %i bytes", len(message))
         if self._reconnect_attempt:
             # Account for raw application progress without changing frame delivery.
             try:
@@ -801,7 +819,7 @@ class ForksConnection:
         try:
             self._send_queue.flush_sync(lambda data: self._connection.send(data))
         except Exception:
-            log.warning("Failed to flush send queue after reconnect", exc_info=True)
+            log.warning("Failed to flush send queue after reconnect")
 
     def on(
         self, event_type: str, handler: Callable[..., Any] | None = None
@@ -1021,19 +1039,37 @@ class ForksConnectionManager:
                 **extra_query,
             },
         )
-        log.debug("Connecting to %s", url)
+        url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
+        options = self.__client._prepare_options(
+            FinalRequestOptions.construct(
+                method="get",
+                url=str(url),
+                headers=dict(extra_headers),
+                security={"bearer_auth": True},
+            )
+        )
+        url = self.__client._prepare_url(options.url).copy_merge_params(
+            self.__client.qs.stringify(cast(Any, options.params))
+        )
+        url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
+        headers = {
+            key.lower(): (key, value)
+            for header_set in (
+                self.__client.auth_headers,
+                {},
+                self.__client.default_headers,
+                options.headers if is_given(options.headers) else {},
+            )
+            for key, value in header_set.items()
+        }
+        log.debug("Connecting to WebSocket API")
         if self.__websocket_connection_options:
-            log.debug("Connection options: %s", self.__websocket_connection_options)
+            log.debug("Custom WebSocket connection options provided")
 
         return connect(
             str(url),
-            user_agent_header=self.__client.user_agent,
-            additional_headers=_merge_mappings(
-                {
-                    **self.__client.auth_headers,
-                },
-                extra_headers,
-            ),
+            user_agent_header=None,
+            additional_headers=_merge_mappings(dict(headers.values()), {}),
             **self.__websocket_connection_options,
         )
 

@@ -283,7 +283,7 @@ class ResponseStreamState(Generic[TextFormatT]):
 
             events.append(
                 build(
-                    ResponseTextDoneEvent[TextFormatT],
+                    cast("type[ResponseTextDoneEvent[TextFormatT]]", ResponseTextDoneEvent),
                     content_index=event.content_index,
                     item_id=event.item_id,
                     output_index=event.output_index,
@@ -291,7 +291,7 @@ class ResponseStreamState(Generic[TextFormatT]):
                     logprobs=event.logprobs,
                     type="response.output_text.done",
                     text=event.text,
-                    parsed=parse_text(event.text, text_format=self._text_format),
+                    parsed=parse_text(event.text, text_format=self._text_format, phase=output.phase),
                 )
             )
         elif event.type == "response.function_call_arguments.delta":
