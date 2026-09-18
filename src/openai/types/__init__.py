@@ -26,6 +26,7 @@ from .shared import (
     ResponseFormatJSONSchema as ResponseFormatJSONSchema,
     ResponseFormatTextPython as ResponseFormatTextPython,
     ResponseFormatTextGrammar as ResponseFormatTextGrammar,
+    ServiceTier as ServiceTier,
 )
 from .upload import Upload as Upload
 from .embedding import Embedding as Embedding
