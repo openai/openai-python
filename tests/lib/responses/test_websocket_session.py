@@ -580,6 +580,7 @@ async def test_sync_close_during_replacement_handshake(monkeypatch: pytest.Monke
     opening = threading.Event()
     release_open = threading.Event()
     closing = threading.Event()
+    replacement_accepted = threading.Event()
 
     def reconnect(_event: ReconnectingEvent) -> ReconnectingOverrides:
         return {"extra_headers": {"X-Recovery": "fresh"}}
@@ -589,6 +590,8 @@ async def test_sync_close_during_replacement_handshake(monkeypatch: pytest.Monke
         if socket.request.headers.get("X-Recovery") != "fresh":
             assert disconnect.wait(5)
             socket.close(code=1011)
+        else:
+            replacement_accepted.set()
 
     with script_server(script, expected_connections=2) as url:
         async with session_for(
@@ -603,7 +606,9 @@ async def test_sync_close_during_replacement_handshake(monkeypatch: pytest.Monke
             def delayed_open(query: Any, headers: Any) -> Any:
                 opening.set()
                 assert release_open.wait(5)
-                return make_ws(query, headers)
+                socket = make_ws(query, headers)
+                assert replacement_accepted.wait(5)
+                return socket
 
             def observed_close() -> None:
                 try:
