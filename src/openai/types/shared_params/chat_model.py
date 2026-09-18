@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -7,6 +7,12 @@ from typing_extensions import Literal, TypeAlias
 __all__ = ["ChatModel"]
 
 ChatModel: TypeAlias = Literal[
+    "gpt-6-astra",
+    "gpt-5.6-sol",
+    "gpt-5.6-terra",
+    "gpt-5.6-luna",
+    "gpt-5.5",
+    "gpt-5.5-2026-04-23",
     "gpt-5.4",
     "gpt-5.4-mini",
     "gpt-5.4-nano",
@@ -21,7 +27,6 @@ ChatModel: TypeAlias = Literal[
     "gpt-5.1",
     "gpt-5.1-2025-11-13",
     "gpt-5.1-codex",
-    "gpt-5.1-mini",
     "gpt-5.1-chat-latest",
     "gpt-5",
     "gpt-5-mini",
@@ -52,6 +57,8 @@ ChatModel: TypeAlias = Literal[
     "gpt-4o-2024-11-20",
     "gpt-4o-2024-08-06",
     "gpt-4o-2024-05-13",
+    "gpt-audio-mini",
+    "gpt-audio-mini-2025-12-15",
     "gpt-4o-audio-preview",
     "gpt-4o-audio-preview-2024-10-01",
     "gpt-4o-audio-preview-2024-12-17",
@@ -85,4 +92,5 @@ ChatModel: TypeAlias = Literal[
     "gpt-3.5-turbo-1106",
     "gpt-3.5-turbo-0125",
     "gpt-3.5-turbo-16k-0613",
+    "gpt-5.1-mini",
 ]

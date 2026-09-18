@@ -1,14 +1,15 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, List, Union, Mapping, Optional, cast
-from typing_extensions import Literal, overload, assert_never
+from typing import List, Union, Mapping, Optional, cast
+from typing_extensions import Literal, overload
 
-import httpx
+import httpx2
 
 from ... import _legacy_response
+from ..._files import deepcopy_with_paths
 from ..._types import (
     Body,
     Omit,
@@ -20,7 +21,7 @@ from ..._types import (
     omit,
     not_given,
 )
-from ..._utils import extract_files, required_args, maybe_transform, deepcopy_minimal, async_maybe_transform
+from ..._utils import extract_files, required_args, maybe_transform, async_maybe_transform
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -28,6 +29,7 @@ from ..._streaming import Stream, AsyncStream
 from ...types.audio import transcription_create_params
 from ..._base_client import make_request_options
 from ...types.audio_model import AudioModel
+from ...lib._parsing._audio import get_transcription_response_format_type as _get_transcription_response_format_type
 from ...types.audio.transcription import Transcription
 from ...types.audio_response_format import AudioResponseFormat
 from ...types.audio.transcription_include import TranscriptionInclude
@@ -71,7 +73,9 @@ class Transcriptions(SyncAPIResource):
         model: Union[str, AudioModel],
         chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | Omit = omit,
         include: List[TranscriptionInclude] | Omit = omit,
+        keywords: SequenceNotStr[str] | Omit = omit,
         language: str | Omit = omit,
+        languages: SequenceNotStr[str] | Omit = omit,
         prompt: str | Omit = omit,
         response_format: Union[Literal["json"], Omit] = omit,
         stream: Optional[Literal[False]] | Omit = omit,
@@ -82,7 +86,7 @@ class Transcriptions(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Transcription:
         """
         Transcribes audio into the input language.
@@ -91,11 +95,12 @@ class Transcriptions(SyncAPIResource):
         format, or a stream of transcript events.
 
         Args:
-          file:
-              The audio file object (not file name) to transcribe, in one of these formats:
-              flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.
+          file: The audio file object (not file name) to transcribe, in one of these formats:
+              flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm. The request must include
+              enough format metadata for the file to be identified. We recommend an
+              extension-bearing filename and an appropriate content type.
 
-          model: ID of the model to use. The options are `gpt-4o-transcribe`,
+          model: ID of the model to use. The options are `gpt-transcribe`, `gpt-4o-transcribe`,
               `gpt-4o-mini-transcribe`, `gpt-4o-mini-transcribe-2025-12-15`, `whisper-1`
               (which is powered by our open source Whisper V2 model), and
               `gpt-4o-transcribe-diarize`.
@@ -112,14 +117,20 @@ class Transcriptions(SyncAPIResource):
               `gpt-4o-mini-transcribe`, and `gpt-4o-mini-transcribe-2025-12-15`. This field is
               not supported when using `gpt-4o-transcribe-diarize`.
 
+
           language: The language of the input audio. Supplying the input language in
               [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) (e.g. `en`)
               format will improve accuracy and latency.
 
+          languages: Possible languages of the input audio, in
+              [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) format.
+              Supported by `gpt-transcribe`.
+
           prompt: An optional text to guide the model's style or continue a previous audio
               segment. The
-              [prompt](https://platform.openai.com/docs/guides/speech-to-text#prompting)
-              should match the audio language.
+              [prompt](https://developers.openai.com/api/docs/guides/speech-to-text#prompting)
+              should match the audio language. This field is not supported when using
+              `gpt-4o-transcribe-diarize`.
 
           response_format: The format of the output, in one of these options: `json`, `text`, `srt`,
               `verbose_json`, or `vtt`. For `gpt-4o-transcribe` and `gpt-4o-mini-transcribe`,
@@ -129,7 +140,7 @@ class Transcriptions(SyncAPIResource):
               generated using
               [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
               See the
-              [Streaming section of the Speech-to-Text guide](https://platform.openai.com/docs/guides/speech-to-text?lang=curl#streaming-transcriptions)
+              [Streaming section of the Speech-to-Text guide](https://developers.openai.com/api/docs/guides/speech-to-text?lang=curl#streaming)
               for more information.
 
               Note: Streaming is not supported for the `whisper-1` model and will be ignored.
@@ -159,8 +170,10 @@ class Transcriptions(SyncAPIResource):
         model: Union[str, AudioModel],
         chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | Omit = omit,
         include: List[TranscriptionInclude] | Omit = omit,
+        keywords: SequenceNotStr[str] | Omit = omit,
         response_format: Literal["verbose_json"],
         language: str | Omit = omit,
+        languages: SequenceNotStr[str] | Omit = omit,
         prompt: str | Omit = omit,
         temperature: float | Omit = omit,
         timestamp_granularities: List[Literal["word", "segment"]] | Omit = omit,
@@ -169,7 +182,7 @@ class Transcriptions(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> TranscriptionVerbose: ...
 
     @overload
@@ -181,7 +194,9 @@ class Transcriptions(SyncAPIResource):
         chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | Omit = omit,
         response_format: Literal["text", "srt", "vtt"],
         include: List[TranscriptionInclude] | Omit = omit,
+        keywords: SequenceNotStr[str] | Omit = omit,
         language: str | Omit = omit,
+        languages: SequenceNotStr[str] | Omit = omit,
         prompt: str | Omit = omit,
         temperature: float | Omit = omit,
         timestamp_granularities: List[Literal["word", "segment"]] | Omit = omit,
@@ -190,7 +205,7 @@ class Transcriptions(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> str: ...
 
     @overload
@@ -201,9 +216,11 @@ class Transcriptions(SyncAPIResource):
         model: Union[str, AudioModel],
         chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | Omit = omit,
         response_format: Literal["diarized_json"],
+        keywords: SequenceNotStr[str] | Omit = omit,
         known_speaker_names: SequenceNotStr[str] | Omit = omit,
         known_speaker_references: SequenceNotStr[str] | Omit = omit,
         language: str | Omit = omit,
+        languages: SequenceNotStr[str] | Omit = omit,
         temperature: float | Omit = omit,
         timestamp_granularities: List[Literal["word", "segment"]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -211,7 +228,7 @@ class Transcriptions(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> TranscriptionDiarized: ...
 
     @overload
@@ -223,9 +240,11 @@ class Transcriptions(SyncAPIResource):
         stream: Literal[True],
         chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | Omit = omit,
         include: List[TranscriptionInclude] | Omit = omit,
+        keywords: SequenceNotStr[str] | Omit = omit,
         known_speaker_names: SequenceNotStr[str] | Omit = omit,
         known_speaker_references: SequenceNotStr[str] | Omit = omit,
         language: str | Omit = omit,
+        languages: SequenceNotStr[str] | Omit = omit,
         prompt: str | Omit = omit,
         response_format: Union[AudioResponseFormat, Omit] = omit,
         temperature: float | Omit = omit,
@@ -235,7 +254,7 @@ class Transcriptions(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Stream[TranscriptionStreamEvent]:
         """
         Transcribes audio into the input language.
@@ -244,11 +263,12 @@ class Transcriptions(SyncAPIResource):
         format, or a stream of transcript events.
 
         Args:
-          file:
-              The audio file object (not file name) to transcribe, in one of these formats:
-              flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.
+          file: The audio file object (not file name) to transcribe, in one of these formats:
+              flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm. The request must include
+              enough format metadata for the file to be identified. We recommend an
+              extension-bearing filename and an appropriate content type.
 
-          model: ID of the model to use. The options are `gpt-4o-transcribe`,
+          model: ID of the model to use. The options are `gpt-transcribe`, `gpt-4o-transcribe`,
               `gpt-4o-mini-transcribe`, `gpt-4o-mini-transcribe-2025-12-15`, `whisper-1`
               (which is powered by our open source Whisper V2 model), and
               `gpt-4o-transcribe-diarize`.
@@ -257,7 +277,7 @@ class Transcriptions(SyncAPIResource):
               generated using
               [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
               See the
-              [Streaming section of the Speech-to-Text guide](https://platform.openai.com/docs/guides/speech-to-text?lang=curl#streaming-transcriptions)
+              [Streaming section of the Speech-to-Text guide](https://developers.openai.com/api/docs/guides/speech-to-text?lang=curl#streaming)
               for more information.
 
               Note: Streaming is not supported for the `whisper-1` model and will be ignored.
@@ -276,6 +296,9 @@ class Transcriptions(SyncAPIResource):
               `gpt-4o-mini-transcribe`, and `gpt-4o-mini-transcribe-2025-12-15`. This field is
               not supported when using `gpt-4o-transcribe-diarize`.
 
+          keywords: Words or phrases to guide transcription of the input audio. Supported by
+              `gpt-transcribe`.
+
           known_speaker_names: Optional list of speaker names that correspond to the audio samples provided in
               `known_speaker_references[]`. Each entry should be a short identifier (for
               example `customer` or `agent`). Up to 4 speakers are supported.
@@ -290,9 +313,13 @@ class Transcriptions(SyncAPIResource):
               [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) (e.g. `en`)
               format will improve accuracy and latency.
 
+          languages: Possible languages of the input audio, in
+              [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) format.
+              Supported by `gpt-transcribe`.
+
           prompt: An optional text to guide the model's style or continue a previous audio
               segment. The
-              [prompt](https://platform.openai.com/docs/guides/speech-to-text#prompting)
+              [prompt](https://developers.openai.com/api/docs/guides/speech-to-text#prompting)
               should match the audio language. This field is not supported when using
               `gpt-4o-transcribe-diarize`.
 
@@ -334,9 +361,11 @@ class Transcriptions(SyncAPIResource):
         stream: bool,
         chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | Omit = omit,
         include: List[TranscriptionInclude] | Omit = omit,
+        keywords: SequenceNotStr[str] | Omit = omit,
         known_speaker_names: SequenceNotStr[str] | Omit = omit,
         known_speaker_references: SequenceNotStr[str] | Omit = omit,
         language: str | Omit = omit,
+        languages: SequenceNotStr[str] | Omit = omit,
         prompt: str | Omit = omit,
         response_format: Union[AudioResponseFormat, Omit] = omit,
         temperature: float | Omit = omit,
@@ -346,7 +375,7 @@ class Transcriptions(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> TranscriptionCreateResponse | Stream[TranscriptionStreamEvent]:
         """
         Transcribes audio into the input language.
@@ -355,11 +384,12 @@ class Transcriptions(SyncAPIResource):
         format, or a stream of transcript events.
 
         Args:
-          file:
-              The audio file object (not file name) to transcribe, in one of these formats:
-              flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.
+          file: The audio file object (not file name) to transcribe, in one of these formats:
+              flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm. The request must include
+              enough format metadata for the file to be identified. We recommend an
+              extension-bearing filename and an appropriate content type.
 
-          model: ID of the model to use. The options are `gpt-4o-transcribe`,
+          model: ID of the model to use. The options are `gpt-transcribe`, `gpt-4o-transcribe`,
               `gpt-4o-mini-transcribe`, `gpt-4o-mini-transcribe-2025-12-15`, `whisper-1`
               (which is powered by our open source Whisper V2 model), and
               `gpt-4o-transcribe-diarize`.
@@ -368,7 +398,7 @@ class Transcriptions(SyncAPIResource):
               generated using
               [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
               See the
-              [Streaming section of the Speech-to-Text guide](https://platform.openai.com/docs/guides/speech-to-text?lang=curl#streaming-transcriptions)
+              [Streaming section of the Speech-to-Text guide](https://developers.openai.com/api/docs/guides/speech-to-text?lang=curl#streaming)
               for more information.
 
               Note: Streaming is not supported for the `whisper-1` model and will be ignored.
@@ -387,6 +417,9 @@ class Transcriptions(SyncAPIResource):
               `gpt-4o-mini-transcribe`, and `gpt-4o-mini-transcribe-2025-12-15`. This field is
               not supported when using `gpt-4o-transcribe-diarize`.
 
+          keywords: Words or phrases to guide transcription of the input audio. Supported by
+              `gpt-transcribe`.
+
           known_speaker_names: Optional list of speaker names that correspond to the audio samples provided in
               `known_speaker_references[]`. Each entry should be a short identifier (for
               example `customer` or `agent`). Up to 4 speakers are supported.
@@ -401,9 +434,13 @@ class Transcriptions(SyncAPIResource):
               [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) (e.g. `en`)
               format will improve accuracy and latency.
 
+          languages: Possible languages of the input audio, in
+              [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) format.
+              Supported by `gpt-transcribe`.
+
           prompt: An optional text to guide the model's style or continue a previous audio
               segment. The
-              [prompt](https://platform.openai.com/docs/guides/speech-to-text#prompting)
+              [prompt](https://developers.openai.com/api/docs/guides/speech-to-text#prompting)
               should match the audio language. This field is not supported when using
               `gpt-4o-transcribe-diarize`.
 
@@ -444,9 +481,11 @@ class Transcriptions(SyncAPIResource):
         model: Union[str, AudioModel],
         chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | Omit = omit,
         include: List[TranscriptionInclude] | Omit = omit,
+        keywords: SequenceNotStr[str] | Omit = omit,
         known_speaker_names: SequenceNotStr[str] | Omit = omit,
         known_speaker_references: SequenceNotStr[str] | Omit = omit,
         language: str | Omit = omit,
+        languages: SequenceNotStr[str] | Omit = omit,
         prompt: str | Omit = omit,
         response_format: Union[AudioResponseFormat, Omit] = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
@@ -457,23 +496,26 @@ class Transcriptions(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> str | Transcription | TranscriptionDiarized | TranscriptionVerbose | Stream[TranscriptionStreamEvent]:
-        body = deepcopy_minimal(
+        body = deepcopy_with_paths(
             {
                 "file": file,
                 "model": model,
                 "chunking_strategy": chunking_strategy,
                 "include": include,
+                "keywords": keywords,
                 "known_speaker_names": known_speaker_names,
                 "known_speaker_references": known_speaker_references,
                 "language": language,
+                "languages": languages,
                 "prompt": prompt,
                 "response_format": response_format,
                 "stream": stream,
                 "temperature": temperature,
                 "timestamp_granularities": timestamp_granularities,
-            }
+            },
+            [["file"]],
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["file"]])
         # It should be noted that the actual Content-Type header that will be
@@ -490,7 +532,11 @@ class Transcriptions(SyncAPIResource):
             ),
             files=files,
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=_get_response_format_type(response_format),
             stream=stream or False,
@@ -528,9 +574,11 @@ class AsyncTranscriptions(AsyncAPIResource):
         model: Union[str, AudioModel],
         chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | Omit = omit,
         include: List[TranscriptionInclude] | Omit = omit,
+        keywords: SequenceNotStr[str] | Omit = omit,
         known_speaker_names: SequenceNotStr[str] | Omit = omit,
         known_speaker_references: SequenceNotStr[str] | Omit = omit,
         language: str | Omit = omit,
+        languages: SequenceNotStr[str] | Omit = omit,
         prompt: str | Omit = omit,
         response_format: Union[Literal["json"], Omit] = omit,
         stream: Optional[Literal[False]] | Omit = omit,
@@ -541,7 +589,7 @@ class AsyncTranscriptions(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> TranscriptionCreateResponse:
         """
         Transcribes audio into the input language.
@@ -550,11 +598,12 @@ class AsyncTranscriptions(AsyncAPIResource):
         format, or a stream of transcript events.
 
         Args:
-          file:
-              The audio file object (not file name) to transcribe, in one of these formats:
-              flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.
+          file: The audio file object (not file name) to transcribe, in one of these formats:
+              flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm. The request must include
+              enough format metadata for the file to be identified. We recommend an
+              extension-bearing filename and an appropriate content type.
 
-          model: ID of the model to use. The options are `gpt-4o-transcribe`,
+          model: ID of the model to use. The options are `gpt-transcribe`, `gpt-4o-transcribe`,
               `gpt-4o-mini-transcribe`, `gpt-4o-mini-transcribe-2025-12-15`, `whisper-1`
               (which is powered by our open source Whisper V2 model), and
               `gpt-4o-transcribe-diarize`.
@@ -573,6 +622,9 @@ class AsyncTranscriptions(AsyncAPIResource):
               `gpt-4o-mini-transcribe`, and `gpt-4o-mini-transcribe-2025-12-15`. This field is
               not supported when using `gpt-4o-transcribe-diarize`.
 
+          keywords: Words or phrases to guide transcription of the input audio. Supported by
+              `gpt-transcribe`.
+
           known_speaker_names: Optional list of speaker names that correspond to the audio samples provided in
               `known_speaker_references[]`. Each entry should be a short identifier (for
               example `customer` or `agent`). Up to 4 speakers are supported.
@@ -587,9 +639,13 @@ class AsyncTranscriptions(AsyncAPIResource):
               [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) (e.g. `en`)
               format will improve accuracy and latency.
 
+          languages: Possible languages of the input audio, in
+              [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) format.
+              Supported by `gpt-transcribe`.
+
           prompt: An optional text to guide the model's style or continue a previous audio
               segment. The
-              [prompt](https://platform.openai.com/docs/guides/speech-to-text#prompting)
+              [prompt](https://developers.openai.com/api/docs/guides/speech-to-text#prompting)
               should match the audio language. This field is not supported when using
               `gpt-4o-transcribe-diarize`.
 
@@ -603,7 +659,7 @@ class AsyncTranscriptions(AsyncAPIResource):
               generated using
               [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
               See the
-              [Streaming section of the Speech-to-Text guide](https://platform.openai.com/docs/guides/speech-to-text?lang=curl#streaming-transcriptions)
+              [Streaming section of the Speech-to-Text guide](https://developers.openai.com/api/docs/guides/speech-to-text?lang=curl#streaming)
               for more information.
 
               Note: Streaming is not supported for the `whisper-1` model and will be ignored.
@@ -634,8 +690,10 @@ class AsyncTranscriptions(AsyncAPIResource):
         model: Union[str, AudioModel],
         chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | Omit = omit,
         include: List[TranscriptionInclude] | Omit = omit,
+        keywords: SequenceNotStr[str] | Omit = omit,
         response_format: Literal["verbose_json"],
         language: str | Omit = omit,
+        languages: SequenceNotStr[str] | Omit = omit,
         prompt: str | Omit = omit,
         temperature: float | Omit = omit,
         timestamp_granularities: List[Literal["word", "segment"]] | Omit = omit,
@@ -644,7 +702,7 @@ class AsyncTranscriptions(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> TranscriptionVerbose: ...
 
     @overload
@@ -656,7 +714,9 @@ class AsyncTranscriptions(AsyncAPIResource):
         chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | Omit = omit,
         include: List[TranscriptionInclude] | Omit = omit,
         response_format: Literal["text", "srt", "vtt"],
+        keywords: SequenceNotStr[str] | Omit = omit,
         language: str | Omit = omit,
+        languages: SequenceNotStr[str] | Omit = omit,
         prompt: str | Omit = omit,
         temperature: float | Omit = omit,
         timestamp_granularities: List[Literal["word", "segment"]] | Omit = omit,
@@ -665,7 +725,7 @@ class AsyncTranscriptions(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> str: ...
 
     @overload
@@ -677,9 +737,11 @@ class AsyncTranscriptions(AsyncAPIResource):
         stream: Literal[True],
         chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | Omit = omit,
         include: List[TranscriptionInclude] | Omit = omit,
+        keywords: SequenceNotStr[str] | Omit = omit,
         known_speaker_names: SequenceNotStr[str] | Omit = omit,
         known_speaker_references: SequenceNotStr[str] | Omit = omit,
         language: str | Omit = omit,
+        languages: SequenceNotStr[str] | Omit = omit,
         prompt: str | Omit = omit,
         response_format: Union[AudioResponseFormat, Omit] = omit,
         temperature: float | Omit = omit,
@@ -689,7 +751,7 @@ class AsyncTranscriptions(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncStream[TranscriptionStreamEvent]:
         """
         Transcribes audio into the input language.
@@ -698,11 +760,12 @@ class AsyncTranscriptions(AsyncAPIResource):
         format, or a stream of transcript events.
 
         Args:
-          file:
-              The audio file object (not file name) to transcribe, in one of these formats:
-              flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.
+          file: The audio file object (not file name) to transcribe, in one of these formats:
+              flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm. The request must include
+              enough format metadata for the file to be identified. We recommend an
+              extension-bearing filename and an appropriate content type.
 
-          model: ID of the model to use. The options are `gpt-4o-transcribe`,
+          model: ID of the model to use. The options are `gpt-transcribe`, `gpt-4o-transcribe`,
               `gpt-4o-mini-transcribe`, `gpt-4o-mini-transcribe-2025-12-15`, `whisper-1`
               (which is powered by our open source Whisper V2 model), and
               `gpt-4o-transcribe-diarize`.
@@ -711,7 +774,7 @@ class AsyncTranscriptions(AsyncAPIResource):
               generated using
               [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
               See the
-              [Streaming section of the Speech-to-Text guide](https://platform.openai.com/docs/guides/speech-to-text?lang=curl#streaming-transcriptions)
+              [Streaming section of the Speech-to-Text guide](https://developers.openai.com/api/docs/guides/speech-to-text?lang=curl#streaming)
               for more information.
 
               Note: Streaming is not supported for the `whisper-1` model and will be ignored.
@@ -730,6 +793,9 @@ class AsyncTranscriptions(AsyncAPIResource):
               `gpt-4o-mini-transcribe`, and `gpt-4o-mini-transcribe-2025-12-15`. This field is
               not supported when using `gpt-4o-transcribe-diarize`.
 
+          keywords: Words or phrases to guide transcription of the input audio. Supported by
+              `gpt-transcribe`.
+
           known_speaker_names: Optional list of speaker names that correspond to the audio samples provided in
               `known_speaker_references[]`. Each entry should be a short identifier (for
               example `customer` or `agent`). Up to 4 speakers are supported.
@@ -744,9 +810,13 @@ class AsyncTranscriptions(AsyncAPIResource):
               [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) (e.g. `en`)
               format will improve accuracy and latency.
 
+          languages: Possible languages of the input audio, in
+              [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) format.
+              Supported by `gpt-transcribe`.
+
           prompt: An optional text to guide the model's style or continue a previous audio
               segment. The
-              [prompt](https://platform.openai.com/docs/guides/speech-to-text#prompting)
+              [prompt](https://developers.openai.com/api/docs/guides/speech-to-text#prompting)
               should match the audio language. This field is not supported when using
               `gpt-4o-transcribe-diarize`.
 
@@ -788,9 +858,11 @@ class AsyncTranscriptions(AsyncAPIResource):
         stream: bool,
         chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | Omit = omit,
         include: List[TranscriptionInclude] | Omit = omit,
+        keywords: SequenceNotStr[str] | Omit = omit,
         known_speaker_names: SequenceNotStr[str] | Omit = omit,
         known_speaker_references: SequenceNotStr[str] | Omit = omit,
         language: str | Omit = omit,
+        languages: SequenceNotStr[str] | Omit = omit,
         prompt: str | Omit = omit,
         response_format: Union[AudioResponseFormat, Omit] = omit,
         temperature: float | Omit = omit,
@@ -800,7 +872,7 @@ class AsyncTranscriptions(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> TranscriptionCreateResponse | AsyncStream[TranscriptionStreamEvent]:
         """
         Transcribes audio into the input language.
@@ -809,11 +881,12 @@ class AsyncTranscriptions(AsyncAPIResource):
         format, or a stream of transcript events.
 
         Args:
-          file:
-              The audio file object (not file name) to transcribe, in one of these formats:
-              flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.
+          file: The audio file object (not file name) to transcribe, in one of these formats:
+              flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm. The request must include
+              enough format metadata for the file to be identified. We recommend an
+              extension-bearing filename and an appropriate content type.
 
-          model: ID of the model to use. The options are `gpt-4o-transcribe`,
+          model: ID of the model to use. The options are `gpt-transcribe`, `gpt-4o-transcribe`,
               `gpt-4o-mini-transcribe`, `gpt-4o-mini-transcribe-2025-12-15`, `whisper-1`
               (which is powered by our open source Whisper V2 model), and
               `gpt-4o-transcribe-diarize`.
@@ -822,7 +895,7 @@ class AsyncTranscriptions(AsyncAPIResource):
               generated using
               [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
               See the
-              [Streaming section of the Speech-to-Text guide](https://platform.openai.com/docs/guides/speech-to-text?lang=curl#streaming-transcriptions)
+              [Streaming section of the Speech-to-Text guide](https://developers.openai.com/api/docs/guides/speech-to-text?lang=curl#streaming)
               for more information.
 
               Note: Streaming is not supported for the `whisper-1` model and will be ignored.
@@ -841,6 +914,9 @@ class AsyncTranscriptions(AsyncAPIResource):
               `gpt-4o-mini-transcribe`, and `gpt-4o-mini-transcribe-2025-12-15`. This field is
               not supported when using `gpt-4o-transcribe-diarize`.
 
+          keywords: Words or phrases to guide transcription of the input audio. Supported by
+              `gpt-transcribe`.
+
           known_speaker_names: Optional list of speaker names that correspond to the audio samples provided in
               `known_speaker_references[]`. Each entry should be a short identifier (for
               example `customer` or `agent`). Up to 4 speakers are supported.
@@ -855,9 +931,13 @@ class AsyncTranscriptions(AsyncAPIResource):
               [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) (e.g. `en`)
               format will improve accuracy and latency.
 
+          languages: Possible languages of the input audio, in
+              [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) format.
+              Supported by `gpt-transcribe`.
+
           prompt: An optional text to guide the model's style or continue a previous audio
               segment. The
-              [prompt](https://platform.openai.com/docs/guides/speech-to-text#prompting)
+              [prompt](https://developers.openai.com/api/docs/guides/speech-to-text#prompting)
               should match the audio language. This field is not supported when using
               `gpt-4o-transcribe-diarize`.
 
@@ -898,9 +978,11 @@ class AsyncTranscriptions(AsyncAPIResource):
         model: Union[str, AudioModel],
         chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | Omit = omit,
         include: List[TranscriptionInclude] | Omit = omit,
+        keywords: SequenceNotStr[str] | Omit = omit,
         known_speaker_names: SequenceNotStr[str] | Omit = omit,
         known_speaker_references: SequenceNotStr[str] | Omit = omit,
         language: str | Omit = omit,
+        languages: SequenceNotStr[str] | Omit = omit,
         prompt: str | Omit = omit,
         response_format: Union[AudioResponseFormat, Omit] = omit,
         stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
@@ -911,23 +993,26 @@ class AsyncTranscriptions(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Transcription | TranscriptionVerbose | TranscriptionDiarized | str | AsyncStream[TranscriptionStreamEvent]:
-        body = deepcopy_minimal(
+        body = deepcopy_with_paths(
             {
                 "file": file,
                 "model": model,
                 "chunking_strategy": chunking_strategy,
                 "include": include,
+                "keywords": keywords,
                 "known_speaker_names": known_speaker_names,
                 "known_speaker_references": known_speaker_references,
                 "language": language,
+                "languages": languages,
                 "prompt": prompt,
                 "response_format": response_format,
                 "stream": stream,
                 "temperature": temperature,
                 "timestamp_granularities": timestamp_granularities,
-            }
+            },
+            [["file"]],
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["file"]])
         # It should be noted that the actual Content-Type header that will be
@@ -944,7 +1029,11 @@ class AsyncTranscriptions(AsyncAPIResource):
             ),
             files=files,
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=_get_response_format_type(response_format),
             stream=stream or False,
@@ -991,19 +1080,4 @@ class AsyncTranscriptionsWithStreamingResponse:
 def _get_response_format_type(
     response_format: AudioResponseFormat | Omit,
 ) -> type[Transcription | TranscriptionVerbose | TranscriptionDiarized | str]:
-    if isinstance(response_format, Omit) or response_format is None:  # pyright: ignore[reportUnnecessaryComparison]
-        return Transcription
-
-    if response_format == "json":
-        return Transcription
-    elif response_format == "verbose_json":
-        return TranscriptionVerbose
-    elif response_format == "diarized_json":
-        return TranscriptionDiarized
-    elif response_format == "srt" or response_format == "text" or response_format == "vtt":
-        return str
-    elif TYPE_CHECKING:  # type: ignore[unreachable]
-        assert_never(response_format)
-    else:
-        log.warn("Unexpected audio response format: %s", response_format)
-        return Transcription
+    return _get_transcription_response_format_type(response_format, log=log)

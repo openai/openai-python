@@ -4,10 +4,14 @@ import logging
 from typing import Union, cast
 from typing_extensions import Literal, Protocol
 
-import httpx
+import httpx2
 import pytest
-from respx import MockRouter
 
+from openai import OpenAIError
+from openai.auth import x509_workload_identity
+from tests.utils import update_env
+from tests.respx2 import MockRouter
+from openai._types import Omit
 from openai._utils import SensitiveHeadersFilter, is_dict
 from openai._models import FinalRequestOptions
 from openai.lib.azure import AzureOpenAI, AsyncAzureOpenAI
@@ -29,7 +33,7 @@ async_client = AsyncAzureOpenAI(
 
 
 class MockRequestCall(Protocol):
-    request: httpx.Request
+    request: httpx2.Request
 
 
 @pytest.mark.parametrize("client", [sync_client, async_client])
@@ -76,14 +80,224 @@ def test_client_copying_override_options(client: Client) -> None:
     assert copied._custom_query == {"api-version": "2022-05-01"}
 
 
-@pytest.mark.respx()
-def test_client_token_provider_refresh_sync(respx_mock: MockRouter) -> None:
-    respx_mock.post(
+@pytest.mark.parametrize(
+    "client",
+    [
+        AzureOpenAI(
+            api_version="2024-02-01",
+            api_key="example API key",
+            azure_endpoint="https://example-resource.azure.openai.com",
+            azure_deployment="deployment-client",
+        ),
+        AsyncAzureOpenAI(
+            api_version="2024-02-01",
+            api_key="example API key",
+            azure_endpoint="https://example-resource.azure.openai.com",
+            azure_deployment="deployment-client",
+        ),
+    ],
+)
+@pytest.mark.parametrize("method", ["copy", "with_options"])
+@pytest.mark.parametrize("base_url", [None, "https://replacement.example.test/gateway"])
+async def test_copy_preserves_deployment_routing(
+    client: Client, method: Literal["copy", "with_options"], base_url: str | None
+) -> None:
+    copied = (
+        client.copy(timeout=5, base_url=base_url)
+        if method == "copy"
+        else client.with_options(timeout=5, base_url=base_url)
+    )
+    copied = copied.with_options(max_retries=0)
+    root = base_url or "https://example-resource.azure.openai.com/openai"
+    deployment = "body-model" if base_url else "deployment-client"
+
+    # Non-deployment endpoints use the root; deployment endpoints retain their routing.
+    req = copied._build_request(FinalRequestOptions.construct(method="get", url="/models"))
+    assert req.url == root + "/models?api-version=2024-02-01"
+    req = copied._build_request(
+        FinalRequestOptions.construct(method="post", url="/chat/completions", json_data={"model": "body-model"})
+    )
+    assert req.url == root + f"/deployments/{deployment}/chat/completions?api-version=2024-02-01"
+
+    if isinstance(copied, AsyncAzureOpenAI):
+        url, headers = await copied._configure_realtime("body-model", {})
+    else:
+        url, headers = copied._configure_realtime("body-model", {})
+    assert url == root.replace("https://", "wss://") + (f"/realtime?api-version=2024-02-01&deployment={deployment}")
+    assert headers == {"api-key": "example API key"}
+
+    # Changing a copy's destination must not change the original client.
+    assert client._prepare_url("/models") == "https://example-resource.azure.openai.com/openai/models"
+
+
+@pytest.mark.parametrize("client", [sync_client, async_client])
+@pytest.mark.parametrize("method", ["copy", "with_options"])
+def test_client_copying_rejects_x509_workload_identity(client: Client, method: Literal["copy", "with_options"]) -> None:
+    identity = x509_workload_identity(identity_provider_id="idp_123", service_account_id="svc_acct_123")
+
+    with pytest.raises(OpenAIError, match="X.509 workload identity is not supported by Azure clients"):
+        if method == "copy":
+            client.copy(workload_identity=identity)
+        else:
+            client.with_options(workload_identity=identity)
+
+
+def test_enforce_credentials_false_sync() -> None:
+    with update_env(AZURE_OPENAI_API_KEY=Omit(), AZURE_OPENAI_AD_TOKEN=Omit()):
+        AzureOpenAI(
+            api_version="2024-02-01",
+            api_key=None,
+            azure_ad_token=None,
+            azure_ad_token_provider=None,
+            azure_endpoint="https://example-resource.azure.openai.com",
+            _enforce_credentials=False,
+        )
+
+
+@pytest.mark.respx2()
+def test_enforce_credentials_false_sync_uses_default_api_key_header(respx2_mock: MockRouter) -> None:
+    respx2_mock.post(
+        "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-02-01"
+    ).mock(return_value=httpx2.Response(200, json={"model": "gpt-4"}))
+
+    with update_env(AZURE_OPENAI_API_KEY=Omit(), AZURE_OPENAI_AD_TOKEN=Omit()):
+        client = AzureOpenAI(
+            api_version="2024-02-01",
+            api_key=None,
+            azure_ad_token=None,
+            azure_ad_token_provider=None,
+            azure_endpoint="https://example-resource.azure.openai.com",
+            default_headers={"api-key": "manual-api-key"},
+            _enforce_credentials=False,
+        )
+        client.chat.completions.create(messages=[], model="gpt-4")
+
+    calls = cast("list[MockRequestCall]", respx2_mock.calls)
+    assert calls[0].request.headers.get("api-key") == "manual-api-key"
+    assert calls[0].request.headers.get("Authorization") is None
+
+
+@pytest.mark.respx2()
+def test_enforce_credentials_false_sync_uses_request_authorization_header(respx2_mock: MockRouter) -> None:
+    respx2_mock.post(
+        "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-02-01"
+    ).mock(return_value=httpx2.Response(200, json={"model": "gpt-4"}))
+
+    with update_env(AZURE_OPENAI_API_KEY=Omit(), AZURE_OPENAI_AD_TOKEN=Omit()):
+        client = AzureOpenAI(
+            api_version="2024-02-01",
+            api_key=None,
+            azure_ad_token=None,
+            azure_ad_token_provider=None,
+            azure_endpoint="https://example-resource.azure.openai.com",
+            _enforce_credentials=False,
+        )
+        client.chat.completions.create(
+            messages=[],
+            model="gpt-4",
+            extra_headers={"authorization": "Bearer manual-token"},
+        )
+
+    calls = cast("list[MockRequestCall]", respx2_mock.calls)
+    assert calls[0].request.headers.get("Authorization") == "Bearer manual-token"
+    assert calls[0].request.headers.get("api-key") is None
+
+
+def test_enforce_credentials_true_sync() -> None:
+    with update_env(AZURE_OPENAI_API_KEY=Omit(), AZURE_OPENAI_AD_TOKEN=Omit()):
+        with pytest.raises(OpenAIError, match="Missing credentials"):
+            AzureOpenAI(
+                api_version="2024-02-01",
+                api_key=None,
+                azure_ad_token=None,
+                azure_ad_token_provider=None,
+                azure_endpoint="https://example-resource.azure.openai.com",
+            )
+
+
+def test_enforce_credentials_false_async() -> None:
+    with update_env(AZURE_OPENAI_API_KEY=Omit(), AZURE_OPENAI_AD_TOKEN=Omit()):
+        AsyncAzureOpenAI(
+            api_version="2024-02-01",
+            api_key=None,
+            azure_ad_token=None,
+            azure_ad_token_provider=None,
+            azure_endpoint="https://example-resource.azure.openai.com",
+            _enforce_credentials=False,
+        )
+
+
+@pytest.mark.asyncio
+@pytest.mark.respx2()
+async def test_enforce_credentials_false_async_uses_default_api_key_header(respx2_mock: MockRouter) -> None:
+    respx2_mock.post(
+        "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-02-01"
+    ).mock(return_value=httpx2.Response(200, json={"model": "gpt-4"}))
+
+    with update_env(AZURE_OPENAI_API_KEY=Omit(), AZURE_OPENAI_AD_TOKEN=Omit()):
+        client = AsyncAzureOpenAI(
+            api_version="2024-02-01",
+            api_key=None,
+            azure_ad_token=None,
+            azure_ad_token_provider=None,
+            azure_endpoint="https://example-resource.azure.openai.com",
+            default_headers={"api-key": "manual-api-key"},
+            _enforce_credentials=False,
+        )
+        await client.chat.completions.create(messages=[], model="gpt-4")
+
+    calls = cast("list[MockRequestCall]", respx2_mock.calls)
+    assert calls[0].request.headers.get("api-key") == "manual-api-key"
+    assert calls[0].request.headers.get("Authorization") is None
+
+
+@pytest.mark.asyncio
+@pytest.mark.respx2()
+async def test_enforce_credentials_false_async_uses_request_authorization_header(respx2_mock: MockRouter) -> None:
+    respx2_mock.post(
+        "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-02-01"
+    ).mock(return_value=httpx2.Response(200, json={"model": "gpt-4"}))
+
+    with update_env(AZURE_OPENAI_API_KEY=Omit(), AZURE_OPENAI_AD_TOKEN=Omit()):
+        client = AsyncAzureOpenAI(
+            api_version="2024-02-01",
+            api_key=None,
+            azure_ad_token=None,
+            azure_ad_token_provider=None,
+            azure_endpoint="https://example-resource.azure.openai.com",
+            _enforce_credentials=False,
+        )
+        await client.chat.completions.create(
+            messages=[],
+            model="gpt-4",
+            extra_headers={"authorization": "Bearer manual-token"},
+        )
+
+    calls = cast("list[MockRequestCall]", respx2_mock.calls)
+    assert calls[0].request.headers.get("Authorization") == "Bearer manual-token"
+    assert calls[0].request.headers.get("api-key") is None
+
+
+def test_enforce_credentials_true_async() -> None:
+    with update_env(AZURE_OPENAI_API_KEY=Omit(), AZURE_OPENAI_AD_TOKEN=Omit()):
+        with pytest.raises(OpenAIError, match="Missing credentials"):
+            AsyncAzureOpenAI(
+                api_version="2024-02-01",
+                api_key=None,
+                azure_ad_token=None,
+                azure_ad_token_provider=None,
+                azure_endpoint="https://example-resource.azure.openai.com",
+            )
+
+
+@pytest.mark.respx2()
+def test_client_token_provider_refresh_sync(respx2_mock: MockRouter) -> None:
+    respx2_mock.post(
         "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-02-01"
     ).mock(
         side_effect=[
-            httpx.Response(500, json={"error": "server error"}),
-            httpx.Response(200, json={"foo": "bar"}),
+            httpx2.Response(500, json={"error": "server error"}),
+            httpx2.Response(200, json={"foo": "bar"}),
         ]
     )
 
@@ -106,7 +320,7 @@ def test_client_token_provider_refresh_sync(respx_mock: MockRouter) -> None:
     )
     client.chat.completions.create(messages=[], model="gpt-4")
 
-    calls = cast("list[MockRequestCall]", respx_mock.calls)
+    calls = cast("list[MockRequestCall]", respx2_mock.calls)
 
     assert len(calls) == 2
 
@@ -115,14 +329,14 @@ def test_client_token_provider_refresh_sync(respx_mock: MockRouter) -> None:
 
 
 @pytest.mark.asyncio
-@pytest.mark.respx()
-async def test_client_token_provider_refresh_async(respx_mock: MockRouter) -> None:
-    respx_mock.post(
+@pytest.mark.respx2()
+async def test_client_token_provider_refresh_async(respx2_mock: MockRouter) -> None:
+    respx2_mock.post(
         "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-02-01"
     ).mock(
         side_effect=[
-            httpx.Response(500, json={"error": "server error"}),
-            httpx.Response(200, json={"foo": "bar"}),
+            httpx2.Response(500, json={"error": "server error"}),
+            httpx2.Response(200, json={"foo": "bar"}),
         ]
     )
 
@@ -146,7 +360,7 @@ async def test_client_token_provider_refresh_async(respx_mock: MockRouter) -> No
 
     await client.chat.completions.create(messages=[], model="gpt-4")
 
-    calls = cast("list[MockRequestCall]", respx_mock.calls)
+    calls = cast("list[MockRequestCall]", respx2_mock.calls)
 
     assert len(calls) == 2
 
@@ -162,11 +376,11 @@ class TestAzureLogging:
         logger.addFilter(SensitiveHeadersFilter())
         return logger
 
-    @pytest.mark.respx()
-    def test_azure_api_key_redacted(self, respx_mock: MockRouter, caplog: pytest.LogCaptureFixture) -> None:
-        respx_mock.post(
+    @pytest.mark.respx2()
+    def test_azure_api_key_redacted(self, respx2_mock: MockRouter, caplog: pytest.LogCaptureFixture) -> None:
+        respx2_mock.post(
             "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-06-01"
-        ).mock(return_value=httpx.Response(200, json={"model": "gpt-4"}))
+        ).mock(return_value=httpx2.Response(200, json={"model": "gpt-4"}))
 
         client = AzureOpenAI(
             api_version="2024-06-01",
@@ -181,11 +395,11 @@ class TestAzureLogging:
             if is_dict(record.args) and record.args.get("headers") and is_dict(record.args["headers"]):
                 assert record.args["headers"]["api-key"] == "<redacted>"
 
-    @pytest.mark.respx()
-    def test_azure_bearer_token_redacted(self, respx_mock: MockRouter, caplog: pytest.LogCaptureFixture) -> None:
-        respx_mock.post(
+    @pytest.mark.respx2()
+    def test_azure_bearer_token_redacted(self, respx2_mock: MockRouter, caplog: pytest.LogCaptureFixture) -> None:
+        respx2_mock.post(
             "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-06-01"
-        ).mock(return_value=httpx.Response(200, json={"model": "gpt-4"}))
+        ).mock(return_value=httpx2.Response(200, json={"model": "gpt-4"}))
 
         client = AzureOpenAI(
             api_version="2024-06-01",
@@ -201,11 +415,13 @@ class TestAzureLogging:
                 assert record.args["headers"]["Authorization"] == "<redacted>"
 
     @pytest.mark.asyncio
-    @pytest.mark.respx()
-    async def test_azure_api_key_redacted_async(self, respx_mock: MockRouter, caplog: pytest.LogCaptureFixture) -> None:
-        respx_mock.post(
+    @pytest.mark.respx2()
+    async def test_azure_api_key_redacted_async(
+        self, respx2_mock: MockRouter, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        respx2_mock.post(
             "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-06-01"
-        ).mock(return_value=httpx.Response(200, json={"model": "gpt-4"}))
+        ).mock(return_value=httpx2.Response(200, json={"model": "gpt-4"}))
 
         client = AsyncAzureOpenAI(
             api_version="2024-06-01",
@@ -221,13 +437,13 @@ class TestAzureLogging:
                 assert record.args["headers"]["api-key"] == "<redacted>"
 
     @pytest.mark.asyncio
-    @pytest.mark.respx()
+    @pytest.mark.respx2()
     async def test_azure_bearer_token_redacted_async(
-        self, respx_mock: MockRouter, caplog: pytest.LogCaptureFixture
+        self, respx2_mock: MockRouter, caplog: pytest.LogCaptureFixture
     ) -> None:
-        respx_mock.post(
+        respx2_mock.post(
             "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-06-01"
-        ).mock(return_value=httpx.Response(200, json={"model": "gpt-4"}))
+        ).mock(return_value=httpx2.Response(200, json={"model": "gpt-4"}))
 
         client = AsyncAzureOpenAI(
             api_version="2024-06-01",

@@ -20,7 +20,6 @@ from openai.types.realtime import (
     ConversationItemRetrieveEvent,
     ConversationItemTruncateEvent,
     ConversationItemTruncatedEvent,
-    ConversationItemWithReference,
     InputAudioBufferAppendEvent,
     InputAudioBufferClearEvent,
     InputAudioBufferClearedEvent,
@@ -58,6 +57,8 @@ from openai.types.realtime import (
     RealtimeMcpToolCall,
     RealtimeMcpToolExecutionError,
     RealtimeMcphttpError,
+    RealtimeReasoning,
+    RealtimeReasoningEffort,
     RealtimeResponse,
     RealtimeResponseCreateAudioOutput,
     RealtimeResponseCreateMcpTool,
@@ -67,7 +68,6 @@ from openai.types.realtime import (
     RealtimeResponseUsageInputTokenDetails,
     RealtimeResponseUsageOutputTokenDetails,
     RealtimeServerEvent,
-    RealtimeSession,
     RealtimeSessionCreateRequest,
     RealtimeToolChoiceConfig,
     RealtimeToolsConfig,
@@ -103,8 +103,6 @@ from openai.types.realtime import (
     SessionCreatedEvent,
     SessionUpdateEvent,
     SessionUpdatedEvent,
-    TranscriptionSessionUpdate,
-    TranscriptionSessionUpdatedEvent,
 )
 ```
 
@@ -114,7 +112,6 @@ Types:
 
 ```python
 from openai.types.realtime import (
-    RealtimeSessionClientSecret,
     RealtimeSessionCreateResponse,
     RealtimeTranscriptionSessionCreateResponse,
     RealtimeTranscriptionSessionTurnDetection,

@@ -1,10 +1,10 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 from typing import Union, Iterable
 
-import httpx
+import httpx2
 
 from .. import _legacy_response
 from ..types import moderation_create_params
@@ -55,21 +55,22 @@ class Moderations(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ModerationCreateResponse:
         """Classifies if text and/or image inputs are potentially harmful.
 
         Learn more in
-        the [moderation guide](https://platform.openai.com/docs/guides/moderation).
+        the
+        [moderation guide](https://developers.openai.com/api/docs/guides/moderation).
 
         Args:
           input: Input (or inputs) to classify. Can be a single string, an array of strings, or
               an array of multi-modal input objects similar to other models.
 
           model: The content moderation model you would like to use. Learn more in
-              [the moderation guide](https://platform.openai.com/docs/guides/moderation), and
-              learn about available models
-              [here](https://platform.openai.com/docs/models#moderation).
+              [the moderation guide](https://developers.openai.com/api/docs/guides/moderation),
+              and learn about available models
+              [here](https://developers.openai.com/api/docs/guides/moderation).
 
           extra_headers: Send extra headers
 
@@ -89,7 +90,11 @@ class Moderations(SyncAPIResource):
                 moderation_create_params.ModerationCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ModerationCreateResponse,
         )
@@ -129,21 +134,22 @@ class AsyncModerations(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ModerationCreateResponse:
         """Classifies if text and/or image inputs are potentially harmful.
 
         Learn more in
-        the [moderation guide](https://platform.openai.com/docs/guides/moderation).
+        the
+        [moderation guide](https://developers.openai.com/api/docs/guides/moderation).
 
         Args:
           input: Input (or inputs) to classify. Can be a single string, an array of strings, or
               an array of multi-modal input objects similar to other models.
 
           model: The content moderation model you would like to use. Learn more in
-              [the moderation guide](https://platform.openai.com/docs/guides/moderation), and
-              learn about available models
-              [here](https://platform.openai.com/docs/models#moderation).
+              [the moderation guide](https://developers.openai.com/api/docs/guides/moderation),
+              and learn about available models
+              [here](https://developers.openai.com/api/docs/guides/moderation).
 
           extra_headers: Send extra headers
 
@@ -163,7 +169,11 @@ class AsyncModerations(AsyncAPIResource):
                 moderation_create_params.ModerationCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                security={"bearer_auth": True},
             ),
             cast_to=ModerationCreateResponse,
         )

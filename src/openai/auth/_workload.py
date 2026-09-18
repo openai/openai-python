@@ -2,12 +2,14 @@ from __future__ import annotations
 
 import time
 import threading
-from typing import Any, Callable, TypedDict, cast
+from typing import Any, Generic, TypeVar, Callable, TypedDict, cast
 from pathlib import Path
-from typing_extensions import Literal, NotRequired
+from typing_extensions import Literal, TypeAlias, NotRequired, override
 
-import httpx
+import httpx2
 
+from .._utils import is_dict
+from .._httpx2 import DefaultHttpx2Client, _loaded_legacy_httpx
 from .._exceptions import OAuthError, OpenAIError, SubjectTokenProviderError
 from .._utils._sync import to_thread
 
@@ -27,11 +29,8 @@ class SubjectTokenProvider(TypedDict):
 
 
 class WorkloadIdentity(TypedDict):
-    """A unique string that identifies the client."""
-
-    client_id: str
-
     """Identity provider resource id in WIFAPI."""
+
     identity_provider_id: str
 
     """Service account id to bind the verified external identity to."""
@@ -42,6 +41,38 @@ class WorkloadIdentity(TypedDict):
 
     """Optional buffer time in seconds to refresh the OpenAI token before it expires. Defaults to 1200 seconds (20 minutes)."""
     refresh_buffer_seconds: NotRequired[float]
+
+
+SubjectTokenWorkloadIdentity: TypeAlias = WorkloadIdentity
+
+
+class X509WorkloadIdentity(TypedDict):
+    """Authenticate with the client certificate configured on the HTTP transport."""
+
+    type: Literal["x509"]
+    identity_provider_id: str
+    service_account_id: str
+    refresh_buffer_seconds: NotRequired[float]
+
+
+_WorkloadIdentityT = TypeVar("_WorkloadIdentityT", WorkloadIdentity, X509WorkloadIdentity)
+
+
+def x509_workload_identity(
+    *,
+    identity_provider_id: str,
+    service_account_id: str,
+    refresh_buffer_seconds: float | None = None,
+) -> X509WorkloadIdentity:
+    """Configure X.509 workload identity without handling certificate material."""
+    identity: X509WorkloadIdentity = {
+        "type": "x509",
+        "identity_provider_id": identity_provider_id,
+        "service_account_id": service_account_id,
+    }
+    if refresh_buffer_seconds is not None:
+        identity["refresh_buffer_seconds"] = refresh_buffer_seconds
+    return identity
 
 
 def k8s_service_account_token_provider(
@@ -77,7 +108,7 @@ def azure_managed_identity_token_provider(
     msi_res_id: str | None = None,
     api_version: str = "2018-02-01",
     timeout: float = 10.0,
-    http_client: httpx.Client | None = None,
+    http_client: httpx2.Client | None = None,
 ) -> SubjectTokenProvider:
     """
     Get a subject token provider for Azure Managed Identities.
@@ -91,7 +122,7 @@ def azure_managed_identity_token_provider(
         msi_res_id: the ARM resource ID of the managed identity to use, when multiple are assigned.
         api_version: the Azure IMDS API version. Defaults to `2018-02-01`.
         timeout: the request timeout in seconds. Defaults to 10.0.
-        http_client: optional httpx.Client instance to use for requests. If not provided, a new client will be created for each request.
+        http_client: optional httpx2.Client instance to use for requests. If not provided, a new client will be created for each request.
     """
 
     def get_token() -> str:
@@ -108,7 +139,7 @@ def azure_managed_identity_token_provider(
             if http_client is not None:
                 response = http_client.get(url, params=params, headers={"Metadata": "true"}, timeout=timeout)
             else:
-                with httpx.Client() as client:
+                with httpx2.Client() as client:
                     response = client.get(url, params=params, headers={"Metadata": "true"}, timeout=timeout)
 
             if response.is_error:
@@ -133,7 +164,7 @@ def gcp_id_token_provider(
     audience: str = "https://api.openai.com/v1",
     *,
     timeout: float = 10.0,
-    http_client: httpx.Client | None = None,
+    http_client: httpx2.Client | None = None,
 ) -> SubjectTokenProvider:
     """
     Get a subject token provider for GCP VM instances using the instance metadata server.
@@ -144,7 +175,7 @@ def gcp_id_token_provider(
         audience: the unique URI agreed upon by both the instance and the system verifying
             the instance's identity. Defaults to `https://api.openai.com/v1`.
         timeout: the request timeout in seconds. Defaults to 10.0.
-        http_client: optional httpx.Client instance to use for requests. If not provided, a new client will be created for each request.
+        http_client: optional httpx2.Client instance to use for requests. If not provided, a new client will be created for each request.
     """
 
     def get_token() -> str:
@@ -155,7 +186,7 @@ def gcp_id_token_provider(
             if http_client is not None:
                 response = http_client.get(url, params=params, headers={"Metadata-Flavor": "Google"}, timeout=timeout)
             else:
-                with httpx.Client() as client:
+                with httpx2.Client() as client:
                     response = client.get(url, params=params, headers={"Metadata-Flavor": "Google"}, timeout=timeout)
 
             if response.is_error:
@@ -173,15 +204,18 @@ def gcp_id_token_provider(
     return {"token_type": "id", "get_token": get_token}
 
 
-class WorkloadIdentityAuth:
+class _WorkloadIdentityAuth(Generic[_WorkloadIdentityT]):
     def __init__(
         self,
         *,
-        workload_identity: WorkloadIdentity,
+        workload_identity: _WorkloadIdentityT,
         token_exchange_url: str = DEFAULT_TOKEN_EXCHANGE_URL,
-    ):
-        self.workload_identity = workload_identity
+        _use_httpx2: bool = True,
+    ) -> None:
+        self.workload_identity: _WorkloadIdentityT = workload_identity
         self.token_exchange_url = token_exchange_url
+        self._use_httpx2 = _use_httpx2
+        self._follow_redirects: bool | None = None
 
         self._cached_token: str | None = None
         self._cached_token_expires_at_monotonic: float | None = None
@@ -222,14 +256,19 @@ class WorkloadIdentityAuth:
     async def get_token_async(self) -> str:
         return await to_thread(self.get_token)
 
-    def invalidate_token(self) -> None:
+    def invalidate_token(self, token: str | None = None) -> None:
         with self._lock:
+            if token is not None and self._cached_token != token:
+                return
             self._cached_token = None
             self._cached_token_expires_at_monotonic = None
             self._cached_token_refresh_at_monotonic = None
 
     def _perform_refresh(self) -> None:
         token_data = self._fetch_token_from_exchange()
+        self._store_token(token_data)
+
+    def _store_token(self, token_data: dict[str, Any]) -> None:
         now = time.monotonic()
         expires_in = token_data["expires_in"]
 
@@ -239,31 +278,9 @@ class WorkloadIdentityAuth:
             self._cached_token_refresh_at_monotonic = now + self._refresh_delay_seconds(expires_in)
 
     def _fetch_token_from_exchange(self) -> dict[str, Any]:
-        subject_token = self._get_subject_token()
+        raise NotImplementedError("Workload identity authentication must implement token exchange")
 
-        token_type = self.workload_identity["provider"]["token_type"]
-        subject_token_type = SUBJECT_TOKEN_TYPES.get(token_type)
-        if subject_token_type is None:
-            raise OpenAIError(
-                f"Unsupported token type: {token_type!r}. Supported types: {', '.join(SUBJECT_TOKEN_TYPES.keys())}"
-            )
-
-        with httpx.Client() as client:
-            response = client.post(
-                self.token_exchange_url,
-                json={
-                    "grant_type": TOKEN_EXCHANGE_GRANT_TYPE,
-                    "client_id": self.workload_identity["client_id"],
-                    "subject_token": subject_token,
-                    "subject_token_type": subject_token_type,
-                    "identity_provider_id": self.workload_identity["identity_provider_id"],
-                    "service_account_id": self.workload_identity["service_account_id"],
-                },
-                timeout=10.0,
-            )
-            return self._handle_token_response(response)
-
-    def _handle_token_response(self, response: httpx.Response) -> dict[str, Any]:
+    def _handle_token_response(self, response: httpx2.Response) -> dict[str, Any]:
         try:
             body = response.json() if response.content else None
         except ValueError:
@@ -275,24 +292,22 @@ class WorkloadIdentityAuth:
         if response.is_success:
             if body is None:
                 raise OpenAIError("Token exchange succeeded but response body was empty")
+            if not is_dict(body):
+                raise OpenAIError("Token exchange succeeded but response body was not a JSON object")
             access_token = body.get("access_token")
             expires_in = body.get("expires_in")
             if not isinstance(access_token, str) or not access_token:
                 raise OpenAIError("Token exchange response did not include a valid access_token")
-            if not isinstance(expires_in, (int, float)):
-                raise OpenAIError("Token exchange response did not include a valid expires_in")
-            return {"access_token": access_token, "expires_in": float(expires_in)}
+            return {"access_token": access_token, "expires_in": self._validate_expires_in(expires_in)}
 
         raise OpenAIError(
             f"Token exchange failed with status {response.status_code}",
         )
 
-    def _get_subject_token(self) -> str:
-        provider = self.workload_identity["provider"]
-        subject_token = provider["get_token"]()
-        if not subject_token:
-            raise OpenAIError("The workload identity provider returned an empty subject token")
-        return subject_token
+    def _validate_expires_in(self, expires_in: object) -> float:
+        if not isinstance(expires_in, (int, float)):
+            raise OpenAIError("Token exchange response did not include a valid expires_in")
+        return float(expires_in)
 
     def _token_unusable(self) -> bool:
         return self._cached_token is None or self._token_expired()
@@ -311,3 +326,62 @@ class WorkloadIdentityAuth:
         configured_buffer = self.workload_identity.get("refresh_buffer_seconds", DEFAULT_REFRESH_BUFFER_SECONDS)
         effective_buffer = min(configured_buffer, expires_in / 2)
         return max(expires_in - effective_buffer, 0.0)
+
+    def _can_retry_request(self, request: httpx2.Request) -> bool:
+        """Preserve the established subject-token request retry behavior."""
+        del request
+        return True
+
+    def _prepare_retry_request(self, request: httpx2.Request) -> None:
+        """Preserve the established subject-token request retry behavior."""
+        del request
+
+
+class WorkloadIdentityAuth(_WorkloadIdentityAuth[WorkloadIdentity]):
+    def __init__(
+        self,
+        *,
+        workload_identity: WorkloadIdentity,
+        token_exchange_url: str = DEFAULT_TOKEN_EXCHANGE_URL,
+        _use_httpx2: bool = True,
+    ) -> None:
+        super().__init__(
+            workload_identity=workload_identity,
+            token_exchange_url=token_exchange_url,
+            _use_httpx2=_use_httpx2,
+        )
+
+    @override
+    def _fetch_token_from_exchange(self) -> dict[str, Any]:
+        subject_token = self._get_subject_token()
+        token_type = self.workload_identity["provider"]["token_type"]
+        subject_token_type = SUBJECT_TOKEN_TYPES.get(token_type)
+        if subject_token_type is None:
+            raise OpenAIError(
+                f"Unsupported token type: {token_type!r}. Supported types: {', '.join(SUBJECT_TOKEN_TYPES.keys())}"
+            )
+
+        legacy_httpx = _loaded_legacy_httpx() if not self._use_httpx2 else None
+        exchange_client = (
+            legacy_httpx.Client() if legacy_httpx is not None else DefaultHttpx2Client(follow_redirects=False)
+        )
+        with exchange_client as client:
+            response = client.post(
+                self.token_exchange_url,
+                json={
+                    "grant_type": TOKEN_EXCHANGE_GRANT_TYPE,
+                    "subject_token": subject_token,
+                    "subject_token_type": subject_token_type,
+                    "identity_provider_id": self.workload_identity["identity_provider_id"],
+                    "service_account_id": self.workload_identity["service_account_id"],
+                },
+                timeout=10.0,
+            )
+            return self._handle_token_response(response)
+
+    def _get_subject_token(self) -> str:
+        provider = self.workload_identity["provider"]
+        subject_token = provider["get_token"]()
+        if not subject_token:
+            raise OpenAIError("The workload identity provider returned an empty subject token")
+        return subject_token
