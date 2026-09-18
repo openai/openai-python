@@ -56,6 +56,8 @@ def parse_response(
     input_tools: Iterable[ToolParam] | Omit | None,
     response: Response | ParsedResponse[object],
 ) -> ParsedResponse[TextFormatT]:
+    # Keep generic annotations in quoted casts: runtime specialization can create
+    # new model classes in each async context and retain them in the type adapter cache.
     output_list: List[ParsedResponseOutputItem[TextFormatT]] = []
 
     for output in response.output or []:
@@ -68,11 +70,7 @@ def parse_response(
 
                 content_list.append(
                     construct_type_unchecked(
-                        # Drop the TextFormatT parameterization: pydantic cannot resolve a free
-                        # TypeVar so model_rebuild() always returns False, which means
-                        # MockCoreSchema._built_memo is never populated and a new Rust-backed
-                        # SchemaValidator is allocated on every call. See issue #3084.
-                        type_=ParsedResponseOutputText,
+                        type_=cast("type[ParsedResponseOutputText[TextFormatT]]", ParsedResponseOutputText),
                         value={
                             **item.to_dict(),
                             "parsed": parse_text(item.text, text_format=text_format, phase=output.phase),
@@ -82,8 +80,7 @@ def parse_response(
 
             output_list.append(
                 construct_type_unchecked(
-                    # See note above: non-parameterized generic keeps the schema cache hot.
-                    type_=ParsedResponseOutputMessage,
+                    type_=cast("type[ParsedResponseOutputMessage[TextFormatT]]", ParsedResponseOutputMessage),
                     value={
                         **output.to_dict(),
                         "content": content_list,
@@ -138,10 +135,7 @@ def parse_response(
             output_list.append(output)
 
     return construct_type_unchecked(
-        # See note above: non-parameterized generic keeps the schema cache hot.
-        # At runtime Python's generics are erased, so the constructed object's type
-        # is identical either way — only the pydantic schema rebuild path differs.
-        type_=ParsedResponse,
+        type_=cast("type[ParsedResponse[TextFormatT]]", ParsedResponse),
         value={
             **response.to_dict(),
             "output": output_list,

@@ -1422,7 +1422,7 @@ class Responses(SyncAPIResource):
             ),
             # we turn the `Response` instance into a `ParsedResponse`
             # in the `parser` function above
-            cast_to=cast(Type[ParsedResponse[TextFormatT]], Response),
+            cast_to=cast("Type[ParsedResponse[TextFormatT]]", Response),
         )
 
     @overload
@@ -3305,7 +3305,7 @@ class AsyncResponses(AsyncAPIResource):
             ),
             # we turn the `Response` instance into a `ParsedResponse`
             # in the `parser` function above
-            cast_to=cast(Type[ParsedResponse[TextFormatT]], Response),
+            cast_to=cast("Type[ParsedResponse[TextFormatT]]", Response),
         )
 
     @overload
