@@ -295,6 +295,22 @@ async def test_httpx2_urls_work_for_all_websocket_builders() -> None:
         assert str(async_client.beta.responses.connect()._prepare_url()) == "wss://example.test/openai/v1/responses"
 
 
+def test_websocket_urls_preserve_http_in_base_url_query() -> None:
+    base_url = "https://proxy.test/forward?target=http://backend.internal/v1"
+
+    with OpenAI(
+        api_key="test",
+        base_url=base_url,
+        http_client=httpx2.Client(transport=httpx2.MockTransport(model_list), trust_env=False),
+    ) as client:
+        assert str(client.realtime.connect()._prepare_url()) == (
+            "wss://proxy.test/forward/realtime?target=http://backend.internal/v1"
+        )
+        assert str(client.responses.connect()._prepare_url()) == (
+            "wss://proxy.test/forward/responses?target=http://backend.internal/v1"
+        )
+
+
 async def test_httpx2_native_timeouts_set_numeric_read_timeout_header() -> None:
     sync_requests: list[httpx2.Request] = []
     async_requests: list[httpx2.Request] = []
