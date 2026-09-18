@@ -9,8 +9,8 @@ importers:
   .:
     devDependencies:
       pyright:
-        specifier: 1.1.413
-        version: 1.1.413
+        specifier: 1.1.414
+        version: 1.1.414
 
 packages:
 
@@ -19,8 +19,8 @@ packages:
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
     os: [darwin]
 
-  pyright@1.1.413:
-    resolution: {integrity: sha512-1lpxKrh0DHHpfAQOfciZo2ojua2jase3wwO9at8kldc+F/p1PBscxA5CQ3G1qg5lMOMhXo6ZaiMLMXEAqADIAg==}
+  pyright@1.1.414:
+    resolution: {integrity: sha512-FPZZb51jepDX4eP7TEYDeNFtmE3WgwkkEcJpvH3/QmUSsj0EAy3LXu+xB4T/FWDejtsXlCfFr/rbWFjwuwuXww==}
     engines: {node: '>=14.0.0'}
     hasBin: true
 
@@ -29,6 +29,6 @@ snapshots:
   fsevents@2.3.3:
     optional: true
 
-  pyright@1.1.413:
+  pyright@1.1.414:
     optionalDependencies:
       fsevents: 2.3.3
