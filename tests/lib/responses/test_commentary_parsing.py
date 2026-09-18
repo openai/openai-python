@@ -1,13 +1,15 @@
 from __future__ import annotations
 
 import json
+import asyncio
+import contextvars
 from typing import Any
 
 import httpx2
 import pytest
 from pydantic import BaseModel, ValidationError
 
-from openai import OpenAI, AsyncOpenAI, omit
+from openai import OpenAI, AsyncOpenAI, omit, _models
 from openai._types import Omit
 from openai.types.responses import ParsedResponse
 from openai.lib.streaming.responses import ResponseStreamEvent
@@ -309,3 +311,41 @@ async def test_phase_selection_preserves_content(sync: bool, streaming: bool, ph
                 assert content.parsed == (Result(answer="final") if actual.phase == "final_answer" else None)
             else:
                 assert content.refusal == raw["refusal"]
+
+
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+@pytest.mark.parametrize("streaming", [False, True], ids=["parse", "stream"])
+async def test_parsing_reuses_types_across_contexts(sync: bool, streaming: bool) -> None:
+    response_types: set[tuple[type, type, type]] = set()
+    event_types: set[type] = set()
+
+    async def request() -> None:
+        if streaming:
+            emitted, response = await _stream(sync, _events("Preparing.", '{"answer":"final"}'))
+            done = [event for event in emitted if event.type == "response.output_text.done"]
+            assert [event.parsed for event in done] == [None, Result(answer="final")]
+            event_types.update(type(event) for event in done)
+        else:
+            response = await _parse(sync, [_message('{"answer":"final"}')])
+        assert response.output_parsed == Result(answer="final")
+        message = response.output[-1]
+        assert message.type == "message"
+        part = message.content[0]
+        assert part.type == "output_text"
+        assert part.parsed == Result(answer="final")
+        response_types.add((type(response), type(message), type(part)))
+
+    # Inherited contexts can share Pydantic's generic cache and hide the leak.
+    for _ in range(3):
+        await contextvars.Context().run(asyncio.create_task, request())
+
+    # Pydantic v1 has no TypeAdapter cache, but still exercises type reuse below.
+    cache_info = getattr(getattr(_models, "_CachedTypeAdapter", None), "cache_info", None)
+    before = cache_info().currsize if cache_info is not None else None
+    for _ in range(10):
+        await contextvars.Context().run(asyncio.create_task, request())
+    if cache_info is not None:
+        assert cache_info().currsize == before
+    assert len(response_types) == 1
+    if streaming:
+        assert len(event_types) == 1

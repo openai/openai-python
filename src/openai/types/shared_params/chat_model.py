@@ -27,7 +27,6 @@ ChatModel: TypeAlias = Literal[
     "gpt-5.1",
     "gpt-5.1-2025-11-13",
     "gpt-5.1-codex",
-    "gpt-5.1-mini",
     "gpt-5.1-chat-latest",
     "gpt-5",
     "gpt-5-mini",
@@ -58,6 +57,8 @@ ChatModel: TypeAlias = Literal[
     "gpt-4o-2024-11-20",
     "gpt-4o-2024-08-06",
     "gpt-4o-2024-05-13",
+    "gpt-audio-mini",
+    "gpt-audio-mini-2025-12-15",
     "gpt-4o-audio-preview",
     "gpt-4o-audio-preview-2024-10-01",
     "gpt-4o-audio-preview-2024-12-17",
@@ -91,4 +92,5 @@ ChatModel: TypeAlias = Literal[
     "gpt-3.5-turbo-1106",
     "gpt-3.5-turbo-0125",
     "gpt-3.5-turbo-16k-0613",
+    "gpt-5.1-mini",
 ]

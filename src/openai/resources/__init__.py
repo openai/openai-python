@@ -1,165 +1,343 @@
 # File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
-from .beta import (
-    Beta,
-    AsyncBeta,
-    BetaWithRawResponse,
-    AsyncBetaWithRawResponse,
-    BetaWithStreamingResponse,
-    AsyncBetaWithStreamingResponse,
-)
-from .chat import (
-    Chat,
-    AsyncChat,
-    ChatWithRawResponse,
-    AsyncChatWithRawResponse,
-    ChatWithStreamingResponse,
-    AsyncChatWithStreamingResponse,
-)
-from .admin import (
-    Admin,
-    AsyncAdmin,
-    AdminWithRawResponse,
-    AsyncAdminWithRawResponse,
-    AdminWithStreamingResponse,
-    AsyncAdminWithStreamingResponse,
-)
-from .audio import (
-    Audio,
-    AsyncAudio,
-    AudioWithRawResponse,
-    AsyncAudioWithRawResponse,
-    AudioWithStreamingResponse,
-    AsyncAudioWithStreamingResponse,
-)
-from .evals import (
-    Evals,
-    AsyncEvals,
-    EvalsWithRawResponse,
-    AsyncEvalsWithRawResponse,
-    EvalsWithStreamingResponse,
-    AsyncEvalsWithStreamingResponse,
-)
-from .files import (
-    Files,
-    AsyncFiles,
-    FilesWithRawResponse,
-    AsyncFilesWithRawResponse,
-    FilesWithStreamingResponse,
-    AsyncFilesWithStreamingResponse,
-)
-from .images import (
-    Images,
-    AsyncImages,
-    ImagesWithRawResponse,
-    AsyncImagesWithRawResponse,
-    ImagesWithStreamingResponse,
-    AsyncImagesWithStreamingResponse,
-)
-from .models import (
-    Models,
-    AsyncModels,
-    ModelsWithRawResponse,
-    AsyncModelsWithRawResponse,
-    ModelsWithStreamingResponse,
-    AsyncModelsWithStreamingResponse,
-)
-from .safety import (
-    Safety,
-    AsyncSafety,
-    SafetyWithRawResponse,
-    AsyncSafetyWithRawResponse,
-    SafetyWithStreamingResponse,
-    AsyncSafetyWithStreamingResponse,
-)
-from .skills import (
-    Skills,
-    AsyncSkills,
-    SkillsWithRawResponse,
-    AsyncSkillsWithRawResponse,
-    SkillsWithStreamingResponse,
-    AsyncSkillsWithStreamingResponse,
-)
-from .videos import (
-    Videos,
-    AsyncVideos,
-    VideosWithRawResponse,
-    AsyncVideosWithRawResponse,
-    VideosWithStreamingResponse,
-    AsyncVideosWithStreamingResponse,
-)
-from .batches import (
-    Batches,
-    AsyncBatches,
-    BatchesWithRawResponse,
-    AsyncBatchesWithRawResponse,
-    BatchesWithStreamingResponse,
-    AsyncBatchesWithStreamingResponse,
-)
-from .uploads import (
-    Uploads,
-    AsyncUploads,
-    UploadsWithRawResponse,
-    AsyncUploadsWithRawResponse,
-    UploadsWithStreamingResponse,
-    AsyncUploadsWithStreamingResponse,
-)
-from .containers import (
-    Containers,
-    AsyncContainers,
-    ContainersWithRawResponse,
-    AsyncContainersWithRawResponse,
-    ContainersWithStreamingResponse,
-    AsyncContainersWithStreamingResponse,
-)
-from .embeddings import (
-    Embeddings,
-    AsyncEmbeddings,
-    EmbeddingsWithRawResponse,
-    AsyncEmbeddingsWithRawResponse,
-    EmbeddingsWithStreamingResponse,
-    AsyncEmbeddingsWithStreamingResponse,
-)
-from .completions import (
-    Completions,
-    AsyncCompletions,
-    CompletionsWithRawResponse,
-    AsyncCompletionsWithRawResponse,
-    CompletionsWithStreamingResponse,
-    AsyncCompletionsWithStreamingResponse,
-)
-from .fine_tuning import (
-    FineTuning,
-    AsyncFineTuning,
-    FineTuningWithRawResponse,
-    AsyncFineTuningWithRawResponse,
-    FineTuningWithStreamingResponse,
-    AsyncFineTuningWithStreamingResponse,
-)
-from .moderations import (
-    Moderations,
-    AsyncModerations,
-    ModerationsWithRawResponse,
-    AsyncModerationsWithRawResponse,
-    ModerationsWithStreamingResponse,
-    AsyncModerationsWithStreamingResponse,
-)
-from .vector_stores import (
-    VectorStores,
-    AsyncVectorStores,
-    VectorStoresWithRawResponse,
-    AsyncVectorStoresWithRawResponse,
-    VectorStoresWithStreamingResponse,
-    AsyncVectorStoresWithStreamingResponse,
-)
-from .content_provenance_checks import (
-    ContentProvenanceChecks,
-    AsyncContentProvenanceChecks,
-    ContentProvenanceChecksWithRawResponse,
-    AsyncContentProvenanceChecksWithRawResponse,
-    ContentProvenanceChecksWithStreamingResponse,
-    AsyncContentProvenanceChecksWithStreamingResponse,
-)
+import typing as _t
+
+if _t.TYPE_CHECKING:
+    from .beta import (
+        Beta as Beta,
+        AsyncBeta as AsyncBeta,
+        BetaWithRawResponse as BetaWithRawResponse,
+        AsyncBetaWithRawResponse as AsyncBetaWithRawResponse,
+        BetaWithStreamingResponse as BetaWithStreamingResponse,
+        AsyncBetaWithStreamingResponse as AsyncBetaWithStreamingResponse,
+    )
+    from .chat import (
+        Chat as Chat,
+        AsyncChat as AsyncChat,
+        ChatWithRawResponse as ChatWithRawResponse,
+        AsyncChatWithRawResponse as AsyncChatWithRawResponse,
+        ChatWithStreamingResponse as ChatWithStreamingResponse,
+        AsyncChatWithStreamingResponse as AsyncChatWithStreamingResponse,
+    )
+    from .admin import (
+        Admin as Admin,
+        AsyncAdmin as AsyncAdmin,
+        AdminWithRawResponse as AdminWithRawResponse,
+        AsyncAdminWithRawResponse as AsyncAdminWithRawResponse,
+        AdminWithStreamingResponse as AdminWithStreamingResponse,
+        AsyncAdminWithStreamingResponse as AsyncAdminWithStreamingResponse,
+    )
+    from .audio import (
+        Audio as Audio,
+        AsyncAudio as AsyncAudio,
+        AudioWithRawResponse as AudioWithRawResponse,
+        AsyncAudioWithRawResponse as AsyncAudioWithRawResponse,
+        AudioWithStreamingResponse as AudioWithStreamingResponse,
+        AsyncAudioWithStreamingResponse as AsyncAudioWithStreamingResponse,
+    )
+    from .evals import (
+        Evals as Evals,
+        AsyncEvals as AsyncEvals,
+        EvalsWithRawResponse as EvalsWithRawResponse,
+        AsyncEvalsWithRawResponse as AsyncEvalsWithRawResponse,
+        EvalsWithStreamingResponse as EvalsWithStreamingResponse,
+        AsyncEvalsWithStreamingResponse as AsyncEvalsWithStreamingResponse,
+    )
+    from .files import (
+        Files as Files,
+        AsyncFiles as AsyncFiles,
+        FilesWithRawResponse as FilesWithRawResponse,
+        AsyncFilesWithRawResponse as AsyncFilesWithRawResponse,
+        FilesWithStreamingResponse as FilesWithStreamingResponse,
+        AsyncFilesWithStreamingResponse as AsyncFilesWithStreamingResponse,
+    )
+    from .images import (
+        Images as Images,
+        AsyncImages as AsyncImages,
+        ImagesWithRawResponse as ImagesWithRawResponse,
+        AsyncImagesWithRawResponse as AsyncImagesWithRawResponse,
+        ImagesWithStreamingResponse as ImagesWithStreamingResponse,
+        AsyncImagesWithStreamingResponse as AsyncImagesWithStreamingResponse,
+    )
+    from .models import (
+        Models as Models,
+        AsyncModels as AsyncModels,
+        ModelsWithRawResponse as ModelsWithRawResponse,
+        AsyncModelsWithRawResponse as AsyncModelsWithRawResponse,
+        ModelsWithStreamingResponse as ModelsWithStreamingResponse,
+        AsyncModelsWithStreamingResponse as AsyncModelsWithStreamingResponse,
+    )
+    from .safety import (
+        Safety as Safety,
+        AsyncSafety as AsyncSafety,
+        SafetyWithRawResponse as SafetyWithRawResponse,
+        AsyncSafetyWithRawResponse as AsyncSafetyWithRawResponse,
+        SafetyWithStreamingResponse as SafetyWithStreamingResponse,
+        AsyncSafetyWithStreamingResponse as AsyncSafetyWithStreamingResponse,
+    )
+    from .skills import (
+        Skills as Skills,
+        AsyncSkills as AsyncSkills,
+        SkillsWithRawResponse as SkillsWithRawResponse,
+        AsyncSkillsWithRawResponse as AsyncSkillsWithRawResponse,
+        SkillsWithStreamingResponse as SkillsWithStreamingResponse,
+        AsyncSkillsWithStreamingResponse as AsyncSkillsWithStreamingResponse,
+    )
+    from .videos import (
+        Videos as Videos,
+        AsyncVideos as AsyncVideos,
+        VideosWithRawResponse as VideosWithRawResponse,
+        AsyncVideosWithRawResponse as AsyncVideosWithRawResponse,
+        VideosWithStreamingResponse as VideosWithStreamingResponse,
+        AsyncVideosWithStreamingResponse as AsyncVideosWithStreamingResponse,
+    )
+    from .batches import (
+        Batches as Batches,
+        AsyncBatches as AsyncBatches,
+        BatchesWithRawResponse as BatchesWithRawResponse,
+        AsyncBatchesWithRawResponse as AsyncBatchesWithRawResponse,
+        BatchesWithStreamingResponse as BatchesWithStreamingResponse,
+        AsyncBatchesWithStreamingResponse as AsyncBatchesWithStreamingResponse,
+    )
+    from .uploads import (
+        Uploads as Uploads,
+        AsyncUploads as AsyncUploads,
+        UploadsWithRawResponse as UploadsWithRawResponse,
+        AsyncUploadsWithRawResponse as AsyncUploadsWithRawResponse,
+        UploadsWithStreamingResponse as UploadsWithStreamingResponse,
+        AsyncUploadsWithStreamingResponse as AsyncUploadsWithStreamingResponse,
+    )
+    from .containers import (
+        Containers as Containers,
+        AsyncContainers as AsyncContainers,
+        ContainersWithRawResponse as ContainersWithRawResponse,
+        AsyncContainersWithRawResponse as AsyncContainersWithRawResponse,
+        ContainersWithStreamingResponse as ContainersWithStreamingResponse,
+        AsyncContainersWithStreamingResponse as AsyncContainersWithStreamingResponse,
+    )
+    from .embeddings import (
+        Embeddings as Embeddings,
+        AsyncEmbeddings as AsyncEmbeddings,
+        EmbeddingsWithRawResponse as EmbeddingsWithRawResponse,
+        AsyncEmbeddingsWithRawResponse as AsyncEmbeddingsWithRawResponse,
+        EmbeddingsWithStreamingResponse as EmbeddingsWithStreamingResponse,
+        AsyncEmbeddingsWithStreamingResponse as AsyncEmbeddingsWithStreamingResponse,
+    )
+    from .completions import (
+        Completions as Completions,
+        AsyncCompletions as AsyncCompletions,
+        CompletionsWithRawResponse as CompletionsWithRawResponse,
+        AsyncCompletionsWithRawResponse as AsyncCompletionsWithRawResponse,
+        CompletionsWithStreamingResponse as CompletionsWithStreamingResponse,
+        AsyncCompletionsWithStreamingResponse as AsyncCompletionsWithStreamingResponse,
+    )
+    from .fine_tuning import (
+        FineTuning as FineTuning,
+        AsyncFineTuning as AsyncFineTuning,
+        FineTuningWithRawResponse as FineTuningWithRawResponse,
+        AsyncFineTuningWithRawResponse as AsyncFineTuningWithRawResponse,
+        FineTuningWithStreamingResponse as FineTuningWithStreamingResponse,
+        AsyncFineTuningWithStreamingResponse as AsyncFineTuningWithStreamingResponse,
+    )
+    from .moderations import (
+        Moderations as Moderations,
+        AsyncModerations as AsyncModerations,
+        ModerationsWithRawResponse as ModerationsWithRawResponse,
+        AsyncModerationsWithRawResponse as AsyncModerationsWithRawResponse,
+        ModerationsWithStreamingResponse as ModerationsWithStreamingResponse,
+        AsyncModerationsWithStreamingResponse as AsyncModerationsWithStreamingResponse,
+    )
+    from .vector_stores import (
+        VectorStores as VectorStores,
+        AsyncVectorStores as AsyncVectorStores,
+        VectorStoresWithRawResponse as VectorStoresWithRawResponse,
+        AsyncVectorStoresWithRawResponse as AsyncVectorStoresWithRawResponse,
+        VectorStoresWithStreamingResponse as VectorStoresWithStreamingResponse,
+        AsyncVectorStoresWithStreamingResponse as AsyncVectorStoresWithStreamingResponse,
+    )
+    from .content_provenance_checks import (
+        ContentProvenanceChecks as ContentProvenanceChecks,
+        AsyncContentProvenanceChecks as AsyncContentProvenanceChecks,
+        ContentProvenanceChecksWithRawResponse as ContentProvenanceChecksWithRawResponse,
+        AsyncContentProvenanceChecksWithRawResponse as AsyncContentProvenanceChecksWithRawResponse,
+        ContentProvenanceChecksWithStreamingResponse as ContentProvenanceChecksWithStreamingResponse,
+        AsyncContentProvenanceChecksWithStreamingResponse as AsyncContentProvenanceChecksWithStreamingResponse,
+    )
+
+else:
+    _EXPORTS = {
+        "Completions": (".completions", "Completions"),
+        "AsyncCompletions": (".completions", "AsyncCompletions"),
+        "CompletionsWithRawResponse": (".completions", "CompletionsWithRawResponse"),
+        "AsyncCompletionsWithRawResponse": (".completions", "AsyncCompletionsWithRawResponse"),
+        "CompletionsWithStreamingResponse": (".completions", "CompletionsWithStreamingResponse"),
+        "AsyncCompletionsWithStreamingResponse": (".completions", "AsyncCompletionsWithStreamingResponse"),
+        "Chat": (".chat", "Chat"),
+        "AsyncChat": (".chat", "AsyncChat"),
+        "ChatWithRawResponse": (".chat", "ChatWithRawResponse"),
+        "AsyncChatWithRawResponse": (".chat", "AsyncChatWithRawResponse"),
+        "ChatWithStreamingResponse": (".chat", "ChatWithStreamingResponse"),
+        "AsyncChatWithStreamingResponse": (".chat", "AsyncChatWithStreamingResponse"),
+        "Embeddings": (".embeddings", "Embeddings"),
+        "AsyncEmbeddings": (".embeddings", "AsyncEmbeddings"),
+        "EmbeddingsWithRawResponse": (".embeddings", "EmbeddingsWithRawResponse"),
+        "AsyncEmbeddingsWithRawResponse": (".embeddings", "AsyncEmbeddingsWithRawResponse"),
+        "EmbeddingsWithStreamingResponse": (".embeddings", "EmbeddingsWithStreamingResponse"),
+        "AsyncEmbeddingsWithStreamingResponse": (".embeddings", "AsyncEmbeddingsWithStreamingResponse"),
+        "Files": (".files", "Files"),
+        "AsyncFiles": (".files", "AsyncFiles"),
+        "FilesWithRawResponse": (".files", "FilesWithRawResponse"),
+        "AsyncFilesWithRawResponse": (".files", "AsyncFilesWithRawResponse"),
+        "FilesWithStreamingResponse": (".files", "FilesWithStreamingResponse"),
+        "AsyncFilesWithStreamingResponse": (".files", "AsyncFilesWithStreamingResponse"),
+        "Images": (".images", "Images"),
+        "AsyncImages": (".images", "AsyncImages"),
+        "ImagesWithRawResponse": (".images", "ImagesWithRawResponse"),
+        "AsyncImagesWithRawResponse": (".images", "AsyncImagesWithRawResponse"),
+        "ImagesWithStreamingResponse": (".images", "ImagesWithStreamingResponse"),
+        "AsyncImagesWithStreamingResponse": (".images", "AsyncImagesWithStreamingResponse"),
+        "ContentProvenanceChecks": (".content_provenance_checks", "ContentProvenanceChecks"),
+        "AsyncContentProvenanceChecks": (".content_provenance_checks", "AsyncContentProvenanceChecks"),
+        "ContentProvenanceChecksWithRawResponse": (
+            ".content_provenance_checks",
+            "ContentProvenanceChecksWithRawResponse",
+        ),
+        "AsyncContentProvenanceChecksWithRawResponse": (
+            ".content_provenance_checks",
+            "AsyncContentProvenanceChecksWithRawResponse",
+        ),
+        "ContentProvenanceChecksWithStreamingResponse": (
+            ".content_provenance_checks",
+            "ContentProvenanceChecksWithStreamingResponse",
+        ),
+        "AsyncContentProvenanceChecksWithStreamingResponse": (
+            ".content_provenance_checks",
+            "AsyncContentProvenanceChecksWithStreamingResponse",
+        ),
+        "Audio": (".audio", "Audio"),
+        "AsyncAudio": (".audio", "AsyncAudio"),
+        "AudioWithRawResponse": (".audio", "AudioWithRawResponse"),
+        "AsyncAudioWithRawResponse": (".audio", "AsyncAudioWithRawResponse"),
+        "AudioWithStreamingResponse": (".audio", "AudioWithStreamingResponse"),
+        "AsyncAudioWithStreamingResponse": (".audio", "AsyncAudioWithStreamingResponse"),
+        "Moderations": (".moderations", "Moderations"),
+        "AsyncModerations": (".moderations", "AsyncModerations"),
+        "ModerationsWithRawResponse": (".moderations", "ModerationsWithRawResponse"),
+        "AsyncModerationsWithRawResponse": (".moderations", "AsyncModerationsWithRawResponse"),
+        "ModerationsWithStreamingResponse": (".moderations", "ModerationsWithStreamingResponse"),
+        "AsyncModerationsWithStreamingResponse": (".moderations", "AsyncModerationsWithStreamingResponse"),
+        "Models": (".models", "Models"),
+        "AsyncModels": (".models", "AsyncModels"),
+        "ModelsWithRawResponse": (".models", "ModelsWithRawResponse"),
+        "AsyncModelsWithRawResponse": (".models", "AsyncModelsWithRawResponse"),
+        "ModelsWithStreamingResponse": (".models", "ModelsWithStreamingResponse"),
+        "AsyncModelsWithStreamingResponse": (".models", "AsyncModelsWithStreamingResponse"),
+        "FineTuning": (".fine_tuning", "FineTuning"),
+        "AsyncFineTuning": (".fine_tuning", "AsyncFineTuning"),
+        "FineTuningWithRawResponse": (".fine_tuning", "FineTuningWithRawResponse"),
+        "AsyncFineTuningWithRawResponse": (".fine_tuning", "AsyncFineTuningWithRawResponse"),
+        "FineTuningWithStreamingResponse": (".fine_tuning", "FineTuningWithStreamingResponse"),
+        "AsyncFineTuningWithStreamingResponse": (".fine_tuning", "AsyncFineTuningWithStreamingResponse"),
+        "VectorStores": (".vector_stores", "VectorStores"),
+        "AsyncVectorStores": (".vector_stores", "AsyncVectorStores"),
+        "VectorStoresWithRawResponse": (".vector_stores", "VectorStoresWithRawResponse"),
+        "AsyncVectorStoresWithRawResponse": (".vector_stores", "AsyncVectorStoresWithRawResponse"),
+        "VectorStoresWithStreamingResponse": (".vector_stores", "VectorStoresWithStreamingResponse"),
+        "AsyncVectorStoresWithStreamingResponse": (".vector_stores", "AsyncVectorStoresWithStreamingResponse"),
+        "Safety": (".safety", "Safety"),
+        "AsyncSafety": (".safety", "AsyncSafety"),
+        "SafetyWithRawResponse": (".safety", "SafetyWithRawResponse"),
+        "AsyncSafetyWithRawResponse": (".safety", "AsyncSafetyWithRawResponse"),
+        "SafetyWithStreamingResponse": (".safety", "SafetyWithStreamingResponse"),
+        "AsyncSafetyWithStreamingResponse": (".safety", "AsyncSafetyWithStreamingResponse"),
+        "Beta": (".beta", "Beta"),
+        "AsyncBeta": (".beta", "AsyncBeta"),
+        "BetaWithRawResponse": (".beta", "BetaWithRawResponse"),
+        "AsyncBetaWithRawResponse": (".beta", "AsyncBetaWithRawResponse"),
+        "BetaWithStreamingResponse": (".beta", "BetaWithStreamingResponse"),
+        "AsyncBetaWithStreamingResponse": (".beta", "AsyncBetaWithStreamingResponse"),
+        "Batches": (".batches", "Batches"),
+        "AsyncBatches": (".batches", "AsyncBatches"),
+        "BatchesWithRawResponse": (".batches", "BatchesWithRawResponse"),
+        "AsyncBatchesWithRawResponse": (".batches", "AsyncBatchesWithRawResponse"),
+        "BatchesWithStreamingResponse": (".batches", "BatchesWithStreamingResponse"),
+        "AsyncBatchesWithStreamingResponse": (".batches", "AsyncBatchesWithStreamingResponse"),
+        "Uploads": (".uploads", "Uploads"),
+        "AsyncUploads": (".uploads", "AsyncUploads"),
+        "UploadsWithRawResponse": (".uploads", "UploadsWithRawResponse"),
+        "AsyncUploadsWithRawResponse": (".uploads", "AsyncUploadsWithRawResponse"),
+        "UploadsWithStreamingResponse": (".uploads", "UploadsWithStreamingResponse"),
+        "AsyncUploadsWithStreamingResponse": (".uploads", "AsyncUploadsWithStreamingResponse"),
+        "Admin": (".admin", "Admin"),
+        "AsyncAdmin": (".admin", "AsyncAdmin"),
+        "AdminWithRawResponse": (".admin", "AdminWithRawResponse"),
+        "AsyncAdminWithRawResponse": (".admin", "AsyncAdminWithRawResponse"),
+        "AdminWithStreamingResponse": (".admin", "AdminWithStreamingResponse"),
+        "AsyncAdminWithStreamingResponse": (".admin", "AsyncAdminWithStreamingResponse"),
+        "Evals": (".evals", "Evals"),
+        "AsyncEvals": (".evals", "AsyncEvals"),
+        "EvalsWithRawResponse": (".evals", "EvalsWithRawResponse"),
+        "AsyncEvalsWithRawResponse": (".evals", "AsyncEvalsWithRawResponse"),
+        "EvalsWithStreamingResponse": (".evals", "EvalsWithStreamingResponse"),
+        "AsyncEvalsWithStreamingResponse": (".evals", "AsyncEvalsWithStreamingResponse"),
+        "Containers": (".containers", "Containers"),
+        "AsyncContainers": (".containers", "AsyncContainers"),
+        "ContainersWithRawResponse": (".containers", "ContainersWithRawResponse"),
+        "AsyncContainersWithRawResponse": (".containers", "AsyncContainersWithRawResponse"),
+        "ContainersWithStreamingResponse": (".containers", "ContainersWithStreamingResponse"),
+        "AsyncContainersWithStreamingResponse": (".containers", "AsyncContainersWithStreamingResponse"),
+        "Skills": (".skills", "Skills"),
+        "AsyncSkills": (".skills", "AsyncSkills"),
+        "SkillsWithRawResponse": (".skills", "SkillsWithRawResponse"),
+        "AsyncSkillsWithRawResponse": (".skills", "AsyncSkillsWithRawResponse"),
+        "SkillsWithStreamingResponse": (".skills", "SkillsWithStreamingResponse"),
+        "AsyncSkillsWithStreamingResponse": (".skills", "AsyncSkillsWithStreamingResponse"),
+        "Videos": (".videos", "Videos"),
+        "AsyncVideos": (".videos", "AsyncVideos"),
+        "VideosWithRawResponse": (".videos", "VideosWithRawResponse"),
+        "AsyncVideosWithRawResponse": (".videos", "AsyncVideosWithRawResponse"),
+        "VideosWithStreamingResponse": (".videos", "VideosWithStreamingResponse"),
+        "AsyncVideosWithStreamingResponse": (".videos", "AsyncVideosWithStreamingResponse"),
+    }
+    _SUBMODULES = {
+        "admin",
+        "audio",
+        "batches",
+        "beta",
+        "chat",
+        "completions",
+        "containers",
+        "content_provenance_checks",
+        "embeddings",
+        "evals",
+        "files",
+        "fine_tuning",
+        "images",
+        "models",
+        "moderations",
+        "safety",
+        "skills",
+        "uploads",
+        "vector_stores",
+        "videos",
+    }
+
+    def __getattr__(name: str) -> _t.Any:
+        import importlib
+
+        if name in _EXPORTS:
+            module_name, symbol_name = _EXPORTS[name]
+            value = getattr(importlib.import_module(module_name, __name__), symbol_name)
+        elif name in _SUBMODULES:
+            value = importlib.import_module(f".{name}", __name__)
+        else:
+            raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+        globals()[name] = value
+        return value
+
+    def __dir__() -> list[str]:
+        return sorted(set(globals()) | set(_EXPORTS) | _SUBMODULES)
+
 
 __all__ = [
     "Completions",
