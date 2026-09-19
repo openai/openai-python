@@ -625,6 +625,8 @@ from openai.types.beta.agents.vaults import (
     CredentialAuthCreateParam,
     CredentialAuthRotateParam,
     CredentialDeleted,
+    CredentialNetworking,
+    CredentialNetworkingParam,
     McpOauthTokenEndpointAuth,
     McpOauthTokenEndpointAuthCreateParam,
     McpOauthTokenEndpointAuthRotateParam,
