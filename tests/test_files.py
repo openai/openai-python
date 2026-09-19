@@ -1,12 +1,54 @@
+import io
+import zipfile
 from pathlib import Path
 
 import anyio
+import httpx2
 import pytest
 
+from openai import OpenAI, AsyncOpenAI
 from openai._files import to_httpx_files, deepcopy_with_paths, async_to_httpx_files
 from openai._utils import extract_files
 
 readme_path = Path(__file__).parent.parent.joinpath("README.md")
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("is_async", [False, True])
+@pytest.mark.parametrize("as_list", [False, True])
+async def test_skills_upload_zip(is_async: bool, as_list: bool) -> None:
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w") as archive:
+        archive.writestr("SKILL.md", "---\nname: example\ndescription: Test skill\n---\n# Example\n")
+    content = buffer.getvalue()
+    file = ("skill.zip", content)
+    files = [file] if as_list else file
+    transport = httpx2.MockTransport(lambda _request: httpx2.Response(200, json={}))
+    client = (
+        AsyncOpenAI(
+            api_key="fake-key", base_url="https://example.test", http_client=httpx2.AsyncClient(transport=transport)
+        )
+        if is_async
+        else OpenAI(api_key="fake-key", base_url="https://example.test", http_client=httpx2.Client(transport=transport))
+    )
+    try:
+        response = (
+            await client.skills.with_raw_response.create(files=files)
+            if isinstance(client, AsyncOpenAI)
+            else client.skills.with_raw_response.create(files=files)
+        )
+        request = response.http_request
+        assert request.url.path == "/skills"
+        assert request.headers["content-type"].startswith("multipart/form-data;")
+        expected_field = b'name="files[]"' if as_list else b'name="files"'
+        assert expected_field in request.content
+        assert b'filename="skill.zip"' in request.content
+        assert request.content.count(content) == 1
+    finally:
+        if isinstance(client, AsyncOpenAI):
+            await client.close()
+        else:
+            client.close()
 
 
 def test_pathlib_includes_file_name() -> None:
