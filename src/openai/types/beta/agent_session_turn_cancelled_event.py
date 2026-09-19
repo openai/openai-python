@@ -29,7 +29,4 @@ class AgentSessionTurnCancelledEvent(BaseModel):
     """The type of the object. Always `agent.session.turn.cancelled`."""
 
     usage: Optional[TokenUsage] = None
-    """Recorded token usage for a session or turn.
-
-    Usage is best effort and may change.
-    """
+    """Token usage by the root agent during the turn, when available."""

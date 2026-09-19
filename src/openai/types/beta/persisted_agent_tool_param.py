@@ -74,7 +74,7 @@ class PersistedAgentToolConfigParamMcp(TypedDict, total=False):
     """The MCP tools the agent may call. All server tools are allowed when omitted."""
 
     connection_origin: Optional[Literal["service", "environment"]]
-    """Where outbound MCP HTTP connections originate.
+    """Selects where outbound MCP HTTP connections originate.
 
     - `service` - Uses the Managed Agents service network.
     - `environment` - Uses the session's execution environment.
@@ -97,7 +97,7 @@ class PersistedAgentToolConfigParamMcp(TypedDict, total=False):
 
 
 class PersistedAgentToolConfigParamWebSearchLocation(TypedDict, total=False):
-    """Approximate user location used to localize web search results."""
+    """Approximate location used to localize search results."""
 
     city: Optional[str]
     """The city name."""
@@ -122,13 +122,13 @@ class PersistedAgentToolConfigParamWebSearch(TypedDict, total=False):
     """Domains the search may include."""
 
     context_size: Optional[Literal["low", "medium", "high"]]
-    """The amount of web search context made available to the model."""
+    """The amount of search context made available to the model. Defaults to `medium`."""
 
     location: Optional[PersistedAgentToolConfigParamWebSearchLocation]
-    """Approximate user location used to localize web search results."""
+    """Approximate location used to localize search results."""
 
     mode: Optional[Literal["disabled", "cached", "live"]]
-    """The source used for web search results.
+    """The source used for web search results. Defaults to `live`.
 
     - `disabled` - Disables web search.
     - `cached` - Uses cached search results.

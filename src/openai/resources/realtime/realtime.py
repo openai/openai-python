@@ -1447,8 +1447,9 @@ class RealtimeConversationItemResource(BaseRealtimeConnectionResource):
         "history" of the conversation and to add new items mid-stream, but has the
         current limitation that it cannot populate assistant audio messages.
 
-        If successful, the server will respond with a `conversation.item.created`
-        event, otherwise an `error` event will be sent.
+        If successful, the server will emit a `conversation.item.added` event and,
+        when the item is finalized, a `conversation.item.done` event. Otherwise, an
+        `error` event will be sent.
         """
         self._connection.send(
             cast(
@@ -1682,8 +1683,9 @@ class AsyncRealtimeConversationItemResource(BaseAsyncRealtimeConnectionResource)
         "history" of the conversation and to add new items mid-stream, but has the
         current limitation that it cannot populate assistant audio messages.
 
-        If successful, the server will respond with a `conversation.item.created`
-        event, otherwise an `error` event will be sent.
+        If successful, the server will emit a `conversation.item.added` event and,
+        when the item is finalized, a `conversation.item.done` event. Otherwise, an
+        `error` event will be sent.
         """
         await self._connection.send(
             cast(

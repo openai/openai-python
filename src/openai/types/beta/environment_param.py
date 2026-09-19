@@ -29,13 +29,15 @@ class EnvironmentParamNone(TypedDict, total=False):
 
 
 class EnvironmentParamOpenAIHostedNetwork(TypedDict, total=False):
-    """Network access for an OpenAI-hosted environment."""
+    """Network access policy for the environment.
+
+    Defaults to disabled for GA requests and enabled for alpha/beta requests.
+    """
 
     access: Required[Literal["enabled", "disabled", "restricted"]]
     """The environment's network access mode.
 
-    - `enabled` - Allows unrestricted network access, matching an omitted network
-      policy.
+    - `enabled` - Allows unrestricted network access.
     - `disabled` - Disables network access.
     - `restricted` - Allows access only to configured domains.
     """
@@ -45,7 +47,7 @@ class EnvironmentParamOpenAIHostedNetwork(TypedDict, total=False):
 
 
 class EnvironmentParamOpenAIHostedPackages(TypedDict, total=False):
-    """Packages to install in an OpenAI-hosted environment."""
+    """Packages to install in the environment. Defaults to empty package lists."""
 
     npm: Optional[SequenceNotStr[str]]
     """npm packages to install globally. Defaults to an empty list."""
@@ -83,10 +85,13 @@ class EnvironmentParamOpenAIHosted(TypedDict, total=False):
     """Files available before the agent starts. Defaults to an empty list."""
 
     network: Optional[EnvironmentParamOpenAIHostedNetwork]
-    """Network access for an OpenAI-hosted environment."""
+    """Network access policy for the environment.
+
+    Defaults to disabled for GA requests and enabled for alpha/beta requests.
+    """
 
     packages: Optional[EnvironmentParamOpenAIHostedPackages]
-    """Packages to install in an OpenAI-hosted environment."""
+    """Packages to install in the environment. Defaults to empty package lists."""
 
     plugins: Optional[Iterable[HostedPluginParam]]
     """Plugins provided as inline ZIP archives. Defaults to an empty list."""

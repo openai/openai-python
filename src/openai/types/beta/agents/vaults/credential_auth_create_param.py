@@ -16,7 +16,7 @@ __all__ = [
 
 
 class CreateVaultCredentialAuthParamMcpOauthRefresh(TypedDict, total=False):
-    """Configuration for refreshing the access token of an MCP OAuth credential."""
+    """Optional refresh configuration for an HTTPS OAuth token endpoint."""
 
     client_id: Required[str]
     """The OAuth client ID used when requesting a new access token."""
@@ -62,7 +62,7 @@ class CreateVaultCredentialAuthParamMcpOauth(TypedDict, total=False):
     """When the OAuth access token expires, as an RFC 3339 timestamp, if known."""
 
     refresh: Optional[CreateVaultCredentialAuthParamMcpOauthRefresh]
-    """Configuration for refreshing the access token of an MCP OAuth credential."""
+    """Optional refresh configuration for an HTTPS OAuth token endpoint."""
 
 
 class CreateVaultCredentialAuthParamStaticBearer(TypedDict, total=False):
