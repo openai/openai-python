@@ -73,6 +73,29 @@ def test_array_brackets(method: str) -> None:
     assert unquote(serialise({"a": {"b": [True, False, None, True]}})) == "a[b][]=true&a[b][]=false&a[b][]=true"
 
 
+@pytest.mark.parametrize("method", ["class", "function"])
+def test_array_indices(method: str) -> None:
+    if method == "class":
+        serialise = Querystring(array_format="indices").stringify
+    else:
+        serialise = partial(stringify, array_format="indices")
+
+    assert unquote(serialise({"in": ["foo", "bar"]})) == "in[0]=foo&in[1]=bar"
+    assert unquote(serialise({"a": {"b": [True, False]}})) == "a[b][0]=true&a[b][1]=false"
+    assert (
+        unquote(serialise({"a": {"b": [True, False, None, True]}}))
+        == "a[b][0]=true&a[b][1]=false&a[b][3]=true"
+    )
+
+
 def test_unknown_array_format() -> None:
-    with pytest.raises(NotImplementedError, match="Unknown array_format value: foo, choose from comma, repeat"):
+    with pytest.raises(
+        NotImplementedError,
+        match="Unknown array_format value: foo, choose from comma, repeat, indices, brackets",
+    ):
         stringify({"a": ["foo", "bar"]}, array_format=cast(Any, "foo"))
+
+
+def test_unknown_nested_format() -> None:
+    with pytest.raises(NotImplementedError, match="Unknown nested_format value: foo, choose from dots, brackets"):
+        stringify({"a": {"b": "c"}}, nested_format=cast(Any, "foo"))
