@@ -30653,6 +30653,20 @@ webhooks:
       responses:
         '200':
           description: Return any 2xx status code to acknowledge receipt. A 410 Gone response also stops retries; other non-2xx responses are retried.
+  safety_deactivation_issued:
+    post:
+      description: |
+        Sent when a deactivation is issued for a safety identifier in your organization.
+        Retrieve the case details with `GET /v1/safety/cases/{id}` using `data.id`.
+      requestBody:
+        description: The event payload sent by the API.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookSafetyDeactivationIssued'
+      responses:
+        '200':
+          description: Return any 2xx status code to acknowledge receipt. A 410 Gone response also stops retries; other non-2xx responses are retried.
   safety_org_alert_created:
     post:
       description: |
@@ -30666,6 +30680,20 @@ webhooks:
           application/json:
             schema:
               $ref: '#/components/schemas/WebhookSafetyOrgAlertCreated'
+      responses:
+        '200':
+          description: Return any 2xx status code to acknowledge receipt. A 410 Gone response also stops retries; other non-2xx responses are retried.
+  safety_warning_issued:
+    post:
+      description: |
+        Sent when a warning is issued for a safety identifier in your organization.
+        Retrieve the case details with `GET /v1/safety/cases/{id}` using `data.id`.
+      requestBody:
+        description: The event payload sent by the API.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookSafetyWarningIssued'
       responses:
         '200':
           description: Return any 2xx status code to acknowledge receipt. A 410 Gone response also stops retries; other non-2xx responses are retried.
@@ -66166,6 +66194,56 @@ components:
             "type": "safety.alert.created",
             "data": {"id": "alert_0123456789abcdef0123456789abcdef"}
           }
+    WebhookSafetyDeactivationIssued:
+      type: object
+      title: safety.deactivation_issued
+      description: Sent when a deactivation is issued for a safety identifier in your organization.
+      required:
+      - id
+      - object
+      - created_at
+      - type
+      - data
+      properties:
+        id:
+          type: string
+          description: The unique ID of the webhook event.
+        object:
+          type: string
+          enum:
+          - event
+          x-stainless-const: true
+          description: Always `event`.
+        created_at:
+          type: integer
+          format: unixtime
+          description: The Unix timestamp in seconds when the event was created.
+        type:
+          type: string
+          enum:
+          - safety.deactivation_issued
+          x-stainless-const: true
+          description: Always `safety.deactivation_issued`.
+        data:
+          type: object
+          additionalProperties: false
+          required:
+          - id
+          properties:
+            id:
+              type: string
+              description: The safety case ID to pass to `GET /v1/safety/cases/{id}`.
+      x-oaiMeta:
+        name: safety.deactivation_issued
+        group: webhook-events
+        example: |
+          {
+            "id": "evt_123",
+            "object": "event",
+            "created_at": 1787659200,
+            "type": "safety.deactivation_issued",
+            "data": {"id": "C-abc123"}
+          }
     WebhookSafetyOrgAlertCreated:
       type: object
       title: safety.org_alert.created
@@ -66216,6 +66294,56 @@ components:
             "created_at": 1787659200,
             "type": "safety.org_alert.created",
             "data": {"id": "alert_0123456789abcdef0123456789abcdef"}
+          }
+    WebhookSafetyWarningIssued:
+      type: object
+      title: safety.warning_issued
+      description: Sent when a warning is issued for a safety identifier in your organization.
+      required:
+      - id
+      - object
+      - created_at
+      - type
+      - data
+      properties:
+        id:
+          type: string
+          description: The unique ID of the webhook event.
+        object:
+          type: string
+          enum:
+          - event
+          x-stainless-const: true
+          description: Always `event`.
+        created_at:
+          type: integer
+          format: unixtime
+          description: The Unix timestamp in seconds when the event was created.
+        type:
+          type: string
+          enum:
+          - safety.warning_issued
+          x-stainless-const: true
+          description: Always `safety.warning_issued`.
+        data:
+          type: object
+          additionalProperties: false
+          required:
+          - id
+          properties:
+            id:
+              type: string
+              description: The safety case ID to pass to `GET /v1/safety/cases/{id}`.
+      x-oaiMeta:
+        name: safety.warning_issued
+        group: webhook-events
+        example: |
+          {
+            "id": "evt_123",
+            "object": "event",
+            "created_at": 1787659200,
+            "type": "safety.warning_issued",
+            "data": {"id": "C-abc123"}
           }
     ModerationInputType:
       type: string
@@ -96518,6 +96646,12 @@ x-oaiMeta:
       path: <auto>
     - type: object
       key: WebhookLiveTransportIncoming
+      path: <auto>
+    - type: object
+      key: WebhookSafetyWarningIssued
+      path: <auto>
+    - type: object
+      key: WebhookSafetyDeactivationIssued
       path: <auto>
     - type: object
       key: WebhookSafetyAlertCreated
