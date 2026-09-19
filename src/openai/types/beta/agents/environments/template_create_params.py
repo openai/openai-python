@@ -31,10 +31,13 @@ class TemplateCreateParams(TypedDict, total=False):
     """An optional human-readable display name for the template."""
 
     network: Optional[Network]
-    """Network access for an OpenAI-hosted environment."""
+    """Network access policy for the environment.
+
+    Defaults to disabled for GA requests and enabled for alpha/beta requests.
+    """
 
     packages: Optional[Packages]
-    """Packages to install in an OpenAI-hosted environment."""
+    """Packages to install in the environment. Defaults to empty package lists."""
 
     plugins: Optional[Iterable[HostedPluginParam]]
     """Plugins provided as inline ZIP archives. Defaults to an empty list."""
@@ -50,13 +53,15 @@ class TemplateCreateParams(TypedDict, total=False):
 
 
 class Network(TypedDict, total=False):
-    """Network access for an OpenAI-hosted environment."""
+    """Network access policy for the environment.
+
+    Defaults to disabled for GA requests and enabled for alpha/beta requests.
+    """
 
     access: Required[Literal["enabled", "disabled", "restricted"]]
     """The environment's network access mode.
 
-    - `enabled` - Allows unrestricted network access, matching an omitted network
-      policy.
+    - `enabled` - Allows unrestricted network access.
     - `disabled` - Disables network access.
     - `restricted` - Allows access only to configured domains.
     """
@@ -66,7 +71,7 @@ class Network(TypedDict, total=False):
 
 
 class Packages(TypedDict, total=False):
-    """Packages to install in an OpenAI-hosted environment."""
+    """Packages to install in the environment. Defaults to empty package lists."""
 
     npm: Optional[SequenceNotStr[str]]
     """npm packages to install globally. Defaults to an empty list."""

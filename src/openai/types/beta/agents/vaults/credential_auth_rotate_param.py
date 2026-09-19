@@ -16,7 +16,7 @@ __all__ = [
 
 
 class RotateVaultCredentialAuthParamMcpOauthRefresh(TypedDict, total=False):
-    """Updates to an MCP credential's existing OAuth refresh configuration."""
+    """Optional write-only refresh-token and client-secret updates."""
 
     refresh_token: Optional[str]
     """The replacement refresh token.
@@ -32,10 +32,7 @@ class RotateVaultCredentialAuthParamMcpOauthRefresh(TypedDict, total=False):
     """
 
     token_endpoint_auth: Optional[McpOauthTokenEndpointAuthRotateParam]
-    """
-    Client-secret updates that preserve the credential's OAuth authentication
-    method.
-    """
+    """Client-secret updates for the existing token endpoint authentication method."""
 
 
 class RotateVaultCredentialAuthParamMcpOauth(TypedDict, total=False):
@@ -55,7 +52,7 @@ class RotateVaultCredentialAuthParamMcpOauth(TypedDict, total=False):
     """
 
     refresh: Optional[RotateVaultCredentialAuthParamMcpOauthRefresh]
-    """Updates to an MCP credential's existing OAuth refresh configuration."""
+    """Optional write-only refresh-token and client-secret updates."""
 
 
 class RotateVaultCredentialAuthParamStaticBearer(TypedDict, total=False):
