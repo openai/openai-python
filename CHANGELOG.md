@@ -1,5 +1,23 @@
 # Changelog
 
+## [3.17.0](https://github.com/openai/openai-python/compare/v3.16.2...v3.17.0) (2026-09-19)
+
+
+### Features
+
+* **api:** add external storage configuration management ([#3909](https://github.com/openai/openai-python/issues/3909)) ([6332577](https://github.com/openai/openai-python/commit/6332577d3fb5f83f7f381a431460262f7192402d))
+* **api:** add safety case retrieval ([#3911](https://github.com/openai/openai-python/issues/3911)) ([a87b938](https://github.com/openai/openai-python/commit/a87b938545b34c1880b9914b43a5039072f40b09))
+* **api:** add safety warning and deactivation webhook events ([#3908](https://github.com/openai/openai-python/issues/3908)) ([19f1f37](https://github.com/openai/openai-python/commit/19f1f3769f4d2e907b6970c52f647a750de625e6))
+* **api:** add SIP media security to incoming call events ([#3907](https://github.com/openai/openai-python/issues/3907)) ([c377eb2](https://github.com/openai/openai-python/commit/c377eb21f03efb223180730d6da61f9e8d500063))
+* **api:** support environment variable vault credentials ([#3905](https://github.com/openai/openai-python/issues/3905)) ([eeebc53](https://github.com/openai/openai-python/commit/eeebc535572dfe034e2c82958df4d0c22f94301e))
+
+
+### Bug Fixes
+
+* **api:** correct model types and network policy docs ([618bb31](https://github.com/openai/openai-python/commit/618bb312e52c2b62f75f56602b7388e6d023aa33))
+* **lib:** treat null message content as empty in parse_response ([#3851](https://github.com/openai/openai-python/issues/3851)) ([fab5283](https://github.com/openai/openai-python/commit/fab5283255ad76d9e79e202e1cf46b6eea783f4b))
+* **lib:** use log.warning instead of the deprecated log.warn ([#3878](https://github.com/openai/openai-python/issues/3878)) ([56b1708](https://github.com/openai/openai-python/commit/56b17081e22d8e168421e91bb400017ec2b0be89))
+
 ## [3.16.2](https://github.com/openai/openai-python/compare/v3.16.1...v3.16.2) (2026-09-18)
 
 
