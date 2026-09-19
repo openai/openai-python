@@ -519,6 +519,7 @@ from openai.types.beta import (
     AgentSessionEnvironmentFailedEvent,
     AgentSessionEnvironmentPendingEvent,
     AgentSessionEnvironmentReadyEvent,
+    AgentSessionEnvironmentResetEvent,
     AgentSessionEnvironmentState,
     AgentSessionErrorEvent,
     AgentSessionEvent,
