@@ -319,6 +319,7 @@ class OpenAI(SyncAPIClient):
 
     @cached_property
     def responses(self) -> Responses:
+        """Create and manage model responses."""
         from .resources.responses import Responses
 
         return Responses(self)
@@ -748,6 +749,7 @@ class AsyncOpenAI(AsyncAPIClient):
 
     @cached_property
     def responses(self) -> AsyncResponses:
+        """Create and manage model responses."""
         from .resources.responses import AsyncResponses
 
         return AsyncResponses(self)
@@ -1079,6 +1081,7 @@ class OpenAIWithRawResponse:
 
     @cached_property
     def responses(self) -> responses.ResponsesWithRawResponse:
+        """Create and manage model responses."""
         from .resources.responses import ResponsesWithRawResponse
 
         return ResponsesWithRawResponse(self._client.responses)
@@ -1254,6 +1257,7 @@ class AsyncOpenAIWithRawResponse:
 
     @cached_property
     def responses(self) -> responses.AsyncResponsesWithRawResponse:
+        """Create and manage model responses."""
         from .resources.responses import AsyncResponsesWithRawResponse
 
         return AsyncResponsesWithRawResponse(self._client.responses)
@@ -1429,6 +1433,7 @@ class OpenAIWithStreamedResponse:
 
     @cached_property
     def responses(self) -> responses.ResponsesWithStreamingResponse:
+        """Create and manage model responses."""
         from .resources.responses import ResponsesWithStreamingResponse
 
         return ResponsesWithStreamingResponse(self._client.responses)
@@ -1604,6 +1609,7 @@ class AsyncOpenAIWithStreamedResponse:
 
     @cached_property
     def responses(self) -> responses.AsyncResponsesWithStreamingResponse:
+        """Create and manage model responses."""
         from .resources.responses import AsyncResponsesWithStreamingResponse
 
         return AsyncResponsesWithStreamingResponse(self._client.responses)

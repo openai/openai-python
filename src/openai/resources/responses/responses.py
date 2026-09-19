@@ -79,12 +79,16 @@ log: logging.Logger = logging.getLogger(__name__)
 
 
 class Responses(SyncAPIResource):
+    """Create and manage model responses."""
+
     @cached_property
     def input_items(self) -> InputItems:
+        """Create and manage model responses."""
         return InputItems(self._client)
 
     @cached_property
     def input_tokens(self) -> InputTokens:
+        """Create and manage model responses."""
         return InputTokens(self._client)
 
     @cached_property
@@ -1579,12 +1583,16 @@ class Responses(SyncAPIResource):
 
 
 class AsyncResponses(AsyncAPIResource):
+    """Create and manage model responses."""
+
     @cached_property
     def input_items(self) -> AsyncInputItems:
+        """Create and manage model responses."""
         return AsyncInputItems(self._client)
 
     @cached_property
     def input_tokens(self) -> AsyncInputTokens:
+        """Create and manage model responses."""
         return AsyncInputTokens(self._client)
 
     @cached_property
@@ -3100,10 +3108,12 @@ class ResponsesWithRawResponse:
 
     @cached_property
     def input_items(self) -> InputItemsWithRawResponse:
+        """Create and manage model responses."""
         return InputItemsWithRawResponse(self._responses.input_items)
 
     @cached_property
     def input_tokens(self) -> InputTokensWithRawResponse:
+        """Create and manage model responses."""
         return InputTokensWithRawResponse(self._responses.input_tokens)
 
 
@@ -3129,10 +3139,12 @@ class AsyncResponsesWithRawResponse:
 
     @cached_property
     def input_items(self) -> AsyncInputItemsWithRawResponse:
+        """Create and manage model responses."""
         return AsyncInputItemsWithRawResponse(self._responses.input_items)
 
     @cached_property
     def input_tokens(self) -> AsyncInputTokensWithRawResponse:
+        """Create and manage model responses."""
         return AsyncInputTokensWithRawResponse(self._responses.input_tokens)
 
 
@@ -3158,10 +3170,12 @@ class ResponsesWithStreamingResponse:
 
     @cached_property
     def input_items(self) -> InputItemsWithStreamingResponse:
+        """Create and manage model responses."""
         return InputItemsWithStreamingResponse(self._responses.input_items)
 
     @cached_property
     def input_tokens(self) -> InputTokensWithStreamingResponse:
+        """Create and manage model responses."""
         return InputTokensWithStreamingResponse(self._responses.input_tokens)
 
 
@@ -3187,10 +3201,12 @@ class AsyncResponsesWithStreamingResponse:
 
     @cached_property
     def input_items(self) -> AsyncInputItemsWithStreamingResponse:
+        """Create and manage model responses."""
         return AsyncInputItemsWithStreamingResponse(self._responses.input_items)
 
     @cached_property
     def input_tokens(self) -> AsyncInputTokensWithStreamingResponse:
+        """Create and manage model responses."""
         return AsyncInputTokensWithStreamingResponse(self._responses.input_tokens)
 
 

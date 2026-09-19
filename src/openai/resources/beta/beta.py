@@ -55,6 +55,7 @@ class Beta(SyncAPIResource):
 
     @cached_property
     def responses(self) -> Responses:
+        """Create and manage model responses."""
         return Responses(self._client)
 
     @cached_property
@@ -98,6 +99,7 @@ class AsyncBeta(AsyncAPIResource):
 
     @cached_property
     def responses(self) -> AsyncResponses:
+        """Create and manage model responses."""
         return AsyncResponses(self._client)
 
     @cached_property
@@ -144,6 +146,7 @@ class BetaWithRawResponse:
 
     @cached_property
     def responses(self) -> ResponsesWithRawResponse:
+        """Create and manage model responses."""
         return ResponsesWithRawResponse(self._beta.responses)
 
     @cached_property
@@ -171,6 +174,7 @@ class AsyncBetaWithRawResponse:
 
     @cached_property
     def responses(self) -> AsyncResponsesWithRawResponse:
+        """Create and manage model responses."""
         return AsyncResponsesWithRawResponse(self._beta.responses)
 
     @cached_property
@@ -198,6 +202,7 @@ class BetaWithStreamingResponse:
 
     @cached_property
     def responses(self) -> ResponsesWithStreamingResponse:
+        """Create and manage model responses."""
         return ResponsesWithStreamingResponse(self._beta.responses)
 
     @cached_property
@@ -225,6 +230,7 @@ class AsyncBetaWithStreamingResponse:
 
     @cached_property
     def responses(self) -> AsyncResponsesWithStreamingResponse:
+        """Create and manage model responses."""
         return AsyncResponsesWithStreamingResponse(self._beta.responses)
 
     @cached_property
