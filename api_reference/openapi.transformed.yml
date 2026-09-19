@@ -79179,6 +79179,48 @@ components:
       - environment
       additionalProperties: false
       description: Emitted when a hosted session environment is ready to connect.
+    SessionEventAgentSessionEnvironmentReset:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+          - agent.session.environment.reset
+          default: agent.session.environment.reset
+          x-stainless-const: true
+          description: The type of the object. Always `agent.session.environment.reset`.
+        event_id:
+          type: string
+          minLength: 0
+          description: The unique ID of the event.
+        session_id:
+          type: string
+          minLength: 0
+          description: The ID of the session associated with the event.
+        turn_id:
+          type:
+          - string
+          - 'null'
+          minLength: 0
+          description: The associated turn, when applicable.
+        environment_id:
+          type: string
+          minLength: 0
+          description: The stable environment ID, retained across sandbox replacements.
+        reset_count:
+          type: integer
+          format: int64
+          minimum: 0
+          description: Monotonically increasing reset number. Repeated notifications share this number.
+      required:
+      - type
+      - event_id
+      - session_id
+      - turn_id
+      - environment_id
+      - reset_count
+      additionalProperties: false
+      description: Emitted after a hosted sandbox is replaced. Conversation history survives; changes to the previous sandbox's files and processes do not.
     SessionEventAgentOutputCommandExecutionOutputDelta:
       type: object
       properties:
@@ -80366,6 +80408,7 @@ components:
         mapping:
           error: '#/components/schemas/SessionEventError'
           agent.session.environment.ready: '#/components/schemas/SessionEventAgentSessionEnvironmentReady'
+          agent.session.environment.reset: '#/components/schemas/SessionEventAgentSessionEnvironmentReset'
           agent.output.command_execution_output.delta: '#/components/schemas/SessionEventAgentOutputCommandExecutionOutputDelta'
           agent.session.created: '#/components/schemas/SessionEventAgentSessionCreated'
           agent.session.turn.created: '#/components/schemas/SessionEventAgentSessionTurnCreated'
@@ -80397,6 +80440,7 @@ components:
       x-oai-discriminator-values:
       - error
       - agent.session.environment.ready
+      - agent.session.environment.reset
       - agent.output.command_execution_output.delta
       - agent.session.created
       - agent.session.turn.created
@@ -80428,6 +80472,7 @@ components:
       anyOf:
       - $ref: '#/components/schemas/SessionEventError'
       - $ref: '#/components/schemas/SessionEventAgentSessionEnvironmentReady'
+      - $ref: '#/components/schemas/SessionEventAgentSessionEnvironmentReset'
       - $ref: '#/components/schemas/SessionEventAgentOutputCommandExecutionOutputDelta'
       - $ref: '#/components/schemas/SessionEventAgentSessionCreated'
       - $ref: '#/components/schemas/SessionEventAgentSessionTurnCreated'
