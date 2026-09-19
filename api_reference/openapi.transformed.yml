@@ -22620,6 +22620,44 @@ paths:
               "created_at": 1741900000,
               "metadata": {"topic": "project-x"}
             }
+  /safety/cases/{id}:
+    get:
+      summary: Get safety case
+      description: Get a safety case by ID.
+      operationId: Getsafetycase
+      parameters:
+      - name: id
+        in: path
+        description: Safety case ID
+        required: true
+        schema:
+          description: Safety case ID
+          type: string
+          maxLength: 128
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SafetyCaseResource'
+      x-oaiMeta:
+        group: safety-cases
+        path: retrieve
+        examples:
+          request:
+            curl: |
+              curl https://api.openai.com/v1/safety/cases/C-abc123 \
+                -H "Authorization: Bearer $OPENAI_API_KEY"
+          response: |
+            {
+              "id": "C-abc123",
+              "object": "safety.case",
+              "created_at": 1787659200,
+              "entity_identifier": "safety-id-123",
+              "reason": "cyber_abuse",
+              "notice": {"type": "warning"}
+            }
   /safety/alerts/{id}:
     get:
       summary: Get project safety alert
@@ -71405,6 +71443,47 @@ components:
       - object
       - deleted
       - id
+    SafetyCaseNoticeType:
+      type: string
+      enum:
+      - warning
+      - deactivation
+    SafetyCaseNotice:
+      properties:
+        type:
+          $ref: '#/components/schemas/SafetyCaseNoticeType'
+      type: object
+      required:
+      - type
+    SafetyCaseResource:
+      properties:
+        id:
+          type: string
+        object:
+          type: string
+          enum:
+          - safety.case
+          default: safety.case
+          x-stainless-const: true
+        created_at:
+          type: integer
+          format: unixtime
+        entity_identifier:
+          type: string
+        reason:
+          anyOf:
+          - type: string
+          - type: 'null'
+        notice:
+          $ref: '#/components/schemas/SafetyCaseNotice'
+      type: object
+      required:
+      - id
+      - object
+      - created_at
+      - entity_identifier
+      - reason
+      - notice
     SafetyAlertErrorType:
       type: string
       enum:
@@ -97121,6 +97200,20 @@ x-oaiMeta:
     - type: object
       key: ResponseErrorEvent
       path: <auto>
+  - id: safety-cases
+    title: Safety Cases
+    description: |
+      Retrieve details about a safety warning or deactivation using the case ID
+      from a `safety.warning_issued` or `safety.deactivation_issued` webhook event.
+      Cases belong to an organization and require an API key with `api.safety.read`.
+    navigationGroup: endpoints
+    sections:
+    - type: endpoint
+      key: Getsafetycase
+      path: retrieve
+    - type: object
+      key: SafetyCaseResource
+      path: object
   - id: safety-alerts
     title: Safety Alerts
     description: |
