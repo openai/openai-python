@@ -956,6 +956,11 @@ class TestOpenAI:
             client = OpenAI(api_key=api_key, admin_api_key=admin_api_key, _strict_response_validation=True)
             assert client.base_url == "http://localhost:5000/from/env/"
 
+    def test_empty_base_url_env(self) -> None:
+        with update_env(OPENAI_BASE_URL=""):
+            client = OpenAI(api_key=api_key, admin_api_key=admin_api_key, _strict_response_validation=True)
+            assert client.base_url == "https://api.openai.com/v1/"
+
     @pytest.mark.parametrize(
         "client",
         [
@@ -2314,6 +2319,11 @@ class TestAsyncOpenAI:
         with update_env(OPENAI_BASE_URL="http://localhost:5000/from/env"):
             client = AsyncOpenAI(api_key=api_key, admin_api_key=admin_api_key, _strict_response_validation=True)
             assert client.base_url == "http://localhost:5000/from/env/"
+
+    async def test_empty_base_url_env(self) -> None:
+        with update_env(OPENAI_BASE_URL=""):
+            client = AsyncOpenAI(api_key=api_key, admin_api_key=admin_api_key, _strict_response_validation=True)
+            assert client.base_url == "https://api.openai.com/v1/"
 
     @pytest.mark.parametrize(
         "client",
