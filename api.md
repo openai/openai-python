@@ -463,6 +463,18 @@ Methods:
 
 - <code title="get /safety/alerts/{id}">client.safety.alerts.<a href="./src/openai/resources/safety/alerts.py">retrieve</a>(id) -> <a href="./src/openai/types/safety/safety_alert.py">SafetyAlert</a></code>
 
+## Cases
+
+Types:
+
+```python
+from openai.types.safety import SafetyCase
+```
+
+Methods:
+
+- <code title="get /safety/cases/{id}">client.safety.cases.<a href="./src/openai/resources/safety/cases.py">retrieve</a>(id) -> <a href="./src/openai/types/safety/safety_case.py">SafetyCase</a></code>
+
 # [Webhooks](src/openai/resources/webhooks/api.md)
 
 Methods:

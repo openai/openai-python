@@ -2,6 +2,14 @@
 
 from __future__ import annotations
 
+from .cases import (
+    Cases,
+    AsyncCases,
+    CasesWithRawResponse,
+    AsyncCasesWithRawResponse,
+    CasesWithStreamingResponse,
+    AsyncCasesWithStreamingResponse,
+)
 from .alerts import (
     Alerts,
     AsyncAlerts,
@@ -20,6 +28,10 @@ class Safety(SyncAPIResource):
     @cached_property
     def alerts(self) -> Alerts:
         return Alerts(self._client)
+
+    @cached_property
+    def cases(self) -> Cases:
+        return Cases(self._client)
 
     @cached_property
     def with_raw_response(self) -> SafetyWithRawResponse:
@@ -45,6 +57,10 @@ class AsyncSafety(AsyncAPIResource):
     @cached_property
     def alerts(self) -> AsyncAlerts:
         return AsyncAlerts(self._client)
+
+    @cached_property
+    def cases(self) -> AsyncCases:
+        return AsyncCases(self._client)
 
     @cached_property
     def with_raw_response(self) -> AsyncSafetyWithRawResponse:
@@ -74,6 +90,10 @@ class SafetyWithRawResponse:
     def alerts(self) -> AlertsWithRawResponse:
         return AlertsWithRawResponse(self._safety.alerts)
 
+    @cached_property
+    def cases(self) -> CasesWithRawResponse:
+        return CasesWithRawResponse(self._safety.cases)
+
 
 class AsyncSafetyWithRawResponse:
     def __init__(self, safety: AsyncSafety) -> None:
@@ -82,6 +102,10 @@ class AsyncSafetyWithRawResponse:
     @cached_property
     def alerts(self) -> AsyncAlertsWithRawResponse:
         return AsyncAlertsWithRawResponse(self._safety.alerts)
+
+    @cached_property
+    def cases(self) -> AsyncCasesWithRawResponse:
+        return AsyncCasesWithRawResponse(self._safety.cases)
 
 
 class SafetyWithStreamingResponse:
@@ -92,6 +116,10 @@ class SafetyWithStreamingResponse:
     def alerts(self) -> AlertsWithStreamingResponse:
         return AlertsWithStreamingResponse(self._safety.alerts)
 
+    @cached_property
+    def cases(self) -> CasesWithStreamingResponse:
+        return CasesWithStreamingResponse(self._safety.cases)
+
 
 class AsyncSafetyWithStreamingResponse:
     def __init__(self, safety: AsyncSafety) -> None:
@@ -100,3 +128,7 @@ class AsyncSafetyWithStreamingResponse:
     @cached_property
     def alerts(self) -> AsyncAlertsWithStreamingResponse:
         return AsyncAlertsWithStreamingResponse(self._safety.alerts)
+
+    @cached_property
+    def cases(self) -> AsyncCasesWithStreamingResponse:
+        return AsyncCasesWithStreamingResponse(self._safety.cases)
