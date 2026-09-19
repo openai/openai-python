@@ -107,9 +107,23 @@ if _t.TYPE_CHECKING:
         DataRetentionWithStreamingResponse as DataRetentionWithStreamingResponse,
         AsyncDataRetentionWithStreamingResponse as AsyncDataRetentionWithStreamingResponse,
     )
+    from .external_storage import (
+        ExternalStorage as ExternalStorage,
+        AsyncExternalStorage as AsyncExternalStorage,
+        ExternalStorageWithRawResponse as ExternalStorageWithRawResponse,
+        AsyncExternalStorageWithRawResponse as AsyncExternalStorageWithRawResponse,
+        ExternalStorageWithStreamingResponse as ExternalStorageWithStreamingResponse,
+        AsyncExternalStorageWithStreamingResponse as AsyncExternalStorageWithStreamingResponse,
+    )
 
 else:
     _EXPORTS = {
+        "ExternalStorage": (".external_storage", "ExternalStorage"),
+        "AsyncExternalStorage": (".external_storage", "AsyncExternalStorage"),
+        "ExternalStorageWithRawResponse": (".external_storage", "ExternalStorageWithRawResponse"),
+        "AsyncExternalStorageWithRawResponse": (".external_storage", "AsyncExternalStorageWithRawResponse"),
+        "ExternalStorageWithStreamingResponse": (".external_storage", "ExternalStorageWithStreamingResponse"),
+        "AsyncExternalStorageWithStreamingResponse": (".external_storage", "AsyncExternalStorageWithStreamingResponse"),
         "AuditLogs": (".audit_logs", "AuditLogs"),
         "AsyncAuditLogs": (".audit_logs", "AsyncAuditLogs"),
         "AuditLogsWithRawResponse": (".audit_logs", "AuditLogsWithRawResponse"),
@@ -194,6 +208,7 @@ else:
         "audit_logs",
         "certificates",
         "data_retention",
+        "external_storage",
         "groups",
         "invites",
         "organization",
@@ -223,6 +238,12 @@ else:
 
 
 __all__ = [
+    "ExternalStorage",
+    "AsyncExternalStorage",
+    "ExternalStorageWithRawResponse",
+    "AsyncExternalStorageWithRawResponse",
+    "ExternalStorageWithStreamingResponse",
+    "AsyncExternalStorageWithStreamingResponse",
     "AuditLogs",
     "AsyncAuditLogs",
     "AuditLogsWithRawResponse",
