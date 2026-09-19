@@ -27,7 +27,7 @@ class Result(BaseModel):
     answer: str
 
 
-def _message(text: str, phase: str | None = "final_answer") -> dict[str, Any]:
+def _message(text: str | None, phase: str | None = "final_answer") -> dict[str, Any]:
     message: dict[str, Any] = {
         "id": f"msg_{phase}",
         "type": "message",
@@ -349,3 +349,47 @@ async def test_parsing_reuses_types_across_contexts(sync: bool, streaming: bool)
     assert len(response_types) == 1
     if streaming:
         assert len(event_types) == 1
+
+
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+@pytest.mark.parametrize("empty_text", [None, ""], ids=["null", "empty-string"])
+async def test_parse_handles_null_and_empty_output_text(sync: bool, empty_text: str | None) -> None:
+    output = [_message(empty_text, "final_answer")]
+    response = await _parse(sync, output)
+    assert response.output_parsed is None
+    assert response.output[0].content[0].parsed is None
+
+
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+@pytest.mark.parametrize("empty_text", [None, ""], ids=["null", "empty-string"])
+async def test_stream_handles_null_and_empty_output_text(sync: bool, empty_text: str | None) -> None:
+    message = _message(empty_text, "final_answer")
+    events = [
+        {"type": "response.created", "response": _response([])},
+        {
+            "type": "response.output_item.added",
+            "output_index": 0,
+            "item": {**message, "status": "in_progress", "content": []},
+        },
+        {
+            "type": "response.content_part.added",
+            "output_index": 0,
+            "content_index": 0,
+            "part": {"type": "output_text", "text": "", "annotations": [], "logprobs": []},
+        },
+        {
+            "type": "response.output_text.done",
+            "output_index": 0,
+            "content_index": 0,
+            "item_id": message["id"],
+            "text": empty_text,
+            "logprobs": [],
+        },
+        {"type": "response.output_item.done", "output_index": 0, "item": message},
+        {"type": "response.completed", "response": _response([message])},
+    ]
+    emitted, final = await _stream(sync, events)
+    done = [event for event in emitted if event.type == "response.output_text.done"]
+    assert len(done) == 1
+    assert done[0].parsed is None
+    assert final.output_parsed is None
