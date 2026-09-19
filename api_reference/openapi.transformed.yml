@@ -22689,6 +22689,317 @@ paths:
       x-oaiMeta:
         group: live
         returns: The stored session recording as binary stereo WAV audio.
+  /organization/external_storage:
+    get:
+      summary: List external storage configurations
+      description: List the organization's customer-managed external storage configurations.
+      operationId: Listexternalstorageconfigurations
+      parameters:
+      - name: project_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - example: proj_123
+            type: string
+          - type: 'null'
+      - name: after
+        in: query
+        description: Return external storage configurations after this ID.
+        required: false
+        schema:
+          anyOf:
+          - description: Return external storage configurations after this ID.
+            type: string
+          - type: 'null'
+      - name: order
+        in: query
+        required: false
+        schema:
+          $ref: '#/components/schemas/ExternalStorageOrder'
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExternalStorageListResource'
+      x-oaiMeta:
+        group: administration
+        examples:
+          request:
+            curl: |
+              curl "https://api.openai.com/v1/organization/external_storage?limit=20&order=desc" \
+                -H "Authorization: Bearer $OPENAI_ADMIN_KEY" \
+                -H "Content-Type: application/json"
+          response: |
+            {
+              "object": "list",
+              "data": [
+                {
+                  "object": "organization.external_storage",
+                  "id": "extstorage_abc123",
+                  "project_id": "proj_abc123",
+                  "provider": {
+                    "type": "aws",
+                    "account_id": "123456789012",
+                    "region": "us-east-1",
+                    "bucket": "customer-logs",
+                    "role_arn": "arn:aws:iam::123456789012:role/OpenAIExternalStorageRole",
+                    "external_id": "proj_abc123"
+                  },
+                  "geography": "US",
+                  "status": "validated",
+                  "created_at": 1711471533
+                },
+                {
+                  "object": "organization.external_storage",
+                  "id": "extstorage_azure123",
+                  "project_id": "proj_azure123",
+                  "provider": {
+                    "type": "azure",
+                    "tenant_id": "11111111-1111-1111-1111-111111111111",
+                    "subscription_id": "22222222-2222-2222-2222-222222222222",
+                    "resource_group": "customer-rg",
+                    "account_name": "customerstorage",
+                    "container": "openai-data",
+                    "region": "eastus"
+                  },
+                  "geography": "US",
+                  "status": "validated",
+                  "created_at": 1711471500
+                }
+              ],
+              "first_id": "extstorage_abc123",
+              "last_id": "extstorage_azure123",
+              "has_more": false
+            }
+      security:
+      - AdminApiKeyAuth: []
+    post:
+      summary: Create an external storage configuration
+      description: Register one customer-managed external storage configuration.
+      operationId: Createanexternalstorageconfiguration
+      parameters: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateExternalStorageBody'
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExternalStorageResponse'
+      x-oaiMeta:
+        group: administration
+        examples:
+        - title: AWS S3
+          request:
+            curl: |
+              curl -X POST https://api.openai.com/v1/organization/external_storage \
+                -H "Authorization: Bearer $OPENAI_ADMIN_KEY" \
+                -H "Content-Type: application/json" \
+                -d '{
+                  "project_id": "proj_abc123",
+                  "provider": {
+                    "type": "aws",
+                    "bucket": "customer-logs",
+                    "role_arn": "arn:aws:iam::123456789012:role/OpenAIExternalStorageRole"
+                  }
+                }'
+          response: |
+            {
+              "object": "organization.external_storage",
+              "id": "extstorage_abc123",
+              "project_id": "proj_abc123",
+              "provider": {
+                "type": "aws",
+                "account_id": "123456789012",
+                "region": "us-east-1",
+                "bucket": "customer-logs",
+                "role_arn": "arn:aws:iam::123456789012:role/OpenAIExternalStorageRole",
+                "external_id": "proj_abc123"
+              },
+              "geography": "US",
+              "status": "pending",
+              "created_at": 1711471533
+            }
+        - title: Azure Blob Storage
+          request:
+            curl: |
+              curl -X POST https://api.openai.com/v1/organization/external_storage \
+                -H "Authorization: Bearer $OPENAI_ADMIN_KEY" \
+                -H "Content-Type: application/json" \
+                -d '{
+                  "project_id": "proj_azure123",
+                  "provider": {
+                    "type": "azure",
+                    "tenant_id": "11111111-1111-1111-1111-111111111111",
+                    "subscription_id": "22222222-2222-2222-2222-222222222222",
+                    "resource_group": "customer-rg",
+                    "account_name": "customerstorage",
+                    "container": "openai-data"
+                  }
+                }'
+          response: |
+            {
+              "object": "organization.external_storage",
+              "id": "extstorage_azure123",
+              "project_id": "proj_azure123",
+              "provider": {
+                "type": "azure",
+                "tenant_id": "11111111-1111-1111-1111-111111111111",
+                "subscription_id": "22222222-2222-2222-2222-222222222222",
+                "resource_group": "customer-rg",
+                "account_name": "customerstorage",
+                "container": "openai-data",
+                "region": "eastus"
+              },
+              "geography": "US",
+              "status": "pending",
+              "created_at": 1711471533
+            }
+      security:
+      - AdminApiKeyAuth: []
+  /organization/external_storage/{external_storage_id}:
+    get:
+      summary: Get an external storage configuration
+      description: Get one customer-managed external storage configuration.
+      operationId: Getanexternalstorageconfiguration
+      parameters:
+      - name: external_storage_id
+        in: path
+        required: true
+        schema:
+          example: extstorage_123
+          type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExternalStorageResponse'
+      x-oaiMeta:
+        group: administration
+        examples:
+          request:
+            curl: |
+              curl https://api.openai.com/v1/organization/external_storage/extstorage_azure123 \
+                -H "Authorization: Bearer $OPENAI_ADMIN_KEY" \
+                -H "Content-Type: application/json"
+          response: |
+            {
+              "object": "organization.external_storage",
+              "id": "extstorage_azure123",
+              "project_id": "proj_azure123",
+              "provider": {
+                "type": "azure",
+                "tenant_id": "11111111-1111-1111-1111-111111111111",
+                "subscription_id": "22222222-2222-2222-2222-222222222222",
+                "resource_group": "customer-rg",
+                "account_name": "customerstorage",
+                "container": "openai-data",
+                "region": "eastus"
+              },
+              "geography": "US",
+              "status": "validated",
+              "created_at": 1711471533
+            }
+      security:
+      - AdminApiKeyAuth: []
+    delete:
+      summary: Delete an external storage configuration
+      description: Soft-delete one customer-managed external storage configuration.
+      operationId: Deleteanexternalstorageconfiguration
+      parameters:
+      - name: external_storage_id
+        in: path
+        required: true
+        schema:
+          example: extstorage_123
+          type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExternalStorageDeletedResource'
+      x-oaiMeta:
+        group: administration
+        examples:
+          request:
+            curl: |
+              curl -X DELETE https://api.openai.com/v1/organization/external_storage/extstorage_abc123 \
+                -H "Authorization: Bearer $OPENAI_ADMIN_KEY" \
+                -H "Content-Type: application/json"
+          response: |
+            {
+              "object": "organization.external_storage.deleted",
+              "id": "extstorage_abc123",
+              "deleted": true
+            }
+      security:
+      - AdminApiKeyAuth: []
+  /organization/external_storage/{external_storage_id}/validate:
+    post:
+      summary: Validate an external storage configuration
+      description: Validate one customer-managed external storage configuration.
+      operationId: Validateanexternalstorageconfiguration
+      parameters:
+      - name: external_storage_id
+        in: path
+        required: true
+        schema:
+          example: extstorage_123
+          type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExternalStorageResponse'
+      x-oaiMeta:
+        group: administration
+        examples:
+          request:
+            curl: |
+              curl -X POST https://api.openai.com/v1/organization/external_storage/extstorage_azure123/validate \
+                -H "Authorization: Bearer $OPENAI_ADMIN_KEY" \
+                -H "Content-Type: application/json"
+          response: |
+            {
+              "object": "organization.external_storage",
+              "id": "extstorage_azure123",
+              "project_id": "proj_azure123",
+              "provider": {
+                "type": "azure",
+                "tenant_id": "11111111-1111-1111-1111-111111111111",
+                "subscription_id": "22222222-2222-2222-2222-222222222222",
+                "resource_group": "customer-rg",
+                "account_name": "customerstorage",
+                "container": "openai-data",
+                "region": "eastus"
+              },
+              "geography": "US",
+              "status": "validated",
+              "created_at": 1711471533
+            }
+      security:
+      - AdminApiKeyAuth: []
   /organization/spend_limit:
     get:
       summary: Get organization spend limit
@@ -31480,6 +31791,30 @@ components:
             id:
               type: string
               description: The ID of the external key configuration.
+        external_storage.registered:
+          type: object
+          description: The details for events with this `type`.
+          properties:
+            id:
+              type: string
+              description: The ID of the external storage configuration.
+            data:
+              type: object
+              description: The configuration for the external storage.
+              properties:
+                provider:
+                  $ref: '#/components/schemas/provider'
+                  description: The external storage provider configuration.
+                geography:
+                  type: string
+                  description: The OpenAI geography derived from the storage region.
+        external_storage.removed:
+          type: object
+          description: The details for events with this `type`.
+          properties:
+            id:
+              type: string
+              description: The ID of the external storage configuration.
         group.created:
           type: object
           description: The details for events with this `type`.
@@ -32266,6 +32601,8 @@ components:
       - checkpoint.permission.deleted
       - external_key.registered
       - external_key.removed
+      - external_storage.registered
+      - external_storage.removed
       - group.created
       - group.updated
       - group.deleted
@@ -70503,6 +70840,67 @@ components:
         URI that should appear in the SIP Refer-To header. Supports values like
         `tel:+14155550123` or `sip:agent@example.com`.
       example: tel:+14155550123
+    AwsExternalStorageProviderResponse:
+      properties:
+        type:
+          type: string
+          enum:
+          - aws
+          default: aws
+          x-stainless-const: true
+        account_id:
+          type: string
+        region:
+          type: string
+        bucket:
+          type: string
+        role_arn:
+          type: string
+        external_id:
+          type: string
+      type: object
+      required:
+      - type
+      - account_id
+      - region
+      - bucket
+      - role_arn
+      - external_id
+    AzureExternalStorageProviderResponse:
+      properties:
+        type:
+          type: string
+          enum:
+          - azure
+          default: azure
+          x-stainless-const: true
+        tenant_id:
+          type: string
+        subscription_id:
+          type: string
+        resource_group:
+          type: string
+        account_name:
+          type: string
+        container:
+          type: string
+        region:
+          type: string
+      type: object
+      required:
+      - type
+      - tenant_id
+      - subscription_id
+      - resource_group
+      - account_name
+      - container
+      - region
+    provider:
+      discriminator:
+        propertyName: type
+      anyOf:
+      - $ref: '#/components/schemas/AwsExternalStorageProviderResponse'
+      - $ref: '#/components/schemas/AzureExternalStorageProviderResponse'
     PublicProjectResidency:
       type: string
       enum:
@@ -71054,6 +71452,155 @@ components:
       - request_paused
       - error_type
       - reason
+    ExternalStorageOrder:
+      type: string
+      enum:
+      - asc
+      - desc
+    ExternalStorageStatus:
+      type: string
+      enum:
+      - pending
+      - validated
+      - unhealthy
+    ExternalStorageResponse:
+      properties:
+        object:
+          type: string
+          enum:
+          - organization.external_storage
+          default: organization.external_storage
+          x-stainless-const: true
+        id:
+          type: string
+        project_id:
+          type: string
+        provider:
+          discriminator:
+            propertyName: type
+          anyOf:
+          - $ref: '#/components/schemas/AwsExternalStorageProviderResponse'
+          - $ref: '#/components/schemas/AzureExternalStorageProviderResponse'
+        geography:
+          type: string
+        status:
+          $ref: '#/components/schemas/ExternalStorageStatus'
+        created_at:
+          type: integer
+          format: unixtime
+      type: object
+      required:
+      - object
+      - id
+      - project_id
+      - provider
+      - geography
+      - status
+      - created_at
+    ExternalStorageListResource:
+      properties:
+        object:
+          type: string
+          enum:
+          - list
+          default: list
+          x-stainless-const: true
+        data:
+          items:
+            $ref: '#/components/schemas/ExternalStorageResponse'
+          type: array
+        first_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+        last_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+        has_more:
+          type: boolean
+      type: object
+      required:
+      - object
+      - data
+      - first_id
+      - last_id
+      - has_more
+    AwsExternalStorageProviderParams:
+      properties:
+        type:
+          type: string
+          enum:
+          - aws
+          default: aws
+          x-stainless-const: true
+        bucket:
+          type: string
+        role_arn:
+          type: string
+      type: object
+      required:
+      - type
+      - bucket
+      - role_arn
+    AzureExternalStorageProviderParams:
+      properties:
+        type:
+          type: string
+          enum:
+          - azure
+          default: azure
+          x-stainless-const: true
+        tenant_id:
+          type: string
+        subscription_id:
+          type: string
+        resource_group:
+          type: string
+        account_name:
+          type: string
+        container:
+          type: string
+      type: object
+      required:
+      - type
+      - tenant_id
+      - subscription_id
+      - resource_group
+      - account_name
+      - container
+    CreateExternalStorageBody:
+      properties:
+        project_id:
+          type: string
+          example: proj_123
+        provider:
+          discriminator:
+            propertyName: type
+          anyOf:
+          - $ref: '#/components/schemas/AwsExternalStorageProviderParams'
+          - $ref: '#/components/schemas/AzureExternalStorageProviderParams'
+      type: object
+      required:
+      - project_id
+      - provider
+    ExternalStorageDeletedResource:
+      properties:
+        object:
+          type: string
+          enum:
+          - organization.external_storage.deleted
+          default: organization.external_storage.deleted
+          x-stainless-const: true
+        id:
+          type: string
+        deleted:
+          type: boolean
+      type: object
+      required:
+      - object
+      - id
+      - deleted
     SpendLimitCurrency:
       anyOf:
       - type: string
