@@ -10321,6 +10321,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GroupUserAssignment'
+        '400':
+          description: The request contains invalid parameters or an invalid body.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: The caller lacks the required permissions or is not using an admin API key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PermissionErrorResponse'
+        '404':
+          description: The group or user was not found in the organization, or this endpoint is unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: |
+            The request conflicts with the current state of the group.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '429':
           $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
@@ -10416,6 +10441,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/GroupUserDeletedResource'
+        '400':
+          description: The request contains invalid parameters.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: The caller lacks the required permissions or is not using an admin API key.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PermissionErrorResponse'
+        '404':
+          description: The group or user was not found in the organization, or this endpoint is unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: |
+            The request conflicts with the current state of the group.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '429':
           $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
@@ -10619,6 +10669,34 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/InviteDeleteResponse'
+        '400':
+          description: |
+            The request is invalid or the invite cannot be deleted in its current state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: |
+            The caller is not permitted to delete the invite.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PermissionErrorResponse'
+        '404':
+          description: |
+            The invite was not found in the organization.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: |
+            The request rate limit was exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
       x-oaiMeta:
         group: administration
         examples:
@@ -12227,6 +12305,34 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProjectServiceAccountDeleteResponse'
+        '400':
+          description: |
+            The request is invalid or the service account cannot be deleted in its current state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: |
+            The caller is not permitted to delete the service account.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PermissionErrorResponse'
+        '404':
+          description: |
+            The project or service account was not found in the organization.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: |
+            The request rate limit was exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
       x-oaiMeta:
         group: administration
         examples:
@@ -12640,7 +12746,34 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProjectUser'
         '400':
-          description: Error response for various conditions.
+          description: |
+            The request is invalid or the user cannot be added to the project in its current state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: The caller lacks the required permissions.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PermissionErrorResponse'
+        '404':
+          description: |
+            The project or user was not found in the organization.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: |
+            The request conflicts with the current state of the resource.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: The request exceeded the rate limit.
           content:
             application/json:
               schema:
@@ -14883,6 +15016,34 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserDeleteResponse'
+        '400':
+          description: |
+            The request is invalid or the user cannot be removed in their current state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: |
+            The caller is not permitted to delete the user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PermissionErrorResponse'
+        '404':
+          description: |
+            The user was not found in the organization.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: |
+            The request rate limit was exceeded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
       x-oaiMeta:
         group: administration
         examples:
@@ -26660,7 +26821,7 @@ paths:
     delete:
       operationId: deleteAgentSession
       summary: Delete an agent session
-      description: Removes a managed agent session from the public API and returns a deletion confirmation. Physical cleanup may continue asynchronously. See [managing sessions](https://developers.openai.com/api/docs/guides/agents-api/sessions/manage).
+      description: Removes a managed agent session from the public API and returns a deletion confirmation. If backend execution has ended, deletion can cancel a still-open public turn and abandon unpublished outputs. Running execution must be cancelled first. Physical cleanup may continue asynchronously. See [managing sessions](https://developers.openai.com/api/docs/guides/agents-api/sessions/manage).
       tags:
       - Agents
       parameters:
@@ -27114,7 +27275,7 @@ paths:
     post:
       operationId: createAgentSessionEvents
       summary: Create agent session input events
-      description: Submits message, cancellation, or tool-result events to a managed agent session. See [session events](https://developers.openai.com/api/docs/guides/agents-api/sessions/events).
+      description: Submits message, cancellation, or tool-result events to a managed agent session. Cancellation can recover a still-open turn whose backend execution has ended by marking it cancelled and abandoning unpublished outputs. Saved results, published files, and existing terminal outcomes are preserved. HTTP 202 confirms acceptance, not durable completion. See [session events](https://developers.openai.com/api/docs/guides/agents-api/sessions/events).
       tags:
       - Agents
       parameters:
@@ -37477,6 +37638,9 @@ components:
           context_management:
             anyOf:
             - type: array
+              example:
+              - type: compaction
+                compact_threshold: 1000
               description: |
                 Context management configuration for this request.
               minItems: 1
@@ -46026,6 +46190,17 @@ components:
           Note that the final image may be sent before the full number of partial images
           are generated if the full image is generated more quickly.
       - type: 'null'
+    PermissionErrorResponse:
+      type: object
+      properties:
+        error:
+          description: Details about the permission error.
+          anyOf:
+          - $ref: '#/components/schemas/Error'
+          - type: string
+            description: An explanation of the missing API permissions.
+      required:
+      - error
     PredictionContent:
       type: object
       title: Static Content
@@ -49894,7 +50069,7 @@ components:
       - $ref: '#/components/schemas/RealtimeClientEventSessionUpdate'
     RealtimeClientEventConversationItemCreate:
       type: object
-      description: "Add a new Item to the Conversation's context, including messages, function \ncalls, and function call responses. This event can be used both to populate a \n\"history\" of the conversation and to add new items mid-stream, but has the \ncurrent limitation that it cannot populate assistant audio messages.\n\nIf successful, the server will respond with a `conversation.item.created` \nevent, otherwise an `error` event will be sent.\n"
+      description: "Add a new Item to the Conversation's context, including messages, function \ncalls, and function call responses. This event can be used both to populate a \n\"history\" of the conversation and to add new items mid-stream, but has the \ncurrent limitation that it cannot populate assistant audio messages.\n\nIf successful, the server will emit a `conversation.item.added` event and,\nwhen the item is finalized, a `conversation.item.done` event. Otherwise, an\n`error` event will be sent.\n"
       properties:
         event_id:
           type: string
@@ -76384,7 +76559,7 @@ components:
       - disabled
       - restricted
       x-enumDescriptions:
-      - Allows unrestricted network access, matching an omitted network policy.
+      - Allows unrestricted network access.
       - Disables network access.
       - Allows access only to configured domains.
       description: The network access mode for an OpenAI-hosted environment.
@@ -76580,7 +76755,7 @@ components:
           anyOf:
           - $ref: '#/components/schemas/NetworkPolicyParam'
           - type: 'null'
-          description: Network access policy for the environment. Defaults to enabled.
+          description: Network access policy for the environment. Defaults to disabled for GA requests and enabled for alpha/beta requests.
         env:
           type:
           - object
@@ -76671,7 +76846,7 @@ components:
           anyOf:
           - $ref: '#/components/schemas/NetworkPolicyParam'
           - type: 'null'
-          description: Network access available after setup completes.
+          description: Network access available after setup completes. Omit to preserve the current policy, or pass `null` to reset to disabled for GA requests or enabled for alpha/beta requests.
         env:
           type:
           - object
@@ -77780,7 +77955,7 @@ components:
           anyOf:
           - $ref: '#/components/schemas/NetworkPolicyParam'
           - type: 'null'
-          description: Network access policy for the environment. Defaults to enabled.
+          description: Network access policy for the environment. Defaults to disabled for GA requests and enabled for alpha/beta requests.
         env:
           type:
           - object
@@ -79486,7 +79661,6 @@ components:
           - $ref: '#/components/schemas/ReasoningEffortParam'
           - type: 'null'
           description: Omit to keep the current effort. Null selects the model's default effort.
-          x-openai-go-optional-enum: true
       additionalProperties: false
       description: Reasoning effort for subsequent turns. The reasoning summary stays unchanged.
     UpdateSessionAgentParam:
@@ -79505,7 +79679,6 @@ components:
           - $ref: '#/components/schemas/ServiceTierParam'
           - type: 'null'
           description: Omit to keep the current tier. Null resets it to auto.
-          x-openai-go-optional-enum: true
       additionalProperties: false
       description: Model settings that can change after session creation.
     UpdateAgentSessionParams:
@@ -94803,6 +94976,9 @@ components:
           context_management:
             anyOf:
             - type: array
+              example:
+              - type: compaction
+                compact_threshold: 1000
               description: |
                 Context management configuration for this request.
               minItems: 1
@@ -95249,7 +95425,6 @@ components:
       - gpt-3.5-turbo-1106
       - gpt-3.5-turbo-0125
       - gpt-3.5-turbo-16k-0613
-      - gpt-5.1-mini
       x-stainless-nominal: false
     LiveBuiltInVoice:
       type: string

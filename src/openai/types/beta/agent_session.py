@@ -134,9 +134,9 @@ class AgentSession(BaseModel):
     """
 
     usage: Optional[TokenUsage] = None
-    """Recorded token usage for a session or turn.
+    """Best-effort token usage for the session, or null if unknown.
 
-    Usage is best effort and may change.
+    Recorded usage may change.
     """
 
     vault_ids: List[str]

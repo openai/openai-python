@@ -175,8 +175,11 @@ class CompletionCreateParamsBase(TypedDict, total=False):
 
     prediction: Optional[ChatCompletionPredictionContentParam]
     """
-    Static predicted output content, such as the content of a text file that is
-    being regenerated.
+    Configuration for a
+    [Predicted Output](https://developers.openai.com/api/docs/guides/predicted-outputs),
+    which can greatly improve response times when large parts of the model response
+    are known ahead of time. This is most common when you are regenerating a file
+    with only minor changes to most of the content.
     """
 
     presence_penalty: Optional[float]

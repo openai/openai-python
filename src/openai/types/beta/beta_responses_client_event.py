@@ -413,7 +413,6 @@ class ResponseCreate(BaseModel):
             "gpt-3.5-turbo-1106",
             "gpt-3.5-turbo-0125",
             "gpt-3.5-turbo-16k-0613",
-            "gpt-5.1-mini",
             "o1-pro",
             "o1-pro-2025-03-19",
             "o3-pro",

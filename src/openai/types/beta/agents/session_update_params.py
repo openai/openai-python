@@ -24,7 +24,7 @@ class AgentReasoning(TypedDict, total=False):
     """Reasoning settings to update. Omit to keep the current effort."""
 
     effort: Optional[Literal["none", "minimal", "low", "medium", "high", "xhigh", "max"]]
-    """The amount of reasoning effort the model should use."""
+    """Omit to keep the current effort. Null selects the model's default effort."""
 
 
 class Agent(TypedDict, total=False):
@@ -37,7 +37,7 @@ class Agent(TypedDict, total=False):
     """Reasoning settings to update. Omit to keep the current effort."""
 
     service_tier: Optional[Literal["auto", "default", "flex", "priority", "fast"]]
-    """The service tier used for model requests.
+    """Omit to keep the current tier. Null resets it to auto.
 
     - `auto` - Selects the service tier automatically.
     - `default` - Uses the default service tier.

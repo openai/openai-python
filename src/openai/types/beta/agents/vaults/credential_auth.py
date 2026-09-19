@@ -16,9 +16,7 @@ __all__ = [
 
 
 class VaultCredentialAuthResourceMcpOauthRefresh(BaseModel):
-    """
-    Configuration used to refresh an MCP OAuth access token, excluding secret values.
-    """
+    """Public refresh metadata without refresh tokens or OAuth client secrets."""
 
     client_id: str
     """The OAuth client ID used when requesting a new access token."""
@@ -53,10 +51,7 @@ class VaultCredentialAuthResourceMcpOauth(BaseModel):
     """The HTTPS MCP server URL authorized by this credential."""
 
     refresh: Optional[VaultCredentialAuthResourceMcpOauthRefresh] = None
-    """
-    Configuration used to refresh an MCP OAuth access token, excluding secret
-    values.
-    """
+    """Public refresh metadata without refresh tokens or OAuth client secrets."""
 
     type: Literal["mcp_oauth"]
     """The type of the object. Always `mcp_oauth`."""

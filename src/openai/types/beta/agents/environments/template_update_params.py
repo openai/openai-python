@@ -28,10 +28,14 @@ class TemplateUpdateParams(TypedDict, total=False):
     """A replacement human-readable display name, or `null` to clear the name."""
 
     network: Optional[Network]
-    """Network access for an OpenAI-hosted environment."""
+    """Network access available after setup completes.
+
+    Omit to preserve the current policy, or pass `null` to reset to disabled for GA
+    requests or enabled for alpha/beta requests.
+    """
 
     packages: Optional[Packages]
-    """Packages to install in an OpenAI-hosted environment."""
+    """Packages installed before the runtime network policy applies."""
 
     plugins: Optional[Iterable[HostedPluginParam]]
     """Replacement plugin configuration installed for each new session."""
@@ -44,13 +48,15 @@ class TemplateUpdateParams(TypedDict, total=False):
 
 
 class Network(TypedDict, total=False):
-    """Network access for an OpenAI-hosted environment."""
+    """Network access available after setup completes.
+
+    Omit to preserve the current policy, or pass `null` to reset to disabled for GA requests or enabled for alpha/beta requests.
+    """
 
     access: Required[Literal["enabled", "disabled", "restricted"]]
     """The environment's network access mode.
 
-    - `enabled` - Allows unrestricted network access, matching an omitted network
-      policy.
+    - `enabled` - Allows unrestricted network access.
     - `disabled` - Disables network access.
     - `restricted` - Allows access only to configured domains.
     """
@@ -60,7 +66,7 @@ class Network(TypedDict, total=False):
 
 
 class Packages(TypedDict, total=False):
-    """Packages to install in an OpenAI-hosted environment."""
+    """Packages installed before the runtime network policy applies."""
 
     npm: Optional[SequenceNotStr[str]]
     """npm packages to install globally. Defaults to an empty list."""

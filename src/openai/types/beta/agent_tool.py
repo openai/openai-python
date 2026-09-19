@@ -78,7 +78,7 @@ class AgentToolResourceMcp(BaseModel):
 
 
 class AgentToolResourceWebSearchLocation(BaseModel):
-    """Approximate user location used to localize web search results."""
+    """Approximate location used to localize search results, if provided."""
 
     city: Optional[str] = None
     """The city name."""
@@ -103,7 +103,7 @@ class AgentToolResourceWebSearch(BaseModel):
     """The amount of search context made available to the model. Defaults to `medium`."""
 
     location: Optional[AgentToolResourceWebSearchLocation] = None
-    """Approximate user location used to localize web search results."""
+    """Approximate location used to localize search results, if provided."""
 
     mode: Literal["disabled", "cached", "live"]
     """The source used for web search results."""
