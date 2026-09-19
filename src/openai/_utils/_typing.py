@@ -9,6 +9,7 @@ from typing_extensions import (
     TypeIs,
     Required,
     Annotated,
+    NotRequired,
     get_args,
     get_origin,
 )
@@ -45,6 +46,10 @@ def is_required_type(typ: type) -> bool:
     return get_origin(typ) == Required
 
 
+def is_not_required_type(typ: type) -> bool:
+    return get_origin(typ) == NotRequired
+
+
 def is_typevar(typ: type) -> bool:
     # type ignore is required because type checkers
     # think this expression will always return False
@@ -71,10 +76,10 @@ def is_type_alias_type(tp: Any, /) -> TypeIs[typing_extensions.TypeAliasType]:
     return isinstance(tp, _TYPE_ALIAS_TYPES)
 
 
-# Extracts T from Annotated[T, ...] or from Required[Annotated[T, ...]]
+# Extracts T from Annotated[T, ...], including Required and NotRequired wrappers
 @lru_cache(maxsize=8096)
 def strip_annotated_type(typ: type) -> type:
-    if is_required_type(typ) or is_annotated_type(typ):
+    if is_required_type(typ) or is_not_required_type(typ) or is_annotated_type(typ):
         return strip_annotated_type(cast(type, get_args(typ)[0]))
 
     return typ
