@@ -17,12 +17,14 @@ from .response_cancelled_webhook_event import ResponseCancelledWebhookEvent
 from .response_completed_webhook_event import ResponseCompletedWebhookEvent
 from .response_incomplete_webhook_event import ResponseIncompleteWebhookEvent
 from .safety_alert_created_webhook_event import SafetyAlertCreatedWebhookEvent
+from .safety_warning_issued_webhook_event import SafetyWarningIssuedWebhookEvent
 from .fine_tuning_job_failed_webhook_event import FineTuningJobFailedWebhookEvent
 from .realtime_call_incoming_webhook_event import RealtimeCallIncomingWebhookEvent
 from .live_transport_incoming_webhook_event import LiveTransportIncomingWebhookEvent
 from .safety_org_alert_created_webhook_event import SafetyOrgAlertCreatedWebhookEvent
 from .fine_tuning_job_cancelled_webhook_event import FineTuningJobCancelledWebhookEvent
 from .fine_tuning_job_succeeded_webhook_event import FineTuningJobSucceededWebhookEvent
+from .safety_deactivation_issued_webhook_event import SafetyDeactivationIssuedWebhookEvent
 
 __all__ = ["UnwrapWebhookEvent"]
 
@@ -46,7 +48,9 @@ UnwrapWebhookEvent: TypeAlias = Annotated[
         ResponseFailedWebhookEvent,
         ResponseIncompleteWebhookEvent,
         SafetyAlertCreatedWebhookEvent,
+        SafetyDeactivationIssuedWebhookEvent,
         SafetyOrgAlertCreatedWebhookEvent,
+        SafetyWarningIssuedWebhookEvent,
     ],
     PropertyInfo(discriminator="type"),
 ]

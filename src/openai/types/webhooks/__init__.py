@@ -27,6 +27,7 @@ from .response_cancelled_webhook_event import ResponseCancelledWebhookEvent as R
 from .response_completed_webhook_event import ResponseCompletedWebhookEvent as ResponseCompletedWebhookEvent
 from .response_incomplete_webhook_event import ResponseIncompleteWebhookEvent as ResponseIncompleteWebhookEvent
 from .safety_alert_created_webhook_event import SafetyAlertCreatedWebhookEvent as SafetyAlertCreatedWebhookEvent
+from .safety_warning_issued_webhook_event import SafetyWarningIssuedWebhookEvent as SafetyWarningIssuedWebhookEvent
 from .fine_tuning_job_failed_webhook_event import FineTuningJobFailedWebhookEvent as FineTuningJobFailedWebhookEvent
 from .realtime_call_incoming_webhook_event import RealtimeCallIncomingWebhookEvent as RealtimeCallIncomingWebhookEvent
 from .live_transport_incoming_webhook_event import (
@@ -40,4 +41,7 @@ from .fine_tuning_job_cancelled_webhook_event import (
 )
 from .fine_tuning_job_succeeded_webhook_event import (
     FineTuningJobSucceededWebhookEvent as FineTuningJobSucceededWebhookEvent,
+)
+from .safety_deactivation_issued_webhook_event import (
+    SafetyDeactivationIssuedWebhookEvent as SafetyDeactivationIssuedWebhookEvent,
 )
