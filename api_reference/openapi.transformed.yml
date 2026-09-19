@@ -80015,7 +80015,7 @@ components:
       - metadata
       - created_at
       additionalProperties: false
-      description: A collection of credentials that agent tools can use to authenticate to MCP servers.
+      description: A collection of credentials for MCP servers and OpenAI-hosted environments.
     VaultListResource:
       type: object
       properties:
@@ -80247,19 +80247,95 @@ components:
       - mcp_server_url
       additionalProperties: false
       description: Metadata for a bearer-token credential, without automatic OAuth refresh.
+    VaultCredentialNetworkingResourceUnrestricted:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+          - unrestricted
+          default: unrestricted
+          x-stainless-const: true
+          description: The type of the object. Always `unrestricted`.
+      required:
+      - type
+      additionalProperties: false
+      description: Allows substitution for destinations permitted by the environment network policy. Requires `environment.network.access` to be `restricted`, with explicit `allowed_domains`.
+    VaultCredentialNetworkingResourceLimited:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+          - limited
+          default: limited
+          x-stainless-const: true
+          description: The type of the object. Always `limited`.
+        allowed_hosts:
+          type: array
+          items:
+            type: string
+            minLength: 0
+          minItems: 1
+          maxItems: 16
+          description: The 1 to 16 distinct allowed hostnames or IPv4 addresses, normalized to lowercase. Entries contain no scheme, path, port, or wildcard. IPv6 addresses are not supported.
+      required:
+      - type
+      - allowed_hosts
+      additionalProperties: false
+      description: Allows substitution only for the listed hosts. The environment network policy must also allow these hosts.
+    VaultCredentialNetworkingResource:
+      description: Destination permissions for an environment-variable credential. These do not grant network access to the environment.
+      discriminator:
+        propertyName: type
+        mapping:
+          unrestricted: '#/components/schemas/VaultCredentialNetworkingResourceUnrestricted'
+          limited: '#/components/schemas/VaultCredentialNetworkingResourceLimited'
+      x-oai-discriminator-values:
+      - unrestricted
+      - limited
+      anyOf:
+      - $ref: '#/components/schemas/VaultCredentialNetworkingResourceUnrestricted'
+      - $ref: '#/components/schemas/VaultCredentialNetworkingResourceLimited'
+    VaultCredentialAuthResourceEnvironmentVariable:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+          - environment_variable
+          default: environment_variable
+          x-stainless-const: true
+          description: The type of the object. Always `environment_variable`.
+        secret_name:
+          type: string
+          minLength: 0
+          description: The environment variable name that receives the placeholder in the sandbox.
+        networking:
+          $ref: '#/components/schemas/VaultCredentialNetworkingResource'
+          description: The destinations where the proxy can substitute the secret, subject to the environment network policy.
+      required:
+      - type
+      - secret_name
+      - networking
+      additionalProperties: false
+      description: Metadata for an HTTP credential used only in OpenAI-hosted environments. Sandbox code receives a placeholder. The proxy substitutes the secret for allowed HTTPS destinations on ports 443 and 8443. The real secret is not available to sandbox code for local computation and is never returned in this resource.
     VaultCredentialAuthResource:
-      description: The MCP server and authentication configuration of a vault credential, excluding secrets.
+      description: The authentication configuration of a vault credential, excluding secrets.
       discriminator:
         propertyName: type
         mapping:
           mcp_oauth: '#/components/schemas/VaultCredentialAuthResourceMcpOauth'
           static_bearer: '#/components/schemas/VaultCredentialAuthResourceStaticBearer'
+          environment_variable: '#/components/schemas/VaultCredentialAuthResourceEnvironmentVariable'
       x-oai-discriminator-values:
       - mcp_oauth
       - static_bearer
+      - environment_variable
       anyOf:
       - $ref: '#/components/schemas/VaultCredentialAuthResourceMcpOauth'
       - $ref: '#/components/schemas/VaultCredentialAuthResourceStaticBearer'
+      - $ref: '#/components/schemas/VaultCredentialAuthResourceEnvironmentVariable'
     VaultCredentialResource:
       type: object
       properties:
@@ -80284,7 +80360,7 @@ components:
           description: The human-readable name of the credential.
         auth:
           $ref: '#/components/schemas/VaultCredentialAuthResource'
-          description: The authentication method and non-secret configuration for the MCP server.
+          description: The authentication method and non-secret configuration of the credential.
         created_at:
           type: integer
           format: int64
@@ -80302,7 +80378,7 @@ components:
       - created_at
       - updated_at
       additionalProperties: false
-      description: Metadata for a stored MCP server credential. Secret values are never returned.
+      description: Metadata for a stored credential. Secret values are never returned.
     VaultCredentialListResource:
       type: object
       properties:
@@ -80519,19 +80595,103 @@ components:
       - token
       additionalProperties: false
       description: A bearer token for an MCP server, without automatic OAuth refresh.
+    VaultCredentialNetworkingParamUnrestricted:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+          - unrestricted
+          default: unrestricted
+          x-stainless-const: true
+          description: The type of the object. Always `unrestricted`.
+      required:
+      - type
+      additionalProperties: false
+      description: Allows substitution for destinations permitted by the environment network policy. Requires `environment.network.access` to be `restricted`, with explicit `allowed_domains`.
+    VaultCredentialNetworkingParamLimited:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+          - limited
+          default: limited
+          x-stainless-const: true
+          description: The type of the object. Always `limited`.
+        allowed_hosts:
+          type: array
+          items:
+            type: string
+            minLength: 0
+            maxLength: 1048576
+          minItems: 1
+          maxItems: 16
+          description: The 1 to 16 distinct allowed hostnames or IPv4 addresses, normalized to lowercase. Entries contain no scheme, path, port, or wildcard. IPv6 addresses are not supported.
+      required:
+      - type
+      - allowed_hosts
+      additionalProperties: false
+      description: Allows substitution only for the listed hosts. The environment network policy must also allow these hosts.
+    VaultCredentialNetworkingParam:
+      description: Destination permissions for an environment-variable credential. These do not grant network access to the environment.
+      discriminator:
+        propertyName: type
+        mapping:
+          unrestricted: '#/components/schemas/VaultCredentialNetworkingParamUnrestricted'
+          limited: '#/components/schemas/VaultCredentialNetworkingParamLimited'
+      x-oai-discriminator-values:
+      - unrestricted
+      - limited
+      anyOf:
+      - $ref: '#/components/schemas/VaultCredentialNetworkingParamUnrestricted'
+      - $ref: '#/components/schemas/VaultCredentialNetworkingParamLimited'
+    CreateVaultCredentialAuthParamEnvironmentVariable:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+          - environment_variable
+          default: environment_variable
+          x-stainless-const: true
+          description: The type of the object. Always `environment_variable`.
+        secret_name:
+          type: string
+          minLength: 1
+          maxLength: 1048576
+          description: The environment variable name that receives the placeholder, such as `SERVICE_API_KEY`. Use ASCII letters, digits, and underscores, starting with a letter or underscore. Names starting with `CODEX_` and managed proxy or certificate variable names are reserved.
+        secret_value:
+          type: string
+          minLength: 1
+          maxLength: 1048576
+          description: The write-only secret to store. Never returned in credential resources or supplied directly to sandbox code. Must be nonempty and must not contain carriage returns, newlines, or NUL bytes.
+        networking:
+          $ref: '#/components/schemas/VaultCredentialNetworkingParam'
+          description: The destinations where the proxy can substitute this secret. The environment network policy must also allow them.
+      required:
+      - type
+      - secret_name
+      - secret_value
+      - networking
+      additionalProperties: false
+      description: An HTTP credential for OpenAI-hosted environments only. The sandbox receives an environment variable containing a placeholder, not the secret. Use the placeholder unchanged in outgoing requests. The egress proxy replaces the placeholder with the secret for allowed HTTPS destinations on ports 443 and 8443. Sandbox code cannot read the real secret or use it for local computation, such as signing a request.
     CreateVaultCredentialAuthParam:
-      description: Authentication credentials for an MCP server used by agent tools.
+      description: Authentication credentials for an MCP server or an OpenAI-hosted environment.
       discriminator:
         propertyName: type
         mapping:
           mcp_oauth: '#/components/schemas/CreateVaultCredentialAuthParamMcpOauth'
           static_bearer: '#/components/schemas/CreateVaultCredentialAuthParamStaticBearer'
+          environment_variable: '#/components/schemas/CreateVaultCredentialAuthParamEnvironmentVariable'
       x-oai-discriminator-values:
       - mcp_oauth
       - static_bearer
+      - environment_variable
       anyOf:
       - $ref: '#/components/schemas/CreateVaultCredentialAuthParamMcpOauth'
       - $ref: '#/components/schemas/CreateVaultCredentialAuthParamStaticBearer'
+      - $ref: '#/components/schemas/CreateVaultCredentialAuthParamEnvironmentVariable'
     CreateVaultCredentialParams:
       type: object
       properties:
@@ -80542,12 +80702,12 @@ components:
           description: The name is trimmed before storage. It must contain 1 to 256 UTF-8 bytes after trimming.
         auth:
           $ref: '#/components/schemas/CreateVaultCredentialAuthParam'
-          description: The authentication method and secret values to store for the MCP server.
+          description: The authentication method and write-only secret values to store.
       required:
       - auth
       - name
       additionalProperties: false
-      description: Parameters for storing a credential that authorizes access to an MCP server.
+      description: Parameters for storing a credential for an MCP server or an OpenAI-hosted environment.
     RotateMcpOauthTokenEndpointAuthParamClientSecretBasic:
       type: object
       properties:
@@ -80680,19 +80840,42 @@ components:
       - token
       additionalProperties: false
       description: Replace the bearer token for the credential's MCP server.
+    RotateVaultCredentialAuthParamEnvironmentVariable:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+          - environment_variable
+          default: environment_variable
+          x-stainless-const: true
+          description: The type of the object. Always `environment_variable`.
+        secret_value:
+          type: string
+          minLength: 1
+          maxLength: 1048576
+          description: The write-only replacement secret. Never returned in credential resources or supplied directly to sandbox code. Must be nonempty and must not contain carriage returns, newlines, or NUL bytes.
+      required:
+      - type
+      - secret_value
+      additionalProperties: false
+      description: Replace the secret for an OpenAI-hosted environment credential. The environment variable name and networking configuration remain unchanged.
     RotateVaultCredentialAuthParam:
-      description: Updates to a vault credential without changing its authentication method or MCP server.
+      description: Updates to a vault credential without changing its authentication method or destination configuration.
       discriminator:
         propertyName: type
         mapping:
           mcp_oauth: '#/components/schemas/RotateVaultCredentialAuthParamMcpOauth'
           static_bearer: '#/components/schemas/RotateVaultCredentialAuthParamStaticBearer'
+          environment_variable: '#/components/schemas/RotateVaultCredentialAuthParamEnvironmentVariable'
       x-oai-discriminator-values:
       - mcp_oauth
       - static_bearer
+      - environment_variable
       anyOf:
       - $ref: '#/components/schemas/RotateVaultCredentialAuthParamMcpOauth'
       - $ref: '#/components/schemas/RotateVaultCredentialAuthParamStaticBearer'
+      - $ref: '#/components/schemas/RotateVaultCredentialAuthParamEnvironmentVariable'
     RotateVaultCredentialParams:
       type: object
       properties:

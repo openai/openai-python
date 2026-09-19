@@ -12,6 +12,7 @@ __all__ = [
     "RotateVaultCredentialAuthParamMcpOauth",
     "RotateVaultCredentialAuthParamMcpOauthRefresh",
     "RotateVaultCredentialAuthParamStaticBearer",
+    "RotateVaultCredentialAuthParamEnvironmentVariable",
 ]
 
 
@@ -68,6 +69,25 @@ class RotateVaultCredentialAuthParamStaticBearer(TypedDict, total=False):
     """The type of the object. Always `static_bearer`."""
 
 
+class RotateVaultCredentialAuthParamEnvironmentVariable(TypedDict, total=False):
+    """Replace the secret for an OpenAI-hosted environment credential.
+
+    The environment variable name and networking configuration remain unchanged.
+    """
+
+    secret_value: Required[str]
+    """The write-only replacement secret.
+
+    Never returned in credential resources or supplied directly to sandbox code.
+    Must be nonempty and must not contain carriage returns, newlines, or NUL bytes.
+    """
+
+    type: Required[Literal["environment_variable"]]
+    """The type of the object. Always `environment_variable`."""
+
+
 CredentialAuthRotateParam: TypeAlias = Union[
-    RotateVaultCredentialAuthParamMcpOauth, RotateVaultCredentialAuthParamStaticBearer
+    RotateVaultCredentialAuthParamMcpOauth,
+    RotateVaultCredentialAuthParamStaticBearer,
+    RotateVaultCredentialAuthParamEnvironmentVariable,
 ]
