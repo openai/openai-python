@@ -5,6 +5,7 @@ from typing_extensions import Literal, Annotated, TypeAlias
 
 from ....._utils import PropertyInfo
 from ....._models import BaseModel
+from .credential_networking import CredentialNetworking
 from .mcp_oauth_token_endpoint_auth import McpOauthTokenEndpointAuth
 
 __all__ = [
@@ -12,6 +13,7 @@ __all__ = [
     "VaultCredentialAuthResourceMcpOauth",
     "VaultCredentialAuthResourceMcpOauthRefresh",
     "VaultCredentialAuthResourceStaticBearer",
+    "VaultCredentialAuthResourceEnvironmentVariable",
 ]
 
 
@@ -67,7 +69,30 @@ class VaultCredentialAuthResourceStaticBearer(BaseModel):
     """The type of the object. Always `static_bearer`."""
 
 
+class VaultCredentialAuthResourceEnvironmentVariable(BaseModel):
+    """Metadata for an HTTP credential used only in OpenAI-hosted environments.
+
+    Sandbox code receives a placeholder. The proxy substitutes the secret for allowed HTTPS destinations on ports 443 and 8443. The real secret is not available to sandbox code for local computation and is never returned in this resource.
+    """
+
+    networking: CredentialNetworking
+    """
+    The destinations where the proxy can substitute the secret, subject to the
+    environment network policy.
+    """
+
+    secret_name: str
+    """The environment variable name that receives the placeholder in the sandbox."""
+
+    type: Literal["environment_variable"]
+    """The type of the object. Always `environment_variable`."""
+
+
 CredentialAuth: TypeAlias = Annotated[
-    Union[VaultCredentialAuthResourceMcpOauth, VaultCredentialAuthResourceStaticBearer],
+    Union[
+        VaultCredentialAuthResourceMcpOauth,
+        VaultCredentialAuthResourceStaticBearer,
+        VaultCredentialAuthResourceEnvironmentVariable,
+    ],
     PropertyInfo(discriminator="type"),
 ]

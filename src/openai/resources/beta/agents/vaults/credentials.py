@@ -69,7 +69,7 @@ class Credentials(SyncAPIResource):
         [vaults](https://developers.openai.com/api/docs/guides/agents-api/tools/vaults).
 
         Args:
-          auth: The authentication method and secret values to store for the MCP server.
+          auth: The authentication method and write-only secret values to store.
 
           name: The name is trimmed before storage. It must contain 1 to 256 UTF-8 bytes after
               trimming.
@@ -352,7 +352,7 @@ class AsyncCredentials(AsyncAPIResource):
         [vaults](https://developers.openai.com/api/docs/guides/agents-api/tools/vaults).
 
         Args:
-          auth: The authentication method and secret values to store for the MCP server.
+          auth: The authentication method and write-only secret values to store.
 
           name: The name is trimmed before storage. It must contain 1 to 256 UTF-8 bytes after
               trimming.
