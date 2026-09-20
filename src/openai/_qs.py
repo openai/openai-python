@@ -113,7 +113,7 @@ class Querystring:
                 )
 
         serialised = self._primitive_value_to_str(value)
-        if not serialised:
+        if value is None:
             return []
         return [(key, serialised)]
 
