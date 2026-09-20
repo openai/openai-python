@@ -161,7 +161,7 @@ async def test_failure_and_retry_metadata(failure: str, asynchronous: bool, capl
         if failure == "timeout":
             raise httpx2.ReadTimeout(FAKE_SECRET, request=request)
         if failure == "connection":
-            raise RuntimeError(FAKE_SECRET)
+            raise httpx2.ConnectError(FAKE_SECRET)
         return httpx2.Response(
             500, json={"error": {"message": FAKE_SECRET}}, headers={"x-private": FAKE_SECRET, "retry-after-ms": "1"}
         )
@@ -187,26 +187,28 @@ async def test_failure_and_retry_metadata(failure: str, asynchronous: bool, capl
 
 
 WEBSOCKET_MODULES = [
-    "openai.resources.realtime.realtime",
-    "openai.resources.responses.responses",
-    "openai.resources.beta.responses.responses",
-    "openai.resources.beta.realtime.realtime",
+    ("openai.resources.realtime.realtime", "Realtime"),
+    ("openai.resources.responses.responses", "Responses"),
+    ("openai.resources.beta.responses.responses", "Responses"),
+    ("openai.resources.beta.realtime.realtime", "Realtime"),
+    ("openai.resources.live.live", "Live"),
+    ("openai.resources.live.forks", "Forks"),
+    ("openai.resources.live.sideband", "Sideband"),
 ]
 
 
-@pytest.mark.parametrize("module_name", WEBSOCKET_MODULES)
+@pytest.mark.parametrize("module_name, resource_name", WEBSOCKET_MODULES)
 @pytest.mark.parametrize("asynchronous", [False, True])
 @pytest.mark.parametrize("parsed", [False, True])
 async def test_websocket_receive_metadata(
-    module_name: str, asynchronous: bool, parsed: bool, caplog: pytest.LogCaptureFixture
+    module_name: str, resource_name: str, asynchronous: bool, parsed: bool, caplog: pytest.LogCaptureFixture
 ) -> None:
     module = importlib.import_module(module_name)
-    name = "RealtimeConnection" if ".realtime." in module_name else "ResponsesConnection"
+    name = resource_name + "Connection"
     cls = getattr(module, ("Async" if asynchronous else "") + name)
+    event_type = "session.input_transcript.delta" if ".live." in module_name else "response.output_text.delta"
     payload = (
-        json.dumps({"type": "response.output_text.delta", "delta": FAKE_SECRET}).encode()
-        if parsed
-        else b"\x00" + FAKE_SECRET.encode()
+        json.dumps({"type": event_type, "delta": FAKE_SECRET}).encode() if parsed else b"\x00" + FAKE_SECRET.encode()
     )
     websocket = Mock()
     websocket.recv = AsyncMock(return_value=payload) if asynchronous else Mock(return_value=payload)
@@ -217,22 +219,20 @@ async def test_websocket_receive_metadata(
             result = await result
     websocket.recv.assert_called_once_with(decode=False)
     if parsed:
-        assert result.type == "response.output_text.delta"
+        assert result.type == event_type
         assert result.delta == FAKE_SECRET
     else:
         assert result is payload
     assert assert_safe_logs(caplog) == [f"Received WebSocket message: {len(payload)} bytes"]
 
 
-@pytest.mark.parametrize("module_name", WEBSOCKET_MODULES)
+@pytest.mark.parametrize("module_name, resource_name", WEBSOCKET_MODULES)
 @pytest.mark.parametrize("asynchronous", [False, True])
 async def test_websocket_connection_metadata(
-    module_name: str, asynchronous: bool, caplog: pytest.LogCaptureFixture
+    module_name: str, resource_name: str, asynchronous: bool, caplog: pytest.LogCaptureFixture
 ) -> None:
     module = importlib.import_module(module_name)
-    realtime = ".realtime." in module_name
-    name = "Realtime" if realtime else "Responses"
-    cls = getattr(module, ("Async" if asynchronous else "") + name)
+    cls = getattr(module, ("Async" if asynchronous else "") + resource_name)
     websocket = Mock()
     websocket.send = AsyncMock() if asynchronous else Mock()
     websocket.close = AsyncMock() if asynchronous else Mock()
@@ -242,8 +242,10 @@ async def test_websocket_connection_metadata(
         "extra_headers": {"X-Custom": FAKE_SECRET},
         "websocket_connection_options": {"origin": FAKE_SECRET},
     }
-    if realtime:
+    if resource_name == "Realtime":
         kwargs["model"] = "fake-model"
+    elif resource_name in {"Forks", "Sideband"}:
+        kwargs["session_id"] = FAKE_SECRET
     with (
         caplog.at_level(logging.DEBUG, logger="openai"),
         patch("openai.lib._websocket._WebSocketConnect" if asynchronous else "websockets.sync.client.connect", connect),
@@ -307,13 +309,16 @@ async def test_response_parser_metadata(legacy: bool, asynchronous: bool, caplog
     assert assert_safe_logs(caplog) == ["Could not read JSON from response data due to ValueError"]
 
 
-@pytest.mark.parametrize("module_name", WEBSOCKET_MODULES[:3])
+@pytest.mark.parametrize(
+    "module_name, resource_name",
+    [entry for entry in WEBSOCKET_MODULES if entry[0] != "openai.resources.beta.realtime.realtime"],
+)
 @pytest.mark.parametrize("asynchronous", [False, True])
 async def test_websocket_queue_failure_metadata(
-    module_name: str, asynchronous: bool, caplog: pytest.LogCaptureFixture
+    module_name: str, resource_name: str, asynchronous: bool, caplog: pytest.LogCaptureFixture
 ) -> None:
     module = importlib.import_module(module_name)
-    name = "RealtimeConnection" if ".realtime." in module_name else "ResponsesConnection"
+    name = resource_name + "Connection"
     cls = getattr(module, ("Async" if asynchronous else "") + name)
     websocket = Mock()
     websocket.send = (
@@ -323,7 +328,7 @@ async def test_websocket_queue_failure_metadata(
     )
     connection = cls(websocket)
     connection._send_queue.enqueue(FAKE_SECRET)
-    with caplog.at_level(logging.DEBUG, logger="openai"):
+    with caplog.at_level(logging.WARNING, logger="openai"):
         if asynchronous:
             await connection._flush_send_queue()
         else:

@@ -101,14 +101,14 @@ def test_http_client_option() -> None:
 
 
 import contextlib
-from typing import Iterator
+from typing import Generator
 
 from openai.lib.azure import AzureOpenAI, MutuallyExclusiveAuthError
 from openai.lib.bedrock import BedrockOpenAI
 
 
 @contextlib.contextmanager
-def fresh_env() -> Iterator[None]:
+def fresh_env() -> Generator[None, None, None]:
     old = _os.environ.copy()
 
     try:
