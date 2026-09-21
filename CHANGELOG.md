@@ -1,5 +1,196 @@
 # Changelog
 
+## [3.16.2](https://github.com/openai/openai-python/compare/v3.16.1...v3.16.2) (2026-09-18)
+
+
+### Bug Fixes
+
+* **parsing:** drop TextFormatT parameterization in parse_response to fix memory leak ([#3084](https://github.com/openai/openai-python/issues/3084)) ([#3088](https://github.com/openai/openai-python/issues/3088)) ([009b7f6](https://github.com/openai/openai-python/commit/009b7f6ae6493e1abfa7583449595f144c8beb5a))
+
+## [3.16.1](https://github.com/openai/openai-python/compare/v3.16.0...v3.16.1) (2026-09-18)
+
+
+### Bug Fixes
+
+* **api:** avoid loading unrelated API resources on first use ([#3898](https://github.com/openai/openai-python/issues/3898)) ([68e4317](https://github.com/openai/openai-python/commit/68e4317aa3df4b6e7a5ea3f75833bdd7d76e447d))
+
+## [3.16.0](https://github.com/openai/openai-python/compare/v3.15.0...v3.16.0) (2026-09-18)
+
+
+### Features
+
+* **api:** add webhook endpoint management ([#3892](https://github.com/openai/openai-python/issues/3892)) ([9a11f6e](https://github.com/openai/openai-python/commit/9a11f6e874292230633073fb64ea6202ad22a1df))
+
+
+### Chores
+
+* **api:** deprecate MCP connector_id ([#3894](https://github.com/openai/openai-python/issues/3894)) ([1ccaf07](https://github.com/openai/openai-python/commit/1ccaf07fb9a4d1a2be9d97c77604ce75214a9940))
+
+## [3.15.0](https://github.com/openai/openai-python/compare/v3.14.1...v3.15.0) (2026-09-18)
+
+
+### Features
+
+* **api:** add agent session model settings ([#3882](https://github.com/openai/openai-python/issues/3882)) ([4b15817](https://github.com/openai/openai-python/commit/4b1581771ea97c870187f6ddfc3dbc87ff4fa443))
+* **api:** add audio-mini model choices ([#3886](https://github.com/openai/openai-python/issues/3886)) ([a6eeb3f](https://github.com/openai/openai-python/commit/a6eeb3f5a468ec576d2c911c19ce59c56ac46e43))
+* **api:** add compaction progress events ([#3866](https://github.com/openai/openai-python/issues/3866)) ([98e1d24](https://github.com/openai/openai-python/commit/98e1d24f4902ab58830adf0e2b6a729a5d5429b1))
+* **api:** add managed Responses WebSocket sessions ([#3887](https://github.com/openai/openai-python/issues/3887)) ([3b865af](https://github.com/openai/openai-python/commit/3b865af92e8dc65e14ab6d565304fe778bac1eef))
+* **api:** add prompt-cache prewarming ([#3888](https://github.com/openai/openai-python/issues/3888)) ([8f7cdb8](https://github.com/openai/openai-python/commit/8f7cdb80410434d29daed90895112a39936eb4fe))
+
+
+### Bug Fixes
+
+* preserve chat stream moderation results ([#3864](https://github.com/openai/openai-python/issues/3864)) ([b77076d](https://github.com/openai/openai-python/commit/b77076d23b6f3e34453b0fadd8cd2a001627e365))
+
+
+### Chores
+
+* **api:** clarify incoming SIP call ID usage ([#3885](https://github.com/openai/openai-python/issues/3885)) ([f0457ab](https://github.com/openai/openai-python/commit/f0457aba3403f83e91a369ab55e0e55d5f012372))
+* **api:** update image request examples ([#3889](https://github.com/openai/openai-python/issues/3889)) ([bb79676](https://github.com/openai/openai-python/commit/bb796764118004f8c9b0b0a46e07e5e55cfe34e4))
+
+
+### Documentation
+
+* **realtime:** remove nonexistent type imports ([#3869](https://github.com/openai/openai-python/issues/3869)) ([2971aaf](https://github.com/openai/openai-python/commit/2971aafce5c1966fc56efd00918b16314063284e))
+
+## [3.14.1](https://github.com/openai/openai-python/compare/v3.14.0...v3.14.1) (2026-09-15)
+
+
+### Bug Fixes
+
+* **client:** validate retry limits and preserve application errors ([#3867](https://github.com/openai/openai-python/issues/3867)) ([f86c721](https://github.com/openai/openai-python/commit/f86c7214093038faa512bd4883558b093bdb8c9a))
+* correct typo "th" to "the" in StreamAlreadyConsumed error message ([#3022](https://github.com/openai/openai-python/issues/3022)) ([7186203](https://github.com/openai/openai-python/commit/718620397c38a546d2cbbc964983c286db7abf97))
+* **examples:** correct Azure endpoint hostname ([#3298](https://github.com/openai/openai-python/issues/3298)) ([543516c](https://github.com/openai/openai-python/commit/543516c4223372a7fb830d560f26d8e6ad081d02))
+* **examples:** refresh chat streaming examples ([#2974](https://github.com/openai/openai-python/issues/2974)) ([54f460e](https://github.com/openai/openai-python/commit/54f460ef8c212a7849d10cef69853dffb48c4491))
+* **examples:** split push-to-talk shebang arguments ([#3210](https://github.com/openai/openai-python/issues/3210)) ([d241ed6](https://github.com/openai/openai-python/commit/d241ed65c122a964679ca9d102924761956aa71f))
+* **examples:** use uv in remaining Python launchers ([#3821](https://github.com/openai/openai-python/issues/3821)) ([8c76c4f](https://github.com/openai/openai-python/commit/8c76c4f5e6ee65c6393e80494d2bbbdc8607e983))
+* log only metadata for Live WebSocket diagnostics ([#3865](https://github.com/openai/openai-python/issues/3865)) ([ccc10f5](https://github.com/openai/openai-python/commit/ccc10f595ff606cf007459aecae6ddc90d02794a))
+* **responses:** skip structured parsing for commentary ([#3861](https://github.com/openai/openai-python/issues/3861)) ([6520df1](https://github.com/openai/openai-python/commit/6520df1220a0030c7b45b00a6fa4bf2e9c7396ac))
+
+
+### Chores
+
+* **examples:** bump module_client.py to gpt-5.6 ([#3211](https://github.com/openai/openai-python/issues/3211)) ([1493321](https://github.com/openai/openai-python/commit/1493321affb1814fba7b669892e376a119d8d36f))
+* remove unused fine-tuning data validators ([#3863](https://github.com/openai/openai-python/issues/3863)) ([9640f29](https://github.com/openai/openai-python/commit/9640f2903d65c43f0e5aee58d60f46880ff0bd15))
+
+
+### Documentation
+
+* clarify async client cleanup ([#2388](https://github.com/openai/openai-python/issues/2388)) ([a3d83b5](https://github.com/openai/openai-python/commit/a3d83b5af23e4057453aae83dcdb4e3cced1cdad))
+* clarify filenames for in-memory file uploads ([#3729](https://github.com/openai/openai-python/issues/3729)) ([cb27380](https://github.com/openai/openai-python/commit/cb27380d95f5e6995ea56dc588914454629cce0f))
+* **client:** correct retry jitter comment ([#2252](https://github.com/openai/openai-python/issues/2252)) ([bdbbc16](https://github.com/openai/openai-python/commit/bdbbc16a3f289601cb7cbcec9e64c94e95753e94))
+* fix Realtime docstring wording ([#3535](https://github.com/openai/openai-python/issues/3535)) ([8cb9ded](https://github.com/openai/openai-python/commit/8cb9dedabd03297816749fcadfa12ef3ebcd3ed8))
+* fix reusing wording in Azure client docstrings ([#3061](https://github.com/openai/openai-python/issues/3061)) ([dc625f9](https://github.com/openai/openai-python/commit/dc625f9533cb43e74aea53529c86d4848eed82ec))
+* fix streaming comment typo ([#3005](https://github.com/openai/openai-python/issues/3005)) ([d421d7a](https://github.com/openai/openai-python/commit/d421d7ab8c0a5e4e00147407ef9941c7f2bc9c09))
+* fix vector store polling helper paths ([#3101](https://github.com/openai/openai-python/issues/3101)) ([2ef2de6](https://github.com/openai/openai-python/commit/2ef2de6bf1603b2df8cb28bcc604c79c6e7f773d))
+* **readme:** correct SSE terminology ([#2837](https://github.com/openai/openai-python/issues/2837)) ([caaa9b4](https://github.com/openai/openai-python/commit/caaa9b45a24c7698244824cda2c2d9ae16359354))
+* update Responses API reference link ([#3279](https://github.com/openai/openai-python/issues/3279)) ([557bd06](https://github.com/openai/openai-python/commit/557bd06bce467e7f748b9c86bdde6427e85d28c7))
+* **utils:** correct query component RFC reference ([#3300](https://github.com/openai/openai-python/issues/3300)) ([929a8a5](https://github.com/openai/openai-python/commit/929a8a500a0e95df090ef53fe38890eba1e97660))
+
+## [3.14.0](https://github.com/openai/openai-python/compare/v3.13.0...v3.14.0) (2026-09-14)
+
+
+### Features
+
+* **streaming:** normalize errors raised while reading streams ([#3827](https://github.com/openai/openai-python/issues/3827)) ([d7c41ef](https://github.com/openai/openai-python/commit/d7c41efee1b0802b79f3f88a678ef2052b06e9ce))
+
+
+### Bug Fixes
+
+* bound vector store file polling ([#3401](https://github.com/openai/openai-python/issues/3401)) ([ae41bc4](https://github.com/openai/openai-python/commit/ae41bc46cdd53d17e948ac8a73e16bdbf34123a1))
+* **example:** refresh realtime push_to_talk_app session types ([#2926](https://github.com/openai/openai-python/issues/2926)) ([0b7ad38](https://github.com/openai/openai-python/commit/0b7ad38292ef862f1dd07f71543b2f60eade8999))
+* **files:** normalize PathLike upload tuples ([#3475](https://github.com/openai/openai-python/issues/3475)) ([90ac74c](https://github.com/openai/openai-python/commit/90ac74ccfe7a966787d1f204755d4cd4cc4d406a))
+* include completion in content filter errors ([#3094](https://github.com/openai/openai-python/issues/3094)) ([e57a1b1](https://github.com/openai/openai-python/commit/e57a1b19fbcc32306a691e63334fd2dc4b1a804c))
+* **logging:** support standard OPENAI_LOG levels ([#3734](https://github.com/openai/openai-python/issues/3734)) ([44000e0](https://github.com/openai/openai-python/commit/44000e0fc5e11692663045d6183568ff3ec32736))
+* normalize API error codes to strings ([#3532](https://github.com/openai/openai-python/issues/3532)) ([233d955](https://github.com/openai/openai-python/commit/233d9557be3e7ee186b5ac3f1ab634a257134ac1)), closes [#3531](https://github.com/openai/openai-python/issues/3531)
+* preserve response stream indexes after empty items ([#3126](https://github.com/openai/openai-python/issues/3126)) ([8f84fbd](https://github.com/openai/openai-python/commit/8f84fbd688bdd8a9cde17c09f79b34d5d5580f0f))
+* **responses:** handle null text in output_text ([#3019](https://github.com/openai/openai-python/issues/3019)) ([df6b72c](https://github.com/openai/openai-python/commit/df6b72ccc9122a83b8dd21971dcf4a508c04b83a))
+
+
+### Documentation
+
+* use the vision guide image in README example ([#3849](https://github.com/openai/openai-python/issues/3849)) ([1ed8902](https://github.com/openai/openai-python/commit/1ed8902e5629c1aae0c26eadceff02bd5cebb0e1))
+
+## [3.13.0](https://github.com/openai/openai-python/compare/v3.12.0...v3.13.0) (2026-09-10)
+
+
+### Features
+
+* **api:** add Agents API ([1c4284a](https://github.com/openai/openai-python/commit/1c4284a08294f734d57047585ab82e2e09d3a5bc))
+
+## [3.12.0](https://github.com/openai/openai-python/compare/v3.11.0...v3.12.0) (2026-09-10)
+
+
+### Features
+
+* **api:** Add Live API ([0e4bfef](https://github.com/openai/openai-python/commit/0e4bfef9c79251fcf4926fd732129627bde050f1))
+
+
+### Bug Fixes
+
+* add aclose() to AsyncStream for standard async cleanup ([#2854](https://github.com/openai/openai-python/issues/2854)) ([802b334](https://github.com/openai/openai-python/commit/802b334928d8f0c3e24e5fce15a0eaa1b28c61cd))
+* handle bare `dict` and `list` annotations without type arguments ([#3760](https://github.com/openai/openai-python/issues/3760)) ([c7e8c03](https://github.com/openai/openai-python/commit/c7e8c03e2d87708ef233d0db00167dfa339325a9))
+* preserve finalized output on null response completion ([#3345](https://github.com/openai/openai-python/issues/3345)) ([adb212e](https://github.com/openai/openai-python/commit/adb212e116323fcec4b4811d20ba9eb78280c24c))
+
+## [3.11.0](https://github.com/openai/openai-python/compare/v3.10.0...v3.11.0) (2026-09-09)
+
+
+### Features
+
+* **api:** Add expiration controls for service account keys ([#3825](https://github.com/openai/openai-python/issues/3825)) ([f348ec8](https://github.com/openai/openai-python/commit/f348ec87b934c98889102668913e0a3ae7fc303d))
+
+## [3.10.0](https://github.com/openai/openai-python/compare/v3.9.0...v3.10.0) (2026-09-08)
+
+
+### Features
+
+* **api:** add GPT Image 2.5 models and image options ([#3824](https://github.com/openai/openai-python/issues/3824)) ([5b39c45](https://github.com/openai/openai-python/commit/5b39c453ee5ee8f46fba0bd9cb4ae47fa5ee6d51))
+* **api:** add service-account API key expiration fields ([#3802](https://github.com/openai/openai-python/issues/3802)) ([f1cd7f0](https://github.com/openai/openai-python/commit/f1cd7f020210ec3fc71699fc46d90320ddbb411c))
+
+## [3.9.0](https://github.com/openai/openai-python/compare/v3.8.0...v3.9.0) (2026-09-05)
+
+
+### Features
+
+* **api:** Add prompt cache diagnostics ([#3800](https://github.com/openai/openai-python/issues/3800)) ([8326784](https://github.com/openai/openai-python/commit/83267847a0219ea8b584c9d60f92c7a4dffd392a))
+* **api:** correct function argument completion event fields (openapi-545) ([#3801](https://github.com/openai/openai-python/issues/3801)) ([2a98f6a](https://github.com/openai/openai-python/commit/2a98f6a1dee448c6410531c89c2de0af4383c6a7))
+
+
+### Bug Fixes
+
+* **api:** accept incomplete web search call statuses ([#3786](https://github.com/openai/openai-python/issues/3786)) ([3cc8d78](https://github.com/openai/openai-python/commit/3cc8d784ad05f75a265012ee86638adaf93d8bf2))
+* refuse overflowing server retry delays ([#3799](https://github.com/openai/openai-python/issues/3799)) ([88b4d43](https://github.com/openai/openai-python/commit/88b4d4341af38e84784221d73c175f2088fa6b85))
+
+
+### Chores
+
+* **api:** document throttling and model overload responses — SDK-235 ([#3803](https://github.com/openai/openai-python/issues/3803)) ([be92815](https://github.com/openai/openai-python/commit/be928151372e4b62adb4a1571cda52ad759b38be))
+* migrate to forked steady ([#3795](https://github.com/openai/openai-python/issues/3795)) ([b24aeda](https://github.com/openai/openai-python/commit/b24aeda89980aff382c641366cce869082056b83))
+
+## [3.8.0](https://github.com/openai/openai-python/compare/v3.7.0...v3.8.0) (2026-09-03)
+
+
+### Features
+
+* **api:** add gpt-6-astra and related features ([#3791](https://github.com/openai/openai-python/issues/3791)) ([09f446f](https://github.com/openai/openai-python/commit/09f446f5f8623d79464568dc91b9dc258e74bcae))
+
+
+### Documentation
+
+* add canonical SDK security model ([#3778](https://github.com/openai/openai-python/issues/3778)) ([2a097b9](https://github.com/openai/openai-python/commit/2a097b991bb23a26bde9da8ea286f850ac1329f1))
+
+## [3.7.0](https://github.com/openai/openai-python/compare/v3.6.0...v3.7.0) (2026-09-02)
+
+
+### Features
+
+* **api:** update usage APIs and documentation ([#3779](https://github.com/openai/openai-python/issues/3779)) ([6f0da16](https://github.com/openai/openai-python/commit/6f0da16573086401a7b171f4bd14a78f22c9d0e9))
+
+
+### Bug Fixes
+
+* avoid repeated numpy checks for embeddings ([#3757](https://github.com/openai/openai-python/issues/3757)) ([b19c216](https://github.com/openai/openai-python/commit/b19c2161b1eac80fbf1f6f67a64a50af99c53356))
+
 ## [3.6.0](https://github.com/openai/openai-python/compare/v3.5.0...v3.6.0) (2026-08-27)
 
 

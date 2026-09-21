@@ -10,7 +10,7 @@ CURRENT_STABLE = SUPPORTED[-1]
 PRERELEASE = "3.15"
 UNMARKED_DEPENDENCIES = (
     "aiohttp>=3.14.3",
-    "httpx2>=2.7.0, <3",
+    "httpx2>=2.12.0, <3",
     "anyio>=4.10.0, <5",
     "botocore>=1.40.0,<2",
 )
