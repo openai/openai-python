@@ -1,15 +1,18 @@
 # File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import Union
-from typing_extensions import Literal, TypeAlias
+from typing_extensions import Literal, Annotated, TypeAlias
 
+from ..._utils import PropertyInfo
 from ..._models import BaseModel
 from .realtime_session_create_request import RealtimeSessionCreateRequest
 from .realtime_transcription_session_create_request import RealtimeTranscriptionSessionCreateRequest
 
 __all__ = ["SessionUpdatedEvent", "Session"]
 
-Session: TypeAlias = Union[RealtimeSessionCreateRequest, RealtimeTranscriptionSessionCreateRequest]
+Session: TypeAlias = Annotated[
+    Union[RealtimeSessionCreateRequest, RealtimeTranscriptionSessionCreateRequest], PropertyInfo(discriminator="type")
+]
 
 
 class SessionUpdatedEvent(BaseModel):
