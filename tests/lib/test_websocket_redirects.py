@@ -16,7 +16,7 @@ from openai import OpenAI, AsyncOpenAI, AsyncAzureOpenAI
 from openai.lib._websocket import _WebSocketConnect
 from openai.types.websocket_reconnection import ReconnectingEvent
 
-RESOURCES = ["realtime", "beta.realtime", "responses", "beta.responses"]
+RESOURCES = ["realtime", "beta.realtime", "responses", "beta.responses", "live", "live.sideband", "live.forks"]
 RECONNECTING_RESOURCES = [name for name in RESOURCES if name != "beta.realtime"]
 EXTRA_HEADERS = {"api-key": "fake-key", "Cookie": "fake-cookie", "X-Custom": "fake-private-header"}
 FOLLOWS_REDIRECTS = hasattr(connect, "process_redirect")
@@ -37,7 +37,11 @@ def resource(client: Any, name: str) -> Any:
 
 
 def options(name: str) -> dict[str, Any]:
-    return {"extra_headers": EXTRA_HEADERS, **({"model": "fake-model"} if name.endswith("realtime") else {})}
+    return {
+        "extra_headers": EXTRA_HEADERS,
+        **({"model": "fake-model"} if name.endswith("realtime") else {}),
+        **({"session_id": "live_fake"} if name in {"live.sideband", "live.forks"} else {}),
+    }
 
 
 def redirect_error(location: str) -> InvalidStatus:

@@ -177,6 +177,9 @@ jobs:
       - name: Bootstrap
         run: ./scripts/bootstrap
 
+      - name: Check concurrent Steady publication
+        run: node scripts/steady/publication.test.cjs
+
       - name: Run tests
         run: ./scripts/test
 

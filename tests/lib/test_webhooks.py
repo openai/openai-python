@@ -1,12 +1,20 @@
 from __future__ import annotations
 
 import os
+import hmac
+import json
+import base64
 from unittest import mock
 
 import pytest
 
 import openai
 from openai._exceptions import InvalidWebhookSignatureError
+from openai.types.webhooks import (
+    UnwrapWebhookEvent,
+    SafetyWarningIssuedWebhookEvent,
+    SafetyDeactivationIssuedWebhookEvent,
+)
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 
@@ -16,6 +24,12 @@ TEST_PAYLOAD = '{"id": "evt_685c059ae3a481909bdc86819b066fb6", "object": "event"
 TEST_TIMESTAMP = 1750861210  # Fixed timestamp that matches our test signature
 TEST_WEBHOOK_ID = "wh_685c059ae39c8190af8c71ed1022a24d"
 TEST_SIGNATURE = "v1,gUAg4R2hWouRZqRQG4uJypNS8YK885G838+EHb4nKBY="
+SIP_EVENT_TYPES = ["live.call.incoming", "live.transport.incoming", "realtime.call.incoming"]
+SIP_MEDIA_SECURITY_VALUES = [None, "rtp", "srtp", "future_media_security"]
+SAFETY_EVENT_TYPES = {
+    "safety.warning_issued": SafetyWarningIssuedWebhookEvent,
+    "safety.deactivation_issued": SafetyDeactivationIssuedWebhookEvent,
+}
 
 
 def create_test_headers(
@@ -29,8 +43,90 @@ def create_test_headers(
     }
 
 
+def create_sip_test_payload(event_type: str, media_security: str | None) -> tuple[str, dict[str, str]]:
+    identifier = "call_id" if event_type == "realtime.call.incoming" else "session_id"
+    data: dict[str, object] = {
+        identifier: "rtc_test" if identifier == "call_id" else "live_test",
+        "sip_headers": [{"name": "X-Test", "value": "example"}],
+    }
+    if event_type == "live.transport.incoming":
+        data["type"] = "sip"
+    if media_security is not None:
+        data["sip_media_security"] = media_security
+    payload = json.dumps(
+        {"id": "evt_sip_test", "object": "event", "created_at": TEST_TIMESTAMP, "type": event_type, "data": data}
+    )
+    signed_payload = f"{TEST_WEBHOOK_ID}.{TEST_TIMESTAMP}.{payload}".encode()
+    signature = base64.b64encode(
+        hmac.new(base64.b64decode(TEST_SECRET.removeprefix("whsec_")), signed_payload, "sha256").digest()
+    ).decode()
+    return payload, create_test_headers(signature=f"v1,{signature}")
+
+
+def assert_sip_event(event: UnwrapWebhookEvent, event_type: str, media_security: str | None, payload: str) -> None:
+    assert (
+        event.type == "live.call.incoming"
+        or event.type == "live.transport.incoming"
+        or event.type == "realtime.call.incoming"
+    )
+    assert event.type == event_type
+    assert event.data.sip_media_security == media_security
+    assert event.to_dict() == json.loads(payload)
+
+
+def create_safety_test_payload(event_type: str) -> tuple[str, dict[str, str]]:
+    payload = json.dumps(
+        {
+            "id": "evt_safety_test",
+            "object": "event",
+            "created_at": TEST_TIMESTAMP,
+            "type": event_type,
+            "data": {"id": "case_test"},
+        }
+    )
+    signed_payload = f"{TEST_WEBHOOK_ID}.{TEST_TIMESTAMP}.{payload}".encode()
+    signature = base64.b64encode(
+        hmac.new(base64.b64decode(TEST_SECRET.removeprefix("whsec_")), signed_payload, "sha256").digest()
+    ).decode()
+    return payload, create_test_headers(signature=f"v1,{signature}")
+
+
+def assert_safety_event(event: UnwrapWebhookEvent, event_type: str, payload: str) -> None:
+    assert isinstance(event, SAFETY_EVENT_TYPES[event_type])
+    assert event.type == "safety.warning_issued" or event.type == "safety.deactivation_issued"
+    assert event.type == event_type
+    assert event.data.id == "case_test"
+    assert event.to_dict() == json.loads(payload)
+
+
 class TestWebhooks:
     parametrize = pytest.mark.parametrize("client", [False, True], indirect=True, ids=["loose", "strict"])
+
+    @mock.patch("time.time", mock.MagicMock(return_value=TEST_TIMESTAMP))
+    @parametrize
+    @pytest.mark.parametrize("event_type", SAFETY_EVENT_TYPES)
+    def test_unwrap_safety_events(self, client: openai.OpenAI, event_type: str) -> None:
+        payload, headers = create_safety_test_payload(event_type)
+        event = client.webhooks.unwrap(payload, headers, secret=TEST_SECRET)
+        assert_safety_event(event, event_type, payload)
+
+        for tampered_payload in [payload.replace("case_test", "case_tampered"), "{"]:
+            with pytest.raises(InvalidWebhookSignatureError, match="The given webhook signature does not match"):
+                client.webhooks.unwrap(tampered_payload, headers, secret=TEST_SECRET)
+
+        with pytest.raises(InvalidWebhookSignatureError, match="The given webhook signature does not match"):
+            client.webhooks.unwrap(payload, headers, secret="wrong_safety_webhook_secret")
+
+    @mock.patch("time.time", mock.MagicMock(return_value=TEST_TIMESTAMP))
+    @parametrize
+    @pytest.mark.parametrize("event_type", SIP_EVENT_TYPES)
+    @pytest.mark.parametrize("media_security", SIP_MEDIA_SECURITY_VALUES)
+    def test_unwrap_sip_media_security(
+        self, client: openai.OpenAI, event_type: str, media_security: str | None
+    ) -> None:
+        payload, headers = create_sip_test_payload(event_type, media_security)
+        event = client.webhooks.unwrap(payload, headers, secret=TEST_SECRET)
+        assert_sip_event(event, event_type, media_security, payload)
 
     @mock.patch("time.time", mock.MagicMock(return_value=TEST_TIMESTAMP))
     @parametrize
@@ -171,6 +267,32 @@ class TestAsyncWebhooks:
     parametrize = pytest.mark.parametrize(
         "async_client", [False, True, {"http_client": "aiohttp"}], indirect=True, ids=["loose", "strict", "aiohttp"]
     )
+
+    @mock.patch("time.time", mock.MagicMock(return_value=TEST_TIMESTAMP))
+    @parametrize
+    @pytest.mark.parametrize("event_type", SAFETY_EVENT_TYPES)
+    async def test_unwrap_safety_events(self, async_client: openai.AsyncOpenAI, event_type: str) -> None:
+        payload, headers = create_safety_test_payload(event_type)
+        event = async_client.webhooks.unwrap(payload, headers, secret=TEST_SECRET)
+        assert_safety_event(event, event_type, payload)
+
+        for tampered_payload in [payload.replace("case_test", "case_tampered"), "{"]:
+            with pytest.raises(InvalidWebhookSignatureError, match="The given webhook signature does not match"):
+                async_client.webhooks.unwrap(tampered_payload, headers, secret=TEST_SECRET)
+
+        with pytest.raises(InvalidWebhookSignatureError, match="The given webhook signature does not match"):
+            async_client.webhooks.unwrap(payload, headers, secret="wrong_safety_webhook_secret")
+
+    @mock.patch("time.time", mock.MagicMock(return_value=TEST_TIMESTAMP))
+    @parametrize
+    @pytest.mark.parametrize("event_type", SIP_EVENT_TYPES)
+    @pytest.mark.parametrize("media_security", SIP_MEDIA_SECURITY_VALUES)
+    async def test_unwrap_sip_media_security(
+        self, async_client: openai.AsyncOpenAI, event_type: str, media_security: str | None
+    ) -> None:
+        payload, headers = create_sip_test_payload(event_type, media_security)
+        event = async_client.webhooks.unwrap(payload, headers, secret=TEST_SECRET)
+        assert_sip_event(event, event_type, media_security, payload)
 
     @mock.patch("time.time", mock.MagicMock(return_value=TEST_TIMESTAMP))
     @parametrize

@@ -36,7 +36,7 @@ class UserLocation(TypedDict, total=False):
 class BetaWebSearchPreviewToolParam(TypedDict, total=False):
     """This tool searches the web for relevant results to use in a response.
 
-    Learn more about the [web search tool](https://platform.openai.com/docs/guides/tools-web-search).
+    Learn more about the [web search tool](https://developers.openai.com/api/docs/guides/tools-web-search).
     """
 
     type: Required[Literal["web_search_preview", "web_search_preview_2025_03_11"]]

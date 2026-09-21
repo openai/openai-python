@@ -1,111 +1,249 @@
 # File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
-from .roles import (
-    Roles,
-    AsyncRoles,
-    RolesWithRawResponse,
-    AsyncRolesWithRawResponse,
-    RolesWithStreamingResponse,
-    AsyncRolesWithStreamingResponse,
-)
-from .usage import (
-    Usage,
-    AsyncUsage,
-    UsageWithRawResponse,
-    AsyncUsageWithRawResponse,
-    UsageWithStreamingResponse,
-    AsyncUsageWithStreamingResponse,
-)
-from .users import (
-    Users,
-    AsyncUsers,
-    UsersWithRawResponse,
-    AsyncUsersWithRawResponse,
-    UsersWithStreamingResponse,
-    AsyncUsersWithStreamingResponse,
-)
-from .groups import (
-    Groups,
-    AsyncGroups,
-    GroupsWithRawResponse,
-    AsyncGroupsWithRawResponse,
-    GroupsWithStreamingResponse,
-    AsyncGroupsWithStreamingResponse,
-)
-from .invites import (
-    Invites,
-    AsyncInvites,
-    InvitesWithRawResponse,
-    AsyncInvitesWithRawResponse,
-    InvitesWithStreamingResponse,
-    AsyncInvitesWithStreamingResponse,
-)
-from .projects import (
-    Projects,
-    AsyncProjects,
-    ProjectsWithRawResponse,
-    AsyncProjectsWithRawResponse,
-    ProjectsWithStreamingResponse,
-    AsyncProjectsWithStreamingResponse,
-)
-from .audit_logs import (
-    AuditLogs,
-    AsyncAuditLogs,
-    AuditLogsWithRawResponse,
-    AsyncAuditLogsWithRawResponse,
-    AuditLogsWithStreamingResponse,
-    AsyncAuditLogsWithStreamingResponse,
-)
-from .spend_limit import (
-    SpendLimit,
-    AsyncSpendLimit,
-    SpendLimitWithRawResponse,
-    AsyncSpendLimitWithRawResponse,
-    SpendLimitWithStreamingResponse,
-    AsyncSpendLimitWithStreamingResponse,
-)
-from .certificates import (
-    Certificates,
-    AsyncCertificates,
-    CertificatesWithRawResponse,
-    AsyncCertificatesWithRawResponse,
-    CertificatesWithStreamingResponse,
-    AsyncCertificatesWithStreamingResponse,
-)
-from .organization import (
-    Organization,
-    AsyncOrganization,
-    OrganizationWithRawResponse,
-    AsyncOrganizationWithRawResponse,
-    OrganizationWithStreamingResponse,
-    AsyncOrganizationWithStreamingResponse,
-)
-from .spend_alerts import (
-    SpendAlerts,
-    AsyncSpendAlerts,
-    SpendAlertsWithRawResponse,
-    AsyncSpendAlertsWithRawResponse,
-    SpendAlertsWithStreamingResponse,
-    AsyncSpendAlertsWithStreamingResponse,
-)
-from .admin_api_keys import (
-    AdminAPIKeys,
-    AsyncAdminAPIKeys,
-    AdminAPIKeysWithRawResponse,
-    AsyncAdminAPIKeysWithRawResponse,
-    AdminAPIKeysWithStreamingResponse,
-    AsyncAdminAPIKeysWithStreamingResponse,
-)
-from .data_retention import (
-    DataRetention,
-    AsyncDataRetention,
-    DataRetentionWithRawResponse,
-    AsyncDataRetentionWithRawResponse,
-    DataRetentionWithStreamingResponse,
-    AsyncDataRetentionWithStreamingResponse,
-)
+import typing as _t
+
+if _t.TYPE_CHECKING:
+    from .roles import (
+        Roles as Roles,
+        AsyncRoles as AsyncRoles,
+        RolesWithRawResponse as RolesWithRawResponse,
+        AsyncRolesWithRawResponse as AsyncRolesWithRawResponse,
+        RolesWithStreamingResponse as RolesWithStreamingResponse,
+        AsyncRolesWithStreamingResponse as AsyncRolesWithStreamingResponse,
+    )
+    from .usage import (
+        Usage as Usage,
+        AsyncUsage as AsyncUsage,
+        UsageWithRawResponse as UsageWithRawResponse,
+        AsyncUsageWithRawResponse as AsyncUsageWithRawResponse,
+        UsageWithStreamingResponse as UsageWithStreamingResponse,
+        AsyncUsageWithStreamingResponse as AsyncUsageWithStreamingResponse,
+    )
+    from .users import (
+        Users as Users,
+        AsyncUsers as AsyncUsers,
+        UsersWithRawResponse as UsersWithRawResponse,
+        AsyncUsersWithRawResponse as AsyncUsersWithRawResponse,
+        UsersWithStreamingResponse as UsersWithStreamingResponse,
+        AsyncUsersWithStreamingResponse as AsyncUsersWithStreamingResponse,
+    )
+    from .groups import (
+        Groups as Groups,
+        AsyncGroups as AsyncGroups,
+        GroupsWithRawResponse as GroupsWithRawResponse,
+        AsyncGroupsWithRawResponse as AsyncGroupsWithRawResponse,
+        GroupsWithStreamingResponse as GroupsWithStreamingResponse,
+        AsyncGroupsWithStreamingResponse as AsyncGroupsWithStreamingResponse,
+    )
+    from .invites import (
+        Invites as Invites,
+        AsyncInvites as AsyncInvites,
+        InvitesWithRawResponse as InvitesWithRawResponse,
+        AsyncInvitesWithRawResponse as AsyncInvitesWithRawResponse,
+        InvitesWithStreamingResponse as InvitesWithStreamingResponse,
+        AsyncInvitesWithStreamingResponse as AsyncInvitesWithStreamingResponse,
+    )
+    from .projects import (
+        Projects as Projects,
+        AsyncProjects as AsyncProjects,
+        ProjectsWithRawResponse as ProjectsWithRawResponse,
+        AsyncProjectsWithRawResponse as AsyncProjectsWithRawResponse,
+        ProjectsWithStreamingResponse as ProjectsWithStreamingResponse,
+        AsyncProjectsWithStreamingResponse as AsyncProjectsWithStreamingResponse,
+    )
+    from .audit_logs import (
+        AuditLogs as AuditLogs,
+        AsyncAuditLogs as AsyncAuditLogs,
+        AuditLogsWithRawResponse as AuditLogsWithRawResponse,
+        AsyncAuditLogsWithRawResponse as AsyncAuditLogsWithRawResponse,
+        AuditLogsWithStreamingResponse as AuditLogsWithStreamingResponse,
+        AsyncAuditLogsWithStreamingResponse as AsyncAuditLogsWithStreamingResponse,
+    )
+    from .spend_limit import (
+        SpendLimit as SpendLimit,
+        AsyncSpendLimit as AsyncSpendLimit,
+        SpendLimitWithRawResponse as SpendLimitWithRawResponse,
+        AsyncSpendLimitWithRawResponse as AsyncSpendLimitWithRawResponse,
+        SpendLimitWithStreamingResponse as SpendLimitWithStreamingResponse,
+        AsyncSpendLimitWithStreamingResponse as AsyncSpendLimitWithStreamingResponse,
+    )
+    from .certificates import (
+        Certificates as Certificates,
+        AsyncCertificates as AsyncCertificates,
+        CertificatesWithRawResponse as CertificatesWithRawResponse,
+        AsyncCertificatesWithRawResponse as AsyncCertificatesWithRawResponse,
+        CertificatesWithStreamingResponse as CertificatesWithStreamingResponse,
+        AsyncCertificatesWithStreamingResponse as AsyncCertificatesWithStreamingResponse,
+    )
+    from .organization import (
+        Organization as Organization,
+        AsyncOrganization as AsyncOrganization,
+        OrganizationWithRawResponse as OrganizationWithRawResponse,
+        AsyncOrganizationWithRawResponse as AsyncOrganizationWithRawResponse,
+        OrganizationWithStreamingResponse as OrganizationWithStreamingResponse,
+        AsyncOrganizationWithStreamingResponse as AsyncOrganizationWithStreamingResponse,
+    )
+    from .spend_alerts import (
+        SpendAlerts as SpendAlerts,
+        AsyncSpendAlerts as AsyncSpendAlerts,
+        SpendAlertsWithRawResponse as SpendAlertsWithRawResponse,
+        AsyncSpendAlertsWithRawResponse as AsyncSpendAlertsWithRawResponse,
+        SpendAlertsWithStreamingResponse as SpendAlertsWithStreamingResponse,
+        AsyncSpendAlertsWithStreamingResponse as AsyncSpendAlertsWithStreamingResponse,
+    )
+    from .admin_api_keys import (
+        AdminAPIKeys as AdminAPIKeys,
+        AsyncAdminAPIKeys as AsyncAdminAPIKeys,
+        AdminAPIKeysWithRawResponse as AdminAPIKeysWithRawResponse,
+        AsyncAdminAPIKeysWithRawResponse as AsyncAdminAPIKeysWithRawResponse,
+        AdminAPIKeysWithStreamingResponse as AdminAPIKeysWithStreamingResponse,
+        AsyncAdminAPIKeysWithStreamingResponse as AsyncAdminAPIKeysWithStreamingResponse,
+    )
+    from .data_retention import (
+        DataRetention as DataRetention,
+        AsyncDataRetention as AsyncDataRetention,
+        DataRetentionWithRawResponse as DataRetentionWithRawResponse,
+        AsyncDataRetentionWithRawResponse as AsyncDataRetentionWithRawResponse,
+        DataRetentionWithStreamingResponse as DataRetentionWithStreamingResponse,
+        AsyncDataRetentionWithStreamingResponse as AsyncDataRetentionWithStreamingResponse,
+    )
+    from .external_storage import (
+        ExternalStorage as ExternalStorage,
+        AsyncExternalStorage as AsyncExternalStorage,
+        ExternalStorageWithRawResponse as ExternalStorageWithRawResponse,
+        AsyncExternalStorageWithRawResponse as AsyncExternalStorageWithRawResponse,
+        ExternalStorageWithStreamingResponse as ExternalStorageWithStreamingResponse,
+        AsyncExternalStorageWithStreamingResponse as AsyncExternalStorageWithStreamingResponse,
+    )
+
+else:
+    _EXPORTS = {
+        "ExternalStorage": (".external_storage", "ExternalStorage"),
+        "AsyncExternalStorage": (".external_storage", "AsyncExternalStorage"),
+        "ExternalStorageWithRawResponse": (".external_storage", "ExternalStorageWithRawResponse"),
+        "AsyncExternalStorageWithRawResponse": (".external_storage", "AsyncExternalStorageWithRawResponse"),
+        "ExternalStorageWithStreamingResponse": (".external_storage", "ExternalStorageWithStreamingResponse"),
+        "AsyncExternalStorageWithStreamingResponse": (".external_storage", "AsyncExternalStorageWithStreamingResponse"),
+        "AuditLogs": (".audit_logs", "AuditLogs"),
+        "AsyncAuditLogs": (".audit_logs", "AsyncAuditLogs"),
+        "AuditLogsWithRawResponse": (".audit_logs", "AuditLogsWithRawResponse"),
+        "AsyncAuditLogsWithRawResponse": (".audit_logs", "AsyncAuditLogsWithRawResponse"),
+        "AuditLogsWithStreamingResponse": (".audit_logs", "AuditLogsWithStreamingResponse"),
+        "AsyncAuditLogsWithStreamingResponse": (".audit_logs", "AsyncAuditLogsWithStreamingResponse"),
+        "AdminAPIKeys": (".admin_api_keys", "AdminAPIKeys"),
+        "AsyncAdminAPIKeys": (".admin_api_keys", "AsyncAdminAPIKeys"),
+        "AdminAPIKeysWithRawResponse": (".admin_api_keys", "AdminAPIKeysWithRawResponse"),
+        "AsyncAdminAPIKeysWithRawResponse": (".admin_api_keys", "AsyncAdminAPIKeysWithRawResponse"),
+        "AdminAPIKeysWithStreamingResponse": (".admin_api_keys", "AdminAPIKeysWithStreamingResponse"),
+        "AsyncAdminAPIKeysWithStreamingResponse": (".admin_api_keys", "AsyncAdminAPIKeysWithStreamingResponse"),
+        "Usage": (".usage", "Usage"),
+        "AsyncUsage": (".usage", "AsyncUsage"),
+        "UsageWithRawResponse": (".usage", "UsageWithRawResponse"),
+        "AsyncUsageWithRawResponse": (".usage", "AsyncUsageWithRawResponse"),
+        "UsageWithStreamingResponse": (".usage", "UsageWithStreamingResponse"),
+        "AsyncUsageWithStreamingResponse": (".usage", "AsyncUsageWithStreamingResponse"),
+        "Invites": (".invites", "Invites"),
+        "AsyncInvites": (".invites", "AsyncInvites"),
+        "InvitesWithRawResponse": (".invites", "InvitesWithRawResponse"),
+        "AsyncInvitesWithRawResponse": (".invites", "AsyncInvitesWithRawResponse"),
+        "InvitesWithStreamingResponse": (".invites", "InvitesWithStreamingResponse"),
+        "AsyncInvitesWithStreamingResponse": (".invites", "AsyncInvitesWithStreamingResponse"),
+        "Users": (".users", "Users"),
+        "AsyncUsers": (".users", "AsyncUsers"),
+        "UsersWithRawResponse": (".users", "UsersWithRawResponse"),
+        "AsyncUsersWithRawResponse": (".users", "AsyncUsersWithRawResponse"),
+        "UsersWithStreamingResponse": (".users", "UsersWithStreamingResponse"),
+        "AsyncUsersWithStreamingResponse": (".users", "AsyncUsersWithStreamingResponse"),
+        "Groups": (".groups", "Groups"),
+        "AsyncGroups": (".groups", "AsyncGroups"),
+        "GroupsWithRawResponse": (".groups", "GroupsWithRawResponse"),
+        "AsyncGroupsWithRawResponse": (".groups", "AsyncGroupsWithRawResponse"),
+        "GroupsWithStreamingResponse": (".groups", "GroupsWithStreamingResponse"),
+        "AsyncGroupsWithStreamingResponse": (".groups", "AsyncGroupsWithStreamingResponse"),
+        "Roles": (".roles", "Roles"),
+        "AsyncRoles": (".roles", "AsyncRoles"),
+        "RolesWithRawResponse": (".roles", "RolesWithRawResponse"),
+        "AsyncRolesWithRawResponse": (".roles", "AsyncRolesWithRawResponse"),
+        "RolesWithStreamingResponse": (".roles", "RolesWithStreamingResponse"),
+        "AsyncRolesWithStreamingResponse": (".roles", "AsyncRolesWithStreamingResponse"),
+        "DataRetention": (".data_retention", "DataRetention"),
+        "AsyncDataRetention": (".data_retention", "AsyncDataRetention"),
+        "DataRetentionWithRawResponse": (".data_retention", "DataRetentionWithRawResponse"),
+        "AsyncDataRetentionWithRawResponse": (".data_retention", "AsyncDataRetentionWithRawResponse"),
+        "DataRetentionWithStreamingResponse": (".data_retention", "DataRetentionWithStreamingResponse"),
+        "AsyncDataRetentionWithStreamingResponse": (".data_retention", "AsyncDataRetentionWithStreamingResponse"),
+        "SpendLimit": (".spend_limit", "SpendLimit"),
+        "AsyncSpendLimit": (".spend_limit", "AsyncSpendLimit"),
+        "SpendLimitWithRawResponse": (".spend_limit", "SpendLimitWithRawResponse"),
+        "AsyncSpendLimitWithRawResponse": (".spend_limit", "AsyncSpendLimitWithRawResponse"),
+        "SpendLimitWithStreamingResponse": (".spend_limit", "SpendLimitWithStreamingResponse"),
+        "AsyncSpendLimitWithStreamingResponse": (".spend_limit", "AsyncSpendLimitWithStreamingResponse"),
+        "SpendAlerts": (".spend_alerts", "SpendAlerts"),
+        "AsyncSpendAlerts": (".spend_alerts", "AsyncSpendAlerts"),
+        "SpendAlertsWithRawResponse": (".spend_alerts", "SpendAlertsWithRawResponse"),
+        "AsyncSpendAlertsWithRawResponse": (".spend_alerts", "AsyncSpendAlertsWithRawResponse"),
+        "SpendAlertsWithStreamingResponse": (".spend_alerts", "SpendAlertsWithStreamingResponse"),
+        "AsyncSpendAlertsWithStreamingResponse": (".spend_alerts", "AsyncSpendAlertsWithStreamingResponse"),
+        "Certificates": (".certificates", "Certificates"),
+        "AsyncCertificates": (".certificates", "AsyncCertificates"),
+        "CertificatesWithRawResponse": (".certificates", "CertificatesWithRawResponse"),
+        "AsyncCertificatesWithRawResponse": (".certificates", "AsyncCertificatesWithRawResponse"),
+        "CertificatesWithStreamingResponse": (".certificates", "CertificatesWithStreamingResponse"),
+        "AsyncCertificatesWithStreamingResponse": (".certificates", "AsyncCertificatesWithStreamingResponse"),
+        "Projects": (".projects", "Projects"),
+        "AsyncProjects": (".projects", "AsyncProjects"),
+        "ProjectsWithRawResponse": (".projects", "ProjectsWithRawResponse"),
+        "AsyncProjectsWithRawResponse": (".projects", "AsyncProjectsWithRawResponse"),
+        "ProjectsWithStreamingResponse": (".projects", "ProjectsWithStreamingResponse"),
+        "AsyncProjectsWithStreamingResponse": (".projects", "AsyncProjectsWithStreamingResponse"),
+        "Organization": (".organization", "Organization"),
+        "AsyncOrganization": (".organization", "AsyncOrganization"),
+        "OrganizationWithRawResponse": (".organization", "OrganizationWithRawResponse"),
+        "AsyncOrganizationWithRawResponse": (".organization", "AsyncOrganizationWithRawResponse"),
+        "OrganizationWithStreamingResponse": (".organization", "OrganizationWithStreamingResponse"),
+        "AsyncOrganizationWithStreamingResponse": (".organization", "AsyncOrganizationWithStreamingResponse"),
+    }
+    _SUBMODULES = {
+        "admin_api_keys",
+        "audit_logs",
+        "certificates",
+        "data_retention",
+        "external_storage",
+        "groups",
+        "invites",
+        "organization",
+        "projects",
+        "roles",
+        "spend_alerts",
+        "spend_limit",
+        "usage",
+        "users",
+    }
+
+    def __getattr__(name: str) -> _t.Any:
+        import importlib
+
+        if name in _EXPORTS:
+            module_name, symbol_name = _EXPORTS[name]
+            value = getattr(importlib.import_module(module_name, __name__), symbol_name)
+        elif name in _SUBMODULES:
+            value = importlib.import_module(f".{name}", __name__)
+        else:
+            raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+        globals()[name] = value
+        return value
+
+    def __dir__() -> list[str]:
+        return sorted(set(globals()) | set(_EXPORTS) | _SUBMODULES)
+
 
 __all__ = [
+    "ExternalStorage",
+    "AsyncExternalStorage",
+    "ExternalStorageWithRawResponse",
+    "AsyncExternalStorageWithRawResponse",
+    "ExternalStorageWithStreamingResponse",
+    "AsyncExternalStorageWithStreamingResponse",
     "AuditLogs",
     "AsyncAuditLogs",
     "AuditLogsWithRawResponse",
