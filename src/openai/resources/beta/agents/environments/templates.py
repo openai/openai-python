@@ -80,9 +80,10 @@ class Templates(SyncAPIResource):
 
           name: An optional human-readable display name for the template.
 
-          network: Network access for an OpenAI-hosted environment.
+          network: Network access policy for the environment. Defaults to disabled for GA requests
+              and enabled for alpha/beta requests.
 
-          packages: Packages to install in an OpenAI-hosted environment.
+          packages: Packages to install in the environment. Defaults to empty package lists.
 
           plugins: Plugins provided as inline ZIP archives. Defaults to an empty list.
 
@@ -205,9 +206,11 @@ class Templates(SyncAPIResource):
 
           name: A replacement human-readable display name, or `null` to clear the name.
 
-          network: Network access for an OpenAI-hosted environment.
+          network: Network access available after setup completes. Omit to preserve the current
+              policy, or pass `null` to reset to disabled for GA requests or enabled for
+              alpha/beta requests.
 
-          packages: Packages to install in an OpenAI-hosted environment.
+          packages: Packages installed before the runtime network policy applies.
 
           plugins: Replacement plugin configuration installed for each new session.
 
@@ -415,9 +418,10 @@ class AsyncTemplates(AsyncAPIResource):
 
           name: An optional human-readable display name for the template.
 
-          network: Network access for an OpenAI-hosted environment.
+          network: Network access policy for the environment. Defaults to disabled for GA requests
+              and enabled for alpha/beta requests.
 
-          packages: Packages to install in an OpenAI-hosted environment.
+          packages: Packages to install in the environment. Defaults to empty package lists.
 
           plugins: Plugins provided as inline ZIP archives. Defaults to an empty list.
 
@@ -540,9 +544,11 @@ class AsyncTemplates(AsyncAPIResource):
 
           name: A replacement human-readable display name, or `null` to clear the name.
 
-          network: Network access for an OpenAI-hosted environment.
+          network: Network access available after setup completes. Omit to preserve the current
+              policy, or pass `null` to reset to disabled for GA requests or enabled for
+              alpha/beta requests.
 
-          packages: Packages to install in an OpenAI-hosted environment.
+          packages: Packages installed before the runtime network policy applies.
 
           plugins: Replacement plugin configuration installed for each new session.
 

@@ -18,7 +18,7 @@ from ...._types import Body, Omit, Query, Headers, NoneType, NotGiven, omit, not
 from ...._utils import is_given, path_template, maybe_transform, strip_not_given, async_maybe_transform
 from ...._compat import cached_property
 from ...._httpx2 import normalize_httpx_url
-from ...._models import construct_type_unchecked
+from ...._models import FinalRequestOptions, construct_type_unchecked
 from .input_items import (
     InputItems,
     AsyncInputItems,
@@ -77,12 +77,16 @@ log: logging.Logger = logging.getLogger(__name__)
 
 
 class Responses(SyncAPIResource):
+    """Create and manage model responses."""
+
     @cached_property
     def input_items(self) -> InputItems:
+        """Create and manage model responses."""
         return InputItems(self._client)
 
     @cached_property
     def input_tokens(self) -> InputTokens:
+        """Create and manage model responses."""
         return InputTokens(self._client)
 
     @cached_property
@@ -139,7 +143,6 @@ class Responses(SyncAPIResource):
                 "gpt-5.1",
                 "gpt-5.1-2025-11-13",
                 "gpt-5.1-codex",
-                "gpt-5.1-mini",
                 "gpt-5.1-chat-latest",
                 "gpt-5",
                 "gpt-5-mini",
@@ -170,6 +173,8 @@ class Responses(SyncAPIResource):
                 "gpt-4o-2024-11-20",
                 "gpt-4o-2024-08-06",
                 "gpt-4o-2024-05-13",
+                "gpt-audio-mini",
+                "gpt-audio-mini-2025-12-15",
                 "gpt-4o-audio-preview",
                 "gpt-4o-audio-preview-2024-10-01",
                 "gpt-4o-audio-preview-2024-12-17",
@@ -541,7 +546,6 @@ class Responses(SyncAPIResource):
                 "gpt-5.1",
                 "gpt-5.1-2025-11-13",
                 "gpt-5.1-codex",
-                "gpt-5.1-mini",
                 "gpt-5.1-chat-latest",
                 "gpt-5",
                 "gpt-5-mini",
@@ -572,6 +576,8 @@ class Responses(SyncAPIResource):
                 "gpt-4o-2024-11-20",
                 "gpt-4o-2024-08-06",
                 "gpt-4o-2024-05-13",
+                "gpt-audio-mini",
+                "gpt-audio-mini-2025-12-15",
                 "gpt-4o-audio-preview",
                 "gpt-4o-audio-preview-2024-10-01",
                 "gpt-4o-audio-preview-2024-12-17",
@@ -942,7 +948,6 @@ class Responses(SyncAPIResource):
                 "gpt-5.1",
                 "gpt-5.1-2025-11-13",
                 "gpt-5.1-codex",
-                "gpt-5.1-mini",
                 "gpt-5.1-chat-latest",
                 "gpt-5",
                 "gpt-5-mini",
@@ -973,6 +978,8 @@ class Responses(SyncAPIResource):
                 "gpt-4o-2024-11-20",
                 "gpt-4o-2024-08-06",
                 "gpt-4o-2024-05-13",
+                "gpt-audio-mini",
+                "gpt-audio-mini-2025-12-15",
                 "gpt-4o-audio-preview",
                 "gpt-4o-audio-preview-2024-10-01",
                 "gpt-4o-audio-preview-2024-12-17",
@@ -1341,7 +1348,6 @@ class Responses(SyncAPIResource):
                 "gpt-5.1",
                 "gpt-5.1-2025-11-13",
                 "gpt-5.1-codex",
-                "gpt-5.1-mini",
                 "gpt-5.1-chat-latest",
                 "gpt-5",
                 "gpt-5-mini",
@@ -1372,6 +1378,8 @@ class Responses(SyncAPIResource):
                 "gpt-4o-2024-11-20",
                 "gpt-4o-2024-08-06",
                 "gpt-4o-2024-05-13",
+                "gpt-audio-mini",
+                "gpt-audio-mini-2025-12-15",
                 "gpt-4o-audio-preview",
                 "gpt-4o-audio-preview-2024-10-01",
                 "gpt-4o-audio-preview-2024-12-17",
@@ -1823,7 +1831,6 @@ class Responses(SyncAPIResource):
                 "gpt-5.1",
                 "gpt-5.1-2025-11-13",
                 "gpt-5.1-codex",
-                "gpt-5.1-mini",
                 "gpt-5.1-chat-latest",
                 "gpt-5",
                 "gpt-5-mini",
@@ -1854,6 +1861,8 @@ class Responses(SyncAPIResource):
                 "gpt-4o-2024-11-20",
                 "gpt-4o-2024-08-06",
                 "gpt-4o-2024-05-13",
+                "gpt-audio-mini",
+                "gpt-audio-mini-2025-12-15",
                 "gpt-4o-audio-preview",
                 "gpt-4o-audio-preview-2024-10-01",
                 "gpt-4o-audio-preview-2024-12-17",
@@ -2050,12 +2059,16 @@ class Responses(SyncAPIResource):
 
 
 class AsyncResponses(AsyncAPIResource):
+    """Create and manage model responses."""
+
     @cached_property
     def input_items(self) -> AsyncInputItems:
+        """Create and manage model responses."""
         return AsyncInputItems(self._client)
 
     @cached_property
     def input_tokens(self) -> AsyncInputTokens:
+        """Create and manage model responses."""
         return AsyncInputTokens(self._client)
 
     @cached_property
@@ -2112,7 +2125,6 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-5.1",
                 "gpt-5.1-2025-11-13",
                 "gpt-5.1-codex",
-                "gpt-5.1-mini",
                 "gpt-5.1-chat-latest",
                 "gpt-5",
                 "gpt-5-mini",
@@ -2143,6 +2155,8 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-4o-2024-11-20",
                 "gpt-4o-2024-08-06",
                 "gpt-4o-2024-05-13",
+                "gpt-audio-mini",
+                "gpt-audio-mini-2025-12-15",
                 "gpt-4o-audio-preview",
                 "gpt-4o-audio-preview-2024-10-01",
                 "gpt-4o-audio-preview-2024-12-17",
@@ -2514,7 +2528,6 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-5.1",
                 "gpt-5.1-2025-11-13",
                 "gpt-5.1-codex",
-                "gpt-5.1-mini",
                 "gpt-5.1-chat-latest",
                 "gpt-5",
                 "gpt-5-mini",
@@ -2545,6 +2558,8 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-4o-2024-11-20",
                 "gpt-4o-2024-08-06",
                 "gpt-4o-2024-05-13",
+                "gpt-audio-mini",
+                "gpt-audio-mini-2025-12-15",
                 "gpt-4o-audio-preview",
                 "gpt-4o-audio-preview-2024-10-01",
                 "gpt-4o-audio-preview-2024-12-17",
@@ -2915,7 +2930,6 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-5.1",
                 "gpt-5.1-2025-11-13",
                 "gpt-5.1-codex",
-                "gpt-5.1-mini",
                 "gpt-5.1-chat-latest",
                 "gpt-5",
                 "gpt-5-mini",
@@ -2946,6 +2960,8 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-4o-2024-11-20",
                 "gpt-4o-2024-08-06",
                 "gpt-4o-2024-05-13",
+                "gpt-audio-mini",
+                "gpt-audio-mini-2025-12-15",
                 "gpt-4o-audio-preview",
                 "gpt-4o-audio-preview-2024-10-01",
                 "gpt-4o-audio-preview-2024-12-17",
@@ -3314,7 +3330,6 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-5.1",
                 "gpt-5.1-2025-11-13",
                 "gpt-5.1-codex",
-                "gpt-5.1-mini",
                 "gpt-5.1-chat-latest",
                 "gpt-5",
                 "gpt-5-mini",
@@ -3345,6 +3360,8 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-4o-2024-11-20",
                 "gpt-4o-2024-08-06",
                 "gpt-4o-2024-05-13",
+                "gpt-audio-mini",
+                "gpt-audio-mini-2025-12-15",
                 "gpt-4o-audio-preview",
                 "gpt-4o-audio-preview-2024-10-01",
                 "gpt-4o-audio-preview-2024-12-17",
@@ -3796,7 +3813,6 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-5.1",
                 "gpt-5.1-2025-11-13",
                 "gpt-5.1-codex",
-                "gpt-5.1-mini",
                 "gpt-5.1-chat-latest",
                 "gpt-5",
                 "gpt-5-mini",
@@ -3827,6 +3843,8 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-4o-2024-11-20",
                 "gpt-4o-2024-08-06",
                 "gpt-4o-2024-05-13",
+                "gpt-audio-mini",
+                "gpt-audio-mini-2025-12-15",
                 "gpt-4o-audio-preview",
                 "gpt-4o-audio-preview-2024-10-01",
                 "gpt-4o-audio-preview-2024-12-17",
@@ -4044,10 +4062,12 @@ class ResponsesWithRawResponse:
 
     @cached_property
     def input_items(self) -> InputItemsWithRawResponse:
+        """Create and manage model responses."""
         return InputItemsWithRawResponse(self._responses.input_items)
 
     @cached_property
     def input_tokens(self) -> InputTokensWithRawResponse:
+        """Create and manage model responses."""
         return InputTokensWithRawResponse(self._responses.input_tokens)
 
 
@@ -4073,10 +4093,12 @@ class AsyncResponsesWithRawResponse:
 
     @cached_property
     def input_items(self) -> AsyncInputItemsWithRawResponse:
+        """Create and manage model responses."""
         return AsyncInputItemsWithRawResponse(self._responses.input_items)
 
     @cached_property
     def input_tokens(self) -> AsyncInputTokensWithRawResponse:
+        """Create and manage model responses."""
         return AsyncInputTokensWithRawResponse(self._responses.input_tokens)
 
 
@@ -4102,10 +4124,12 @@ class ResponsesWithStreamingResponse:
 
     @cached_property
     def input_items(self) -> InputItemsWithStreamingResponse:
+        """Create and manage model responses."""
         return InputItemsWithStreamingResponse(self._responses.input_items)
 
     @cached_property
     def input_tokens(self) -> InputTokensWithStreamingResponse:
+        """Create and manage model responses."""
         return InputTokensWithStreamingResponse(self._responses.input_tokens)
 
 
@@ -4131,10 +4155,12 @@ class AsyncResponsesWithStreamingResponse:
 
     @cached_property
     def input_items(self) -> AsyncInputItemsWithStreamingResponse:
+        """Create and manage model responses."""
         return AsyncInputItemsWithStreamingResponse(self._responses.input_items)
 
     @cached_property
     def input_tokens(self) -> AsyncInputTokensWithStreamingResponse:
+        """Create and manage model responses."""
         return AsyncInputTokensWithStreamingResponse(self._responses.input_tokens)
 
 
@@ -4582,19 +4608,37 @@ class AsyncResponsesConnectionManager:
                 **extra_query,
             },
         )
+        url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
+        options = await self.__client._prepare_options(
+            FinalRequestOptions.construct(
+                method="get",
+                url=str(url),
+                headers=dict(extra_headers),
+                security={"bearer_auth": True},
+            )
+        )
+        url = self.__client._prepare_url(options.url).copy_merge_params(
+            self.__client.qs.stringify(cast(Any, options.params))
+        )
+        url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
+        headers = {
+            key.lower(): (key, value)
+            for header_set in (
+                self.__client.auth_headers,
+                {},
+                self.__client.default_headers,
+                options.headers if is_given(options.headers) else {},
+            )
+            for key, value in header_set.items()
+        }
         log.debug("Connecting to WebSocket API")
         if self.__websocket_connection_options:
             log.debug("Custom WebSocket connection options provided")
 
         return await connect(
             str(url),
-            user_agent_header=self.__client.user_agent,
-            additional_headers=_merge_mappings(
-                {
-                    **self.__client.auth_headers,
-                },
-                extra_headers,
-            ),
+            user_agent_header=None,
+            additional_headers=_merge_mappings(dict(headers.values()), {}),
             **self.__websocket_connection_options,
         )
 
@@ -4700,7 +4744,9 @@ class ResponsesConnection:
         If you want to parse the message into a `BetaResponsesServerEvent` object like `.recv()` does,
         then you can call `.parse_event(data)`.
         """
-        message = self._connection.recv(decode=False)
+        from ....lib._websocket import _recv_bytes
+
+        message = _recv_bytes(self._connection)
         log.debug("Received WebSocket message: %i bytes", len(message))
         if self._reconnect_attempt:
             # Account for raw application progress without changing frame delivery.
@@ -5048,19 +5094,37 @@ class ResponsesConnectionManager:
                 **extra_query,
             },
         )
+        url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
+        options = self.__client._prepare_options(
+            FinalRequestOptions.construct(
+                method="get",
+                url=str(url),
+                headers=dict(extra_headers),
+                security={"bearer_auth": True},
+            )
+        )
+        url = self.__client._prepare_url(options.url).copy_merge_params(
+            self.__client.qs.stringify(cast(Any, options.params))
+        )
+        url = url.copy_with(scheme={"http": "ws", "https": "wss"}.get(url.scheme, url.scheme))
+        headers = {
+            key.lower(): (key, value)
+            for header_set in (
+                self.__client.auth_headers,
+                {},
+                self.__client.default_headers,
+                options.headers if is_given(options.headers) else {},
+            )
+            for key, value in header_set.items()
+        }
         log.debug("Connecting to WebSocket API")
         if self.__websocket_connection_options:
             log.debug("Custom WebSocket connection options provided")
 
         return connect(
             str(url),
-            user_agent_header=self.__client.user_agent,
-            additional_headers=_merge_mappings(
-                {
-                    **self.__client.auth_headers,
-                },
-                extra_headers,
-            ),
+            user_agent_header=None,
+            additional_headers=_merge_mappings(dict(headers.values()), {}),
             **self.__websocket_connection_options,
         )
 
@@ -5088,48 +5152,6 @@ class BaseResponsesConnectionResource:
 
 
 class ResponsesResponseResource(BaseResponsesConnectionResource):
-    def inject(self, *, input: Iterable[BetaResponseInputItemParam], response_id: str) -> None:
-        """
-        Injects input items into an active response over a WebSocket connection.
-        The items are validated and committed atomically. Currently, the server
-        accepts client-owned tool outputs that resume a waiting agent.
-        """
-        self._connection.send({"type": "response.inject", "input": input, "response_id": response_id})
-
-    def steer(self, *, input: BetaResponseSteerInputParam, previous_response_id: str) -> None:
-        """Queues user input to steer a response on this WebSocket connection.
-
-        Input
-        can contain text, images, and files. Steering is supported only for
-        single-agent responses on models and execution modes that support steering.
-        Responses bound to a conversation or using automatic compaction do not
-        support steering.
-
-        A `response.steer.accepted` event acknowledges that the server owns the
-        queued input, not that it has been applied. The successor's `response.created`
-        event is the commit point. Input that cannot be committed is returned in
-        `response.steer.failed`.
-
-        Steering may cause the active response to finish at a safe output boundary
-        with `response.incomplete` and `incomplete_details.reason` set to `steered`,
-        followed automatically by a successor `response.created`. Normal completion
-        can also be followed by an automatic successor. Automatic successors inherit
-        the previous response's settings and continue from it with the queued input.
-
-        If the response stops for client-owned tool output or approval, accepted
-        steering input remains queued and `response.steer.pending` is emitted after
-        `response.completed`. Fill the `required_input` stubs from that event with
-        saved tool results or approval decisions, and send one explicit
-        `response.create` per parent with the same `previous_response_id` and
-        WebSocket lane. Do not rerun tools or resend accepted steering input. The
-        queued input is prepended in submission order to that request's input, and
-        the explicit request retains its own settings.
-
-        This event accepts only `type`, `previous_response_id`, and `input`. Do not
-        send `stream_id`; the target response determines the WebSocket lane.
-        """
-        self._connection.send({"type": "response.steer", "input": input, "previous_response_id": previous_response_id})
-
     def create(
         self,
         *,
@@ -5165,7 +5187,6 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
                 "gpt-5.1",
                 "gpt-5.1-2025-11-13",
                 "gpt-5.1-codex",
-                "gpt-5.1-mini",
                 "gpt-5.1-chat-latest",
                 "gpt-5",
                 "gpt-5-mini",
@@ -5196,6 +5217,8 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
                 "gpt-4o-2024-11-20",
                 "gpt-4o-2024-08-06",
                 "gpt-4o-2024-05-13",
+                "gpt-audio-mini",
+                "gpt-audio-mini-2025-12-15",
                 "gpt-4o-audio-preview",
                 "gpt-4o-audio-preview-2024-10-01",
                 "gpt-4o-audio-preview-2024-12-17",
@@ -5330,22 +5353,15 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
             )
         )
 
-
-class BaseAsyncResponsesConnectionResource:
-    def __init__(self, connection: AsyncResponsesConnection) -> None:
-        self._connection = connection
-
-
-class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
-    async def inject(self, *, input: Iterable[BetaResponseInputItemParam], response_id: str) -> None:
+    def inject(self, *, input: Iterable[BetaResponseInputItemParam], response_id: str) -> None:
         """
         Injects input items into an active response over a WebSocket connection.
         The items are validated and committed atomically. Currently, the server
         accepts client-owned tool outputs that resume a waiting agent.
         """
-        await self._connection.send({"type": "response.inject", "input": input, "response_id": response_id})
+        self._connection.send({"type": "response.inject", "input": input, "response_id": response_id})
 
-    async def steer(self, *, input: BetaResponseSteerInputParam, previous_response_id: str) -> None:
+    def steer(self, *, input: BetaResponseSteerInputParam, previous_response_id: str) -> None:
         """Queues user input to steer a response on this WebSocket connection.
 
         Input
@@ -5377,10 +5393,15 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
         This event accepts only `type`, `previous_response_id`, and `input`. Do not
         send `stream_id`; the target response determines the WebSocket lane.
         """
-        await self._connection.send(
-            {"type": "response.steer", "input": input, "previous_response_id": previous_response_id}
-        )
+        self._connection.send({"type": "response.steer", "input": input, "previous_response_id": previous_response_id})
 
+
+class BaseAsyncResponsesConnectionResource:
+    def __init__(self, connection: AsyncResponsesConnection) -> None:
+        self._connection = connection
+
+
+class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
     async def create(
         self,
         *,
@@ -5416,7 +5437,6 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
                 "gpt-5.1",
                 "gpt-5.1-2025-11-13",
                 "gpt-5.1-codex",
-                "gpt-5.1-mini",
                 "gpt-5.1-chat-latest",
                 "gpt-5",
                 "gpt-5-mini",
@@ -5447,6 +5467,8 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
                 "gpt-4o-2024-11-20",
                 "gpt-4o-2024-08-06",
                 "gpt-4o-2024-05-13",
+                "gpt-audio-mini",
+                "gpt-audio-mini-2025-12-15",
                 "gpt-4o-audio-preview",
                 "gpt-4o-audio-preview-2024-10-01",
                 "gpt-4o-audio-preview-2024-12-17",
@@ -5579,4 +5601,48 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
                     }
                 ),
             )
+        )
+
+    async def inject(self, *, input: Iterable[BetaResponseInputItemParam], response_id: str) -> None:
+        """
+        Injects input items into an active response over a WebSocket connection.
+        The items are validated and committed atomically. Currently, the server
+        accepts client-owned tool outputs that resume a waiting agent.
+        """
+        await self._connection.send({"type": "response.inject", "input": input, "response_id": response_id})
+
+    async def steer(self, *, input: BetaResponseSteerInputParam, previous_response_id: str) -> None:
+        """Queues user input to steer a response on this WebSocket connection.
+
+        Input
+        can contain text, images, and files. Steering is supported only for
+        single-agent responses on models and execution modes that support steering.
+        Responses bound to a conversation or using automatic compaction do not
+        support steering.
+
+        A `response.steer.accepted` event acknowledges that the server owns the
+        queued input, not that it has been applied. The successor's `response.created`
+        event is the commit point. Input that cannot be committed is returned in
+        `response.steer.failed`.
+
+        Steering may cause the active response to finish at a safe output boundary
+        with `response.incomplete` and `incomplete_details.reason` set to `steered`,
+        followed automatically by a successor `response.created`. Normal completion
+        can also be followed by an automatic successor. Automatic successors inherit
+        the previous response's settings and continue from it with the queued input.
+
+        If the response stops for client-owned tool output or approval, accepted
+        steering input remains queued and `response.steer.pending` is emitted after
+        `response.completed`. Fill the `required_input` stubs from that event with
+        saved tool results or approval decisions, and send one explicit
+        `response.create` per parent with the same `previous_response_id` and
+        WebSocket lane. Do not rerun tools or resend accepted steering input. The
+        queued input is prepended in submission order to that request's input, and
+        the explicit request retains its own settings.
+
+        This event accepts only `type`, `previous_response_id`, and `input`. Do not
+        send `stream_id`; the target response determines the WebSocket lane.
+        """
+        await self._connection.send(
+            {"type": "response.steer", "input": input, "previous_response_id": previous_response_id}
         )

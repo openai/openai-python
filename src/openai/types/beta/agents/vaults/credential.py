@@ -9,13 +9,13 @@ __all__ = ["Credential"]
 
 
 class Credential(BaseModel):
-    """Metadata for a stored MCP server credential. Secret values are never returned."""
+    """Metadata for a stored credential. Secret values are never returned."""
 
     id: str
     """The ID of the credential."""
 
     auth: CredentialAuth
-    """The authentication method and non-secret configuration for the MCP server."""
+    """The authentication method and non-secret configuration of the credential."""
 
     created_at: int
     """The Unix timestamp, in seconds, when the credential was created."""

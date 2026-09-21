@@ -127,6 +127,13 @@ class ResponseCreatePromptCacheOptions(BaseModel):
     request does not use prompt caching.
     """
 
+    prewarm: Optional[bool] = None
+    """Prepares the prompt cache without generating output.
+
+    Defaults to `false`. When set to `true`, overrides the `generate` field to
+    `false`.
+    """
+
     ttl: Optional[Literal["30m"]] = None
     """
     The minimum lifetime applied to every implicit and explicit cache breakpoint
@@ -341,7 +348,6 @@ class ResponseCreate(BaseModel):
             "gpt-5.1",
             "gpt-5.1-2025-11-13",
             "gpt-5.1-codex",
-            "gpt-5.1-mini",
             "gpt-5.1-chat-latest",
             "gpt-5",
             "gpt-5-mini",
@@ -372,6 +378,8 @@ class ResponseCreate(BaseModel):
             "gpt-4o-2024-11-20",
             "gpt-4o-2024-08-06",
             "gpt-4o-2024-05-13",
+            "gpt-audio-mini",
+            "gpt-audio-mini-2025-12-15",
             "gpt-4o-audio-preview",
             "gpt-4o-audio-preview-2024-10-01",
             "gpt-4o-audio-preview-2024-12-17",

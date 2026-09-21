@@ -83,7 +83,7 @@ class PersistedAgentToolResourceMcp(BaseModel):
 
 
 class PersistedAgentToolResourceWebSearchLocation(BaseModel):
-    """Approximate user location used to localize web search results."""
+    """Approximate location used to localize search results, if provided."""
 
     city: Optional[str] = None
     """The city name."""
@@ -108,7 +108,7 @@ class PersistedAgentToolResourceWebSearch(BaseModel):
     """The amount of search context made available to the model. Defaults to `medium`."""
 
     location: Optional[PersistedAgentToolResourceWebSearchLocation] = None
-    """Approximate user location used to localize web search results."""
+    """Approximate location used to localize search results, if provided."""
 
     mode: Literal["disabled", "cached", "live"]
     """The source used for web search results."""

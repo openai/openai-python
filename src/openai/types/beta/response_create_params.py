@@ -148,7 +148,6 @@ class ResponseCreateParamsBase(TypedDict, total=False):
             "gpt-5.1",
             "gpt-5.1-2025-11-13",
             "gpt-5.1-codex",
-            "gpt-5.1-mini",
             "gpt-5.1-chat-latest",
             "gpt-5",
             "gpt-5-mini",
@@ -179,6 +178,8 @@ class ResponseCreateParamsBase(TypedDict, total=False):
             "gpt-4o-2024-11-20",
             "gpt-4o-2024-08-06",
             "gpt-4o-2024-05-13",
+            "gpt-audio-mini",
+            "gpt-audio-mini-2025-12-15",
             "gpt-4o-audio-preview",
             "gpt-4o-audio-preview-2024-10-01",
             "gpt-4o-audio-preview-2024-12-17",
@@ -532,6 +533,13 @@ class PromptCacheOptions(TypedDict, total=False):
     `explicit`, OpenAI does not create an implicit breakpoint and writes up to the
     latest four explicit breakpoints. If there are no explicit breakpoints, the
     request does not use prompt caching.
+    """
+
+    prewarm: bool
+    """Prepares the prompt cache without generating output.
+
+    Defaults to `false`. When set to `true`, overrides the `generate` field to
+    `false`.
     """
 
     ttl: Literal["30m"]

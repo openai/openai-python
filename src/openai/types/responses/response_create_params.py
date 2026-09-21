@@ -405,6 +405,13 @@ class PromptCacheOptions(TypedDict, total=False):
     request does not use prompt caching.
     """
 
+    prewarm: bool
+    """Prepares the prompt cache without generating output.
+
+    Defaults to `false`. When set to `true`, overrides the `generate` field to
+    `false`.
+    """
+
     ttl: Literal["30m"]
     """
     The minimum lifetime applied to every implicit and explicit cache breakpoint
