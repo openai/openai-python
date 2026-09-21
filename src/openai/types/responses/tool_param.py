@@ -284,10 +284,14 @@ class ImageGeneration(TypedDict, total=False):
     """
 
     input_fidelity: Optional[Literal["high", "low"]]
-    """Controls fidelity to the original input image(s).
-
-    This parameter is supported for GPT image models that support input fidelity.
-    `gpt-image-2` and `gpt-image-2-2026-04-21` ignore this parameter.
+    """
+    Control how much effort the model will exert to match the style and features,
+    especially facial features, of input images. Supported models accept `high` and
+    `low`, except `gpt-image-1-mini`, which accepts only `low`. Defaults to `low` on
+    models that support this parameter. Omit this parameter for `gpt-image-2`,
+    `gpt-image-2-2026-04-21`, and other models that do not support it. See the
+    [image input fidelity guide](https://developers.openai.com/api/docs/guides/image-generation#image-input-fidelity)
+    for model-specific guidance.
     """
 
     input_image_mask: ImageGenerationInputImageMask
@@ -358,9 +362,7 @@ class ImageGeneration(TypedDict, total=False):
     resolution is `3840x2160`. The requested size must also satisfy the model's
     current pixel and edge limits. The standard sizes `1024x1024`, `1536x1024`, and
     `1024x1536` are supported by the GPT image models; `auto` is supported for
-    models that allow automatic sizing. For `dall-e-2`, use one of `256x256`,
-    `512x512`, or `1024x1024`. For `dall-e-3`, use one of `1024x1024`, `1792x1024`,
-    or `1024x1792`.
+    models that allow automatic sizing.
     """
 
 

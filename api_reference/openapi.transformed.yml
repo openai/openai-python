@@ -7723,7 +7723,7 @@ paths:
       tags:
       - Images
       summary: Create image edit
-      description: Creates an edited or extended image given one or more source images and a prompt. This endpoint supports GPT Image models and `dall-e-2`.
+      description: Creates an edited or extended image given one or more source images and a prompt. This endpoint supports GPT Image models. DALL·E 2 was retired from the API on May 12, 2026; see [deprecations](https://developers.openai.com/api/docs/deprecations).
       requestBody:
         required: true
         content:
@@ -8041,7 +8041,7 @@ paths:
       tags:
       - Images
       summary: Create image variation
-      description: Creates a variation of a given image. This endpoint only supports `dall-e-2`.
+      description: Legacy endpoint for creating variations with DALL·E 2, which was retired from the API on May 12, 2026. See [deprecations](https://developers.openai.com/api/docs/deprecations). For new integrations, use image edits with a supported GPT Image model; see the [image generation guide](https://developers.openai.com/api/docs/guides/image-generation).
       requestBody:
         required: true
         content:
@@ -8057,62 +8057,6 @@ paths:
                 $ref: '#/components/schemas/ImagesResponse'
       x-oaiMeta:
         group: images
-        examples:
-          request:
-            curl: |
-              curl https://api.openai.com/v1/images/variations \
-                -H "Authorization: Bearer $OPENAI_API_KEY" \
-                -F image="@otter.png" \
-                -F n=2 \
-                -F size="1024x1024"
-            python: |
-              from openai import OpenAI
-              client = OpenAI()
-
-              response = client.images.create_variation(
-                image=open("image_edit_original.png", "rb"),
-                n=2,
-                size="1024x1024"
-              )
-            javascript: |-
-              import fs from "fs";
-              import OpenAI from "openai";
-
-              const openai = new OpenAI();
-
-              async function main() {
-                const image = await openai.images.createVariation({
-                  image: fs.createReadStream("otter.png"),
-                });
-
-                console.log(image.data);
-              }
-              main();
-            csharp: |
-              using System;
-
-              using OpenAI.Images;
-
-              ImageClient client = new(
-                  model: "dall-e-2",
-                  apiKey: Environment.GetEnvironmentVariable("OPENAI_API_KEY")
-              );
-
-              GeneratedImage image = client.GenerateImageVariation(imageFilePath: "otter.png");
-
-              Console.WriteLine(image.ImageUri);
-          response: |
-            {
-              "created": 1589478378,
-              "data": [
-                {
-                  "url": "https://..."
-                },
-                {
-                  "url": "https://..."
-                }
-              ]
-            }
   /live/sessions:
     post:
       operationId: create-live
@@ -37120,13 +37064,10 @@ components:
             `gpt-image-2.5-flare-2026-09-08`, and `chatgpt-image-latest`), each image
             should be a `png`, `webp`, or `jpg` file less than 50MB. You can provide up to
             16 images.
-
-            For `dall-e-2`, you can only provide one image, and it should be a square
-            `png` file less than 4MB.
           x-oaiMeta:
             exampleFilePath: otter.png
         prompt:
-          description: A text description of the desired image(s). The maximum length is 1000 characters for `dall-e-2`, and 32000 characters for the GPT image models.
+          description: A text description of the desired image(s). The maximum length is 32000 characters for the GPT image models.
           type: string
           example: A cute baby sea otter wearing a beret
         mask:
@@ -37173,7 +37114,7 @@ components:
             - dall-e-2
             x-stainless-const: true
           x-oaiTypeLabel: string
-          description: The model to use for image generation. One of `dall-e-2` or a GPT image model (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, `gpt-image-2.5-flare-2026-09-08`, or `chatgpt-image-latest`). Defaults to `gpt-image-1.5`.
+          description: The GPT Image model to use for image editing (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, `gpt-image-2.5-flare-2026-09-08`, or `chatgpt-image-latest`). Defaults to `gpt-image-1.5`. DALL·E 2 was retired from the API on May 12, 2026; see [deprecations](https://developers.openai.com/api/docs/deprecations).
           nullable: true
           example: gpt-image-2
         n:
@@ -37195,7 +37136,7 @@ components:
             - 1536x1024
             - 1024x1536
             - auto
-          description: The size of the generated images. For `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, and `gpt-image-2.5-flare-2026-09-08`, arbitrary resolutions are supported as `WIDTHxHEIGHT` strings, for example `1536x864`. Width and height must both be divisible by 16 and the requested aspect ratio must be between 1:3 and 3:1. Resolutions above `2560x1440` are experimental, and the maximum supported resolution is `3840x2160`. The requested size must also satisfy the model's current pixel and edge limits. The standard sizes `1024x1024`, `1536x1024`, and `1024x1536` are supported by the GPT image models; `auto` is supported for models that allow automatic sizing. For `dall-e-2`, use one of `256x256`, `512x512`, or `1024x1024`. For `dall-e-3`, use one of `1024x1024`, `1792x1024`, or `1024x1792`.
+          description: The size of the generated images. For `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, and `gpt-image-2.5-flare-2026-09-08`, arbitrary resolutions are supported as `WIDTHxHEIGHT` strings, for example `1536x864`. Width and height must both be divisible by 16 and the requested aspect ratio must be between 1:3 and 3:1. Resolutions above `2560x1440` are experimental, and the maximum supported resolution is `3840x2160`. The requested size must also satisfy the model's current pixel and edge limits. The standard sizes `1024x1024`, `1536x1024`, and `1024x1536` are supported by the GPT image models; `auto` is supported for models that allow automatic sizing. Legacy sizes for the retired `dall-e-2` model were `256x256`, `512x512`, and `1024x1024`.
           nullable: true
         response_format:
           type: string
@@ -37204,7 +37145,7 @@ components:
           - b64_json
           example: url
           nullable: true
-          description: The format in which the generated images are returned. Must be one of `url` or `b64_json`. URLs are only valid for 60 minutes after the image has been generated. This parameter is only supported for `dall-e-2` (default is `url` for `dall-e-2`), as GPT image models always return base64-encoded images.
+          description: Legacy response-format parameter (`url` or `b64_json`) for the retired `dall-e-2` model. GPT Image models always return base64-encoded images.
         output_format:
           type: string
           enum:
@@ -37236,7 +37177,7 @@ components:
           anyOf:
           - $ref: '#/components/schemas/InputFidelity'
           - type: 'null'
-          description: Controls fidelity to the original input image(s). This parameter is supported for GPT image models that support input fidelity. `gpt-image-2` and `gpt-image-2-2026-04-21` ignore this parameter.
+          description: Control how much effort the model will exert to match the style and features, especially facial features, of input images. Models that accept both `high` and `low` include `gpt-image-1`, `gpt-image-1.5`, and `chatgpt-image-latest`. `gpt-image-1-mini` accepts only `low`. Defaults to `low` on models that support this parameter. Omit this parameter for `gpt-image-2`, `gpt-image-2-2026-04-21`, and other models that do not support it. See the [image input fidelity guide](https://developers.openai.com/api/docs/guides/image-generation#image-input-fidelity) for model-specific guidance.
         stream:
           type: boolean
           default: false
@@ -37269,7 +37210,7 @@ components:
       type: object
       properties:
         prompt:
-          description: A text description of the desired image(s). The maximum length is 32000 characters for the GPT image models, 1000 characters for `dall-e-2` and 4000 characters for `dall-e-3`.
+          description: A text description of the desired image(s). The maximum length is 32000 characters for the GPT image models. Legacy limits for the retired models were 1000 characters for `dall-e-2` and 4000 characters for `dall-e-3`.
           type: string
           example: A cute baby sea otter
         model:
@@ -37291,7 +37232,7 @@ components:
             - dall-e-3
             x-stainless-nominal: false
           x-oaiTypeLabel: string
-          description: The model to use for image generation. One of `dall-e-2`, `dall-e-3`, or a GPT image model (`gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, `gpt-image-2.5-flare-2026-09-08`). Defaults to `dall-e-2` unless a parameter specific to the GPT image models is used.
+          description: The GPT Image model to use for image generation. Specify a supported model explicitly, such as `gpt-image-1`, `gpt-image-1-mini`, `gpt-image-1.5`, `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, or `gpt-image-2.5-flare-2026-09-08`. DALL·E 2 (`dall-e-2`) and DALL·E 3 (`dall-e-3`) were retired from the API on May 12, 2026; see [deprecations](https://developers.openai.com/api/docs/deprecations).
           nullable: true
           example: gpt-image-2
         n:
@@ -37301,7 +37242,7 @@ components:
           default: 1
           example: 1
           nullable: true
-          description: The number of images to generate. Must be between 1 and 10. For `dall-e-3`, only `n=1` is supported.
+          description: The number of images to generate. Must be between 1 and 10. The retired `dall-e-3` model only supported `n=1`.
         quality:
           type: string
           enum:
@@ -37324,8 +37265,8 @@ components:
             - `high`, `medium` and `low` are supported for the GPT image models.
             - `gpt-image-2.5-sunburst` and `gpt-image-2.5-flare`, including their `2026-09-08`
               snapshots, also support `xhigh` and `max`.
-            - `hd` and `standard` are supported for `dall-e-3`.
-            - `standard` is the only option for `dall-e-2`.
+            - The retired `dall-e-3` model supported the legacy values `hd` and `standard`.
+            - The retired `dall-e-2` model only supported the legacy value `standard`.
         response_format:
           type: string
           enum:
@@ -37334,7 +37275,7 @@ components:
           default: url
           example: url
           nullable: true
-          description: The format in which generated images with `dall-e-2` and `dall-e-3` are returned. Must be one of `url` or `b64_json`. URLs are only valid for 60 minutes after the image has been generated. This parameter isn't supported for the GPT image models, which always return base64-encoded images.
+          description: 'Legacy response format: `url` or `b64_json`, for the retired `dall-e-2` and `dall-e-3` models. Returned URLs were valid for 60 minutes after image generation. This parameter is not supported for the GPT image models, which always return base64-encoded images.'
         output_format:
           type: string
           enum:
@@ -37375,7 +37316,7 @@ components:
             - 512x512
             - 1792x1024
             - 1024x1792
-          description: The size of the generated images. For `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, and `gpt-image-2.5-flare-2026-09-08`, arbitrary resolutions are supported as `WIDTHxHEIGHT` strings, for example `1536x864`. Width and height must both be divisible by 16 and the requested aspect ratio must be between 1:3 and 3:1. Resolutions above `2560x1440` are experimental, and the maximum supported resolution is `3840x2160`. The requested size must also satisfy the model's current pixel and edge limits. The standard sizes `1024x1024`, `1536x1024`, and `1024x1536` are supported by the GPT image models; `auto` is supported for models that allow automatic sizing. For `dall-e-2`, use one of `256x256`, `512x512`, or `1024x1024`. For `dall-e-3`, use one of `1024x1024`, `1792x1024`, or `1024x1792`.
+          description: The size of the generated images. For `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, and `gpt-image-2.5-flare-2026-09-08`, arbitrary resolutions are supported as `WIDTHxHEIGHT` strings, for example `1536x864`. Width and height must both be divisible by 16 and the requested aspect ratio must be between 1:3 and 3:1. Resolutions above `2560x1440` are experimental, and the maximum supported resolution is `3840x2160`. The requested size must also satisfy the model's current pixel and edge limits. The standard sizes `1024x1024`, `1536x1024`, and `1024x1536` are supported by the GPT image models; `auto` is supported for models that allow automatic sizing. Legacy sizes for the retired `dall-e-2` model were `256x256`, `512x512`, and `1024x1024`. Legacy sizes for the retired `dall-e-3` model were `1024x1024`, `1792x1024`, and `1024x1792`.
           nullable: true
         moderation:
           type: string
@@ -37414,7 +37355,7 @@ components:
           default: vivid
           example: vivid
           nullable: true
-          description: The style of the generated images. This parameter is only supported for `dall-e-3`. Must be one of `vivid` or `natural`. Vivid causes the model to lean towards generating hyper-real and dramatic images. Natural causes the model to produce more natural, less hyper-real looking images.
+          description: Legacy style options `vivid` and `natural` for the retired `dall-e-3` model. Vivid produced hyper-real and dramatic images; natural produced more natural, less hyper-real looking images. This parameter is not supported for the GPT image models.
         user:
           type: string
           example: user-1234
@@ -37426,7 +37367,7 @@ components:
       type: object
       properties:
         image:
-          description: The image to use as the basis for the variation(s). Must be a valid PNG file, less than 4MB, and square.
+          description: The input image for the legacy variations endpoint. The legacy format requires a valid PNG file, less than 4MB, and square.
           type: string
           format: binary
           x-oaiMeta:
@@ -37439,7 +37380,7 @@ components:
             - dall-e-2
             x-stainless-const: true
           x-oaiTypeLabel: string
-          description: The model to use for image generation. Only `dall-e-2` is supported at this time.
+          description: Legacy model selection for the variations endpoint, which was designed for `dall-e-2`. DALL·E 2 was retired from the API on May 12, 2026; see [deprecations](https://developers.openai.com/api/docs/deprecations). Use image edits with a supported GPT Image model for new integrations.
           nullable: true
         n:
           type: integer
@@ -37448,7 +37389,7 @@ components:
           default: 1
           example: 1
           nullable: true
-          description: The number of images to generate. Must be between 1 and 10.
+          description: The number of images requested from the legacy variations endpoint. Must be between 1 and 10.
         response_format:
           type: string
           enum:
@@ -37457,7 +37398,7 @@ components:
           default: url
           example: url
           nullable: true
-          description: The format in which the generated images are returned. Must be one of `url` or `b64_json`. URLs are only valid for 60 minutes after the image has been generated.
+          description: 'The response format for the legacy variations endpoint: `url` or `b64_json`. Returned URLs were valid for 60 minutes after image generation.'
         size:
           type: string
           enum:
@@ -37467,7 +37408,7 @@ components:
           default: 1024x1024
           example: 1024x1024
           nullable: true
-          description: The size of the generated images. Must be one of `256x256`, `512x512`, or `1024x1024`.
+          description: The requested image size for the legacy variations endpoint. Must be one of `256x256`, `512x512`, or `1024x1024`.
         user:
           type: string
           example: user-1234
@@ -39485,7 +39426,7 @@ components:
 
         Use `images` (array of `ImageRefParam`) instead of multipart `image` uploads.
         You can reference images via external URLs, data URLs, or uploaded file IDs.
-        JSON edits support GPT image models only; DALL-E edits require multipart (`dall-e-2` only).
+        JSON edits support GPT image models only.
       properties:
         model:
           anyOf:
@@ -39557,7 +39498,7 @@ components:
             - high
             - low
           - type: 'null'
-          description: Controls fidelity to the original input image(s). This parameter is supported for GPT image models that support input fidelity. `gpt-image-2` and `gpt-image-2-2026-04-21` ignore this parameter.
+          description: Control how much effort the model will exert to match the style and features, especially facial features, of input images. Models that accept both `high` and `low` include `gpt-image-1`, `gpt-image-1.5`, and `chatgpt-image-latest`. `gpt-image-1-mini` accepts only `low`. Defaults to `low` on models that support this parameter. Omit this parameter for `gpt-image-2`, `gpt-image-2-2026-04-21`, and other models that do not support it. See the [image input fidelity guide](https://developers.openai.com/api/docs/guides/image-generation#image-input-fidelity) for model-specific guidance.
         size:
           anyOf:
           - type: string
@@ -42862,14 +42803,14 @@ components:
       properties:
         b64_json:
           type: string
-          description: The base64-encoded JSON of the generated image. Returned by default for the GPT image models, and only present if `response_format` is set to `b64_json` for `dall-e-2` and `dall-e-3`.
+          description: The base64-encoded image data. Returned by default for the GPT image models. For the retired `dall-e-2` and `dall-e-3` models, this field was present only when `response_format` was set to `b64_json`.
         url:
           type: string
           format: uri
-          description: When using `dall-e-2` or `dall-e-3`, the URL of the generated image if `response_format` is set to `url` (default value). Unsupported for the GPT image models.
+          description: 'Legacy field for the retired `dall-e-2` and `dall-e-3` models: the URL of the generated image when `response_format` was set to `url`, the legacy default. Unsupported for the GPT image models.'
         revised_prompt:
           type: string
-          description: For `dall-e-3` only, the revised prompt that was used to generate the image.
+          description: 'Legacy field for the retired `dall-e-3` model: the revised prompt that was used to generate the image.'
     ImageEditCompletedEvent:
       type: object
       description: |
@@ -43294,7 +43235,7 @@ components:
             - 1024x1536
             - 1536x1024
             - auto
-          description: The size of the generated images. For `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, and `gpt-image-2.5-flare-2026-09-08`, arbitrary resolutions are supported as `WIDTHxHEIGHT` strings, for example `1536x864`. Width and height must both be divisible by 16 and the requested aspect ratio must be between 1:3 and 3:1. Resolutions above `2560x1440` are experimental, and the maximum supported resolution is `3840x2160`. The requested size must also satisfy the model's current pixel and edge limits. The standard sizes `1024x1024`, `1536x1024`, and `1024x1536` are supported by the GPT image models; `auto` is supported for models that allow automatic sizing. For `dall-e-2`, use one of `256x256`, `512x512`, or `1024x1024`. For `dall-e-3`, use one of `1024x1024`, `1792x1024`, or `1024x1792`.
+          description: The size of the generated images. For `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, and `gpt-image-2.5-flare-2026-09-08`, arbitrary resolutions are supported as `WIDTHxHEIGHT` strings, for example `1536x864`. Width and height must both be divisible by 16 and the requested aspect ratio must be between 1:3 and 3:1. Resolutions above `2560x1440` are experimental, and the maximum supported resolution is `3840x2160`. The requested size must also satisfy the model's current pixel and edge limits. The standard sizes `1024x1024`, `1536x1024`, and `1024x1536` are supported by the GPT image models; `auto` is supported for models that allow automatic sizing.
           default: auto
         output_format:
           type: string
@@ -43343,7 +43284,7 @@ components:
           anyOf:
           - $ref: '#/components/schemas/InputFidelity'
           - type: 'null'
-          description: Controls fidelity to the original input image(s). This parameter is supported for GPT image models that support input fidelity. `gpt-image-2` and `gpt-image-2-2026-04-21` ignore this parameter.
+          description: Control how much effort the model will exert to match the style and features, especially facial features, of input images. Supported models accept `high` and `low`, except `gpt-image-1-mini`, which accepts only `low`. Defaults to `low` on models that support this parameter. Omit this parameter for `gpt-image-2`, `gpt-image-2-2026-04-21`, and other models that do not support it. See the [image input fidelity guide](https://developers.openai.com/api/docs/guides/image-generation#image-input-fidelity) for model-specific guidance.
         input_image_mask:
           type: object
           description: |
@@ -68175,7 +68116,7 @@ components:
       enum:
       - high
       - low
-      description: Control how much effort the model will exert to match the style and features, especially facial features, of input images. This parameter is only supported for `gpt-image-1` and `gpt-image-1.5` and later models, unsupported for `gpt-image-1-mini`. Supports `high` and `low`. Defaults to `low`.
+      description: Control how much effort the model will exert to match the style and features, especially facial features, of input images. Supported models accept `high` and `low`, except `gpt-image-1-mini`, which accepts only `low`. Defaults to `low` on models that support this parameter. Omit this parameter for models that do not support it.
     LocalShellToolParam:
       properties:
         type:
@@ -80509,6 +80450,7 @@ components:
           - $ref: '#/components/schemas/ReasoningEffortParam'
           - type: 'null'
           description: Omit to keep the current effort. Null selects the model's default effort.
+          x-openai-go-optional-enum: true
       additionalProperties: false
       description: Reasoning effort for subsequent turns. The reasoning summary stays unchanged.
     UpdateSessionAgentParam:
@@ -80527,6 +80469,7 @@ components:
           - $ref: '#/components/schemas/ServiceTierParam'
           - type: 'null'
           description: Omit to keep the current tier. Null resets it to auto.
+          x-openai-go-optional-enum: true
       additionalProperties: false
       description: Model settings that can change after session creation.
     UpdateAgentSessionParams:
@@ -85029,7 +84972,7 @@ components:
             - 1024x1536
             - 1536x1024
             - auto
-          description: The size of the generated images. For `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, and `gpt-image-2.5-flare-2026-09-08`, arbitrary resolutions are supported as `WIDTHxHEIGHT` strings, for example `1536x864`. Width and height must both be divisible by 16 and the requested aspect ratio must be between 1:3 and 3:1. Resolutions above `2560x1440` are experimental, and the maximum supported resolution is `3840x2160`. The requested size must also satisfy the model's current pixel and edge limits. The standard sizes `1024x1024`, `1536x1024`, and `1024x1536` are supported by the GPT image models; `auto` is supported for models that allow automatic sizing. For `dall-e-2`, use one of `256x256`, `512x512`, or `1024x1024`. For `dall-e-3`, use one of `1024x1024`, `1792x1024`, or `1024x1792`.
+          description: The size of the generated images. For `gpt-image-2`, `gpt-image-2-2026-04-21`, `gpt-image-2.5-sunburst`, `gpt-image-2.5-sunburst-2026-09-08`, `gpt-image-2.5-flare`, and `gpt-image-2.5-flare-2026-09-08`, arbitrary resolutions are supported as `WIDTHxHEIGHT` strings, for example `1536x864`. Width and height must both be divisible by 16 and the requested aspect ratio must be between 1:3 and 3:1. Resolutions above `2560x1440` are experimental, and the maximum supported resolution is `3840x2160`. The requested size must also satisfy the model's current pixel and edge limits. The standard sizes `1024x1024`, `1536x1024`, and `1024x1536` are supported by the GPT image models; `auto` is supported for models that allow automatic sizing.
           default: auto
         output_format:
           type: string
@@ -85078,7 +85021,7 @@ components:
           anyOf:
           - $ref: '#/components/schemas/BetaInputFidelity'
           - type: 'null'
-          description: Controls fidelity to the original input image(s). This parameter is supported for GPT image models that support input fidelity. `gpt-image-2` and `gpt-image-2-2026-04-21` ignore this parameter.
+          description: Control how much effort the model will exert to match the style and features, especially facial features, of input images. Supported models accept `high` and `low`, except `gpt-image-1-mini`, which accepts only `low`. Defaults to `low` on models that support this parameter. Omit this parameter for `gpt-image-2`, `gpt-image-2-2026-04-21`, and other models that do not support it. See the [image input fidelity guide](https://developers.openai.com/api/docs/guides/image-generation#image-input-fidelity) for model-specific guidance.
         input_image_mask:
           type: object
           description: |
@@ -85119,7 +85062,7 @@ components:
       enum:
       - high
       - low
-      description: Control how much effort the model will exert to match the style and features, especially facial features, of input images. This parameter is only supported for `gpt-image-1` and `gpt-image-1.5` and later models, unsupported for `gpt-image-1-mini`. Supports `high` and `low`. Defaults to `low`.
+      description: Control how much effort the model will exert to match the style and features, especially facial features, of input images. Supported models accept `high` and `low`, except `gpt-image-1-mini`, which accepts only `low`. Defaults to `low` on models that support this parameter. Omit this parameter for models that do not support it.
     BetaProgrammaticToolCallingParam:
       properties:
         type:
