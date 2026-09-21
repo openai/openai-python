@@ -45,7 +45,7 @@ def validate_metadata(wheel: Path) -> None:
 
     if metadata["Requires-Python"] != ">=3.10":
         raise RuntimeError(f"Expected Python >=3.10, found: {metadata['Requires-Python']}")
-    for expected in ("httpx2<3,>=2.7.0", "anyio<5,>=4.10.0"):
+    for expected in ("httpx2<3,>=2.12.0", "anyio<5,>=4.10.0"):
         if not any(value.startswith(expected) for value in base):
             raise RuntimeError(f"Expected the base wheel to require {expected}: {base}")
     if any(requirement_name(value) == "httpx" for value in requirements):

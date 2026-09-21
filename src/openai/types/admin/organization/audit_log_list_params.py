@@ -55,6 +55,8 @@ class AuditLogListParams(TypedDict, total=False):
             "checkpoint.permission.deleted",
             "external_key.registered",
             "external_key.removed",
+            "external_storage.registered",
+            "external_storage.removed",
             "group.created",
             "group.updated",
             "group.deleted",
@@ -195,7 +197,7 @@ class AuditLogListParams(TypedDict, total=False):
     """Return only events with a `type` in one of these values.
 
     For example, `project.created`. For all options, see the documentation for the
-    [audit log object](https://platform.openai.com/docs/api-reference/audit-logs/object).
+    [audit log object](https://developers.openai.com/api/reference/resources/admin/subresources/organization/subresources/audit_logs).
     """
 
     limit: int
