@@ -29,6 +29,7 @@ exclude-newer-span = "P8D"
 constraints = [
     { name = "azure-core", specifier = ">=1.38.0" },
     { name = "cryptography", specifier = ">=50.0.0" },
+    { name = "httpcore2", specifier = ">=2.12.0" },
     { name = "msal", specifier = ">=1.37.0" },
     { name = "pygments", specifier = ">=2.20.0" },
     { name = "pyjwt", specifier = ">=2.13.0" },
@@ -1534,7 +1535,7 @@ wheels = [
 
 [[package]]
 name = "openai"
-version = "3.16.2"
+version = "3.16.2" # x-release-please-version
 source = { editable = "." }
 dependencies = [
     { name = "anyio" },
@@ -1603,7 +1604,7 @@ requires-dist = [
     { name = "aiohttp", marker = "extra == 'aiohttp'", specifier = ">=3.14.3" },
     { name = "anyio", specifier = ">=4.10.0,<5" },
     { name = "botocore", marker = "extra == 'bedrock'", specifier = ">=1.40.0,<2" },
-    { name = "httpx2", specifier = ">=2.7.0,<3" },
+    { name = "httpx2", specifier = ">=2.12.0,<3" },
     { name = "jiter", specifier = ">=0.16.0,<1" },
     { name = "numpy", marker = "extra == 'datalib'", specifier = ">=1" },
     { name = "numpy", marker = "extra == 'voice-helpers'", specifier = ">=2.0.2" },
