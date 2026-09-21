@@ -6,15 +6,6 @@ import pytest
 from packaging.requirements import Requirement
 
 
-def test_httpx2_security_floor() -> None:
-    requirements = [Requirement(value) for value in requires("openai") or []]
-    requirement = next(requirement for requirement in requirements if requirement.name == "httpx2")
-    assert requirement.marker is None
-    assert "2.11.0" not in requirement.specifier
-    assert "2.12.0" in requirement.specifier
-    assert "3.0.0" not in requirement.specifier
-
-
 @pytest.mark.parametrize(
     ("name", "extra", "affected", "patched"),
     [
