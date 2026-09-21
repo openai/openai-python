@@ -138,6 +138,14 @@ class _NonSeekableBytesIO(io.BytesIO):
     def seekable(self) -> bool:
         return False
 
+    @override
+    def seek(self, offset: int, whence: int = 0) -> int:
+        raise io.UnsupportedOperation("seek")
+
+    @override
+    def tell(self) -> int:
+        raise io.UnsupportedOperation("tell")
+
 
 def _get_open_connections(client: OpenAI | AsyncOpenAI) -> int:
     transport = client._client._transport
@@ -962,6 +970,7 @@ class TestOpenAI:
 
     def test_multipart_retry_does_not_reuse_non_seekable_file(self) -> None:
         file_content = b"Hello, this multipart file must not be replayed."
+        earlier_file = io.BytesIO(b"first file")
         request_bodies: list[bytes] = []
 
         def mock_handler(request: httpx2.Request) -> httpx2.Response:
@@ -977,20 +986,30 @@ class TestOpenAI:
             with pytest.raises(APIStatusError):
                 client.post(
                     "/upload",
-                    files={"file": ("upload.txt", _NonSeekableBytesIO(file_content), "text/plain")},
+                    files={
+                        "first": ("first.txt", earlier_file),
+                        "file": ("upload.txt", _NonSeekableBytesIO(file_content), "text/plain"),
+                    },
                     cast_to=httpx2.Response,
                 )
 
         assert len(request_bodies) == 1
         assert file_content in request_bodies[0]
+        # The first send consumes this file; refusing a retry must not rewind it.
+        assert earlier_file.tell() == len(b"first file")
 
-    def test_multipart_retry_rewinds_seekable_file(self) -> None:
+    @pytest.mark.parametrize("rewind_fails", [False, True], ids=["rewind", "closed-file"])
+    def test_multipart_retry_rewinds_seekable_file(self, rewind_fails: bool) -> None:
         file_content = b"Hello, this multipart file can be replayed."
+        file = io.BytesIO(file_content)
+        original_response = httpx2.Response(500)
         request_bodies: list[bytes] = []
 
         def mock_handler(request: httpx2.Request) -> httpx2.Response:
             request_bodies.append(request.read())
-            return httpx2.Response(500 if len(request_bodies) == 1 else 200)
+            if rewind_fails:
+                file.close()
+            return original_response if len(request_bodies) == 1 else httpx2.Response(200)
 
         with OpenAI(
             base_url=base_url,
@@ -998,14 +1017,20 @@ class TestOpenAI:
             max_retries=1,
             http_client=httpx2.Client(transport=MockTransport(handler=mock_handler)),
         ) as client:
-            response = client.post(
-                "/upload",
-                files={"file": ("upload.txt", io.BytesIO(file_content), "text/plain")},
-                cast_to=httpx2.Response,
-            )
+            try:
+                response = client.post(
+                    "/upload",
+                    files={"file": ("upload.txt", file, "text/plain")},
+                    cast_to=httpx2.Response,
+                )
+            except APIStatusError as exc:
+                assert rewind_fails
+                assert exc.response is original_response
+            else:
+                assert not rewind_fails
+                assert response.status_code == 200
 
-        assert response.status_code == 200
-        assert len(request_bodies) == 2
+        assert len(request_bodies) == (1 if rewind_fails else 2)
         assert all(file_content in body for body in request_bodies)
 
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
@@ -2457,6 +2482,7 @@ class TestAsyncOpenAI:
 
     async def test_multipart_retry_does_not_reuse_non_seekable_file(self) -> None:
         file_content = b"Hello, this multipart file must not be replayed."
+        earlier_file = io.BytesIO(b"first file")
         request_bodies: list[bytes] = []
 
         async def mock_handler(request: httpx2.Request) -> httpx2.Response:
@@ -2472,20 +2498,30 @@ class TestAsyncOpenAI:
             with pytest.raises(APIStatusError):
                 await client.post(
                     "/upload",
-                    files={"file": ("upload.txt", _NonSeekableBytesIO(file_content), "text/plain")},
+                    files={
+                        "first": ("first.txt", earlier_file),
+                        "file": ("upload.txt", _NonSeekableBytesIO(file_content), "text/plain"),
+                    },
                     cast_to=httpx2.Response,
                 )
 
         assert len(request_bodies) == 1
         assert file_content in request_bodies[0]
+        # The first send consumes this file; refusing a retry must not rewind it.
+        assert earlier_file.tell() == len(b"first file")
 
-    async def test_multipart_retry_rewinds_seekable_file(self) -> None:
+    @pytest.mark.parametrize("rewind_fails", [False, True], ids=["rewind", "closed-file"])
+    async def test_multipart_retry_rewinds_seekable_file(self, rewind_fails: bool) -> None:
         file_content = b"Hello, this multipart file can be replayed."
+        file = io.BytesIO(file_content)
+        original_response = httpx2.Response(500)
         request_bodies: list[bytes] = []
 
         async def mock_handler(request: httpx2.Request) -> httpx2.Response:
             request_bodies.append(await request.aread())
-            return httpx2.Response(500 if len(request_bodies) == 1 else 200)
+            if rewind_fails:
+                file.close()
+            return original_response if len(request_bodies) == 1 else httpx2.Response(200)
 
         async with AsyncOpenAI(
             base_url=base_url,
@@ -2493,14 +2529,20 @@ class TestAsyncOpenAI:
             max_retries=1,
             http_client=httpx2.AsyncClient(transport=MockTransport(handler=mock_handler)),
         ) as client:
-            response = await client.post(
-                "/upload",
-                files={"file": ("upload.txt", io.BytesIO(file_content), "text/plain")},
-                cast_to=httpx2.Response,
-            )
+            try:
+                response = await client.post(
+                    "/upload",
+                    files={"file": ("upload.txt", file, "text/plain")},
+                    cast_to=httpx2.Response,
+                )
+            except APIStatusError as exc:
+                assert rewind_fails
+                assert exc.response is original_response
+            else:
+                assert not rewind_fails
+                assert response.status_code == 200
 
-        assert response.status_code == 200
-        assert len(request_bodies) == 2
+        assert len(request_bodies) == (1 if rewind_fails else 2)
         assert all(file_content in body for body in request_bodies)
 
     @pytest.mark.respx2(base_url=base_url)
