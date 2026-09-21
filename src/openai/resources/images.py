@@ -243,7 +243,8 @@ class Images(SyncAPIResource):
               the maximum supported resolution is `3840x2160`. The requested size must also
               satisfy the model's current pixel and edge limits. The standard sizes
               `1024x1024`, `1536x1024`, and `1024x1536` are supported by the GPT image models;
-              `auto` is supported for models that allow automatic sizing.
+              `auto` is supported for models that allow automatic sizing. Legacy sizes for the
+              retired `dall-e-2` model were `256x256`, `512x512`, and `1024x1024`.
 
           stream: Edit the image in streaming mode. Defaults to `false`. See the
               [Image generation guide](https://developers.openai.com/api/docs/guides/image-generation)
@@ -380,7 +381,8 @@ class Images(SyncAPIResource):
               the maximum supported resolution is `3840x2160`. The requested size must also
               satisfy the model's current pixel and edge limits. The standard sizes
               `1024x1024`, `1536x1024`, and `1024x1536` are supported by the GPT image models;
-              `auto` is supported for models that allow automatic sizing.
+              `auto` is supported for models that allow automatic sizing. Legacy sizes for the
+              retired `dall-e-2` model were `256x256`, `512x512`, and `1024x1024`.
 
           user: A unique identifier representing your end-user, which can help OpenAI to monitor
               and detect abuse.
@@ -513,7 +515,8 @@ class Images(SyncAPIResource):
               the maximum supported resolution is `3840x2160`. The requested size must also
               satisfy the model's current pixel and edge limits. The standard sizes
               `1024x1024`, `1536x1024`, and `1024x1536` are supported by the GPT image models;
-              `auto` is supported for models that allow automatic sizing.
+              `auto` is supported for models that allow automatic sizing. Legacy sizes for the
+              retired `dall-e-2` model were `256x256`, `512x512`, and `1024x1024`.
 
           user: A unique identifier representing your end-user, which can help OpenAI to monitor
               and detect abuse.
@@ -1274,7 +1277,8 @@ class AsyncImages(AsyncAPIResource):
               the maximum supported resolution is `3840x2160`. The requested size must also
               satisfy the model's current pixel and edge limits. The standard sizes
               `1024x1024`, `1536x1024`, and `1024x1536` are supported by the GPT image models;
-              `auto` is supported for models that allow automatic sizing.
+              `auto` is supported for models that allow automatic sizing. Legacy sizes for the
+              retired `dall-e-2` model were `256x256`, `512x512`, and `1024x1024`.
 
           stream: Edit the image in streaming mode. Defaults to `false`. See the
               [Image generation guide](https://developers.openai.com/api/docs/guides/image-generation)
@@ -1411,7 +1415,8 @@ class AsyncImages(AsyncAPIResource):
               the maximum supported resolution is `3840x2160`. The requested size must also
               satisfy the model's current pixel and edge limits. The standard sizes
               `1024x1024`, `1536x1024`, and `1024x1536` are supported by the GPT image models;
-              `auto` is supported for models that allow automatic sizing.
+              `auto` is supported for models that allow automatic sizing. Legacy sizes for the
+              retired `dall-e-2` model were `256x256`, `512x512`, and `1024x1024`.
 
           user: A unique identifier representing your end-user, which can help OpenAI to monitor
               and detect abuse.
@@ -1544,7 +1549,8 @@ class AsyncImages(AsyncAPIResource):
               the maximum supported resolution is `3840x2160`. The requested size must also
               satisfy the model's current pixel and edge limits. The standard sizes
               `1024x1024`, `1536x1024`, and `1024x1536` are supported by the GPT image models;
-              `auto` is supported for models that allow automatic sizing.
+              `auto` is supported for models that allow automatic sizing. Legacy sizes for the
+              retired `dall-e-2` model were `256x256`, `512x512`, and `1024x1024`.
 
           user: A unique identifier representing your end-user, which can help OpenAI to monitor
               and detect abuse.
