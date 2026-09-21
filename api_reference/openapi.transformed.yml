@@ -42203,12 +42203,23 @@ components:
           type: string
           description: The name of the grader.
         graders:
-          anyOf:
-          - $ref: '#/components/schemas/GraderStringCheck'
-          - $ref: '#/components/schemas/GraderTextSimilarity'
-          - $ref: '#/components/schemas/GraderPython'
-          - $ref: '#/components/schemas/GraderScoreModel'
-          - $ref: '#/components/schemas/GraderLabelModel'
+          type: object
+          minProperties: 1
+          additionalProperties:
+            discriminator:
+              propertyName: type
+              mapping:
+                string_check: '#/components/schemas/GraderStringCheck'
+                text_similarity: '#/components/schemas/GraderTextSimilarity'
+                python: '#/components/schemas/GraderPython'
+                score_model: '#/components/schemas/GraderScoreModel'
+                label_model: '#/components/schemas/GraderLabelModel'
+            anyOf:
+            - $ref: '#/components/schemas/GraderStringCheck'
+            - $ref: '#/components/schemas/GraderTextSimilarity'
+            - $ref: '#/components/schemas/GraderPython'
+            - $ref: '#/components/schemas/GraderScoreModel'
+            - $ref: '#/components/schemas/GraderLabelModel'
         calculate_output:
           type: string
           description: A formula to calculate the output based on grader results.
@@ -42224,23 +42235,23 @@ components:
           {
             "type": "multi",
             "name": "example multi grader",
-            "graders": [
-              {
+            "graders": {
+              "text_similarity_score": {
                 "type": "text_similarity",
                 "name": "example text similarity grader",
                 "input": "The graded text",
                 "reference": "The reference text",
                 "evaluation_metric": "fuzzy_match"
               },
-              {
+              "string_check_score": {
                 "type": "string_check",
                 "name": "Example string check grader",
                 "input": "{{sample.output_text}}",
                 "reference": "{{item.label}}",
                 "operation": "eq"
               }
-            ],
-            "calculate_output": "0.5 * text_similarity_score +  0.5 * string_check_score)"
+            },
+            "calculate_output": "0.5 * text_similarity_score + 0.5 * string_check_score"
           }
     GraderPython:
       type: object

@@ -1,8 +1,9 @@
 # File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
-from typing import Union
-from typing_extensions import Literal, TypeAlias
+from typing import Dict, Union
+from typing_extensions import Literal, Annotated, TypeAlias
 
+from ..._utils import PropertyInfo
 from ..._models import BaseModel
 from .python_grader import PythonGrader
 from .label_model_grader import LabelModelGrader
@@ -12,7 +13,10 @@ from .text_similarity_grader import TextSimilarityGrader
 
 __all__ = ["MultiGrader", "Graders"]
 
-Graders: TypeAlias = Union[StringCheckGrader, TextSimilarityGrader, PythonGrader, ScoreModelGrader, LabelModelGrader]
+Graders: TypeAlias = Annotated[
+    Union[StringCheckGrader, TextSimilarityGrader, PythonGrader, ScoreModelGrader, LabelModelGrader],
+    PropertyInfo(discriminator="type"),
+]
 
 
 class MultiGrader(BaseModel):
@@ -23,11 +27,7 @@ class MultiGrader(BaseModel):
     calculate_output: str
     """A formula to calculate the output based on grader results."""
 
-    graders: Graders
-    """
-    A StringCheckGrader object that performs a string comparison between input and
-    reference using a specified operation.
-    """
+    graders: Dict[str, Graders]
 
     name: str
     """The name of the grader."""
