@@ -34736,10 +34736,6 @@ components:
       - $ref: '#/components/schemas/ComputerToolCallOutput'
       - type: object
         properties:
-          id:
-            type: string
-            description: |
-              The unique ID of the computer call tool output.
           status:
             description: |
               The status of the message input. One of `in_progress`, `completed`, or
@@ -80509,6 +80505,7 @@ components:
           - $ref: '#/components/schemas/ReasoningEffortParam'
           - type: 'null'
           description: Omit to keep the current effort. Null selects the model's default effort.
+          x-openai-go-optional-enum: true
       additionalProperties: false
       description: Reasoning effort for subsequent turns. The reasoning summary stays unchanged.
     UpdateSessionAgentParam:
@@ -80527,6 +80524,7 @@ components:
           - $ref: '#/components/schemas/ServiceTierParam'
           - type: 'null'
           description: Omit to keep the current tier. Null resets it to auto.
+          x-openai-go-optional-enum: true
       additionalProperties: false
       description: Model settings that can change after session creation.
     UpdateAgentSessionParams:
@@ -90315,10 +90313,6 @@ components:
       - $ref: '#/components/schemas/BetaComputerToolCallOutput'
       - type: object
         properties:
-          id:
-            type: string
-            description: |
-              The unique ID of the computer call tool output.
           status:
             description: |
               The status of the message input. One of `in_progress`, `completed`, or
