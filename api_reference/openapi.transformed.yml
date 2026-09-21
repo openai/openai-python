@@ -41923,6 +41923,10 @@ components:
     FunctionAndCustomToolCallOutput:
       discriminator:
         propertyName: type
+        mapping:
+          input_text: '#/components/schemas/InputTextContent'
+          input_image: '#/components/schemas/InputImageContent'
+          input_file: '#/components/schemas/InputFileContent'
       anyOf:
       - $ref: '#/components/schemas/InputTextContent'
       - $ref: '#/components/schemas/InputImageContent'
@@ -62793,6 +62797,8 @@ components:
         A tool that can be used to generate a response.
       discriminator:
         propertyName: type
+        mapping:
+          apply_patch: '#/components/schemas/ApplyPatchToolParam'
       anyOf:
       - $ref: '#/components/schemas/FunctionTool'
       - $ref: '#/components/schemas/FileSearchTool'
@@ -62800,10 +62806,30 @@ components:
       - $ref: '#/components/schemas/ComputerUsePreviewTool'
       - $ref: '#/components/schemas/WebSearchTool'
       - $ref: '#/components/schemas/MCPTool'
+        x-stainless-variantName: mcp
+        x-stainless-naming:
+          python:
+            type_name: Mcp
       - $ref: '#/components/schemas/CodeInterpreterTool'
+        x-stainless-variantName: code_interpreter
+        x-stainless-naming:
+          python:
+            type_name: CodeInterpreter
       - $ref: '#/components/schemas/ProgrammaticToolCallingParam'
+        x-stainless-variantName: programmatic_tool_calling
+        x-stainless-naming:
+          python:
+            type_name: ProgrammaticToolCalling
       - $ref: '#/components/schemas/ImageGenTool'
+        x-stainless-variantName: image_generation
+        x-stainless-naming:
+          python:
+            type_name: ImageGeneration
       - $ref: '#/components/schemas/LocalShellToolParam'
+        x-stainless-variantName: local_shell
+        x-stainless-naming:
+          python:
+            type_name: LocalShell
       - $ref: '#/components/schemas/FunctionShellToolParam'
       - $ref: '#/components/schemas/CustomToolParam'
       - $ref: '#/components/schemas/NamespaceToolParam'
@@ -84377,6 +84403,8 @@ components:
         A tool that can be used to generate a response.
       discriminator:
         propertyName: type
+        mapping:
+          apply_patch: '#/components/schemas/BetaApplyPatchToolParam'
       anyOf:
       - $ref: '#/components/schemas/BetaFunctionTool'
       - $ref: '#/components/schemas/BetaFileSearchTool'
@@ -84384,10 +84412,30 @@ components:
       - $ref: '#/components/schemas/BetaComputerUsePreviewTool'
       - $ref: '#/components/schemas/BetaWebSearchTool'
       - $ref: '#/components/schemas/BetaMCPTool'
+        x-stainless-variantName: mcp
+        x-stainless-naming:
+          python:
+            type_name: Mcp
       - $ref: '#/components/schemas/BetaCodeInterpreterTool'
+        x-stainless-variantName: code_interpreter
+        x-stainless-naming:
+          python:
+            type_name: CodeInterpreter
       - $ref: '#/components/schemas/BetaProgrammaticToolCallingParam'
+        x-stainless-variantName: programmatic_tool_calling
+        x-stainless-naming:
+          python:
+            type_name: ProgrammaticToolCalling
       - $ref: '#/components/schemas/BetaImageGenTool'
+        x-stainless-variantName: image_generation
+        x-stainless-naming:
+          python:
+            type_name: ImageGeneration
       - $ref: '#/components/schemas/BetaLocalShellToolParam'
+        x-stainless-variantName: local_shell
+        x-stainless-naming:
+          python:
+            type_name: LocalShell
       - $ref: '#/components/schemas/BetaFunctionShellToolParam'
       - $ref: '#/components/schemas/BetaCustomToolParam'
       - $ref: '#/components/schemas/BetaNamespaceToolParam'
@@ -86012,6 +86060,10 @@ components:
     BetaFunctionAndCustomToolCallOutput:
       discriminator:
         propertyName: type
+        mapping:
+          input_text: '#/components/schemas/BetaInputTextContent'
+          input_image: '#/components/schemas/BetaInputImageContent'
+          input_file: '#/components/schemas/BetaInputFileContent'
       anyOf:
       - $ref: '#/components/schemas/BetaInputTextContent'
       - $ref: '#/components/schemas/BetaInputImageContent'
