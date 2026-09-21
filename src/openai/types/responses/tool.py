@@ -279,10 +279,12 @@ class ImageGeneration(BaseModel):
     """
 
     input_fidelity: Optional[Literal["high", "low"]] = None
-    """Controls fidelity to the original input image(s).
-
-    This parameter is supported for GPT image models that support input fidelity.
-    `gpt-image-2` and `gpt-image-2-2026-04-21` ignore this parameter.
+    """
+    Control how much effort the model will exert to match the style and features,
+    especially facial features, of input images. Supported models accept `high` and
+    `low`, except `gpt-image-1-mini`, which accepts only `low`. Defaults to `low` on
+    models that support this parameter. Omit this parameter for models that do not
+    support it.
     """
 
     input_image_mask: Optional[ImageGenerationInputImageMask] = None
