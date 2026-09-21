@@ -753,6 +753,13 @@ Certain errors are automatically retried 2 times by default, with a short expone
 Connection errors (for example, due to a network connectivity problem), 408 Request Timeout, 409 Conflict,
 429 Rate Limit, and >=500 Internal errors are all retried by default.
 
+Retries also require a replayable request body. JSON bodies, bytes, and seekable
+binary files remain retryable. Non-seekable streams and custom iterable or async
+iterable bodies are sent only once, even when `max_retries` is greater than zero.
+If a body cannot be safely replayed, the SDK raises the original request error.
+To retain automatic retries for custom streamed input, supply bytes or a seekable
+binary file instead.
+
 You can use the `max_retries` option to configure or disable retry settings:
 
 ```python
@@ -780,8 +787,8 @@ client.with_options(max_retries=5).chat.completions.create(
 integer, such as `1000`, for a larger retry budget. Other values raise an error
 before a request is sent.
 
-Transport failures are retried. Application exceptions raised by custom transports
-or hooks propagate unchanged, including task-executor cancellation signals.
+Application exceptions raised by custom transports or hooks propagate unchanged,
+including task-executor cancellation signals.
 
 ## Timeouts
 
