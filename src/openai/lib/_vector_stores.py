@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import math
+import time
 from typing import TYPE_CHECKING, Mapping
 from typing_extensions import assert_never
 
-from .._types import Omit
+from .._types import Omit, omit
 from .._utils import is_given
 from ..types.vector_stores.vector_store_file import VectorStoreFile
 from ..types.vector_stores.vector_store_file_batch import VectorStoreFileBatch
@@ -21,19 +23,37 @@ def _get_poll_interval_ms(headers: Mapping[str, str]) -> int:
     return 1000
 
 
+def validate_max_wait_seconds(max_wait_seconds: float | Omit) -> None:
+    if is_given(max_wait_seconds) and (not math.isfinite(max_wait_seconds) or max_wait_seconds < 0):
+        raise ValueError("Expected a finite, non-negative value for `max_wait_seconds`")
+
+
+def _remaining_poll_time(deadline: float, file_id: str) -> float:
+    remaining = deadline - time.monotonic()
+    if remaining <= 0:
+        raise TimeoutError(f"Timed out waiting for vector store file {file_id!r} to finish processing")
+    return remaining
+
+
 def poll_vector_store_file(
     resource: Files,
     file_id: str,
     *,
     vector_store_id: str,
     poll_interval_ms: int | Omit,
+    max_wait_seconds: float | Omit = omit,
 ) -> VectorStoreFile:
     """Poll a vector-store file using the caller's resource hooks."""
+    validate_max_wait_seconds(max_wait_seconds)
+    deadline = time.monotonic() + max_wait_seconds if is_given(max_wait_seconds) else None
     headers: dict[str, str] = {"X-Stainless-Poll-Helper": "true"}
     if is_given(poll_interval_ms):
         headers["X-Stainless-Custom-Poll-Interval"] = str(poll_interval_ms)
 
     while True:
+        if deadline is not None:
+            _remaining_poll_time(deadline, file_id)
+
         response = resource.with_raw_response.retrieve(
             file_id,
             vector_store_id=vector_store_id,
@@ -45,7 +65,10 @@ def poll_vector_store_file(
             if not is_given(poll_interval_ms):
                 poll_interval_ms = _get_poll_interval_ms(response.headers)
 
-            resource._sleep(poll_interval_ms / 1000)
+            sleep_seconds = poll_interval_ms / 1000
+            if deadline is not None:
+                sleep_seconds = min(sleep_seconds, _remaining_poll_time(deadline, file_id))
+            resource._sleep(sleep_seconds)
         elif file.status == "cancelled" or file.status == "completed" or file.status == "failed":
             return file
         else:
@@ -61,13 +84,19 @@ async def async_poll_vector_store_file(
     *,
     vector_store_id: str,
     poll_interval_ms: int | Omit,
+    max_wait_seconds: float | Omit = omit,
 ) -> VectorStoreFile:
     """Poll a vector-store file using the caller's async resource hooks."""
+    validate_max_wait_seconds(max_wait_seconds)
+    deadline = time.monotonic() + max_wait_seconds if is_given(max_wait_seconds) else None
     headers: dict[str, str] = {"X-Stainless-Poll-Helper": "true"}
     if is_given(poll_interval_ms):
         headers["X-Stainless-Custom-Poll-Interval"] = str(poll_interval_ms)
 
     while True:
+        if deadline is not None:
+            _remaining_poll_time(deadline, file_id)
+
         response = await resource.with_raw_response.retrieve(
             file_id,
             vector_store_id=vector_store_id,
@@ -79,7 +108,10 @@ async def async_poll_vector_store_file(
             if not is_given(poll_interval_ms):
                 poll_interval_ms = _get_poll_interval_ms(response.headers)
 
-            await resource._sleep(poll_interval_ms / 1000)
+            sleep_seconds = poll_interval_ms / 1000
+            if deadline is not None:
+                sleep_seconds = min(sleep_seconds, _remaining_poll_time(deadline, file_id))
+            await resource._sleep(sleep_seconds)
         elif file.status == "cancelled" or file.status == "completed" or file.status == "failed":
             return file
         else:

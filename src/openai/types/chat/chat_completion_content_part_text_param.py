@@ -18,9 +18,7 @@ class PromptCacheBreakpoint(TypedDict, total=False):
 
 
 class ChatCompletionContentPartTextParam(TypedDict, total=False):
-    """
-    Learn about [text inputs](https://platform.openai.com/docs/guides/text-generation).
-    """
+    """Learn about [text inputs](https://developers.openai.com/api/docs/guides/text)."""
 
     text: Required[str]
     """The text content."""
