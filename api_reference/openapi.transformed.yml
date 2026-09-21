@@ -53927,6 +53927,8 @@ components:
           const: session.created
         session:
           description: The session configuration.
+          discriminator:
+            propertyName: type
           anyOf:
           - $ref: '#/components/schemas/RealtimeSessionCreateRequestGA'
           - $ref: '#/components/schemas/RealtimeTranscriptionSessionCreateRequestGA'
@@ -54001,6 +54003,8 @@ components:
           const: session.updated
         session:
           description: The session configuration.
+          discriminator:
+            propertyName: type
           anyOf:
           - $ref: '#/components/schemas/RealtimeSessionCreateRequestGA'
           - $ref: '#/components/schemas/RealtimeTranscriptionSessionCreateRequestGA'
