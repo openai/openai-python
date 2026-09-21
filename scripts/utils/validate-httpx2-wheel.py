@@ -14,6 +14,7 @@ BASE_TEST = ROOT / "tests/test_httpx2_base.py"
 HTTPX2_TEST = ROOT / "tests/test_httpx2.py"
 LEGACY_TEST = ROOT / "tests/test_httpx_compat.py"
 TLS_TEST = ROOT / "tests/test_tls_hostname.py"
+MULTIPART_TEST = ROOT / "tests/lib/test_audio_transcription_multipart.py"
 
 
 def venv_python(environment_path: Path) -> Path:
@@ -76,17 +77,42 @@ def run_case(
             check=True,
         )
 
+        test_environment = environment.copy()
+        for name in list(test_environment):
+            if name.startswith(("OPENAI_", "AZURE_OPENAI_")) or name in (
+                "ALL_PROXY",
+                "HTTPS_PROXY",
+                "HTTP_PROXY",
+                "all_proxy",
+                "https_proxy",
+                "http_proxy",
+            ):
+                test_environment.pop(name)
+        subprocess.run(
+            [
+                str(python),
+                "-c",
+                "".join(
+                    [
+                        "from pathlib import Path; import openai, sysconfig; ",
+                        "origin = Path(openai.__file__).resolve(); ",
+                        "assert origin.is_relative_to(Path(sysconfig.get_path('purelib')).resolve()), origin",
+                    ]
+                ),
+            ],
+            cwd=directory,
+            env=test_environment,
+            check=True,
+        )
+
         if not legacy:
             subprocess.run(
                 [str(python), "-c", "import importlib.util; assert importlib.util.find_spec('httpx') is None"],
                 cwd=directory,
-                env=environment,
+                env=test_environment,
                 check=True,
             )
 
-        test_environment = environment.copy()
-        for name in ("ALL_PROXY", "HTTPS_PROXY", "HTTP_PROXY", "all_proxy", "https_proxy", "http_proxy"):
-            test_environment.pop(name, None)
         if legacy:
             test_environment["OPENAI_TEST_LEGACY_HTTPX"] = "1"
         subprocess.run(
@@ -105,7 +131,7 @@ def main() -> None:
     validate_metadata(wheel)
 
     common = ["pytest==9.0.3", "pytest-asyncio==1.4.0", "pygments==2.20.0"]
-    run_case(wheel, extra=None, tests=[BASE_TEST, HTTPX2_TEST], dependencies=common)
+    run_case(wheel, extra=None, tests=[BASE_TEST, HTTPX2_TEST, MULTIPART_TEST], dependencies=common)
     run_case(wheel, extra="aiohttp", tests=[BASE_TEST], dependencies=common)
     run_case(
         wheel,

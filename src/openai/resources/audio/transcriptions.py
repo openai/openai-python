@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import logging
 from typing import List, Union, Mapping, Optional, cast
 from typing_extensions import Literal, overload
@@ -21,7 +22,7 @@ from ..._types import (
     omit,
     not_given,
 )
-from ..._utils import extract_files, required_args, maybe_transform, async_maybe_transform
+from ..._utils import is_mapping, extract_files, required_args, maybe_transform, async_maybe_transform
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -92,7 +93,8 @@ class Transcriptions(SyncAPIResource):
         Transcribes audio into the input language.
 
         Returns a transcription object in `json`, `diarized_json`, or `verbose_json`
-        format, or a stream of transcript events.
+        format, plain text in `text`, `srt`, or `vtt` format, or a stream of transcript
+        events. Supported formats depend on the model.
 
         Args:
           file: The audio file object (not file name) to transcribe, in one of these formats:
@@ -260,7 +262,8 @@ class Transcriptions(SyncAPIResource):
         Transcribes audio into the input language.
 
         Returns a transcription object in `json`, `diarized_json`, or `verbose_json`
-        format, or a stream of transcript events.
+        format, plain text in `text`, `srt`, or `vtt` format, or a stream of transcript
+        events. Supported formats depend on the model.
 
         Args:
           file: The audio file object (not file name) to transcribe, in one of these formats:
@@ -381,7 +384,8 @@ class Transcriptions(SyncAPIResource):
         Transcribes audio into the input language.
 
         Returns a transcription object in `json`, `diarized_json`, or `verbose_json`
-        format, or a stream of transcript events.
+        format, plain text in `text`, `srt`, or `vtt` format, or a stream of transcript
+        events. Supported formats depend on the model.
 
         Args:
           file: The audio file object (not file name) to transcribe, in one of these formats:
@@ -498,7 +502,7 @@ class Transcriptions(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> str | Transcription | TranscriptionDiarized | TranscriptionVerbose | Stream[TranscriptionStreamEvent]:
-        body = deepcopy_with_paths(
+        body: dict[str, object] = deepcopy_with_paths(
             {
                 "file": file,
                 "model": model,
@@ -517,6 +521,7 @@ class Transcriptions(SyncAPIResource):
             },
             [["file"]],
         )
+        extra_body = _serialize_chunking_strategy(body, extra_body)
         files = extract_files(cast(Mapping[str, object], body), paths=[["file"]])
         # It should be noted that the actual Content-Type header that will be
         # sent to the server will contain a `boundary` parameter, e.g.
@@ -595,7 +600,8 @@ class AsyncTranscriptions(AsyncAPIResource):
         Transcribes audio into the input language.
 
         Returns a transcription object in `json`, `diarized_json`, or `verbose_json`
-        format, or a stream of transcript events.
+        format, plain text in `text`, `srt`, or `vtt` format, or a stream of transcript
+        events. Supported formats depend on the model.
 
         Args:
           file: The audio file object (not file name) to transcribe, in one of these formats:
@@ -734,6 +740,30 @@ class AsyncTranscriptions(AsyncAPIResource):
         *,
         file: FileTypes,
         model: Union[str, AudioModel],
+        chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | Omit = omit,
+        response_format: Literal["diarized_json"],
+        stream: Optional[Literal[False]] | Omit = omit,
+        keywords: SequenceNotStr[str] | Omit = omit,
+        known_speaker_names: SequenceNotStr[str] | Omit = omit,
+        known_speaker_references: SequenceNotStr[str] | Omit = omit,
+        language: str | Omit = omit,
+        languages: SequenceNotStr[str] | Omit = omit,
+        temperature: float | Omit = omit,
+        timestamp_granularities: List[Literal["word", "segment"]] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
+    ) -> TranscriptionDiarized: ...
+
+    @overload
+    async def create(
+        self,
+        *,
+        file: FileTypes,
+        model: Union[str, AudioModel],
         stream: Literal[True],
         chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | Omit = omit,
         include: List[TranscriptionInclude] | Omit = omit,
@@ -757,7 +787,8 @@ class AsyncTranscriptions(AsyncAPIResource):
         Transcribes audio into the input language.
 
         Returns a transcription object in `json`, `diarized_json`, or `verbose_json`
-        format, or a stream of transcript events.
+        format, plain text in `text`, `srt`, or `vtt` format, or a stream of transcript
+        events. Supported formats depend on the model.
 
         Args:
           file: The audio file object (not file name) to transcribe, in one of these formats:
@@ -878,7 +909,8 @@ class AsyncTranscriptions(AsyncAPIResource):
         Transcribes audio into the input language.
 
         Returns a transcription object in `json`, `diarized_json`, or `verbose_json`
-        format, or a stream of transcript events.
+        format, plain text in `text`, `srt`, or `vtt` format, or a stream of transcript
+        events. Supported formats depend on the model.
 
         Args:
           file: The audio file object (not file name) to transcribe, in one of these formats:
@@ -995,7 +1027,7 @@ class AsyncTranscriptions(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Transcription | TranscriptionVerbose | TranscriptionDiarized | str | AsyncStream[TranscriptionStreamEvent]:
-        body = deepcopy_with_paths(
+        body: dict[str, object] = deepcopy_with_paths(
             {
                 "file": file,
                 "model": model,
@@ -1014,6 +1046,7 @@ class AsyncTranscriptions(AsyncAPIResource):
             },
             [["file"]],
         )
+        extra_body = _serialize_chunking_strategy(body, extra_body)
         files = extract_files(cast(Mapping[str, object], body), paths=[["file"]])
         # It should be noted that the actual Content-Type header that will be
         # sent to the server will contain a `boundary` parameter, e.g.
@@ -1039,6 +1072,18 @@ class AsyncTranscriptions(AsyncAPIResource):
             stream=stream or False,
             stream_cls=AsyncStream[TranscriptionStreamEvent],
         )
+
+
+def _serialize_chunking_strategy(body: dict[str, object], extra_body: Body | None) -> Body | None:
+    # The service expects one JSON-text field. Normalize only the winning value.
+    if is_mapping(extra_body) and "chunking_strategy" in extra_body:
+        body.pop("chunking_strategy", None)
+        strategy = extra_body["chunking_strategy"]
+        if isinstance(strategy, dict):
+            return {**extra_body, "chunking_strategy": json.dumps(strategy)}
+    elif isinstance(body.get("chunking_strategy"), dict):
+        body["chunking_strategy"] = json.dumps(body["chunking_strategy"])
+    return extra_body
 
 
 class TranscriptionsWithRawResponse:
