@@ -35529,8 +35529,8 @@ components:
               propertyName: type
           seed:
             type: integer
-            minimum: -9.223372036854776e18
-            maximum: 9.223372036854776e18
+            minimum: -9223372036854775808
+            maximum: 9223372036854775807
             nullable: true
             deprecated: true
             description: |
@@ -35539,6 +35539,7 @@ components:
               Determinism is not guaranteed, and you should refer to the `system_fingerprint` response parameter to monitor changes in the backend.
             x-oaiMeta:
               beta: true
+            format: int64
           stream_options:
             $ref: '#/components/schemas/ChatCompletionStreamOptions'
           tools:
