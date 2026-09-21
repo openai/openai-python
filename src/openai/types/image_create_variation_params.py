@@ -13,29 +13,33 @@ __all__ = ["ImageCreateVariationParams"]
 
 class ImageCreateVariationParams(TypedDict, total=False):
     image: Required[FileTypes]
-    """The image to use as the basis for the variation(s).
+    """The input image for the legacy variations endpoint.
 
-    Must be a valid PNG file, less than 4MB, and square.
+    The legacy format requires a valid PNG file, less than 4MB, and square.
     """
 
     model: Union[str, ImageModel, None]
-    """The model to use for image generation.
-
-    Only `dall-e-2` is supported at this time.
+    """
+    Legacy model selection for the variations endpoint, which was designed for
+    `dall-e-2`. DALL·E 2 was retired from the API on May 12, 2026; see
+    [deprecations](https://developers.openai.com/api/docs/deprecations). Use image
+    edits with a supported GPT Image model for new integrations.
     """
 
     n: Optional[int]
-    """The number of images to generate. Must be between 1 and 10."""
+    """The number of images requested from the legacy variations endpoint.
+
+    Must be between 1 and 10.
+    """
 
     response_format: Optional[Literal["url", "b64_json"]]
-    """The format in which the generated images are returned.
+    """The response format for the legacy variations endpoint: `url` or `b64_json`.
 
-    Must be one of `url` or `b64_json`. URLs are only valid for 60 minutes after the
-    image has been generated.
+    Returned URLs were valid for 60 minutes after image generation.
     """
 
     size: Optional[Literal["256x256", "512x512", "1024x1024"]]
-    """The size of the generated images.
+    """The requested image size for the legacy variations endpoint.
 
     Must be one of `256x256`, `512x512`, or `1024x1024`.
     """

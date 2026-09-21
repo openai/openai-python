@@ -282,8 +282,10 @@ class ImageGeneration(TypedDict, total=False):
     Control how much effort the model will exert to match the style and features,
     especially facial features, of input images. Supported models accept `high` and
     `low`, except `gpt-image-1-mini`, which accepts only `low`. Defaults to `low` on
-    models that support this parameter. Omit this parameter for models that do not
-    support it.
+    models that support this parameter. Omit this parameter for `gpt-image-2`,
+    `gpt-image-2-2026-04-21`, and other models that do not support it. See the
+    [image input fidelity guide](https://developers.openai.com/api/docs/guides/image-generation#image-input-fidelity)
+    for model-specific guidance.
     """
 
     input_image_mask: ImageGenerationInputImageMask
