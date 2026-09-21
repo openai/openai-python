@@ -84,29 +84,30 @@ class Jobs(SyncAPIResource):
         Response includes details of the enqueued job including job status and the name
         of the fine-tuned models once complete.
 
-        [Learn more about fine-tuning](https://platform.openai.com/docs/guides/model-optimization)
+        [Learn more about fine-tuning](https://developers.openai.com/api/docs/guides/model-optimization)
 
         Args:
           model: The name of the model to fine-tune. You can select one of the
-              [supported models](https://platform.openai.com/docs/guides/fine-tuning#which-models-can-be-fine-tuned).
+              [supported models](https://developers.openai.com/api/docs/guides/model-optimization#fine-tuning-methods).
 
           training_file: The ID of an uploaded file that contains training data.
 
-              See [upload file](https://platform.openai.com/docs/api-reference/files/create)
+              See
+              [upload file](https://developers.openai.com/api/reference/resources/files/methods/create)
               for how to upload a file.
 
               Your dataset must be formatted as a JSONL file. Additionally, you must upload
               your file with the purpose `fine-tune`.
 
               The contents of the file should differ depending on if the model uses the
-              [chat](https://platform.openai.com/docs/api-reference/fine-tuning/chat-input),
-              [completions](https://platform.openai.com/docs/api-reference/fine-tuning/completions-input)
+              [chat](https://developers.openai.com/api/docs/guides/supervised-fine-tuning#formatting-your-data),
+              [completions](https://developers.openai.com/api/docs/guides/supervised-fine-tuning#formatting-your-data)
               format, or if the fine-tuning method uses the
-              [preference](https://platform.openai.com/docs/api-reference/fine-tuning/preference-input)
+              [preference](https://developers.openai.com/api/docs/guides/direct-preference-optimization)
               format.
 
               See the
-              [fine-tuning guide](https://platform.openai.com/docs/guides/model-optimization)
+              [fine-tuning guide](https://developers.openai.com/api/docs/guides/model-optimization)
               for more details.
 
           hyperparameters: The hyperparameters used for the fine-tuning job. This value is now deprecated
@@ -144,7 +145,7 @@ class Jobs(SyncAPIResource):
               the purpose `fine-tune`.
 
               See the
-              [fine-tuning guide](https://platform.openai.com/docs/guides/model-optimization)
+              [fine-tuning guide](https://developers.openai.com/api/docs/guides/model-optimization)
               for more details.
 
           extra_headers: Send extra headers
@@ -195,7 +196,7 @@ class Jobs(SyncAPIResource):
         """
         Get info about a fine-tuning job.
 
-        [Learn more about fine-tuning](https://platform.openai.com/docs/guides/model-optimization)
+        [Learn more about fine-tuning](https://developers.openai.com/api/docs/guides/model-optimization)
 
         Args:
           extra_headers: Send extra headers
@@ -489,29 +490,30 @@ class AsyncJobs(AsyncAPIResource):
         Response includes details of the enqueued job including job status and the name
         of the fine-tuned models once complete.
 
-        [Learn more about fine-tuning](https://platform.openai.com/docs/guides/model-optimization)
+        [Learn more about fine-tuning](https://developers.openai.com/api/docs/guides/model-optimization)
 
         Args:
           model: The name of the model to fine-tune. You can select one of the
-              [supported models](https://platform.openai.com/docs/guides/fine-tuning#which-models-can-be-fine-tuned).
+              [supported models](https://developers.openai.com/api/docs/guides/model-optimization#fine-tuning-methods).
 
           training_file: The ID of an uploaded file that contains training data.
 
-              See [upload file](https://platform.openai.com/docs/api-reference/files/create)
+              See
+              [upload file](https://developers.openai.com/api/reference/resources/files/methods/create)
               for how to upload a file.
 
               Your dataset must be formatted as a JSONL file. Additionally, you must upload
               your file with the purpose `fine-tune`.
 
               The contents of the file should differ depending on if the model uses the
-              [chat](https://platform.openai.com/docs/api-reference/fine-tuning/chat-input),
-              [completions](https://platform.openai.com/docs/api-reference/fine-tuning/completions-input)
+              [chat](https://developers.openai.com/api/docs/guides/supervised-fine-tuning#formatting-your-data),
+              [completions](https://developers.openai.com/api/docs/guides/supervised-fine-tuning#formatting-your-data)
               format, or if the fine-tuning method uses the
-              [preference](https://platform.openai.com/docs/api-reference/fine-tuning/preference-input)
+              [preference](https://developers.openai.com/api/docs/guides/direct-preference-optimization)
               format.
 
               See the
-              [fine-tuning guide](https://platform.openai.com/docs/guides/model-optimization)
+              [fine-tuning guide](https://developers.openai.com/api/docs/guides/model-optimization)
               for more details.
 
           hyperparameters: The hyperparameters used for the fine-tuning job. This value is now deprecated
@@ -549,7 +551,7 @@ class AsyncJobs(AsyncAPIResource):
               the purpose `fine-tune`.
 
               See the
-              [fine-tuning guide](https://platform.openai.com/docs/guides/model-optimization)
+              [fine-tuning guide](https://developers.openai.com/api/docs/guides/model-optimization)
               for more details.
 
           extra_headers: Send extra headers
@@ -600,7 +602,7 @@ class AsyncJobs(AsyncAPIResource):
         """
         Get info about a fine-tuning job.
 
-        [Learn more about fine-tuning](https://platform.openai.com/docs/guides/model-optimization)
+        [Learn more about fine-tuning](https://developers.openai.com/api/docs/guides/model-optimization)
 
         Args:
           extra_headers: Send extra headers

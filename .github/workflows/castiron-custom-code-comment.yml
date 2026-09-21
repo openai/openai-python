@@ -145,8 +145,11 @@ jobs:
             const {data: main} = await github.rest.git.getRef({...context.repo, ref: 'heads/main'});
             const base = main.object.sha;
             if (run.event === 'pull_request') {
-              const pulls = run.pull_requests.length ? run.pull_requests : await github.paginate(
+              let pulls = run.pull_requests.length ? run.pull_requests : await github.paginate(
                 github.rest.repos.listPullRequestsAssociatedWithCommit, {...context.repo, commit_sha: head});
+              if (!pulls.length) pulls = await github.paginate(github.rest.pulls.list, {
+                ...context.repo, state: 'open', head: `${run.head_repository.owner.login}:${run.head_branch}`,
+              });
               const current = [];
               for (const pull of pulls) {
                 const {data: pr} = await github.rest.pulls.get({...context.repo, pull_number: pull.number});
@@ -222,7 +225,10 @@ jobs:
             const marker = '<!-- castiron:custom-code-report:v1 -->';
             const run = context.payload.workflow_run;
             if (run.event !== 'pull_request' || run.path !== '.github/workflows/castiron-custom-code.yml') return;
-            const pulls = run.pull_requests?.length ? run.pull_requests : await github.paginate(github.rest.repos.listPullRequestsAssociatedWithCommit, {...context.repo, commit_sha: run.head_sha});
+            let pulls = run.pull_requests?.length ? run.pull_requests : await github.paginate(github.rest.repos.listPullRequestsAssociatedWithCommit, {...context.repo, commit_sha: run.head_sha});
+            if (!pulls.length) pulls = await github.paginate(github.rest.pulls.list, {
+              ...context.repo, state: 'open', head: `${run.head_repository.owner.login}:${run.head_branch}`,
+            });
             for (const pull of pulls) {
               const {data: current} = await github.rest.pulls.get({...context.repo, pull_number: pull.number});
               if (current.state !== 'open' || current.head.sha !== run.head_sha) continue;
