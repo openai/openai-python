@@ -23,7 +23,7 @@ class PromptCacheBreakpoint(TypedDict, total=False):
 class ResponseInputImageParam(TypedDict, total=False):
     """An image input to the model.
 
-    Learn about [image inputs](https://platform.openai.com/docs/guides/vision).
+    Learn about [image inputs](https://developers.openai.com/api/docs/guides/images-vision).
     """
 
     detail: Required[ImageDetail]

@@ -68,8 +68,5 @@ class CompletionUsage(BaseModel):
     completion_tokens_details: Optional[CompletionTokensDetails] = None
     """Breakdown of tokens used in a completion."""
 
-    compute_units: Optional[int] = None
-    """Compute units for the request. Currently null when available."""
-
     prompt_tokens_details: Optional[PromptTokensDetails] = None
     """Breakdown of tokens used in the prompt."""
