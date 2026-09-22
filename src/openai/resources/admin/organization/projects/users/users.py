@@ -1,10 +1,10 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 from typing import Optional
 
-import httpx
+import httpx2
 
 from ...... import _legacy_response
 from .roles import (
@@ -65,7 +65,7 @@ class Users(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ProjectUser:
         """Adds a user to the project.
 
@@ -119,7 +119,7 @@ class Users(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ProjectUser:
         """
         Retrieves a user in the project.
@@ -162,7 +162,7 @@ class Users(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ProjectUser:
         """
         Modifies a user's role in the project.
@@ -208,7 +208,7 @@ class Users(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncConversationCursorPage[ProjectUser]:
         """
         Returns a list of users in the project.
@@ -262,7 +262,7 @@ class Users(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UserDeleteResponse:
         """
         Deletes a user from the project.
@@ -334,7 +334,7 @@ class AsyncUsers(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ProjectUser:
         """Adds a user to the project.
 
@@ -388,7 +388,7 @@ class AsyncUsers(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ProjectUser:
         """
         Retrieves a user in the project.
@@ -431,7 +431,7 @@ class AsyncUsers(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ProjectUser:
         """
         Modifies a user's role in the project.
@@ -477,7 +477,7 @@ class AsyncUsers(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[ProjectUser, AsyncConversationCursorPage[ProjectUser]]:
         """
         Returns a list of users in the project.
@@ -531,7 +531,7 @@ class AsyncUsers(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> UserDeleteResponse:
         """
         Deletes a user from the project.
