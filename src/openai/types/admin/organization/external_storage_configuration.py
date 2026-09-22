@@ -6,12 +6,14 @@ from typing_extensions import Literal, Annotated, TypeAlias
 from ...._utils import PropertyInfo
 from ...._models import BaseModel
 from .aws_external_storage_provider import AwsExternalStorageProvider
+from .gcp_external_storage_provider import GcpExternalStorageProvider
 from .azure_external_storage_provider import AzureExternalStorageProvider
 
 __all__ = ["ExternalStorageConfiguration", "Provider"]
 
 Provider: TypeAlias = Annotated[
-    Union[AwsExternalStorageProvider, AzureExternalStorageProvider], PropertyInfo(discriminator="type")
+    Union[AwsExternalStorageProvider, AzureExternalStorageProvider, GcpExternalStorageProvider],
+    PropertyInfo(discriminator="type"),
 ]
 
 
