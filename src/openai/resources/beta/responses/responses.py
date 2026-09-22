@@ -229,6 +229,7 @@ class Responses(SyncAPIResource):
                 "gpt-daybreak-blue-latest",
                 "gpt-daybreak-red-latest",
                 "gpt-5.6-cyber",
+                "gpt-rosalind-research",
             ],
             str,
         ]
@@ -635,6 +636,7 @@ class Responses(SyncAPIResource):
                 "gpt-daybreak-blue-latest",
                 "gpt-daybreak-red-latest",
                 "gpt-5.6-cyber",
+                "gpt-rosalind-research",
             ],
             str,
         ]
@@ -1040,6 +1042,7 @@ class Responses(SyncAPIResource):
                 "gpt-daybreak-blue-latest",
                 "gpt-daybreak-red-latest",
                 "gpt-5.6-cyber",
+                "gpt-rosalind-research",
             ],
             str,
         ]
@@ -1443,6 +1446,7 @@ class Responses(SyncAPIResource):
                 "gpt-daybreak-blue-latest",
                 "gpt-daybreak-red-latest",
                 "gpt-5.6-cyber",
+                "gpt-rosalind-research",
             ],
             str,
         ]
@@ -1929,6 +1933,7 @@ class Responses(SyncAPIResource):
                 "gpt-daybreak-blue-latest",
                 "gpt-daybreak-red-latest",
                 "gpt-5.6-cyber",
+                "gpt-rosalind-research",
             ],
             str,
             None,
@@ -2226,6 +2231,7 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-daybreak-blue-latest",
                 "gpt-daybreak-red-latest",
                 "gpt-5.6-cyber",
+                "gpt-rosalind-research",
             ],
             str,
         ]
@@ -2632,6 +2638,7 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-daybreak-blue-latest",
                 "gpt-daybreak-red-latest",
                 "gpt-5.6-cyber",
+                "gpt-rosalind-research",
             ],
             str,
         ]
@@ -3037,6 +3044,7 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-daybreak-blue-latest",
                 "gpt-daybreak-red-latest",
                 "gpt-5.6-cyber",
+                "gpt-rosalind-research",
             ],
             str,
         ]
@@ -3440,6 +3448,7 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-daybreak-blue-latest",
                 "gpt-daybreak-red-latest",
                 "gpt-5.6-cyber",
+                "gpt-rosalind-research",
             ],
             str,
         ]
@@ -3926,6 +3935,7 @@ class AsyncResponses(AsyncAPIResource):
                 "gpt-daybreak-blue-latest",
                 "gpt-daybreak-red-latest",
                 "gpt-5.6-cyber",
+                "gpt-rosalind-research",
             ],
             str,
             None,
@@ -5307,6 +5317,7 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
                 "gpt-daybreak-blue-latest",
                 "gpt-daybreak-red-latest",
                 "gpt-5.6-cyber",
+                "gpt-rosalind-research",
             ],
             str,
         ]
@@ -5562,6 +5573,7 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
                 "gpt-daybreak-blue-latest",
                 "gpt-daybreak-red-latest",
                 "gpt-5.6-cyber",
+                "gpt-rosalind-research",
             ],
             str,
         ]
