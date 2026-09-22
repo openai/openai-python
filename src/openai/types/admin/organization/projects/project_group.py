@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing_extensions import Literal
 
@@ -19,7 +19,7 @@ class ProjectGroup(BaseModel):
     group_name: str
     """Display name of the group."""
 
-    group_type: str
+    group_type: Literal["group", "tenant_group"]
     """The type of the group."""
 
     object: Literal["project.group"]

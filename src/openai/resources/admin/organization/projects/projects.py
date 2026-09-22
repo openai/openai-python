@@ -1,10 +1,10 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 from typing import Optional
 
-import httpx
+import httpx2
 
 from ..... import _legacy_response
 from .roles import (
@@ -34,6 +34,14 @@ from .rate_limits import (
     RateLimitsWithStreamingResponse,
     AsyncRateLimitsWithStreamingResponse,
 )
+from .spend_limit import (
+    SpendLimit,
+    AsyncSpendLimit,
+    SpendLimitWithRawResponse,
+    AsyncSpendLimitWithRawResponse,
+    SpendLimitWithStreamingResponse,
+    AsyncSpendLimitWithStreamingResponse,
+)
 from .users.users import (
     Users,
     AsyncUsers,
@@ -50,6 +58,14 @@ from .certificates import (
     CertificatesWithStreamingResponse,
     AsyncCertificatesWithStreamingResponse,
 )
+from .spend_alerts import (
+    SpendAlerts,
+    AsyncSpendAlerts,
+    SpendAlertsWithRawResponse,
+    AsyncSpendAlertsWithRawResponse,
+    SpendAlertsWithStreamingResponse,
+    AsyncSpendAlertsWithStreamingResponse,
+)
 from ....._resource import SyncAPIResource, AsyncAPIResource
 from ....._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from .groups.groups import (
@@ -61,8 +77,38 @@ from .groups.groups import (
     AsyncGroupsWithStreamingResponse,
 )
 from .....pagination import SyncConversationCursorPage, AsyncConversationCursorPage
+from .data_retention import (
+    DataRetention,
+    AsyncDataRetention,
+    DataRetentionWithRawResponse,
+    AsyncDataRetentionWithRawResponse,
+    DataRetentionWithStreamingResponse,
+    AsyncDataRetentionWithStreamingResponse,
+)
 from ....._base_client import AsyncPaginator, make_request_options
-from .service_accounts import (
+from .model_permissions import (
+    ModelPermissions,
+    AsyncModelPermissions,
+    ModelPermissionsWithRawResponse,
+    AsyncModelPermissionsWithRawResponse,
+    ModelPermissionsWithStreamingResponse,
+    AsyncModelPermissionsWithStreamingResponse,
+)
+from .hosted_tool_permissions import (
+    HostedToolPermissions,
+    AsyncHostedToolPermissions,
+    HostedToolPermissionsWithRawResponse,
+    AsyncHostedToolPermissionsWithRawResponse,
+    HostedToolPermissionsWithStreamingResponse,
+    AsyncHostedToolPermissionsWithStreamingResponse,
+)
+from .....types.admin.organization import (
+    ProjectResidency,
+    project_list_params,
+    project_create_params,
+    project_update_params,
+)
+from .service_accounts.service_accounts import (
     ServiceAccounts,
     AsyncServiceAccounts,
     ServiceAccountsWithRawResponse,
@@ -70,8 +116,8 @@ from .service_accounts import (
     ServiceAccountsWithStreamingResponse,
     AsyncServiceAccountsWithStreamingResponse,
 )
-from .....types.admin.organization import project_list_params, project_create_params, project_update_params
 from .....types.admin.organization.project import Project
+from .....types.admin.organization.project_residency import ProjectResidency
 
 __all__ = ["Projects", "AsyncProjects"]
 
@@ -94,12 +140,32 @@ class Projects(SyncAPIResource):
         return RateLimits(self._client)
 
     @cached_property
+    def model_permissions(self) -> ModelPermissions:
+        return ModelPermissions(self._client)
+
+    @cached_property
+    def hosted_tool_permissions(self) -> HostedToolPermissions:
+        return HostedToolPermissions(self._client)
+
+    @cached_property
     def groups(self) -> Groups:
         return Groups(self._client)
 
     @cached_property
     def roles(self) -> Roles:
         return Roles(self._client)
+
+    @cached_property
+    def data_retention(self) -> DataRetention:
+        return DataRetention(self._client)
+
+    @cached_property
+    def spend_limit(self) -> SpendLimit:
+        return SpendLimit(self._client)
+
+    @cached_property
+    def spend_alerts(self) -> SpendAlerts:
+        return SpendAlerts(self._client)
 
     @cached_property
     def certificates(self) -> Certificates:
@@ -130,12 +196,13 @@ class Projects(SyncAPIResource):
         name: str,
         external_key_id: Optional[str] | Omit = omit,
         geography: Optional[str] | Omit = omit,
+        residency: Optional[ProjectResidency] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Project:
         """Create a new project in the organization.
 
@@ -149,7 +216,14 @@ class Projects(SyncAPIResource):
 
           geography: Create the project with the specified data residency region. Your organization
               must have access to Data residency functionality in order to use. See
-              [data residency controls](https://platform.openai.com/docs/guides/your-data#data-residency-controls)
+              [data residency controls](https://developers.openai.com/api/docs/guides/your-data#data-residency-controls)
+              to review the functionality and limitations of setting this field. Deprecated:
+              use `residency` instead. Do not provide both `geography` and `residency`.
+
+          residency: Create the project with the specified residency configuration. Your organization
+              must have access to the requested residency configuration in order to use it.
+              See
+              [data residency controls](https://developers.openai.com/api/docs/guides/your-data#data-residency-controls)
               to review the functionality and limitations of setting this field.
 
           extra_headers: Send extra headers
@@ -167,6 +241,7 @@ class Projects(SyncAPIResource):
                     "name": name,
                     "external_key_id": external_key_id,
                     "geography": geography,
+                    "residency": residency,
                 },
                 project_create_params.ProjectCreateParams,
             ),
@@ -189,7 +264,7 @@ class Projects(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Project:
         """
         Retrieves a project.
@@ -229,7 +304,7 @@ class Projects(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Project:
         """
         Modifies a project in the organization.
@@ -237,7 +312,8 @@ class Projects(SyncAPIResource):
         Args:
           external_key_id: External key ID to associate with the project.
 
-          geography: Geography for the project.
+          geography: Geography for the project. Deprecated: use `residency` when creating a project
+              to configure data residency. This field is retained for backward compatibility.
 
           name: The updated name of the project, this name appears in reports.
 
@@ -282,7 +358,7 @@ class Projects(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> SyncConversationCursorPage[Project]:
         """Returns a list of projects.
 
@@ -338,7 +414,7 @@ class Projects(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Project:
         """Archives a project in the organization.
 
@@ -387,12 +463,32 @@ class AsyncProjects(AsyncAPIResource):
         return AsyncRateLimits(self._client)
 
     @cached_property
+    def model_permissions(self) -> AsyncModelPermissions:
+        return AsyncModelPermissions(self._client)
+
+    @cached_property
+    def hosted_tool_permissions(self) -> AsyncHostedToolPermissions:
+        return AsyncHostedToolPermissions(self._client)
+
+    @cached_property
     def groups(self) -> AsyncGroups:
         return AsyncGroups(self._client)
 
     @cached_property
     def roles(self) -> AsyncRoles:
         return AsyncRoles(self._client)
+
+    @cached_property
+    def data_retention(self) -> AsyncDataRetention:
+        return AsyncDataRetention(self._client)
+
+    @cached_property
+    def spend_limit(self) -> AsyncSpendLimit:
+        return AsyncSpendLimit(self._client)
+
+    @cached_property
+    def spend_alerts(self) -> AsyncSpendAlerts:
+        return AsyncSpendAlerts(self._client)
 
     @cached_property
     def certificates(self) -> AsyncCertificates:
@@ -423,12 +519,13 @@ class AsyncProjects(AsyncAPIResource):
         name: str,
         external_key_id: Optional[str] | Omit = omit,
         geography: Optional[str] | Omit = omit,
+        residency: Optional[ProjectResidency] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Project:
         """Create a new project in the organization.
 
@@ -442,7 +539,14 @@ class AsyncProjects(AsyncAPIResource):
 
           geography: Create the project with the specified data residency region. Your organization
               must have access to Data residency functionality in order to use. See
-              [data residency controls](https://platform.openai.com/docs/guides/your-data#data-residency-controls)
+              [data residency controls](https://developers.openai.com/api/docs/guides/your-data#data-residency-controls)
+              to review the functionality and limitations of setting this field. Deprecated:
+              use `residency` instead. Do not provide both `geography` and `residency`.
+
+          residency: Create the project with the specified residency configuration. Your organization
+              must have access to the requested residency configuration in order to use it.
+              See
+              [data residency controls](https://developers.openai.com/api/docs/guides/your-data#data-residency-controls)
               to review the functionality and limitations of setting this field.
 
           extra_headers: Send extra headers
@@ -460,6 +564,7 @@ class AsyncProjects(AsyncAPIResource):
                     "name": name,
                     "external_key_id": external_key_id,
                     "geography": geography,
+                    "residency": residency,
                 },
                 project_create_params.ProjectCreateParams,
             ),
@@ -482,7 +587,7 @@ class AsyncProjects(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Project:
         """
         Retrieves a project.
@@ -522,7 +627,7 @@ class AsyncProjects(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Project:
         """
         Modifies a project in the organization.
@@ -530,7 +635,8 @@ class AsyncProjects(AsyncAPIResource):
         Args:
           external_key_id: External key ID to associate with the project.
 
-          geography: Geography for the project.
+          geography: Geography for the project. Deprecated: use `residency` when creating a project
+              to configure data residency. This field is retained for backward compatibility.
 
           name: The updated name of the project, this name appears in reports.
 
@@ -575,7 +681,7 @@ class AsyncProjects(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[Project, AsyncConversationCursorPage[Project]]:
         """Returns a list of projects.
 
@@ -631,7 +737,7 @@ class AsyncProjects(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Project:
         """Archives a project in the organization.
 
@@ -699,12 +805,32 @@ class ProjectsWithRawResponse:
         return RateLimitsWithRawResponse(self._projects.rate_limits)
 
     @cached_property
+    def model_permissions(self) -> ModelPermissionsWithRawResponse:
+        return ModelPermissionsWithRawResponse(self._projects.model_permissions)
+
+    @cached_property
+    def hosted_tool_permissions(self) -> HostedToolPermissionsWithRawResponse:
+        return HostedToolPermissionsWithRawResponse(self._projects.hosted_tool_permissions)
+
+    @cached_property
     def groups(self) -> GroupsWithRawResponse:
         return GroupsWithRawResponse(self._projects.groups)
 
     @cached_property
     def roles(self) -> RolesWithRawResponse:
         return RolesWithRawResponse(self._projects.roles)
+
+    @cached_property
+    def data_retention(self) -> DataRetentionWithRawResponse:
+        return DataRetentionWithRawResponse(self._projects.data_retention)
+
+    @cached_property
+    def spend_limit(self) -> SpendLimitWithRawResponse:
+        return SpendLimitWithRawResponse(self._projects.spend_limit)
+
+    @cached_property
+    def spend_alerts(self) -> SpendAlertsWithRawResponse:
+        return SpendAlertsWithRawResponse(self._projects.spend_alerts)
 
     @cached_property
     def certificates(self) -> CertificatesWithRawResponse:
@@ -748,12 +874,32 @@ class AsyncProjectsWithRawResponse:
         return AsyncRateLimitsWithRawResponse(self._projects.rate_limits)
 
     @cached_property
+    def model_permissions(self) -> AsyncModelPermissionsWithRawResponse:
+        return AsyncModelPermissionsWithRawResponse(self._projects.model_permissions)
+
+    @cached_property
+    def hosted_tool_permissions(self) -> AsyncHostedToolPermissionsWithRawResponse:
+        return AsyncHostedToolPermissionsWithRawResponse(self._projects.hosted_tool_permissions)
+
+    @cached_property
     def groups(self) -> AsyncGroupsWithRawResponse:
         return AsyncGroupsWithRawResponse(self._projects.groups)
 
     @cached_property
     def roles(self) -> AsyncRolesWithRawResponse:
         return AsyncRolesWithRawResponse(self._projects.roles)
+
+    @cached_property
+    def data_retention(self) -> AsyncDataRetentionWithRawResponse:
+        return AsyncDataRetentionWithRawResponse(self._projects.data_retention)
+
+    @cached_property
+    def spend_limit(self) -> AsyncSpendLimitWithRawResponse:
+        return AsyncSpendLimitWithRawResponse(self._projects.spend_limit)
+
+    @cached_property
+    def spend_alerts(self) -> AsyncSpendAlertsWithRawResponse:
+        return AsyncSpendAlertsWithRawResponse(self._projects.spend_alerts)
 
     @cached_property
     def certificates(self) -> AsyncCertificatesWithRawResponse:
@@ -797,12 +943,32 @@ class ProjectsWithStreamingResponse:
         return RateLimitsWithStreamingResponse(self._projects.rate_limits)
 
     @cached_property
+    def model_permissions(self) -> ModelPermissionsWithStreamingResponse:
+        return ModelPermissionsWithStreamingResponse(self._projects.model_permissions)
+
+    @cached_property
+    def hosted_tool_permissions(self) -> HostedToolPermissionsWithStreamingResponse:
+        return HostedToolPermissionsWithStreamingResponse(self._projects.hosted_tool_permissions)
+
+    @cached_property
     def groups(self) -> GroupsWithStreamingResponse:
         return GroupsWithStreamingResponse(self._projects.groups)
 
     @cached_property
     def roles(self) -> RolesWithStreamingResponse:
         return RolesWithStreamingResponse(self._projects.roles)
+
+    @cached_property
+    def data_retention(self) -> DataRetentionWithStreamingResponse:
+        return DataRetentionWithStreamingResponse(self._projects.data_retention)
+
+    @cached_property
+    def spend_limit(self) -> SpendLimitWithStreamingResponse:
+        return SpendLimitWithStreamingResponse(self._projects.spend_limit)
+
+    @cached_property
+    def spend_alerts(self) -> SpendAlertsWithStreamingResponse:
+        return SpendAlertsWithStreamingResponse(self._projects.spend_alerts)
 
     @cached_property
     def certificates(self) -> CertificatesWithStreamingResponse:
@@ -846,12 +1012,32 @@ class AsyncProjectsWithStreamingResponse:
         return AsyncRateLimitsWithStreamingResponse(self._projects.rate_limits)
 
     @cached_property
+    def model_permissions(self) -> AsyncModelPermissionsWithStreamingResponse:
+        return AsyncModelPermissionsWithStreamingResponse(self._projects.model_permissions)
+
+    @cached_property
+    def hosted_tool_permissions(self) -> AsyncHostedToolPermissionsWithStreamingResponse:
+        return AsyncHostedToolPermissionsWithStreamingResponse(self._projects.hosted_tool_permissions)
+
+    @cached_property
     def groups(self) -> AsyncGroupsWithStreamingResponse:
         return AsyncGroupsWithStreamingResponse(self._projects.groups)
 
     @cached_property
     def roles(self) -> AsyncRolesWithStreamingResponse:
         return AsyncRolesWithStreamingResponse(self._projects.roles)
+
+    @cached_property
+    def data_retention(self) -> AsyncDataRetentionWithStreamingResponse:
+        return AsyncDataRetentionWithStreamingResponse(self._projects.data_retention)
+
+    @cached_property
+    def spend_limit(self) -> AsyncSpendLimitWithStreamingResponse:
+        return AsyncSpendLimitWithStreamingResponse(self._projects.spend_limit)
+
+    @cached_property
+    def spend_alerts(self) -> AsyncSpendAlertsWithStreamingResponse:
+        return AsyncSpendAlertsWithStreamingResponse(self._projects.spend_alerts)
 
     @cached_property
     def certificates(self) -> AsyncCertificatesWithStreamingResponse:

@@ -1,10 +1,10 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 from typing import Iterable, Optional
 
-import httpx
+import httpx2
 
 from ... import _legacy_response
 from .items import (
@@ -67,7 +67,7 @@ class Conversations(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Conversation:
         """
         Create a conversation.
@@ -119,7 +119,7 @@ class Conversations(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Conversation:
         """
         Get a conversation
@@ -157,7 +157,7 @@ class Conversations(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Conversation:
         """
         Update a conversation
@@ -165,10 +165,9 @@ class Conversations(SyncAPIResource):
         Args:
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format, and
-              querying for objects via API or the dashboard.
-
-              Keys are strings with a maximum length of 64 characters. Values are strings with
-              a maximum length of 512 characters.
+              querying for objects via API or the dashboard. Keys are strings with a maximum
+              length of 64 characters. Values are strings with a maximum length of 512
+              characters.
 
           extra_headers: Send extra headers
 
@@ -202,7 +201,7 @@ class Conversations(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ConversationDeletedResource:
         """Delete a conversation.
 
@@ -269,7 +268,7 @@ class AsyncConversations(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Conversation:
         """
         Create a conversation.
@@ -321,7 +320,7 @@ class AsyncConversations(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Conversation:
         """
         Get a conversation
@@ -359,7 +358,7 @@ class AsyncConversations(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> Conversation:
         """
         Update a conversation
@@ -367,10 +366,9 @@ class AsyncConversations(AsyncAPIResource):
         Args:
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format, and
-              querying for objects via API or the dashboard.
-
-              Keys are strings with a maximum length of 64 characters. Values are strings with
-              a maximum length of 512 characters.
+              querying for objects via API or the dashboard. Keys are strings with a maximum
+              length of 64 characters. Values are strings with a maximum length of 512
+              characters.
 
           extra_headers: Send extra headers
 
@@ -406,7 +404,7 @@ class AsyncConversations(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | httpx2.Timeout | None | NotGiven = not_given,
     ) -> ConversationDeletedResource:
         """Delete a conversation.
 

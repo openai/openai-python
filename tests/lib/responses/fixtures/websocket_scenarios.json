@@ -1,0 +1,533 @@
+{
+  "version": 1,
+  "scenarios": [
+    {
+      "id": "completed_then_completed",
+      "turns": [
+        {
+          "request": {
+            "type": "response.create",
+            "model": "gpt-4o-mini",
+            "input": "Synthetic input",
+            "stream_id": "lane-test"
+          },
+          "frames": [
+            {
+              "type": "response.created",
+              "response": {
+                "id": "resp_first",
+                "object": "response",
+                "created_at": 1,
+                "model": "gpt-4o-mini",
+                "output": [],
+                "parallel_tool_calls": false,
+                "tool_choice": "auto",
+                "tools": [],
+                "status": "in_progress"
+              },
+              "sequence_number": 0,
+              "stream_id": "lane-test"
+            },
+            {
+              "type": "response.output_text.delta",
+              "delta": "Synthetic text",
+              "item_id": "msg_test",
+              "content_index": 0,
+              "output_index": 0,
+              "logprobs": [],
+              "sequence_number": 1,
+              "stream_id": "lane-test"
+            },
+            {
+              "type": "response.completed",
+              "response": {
+                "id": "resp_first",
+                "object": "response",
+                "created_at": 1,
+                "model": "gpt-4o-mini",
+                "output": [
+                  {
+                    "id": "msg_test",
+                    "type": "message",
+                    "role": "assistant",
+                    "status": "completed",
+                    "content": [
+                      {
+                        "type": "output_text",
+                        "text": "Synthetic text",
+                        "annotations": [],
+                        "logprobs": []
+                      }
+                    ]
+                  }
+                ],
+                "parallel_tool_calls": false,
+                "tool_choice": "auto",
+                "tools": [],
+                "status": "completed"
+              },
+              "sequence_number": 2,
+              "stream_id": "lane-test"
+            }
+          ]
+        },
+        {
+          "request": {
+            "type": "response.create",
+            "model": "gpt-4o-mini",
+            "input": "Synthetic input",
+            "stream_id": "lane-test",
+            "previous_response_id": "resp_first",
+            "instructions": null
+          },
+          "frames": [
+            {
+              "type": "response.created",
+              "response": {
+                "id": "resp_second",
+                "object": "response",
+                "created_at": 1,
+                "model": "gpt-4o-mini",
+                "output": [],
+                "parallel_tool_calls": false,
+                "tool_choice": "auto",
+                "tools": [],
+                "status": "in_progress"
+              },
+              "sequence_number": 0,
+              "stream_id": "lane-test"
+            },
+            {
+              "type": "response.completed",
+              "response": {
+                "id": "resp_second",
+                "object": "response",
+                "created_at": 1,
+                "model": "gpt-4o-mini",
+                "output": [],
+                "parallel_tool_calls": false,
+                "tool_choice": "auto",
+                "tools": [],
+                "status": "completed"
+              },
+              "sequence_number": 1,
+              "stream_id": "lane-test"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "failed_then_completed",
+      "turns": [
+        {
+          "request": {
+            "type": "response.create",
+            "model": "gpt-4o-mini",
+            "input": "Synthetic input",
+            "stream_id": "lane-test"
+          },
+          "frames": [
+            {
+              "type": "response.created",
+              "response": {
+                "id": "resp_first",
+                "object": "response",
+                "created_at": 1,
+                "model": "gpt-4o-mini",
+                "output": [],
+                "parallel_tool_calls": false,
+                "tool_choice": "auto",
+                "tools": [],
+                "status": "in_progress"
+              },
+              "sequence_number": 0,
+              "stream_id": "lane-test"
+            },
+            {
+              "type": "response.failed",
+              "response": {
+                "id": "resp_first",
+                "object": "response",
+                "created_at": 1,
+                "model": "gpt-4o-mini",
+                "output": [],
+                "parallel_tool_calls": false,
+                "tool_choice": "auto",
+                "tools": [],
+                "status": "failed",
+                "error": {
+                  "code": "server_error",
+                  "message": "Synthetic failure"
+                }
+              },
+              "sequence_number": 1,
+              "stream_id": "lane-test"
+            }
+          ]
+        },
+        {
+          "request": {
+            "type": "response.create",
+            "model": "gpt-4o-mini",
+            "input": "Synthetic input",
+            "stream_id": "lane-test",
+            "previous_response_id": "resp_first",
+            "instructions": null
+          },
+          "frames": [
+            {
+              "type": "response.created",
+              "response": {
+                "id": "resp_second",
+                "object": "response",
+                "created_at": 1,
+                "model": "gpt-4o-mini",
+                "output": [],
+                "parallel_tool_calls": false,
+                "tool_choice": "auto",
+                "tools": [],
+                "status": "in_progress"
+              },
+              "sequence_number": 0,
+              "stream_id": "lane-test"
+            },
+            {
+              "type": "response.completed",
+              "response": {
+                "id": "resp_second",
+                "object": "response",
+                "created_at": 1,
+                "model": "gpt-4o-mini",
+                "output": [],
+                "parallel_tool_calls": false,
+                "tool_choice": "auto",
+                "tools": [],
+                "status": "completed"
+              },
+              "sequence_number": 1,
+              "stream_id": "lane-test"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "incomplete_then_completed",
+      "turns": [
+        {
+          "request": {
+            "type": "response.create",
+            "model": "gpt-4o-mini",
+            "input": "Synthetic input",
+            "stream_id": "lane-test"
+          },
+          "frames": [
+            {
+              "type": "response.created",
+              "response": {
+                "id": "resp_first",
+                "object": "response",
+                "created_at": 1,
+                "model": "gpt-4o-mini",
+                "output": [],
+                "parallel_tool_calls": false,
+                "tool_choice": "auto",
+                "tools": [],
+                "status": "in_progress"
+              },
+              "sequence_number": 0,
+              "stream_id": "lane-test"
+            },
+            {
+              "type": "response.incomplete",
+              "response": {
+                "id": "resp_first",
+                "object": "response",
+                "created_at": 1,
+                "model": "gpt-4o-mini",
+                "output": [],
+                "parallel_tool_calls": false,
+                "tool_choice": "auto",
+                "tools": [],
+                "status": "incomplete",
+                "incomplete_details": {
+                  "reason": "max_output_tokens"
+                }
+              },
+              "sequence_number": 1,
+              "stream_id": "lane-test"
+            }
+          ]
+        },
+        {
+          "request": {
+            "type": "response.create",
+            "model": "gpt-4o-mini",
+            "input": "Synthetic input",
+            "stream_id": "lane-test",
+            "previous_response_id": "resp_first",
+            "instructions": null
+          },
+          "frames": [
+            {
+              "type": "response.created",
+              "response": {
+                "id": "resp_second",
+                "object": "response",
+                "created_at": 1,
+                "model": "gpt-4o-mini",
+                "output": [],
+                "parallel_tool_calls": false,
+                "tool_choice": "auto",
+                "tools": [],
+                "status": "in_progress"
+              },
+              "sequence_number": 0,
+              "stream_id": "lane-test"
+            },
+            {
+              "type": "response.completed",
+              "response": {
+                "id": "resp_second",
+                "object": "response",
+                "created_at": 1,
+                "model": "gpt-4o-mini",
+                "output": [],
+                "parallel_tool_calls": false,
+                "tool_choice": "auto",
+                "tools": [],
+                "status": "completed"
+              },
+              "sequence_number": 1,
+              "stream_id": "lane-test"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "nested_error_then_completed",
+      "turns": [
+        {
+          "request": {
+            "type": "response.create",
+            "model": "gpt-4o-mini",
+            "input": "Synthetic input",
+            "stream_id": "lane-test"
+          },
+          "frames": [
+            {
+              "type": "error",
+              "stream_id": "lane-test",
+              "error": {
+                "type": "invalid_request_error",
+                "code": "invalid_value",
+                "param": "input",
+                "message": "Synthetic invalid input"
+              },
+              "status": 400
+            }
+          ]
+        },
+        {
+          "request": {
+            "type": "response.create",
+            "model": "gpt-4o-mini",
+            "input": "Synthetic input",
+            "stream_id": "lane-test"
+          },
+          "frames": [
+            {
+              "type": "response.created",
+              "response": {
+                "id": "resp_after_error",
+                "object": "response",
+                "created_at": 1,
+                "model": "gpt-4o-mini",
+                "output": [],
+                "parallel_tool_calls": false,
+                "tool_choice": "auto",
+                "tools": [],
+                "status": "in_progress"
+              },
+              "sequence_number": 0,
+              "stream_id": "lane-test"
+            },
+            {
+              "type": "response.completed",
+              "response": {
+                "id": "resp_after_error",
+                "object": "response",
+                "created_at": 1,
+                "model": "gpt-4o-mini",
+                "output": [],
+                "parallel_tool_calls": false,
+                "tool_choice": "auto",
+                "tools": [],
+                "status": "completed"
+              },
+              "sequence_number": 1,
+              "stream_id": "lane-test"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "unknown_event_and_fields",
+      "turns": [
+        {
+          "request": {
+            "type": "response.create",
+            "model": "gpt-4o-mini",
+            "input": "Synthetic input",
+            "stream_id": "lane-test"
+          },
+          "frames": [
+            {
+              "type": "response.created",
+              "response": {
+                "id": "resp_unknown",
+                "object": "response",
+                "created_at": 1,
+                "model": "gpt-4o-mini",
+                "output": [],
+                "parallel_tool_calls": false,
+                "tool_choice": "auto",
+                "tools": [],
+                "status": "in_progress"
+              },
+              "sequence_number": 0,
+              "stream_id": "lane-test"
+            },
+            {
+              "type": "response.future_event",
+              "sequence_number": 1,
+              "stream_id": "lane-test",
+              "future_payload": {
+                "value": "retained"
+              }
+            },
+            {
+              "type": "response.completed",
+              "response": {
+                "id": "resp_unknown",
+                "object": "response",
+                "created_at": 1,
+                "model": "gpt-4o-mini",
+                "output": [],
+                "parallel_tool_calls": false,
+                "tool_choice": "auto",
+                "tools": [],
+                "status": "completed",
+                "future_response_field": "retained"
+              },
+              "sequence_number": 2,
+              "stream_id": "lane-test",
+              "future_metadata": {
+                "value": "also retained"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "premature_close_1000",
+      "turns": [
+        {
+          "request": {
+            "type": "response.create",
+            "model": "gpt-4o-mini",
+            "input": "Synthetic input",
+            "stream_id": "lane-test"
+          },
+          "frames": [
+            {
+              "type": "response.created",
+              "response": {
+                "id": "resp_unfinished",
+                "object": "response",
+                "created_at": 1,
+                "model": "gpt-4o-mini",
+                "output": [],
+                "parallel_tool_calls": false,
+                "tool_choice": "auto",
+                "tools": [],
+                "status": "in_progress"
+              },
+              "sequence_number": 0,
+              "stream_id": "lane-test"
+            }
+          ]
+        }
+      ],
+      "close_code": 1000
+    },
+    {
+      "id": "premature_close_1011",
+      "turns": [
+        {
+          "request": {
+            "type": "response.create",
+            "model": "gpt-4o-mini",
+            "input": "Synthetic input",
+            "stream_id": "lane-test"
+          },
+          "frames": [
+            {
+              "type": "response.created",
+              "response": {
+                "id": "resp_unfinished",
+                "object": "response",
+                "created_at": 1,
+                "model": "gpt-4o-mini",
+                "output": [],
+                "parallel_tool_calls": false,
+                "tool_choice": "auto",
+                "tools": [],
+                "status": "in_progress"
+              },
+              "sequence_number": 0,
+              "stream_id": "lane-test"
+            }
+          ]
+        }
+      ],
+      "close_code": 1011
+    },
+    {
+      "id": "malformed_json",
+      "turns": [
+        {
+          "request": {
+            "type": "response.create",
+            "model": "gpt-4o-mini",
+            "input": "Synthetic input",
+            "stream_id": "lane-test"
+          },
+          "frames": [
+            {
+              "type": "response.created",
+              "response": {
+                "id": "resp_malformed",
+                "object": "response",
+                "created_at": 1,
+                "model": "gpt-4o-mini",
+                "output": [],
+                "parallel_tool_calls": false,
+                "tool_choice": "auto",
+                "tools": [],
+                "status": "in_progress"
+              },
+              "sequence_number": 0,
+              "stream_id": "lane-test"
+            },
+            "{"
+          ]
+        }
+      ]
+    }
+  ]
+}

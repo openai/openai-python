@@ -657,7 +657,8 @@ def construct_type(*, value: object, type_: object, metadata: Optional[List[Any]
         if not is_mapping(value):
             return value
 
-        _, items_type = get_args(type_)  # Dict[_, items_type]
+        # Bare containers have no type arguments; leave their contents untyped.
+        items_type = args[1] if len(args) > 1 else object  # Dict[_, items_type]
         return {key: construct_type(value=item, type_=items_type) for key, item in value.items()}
 
     if (
@@ -678,7 +679,7 @@ def construct_type(*, value: object, type_: object, metadata: Optional[List[Any]
         if not is_list(value):
             return value
 
-        inner_type = args[0]  # List[inner_type]
+        inner_type = args[0] if args else object  # List[inner_type]
         return [construct_type(value=entry, type_=inner_type) for entry in value]
 
     if origin == float:

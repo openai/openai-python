@@ -1,10 +1,11 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import List, Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
 
 from ...._utils import PropertyInfo
 from ...._models import BaseModel
+from .cost_quantity_unit import CostQuantityUnit
 
 __all__ = [
     "UsageImagesResponse",
@@ -18,6 +19,8 @@ __all__ = [
     "DataResultOrganizationUsageAudioTranscriptionsResult",
     "DataResultOrganizationUsageVectorStoresResult",
     "DataResultOrganizationUsageCodeInterpreterSessionsResult",
+    "DataResultOrganizationUsageFileSearchesResult",
+    "DataResultOrganizationUsageWebSearchesResult",
     "DataResultOrganizationCostsResult",
     "DataResultOrganizationCostsResultAmount",
 ]
@@ -27,9 +30,10 @@ class DataResultOrganizationUsageCompletionsResult(BaseModel):
     """The aggregated completions usage details of the specific time bucket."""
 
     input_tokens: int
-    """The aggregated number of text input tokens used, including cached tokens.
-
-    For customers subscribe to scale tier, this includes scale tier tokens.
+    """
+    The aggregated number of input tokens used, including cached and cache-write
+    tokens. This includes text, audio, and image tokens. For customers subscribed to
+    Scale Tier, this includes Scale Tier tokens.
     """
 
     num_model_requests: int
@@ -38,9 +42,10 @@ class DataResultOrganizationUsageCompletionsResult(BaseModel):
     object: Literal["organization.usage.completions.result"]
 
     output_tokens: int
-    """The aggregated number of text output tokens used.
-
-    For customers subscribe to scale tier, this includes scale tier tokens.
+    """
+    The aggregated number of output tokens used across text, audio, and image
+    outputs. For customers subscribed to Scale Tier, this includes Scale Tier
+    tokens.
     """
 
     api_key_id: Optional[str] = None
@@ -56,13 +61,39 @@ class DataResultOrganizationUsageCompletionsResult(BaseModel):
     """
 
     input_audio_tokens: Optional[int] = None
-    """The aggregated number of audio input tokens used, including cached tokens."""
+    """The aggregated number of uncached audio input tokens used."""
+
+    input_cache_write_tokens: Optional[int] = None
+    """The aggregated number of input tokens written to the cache."""
+
+    input_cached_audio_tokens: Optional[int] = None
+    """The aggregated number of cached audio input tokens used."""
+
+    input_cached_image_tokens: Optional[int] = None
+    """The aggregated number of cached image input tokens used."""
+
+    input_cached_text_tokens: Optional[int] = None
+    """The aggregated number of cached text input tokens used."""
 
     input_cached_tokens: Optional[int] = None
     """
-    The aggregated number of text input tokens that has been cached from previous
-    requests. For customers subscribe to scale tier, this includes scale tier
+    The aggregated number of cached input tokens used across text, audio, and image
+    inputs. For customers subscribed to Scale Tier, this includes Scale Tier tokens.
+    """
+
+    input_image_tokens: Optional[int] = None
+    """The aggregated number of uncached image input tokens used."""
+
+    input_text_tokens: Optional[int] = None
+    """
+    The aggregated number of uncached text input tokens used, excluding cache-write
     tokens.
+    """
+
+    input_uncached_tokens: Optional[int] = None
+    """
+    The aggregated number of uncached input tokens used across text, audio, and
+    image inputs, excluding cache-write tokens.
     """
 
     model: Optional[str] = None
@@ -73,6 +104,12 @@ class DataResultOrganizationUsageCompletionsResult(BaseModel):
 
     output_audio_tokens: Optional[int] = None
     """The aggregated number of audio output tokens used."""
+
+    output_image_tokens: Optional[int] = None
+    """The aggregated number of image output tokens used."""
+
+    output_text_tokens: Optional[int] = None
+    """The aggregated number of text output tokens used."""
 
     project_id: Optional[str] = None
     """
@@ -317,6 +354,81 @@ class DataResultOrganizationUsageCodeInterpreterSessionsResult(BaseModel):
     """
 
 
+class DataResultOrganizationUsageFileSearchesResult(BaseModel):
+    """The aggregated file search calls usage details of the specific time bucket."""
+
+    num_requests: int
+    """The count of file search calls."""
+
+    object: Literal["organization.usage.file_searches.result"]
+
+    api_key_id: Optional[str] = None
+    """
+    When `group_by=api_key_id`, this field provides the API key ID of the grouped
+    usage result.
+    """
+
+    project_id: Optional[str] = None
+    """
+    When `group_by=project_id`, this field provides the project ID of the grouped
+    usage result.
+    """
+
+    user_id: Optional[str] = None
+    """
+    When `group_by=user_id`, this field provides the user ID of the grouped usage
+    result.
+    """
+
+    vector_store_id: Optional[str] = None
+    """
+    When `group_by=vector_store_id`, this field provides the vector store ID of the
+    grouped usage result.
+    """
+
+
+class DataResultOrganizationUsageWebSearchesResult(BaseModel):
+    """The aggregated web search calls usage details of the specific time bucket."""
+
+    num_model_requests: int
+    """The count of model requests."""
+
+    num_requests: int
+    """The count of web search calls."""
+
+    object: Literal["organization.usage.web_searches.result"]
+
+    api_key_id: Optional[str] = None
+    """
+    When `group_by=api_key_id`, this field provides the API key ID of the grouped
+    usage result.
+    """
+
+    context_level: Optional[str] = None
+    """
+    When `group_by=context_level`, this field provides the search context size of
+    the grouped usage result.
+    """
+
+    model: Optional[str] = None
+    """
+    When `group_by=model`, this field provides the model name of the grouped usage
+    result.
+    """
+
+    project_id: Optional[str] = None
+    """
+    When `group_by=project_id`, this field provides the project ID of the grouped
+    usage result.
+    """
+
+    user_id: Optional[str] = None
+    """
+    When `group_by=user_id`, this field provides the user ID of the grouped usage
+    result.
+    """
+
+
 class DataResultOrganizationCostsResultAmount(BaseModel):
     """The monetary value in its associated currency."""
 
@@ -359,6 +471,12 @@ class DataResultOrganizationCostsResult(BaseModel):
     result.
     """
 
+    quantity_unit: Optional[CostQuantityUnit] = None
+    """The unit of the `quantity` value.
+
+    If no single supported unit applies to the result, this field is `null`.
+    """
+
 
 DataResult: TypeAlias = Annotated[
     Union[
@@ -370,6 +488,8 @@ DataResult: TypeAlias = Annotated[
         DataResultOrganizationUsageAudioTranscriptionsResult,
         DataResultOrganizationUsageVectorStoresResult,
         DataResultOrganizationUsageCodeInterpreterSessionsResult,
+        DataResultOrganizationUsageFileSearchesResult,
+        DataResultOrganizationUsageWebSearchesResult,
         DataResultOrganizationCostsResult,
     ],
     PropertyInfo(discriminator="object"),

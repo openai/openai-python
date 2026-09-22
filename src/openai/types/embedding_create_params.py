@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -29,10 +29,10 @@ class EmbeddingCreateParams(TypedDict, total=False):
     """ID of the model to use.
 
     You can use the
-    [List models](https://platform.openai.com/docs/api-reference/models/list) API to
-    see all of your available models, or see our
-    [Model overview](https://platform.openai.com/docs/models) for descriptions of
-    them.
+    [List models](https://developers.openai.com/api/reference/resources/models/methods/list)
+    API to see all of your available models, or see our
+    [Model overview](https://developers.openai.com/api/docs/models) for descriptions
+    of them.
     """
 
     dimensions: int
@@ -51,5 +51,5 @@ class EmbeddingCreateParams(TypedDict, total=False):
     """
     A unique identifier representing your end-user, which can help OpenAI to monitor
     and detect abuse.
-    [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
+    [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
     """

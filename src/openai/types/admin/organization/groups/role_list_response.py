@@ -1,10 +1,16 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import Dict, List, Optional
 
 from ....._models import BaseModel
 
-__all__ = ["RoleListResponse"]
+__all__ = ["RoleListResponse", "AssignmentSource"]
+
+
+class AssignmentSource(BaseModel):
+    principal_id: str
+
+    principal_type: str
 
 
 class RoleListResponse(BaseModel):
@@ -14,6 +20,9 @@ class RoleListResponse(BaseModel):
 
     id: str
     """Identifier for the role."""
+
+    assignment_sources: Optional[List[AssignmentSource]] = None
+    """Principals from which the role assignment is inherited, when available."""
 
     created_at: Optional[int] = None
     """When the role was created."""
