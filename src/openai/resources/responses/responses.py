@@ -45,6 +45,7 @@ from .input_items import (
     AsyncInputItemsWithStreamingResponse,
 )
 from ..._streaming import Stream, AsyncStream
+from ...lib.streaming.responses import ResponsesSSEStream, AsyncResponsesSSEStream
 from ...lib._tools import PydanticFunctionTool, ResponsesPydanticFunctionTool
 from .input_tokens import (
     InputTokens,
@@ -1091,7 +1092,7 @@ class Responses(SyncAPIResource):
             ),
             cast_to=Response,
             stream=stream or False,
-            stream_cls=Stream[ResponseStreamEvent],
+            stream_cls=ResponsesSSEStream[ResponseStreamEvent],
         )
 
     @overload
@@ -1661,7 +1662,7 @@ class Responses(SyncAPIResource):
             ),
             cast_to=Response,
             stream=stream or False,
-            stream_cls=Stream[ResponseStreamEvent],
+            stream_cls=ResponsesSSEStream[ResponseStreamEvent],
         )
 
     def delete(
@@ -2981,7 +2982,7 @@ class AsyncResponses(AsyncAPIResource):
             ),
             cast_to=Response,
             stream=stream or False,
-            stream_cls=AsyncStream[ResponseStreamEvent],
+            stream_cls=AsyncResponsesSSEStream[ResponseStreamEvent],
         )
 
     @overload
@@ -3550,7 +3551,7 @@ class AsyncResponses(AsyncAPIResource):
             ),
             cast_to=Response,
             stream=stream or False,
-            stream_cls=AsyncStream[ResponseStreamEvent],
+            stream_cls=AsyncResponsesSSEStream[ResponseStreamEvent],
         )
 
     async def delete(

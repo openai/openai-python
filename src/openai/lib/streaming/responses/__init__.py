@@ -11,3 +11,8 @@ from ._responses import (
     ResponseStreamManager as ResponseStreamManager,
     AsyncResponseStreamManager as AsyncResponseStreamManager,
 )
+
+from ._sse_abort import (
+    ResponsesSSEStream as ResponsesSSEStream,
+    AsyncResponsesSSEStream as AsyncResponsesSSEStream,
+)
