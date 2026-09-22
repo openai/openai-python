@@ -74,35 +74,37 @@ class Stream(Generic[_T]):
                 if sse.event and sse.event.startswith("thread."):
                     data = sse.json()
 
-                    if sse.event == "error" and is_mapping(data) and data.get("error"):
-                        message = None
+                    if sse.event == "error" and is_mapping(data):
+                        message = data.get("message")
                         error = data.get("error")
-                        if is_mapping(error):
-                            message = error.get("message")
+                        if not message or not isinstance(message, str):
+                            if is_mapping(error):
+                                message = error.get("message")
                         if not message or not isinstance(message, str):
                             message = "An error occurred during streaming"
 
                         raise APIError(
                             message=message,
                             request=self.response.request,
-                            body=data["error"],
+                            body=error if is_mapping(error) else data,
                         )
 
                     yield process_data(data={"data": data, "event": sse.event}, cast_to=cast_to, response=response)
                 else:
                     data = sse.json()
-                    if is_mapping(data) and data.get("error"):
-                        message = None
+                    if (is_mapping(data) and data.get("error")) or (sse.event == "error" and is_mapping(data)):
+                        message = data.get("message")
                         error = data.get("error")
-                        if is_mapping(error):
-                            message = error.get("message")
+                        if not message or not isinstance(message, str):
+                            if is_mapping(error):
+                                message = error.get("message")
                         if not message or not isinstance(message, str):
                             message = "An error occurred during streaming"
 
                         raise APIError(
                             message=message,
                             request=self.response.request,
-                            body=data["error"],
+                            body=error if is_mapping(error) else data,
                         )
 
                     yield process_data(
@@ -189,35 +191,37 @@ class AsyncStream(Generic[_T]):
                 if sse.event and sse.event.startswith("thread."):
                     data = sse.json()
 
-                    if sse.event == "error" and is_mapping(data) and data.get("error"):
-                        message = None
+                    if sse.event == "error" and is_mapping(data):
+                        message = data.get("message")
                         error = data.get("error")
-                        if is_mapping(error):
-                            message = error.get("message")
+                        if not message or not isinstance(message, str):
+                            if is_mapping(error):
+                                message = error.get("message")
                         if not message or not isinstance(message, str):
                             message = "An error occurred during streaming"
 
                         raise APIError(
                             message=message,
                             request=self.response.request,
-                            body=data["error"],
+                            body=error if is_mapping(error) else data,
                         )
 
                     yield process_data(data={"data": data, "event": sse.event}, cast_to=cast_to, response=response)
                 else:
                     data = sse.json()
-                    if is_mapping(data) and data.get("error"):
-                        message = None
+                    if (is_mapping(data) and data.get("error")) or (sse.event == "error" and is_mapping(data)):
+                        message = data.get("message")
                         error = data.get("error")
-                        if is_mapping(error):
-                            message = error.get("message")
+                        if not message or not isinstance(message, str):
+                            if is_mapping(error):
+                                message = error.get("message")
                         if not message or not isinstance(message, str):
                             message = "An error occurred during streaming"
 
                         raise APIError(
                             message=message,
                             request=self.response.request,
-                            body=data["error"],
+                            body=error if is_mapping(error) else data,
                         )
 
                     yield process_data(
