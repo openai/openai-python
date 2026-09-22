@@ -1510,6 +1510,7 @@ from openai.types.admin.organization import (
     AzureExternalStorageProvider,
     ExternalStorageConfiguration,
     ExternalStorageDeleted,
+    GcpExternalStorageProvider,
 )
 ```
 
