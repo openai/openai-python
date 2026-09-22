@@ -8,7 +8,13 @@ from contextlib import aclosing, nullcontext
 import httpx2
 import pytest
 
-from openai import OpenAI, AsyncOpenAI, APITimeoutError, APIConnectionError
+from openai import (
+    OpenAI,
+    AsyncOpenAI,
+    APITimeoutError,
+    APIConnectionError,
+    APIError,
+)
 from openai._streaming import Stream, AsyncStream, ServerSentEvent
 
 
@@ -90,6 +96,71 @@ async def test_request_errors_are_wrapped(
     assert len(requests) == 1
     assert caught.value.request is requests[0]
     assert caught.value.__cause__ is error
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+@pytest.mark.parametrize(
+    ("payload", "expected_message"),
+    [
+        # Responses-style error event: the message lives at the top level
+        # (see ResponseErrorEvent in the generated types) and must be surfaced.
+        (
+            b'data: {"type":"error","code":"server_error","message":"top-level boom",'
+            b'"param":null,"sequence_number":1}\n\n',
+            "top-level boom",
+        ),
+        # Chat-completions-style payload with a nested error object.
+        (
+            b'data: {"error": {"message": "nested boom", "type": "invalid_request_error"}}\n\n',
+            "nested boom",
+        ),
+        # Error event with no message anywhere -> fallback message.
+        (
+            b'data: {"type":"error"}\n\n',
+            "An error occurred during streaming",
+        ),
+    ],
+    ids=["top-level-message", "nested-error", "missing-message"],
+)
+async def test_streaming_error_events_raise_api_error(
+    sync: bool, payload: bytes, expected_message: str, http_module: Any
+) -> None:
+    def body() -> Iterator[bytes]:
+        yield b"event: error\n"
+        yield payload
+
+    async def async_body() -> AsyncIterator[bytes]:
+        for chunk in body():
+            yield chunk
+
+    def handler(request: Any) -> Any:
+        return http_module.Response(
+            200, headers={"content-type": "text/event-stream"}, content=body() if sync else async_body()
+        )
+
+    if sync:
+        with OpenAI(
+            api_key="synthetic",
+            max_retries=0,
+            http_client=http_module.Client(transport=http_module.MockTransport(handler), trust_env=False),
+        ) as client:
+            stream = client.chat.completions.create(model="synthetic", messages=[], stream=True)
+            with pytest.raises(APIError) as caught:
+                for _ in stream:
+                    pass
+    else:
+        async with AsyncOpenAI(
+            api_key="synthetic",
+            max_retries=0,
+            http_client=http_module.AsyncClient(transport=http_module.MockTransport(handler), trust_env=False),
+        ) as async_client:
+            stream = await async_client.chat.completions.create(model="synthetic", messages=[], stream=True)
+            with pytest.raises(APIError) as caught:
+                async for _ in stream:
+                    pass
+
+    assert caught.value.message == expected_message
 
 
 @pytest.mark.asyncio
