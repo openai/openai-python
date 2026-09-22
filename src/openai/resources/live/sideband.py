@@ -472,7 +472,7 @@ class AsyncSidebandConnectionManager:
         data = (
             event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
             if isinstance(event, BaseModel)
-            else json.dumps(event)
+            else json.dumps(maybe_transform(event, ConnectClientEventParam))
         )
         self.__send_queue.enqueue(data)
 
@@ -964,7 +964,7 @@ class SidebandConnectionManager:
         data = (
             event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
             if isinstance(event, BaseModel)
-            else json.dumps(event)
+            else json.dumps(maybe_transform(event, ConnectClientEventParam))
         )
         self.__send_queue.enqueue(data)
 
