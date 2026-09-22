@@ -111,6 +111,66 @@ from ._legacy_response import LegacyAPIResponse
 log: logging.Logger = logging.getLogger(__name__)
 log.addFilter(SensitiveHeadersFilter())
 
+
+class _RequestBodyReplay:
+    def __init__(self, options: FinalRequestOptions) -> None:
+        self._positions: list[tuple[object, int]] = []
+        self._replayable = all(
+            self._capture(content) for content in (options.content, *_iter_file_contents(options.files))
+        )
+
+    def _capture(self, content: object) -> bool:
+        if content is None or isinstance(content, (bytes, bytearray)):
+            return True
+
+        if not callable(getattr(content, "read", None)):
+            # Iterable protocols do not guarantee a fresh iterator: a wrapper can
+            # return the same stored generator. Only trust known concrete containers.
+            return type(content) in (list, tuple)
+
+        seekable = getattr(content, "seekable", None)
+        tell = getattr(content, "tell", None)
+        seek = getattr(content, "seek", None)
+        if not callable(seekable) or not callable(tell) or not callable(seek):
+            return False
+        try:
+            if not seekable():
+                return False
+            position = tell()
+        except (OSError, ValueError):
+            return False
+        if not isinstance(position, int):
+            return False
+        self._positions.append((content, position))
+        return True
+
+    def rewind(self) -> bool:
+        # Reject a non-replayable body before moving any of its streams.
+        if not self._replayable:
+            return False
+        for content, position in self._positions:
+            seek = getattr(content, "seek", None)
+            if not callable(seek):
+                return False
+            try:
+                seek(position)
+            except (OSError, ValueError):
+                return False
+        return True
+
+
+def _iter_file_contents(files: HttpxRequestFiles | None) -> Iterator[object]:
+    if files is None:
+        return
+
+    entries = files.items() if isinstance(files, Mapping) else files
+    for _, file in entries:
+        if isinstance(file, tuple) and len(file) > 1:
+            yield file[1]
+        else:
+            yield file
+
+
 # TODO: make base page type vars covariant
 SyncPageT = TypeVar("SyncPageT", bound="BaseSyncPage[Any]")
 AsyncPageT = TypeVar("AsyncPageT", bound="BaseAsyncPage[Any]")
@@ -1062,6 +1122,7 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
         for retries_taken in range(max_retries + 1):
             options = model_copy(input_options)
             options = self._prepare_options(options)
+            request_body_replay = _RequestBodyReplay(options)
 
             remaining_retries = max_retries - retries_taken
             request = self._build_request(options, retries_taken=retries_taken)
@@ -1091,7 +1152,7 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
             except timeout_exceptions() as err:
                 log.debug("Encountered a timeout exception: %s", type(err).__name__)
 
-                if remaining_retries > 0:
+                if remaining_retries > 0 and request_body_replay.rewind():
                     self._sleep_for_retry(
                         retries_taken=retries_taken,
                         max_retries=max_retries,
@@ -1108,7 +1169,7 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
             except request_exceptions() as err:
                 log.debug("Encountered exception: %s", type(err).__name__)
 
-                if remaining_retries > 0:
+                if remaining_retries > 0 and request_body_replay.rewind():
                     self._sleep_for_retry(
                         retries_taken=retries_taken,
                         max_retries=max_retries,
@@ -1132,7 +1193,7 @@ class SyncAPIClient(BaseClient[httpx2.Client, Stream[Any]]):
             except status_exceptions() as err:  # thrown on 4xx and 5xx status code
                 log.debug("Encountered an HTTP status error: %i", response.status_code)
 
-                if remaining_retries > 0 and self._should_retry(err.response):
+                if remaining_retries > 0 and self._should_retry(err.response) and request_body_replay.rewind():
                     err.response.close()
                     self._sleep_for_retry(
                         retries_taken=retries_taken,
@@ -1687,6 +1748,7 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
         for retries_taken in range(max_retries + 1):
             options = model_copy(input_options)
             options = await self._prepare_options(options)
+            request_body_replay = _RequestBodyReplay(options)
 
             remaining_retries = max_retries - retries_taken
             request = self._build_request(options, retries_taken=retries_taken)
@@ -1715,7 +1777,7 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
             except timeout_exceptions() as err:
                 log.debug("Encountered a timeout exception: %s", type(err).__name__)
 
-                if remaining_retries > 0:
+                if remaining_retries > 0 and request_body_replay.rewind():
                     await self._sleep_for_retry(
                         retries_taken=retries_taken,
                         max_retries=max_retries,
@@ -1732,7 +1794,7 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
             except request_exceptions() as err:
                 log.debug("Encountered exception: %s", type(err).__name__)
 
-                if remaining_retries > 0:
+                if remaining_retries > 0 and request_body_replay.rewind():
                     await self._sleep_for_retry(
                         retries_taken=retries_taken,
                         max_retries=max_retries,
@@ -1756,7 +1818,7 @@ class AsyncAPIClient(BaseClient[httpx2.AsyncClient, AsyncStream[Any]]):
             except status_exceptions() as err:  # thrown on 4xx and 5xx status code
                 log.debug("Encountered an HTTP status error: %i", response.status_code)
 
-                if remaining_retries > 0 and self._should_retry(err.response):
+                if remaining_retries > 0 and self._should_retry(err.response) and request_body_replay.rewind():
                     await err.response.aclose()
                     await self._sleep_for_retry(
                         retries_taken=retries_taken,
