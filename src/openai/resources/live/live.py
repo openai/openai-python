@@ -684,7 +684,7 @@ class AsyncLiveConnectionManager:
         data = (
             event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
             if isinstance(event, BaseModel)
-            else json.dumps(event)
+            else json.dumps(maybe_transform(event, ClientEventParam))
         )
         self.__send_queue.enqueue(data)
 
@@ -1166,7 +1166,7 @@ class LiveConnectionManager:
         data = (
             event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
             if isinstance(event, BaseModel)
-            else json.dumps(event)
+            else json.dumps(maybe_transform(event, ClientEventParam))
         )
         self.__send_queue.enqueue(data)
 
