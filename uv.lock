@@ -1535,7 +1535,7 @@ wheels = [
 
 [[package]]
 name = "openai"
-version = "3.17.0" # x-release-please-version
+version = "3.18.0" # x-release-please-version
 source = { editable = "." }
 dependencies = [
     { name = "anyio" },
