@@ -722,7 +722,7 @@ class OpenAI(SyncAPIClient):
         _extra_kwargs: Mapping[str, Any] = {},
     ) -> Self:
         """
-        Create a new client instance re-using the same options given to the current client with optional overriding.
+        Create a new client instance reusing the same options given to the current client with optional overriding.
         `data_residency` replaces the inherited HTTP and WebSocket endpoints, without changing this client.
         """
         if default_headers is not None and set_default_headers is not None:
@@ -1495,7 +1495,7 @@ class AsyncOpenAI(AsyncAPIClient):
         _extra_kwargs: Mapping[str, Any] = {},
     ) -> Self:
         """
-        Create a new client instance re-using the same options given to the current client with optional overriding.
+        Create a new client instance reusing the same options given to the current client with optional overriding.
         `data_residency` replaces the inherited HTTP and WebSocket endpoints, without changing this client.
         """
         if default_headers is not None and set_default_headers is not None:
