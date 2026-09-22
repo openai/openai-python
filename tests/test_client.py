@@ -1496,7 +1496,7 @@ class TestOpenAI:
         )
 
         assert response.retries_taken == failures_before_success
-        assert int(response.http_request.headers.get("x-stainless-retry-count")) == failures_before_success
+        assert int(response.http_request.headers["x-stainless-retry-count"]) == failures_before_success
 
     @pytest.mark.parametrize("failures_before_success", [0, 2, 4])
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
@@ -1591,7 +1591,7 @@ class TestOpenAI:
             model="gpt-5.4",
         ) as response:
             assert response.retries_taken == failures_before_success
-            assert int(response.http_request.headers.get("x-stainless-retry-count")) == failures_before_success
+            assert int(response.http_request.headers["x-stainless-retry-count"]) == failures_before_success
 
     def test_proxy_environment_variables(self, monkeypatch: pytest.MonkeyPatch) -> None:
         # Test that the proxy environment variables are set correctly
@@ -2977,7 +2977,7 @@ class TestAsyncOpenAI:
         )
 
         assert response.retries_taken == failures_before_success
-        assert int(response.http_request.headers.get("x-stainless-retry-count")) == failures_before_success
+        assert int(response.http_request.headers["x-stainless-retry-count"]) == failures_before_success
 
     @pytest.mark.parametrize("failures_before_success", [0, 2, 4])
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
@@ -3072,7 +3072,7 @@ class TestAsyncOpenAI:
             model="gpt-5.4",
         ) as response:
             assert response.retries_taken == failures_before_success
-            assert int(response.http_request.headers.get("x-stainless-retry-count")) == failures_before_success
+            assert int(response.http_request.headers["x-stainless-retry-count"]) == failures_before_success
 
     async def test_get_platform(self) -> None:
         platform = await asyncify(get_platform)()

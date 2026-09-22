@@ -22961,7 +22961,7 @@ paths:
       - AdminApiKeyAuth: []
     delete:
       summary: Delete an external storage configuration
-      description: Soft-delete one customer-managed external storage configuration.
+      description: Disconnect a customer-managed external storage configuration. Removing the project's last configuration restores organization-default retention if customer-managed retention was active. Repeating a deletion also completes any interrupted retention update. Cloud storage is unchanged.
       operationId: Deleteanexternalstorageconfiguration
       parameters:
       - name: external_storage_id
@@ -80509,6 +80509,7 @@ components:
           - $ref: '#/components/schemas/ReasoningEffortParam'
           - type: 'null'
           description: Omit to keep the current effort. Null selects the model's default effort.
+          x-openai-go-optional-enum: true
       additionalProperties: false
       description: Reasoning effort for subsequent turns. The reasoning summary stays unchanged.
     UpdateSessionAgentParam:
@@ -80527,6 +80528,7 @@ components:
           - $ref: '#/components/schemas/ServiceTierParam'
           - type: 'null'
           description: Omit to keep the current tier. Null resets it to auto.
+          x-openai-go-optional-enum: true
       additionalProperties: false
       description: Model settings that can change after session creation.
     UpdateAgentSessionParams:
@@ -96372,6 +96374,8 @@ components:
       type: string
       enum:
       - gpt-6-astra
+      - gpt-6-sol
+      - gpt-6-luna
       - gpt-5.6-sol
       - gpt-5.6-terra
       - gpt-5.6-luna
@@ -96391,6 +96395,7 @@ components:
       - gpt-5.1
       - gpt-5.1-2025-11-13
       - gpt-5.1-codex
+      - gpt-5.1-mini
       - gpt-5.1-chat-latest
       - gpt-5
       - gpt-5-mini
