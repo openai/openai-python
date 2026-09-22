@@ -114,10 +114,6 @@ __all__ = ["Organization", "AsyncOrganization"]
 
 class Organization(SyncAPIResource):
     @cached_property
-    def external_storage(self) -> ExternalStorage:
-        return ExternalStorage(self._client)
-
-    @cached_property
     def audit_logs(self) -> AuditLogs:
         """List user actions and configuration changes within this organization."""
         return AuditLogs(self._client)
@@ -149,6 +145,10 @@ class Organization(SyncAPIResource):
     @cached_property
     def data_retention(self) -> DataRetention:
         return DataRetention(self._client)
+
+    @cached_property
+    def external_storage(self) -> ExternalStorage:
+        return ExternalStorage(self._client)
 
     @cached_property
     def spend_limit(self) -> SpendLimit:
@@ -188,10 +188,6 @@ class Organization(SyncAPIResource):
 
 class AsyncOrganization(AsyncAPIResource):
     @cached_property
-    def external_storage(self) -> AsyncExternalStorage:
-        return AsyncExternalStorage(self._client)
-
-    @cached_property
     def audit_logs(self) -> AsyncAuditLogs:
         """List user actions and configuration changes within this organization."""
         return AsyncAuditLogs(self._client)
@@ -223,6 +219,10 @@ class AsyncOrganization(AsyncAPIResource):
     @cached_property
     def data_retention(self) -> AsyncDataRetention:
         return AsyncDataRetention(self._client)
+
+    @cached_property
+    def external_storage(self) -> AsyncExternalStorage:
+        return AsyncExternalStorage(self._client)
 
     @cached_property
     def spend_limit(self) -> AsyncSpendLimit:
@@ -265,10 +265,6 @@ class OrganizationWithRawResponse:
         self._organization = organization
 
     @cached_property
-    def external_storage(self) -> ExternalStorageWithRawResponse:
-        return ExternalStorageWithRawResponse(self._organization.external_storage)
-
-    @cached_property
     def audit_logs(self) -> AuditLogsWithRawResponse:
         """List user actions and configuration changes within this organization."""
         return AuditLogsWithRawResponse(self._organization.audit_logs)
@@ -302,6 +298,10 @@ class OrganizationWithRawResponse:
         return DataRetentionWithRawResponse(self._organization.data_retention)
 
     @cached_property
+    def external_storage(self) -> ExternalStorageWithRawResponse:
+        return ExternalStorageWithRawResponse(self._organization.external_storage)
+
+    @cached_property
     def spend_limit(self) -> SpendLimitWithRawResponse:
         return SpendLimitWithRawResponse(self._organization.spend_limit)
 
@@ -321,10 +321,6 @@ class OrganizationWithRawResponse:
 class AsyncOrganizationWithRawResponse:
     def __init__(self, organization: AsyncOrganization) -> None:
         self._organization = organization
-
-    @cached_property
-    def external_storage(self) -> AsyncExternalStorageWithRawResponse:
-        return AsyncExternalStorageWithRawResponse(self._organization.external_storage)
 
     @cached_property
     def audit_logs(self) -> AsyncAuditLogsWithRawResponse:
@@ -360,6 +356,10 @@ class AsyncOrganizationWithRawResponse:
         return AsyncDataRetentionWithRawResponse(self._organization.data_retention)
 
     @cached_property
+    def external_storage(self) -> AsyncExternalStorageWithRawResponse:
+        return AsyncExternalStorageWithRawResponse(self._organization.external_storage)
+
+    @cached_property
     def spend_limit(self) -> AsyncSpendLimitWithRawResponse:
         return AsyncSpendLimitWithRawResponse(self._organization.spend_limit)
 
@@ -379,10 +379,6 @@ class AsyncOrganizationWithRawResponse:
 class OrganizationWithStreamingResponse:
     def __init__(self, organization: Organization) -> None:
         self._organization = organization
-
-    @cached_property
-    def external_storage(self) -> ExternalStorageWithStreamingResponse:
-        return ExternalStorageWithStreamingResponse(self._organization.external_storage)
 
     @cached_property
     def audit_logs(self) -> AuditLogsWithStreamingResponse:
@@ -418,6 +414,10 @@ class OrganizationWithStreamingResponse:
         return DataRetentionWithStreamingResponse(self._organization.data_retention)
 
     @cached_property
+    def external_storage(self) -> ExternalStorageWithStreamingResponse:
+        return ExternalStorageWithStreamingResponse(self._organization.external_storage)
+
+    @cached_property
     def spend_limit(self) -> SpendLimitWithStreamingResponse:
         return SpendLimitWithStreamingResponse(self._organization.spend_limit)
 
@@ -437,10 +437,6 @@ class OrganizationWithStreamingResponse:
 class AsyncOrganizationWithStreamingResponse:
     def __init__(self, organization: AsyncOrganization) -> None:
         self._organization = organization
-
-    @cached_property
-    def external_storage(self) -> AsyncExternalStorageWithStreamingResponse:
-        return AsyncExternalStorageWithStreamingResponse(self._organization.external_storage)
 
     @cached_property
     def audit_logs(self) -> AsyncAuditLogsWithStreamingResponse:
@@ -474,6 +470,10 @@ class AsyncOrganizationWithStreamingResponse:
     @cached_property
     def data_retention(self) -> AsyncDataRetentionWithStreamingResponse:
         return AsyncDataRetentionWithStreamingResponse(self._organization.data_retention)
+
+    @cached_property
+    def external_storage(self) -> AsyncExternalStorageWithStreamingResponse:
+        return AsyncExternalStorageWithStreamingResponse(self._organization.external_storage)
 
     @cached_property
     def spend_limit(self) -> AsyncSpendLimitWithStreamingResponse:
