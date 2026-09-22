@@ -3575,7 +3575,7 @@ class AsyncResponsesConnectionManager:
         data = (
             event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
             if isinstance(event, BaseModel)
-            else json.dumps(event)
+            else json.dumps(maybe_transform(event, ResponsesClientEventParam))
         )
         self.__send_queue.enqueue(data)
 
@@ -4041,7 +4041,7 @@ class ResponsesConnectionManager:
         data = (
             event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
             if isinstance(event, BaseModel)
-            else json.dumps(event)
+            else json.dumps(maybe_transform(event, ResponsesClientEventParam))
         )
         self.__send_queue.enqueue(data)
 
