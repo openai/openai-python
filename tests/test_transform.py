@@ -357,6 +357,21 @@ async def test_pydantic_default_field(use_async: bool) -> None:
     assert cast(Any, await transform(model, Any, use_async)) == {"with_none_default": "bar", "with_str_default": "baz"}
 
 
+class ModelWithApiExcludedField(BaseModel):
+    foo: str
+    client_only: str
+
+    __api_exclude__ = {"client_only"}
+
+
+@parametrize
+@pytest.mark.asyncio
+async def test_pydantic_model_api_exclude(use_async: bool) -> None:
+    model = ModelWithApiExcludedField(foo="hello!", client_only="local")
+    assert cast(Any, await transform(model, Any, use_async)) == {"foo": "hello!"}
+    assert cast(Any, await transform([model], List[ModelWithApiExcludedField], use_async)) == [{"foo": "hello!"}]
+
+
 class TypedDictIterableUnion(TypedDict):
     foo: Annotated[Union[Bar8, Iterable[Baz8]], PropertyInfo(alias="FOO")]
 
