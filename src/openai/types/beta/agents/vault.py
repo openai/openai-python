@@ -9,9 +9,7 @@ __all__ = ["Vault"]
 
 
 class Vault(BaseModel):
-    """
-    A collection of credentials that agent tools can use to authenticate to MCP servers.
-    """
+    """A collection of credentials for MCP servers and OpenAI-hosted environments."""
 
     id: str
     """The ID of the vault."""

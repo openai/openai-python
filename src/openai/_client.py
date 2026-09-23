@@ -70,6 +70,7 @@ if TYPE_CHECKING:
         batches,
         uploads,
         realtime,
+        webhooks,
         responses,
         containers,
         embeddings,
@@ -474,6 +475,7 @@ class OpenAI(SyncAPIClient):
 
     @cached_property
     def responses(self) -> Responses:
+        """Create and manage model responses."""
         from .resources.responses import Responses
 
         return Responses(self)
@@ -665,6 +667,11 @@ class OpenAI(SyncAPIClient):
 
     @override
     def _prepare_options(self, options: FinalRequestOptions) -> FinalRequestOptions:
+        if options.url.startswith(("ws://", "wss://")) and (
+            self._provider_runtime is not None or self.workload_identity is not None
+        ):
+            raise OpenAIError("This authentication method is not supported by WebSocket connections")
+
         if self._provider_runtime is not None:
             if self._provider_runtime.transform_request is not None:
                 options = self._provider_runtime.transform_request(options)
@@ -1228,6 +1235,7 @@ class AsyncOpenAI(AsyncAPIClient):
 
     @cached_property
     def responses(self) -> AsyncResponses:
+        """Create and manage model responses."""
         from .resources.responses import AsyncResponses
 
         return AsyncResponses(self)
@@ -1422,6 +1430,11 @@ class AsyncOpenAI(AsyncAPIClient):
 
     @override
     async def _prepare_options(self, options: FinalRequestOptions) -> FinalRequestOptions:
+        if options.url.startswith(("ws://", "wss://")) and (
+            self._provider_runtime is not None or self.workload_identity is not None
+        ):
+            raise OpenAIError("This authentication method is not supported by WebSocket connections")
+
         if self._provider_runtime is not None:
             if self._provider_runtime.transform_async_request is not None:
                 options = await self._provider_runtime.transform_async_request(options)
@@ -1734,6 +1747,12 @@ class OpenAIWithRawResponse:
         return SafetyWithRawResponse(self._client.safety)
 
     @cached_property
+    def webhooks(self) -> webhooks.WebhooksWithRawResponse:
+        from .resources.webhooks import WebhooksWithRawResponse
+
+        return WebhooksWithRawResponse(self._client.webhooks)
+
+    @cached_property
     def beta(self) -> beta.BetaWithRawResponse:
         from .resources.beta import BetaWithRawResponse
 
@@ -1761,6 +1780,7 @@ class OpenAIWithRawResponse:
 
     @cached_property
     def responses(self) -> responses.ResponsesWithRawResponse:
+        """Create and manage model responses."""
         from .resources.responses import ResponsesWithRawResponse
 
         return ResponsesWithRawResponse(self._client.responses)
@@ -1903,6 +1923,12 @@ class AsyncOpenAIWithRawResponse:
         return AsyncSafetyWithRawResponse(self._client.safety)
 
     @cached_property
+    def webhooks(self) -> webhooks.AsyncWebhooksWithRawResponse:
+        from .resources.webhooks import AsyncWebhooksWithRawResponse
+
+        return AsyncWebhooksWithRawResponse(self._client.webhooks)
+
+    @cached_property
     def beta(self) -> beta.AsyncBetaWithRawResponse:
         from .resources.beta import AsyncBetaWithRawResponse
 
@@ -1930,6 +1956,7 @@ class AsyncOpenAIWithRawResponse:
 
     @cached_property
     def responses(self) -> responses.AsyncResponsesWithRawResponse:
+        """Create and manage model responses."""
         from .resources.responses import AsyncResponsesWithRawResponse
 
         return AsyncResponsesWithRawResponse(self._client.responses)
@@ -2072,6 +2099,12 @@ class OpenAIWithStreamedResponse:
         return SafetyWithStreamingResponse(self._client.safety)
 
     @cached_property
+    def webhooks(self) -> webhooks.WebhooksWithStreamingResponse:
+        from .resources.webhooks import WebhooksWithStreamingResponse
+
+        return WebhooksWithStreamingResponse(self._client.webhooks)
+
+    @cached_property
     def beta(self) -> beta.BetaWithStreamingResponse:
         from .resources.beta import BetaWithStreamingResponse
 
@@ -2099,6 +2132,7 @@ class OpenAIWithStreamedResponse:
 
     @cached_property
     def responses(self) -> responses.ResponsesWithStreamingResponse:
+        """Create and manage model responses."""
         from .resources.responses import ResponsesWithStreamingResponse
 
         return ResponsesWithStreamingResponse(self._client.responses)
@@ -2241,6 +2275,12 @@ class AsyncOpenAIWithStreamedResponse:
         return AsyncSafetyWithStreamingResponse(self._client.safety)
 
     @cached_property
+    def webhooks(self) -> webhooks.AsyncWebhooksWithStreamingResponse:
+        from .resources.webhooks import AsyncWebhooksWithStreamingResponse
+
+        return AsyncWebhooksWithStreamingResponse(self._client.webhooks)
+
+    @cached_property
     def beta(self) -> beta.AsyncBetaWithStreamingResponse:
         from .resources.beta import AsyncBetaWithStreamingResponse
 
@@ -2268,6 +2308,7 @@ class AsyncOpenAIWithStreamedResponse:
 
     @cached_property
     def responses(self) -> responses.AsyncResponsesWithStreamingResponse:
+        """Create and manage model responses."""
         from .resources.responses import AsyncResponsesWithStreamingResponse
 
         return AsyncResponsesWithStreamingResponse(self._client.responses)

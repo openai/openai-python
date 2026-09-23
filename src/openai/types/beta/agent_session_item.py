@@ -37,7 +37,7 @@ class FunctionCallOutputItemResource(BaseModel):
     """The error message, if the call failed."""
 
     output: Optional[AgentFunctionCallOutput] = None
-    """The text or model-input content supplied as a function result."""
+    """The function result, if the call succeeded."""
 
     status: AgentFunctionCallStatus
     """The status of the function call."""

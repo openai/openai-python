@@ -52,7 +52,7 @@ class SessionInputParamAgentSessionInputToolResult(TypedDict, total=False):
     """The error message when the call failed."""
 
     output: Optional[AgentFunctionCallOutputParam]
-    """A function result represented as text or supported model-input content."""
+    """The function result when the call succeeded."""
 
 
 AgentSessionInputParam: TypeAlias = Union[

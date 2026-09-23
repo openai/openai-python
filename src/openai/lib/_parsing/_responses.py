@@ -56,19 +56,21 @@ def parse_response(
     input_tools: Iterable[ToolParam] | Omit | None,
     response: Response | ParsedResponse[object],
 ) -> ParsedResponse[TextFormatT]:
+    # Keep generic annotations in quoted casts: runtime specialization can create
+    # new model classes in each async context and retain them in the type adapter cache.
     output_list: List[ParsedResponseOutputItem[TextFormatT]] = []
 
     for output in response.output or []:
         if output.type == "message":
             content_list: List[ParsedContent[TextFormatT]] = []
-            for item in output.content:
+            for item in output.content or []:
                 if item.type != "output_text":
                     content_list.append(item)
                     continue
 
                 content_list.append(
                     construct_type_unchecked(
-                        type_=ParsedResponseOutputText[TextFormatT],
+                        type_=cast("type[ParsedResponseOutputText[TextFormatT]]", ParsedResponseOutputText),
                         value={
                             **item.to_dict(),
                             "parsed": parse_text(item.text, text_format=text_format, phase=output.phase),
@@ -78,7 +80,7 @@ def parse_response(
 
             output_list.append(
                 construct_type_unchecked(
-                    type_=ParsedResponseOutputMessage[TextFormatT],
+                    type_=cast("type[ParsedResponseOutputMessage[TextFormatT]]", ParsedResponseOutputMessage),
                     value={
                         **output.to_dict(),
                         "content": content_list,
@@ -133,7 +135,7 @@ def parse_response(
             output_list.append(output)
 
     return construct_type_unchecked(
-        type_=ParsedResponse[TextFormatT],
+        type_=cast("type[ParsedResponse[TextFormatT]]", ParsedResponse),
         value={
             **response.to_dict(),
             "output": output_list,

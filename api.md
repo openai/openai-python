@@ -451,6 +451,18 @@ Methods:
 
 # Safety
 
+## Cases
+
+Types:
+
+```python
+from openai.types.safety import SafetyCase
+```
+
+Methods:
+
+- <code title="get /safety/cases/{id}">client.safety.cases.<a href="./src/openai/resources/safety/cases.py">retrieve</a>(id) -> <a href="./src/openai/types/safety/safety_case.py">SafetyCase</a></code>
+
 ## Alerts
 
 Types:
@@ -507,6 +519,7 @@ from openai.types.beta import (
     AgentSessionEnvironmentFailedEvent,
     AgentSessionEnvironmentPendingEvent,
     AgentSessionEnvironmentReadyEvent,
+    AgentSessionEnvironmentResetEvent,
     AgentSessionEnvironmentState,
     AgentSessionErrorEvent,
     AgentSessionEvent,
@@ -652,6 +665,8 @@ from openai.types.beta.agents.vaults import (
     CredentialAuthCreateParam,
     CredentialAuthRotateParam,
     CredentialDeleted,
+    CredentialNetworking,
+    CredentialNetworkingParam,
     McpOauthTokenEndpointAuth,
     McpOauthTokenEndpointAuthCreateParam,
     McpOauthTokenEndpointAuthRotateParam,
@@ -1484,6 +1499,28 @@ Methods:
 
 - <code title="get /organization/data_retention">client.admin.organization.data_retention.<a href="./src/openai/resources/admin/organization/data_retention.py">retrieve</a>() -> <a href="./src/openai/types/admin/organization/organization_data_retention.py">OrganizationDataRetention</a></code>
 - <code title="post /organization/data_retention">client.admin.organization.data_retention.<a href="./src/openai/resources/admin/organization/data_retention.py">update</a>(\*\*<a href="src/openai/types/admin/organization/data_retention_update_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/organization_data_retention.py">OrganizationDataRetention</a></code>
+
+### ExternalStorage
+
+Types:
+
+```python
+from openai.types.admin.organization import (
+    AwsExternalStorageProvider,
+    AzureExternalStorageProvider,
+    ExternalStorageConfiguration,
+    ExternalStorageDeleted,
+    GcpExternalStorageProvider,
+)
+```
+
+Methods:
+
+- <code title="post /organization/external_storage">client.admin.organization.external_storage.<a href="./src/openai/resources/admin/organization/external_storage.py">create</a>(\*\*<a href="src/openai/types/admin/organization/external_storage_create_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/external_storage_configuration.py">ExternalStorageConfiguration</a></code>
+- <code title="get /organization/external_storage/{external_storage_id}">client.admin.organization.external_storage.<a href="./src/openai/resources/admin/organization/external_storage.py">retrieve</a>(external_storage_id) -> <a href="./src/openai/types/admin/organization/external_storage_configuration.py">ExternalStorageConfiguration</a></code>
+- <code title="get /organization/external_storage">client.admin.organization.external_storage.<a href="./src/openai/resources/admin/organization/external_storage.py">list</a>(\*\*<a href="src/openai/types/admin/organization/external_storage_list_params.py">params</a>) -> <a href="./src/openai/types/admin/organization/external_storage_configuration.py">SyncCursorPage[ExternalStorageConfiguration]</a></code>
+- <code title="delete /organization/external_storage/{external_storage_id}">client.admin.organization.external_storage.<a href="./src/openai/resources/admin/organization/external_storage.py">delete</a>(external_storage_id) -> <a href="./src/openai/types/admin/organization/external_storage_deleted.py">ExternalStorageDeleted</a></code>
+- <code title="post /organization/external_storage/{external_storage_id}/validate">client.admin.organization.external_storage.<a href="./src/openai/resources/admin/organization/external_storage.py">validate</a>(external_storage_id) -> <a href="./src/openai/types/admin/organization/external_storage_configuration.py">ExternalStorageConfiguration</a></code>
 
 ### SpendLimit
 

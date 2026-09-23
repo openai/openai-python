@@ -753,6 +753,8 @@ Certain errors are automatically retried 2 times by default, with a short expone
 Connection errors (for example, due to a network connectivity problem), 408 Request Timeout, 409 Conflict,
 429 Rate Limit, and >=500 Internal errors are all retried by default.
 
+Requests are retried only when their body can be safely resent.
+
 You can use the `max_retries` option to configure or disable retry settings:
 
 ```python
@@ -780,8 +782,8 @@ client.with_options(max_retries=5).chat.completions.create(
 integer, such as `1000`, for a larger retry budget. Other values raise an error
 before a request is sent.
 
-Transport failures are retried. Application exceptions raised by custom transports
-or hooks propagate unchanged, including task-executor cancellation signals.
+Application exceptions raised by custom transports or hooks propagate unchanged,
+including task-executor cancellation signals.
 
 ## Timeouts
 
@@ -1247,4 +1249,7 @@ Python 3.10 or higher.
 
 ## Contributing
 
-See [the contributing documentation](./CONTRIBUTING.md).
+Please share bug reports and feature requests through [GitHub issues](https://github.com/openai/openai-python/issues).
+Pull requests are limited to repository collaborators; we do not accept pull requests from non-collaborators.
+See [CONTRIBUTING.md](https://github.com/openai/openai-python/blob/main/CONTRIBUTING.md) for the contribution policy and development guide.
+For security vulnerabilities, follow [SECURITY.md](https://github.com/openai/openai-python/blob/main/SECURITY.md).

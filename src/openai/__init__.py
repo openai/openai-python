@@ -108,10 +108,27 @@ from .version import VERSION as VERSION
 from .lib.azure import AzureOpenAI as AzureOpenAI, AsyncAzureOpenAI as AsyncAzureOpenAI
 from .lib.bedrock import BedrockOpenAI as BedrockOpenAI, AsyncBedrockOpenAI as AsyncBedrockOpenAI
 from .lib._old_api import *
-from .lib.streaming import (
-    AssistantEventHandler as AssistantEventHandler,
-    AsyncAssistantEventHandler as AsyncAssistantEventHandler,
-)
+
+if _t.TYPE_CHECKING:
+    from .lib.streaming import (
+        AssistantEventHandler as AssistantEventHandler,
+        AsyncAssistantEventHandler as AsyncAssistantEventHandler,
+    )
+else:
+    _STREAMING_EXPORTS = ("AssistantEventHandler", "AsyncAssistantEventHandler")
+
+    def __getattr__(name: str) -> _t.Any:
+        if name in _STREAMING_EXPORTS:
+            from importlib import import_module
+
+            value = getattr(import_module(".lib.streaming", __name__), name)
+            globals()[name] = value
+            return value
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+    def __dir__() -> list[str]:
+        return sorted(set(globals()) | set(_STREAMING_EXPORTS))
+
 
 _setup_logging()
 

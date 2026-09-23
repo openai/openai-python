@@ -11,7 +11,7 @@ __all__ = ["CredentialCreateParams"]
 
 class CredentialCreateParams(TypedDict, total=False):
     auth: Required[CredentialAuthCreateParam]
-    """The authentication method and secret values to store for the MCP server."""
+    """The authentication method and write-only secret values to store."""
 
     name: Required[str]
     """The name is trimmed before storage.
