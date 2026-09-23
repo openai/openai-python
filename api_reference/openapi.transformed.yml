@@ -65321,7 +65321,9 @@ components:
       - type: object
         title: Web search approximate location
         description: |
-          The approximate location of the user.
+          The approximate location of the user. If omitted or null, defaults to the
+          United States. To avoid this fallback, pass `{"type": "approximate"}` without
+          location fields. To localize results, provide the relevant location fields.
         properties:
           type:
             type: string
@@ -68574,7 +68576,7 @@ components:
         user_location:
           anyOf:
           - $ref: '#/components/schemas/ApproximateLocation'
-            description: The user's location.
+            description: 'The approximate location of the user. If omitted or null, defaults to the United States. To avoid this fallback, pass `{"type": "approximate"}` without location fields. To localize results, provide the relevant location fields.'
           - type: 'null'
         search_context_size:
           $ref: '#/components/schemas/SearchContextSize'
@@ -84509,7 +84511,7 @@ components:
         user_location:
           anyOf:
           - $ref: '#/components/schemas/BetaApproximateLocation'
-            description: The user's location.
+            description: 'The approximate location of the user. If omitted or null, defaults to the United States. To avoid this fallback, pass `{"type": "approximate"}` without location fields. To localize results, provide the relevant location fields.'
           - type: 'null'
         search_context_size:
           $ref: '#/components/schemas/BetaSearchContextSize'
@@ -85482,7 +85484,9 @@ components:
       - type: object
         title: Web search approximate location
         description: |
-          The approximate location of the user.
+          The approximate location of the user. If omitted or null, defaults to the
+          United States. To avoid this fallback, pass `{"type": "approximate"}` without
+          location fields. To localize results, provide the relevant location fields.
         properties:
           type:
             type: string
