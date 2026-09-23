@@ -32,6 +32,7 @@ def credential_response(auth: object) -> dict[str, object]:
         "created_at": 1,
         "updated_at": 1,
         "auth": auth,
+        "metadata": {},
     }
 
 

@@ -28461,8 +28461,8 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse-2'
     post:
       operationId: rotateVaultCredential
-      summary: Rotate a vault credential
-      description: Rotates a vault credential's write-only secret and returns only credential metadata. See [vaults](https://developers.openai.com/api/docs/guides/agents-api/tools/vaults).
+      summary: Update a vault credential
+      description: Updates credential metadata or rotates its write-only secret. See [vaults](https://developers.openai.com/api/docs/guides/agents-api/tools/vaults).
       tags:
       - Vaults
       parameters:
@@ -28489,7 +28489,7 @@ paths:
               $ref: '#/components/schemas/RotateVaultCredentialParams'
       responses:
         '200':
-          description: The rotated vault credential without secret values.
+          description: The updated vault credential without secret values.
           content:
             application/json:
               schema:
@@ -35529,6 +35529,7 @@ components:
               propertyName: type
           seed:
             type: integer
+            format: int64
             minimum: -9223372036854775808
             maximum: 9223372036854775807
             nullable: true
@@ -35539,7 +35540,6 @@ components:
               Determinism is not guaranteed, and you should refer to the `system_fingerprint` response parameter to monitor changes in the backend.
             x-oaiMeta:
               beta: true
-            format: int64
           stream_options:
             $ref: '#/components/schemas/ChatCompletionStreamOptions'
           tools:
@@ -65416,6 +65416,10 @@ components:
           - type: 'null'
         user_location:
           $ref: '#/components/schemas/WebSearchApproximateLocation'
+          description: |
+            The approximate location of the user. If omitted or null, defaults to the
+            United States. To avoid this fallback, pass `{"type": "approximate"}` without
+            location fields. To localize results, provide the relevant location fields.
         search_context_size:
           type: string
           enum:
@@ -68571,7 +68575,7 @@ components:
         user_location:
           anyOf:
           - $ref: '#/components/schemas/ApproximateLocation'
-            description: The user's location.
+            description: 'The approximate location of the user. If omitted or null, defaults to the United States. To avoid this fallback, pass `{"type": "approximate"}` without location fields. To localize results, provide the relevant location fields.'
           - type: 'null'
         search_context_size:
           $ref: '#/components/schemas/SearchContextSize'
@@ -81281,6 +81285,16 @@ components:
         auth:
           $ref: '#/components/schemas/VaultCredentialAuthResource'
           description: The authentication method and non-secret configuration of the credential.
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+            minLength: 0
+          propertyNames:
+            type: string
+            minLength: 0
+          minProperties: 0
+          description: Application-defined key-value pairs associated with this credential.
         created_at:
           type: integer
           format: int64
@@ -81295,6 +81309,7 @@ components:
       - vault_id
       - name
       - auth
+      - metadata
       - created_at
       - updated_at
       additionalProperties: false
@@ -81623,6 +81638,19 @@ components:
         auth:
           $ref: '#/components/schemas/CreateVaultCredentialAuthParam'
           description: The authentication method and write-only secret values to store.
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+            minLength: 0
+            maxLength: 512
+          propertyNames:
+            type: string
+            minLength: 1
+            maxLength: 64
+          minProperties: 0
+          maxProperties: 16
+          description: Up to 16 string key-value pairs, with keys up to 64 and values up to 512 characters. Defaults to an empty map.
       required:
       - auth
       - name
@@ -81802,10 +81830,21 @@ components:
         auth:
           $ref: '#/components/schemas/RotateVaultCredentialAuthParam'
           description: Replacement values for the credential's existing authentication method.
-      required:
-      - auth
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+            minLength: 0
+            maxLength: 512
+          propertyNames:
+            type: string
+            minLength: 1
+            maxLength: 64
+          minProperties: 0
+          maxProperties: 16
+          description: Replaces all metadata. Omit to preserve it, or pass {} to clear it. Up to 16 string key-value pairs, with keys up to 64 and values up to 512 characters.
       additionalProperties: false
-      description: Secret, expiry, and OAuth refresh scope updates for an existing vault credential.
+      description: Metadata, secret, expiry, and OAuth refresh scope updates for an existing vault credential. Supply at least one of `auth` or `metadata`.
     DeletedVaultCredentialResource:
       type: object
       properties:
@@ -84506,7 +84545,7 @@ components:
         user_location:
           anyOf:
           - $ref: '#/components/schemas/BetaApproximateLocation'
-            description: The user's location.
+            description: 'The approximate location of the user. If omitted or null, defaults to the United States. To avoid this fallback, pass `{"type": "approximate"}` without location fields. To localize results, provide the relevant location fields.'
           - type: 'null'
         search_context_size:
           $ref: '#/components/schemas/BetaSearchContextSize'
@@ -85464,6 +85503,10 @@ components:
           - type: 'null'
         user_location:
           $ref: '#/components/schemas/BetaWebSearchApproximateLocation'
+          description: |
+            The approximate location of the user. If omitted or null, defaults to the
+            United States. To avoid this fallback, pass `{"type": "approximate"}` without
+            location fields. To localize results, provide the relevant location fields.
         search_context_size:
           type: string
           enum:
