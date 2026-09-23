@@ -156,6 +156,40 @@ def _get_open_connections(client: OpenAI | AsyncOpenAI) -> int:
     return len(cast(Any, transport)._pool._requests)
 
 
+@pytest.mark.parametrize("is_async", [False, True])
+@pytest.mark.parametrize(
+    "extra_headers,expected",
+    [
+        ({}, ["Bearer fake-default"]),
+        ({"AUTHORIZATION": "Bearer fake-request"}, ["Bearer fake-request"]),
+        ({"AUTHORIZATION": Omit()}, []),
+    ],
+    ids=["default", "override", "omit"],
+)
+async def test_case_insensitive_auth_headers(
+    is_async: bool, extra_headers: dict[str, str | Omit], expected: list[str]
+) -> None:
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        assert request.headers.get_list("authorization") == expected
+        return httpx2.Response(200, json={"object": "list", "data": []})
+
+    transport = httpx2.MockTransport(handler)
+    if is_async:
+        async with AsyncOpenAI(
+            api_key="fake-original",
+            default_headers={"authorization": "Bearer fake-default"},
+            http_client=httpx2.AsyncClient(transport=transport),
+        ) as async_client:
+            await async_client.models.list(extra_headers=extra_headers)
+    else:
+        with OpenAI(
+            api_key="fake-original",
+            default_headers={"authorization": "Bearer fake-default"},
+            http_client=httpx2.Client(transport=transport),
+        ) as client:
+            client.models.list(extra_headers=extra_headers)
+
+
 class TestOpenAI:
     @pytest.mark.parametrize(
         "code_fields,expected_code",
