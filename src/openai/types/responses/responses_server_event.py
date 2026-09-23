@@ -30,6 +30,7 @@ from .response_reasoning_text_done_event import ResponseReasoningTextDoneEvent
 from .response_mcp_call_in_progress_event import ResponseMcpCallInProgressEvent
 from .response_reasoning_text_delta_event import ResponseReasoningTextDeltaEvent
 from .response_audio_transcript_done_event import ResponseAudioTranscriptDoneEvent
+from .response_compaction_compacting_event import ResponseCompactionCompactingEvent
 from .response_mcp_list_tools_failed_event import ResponseMcpListToolsFailedEvent
 from .response_audio_transcript_delta_event import ResponseAudioTranscriptDeltaEvent
 from .response_mcp_call_arguments_done_event import ResponseMcpCallArgumentsDoneEvent
@@ -77,6 +78,7 @@ __all__ = [
     "ResponseCodeInterpreterCallWsCompleted",
     "ResponseCodeInterpreterCallInWsProgress",
     "ResponseCodeInterpreterCallWsInterpreting",
+    "ResponseCompactionWsCompacting",
     "ResponseWsCompleted",
     "ResponseContentPartWsAdded",
     "ResponseContentPartWsDone",
@@ -222,6 +224,20 @@ class ResponseCodeInterpreterCallInWsProgress(ResponseCodeInterpreterCallInProgr
 
 class ResponseCodeInterpreterCallWsInterpreting(ResponseCodeInterpreterCallInterpretingEvent):
     """Emitted when the code interpreter is actively interpreting the code snippet."""
+
+    stream_id: Optional[str] = None
+    """The WebSocket lane that emitted this event.
+
+    This field is present when the originating `response.create` event supplied a
+    `stream_id`.
+    """
+
+
+class ResponseCompactionWsCompacting(ResponseCompactionCompactingEvent):
+    """Emitted when new summary content is sampled for a compaction trigger.
+
+    Contains no summary content.
+    """
 
     stream_id: Optional[str] = None
     """The WebSocket lane that emitted this event.
@@ -854,6 +870,7 @@ ResponsesServerEvent: TypeAlias = Annotated[
         ResponseCodeInterpreterCallWsCompleted,
         ResponseCodeInterpreterCallInWsProgress,
         ResponseCodeInterpreterCallWsInterpreting,
+        ResponseCompactionWsCompacting,
         ResponseWsCompleted,
         ResponseContentPartWsAdded,
         ResponseContentPartWsDone,

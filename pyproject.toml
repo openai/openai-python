@@ -1,6 +1,6 @@
 [project]
 name = "openai"
-version = "3.8.0"
+version = "3.19.0"
 description = "The official Python library for the openai API"
 dynamic = ["readme"]
 license = "Apache-2.0"
@@ -9,7 +9,7 @@ authors = [
 ]
 
 dependencies = [
-  "httpx2>=2.7.0, <3",
+  "httpx2>=2.12.0, <3",
   "pydantic>=1.10.13, <3, !=2.0.*, !=2.1.*, !=2.2.*, !=2.3.*",
   "typing-extensions>=4.14, <5",
   "anyio>=4.10.0, <5",
@@ -84,9 +84,11 @@ required-version = ">=0.12.1"
 exclude-newer = "8 days"
 default-groups = ["dev", "pydantic-v2"]
 conflicts = [[{ group = "pydantic-v1" }, { group = "pydantic-v2" }]]
-# Security floors for transitive development dependencies. Constraints do not
+# Security floors for transitive dependencies. Constraints do not
 # install these packages into the SDK's runtime environment.
 constraint-dependencies = [
+    # HTTPX2 also publishes an exact pin to its matching httpcore2 release.
+    "httpcore2>=2.12.0",
     "azure-core>=1.38.0",
     "cryptography>=50.0.0",
     "msal>=1.37.0",
@@ -140,7 +142,7 @@ path = "scripts/hatch_metadata.py"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "--tb=short -n auto"
+addopts = "--tb=short -n auto --durations=20"
 xfail_strict = true
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "session"

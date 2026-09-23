@@ -31,7 +31,7 @@ class TestResponses:
             background=True,
             context_management=[
                 {
-                    "type": "type",
+                    "type": "compaction",
                     "compact_threshold": 1000,
                 }
             ],
@@ -59,7 +59,9 @@ class TestResponses:
             },
             prompt_cache_key="prompt-cache-key-1234",
             prompt_cache_options={
+                "comparison_response_id": "resp_123",
                 "mode": "implicit",
+                "prewarm": True,
                 "ttl": "30m",
             },
             prompt_cache_retention="in_memory",
@@ -135,7 +137,7 @@ class TestResponses:
             background=True,
             context_management=[
                 {
-                    "type": "type",
+                    "type": "compaction",
                     "compact_threshold": 1000,
                 }
             ],
@@ -163,7 +165,9 @@ class TestResponses:
             },
             prompt_cache_key="prompt-cache-key-1234",
             prompt_cache_options={
+                "comparison_response_id": "resp_123",
                 "mode": "implicit",
+                "prewarm": True,
                 "ttl": "30m",
             },
             prompt_cache_retention="in_memory",
@@ -469,7 +473,7 @@ class TestAsyncResponses:
             background=True,
             context_management=[
                 {
-                    "type": "type",
+                    "type": "compaction",
                     "compact_threshold": 1000,
                 }
             ],
@@ -497,7 +501,9 @@ class TestAsyncResponses:
             },
             prompt_cache_key="prompt-cache-key-1234",
             prompt_cache_options={
+                "comparison_response_id": "resp_123",
                 "mode": "implicit",
+                "prewarm": True,
                 "ttl": "30m",
             },
             prompt_cache_retention="in_memory",
@@ -573,7 +579,7 @@ class TestAsyncResponses:
             background=True,
             context_management=[
                 {
-                    "type": "type",
+                    "type": "compaction",
                     "compact_threshold": 1000,
                 }
             ],
@@ -601,7 +607,9 @@ class TestAsyncResponses:
             },
             prompt_cache_key="prompt-cache-key-1234",
             prompt_cache_options={
+                "comparison_response_id": "resp_123",
                 "mode": "implicit",
+                "prewarm": True,
                 "ttl": "30m",
             },
             prompt_cache_retention="in_memory",

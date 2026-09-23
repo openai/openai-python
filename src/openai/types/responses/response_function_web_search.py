@@ -72,7 +72,7 @@ class ResponseFunctionWebSearch(BaseModel):
     """The results of a web search tool call.
 
     See the
-    [web search guide](https://platform.openai.com/docs/guides/tools-web-search) for more information.
+    [web search guide](https://developers.openai.com/api/docs/guides/tools-web-search) for more information.
     """
 
     id: str
