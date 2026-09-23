@@ -54156,6 +54156,7 @@ components:
           - realtime.session
           description: The object type. Always `realtime.session`.
         modalities:
+          type: array
           description: |
             The set of modalities the model can respond with. To disable audio,
             set this to ["text"].
@@ -54369,6 +54370,7 @@ components:
           - value
           - expires_at
         modalities:
+          type: array
           description: |
             The set of modalities the model can respond with. To disable audio,
             set this to ["text"].
