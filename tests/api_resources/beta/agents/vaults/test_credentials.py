@@ -53,6 +53,7 @@ class TestCredentials:
                 },
             },
             name="x",
+            metadata={"foo": "string"},
         )
         assert_matches_type(Credential, credential, path=["response"])
 
@@ -158,7 +159,6 @@ class TestCredentials:
         credential = client.beta.agents.vaults.credentials.update(
             credential_id="credential_id",
             vault_id="vault_id",
-            auth={"type": "mcp_oauth"},
         )
         assert_matches_type(Credential, credential, path=["response"])
 
@@ -180,6 +180,7 @@ class TestCredentials:
                     },
                 },
             },
+            metadata={"foo": "string"},
         )
         assert_matches_type(Credential, credential, path=["response"])
 
@@ -188,7 +189,6 @@ class TestCredentials:
         response = client.beta.agents.vaults.credentials.with_raw_response.update(
             credential_id="credential_id",
             vault_id="vault_id",
-            auth={"type": "mcp_oauth"},
         )
 
         assert response.is_closed is True
@@ -201,7 +201,6 @@ class TestCredentials:
         with client.beta.agents.vaults.credentials.with_streaming_response.update(
             credential_id="credential_id",
             vault_id="vault_id",
-            auth={"type": "mcp_oauth"},
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -217,14 +216,12 @@ class TestCredentials:
             client.beta.agents.vaults.credentials.with_raw_response.update(
                 credential_id="credential_id",
                 vault_id="",
-                auth={"type": "mcp_oauth"},
             )
 
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `credential_id` but received ''"):
             client.beta.agents.vaults.credentials.with_raw_response.update(
                 credential_id="",
                 vault_id="vault_id",
-                auth={"type": "mcp_oauth"},
             )
 
     @parametrize
@@ -362,6 +359,7 @@ class TestAsyncCredentials:
                 },
             },
             name="x",
+            metadata={"foo": "string"},
         )
         assert_matches_type(Credential, credential, path=["response"])
 
@@ -467,7 +465,6 @@ class TestAsyncCredentials:
         credential = await async_client.beta.agents.vaults.credentials.update(
             credential_id="credential_id",
             vault_id="vault_id",
-            auth={"type": "mcp_oauth"},
         )
         assert_matches_type(Credential, credential, path=["response"])
 
@@ -489,6 +486,7 @@ class TestAsyncCredentials:
                     },
                 },
             },
+            metadata={"foo": "string"},
         )
         assert_matches_type(Credential, credential, path=["response"])
 
@@ -497,7 +495,6 @@ class TestAsyncCredentials:
         response = await async_client.beta.agents.vaults.credentials.with_raw_response.update(
             credential_id="credential_id",
             vault_id="vault_id",
-            auth={"type": "mcp_oauth"},
         )
 
         assert response.is_closed is True
@@ -510,7 +507,6 @@ class TestAsyncCredentials:
         async with async_client.beta.agents.vaults.credentials.with_streaming_response.update(
             credential_id="credential_id",
             vault_id="vault_id",
-            auth={"type": "mcp_oauth"},
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -526,14 +522,12 @@ class TestAsyncCredentials:
             await async_client.beta.agents.vaults.credentials.with_raw_response.update(
                 credential_id="credential_id",
                 vault_id="",
-                auth={"type": "mcp_oauth"},
             )
 
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `credential_id` but received ''"):
             await async_client.beta.agents.vaults.credentials.with_raw_response.update(
                 credential_id="",
                 vault_id="vault_id",
-                auth={"type": "mcp_oauth"},
             )
 
     @parametrize
