@@ -1251,5 +1251,5 @@ Python 3.10 or higher.
 
 Please share bug reports and feature requests through [GitHub issues](https://github.com/openai/openai-python/issues).
 Pull requests are limited to repository collaborators; we do not accept pull requests from non-collaborators.
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for the contribution policy and development guide.
-For security vulnerabilities, follow [SECURITY.md](SECURITY.md).
+See [CONTRIBUTING.md](https://github.com/openai/openai-python/blob/main/CONTRIBUTING.md) for the contribution policy and development guide.
+For security vulnerabilities, follow [SECURITY.md](https://github.com/openai/openai-python/blob/main/SECURITY.md).
