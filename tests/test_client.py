@@ -1,14 +1,16 @@
 from __future__ import annotations
 
 import gc
+import io
 import os
 import sys
 import json
+import math
 import asyncio
 import inspect
 import dataclasses
 import tracemalloc
-from typing import Any, Union, TypeVar, Callable, Iterable, Iterator, Optional, Coroutine, cast
+from typing import Any, Union, TypeVar, Callable, Iterable, Iterator, Optional, Coroutine, AsyncIterable, cast
 from unittest import mock
 from typing_extensions import Literal, AsyncIterator, override
 
@@ -23,7 +25,7 @@ from openai._types import Omit
 from openai._utils import asyncify
 from openai._models import BaseModel, FinalRequestOptions
 from openai._streaming import Stream, AsyncStream
-from openai._exceptions import APIStatusError, APITimeoutError, APIResponseValidationError
+from openai._exceptions import APIStatusError, APITimeoutError, APIConnectionError, APIResponseValidationError
 from openai._base_client import (
     DEFAULT_TIMEOUT,
     HTTPX_DEFAULT_TIMEOUT,
@@ -113,6 +115,38 @@ async def _make_async_iterator(iterable: Iterable[T], counter: Optional[Counter]
         yield item
 
 
+class _OneShotIterable(Iterable[T]):
+    def __init__(self, iterable: Iterable[T]) -> None:
+        self._iterator = iter(iterable)
+
+    @override
+    def __iter__(self) -> Iterator[T]:
+        return self._iterator
+
+
+class _OneShotAsyncIterable(AsyncIterable[T]):
+    def __init__(self, iterable: Iterable[T]) -> None:
+        self._iterator = _make_async_iterator(iterable)
+
+    @override
+    def __aiter__(self) -> AsyncIterator[T]:
+        return self._iterator
+
+
+class _NonSeekableBytesIO(io.BytesIO):
+    @override
+    def seekable(self) -> bool:
+        return False
+
+    @override
+    def seek(self, offset: int, whence: int = 0) -> int:
+        raise io.UnsupportedOperation("seek")
+
+    @override
+    def tell(self) -> int:
+        raise io.UnsupportedOperation("tell")
+
+
 def _get_open_connections(client: OpenAI | AsyncOpenAI) -> int:
     transport = client._client._transport
     if isinstance(transport, httpx2.HTTPTransport) or isinstance(transport, httpx2.AsyncHTTPTransport):
@@ -123,6 +157,40 @@ def _get_open_connections(client: OpenAI | AsyncOpenAI) -> int:
 
 
 class TestOpenAI:
+    @pytest.mark.parametrize(
+        "code_fields,expected_code",
+        [
+            ({"code": 404}, "404"),
+            ({"code": 0}, "0"),
+            ({"code": "invalid_request"}, "invalid_request"),
+            ({"code": ""}, ""),
+            ({"code": None}, None),
+            ({}, None),
+        ],
+    )
+    @pytest.mark.respx2(base_url=base_url)
+    def test_api_error_code_is_string(
+        self,
+        code_fields: dict[str, object],
+        expected_code: str | None,
+        respx2_mock: MockRouter,
+        client: OpenAI,
+    ) -> None:
+        body = {"message": "Example error", "type": "invalid_request_error", "param": "model", **code_fields}
+        response = httpx2.Response(400, json={"error": body})
+        respx2_mock.get("/foo").mock(return_value=response)
+
+        with pytest.raises(APIStatusError) as exc_info:
+            client.get("/foo", cast_to=httpx2.Response)
+
+        error = exc_info.value
+        assert error.code == expected_code
+        assert error.body == body
+        assert error.response.json() == {"error": body}
+        assert error.status_code == 400
+        assert error.type == "invalid_request_error"
+        assert error.param == "model"
+
     @pytest.mark.respx2(base_url=base_url)
     def test_raw_response(self, respx2_mock: MockRouter, client: OpenAI) -> None:
         respx2_mock.post("/foo").mock(return_value=httpx2.Response(200, json={"foo": "bar"}))
@@ -807,6 +875,190 @@ class TestOpenAI:
             assert response.content == file_content
             assert counter.value == 1
 
+    @pytest.mark.parametrize("content_factory", [_make_sync_iterator, _OneShotIterable])
+    @pytest.mark.parametrize("failure_mode", ["status", "timeout", "connection"])
+    def test_binary_content_retry_does_not_reuse_one_shot_iterable(
+        self,
+        content_factory: Callable[[Iterable[bytes]], Iterable[bytes]],
+        failure_mode: Literal["status", "timeout", "connection"],
+    ) -> None:
+        file_content = b"Hello, this is a test file."
+        request_bodies: list[bytes] = []
+
+        def mock_handler(request: httpx2.Request) -> httpx2.Response:
+            request_bodies.append(request.read())
+            if len(request_bodies) > 1:
+                return httpx2.Response(200)
+            if failure_mode == "timeout":
+                raise httpx2.ReadTimeout("timed out", request=request)
+            if failure_mode == "connection":
+                raise httpx2.ConnectError("connection failed", request=request)
+            return httpx2.Response(500, json={"error": {}})
+
+        expected_error = {
+            "status": APIStatusError,
+            "timeout": APITimeoutError,
+            "connection": APIConnectionError,
+        }[failure_mode]
+
+        with OpenAI(
+            base_url=base_url,
+            api_key=api_key,
+            max_retries=1,
+            http_client=httpx2.Client(transport=MockTransport(handler=mock_handler)),
+        ) as client:
+            with pytest.raises(expected_error):
+                client.post(
+                    "/upload",
+                    content=content_factory([file_content]),
+                    cast_to=httpx2.Response,
+                )
+
+        assert request_bodies == [file_content]
+
+    @pytest.mark.parametrize("content_type", [list, tuple])
+    @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    def test_binary_content_retry_reuses_known_repeatable_iterable(
+        self, content_type: type[list[bytes]] | type[tuple[bytes, ...]]
+    ) -> None:
+        file_content = b"Hello, this is a test file."
+        request_bodies: list[bytes] = []
+
+        def mock_handler(request: httpx2.Request) -> httpx2.Response:
+            request_bodies.append(request.read())
+            return httpx2.Response(500 if len(request_bodies) == 1 else 200, json={"error": {}})
+
+        with OpenAI(
+            base_url=base_url,
+            api_key=api_key,
+            max_retries=1,
+            http_client=httpx2.Client(transport=MockTransport(handler=mock_handler)),
+        ) as client:
+            response = client.post(
+                "/upload",
+                content=content_type([file_content]),
+                cast_to=httpx2.Response,
+            )
+
+        assert response.status_code == 200
+        assert request_bodies == [file_content, file_content]
+
+    def test_binary_content_retry_checks_prepared_options(self) -> None:
+        file_content = b"Hello, this prepared body must not be replayed."
+        prepared_content = _OneShotIterable([file_content])
+        request_bodies: list[bytes] = []
+
+        def prepare_options(options: FinalRequestOptions) -> FinalRequestOptions:
+            options.content = prepared_content
+            return options
+
+        def mock_handler(request: httpx2.Request) -> httpx2.Response:
+            request_bodies.append(request.read())
+            return httpx2.Response(500 if len(request_bodies) == 1 else 200, json={"error": {}})
+
+        with OpenAI(
+            base_url=base_url,
+            api_key=api_key,
+            max_retries=1,
+            http_client=httpx2.Client(transport=MockTransport(handler=mock_handler)),
+        ) as client:
+            with mock.patch.object(client, "_prepare_options", side_effect=prepare_options):
+                with pytest.raises(APIStatusError):
+                    client.post("/upload", content=file_content, cast_to=httpx2.Response)
+
+        assert request_bodies == [file_content]
+
+    def test_multipart_retry_does_not_reuse_non_seekable_file(self) -> None:
+        file_content = b"Hello, this multipart file must not be replayed."
+        earlier_file = io.BytesIO(b"first file")
+        request_bodies: list[bytes] = []
+
+        def mock_handler(request: httpx2.Request) -> httpx2.Response:
+            request_bodies.append(request.read())
+            return httpx2.Response(500, json={"error": {}})
+
+        with OpenAI(
+            base_url=base_url,
+            api_key=api_key,
+            max_retries=1,
+            http_client=httpx2.Client(transport=MockTransport(handler=mock_handler)),
+        ) as client:
+            with pytest.raises(APIStatusError):
+                client.post(
+                    "/upload",
+                    files={
+                        "first": ("first.txt", earlier_file),
+                        "file": ("upload.txt", _NonSeekableBytesIO(file_content), "text/plain"),
+                    },
+                    cast_to=httpx2.Response,
+                )
+
+        assert len(request_bodies) == 1
+        assert file_content in request_bodies[0]
+        # The first send consumes this file; refusing a retry must not rewind it.
+        assert earlier_file.tell() == len(b"first file")
+
+    @pytest.mark.parametrize("rewind_fails", [False, True], ids=["rewind", "closed-file"])
+    def test_multipart_retry_rewinds_seekable_file(self, rewind_fails: bool) -> None:
+        file_content = b"Hello, this multipart file can be replayed."
+        file = io.BytesIO(file_content)
+        original_response = httpx2.Response(500)
+        request_bodies: list[bytes] = []
+
+        def mock_handler(request: httpx2.Request) -> httpx2.Response:
+            request_bodies.append(request.read())
+            if rewind_fails:
+                file.close()
+            return original_response if len(request_bodies) == 1 else httpx2.Response(200)
+
+        with OpenAI(
+            base_url=base_url,
+            api_key=api_key,
+            max_retries=1,
+            http_client=httpx2.Client(transport=MockTransport(handler=mock_handler)),
+        ) as client:
+            try:
+                response = client.post(
+                    "/upload",
+                    files={"file": ("upload.txt", file, "text/plain")},
+                    cast_to=httpx2.Response,
+                )
+            except APIStatusError as exc:
+                assert rewind_fails
+                assert exc.response is original_response
+            else:
+                assert not rewind_fails
+                assert response.status_code == 200
+
+        assert len(request_bodies) == (1 if rewind_fails else 2)
+        assert all(file_content in body for body in request_bodies)
+
+    @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    def test_binary_content_retry_rewinds_seekable_stream(self) -> None:
+        file_content = b"Hello, this is a test file."
+        request_bodies: list[bytes] = []
+
+        def mock_handler(request: httpx2.Request) -> httpx2.Response:
+            request_bodies.append(request.read())
+            return httpx2.Response(500 if len(request_bodies) == 1 else 200, json={"error": {}})
+
+        with OpenAI(
+            base_url=base_url,
+            api_key=api_key,
+            max_retries=1,
+            http_client=httpx2.Client(transport=MockTransport(handler=mock_handler)),
+        ) as client:
+            content = io.BytesIO(b"prefix" + file_content)
+            content.seek(len(b"prefix"))
+            response = client.post(
+                "/upload",
+                content=content,
+                cast_to=httpx2.Response,
+            )
+
+        assert response.status_code == 200
+        assert request_bodies == [file_content, file_content]
+
     @pytest.mark.respx2(base_url=base_url)
     def test_binary_content_upload_with_body_is_deprecated(self, respx2_mock: MockRouter, client: OpenAI) -> None:
         respx2_mock.post("/upload").mock(side_effect=mirror_request_content)
@@ -826,6 +1078,23 @@ class TestOpenAI:
         assert response.status_code == 200
         assert response.request.headers["Content-Type"] == "application/octet-stream"
         assert response.content == file_content
+
+    @pytest.mark.respx2(base_url=base_url)
+    @pytest.mark.parametrize("client", [False], indirect=True)
+    def test_bare_container_response(self, respx2_mock: MockRouter, client: OpenAI) -> None:
+        class Model(BaseModel):
+            metadata: dict  # type: ignore[type-arg]
+            items: list  # type: ignore[type-arg]
+
+        data = {"metadata": {"key": "value"}, "items": [1, "two"]}
+        respx2_mock.get("/foo").mock(return_value=httpx2.Response(200, json=data))
+
+        assert client.get("/foo", cast_to=dict) == data
+        response = client.get("/foo", cast_to=Model)
+        assert response.model_dump() == data
+
+        respx2_mock.get("/items").mock(return_value=httpx2.Response(200, json=[1, "two"]))
+        assert client.get("/items", cast_to=list) == [1, "two"]
 
     @pytest.mark.respx2(base_url=base_url)
     def test_basic_union_response(self, respx2_mock: MockRouter, client: OpenAI) -> None:
@@ -1192,14 +1461,16 @@ class TestOpenAI:
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx2(base_url=base_url)
     @pytest.mark.parametrize("failure_mode", ["status", "exception"])
+    @pytest.mark.parametrize("max_retries", [4, 10**100])
     def test_retries_taken(
         self,
         client: OpenAI,
         failures_before_success: int,
+        max_retries: int,
         failure_mode: Literal["status", "exception"],
         respx2_mock: MockRouter,
     ) -> None:
-        client = client.with_options(max_retries=4)
+        client = client.with_options(max_retries=max_retries)
 
         nb_retries = 0
 
@@ -1208,7 +1479,7 @@ class TestOpenAI:
             if nb_retries < failures_before_success:
                 nb_retries += 1
                 if failure_mode == "exception":
-                    raise RuntimeError("oops")
+                    raise httpx2.ConnectError("oops")
                 return httpx2.Response(500)
             return httpx2.Response(200)
 
@@ -1225,7 +1496,7 @@ class TestOpenAI:
         )
 
         assert response.retries_taken == failures_before_success
-        assert int(response.http_request.headers.get("x-stainless-retry-count")) == failures_before_success
+        assert int(response.http_request.headers["x-stainless-retry-count"]) == failures_before_success
 
     @pytest.mark.parametrize("failures_before_success", [0, 2, 4])
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
@@ -1320,7 +1591,7 @@ class TestOpenAI:
             model="gpt-5.4",
         ) as response:
             assert response.retries_taken == failures_before_success
-            assert int(response.http_request.headers.get("x-stainless-retry-count")) == failures_before_success
+            assert int(response.http_request.headers["x-stainless-retry-count"]) == failures_before_success
 
     def test_proxy_environment_variables(self, monkeypatch: pytest.MonkeyPatch) -> None:
         # Test that the proxy environment variables are set correctly
@@ -1437,6 +1708,40 @@ class TestOpenAI:
 
 
 class TestAsyncOpenAI:
+    @pytest.mark.parametrize(
+        "code_fields,expected_code",
+        [
+            ({"code": 404}, "404"),
+            ({"code": 0}, "0"),
+            ({"code": "invalid_request"}, "invalid_request"),
+            ({"code": ""}, ""),
+            ({"code": None}, None),
+            ({}, None),
+        ],
+    )
+    @pytest.mark.respx2(base_url=base_url)
+    async def test_api_error_code_is_string(
+        self,
+        code_fields: dict[str, object],
+        expected_code: str | None,
+        respx2_mock: MockRouter,
+        async_client: AsyncOpenAI,
+    ) -> None:
+        body = {"message": "Example error", "type": "invalid_request_error", "param": "model", **code_fields}
+        response = httpx2.Response(400, json={"error": body})
+        respx2_mock.get("/foo").mock(return_value=response)
+
+        with pytest.raises(APIStatusError) as exc_info:
+            await async_client.get("/foo", cast_to=httpx2.Response)
+
+        error = exc_info.value
+        assert error.code == expected_code
+        assert error.body == body
+        assert error.response.json() == {"error": body}
+        assert error.status_code == 400
+        assert error.type == "invalid_request_error"
+        assert error.param == "model"
+
     @pytest.mark.respx2(base_url=base_url)
     async def test_raw_response(self, respx2_mock: MockRouter, async_client: AsyncOpenAI) -> None:
         respx2_mock.post("/foo").mock(return_value=httpx2.Response(200, json={"foo": "bar"}))
@@ -2109,6 +2414,137 @@ class TestAsyncOpenAI:
             assert response.content == file_content
             assert counter.value == 1
 
+    @pytest.mark.parametrize("content_factory", [_make_async_iterator, _OneShotAsyncIterable])
+    @pytest.mark.parametrize("failure_mode", ["status", "timeout", "connection"])
+    async def test_binary_content_retry_does_not_reuse_one_shot_asynciterable(
+        self,
+        content_factory: Callable[[Iterable[bytes]], AsyncIterable[bytes]],
+        failure_mode: Literal["status", "timeout", "connection"],
+    ) -> None:
+        file_content = b"Hello, this is a test file."
+        request_bodies: list[bytes] = []
+
+        async def mock_handler(request: httpx2.Request) -> httpx2.Response:
+            request_bodies.append(await request.aread())
+            if len(request_bodies) > 1:
+                return httpx2.Response(200)
+            if failure_mode == "timeout":
+                raise httpx2.ReadTimeout("timed out", request=request)
+            if failure_mode == "connection":
+                raise httpx2.ConnectError("connection failed", request=request)
+            return httpx2.Response(500, json={"error": {}})
+
+        expected_error = {
+            "status": APIStatusError,
+            "timeout": APITimeoutError,
+            "connection": APIConnectionError,
+        }[failure_mode]
+
+        async with AsyncOpenAI(
+            base_url=base_url,
+            api_key=api_key,
+            max_retries=1,
+            http_client=httpx2.AsyncClient(transport=MockTransport(handler=mock_handler)),
+        ) as client:
+            with pytest.raises(expected_error):
+                await client.post(
+                    "/upload",
+                    content=content_factory([file_content]),
+                    cast_to=httpx2.Response,
+                )
+
+        assert request_bodies == [file_content]
+
+    async def test_binary_content_retry_checks_prepared_options(self) -> None:
+        file_content = b"Hello, this prepared body must not be replayed."
+        prepared_content = _OneShotAsyncIterable([file_content])
+        request_bodies: list[bytes] = []
+
+        async def prepare_options(options: FinalRequestOptions) -> FinalRequestOptions:
+            options.content = prepared_content
+            return options
+
+        async def mock_handler(request: httpx2.Request) -> httpx2.Response:
+            request_bodies.append(await request.aread())
+            return httpx2.Response(500 if len(request_bodies) == 1 else 200, json={"error": {}})
+
+        async with AsyncOpenAI(
+            base_url=base_url,
+            api_key=api_key,
+            max_retries=1,
+            http_client=httpx2.AsyncClient(transport=MockTransport(handler=mock_handler)),
+        ) as client:
+            with mock.patch.object(client, "_prepare_options", side_effect=prepare_options):
+                with pytest.raises(APIStatusError):
+                    await client.post("/upload", content=file_content, cast_to=httpx2.Response)
+
+        assert request_bodies == [file_content]
+
+    async def test_multipart_retry_does_not_reuse_non_seekable_file(self) -> None:
+        file_content = b"Hello, this multipart file must not be replayed."
+        earlier_file = io.BytesIO(b"first file")
+        request_bodies: list[bytes] = []
+
+        async def mock_handler(request: httpx2.Request) -> httpx2.Response:
+            request_bodies.append(await request.aread())
+            return httpx2.Response(500, json={"error": {}})
+
+        async with AsyncOpenAI(
+            base_url=base_url,
+            api_key=api_key,
+            max_retries=1,
+            http_client=httpx2.AsyncClient(transport=MockTransport(handler=mock_handler)),
+        ) as client:
+            with pytest.raises(APIStatusError):
+                await client.post(
+                    "/upload",
+                    files={
+                        "first": ("first.txt", earlier_file),
+                        "file": ("upload.txt", _NonSeekableBytesIO(file_content), "text/plain"),
+                    },
+                    cast_to=httpx2.Response,
+                )
+
+        assert len(request_bodies) == 1
+        assert file_content in request_bodies[0]
+        # The first send consumes this file; refusing a retry must not rewind it.
+        assert earlier_file.tell() == len(b"first file")
+
+    @pytest.mark.parametrize("rewind_fails", [False, True], ids=["rewind", "closed-file"])
+    async def test_multipart_retry_rewinds_seekable_file(self, rewind_fails: bool) -> None:
+        file_content = b"Hello, this multipart file can be replayed."
+        file = io.BytesIO(file_content)
+        original_response = httpx2.Response(500)
+        request_bodies: list[bytes] = []
+
+        async def mock_handler(request: httpx2.Request) -> httpx2.Response:
+            request_bodies.append(await request.aread())
+            if rewind_fails:
+                file.close()
+            return original_response if len(request_bodies) == 1 else httpx2.Response(200)
+
+        async with AsyncOpenAI(
+            base_url=base_url,
+            api_key=api_key,
+            max_retries=1,
+            http_client=httpx2.AsyncClient(transport=MockTransport(handler=mock_handler)),
+        ) as client:
+            try:
+                response = await client.post(
+                    "/upload",
+                    files={"file": ("upload.txt", file, "text/plain")},
+                    cast_to=httpx2.Response,
+                )
+            except APIStatusError as exc:
+                assert rewind_fails
+                assert exc.response is original_response
+            else:
+                assert not rewind_fails
+                assert response.status_code == 200
+
+        assert len(request_bodies) == (1 if rewind_fails else 2)
+        assert all(file_content in body for body in request_bodies)
+
     @pytest.mark.respx2(base_url=base_url)
     async def test_binary_content_upload_with_body_is_deprecated(
         self, respx2_mock: MockRouter, async_client: AsyncOpenAI
@@ -2130,6 +2566,23 @@ class TestAsyncOpenAI:
         assert response.status_code == 200
         assert response.request.headers["Content-Type"] == "application/octet-stream"
         assert response.content == file_content
+
+    @pytest.mark.respx2(base_url=base_url)
+    @pytest.mark.parametrize("async_client", [False], indirect=True)
+    async def test_bare_container_response(self, respx2_mock: MockRouter, async_client: AsyncOpenAI) -> None:
+        class Model(BaseModel):
+            metadata: dict  # type: ignore[type-arg]
+            items: list  # type: ignore[type-arg]
+
+        data = {"metadata": {"key": "value"}, "items": [1, "two"]}
+        respx2_mock.get("/foo").mock(return_value=httpx2.Response(200, json=data))
+
+        assert await async_client.get("/foo", cast_to=dict) == data
+        response = await async_client.get("/foo", cast_to=Model)
+        assert response.model_dump() == data
+
+        respx2_mock.get("/items").mock(return_value=httpx2.Response(200, json=[1, "two"]))
+        assert await async_client.get("/items", cast_to=list) == [1, "two"]
 
     @pytest.mark.respx2(base_url=base_url)
     async def test_basic_union_response(self, respx2_mock: MockRouter, async_client: AsyncOpenAI) -> None:
@@ -2489,14 +2942,16 @@ class TestAsyncOpenAI:
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx2(base_url=base_url)
     @pytest.mark.parametrize("failure_mode", ["status", "exception"])
+    @pytest.mark.parametrize("max_retries", [4, 10**100])
     async def test_retries_taken(
         self,
         async_client: AsyncOpenAI,
         failures_before_success: int,
+        max_retries: int,
         failure_mode: Literal["status", "exception"],
         respx2_mock: MockRouter,
     ) -> None:
-        client = async_client.with_options(max_retries=4)
+        client = async_client.with_options(max_retries=max_retries)
 
         nb_retries = 0
 
@@ -2505,7 +2960,7 @@ class TestAsyncOpenAI:
             if nb_retries < failures_before_success:
                 nb_retries += 1
                 if failure_mode == "exception":
-                    raise RuntimeError("oops")
+                    raise httpx2.ConnectError("oops")
                 return httpx2.Response(500)
             return httpx2.Response(200)
 
@@ -2522,7 +2977,7 @@ class TestAsyncOpenAI:
         )
 
         assert response.retries_taken == failures_before_success
-        assert int(response.http_request.headers.get("x-stainless-retry-count")) == failures_before_success
+        assert int(response.http_request.headers["x-stainless-retry-count"]) == failures_before_success
 
     @pytest.mark.parametrize("failures_before_success", [0, 2, 4])
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
@@ -2617,7 +3072,7 @@ class TestAsyncOpenAI:
             model="gpt-5.4",
         ) as response:
             assert response.retries_taken == failures_before_success
-            assert int(response.http_request.headers.get("x-stainless-retry-count")) == failures_before_success
+            assert int(response.http_request.headers["x-stainless-retry-count"]) == failures_before_success
 
     async def test_get_platform(self) -> None:
         platform = await asyncify(get_platform)()
@@ -3038,3 +3493,123 @@ class TestAsyncWorkloadIdentity401Retry:
             assert len(calls) == 2
 
             assert provider_call_count == 1
+
+
+@pytest.mark.parametrize("is_async", [False, True])
+@pytest.mark.parametrize(
+    "max_retries,retry_after,failures,expected_delays",
+    [
+        (0, None, 1, []),
+        (2, None, 3, [0.5, 1]),
+        (10**100, None, 6, [0.5, 1, 2, 4, 8, 8]),
+        (10**100, "3", 2, [3, 3]),
+    ],
+)
+async def test_retry_limits_and_backoff(
+    is_async: bool,
+    max_retries: int,
+    retry_after: str | None,
+    failures: int,
+    expected_delays: list[float],
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    responses: list[httpx2.Response] = []
+
+    def handler(request: httpx2.Request) -> httpx2.Response:
+        assert request.headers["x-stainless-retry-count"] == str(len(responses))
+        response = httpx2.Response(
+            500 if len(responses) < failures else 200,
+            json={},
+            headers={"retry-after": retry_after} if retry_after else {},
+        )
+        responses.append(response)
+        return response
+
+    transport = httpx2.MockTransport(handler)
+    client = (
+        AsyncOpenAI(api_key="fake-key", http_client=httpx2.AsyncClient(transport=transport))
+        if is_async
+        else OpenAI(api_key="fake-key", http_client=httpx2.Client(transport=transport))
+    )
+    caplog.set_level("DEBUG", logger="openai._base_client")
+    try:
+        with (
+            mock.patch("openai._base_client.random", return_value=0),
+            mock.patch("openai._base_client.time.sleep") as sync_sleep,
+            mock.patch("openai._base_client.anyio.sleep") as async_sleep,
+        ):
+            try:
+                # Exercise request-level limits independently of constructor/copy validation.
+                if isinstance(client, AsyncOpenAI):
+                    await client.get("/test", cast_to=object, options={"max_retries": max_retries})
+                else:
+                    client.get("/test", cast_to=object, options={"max_retries": max_retries})
+            except APIStatusError:
+                assert failures > max_retries
+            else:
+                assert failures <= max_retries
+            sleep = async_sleep if is_async else sync_sleep
+            assert [call.args[0] for call in sleep.call_args_list] == expected_delays
+        assert len(responses) == len(expected_delays) + 1
+        assert all(response.is_closed for response in responses)
+        messages = [record.getMessage() for record in caplog.records if record.levelname == "INFO"]
+        for attempt in range(1, len(expected_delays) + 1):
+            assert any(f"retry {attempt} of {max_retries}" in message for message in messages)
+    finally:
+        if isinstance(client, AsyncOpenAI):
+            await client.close()
+        else:
+            client.close()
+
+
+@pytest.mark.parametrize("is_async", [False, True])
+@pytest.mark.parametrize(
+    "error", [RuntimeError("application failed"), OSError("local failure"), asyncio.CancelledError()]
+)
+async def test_application_exceptions_are_not_retried(is_async: bool, error: BaseException) -> None:
+    calls = 0
+
+    def handler(_request: httpx2.Request) -> httpx2.Response:
+        nonlocal calls
+        calls += 1
+        raise error
+
+    transport = httpx2.MockTransport(handler)
+    client = (
+        AsyncOpenAI(api_key="fake-key", max_retries=1, http_client=httpx2.AsyncClient(transport=transport))
+        if is_async
+        else OpenAI(api_key="fake-key", max_retries=1, http_client=httpx2.Client(transport=transport))
+    )
+    try:
+        with pytest.raises(type(error)) as caught:
+            if isinstance(client, AsyncOpenAI):
+                await client.get("/test", cast_to=object)
+            else:
+                client.get("/test", cast_to=object)
+        assert caught.value is error
+        assert calls == 1
+    finally:
+        if isinstance(client, AsyncOpenAI):
+            await client.close()
+        else:
+            client.close()
+
+
+@pytest.mark.parametrize("is_async", [False, True])
+@pytest.mark.parametrize("value", [None, "2", -1, 2.5, 2.0, math.nan, math.inf, -math.inf])
+async def test_invalid_request_retry_limit(is_async: bool, value: Any) -> None:
+    client = AsyncOpenAI(api_key="fake-key") if is_async else OpenAI(api_key="fake-key")
+    error = ValueError if isinstance(value, int) else TypeError
+    try:
+        with pytest.raises(error, match="max_retries"):
+            client.with_options(max_retries=cast(Any, value))
+        with pytest.raises(error, match="max_retries"):
+            if isinstance(client, AsyncOpenAI):
+                await client.get("/test", cast_to=object, options={"max_retries": cast(Any, value)})
+            else:
+                client.get("/test", cast_to=object, options={"max_retries": cast(Any, value)})
+    finally:
+        if isinstance(client, AsyncOpenAI):
+            await client.close()
+        else:
+            client.close()

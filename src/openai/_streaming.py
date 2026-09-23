@@ -8,10 +8,13 @@ from types import TracebackType
 from typing import TYPE_CHECKING, Any, Generic, TypeVar, Iterator, Optional, AsyncIterator, cast
 from typing_extensions import Self, Protocol, TypeGuard, override, get_origin, runtime_checkable
 
+import anyio
 import httpx2
+from anyio.lowlevel import checkpoint, checkpoint_if_cancelled
 
-from ._utils import is_mapping, drain_async_iterator, extract_type_var_from_base
-from ._exceptions import APIError
+from ._utils import is_mapping, extract_type_var_from_base
+from ._httpx2 import request_exceptions, timeout_exceptions
+from ._exceptions import APIError, APITimeoutError, APIConnectionError
 
 if TYPE_CHECKING:
     from ._client import OpenAI, AsyncOpenAI
@@ -51,7 +54,12 @@ class Stream(Generic[_T]):
             yield item
 
     def _iter_events(self) -> Iterator[ServerSentEvent]:
-        yield from self._decoder.iter_bytes(self.response.iter_bytes())
+        try:
+            yield from self._decoder.iter_bytes(self.response.iter_bytes())
+        except timeout_exceptions() as err:
+            raise APITimeoutError(request=self.response.request) from err
+        except request_exceptions() as err:
+            raise APIConnectionError(request=self.response.request) from err
 
     def __stream__(self) -> Iterator[_T]:
         cast_to = cast(Any, self._cast_to)
@@ -151,7 +159,6 @@ class AsyncStream(Generic[_T]):
         self._options = options
         self._decoder = client._make_sse_decoder()
         self._byte_iterator: AsyncIterator[bytes] | None = None
-        self._done_seen = False
         self._iterator = self.__stream__()
 
     async def __anext__(self) -> _T:
@@ -164,20 +171,25 @@ class AsyncStream(Generic[_T]):
     async def _iter_events(self) -> AsyncIterator[ServerSentEvent]:
         if self._byte_iterator is None:
             self._byte_iterator = self.response.aiter_bytes()
-        async for sse in self._decoder.aiter_bytes(self._byte_iterator):
-            yield sse
+        try:
+            async for sse in self._decoder.aiter_bytes(self._byte_iterator):
+                yield sse
+        except timeout_exceptions() as err:
+            raise APITimeoutError(request=self.response.request) from err
+        except request_exceptions() as err:
+            raise APIConnectionError(request=self.response.request) from err
 
     async def __stream__(self) -> AsyncIterator[_T]:
         cast_to = cast(Any, self._cast_to)
         response = self.response
         process_data = self._client._process_response_data
-        self._byte_iterator = response.aiter_bytes()
         iterator = self._iter_events()
+        done = False
 
         try:
             async for sse in iterator:
                 if sse.data.startswith("[DONE]"):
-                    self._done_seen = True
+                    done = True
                     break
 
                 # we have to special case the Assistants `thread.` events since we won't have an "event" key in the data
@@ -223,13 +235,33 @@ class AsyncStream(Generic[_T]):
                         response=response,
                     )
         finally:
-            # Bounds cancellation-cooperative async drain for connection reuse.
-            if self._done_seen:
-                await drain_async_iterator(self._byte_iterator, response=response, timeout_ms=50)
-            try:
+            if done and self._byte_iterator is not None:
+                await self._drain_after_done()
+            else:
                 await response.aclose()
-            except Exception:
-                pass
+
+    async def _drain_after_done(self) -> None:
+        assert self._byte_iterator is not None
+        close_interrupted = False
+        try:
+            with anyio.move_on_after(0.05):
+                try:
+                    async for _ in self._byte_iterator:
+                        await checkpoint()
+                except anyio.get_cancelled_exc_class():
+                    close_interrupted = self.response.is_closed
+                    raise
+                except request_exceptions():
+                    # Ignore transport failures beyond the terminal event.
+                    pass
+        finally:
+            with anyio.move_on_after(0.05, shield=True):
+                if close_interrupted:
+                    # HTTPX marks the response closed before awaiting transport cleanup.
+                    await cast(httpx2.AsyncByteStream, self.response.stream).aclose()
+                else:
+                    await self.response.aclose()
+            await checkpoint_if_cancelled()
 
     async def __aenter__(self) -> Self:
         return self
@@ -249,6 +281,10 @@ class AsyncStream(Generic[_T]):
         Automatically called if the response body is read to completion.
         """
         await self.response.aclose()
+
+    async def aclose(self) -> None:
+        """Close the response and release the connection. Alias for `close()`."""
+        await self.close()
 
 
 class ServerSentEvent:

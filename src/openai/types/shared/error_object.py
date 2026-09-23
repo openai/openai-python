@@ -1,10 +1,38 @@
 # File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
-from typing import Optional
+from typing import Union, Optional
+from typing_extensions import Literal
 
 from ..._models import BaseModel
 
-__all__ = ["ErrorObject"]
+__all__ = ["ErrorObject", "Misalignment", "MisalignmentSteer"]
+
+
+class MisalignmentSteer(BaseModel):
+    """An optional public continuation instruction."""
+
+    message: str
+    """The public continuation instruction."""
+
+
+class Misalignment(BaseModel):
+    detailed_explanation: Optional[str] = None
+    """The public explanation for this block."""
+
+    error_type: Union[
+        str,
+        Literal[
+            "potentially_unintended_data_transfer",
+            "potentially_unintended_data_access",
+            "potentially_unintended_destructive_activity",
+            "other",
+        ],
+        None,
+    ] = None
+    """An optional classification; clients must accept additional values."""
+
+    steer: Optional[MisalignmentSteer] = None
+    """An optional public continuation instruction."""
 
 
 class ErrorObject(BaseModel):
@@ -15,3 +43,5 @@ class ErrorObject(BaseModel):
     param: Optional[str] = None
 
     type: str
+
+    misalignment: Optional[Misalignment] = None

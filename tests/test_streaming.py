@@ -1,13 +1,159 @@
 from __future__ import annotations
 
-from typing import Any
-from collections.abc import Iterator, AsyncIterator
+import os
+import importlib
+from typing import Any, Iterator, AsyncIterator
+from contextlib import aclosing, nullcontext
 
+import anyio
 import httpx2
 import pytest
 
-from openai import OpenAI, AsyncOpenAI
+from openai import OpenAI, AsyncOpenAI, APITimeoutError, APIConnectionError
 from openai._streaming import Stream, AsyncStream, ServerSentEvent
+
+
+@pytest.fixture(
+    params=[
+        "httpx2",
+        pytest.param(
+            "httpx",
+            marks=pytest.mark.skipif(
+                os.environ.get("OPENAI_TEST_LEGACY_HTTPX") != "1", reason="requires the legacy HTTPX compatibility lane"
+            ),
+        ),
+    ]
+)
+def http_module(request: pytest.FixtureRequest) -> Any:
+    return importlib.import_module(request.param)
+
+
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+@pytest.mark.parametrize("delivered", [False, True], ids=["before-first-event", "after-first-event"])
+@pytest.mark.parametrize(
+    ("error_name", "expected_error"),
+    [
+        ("ReadTimeout", APITimeoutError),
+        ("RemoteProtocolError", APIConnectionError),
+        ("DecodingError", APIConnectionError),
+    ],
+)
+async def test_request_errors_are_wrapped(
+    sync: bool, delivered: bool, error_name: str, expected_error: type[APIConnectionError], http_module: Any
+) -> None:
+    error = getattr(http_module, error_name)("synthetic stream failure")
+    requests: list[Any] = []
+    first = (
+        b'data: {"id":"synthetic","object":"chat.completion.chunk","created":0,"model":"synthetic",'
+        b'"choices":[{"index":0,"delta":{"content":"hello"},"finish_reason":null}]}\n\n'
+    )
+
+    def body() -> Iterator[bytes]:
+        if delivered:
+            yield first
+        raise error
+
+    async def async_body() -> AsyncIterator[bytes]:
+        for chunk in body():
+            yield chunk
+
+    def handler(request: Any) -> Any:
+        requests.append(request)
+        return http_module.Response(
+            200, headers={"content-type": "text/event-stream"}, content=body() if sync else async_body()
+        )
+
+    received: list[str | None] = []
+    if sync:
+        with OpenAI(
+            api_key="synthetic",
+            max_retries=2,
+            http_client=http_module.Client(transport=http_module.MockTransport(handler), trust_env=False),
+        ) as client:
+            stream = client.chat.completions.create(model="synthetic", messages=[], stream=True)
+            with pytest.raises(expected_error) as caught:
+                for chunk in stream:
+                    received.append(chunk.choices[0].delta.content)
+            assert stream.response.is_closed
+    else:
+        async with AsyncOpenAI(
+            api_key="synthetic",
+            max_retries=2,
+            http_client=http_module.AsyncClient(transport=http_module.MockTransport(handler), trust_env=False),
+        ) as async_client:
+            async_stream = await async_client.chat.completions.create(model="synthetic", messages=[], stream=True)
+            with pytest.raises(expected_error) as caught:
+                async for chunk in async_stream:
+                    received.append(chunk.choices[0].delta.content)
+            assert async_stream.response.is_closed
+
+    assert received == (["hello"] if delivered else [])
+    assert len(requests) == 1
+    assert caught.value.request is requests[0]
+    assert caught.value.__cause__ is error
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+@pytest.mark.parametrize(
+    "error_type",
+    [
+        httpx2.ReadTimeout,
+        httpx2.RemoteProtocolError,
+        ValueError,
+    ],
+)
+async def test_request_errors_from_response_processing_are_not_wrapped(
+    sync: bool,
+    error_type: type[Exception],
+    client: OpenAI,
+    async_client: AsyncOpenAI,
+) -> None:
+    error = error_type("response processing failure")
+    request = httpx2.Request("POST", "https://example.com")
+
+    class FailingModelBuilder:
+        @classmethod
+        def build(
+            cls,
+            *,
+            response: httpx2.Response,
+            data: object,
+        ) -> FailingModelBuilder:
+            assert response.request is request
+            assert data == {"foo": True}
+            raise error
+
+    if sync:
+        response = httpx2.Response(
+            200,
+            request=request,
+            content=b'data: {"foo": true}\n\n',
+        )
+        stream = Stream(
+            cast_to=FailingModelBuilder,
+            client=client,
+            response=response,
+        )
+
+        with pytest.raises(error_type) as exc_info:
+            next(stream)
+    else:
+        response = httpx2.Response(
+            200,
+            request=request,
+            content=b'data: {"foo": true}\n\n',
+        )
+        stream = AsyncStream(
+            cast_to=FailingModelBuilder,
+            client=async_client,
+            response=response,
+        )
+
+        with pytest.raises(error_type) as exc_info:
+            await stream.__anext__()
+
+    assert exc_info.value is error
 
 
 @pytest.mark.asyncio
@@ -217,212 +363,112 @@ async def test_multi_byte_character_multiple_chunks(
     assert sse.json() == {"content": "известни"}
 
 
-def test_done_closes_response_sync(client: OpenAI) -> None:
-    """Sync stream closes response after [DONE]."""
-
-    def body() -> Iterator[bytes]:
-        yield b'data: {"foo":true}\n\n'
-        yield b"data: [DONE]\n\n"
-        yield b": trailing comment after done\n\n"
-
-    response = httpx2.Response(200, content=body())
-    stream: Stream[object] | AsyncStream[object] = Stream(cast_to=object, client=client, response=response)
-    chunks = list(stream)
-
-    assert chunks == [{"foo": True}]
-    assert response.is_closed is True
-
-
 @pytest.mark.asyncio
-async def test_done_drains_remaining_body_async(async_client: AsyncOpenAI) -> None:
-    """After [DONE], async drains remaining body for connection reuse."""
-    exhausted = False
-
+async def test_async_stream_aclose(async_client: AsyncOpenAI) -> None:
     def body() -> Iterator[bytes]:
-        nonlocal exhausted
-        yield b'data: {"foo":true}\n\n'
         yield b"data: [DONE]\n\n"
-        yield b": trailing comment after done\n\n"
-        exhausted = True
 
-    async_body = to_aiter(body())
-    response = httpx2.Response(200, content=async_body)
+    response = httpx2.Response(200, content=to_aiter(body()))
     stream = AsyncStream(cast_to=object, client=async_client, response=response)
-    chunks = [chunk async for chunk in stream]
 
-    assert chunks == [{"foo": True}]
-    assert exhausted is True
-    assert response.is_closed is True
+    assert not response.is_closed
+    await stream.aclose()
+    assert response.is_closed
 
-
-@pytest.mark.asyncio
-async def test_early_exit_without_done_doesnt_drain_async(async_client: AsyncOpenAI) -> None:
-    """Early exit before [DONE] should not consume trailing body and close promptly."""
-    drained = False
-    exhausted = False
-
-    async def patched_drain(*_args: Any, **_kwargs: Any) -> None:
-        """Track if drain was called."""
-        nonlocal drained
-        drained = True
-
-    def body() -> Iterator[bytes]:
-        nonlocal exhausted
-        yield b'data: {"foo":true}\n\n'
-        # No [DONE] sent, consumer will exit early
-        yield b": trailing comment that should not be consumed\n\n"
-        exhausted = True
-
-    async_body = to_aiter(body())
-    response = httpx2.Response(200, content=async_body)
-
-    # Patch drain_async_iterator to track if it's called
-    import openai._streaming as streaming_module
-
-    original_drain = streaming_module.drain_async_iterator
-    streaming_module.drain_async_iterator = patched_drain
-
-    try:
-        stream = AsyncStream(cast_to=object, client=async_client, response=response)
-
-        # Only consume the first chunk, exit early before [DONE]
-        first_chunk = await stream.__anext__()
-        assert first_chunk == {"foo": True}
-
-        # Trailing body should NOT be exhausted since _done_seen is False
-        assert exhausted is False
-
-        # Explicitly close the generator to trigger finally block
-        await stream._iterator.aclose()  # type: ignore[attr-defined]
-
-        # Drain should NOT have been called since we didn't see [DONE]
-        assert drained is False
-        # Response should be closed
-        assert response.is_closed is True
-    finally:
-        # Restore original drain function
-        streaming_module.drain_async_iterator = original_drain
+    # Either spelling remains safe after the response has already been closed.
+    await stream.close()
+    await stream.aclose()
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
-async def test_drain_failure_after_done_preserves_result(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
-    """Transport errors while draining after [DONE] must not fail an already-complete stream."""
-
+@pytest.mark.parametrize("raise_error", [False, True], ids=["early-exit", "exception"])
+async def test_async_stream_aclosing(raise_error: bool) -> None:
     def body() -> Iterator[bytes]:
-        yield b'data: {"foo":true}\n\n'
-        yield b"data: [DONE]\n\n"
-        raise httpx2.RemoteProtocolError("peer closed connection")
-
-    response = httpx2.Response(200, content=body() if sync else to_aiter(body()))
-
-    if sync:
-        stream: Stream[object] | AsyncStream[object] = Stream(cast_to=object, client=client, response=response)
-        chunks = list(stream)
-    else:
-        stream = AsyncStream(cast_to=object, client=async_client, response=response)
-        chunks = [chunk async for chunk in stream]
-
-    assert chunks == [{"foo": True}]
-    assert response.is_closed is True
-
-
-@pytest.mark.asyncio
-@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
-async def test_drain_decode_error_after_done_preserves_result(
-    sync: bool, client: OpenAI, async_client: AsyncOpenAI
-) -> None:
-    """Malformed trailing bytes after [DONE] must not fail an already-complete stream."""
-
-    def body() -> Iterator[bytes]:
-        yield b'data: {"foo":true}\n\n'
-        yield b"data: [DONE]\n\n"
-        # Truncated multi-byte UTF-8 sequence that the SSE decoder will reject.
-        yield b"data: \xff\n\n"
-
-    response = httpx2.Response(200, content=body() if sync else to_aiter(body()))
-
-    if sync:
-        stream: Stream[object] | AsyncStream[object] = Stream(cast_to=object, client=client, response=response)
-        chunks = list(stream)
-    else:
-        stream = AsyncStream(cast_to=object, client=async_client, response=response)
-        chunks = [chunk async for chunk in stream]
-
-    assert chunks == [{"foo": True}]
-    assert response.is_closed is True
-
-
-@pytest.mark.asyncio
-@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
-async def test_drain_is_bounded_and_doesnt_block_indefinitely(
-    sync: bool, client: OpenAI, async_client: AsyncOpenAI
-) -> None:
-    """Drain after [DONE] must timeout rather than wait for slow/infinite iterators."""
-
-    class SyncSlowIterator:
-        """Sync iterator that yields slowly after content to force timeout."""
-
-        def __init__(self, content: Iterator[bytes]) -> None:
-            self._content = content
-            self._content_exhausted = False
-
-        def __iter__(self) -> Iterator[bytes]:
-            return self
-
-        def __next__(self) -> bytes:
-            if not self._content_exhausted:
-                try:
-                    return next(self._content)
-                except StopIteration:
-                    self._content_exhausted = True
-            # After content is exhausted, yield slowly to force timeout during drain
-            import time
-
-            time.sleep(0.1)  # 100ms per item; 50ms drain timeout will hit after <1 item
-            return b": heartbeat\n\n"
-
-    class AsyncSlowIterator:
-        """Async iterator that yields slowly after content to force timeout."""
-
-        def __init__(self, content: AsyncIterator[bytes]) -> None:
-            self._content = content
-            self._content_exhausted = False
-
-        def __aiter__(self) -> AsyncIterator[bytes]:
-            return self
-
-        async def __anext__(self) -> bytes:
-            if not self._content_exhausted:
-                try:
-                    return await self._content.__anext__()
-                except StopAsyncIteration:
-                    self._content_exhausted = True
-            # After content is exhausted, yield slowly to force timeout during drain
-            import asyncio
-
-            await asyncio.sleep(0.1)  # 100ms per item; 50ms drain timeout will hit after <1 item
-            return b": heartbeat\n\n"
-
-    def body() -> Iterator[bytes]:
-        yield b'data: {"foo":true}\n\n'
+        yield (
+            b'data: {"id":"chatcmpl-test","object":"chat.completion.chunk","created":0,'
+            b'"model":"test-model","choices":[{"index":0,"delta":{"content":"hello"},'
+            b'"finish_reason":null}]}\n\n'
+        )
         yield b"data: [DONE]\n\n"
 
-    if sync:
-        slow_iter = SyncSlowIterator(body())
-        response = httpx2.Response(200, content=slow_iter)
-        stream: Stream[object] | AsyncStream[object] = Stream(cast_to=object, client=client, response=response)
-        chunks = list(stream)
-    else:
-        async_body = to_aiter(body())
-        slow_iter = AsyncSlowIterator(async_body)
-        response = httpx2.Response(200, content=slow_iter)
-        stream = AsyncStream(cast_to=object, client=async_client, response=response)
-        chunks = [chunk async for chunk in stream]
+    response = httpx2.Response(200, content=to_aiter(body()), headers={"content-type": "text/event-stream"})
+    async with AsyncOpenAI(
+        api_key="fake-test-key",
+        http_client=httpx2.AsyncClient(transport=httpx2.MockTransport(lambda _request: response)),
+    ) as client:
+        stream = await client.chat.completions.create(model="test-model", messages=[], stream=True)
+        with pytest.raises(ValueError, match="test exception") if raise_error else nullcontext():
+            async with aclosing(stream):
+                async for chunk in stream:
+                    assert chunk.choices[0].delta.content == "hello"
+                    assert not response.is_closed
+                    if raise_error:
+                        raise ValueError("test exception")
+                    break
 
-    # Stream should complete quickly with just the first item, not wait for the slow iterator
-    assert chunks == [{"foo": True}]
-    assert response.is_closed is True
+        assert response.is_closed
+
+
+@pytest.mark.parametrize(
+    "mode",
+    ["finite", "error", "stall", "cancel", "early", "close-error", "done-close-error", "close-stall", "heartbeat"],
+)
+def test_async_stream_cleanup(mode: str, http_module: Any) -> None:
+    async def run() -> None:
+        tail_entered = closed = cancelled = False
+        scope = anyio.CancelScope()
+
+        class Body(http_module.AsyncByteStream):  # type: ignore[misc]
+            async def __aiter__(self) -> AsyncIterator[bytes]:
+                nonlocal tail_entered
+                yield b'data: {"foo":true}\n\n'
+                yield b"data: [DONE]\n\n"
+                tail_entered = True
+                if mode == "error":
+                    raise http_module.RemoteProtocolError("discarded tail")
+                if mode in ("stall", "cancel"):
+                    if mode == "cancel":
+                        scope.cancel()
+                    await anyio.sleep_forever()
+                while mode == "heartbeat":
+                    yield b": heartbeat\n\n"
+                yield b"data: \xff\n\n"
+
+            async def aclose(self) -> None:
+                nonlocal closed
+                if mode == "close-stall":
+                    await anyio.sleep_forever()
+                await anyio.sleep(0)
+                closed = True
+                if mode in ("close-error", "done-close-error"):
+                    raise RuntimeError("close failed")
+
+        response = http_module.Response(200, stream=Body())
+        async with AsyncOpenAI(api_key="synthetic") as client:
+            stream = AsyncStream(cast_to=object, client=client, response=response)
+            assert await stream.__anext__() == {"foo": True}
+            with anyio.fail_after(1):
+                if mode in ("early", "close-error"):
+                    with pytest.raises(RuntimeError, match="close failed") if mode == "close-error" else nullcontext():
+                        await stream._iterator.aclose()  # type: ignore[attr-defined]
+                    assert not tail_entered
+                else:
+                    with (
+                        pytest.raises(RuntimeError, match="close failed")
+                        if mode == "done-close-error"
+                        else nullcontext(),
+                        scope,
+                    ):
+                        try:
+                            assert [item async for item in stream] == []
+                        except anyio.get_cancelled_exc_class():
+                            cancelled = True
+                            raise
+                    assert tail_entered
+                    assert cancelled == (mode == "cancel")
+            assert closed == (mode != "close-stall")
+
+    anyio.run(run)
 
 
 async def to_aiter(iter: Iterator[bytes]) -> AsyncIterator[bytes]:
