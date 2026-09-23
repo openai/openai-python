@@ -36954,6 +36954,7 @@ components:
               description: |
                 Scaling factor for the learning rate. A smaller learning rate may be useful to avoid
                 overfitting.
+              default: auto
               anyOf:
               - type: string
                 enum:
@@ -36961,8 +36962,7 @@ components:
                 x-stainless-const: true
                 title: Auto
               - type: number
-                minimum: 0
-                exclusiveMinimum: true
+                exclusiveMinimum: 0
             n_epochs:
               description: |
                 The number of epochs to train the model for. An epoch refers to one full cycle
@@ -41281,15 +41281,15 @@ components:
         beta:
           description: |
             The beta value for the DPO method. A higher beta value will increase the weight of the penalty between the policy and reference model.
+          default: auto
           anyOf:
           - type: string
             enum:
             - auto
             x-stainless-const: true
           - type: number
-            minimum: 0
             maximum: 2
-            exclusiveMinimum: true
+            exclusiveMinimum: 0
         batch_size:
           description: |
             Number of examples in each batch. A larger batch size means that model parameters are updated less frequently, but with lower variance.
@@ -41305,14 +41305,14 @@ components:
         learning_rate_multiplier:
           description: |
             Scaling factor for the learning rate. A smaller learning rate may be useful to avoid overfitting.
+          default: auto
           anyOf:
           - type: string
             enum:
             - auto
             x-stainless-const: true
           - type: number
-            minimum: 0
-            exclusiveMinimum: true
+            exclusiveMinimum: 0
         n_epochs:
           description: |
             The number of epochs to train the model for. An epoch refers to one full cycle through the training dataset.
@@ -41369,14 +41369,14 @@ components:
         learning_rate_multiplier:
           description: |
             Scaling factor for the learning rate. A smaller learning rate may be useful to avoid overfitting.
+          default: auto
           anyOf:
           - type: string
             enum:
             - auto
             x-stainless-const: true
           - type: number
-            minimum: 0
-            exclusiveMinimum: true
+            exclusiveMinimum: 0
         n_epochs:
           description: |
             The number of epochs to train the model for. An epoch refers to one full cycle through the training dataset.
@@ -41402,15 +41402,15 @@ components:
         compute_multiplier:
           description: |
             Multiplier on amount of compute used for exploring search space during training.
+          default: auto
           anyOf:
           - type: string
             enum:
             - auto
             x-stainless-const: true
           - type: number
-            minimum: 0.00001
             maximum: 10
-            exclusiveMinimum: true
+            exclusiveMinimum: 0.00001
         eval_interval:
           description: |
             The number of training steps between evaluation runs.
@@ -41469,14 +41469,14 @@ components:
         learning_rate_multiplier:
           description: |
             Scaling factor for the learning rate. A smaller learning rate may be useful to avoid overfitting.
+          default: auto
           anyOf:
           - type: string
             enum:
             - auto
             x-stainless-const: true
           - type: number
-            minimum: 0
-            exclusiveMinimum: true
+            exclusiveMinimum: 0
         n_epochs:
           description: |
             The number of epochs to train the model for. An epoch refers to one full cycle through the training dataset.
@@ -41649,6 +41649,7 @@ components:
               description: |
                 Scaling factor for the learning rate. A smaller learning rate may be useful to avoid
                 overfitting.
+              default: auto
               anyOf:
               - type: string
                 enum:
@@ -41656,8 +41657,7 @@ components:
                 x-stainless-const: true
                 title: Auto
               - type: number
-                minimum: 0
-                exclusiveMinimum: true
+                exclusiveMinimum: 0
             n_epochs:
               description: |
                 The number of epochs to train the model for. An epoch refers to one full cycle
@@ -51336,6 +51336,9 @@ components:
             The session configuration for either a realtime or transcription session.
           discriminator:
             propertyName: type
+            mapping:
+              realtime: '#/components/schemas/RealtimeSessionCreateResponseGA'
+              transcription: '#/components/schemas/RealtimeTranscriptionSessionCreateResponseGA'
           anyOf:
           - $ref: '#/components/schemas/RealtimeSessionCreateResponseGA'
           - $ref: '#/components/schemas/RealtimeTranscriptionSessionCreateResponseGA'
