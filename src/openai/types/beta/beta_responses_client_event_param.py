@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -6,6 +6,7 @@ from typing import Dict, List, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from .beta_tool_param import BetaToolParam
+from .beta_service_tier import BetaServiceTier
 from .beta_response_includable import BetaResponseIncludable
 from .beta_tool_choice_options import BetaToolChoiceOptions
 from .beta_response_input_param import BetaResponseInputParam
@@ -15,6 +16,7 @@ from .beta_tool_choice_shell_param import BetaToolChoiceShellParam
 from .beta_tool_choice_types_param import BetaToolChoiceTypesParam
 from .beta_tool_choice_custom_param import BetaToolChoiceCustomParam
 from .beta_tool_choice_allowed_param import BetaToolChoiceAllowedParam
+from .beta_response_steer_event_param import BetaResponseSteerEventParam
 from .beta_response_text_config_param import BetaResponseTextConfigParam
 from .beta_tool_choice_function_param import BetaToolChoiceFunctionParam
 from .beta_response_inject_event_param import BetaResponseInjectEventParam
@@ -105,7 +107,14 @@ class ResponseCreateMultiAgent(TypedDict, total=False):
 class ResponseCreatePromptCacheOptions(TypedDict, total=False):
     """Options for prompt caching.
 
-    Supported for `gpt-5.6` and later models. By default, OpenAI automatically chooses one implicit cache breakpoint. You can add explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each request can write up to four breakpoints. For cache matching, OpenAI considers up to the latest 80 breakpoints in the conversation, without a content-block lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The `ttl` defaults to `30m`, which is currently the only supported value. See the [prompt caching guide](https://platform.openai.com/docs/guides/prompt-caching) for current details.
+    Supported for `gpt-5.6` and later models. By default, OpenAI automatically chooses one implicit cache breakpoint. You can add explicit breakpoints to content blocks with `prompt_cache_breakpoint`. Each request can write up to four breakpoints. For cache matching, OpenAI considers up to the latest 80 breakpoints in the conversation, without a content-block lookback limit. Set `mode` to `explicit` to disable the implicit breakpoint. The `ttl` defaults to `30m`, which is currently the only supported value. See the [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching) for current details.
+    """
+
+    comparison_response_id: Optional[str]
+    """The ID of a response to compare when diagnosing prompt cache reuse.
+
+    Supplying this field requests prompt cache diagnostics when the feature is
+    enabled.
     """
 
     mode: Literal["implicit", "explicit"]
@@ -118,6 +127,13 @@ class ResponseCreatePromptCacheOptions(TypedDict, total=False):
     request does not use prompt caching.
     """
 
+    prewarm: bool
+    """Prepares the prompt cache without generating output.
+
+    Defaults to `false`. When set to `true`, overrides the `generate` field to
+    `false`.
+    """
+
     ttl: Literal["30m"]
     """
     The minimum lifetime applied to every implicit and explicit cache breakpoint
@@ -127,15 +143,17 @@ class ResponseCreatePromptCacheOptions(TypedDict, total=False):
 
 
 class ResponseCreateReasoning(TypedDict, total=False):
-    """**gpt-5 and o-series models only**
-
+    """
     Configuration options for
-    [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+    [reasoning models](https://developers.openai.com/api/docs/guides/reasoning).
     """
 
     context: Optional[Literal["auto", "current_turn", "all_turns"]]
     """
-    Controls which reasoning items are rendered back to the model on later turns.
+    Controls which reasoning items are rendered back to the model on later turns. If
+    omitted or set to `auto`, the model determines the context mode. The `gpt-5.6`
+    model family defaults to `all_turns`; earlier models default to `current_turn`.
+
     When returned on a response, this is the effective reasoning context mode used
     for the response.
     """
@@ -147,7 +165,7 @@ class ResponseCreateReasoning(TypedDict, total=False):
     `xhigh`, and `max`. Reducing reasoning effort can result in faster responses and
     fewer tokens used on reasoning in a response. Not all reasoning models support
     every value. See the
-    [reasoning guide](https://platform.openai.com/docs/guides/reasoning) for
+    [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning) for
     model-specific support.
     """
 
@@ -212,11 +230,13 @@ ResponseCreateToolChoice: TypeAlias = Union[
 class ResponseCreate(TypedDict, total=False):
     """
     Client event for creating a response over a persistent WebSocket connection.
-    This payload uses the same top-level fields as `POST /v1/responses`.
+    This payload uses the same top-level fields as `POST /v1/responses`, plus
+    WebSocket-only envelope metadata.
 
     Notes:
     - `stream` is implicit over WebSocket and should not be sent.
     - `background` is not supported over WebSocket.
+    - `stream_id` is WebSocket-only and is not part of `POST /v1/responses`.
     """
 
     type: Required[Literal["response.create"]]
@@ -225,7 +245,7 @@ class ResponseCreate(TypedDict, total=False):
     background: Optional[bool]
     """
     Whether to run the model response in the background.
-    [Learn more](https://platform.openai.com/docs/guides/background).
+    [Learn more](https://developers.openai.com/api/docs/guides/background).
     """
 
     context_management: Optional[Iterable[ResponseCreateContextManagement]]
@@ -266,11 +286,11 @@ class ResponseCreate(TypedDict, total=False):
 
     Learn more:
 
-    - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
-    - [Image inputs](https://platform.openai.com/docs/guides/images)
-    - [File inputs](https://platform.openai.com/docs/guides/pdf-files)
-    - [Conversation state](https://platform.openai.com/docs/guides/conversation-state)
-    - [Function calling](https://platform.openai.com/docs/guides/function-calling)
+    - [Text inputs and outputs](https://developers.openai.com/api/docs/guides/text)
+    - [Image inputs](https://developers.openai.com/api/docs/guides/images-vision)
+    - [File inputs](https://developers.openai.com/api/docs/guides/file-inputs)
+    - [Conversation state](https://developers.openai.com/api/docs/guides/conversation-state)
+    - [Function calling](https://developers.openai.com/api/docs/guides/function-calling)
     """
 
     instructions: Optional[str]
@@ -285,7 +305,7 @@ class ResponseCreate(TypedDict, total=False):
     """
     An upper bound for the number of tokens that can be generated for a response,
     including visible output tokens and
-    [reasoning tokens](https://platform.openai.com/docs/guides/reasoning).
+    [reasoning tokens](https://developers.openai.com/api/docs/guides/reasoning).
     """
 
     max_tool_calls: Optional[int]
@@ -308,9 +328,14 @@ class ResponseCreate(TypedDict, total=False):
 
     model: Union[
         Literal[
+            "gpt-6-astra",
+            "gpt-6-sol",
+            "gpt-6-luna",
             "gpt-5.6-sol",
             "gpt-5.6-terra",
             "gpt-5.6-luna",
+            "gpt-5.5",
+            "gpt-5.5-2026-04-23",
             "gpt-5.4",
             "gpt-5.4-mini",
             "gpt-5.4-nano",
@@ -356,6 +381,8 @@ class ResponseCreate(TypedDict, total=False):
             "gpt-4o-2024-11-20",
             "gpt-4o-2024-08-06",
             "gpt-4o-2024-05-13",
+            "gpt-audio-mini",
+            "gpt-audio-mini-2025-12-15",
             "gpt-4o-audio-preview",
             "gpt-4o-audio-preview-2024-10-01",
             "gpt-4o-audio-preview-2024-12-17",
@@ -399,19 +426,25 @@ class ResponseCreate(TypedDict, total=False):
             "o4-mini-deep-research-2025-06-26",
             "computer-use-preview",
             "computer-use-preview-2025-03-11",
+            "gpt-5.5-pro",
+            "gpt-5.5-pro-2026-04-23",
             "gpt-5-codex",
             "gpt-5-pro",
             "gpt-5-pro-2025-10-06",
             "gpt-5.1-codex-max",
+            "gpt-daybreak-blue-latest",
+            "gpt-daybreak-red-latest",
+            "gpt-5.6-cyber",
+            "gpt-rosalind-research",
         ],
         str,
     ]
-    """Model ID used to generate the response, like `gpt-4o` or `o3`.
+    """Model ID used to generate the response, like `gpt-6-astra`.
 
     OpenAI offers a wide range of models with different capabilities, performance
     characteristics, and price points. Refer to the
-    [model guide](https://platform.openai.com/docs/models) to browse and compare
-    available models.
+    [model guide](https://developers.openai.com/api/docs/models) to browse and
+    compare available models.
     """
 
     moderation: Optional[ResponseCreateModeration]
@@ -427,21 +460,21 @@ class ResponseCreate(TypedDict, total=False):
     """The unique ID of the previous response to the model.
 
     Use this to create multi-turn conversations. Learn more about
-    [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+    [conversation state](https://developers.openai.com/api/docs/guides/conversation-state).
     Cannot be used in conjunction with `conversation`.
     """
 
     prompt: Optional[BetaResponsePromptParam]
     """
     Reference to a prompt template and its variables.
-    [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
+    [Learn more](https://developers.openai.com/api/docs/guides/text?api-mode=responses#version-prompts-in-code).
     """
 
-    prompt_cache_key: str
+    prompt_cache_key: Optional[str]
     """
     Used by OpenAI to cache responses for similar requests to optimize your cache
     hit rates. Replaces the `user` field.
-    [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
+    [Learn more](https://developers.openai.com/api/docs/guides/prompt-caching).
     """
 
     prompt_cache_options: ResponseCreatePromptCacheOptions
@@ -454,7 +487,7 @@ class ResponseCreate(TypedDict, total=False):
     breakpoints in the conversation, without a content-block lookback limit. Set
     `mode` to `explicit` to disable the implicit breakpoint. The `ttl` defaults to
     `30m`, which is currently the only supported value. See the
-    [prompt caching guide](https://platform.openai.com/docs/guides/prompt-caching)
+    [prompt caching guide](https://developers.openai.com/api/docs/guides/prompt-caching)
     for current details.
     """
 
@@ -464,7 +497,7 @@ class ResponseCreate(TypedDict, total=False):
     The retention policy for the prompt cache. Set to `24h` to enable extended
     prompt caching, which keeps cached prefixes active for longer, up to a maximum
     of 24 hours.
-    [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
+    [Learn more](https://developers.openai.com/api/docs/guides/prompt-caching#prompt-cache-retention).
     This field expresses a maximum retention policy, while
     `prompt_cache_options.ttl` expresses a minimum cache lifetime. The two fields
     are independent and do not interact. For `gpt-5.5`, `gpt-5.5-pro`, and future
@@ -479,23 +512,22 @@ class ResponseCreate(TypedDict, total=False):
     """
 
     reasoning: Optional[ResponseCreateReasoning]
-    """**gpt-5 and o-series models only**
-
+    """
     Configuration options for
-    [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+    [reasoning models](https://developers.openai.com/api/docs/guides/reasoning).
     """
 
-    safety_identifier: str
+    safety_identifier: Optional[str]
     """
     A stable identifier used to help detect users of your application that may be
     violating OpenAI's usage policies. The IDs should be a string that uniquely
     identifies each user, with a maximum length of 64 characters. We recommend
     hashing their username or email address, in order to avoid sending us any
     identifying information.
-    [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+    [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
     """
 
-    service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]]
+    service_tier: Optional[BetaServiceTier]
     """Specifies the processing type used for serving the request.
 
     - If set to 'auto', then the request will be processed with the service tier
@@ -503,9 +535,19 @@ class ResponseCreate(TypedDict, total=False):
       will use 'default'.
     - If set to 'default', then the request will be processed with the standard
       pricing and performance for the selected model.
-    - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-      '[priority](https://openai.com/api-priority-processing/)', then the request
-      will be processed with the corresponding service tier.
+    - If set to
+      '[flex](https://developers.openai.com/api/docs/guides/flex-processing)', then
+      the request will be processed with the Flex Processing service tier.
+    - To opt-in to
+      [Fast mode](https://developers.openai.com/api/docs/guides/fast-mode) at the
+      request level, include the `service_tier=fast` or `service_tier=priority`
+      parameter for Responses or Chat Completions. The response will show
+      `service_tier=priority` regardless of if you specify `service_tier=fast` or
+      `priority` in your request.
+    - If set to 'ultrafast', then the request will be processed with the
+      access-controlled Ultrafast Processing service tier. This tier is currently
+      available for `gpt-5.6-sol`; a response served through it will show
+      `service_tier=ultrafast`.
     - When not set, the default behavior is 'auto'.
 
     When the `service_tier` parameter is set, the response body will include the
@@ -515,7 +557,12 @@ class ResponseCreate(TypedDict, total=False):
     """
 
     store: Optional[bool]
-    """Whether to store the generated model response for later retrieval via API."""
+    """Whether to store the generated model response for later retrieval via API.
+
+    Defaults to true when omitted. If set to true, response data will be stored for
+    at least 30 days, subject to the
+    [data retention exceptions](https://developers.openai.com/api/docs/guides/your-data#v1responses).
+    """
 
     stream: Optional[bool]
     """
@@ -523,8 +570,18 @@ class ResponseCreate(TypedDict, total=False):
     generated using
     [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
     See the
-    [Streaming section below](https://platform.openai.com/docs/api-reference/responses-streaming)
+    [Streaming section below](https://developers.openai.com/api/reference/resources/responses/streaming-events)
     for more information.
+    """
+
+    stream_id: str
+    """The WebSocket lane for this response.
+
+    Requests with the same `stream_id` are processed FIFO, and events for the
+    response echo the same `stream_id`.
+
+    `stream_id` controls routing; `previous_response_id` controls conversation
+    lineage, so a new lane can fork from a response created on another lane.
     """
 
     stream_options: Optional[ResponseCreateStreamOptions]
@@ -543,8 +600,8 @@ class ResponseCreate(TypedDict, total=False):
 
     Can be plain text or structured JSON data. Learn more:
 
-    - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
-    - [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs)
+    - [Text inputs and outputs](https://developers.openai.com/api/docs/guides/text)
+    - [Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs)
     """
 
     tool_choice: ResponseCreateToolChoice
@@ -563,17 +620,18 @@ class ResponseCreate(TypedDict, total=False):
 
     - **Built-in tools**: Tools that are provided by OpenAI that extend the model's
       capabilities, like
-      [web search](https://platform.openai.com/docs/guides/tools-web-search) or
-      [file search](https://platform.openai.com/docs/guides/tools-file-search).
+      [web search](https://developers.openai.com/api/docs/guides/tools-web-search)
+      or
+      [file search](https://developers.openai.com/api/docs/guides/tools-file-search).
       Learn more about
-      [built-in tools](https://platform.openai.com/docs/guides/tools).
+      [built-in tools](https://developers.openai.com/api/docs/guides/tools).
     - **MCP Tools**: Integrations with third-party systems via custom MCP servers or
       predefined connectors such as Google Drive and SharePoint. Learn more about
-      [MCP Tools](https://platform.openai.com/docs/guides/tools-connectors-mcp).
+      [MCP Tools](https://developers.openai.com/api/docs/guides/tools-connectors-mcp).
     - **Function calls (custom tools)**: Functions that are defined by you, enabling
       the model to call your own code with strongly typed arguments and outputs.
       Learn more about
-      [function calling](https://platform.openai.com/docs/guides/function-calling).
+      [function calling](https://developers.openai.com/api/docs/guides/function-calling).
       You can also use custom tools to call your own code.
     """
 
@@ -609,8 +667,10 @@ class ResponseCreate(TypedDict, total=False):
     Use `prompt_cache_key` instead to maintain caching optimizations. A stable
     identifier for your end-users. Used to boost cache hit rates by better bucketing
     similar requests and to help OpenAI detect and prevent abuse.
-    [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+    [Learn more](https://developers.openai.com/api/docs/guides/safety-best-practices#implement-safety-identifiers).
     """
 
 
-BetaResponsesClientEventParam: TypeAlias = Union[ResponseCreate, BetaResponseInjectEventParam]
+BetaResponsesClientEventParam: TypeAlias = Union[
+    ResponseCreate, BetaResponseSteerEventParam, BetaResponseInjectEventParam
+]

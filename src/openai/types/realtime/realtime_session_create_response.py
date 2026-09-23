@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import Dict, List, Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
@@ -307,7 +307,7 @@ ToolMcpToolRequireApproval: TypeAlias = Union[
 class ToolMcpTool(BaseModel):
     """
     Give the model access to additional tools via remote Model Context Protocol
-    (MCP) servers. [Learn more about MCP](https://platform.openai.com/docs/guides/tools-remote-mcp).
+    (MCP) servers. [Learn more about MCP](https://developers.openai.com/api/docs/guides/tools-connectors-mcp).
     """
 
     server_label: str
@@ -345,7 +345,11 @@ class ToolMcpTool(BaseModel):
 
     One of `server_url`, `connector_id`, or `tunnel_id` must be provided. Learn more
     about service connectors
-    [here](https://platform.openai.com/docs/guides/tools-remote-mcp#connectors).
+    [here](https://developers.openai.com/api/docs/guides/tools-connectors-mcp#connectors).
+
+    This field is deprecated for models released after September 1, 2026. Use
+    `server_url` to connect to a remote MCP server, or `tunnel_id` to connect
+    through a Secure MCP Tunnel.
 
     Currently supported `connector_id` values are:
 
@@ -501,7 +505,7 @@ class RealtimeSessionCreateResponse(BaseModel):
     prompt: Optional[ResponsePrompt] = None
     """
     Reference to a prompt template and its variables.
-    [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
+    [Learn more](https://developers.openai.com/api/docs/guides/text?api-mode=responses#version-prompts-in-code).
     """
 
     reasoning: Optional[RealtimeReasoning] = None

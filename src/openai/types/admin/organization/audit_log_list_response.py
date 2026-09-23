@@ -1,11 +1,15 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
-from typing import List, Optional
-from typing_extensions import Literal
+from typing import List, Union, Optional
+from typing_extensions import Literal, Annotated, TypeAlias
 
 from pydantic import Field as FieldInfo
 
+from ...._utils import PropertyInfo
 from ...._models import BaseModel
+from .aws_external_storage_provider import AwsExternalStorageProvider
+from .gcp_external_storage_provider import GcpExternalStorageProvider
+from .azure_external_storage_provider import AzureExternalStorageProvider
 
 __all__ = [
     "AuditLogListResponse",
@@ -32,6 +36,10 @@ __all__ = [
     "CheckpointPermissionDeleted",
     "ExternalKeyRegistered",
     "ExternalKeyRemoved",
+    "ExternalStorageRegistered",
+    "ExternalStorageRegisteredData",
+    "ExternalStorageRegisteredDataProvider",
+    "ExternalStorageRemoved",
     "GroupCreated",
     "GroupCreatedData",
     "GroupDeleted",
@@ -303,6 +311,39 @@ class ExternalKeyRemoved(BaseModel):
 
     id: Optional[str] = None
     """The ID of the external key configuration."""
+
+
+ExternalStorageRegisteredDataProvider: TypeAlias = Annotated[
+    Union[AwsExternalStorageProvider, AzureExternalStorageProvider, GcpExternalStorageProvider],
+    PropertyInfo(discriminator="type"),
+]
+
+
+class ExternalStorageRegisteredData(BaseModel):
+    """The configuration for the external storage."""
+
+    geography: Optional[str] = None
+    """The OpenAI geography derived from the storage region."""
+
+    provider: Optional[ExternalStorageRegisteredDataProvider] = None
+    """The external storage provider configuration."""
+
+
+class ExternalStorageRegistered(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The ID of the external storage configuration."""
+
+    data: Optional[ExternalStorageRegisteredData] = None
+    """The configuration for the external storage."""
+
+
+class ExternalStorageRemoved(BaseModel):
+    """The details for events with this `type`."""
+
+    id: Optional[str] = None
+    """The ID of the external storage configuration."""
 
 
 class GroupCreatedData(BaseModel):
@@ -990,6 +1031,8 @@ class AuditLogListResponse(BaseModel):
         "checkpoint.permission.deleted",
         "external_key.registered",
         "external_key.removed",
+        "external_storage.registered",
+        "external_storage.removed",
         "group.created",
         "group.updated",
         "group.deleted",
@@ -1037,6 +1080,94 @@ class AuditLogListResponse(BaseModel):
         "user.added",
         "user.updated",
         "user.deleted",
+        "tenant.metadata.updated",
+        "tenant.microsoft_entra_mapping.upserted",
+        "tenant.microsoft_entra_mapping.deleted",
+        "tenant.workload_identity.provider.created",
+        "tenant.workload_identity.provider.updated",
+        "tenant.workload_identity.provider.archived",
+        "tenant.workload_identity.mapping.created",
+        "tenant.workload_identity.mapping.updated",
+        "tenant.workload_identity.mapping.archived",
+        "tenant.workload_identity.binding.created",
+        "tenant.workload_identity.principal.provisioned",
+        "tenant.workload_identity.access_token.issued",
+        "tenant.admin_api_key.created",
+        "tenant.admin_api_key.updated",
+        "tenant.admin_api_key.deleted",
+        "tenant.project_api_key.created",
+        "tenant.trusted_access.business_verification.started",
+        "tenant.trusted_access.application.submitted",
+        "tenant.chatgpt_access_token.revoked",
+        "tenant.migration.completed",
+        "tenant.sso.migrated",
+        "tenant.domains.migrated",
+        "tenant.sso_connection.created",
+        "tenant.sso_connection.updated",
+        "tenant.sso_connection.deleted",
+        "tenant.sso_connection.setup.started",
+        "tenant.policy.created",
+        "tenant.policy.updated",
+        "tenant.policy.deleted",
+        "tenant.policy.attached",
+        "tenant.policy.detached",
+        "tenant.principal_authentication_policy.resolved",
+        "tenant.scim.setup.started",
+        "tenant.scim.deletion.requested",
+        "tenant.scim.directory.created",
+        "tenant.product_access_policy.updated",
+        "tenant.resource_share_grant.created",
+        "tenant.resource_share_grant.updated",
+        "tenant.resource_share_grant.accepted",
+        "tenant.resource_share_grant.declined",
+        "tenant.resource_share_grant.revoked",
+        "tenant.resource_share_grant.deleted",
+        "tenant.service_account.updated",
+        "tenant.service_account.deleted",
+        "tenant.service_account.token.revoked",
+        "tenant.billing.overage_limit.updated",
+        "tenant.billing.alerts.updated",
+        "tenant.billing.info.updated",
+        "tenant.usage_limit.workspace.updated",
+        "tenant.usage_limit.group.updated",
+        "tenant.usage_limit.user.updated",
+        "tenant.usage_limit.increase_request.updated",
+        "tenant.usage_limit.increase_request.resolved",
+        "tenant.group.created",
+        "tenant.group.updated",
+        "tenant.group.deleted",
+        "tenant.group.member.added",
+        "tenant.group.member.removed",
+        "tenant.migration_rollout.status.updated",
+        "tenant.migration_rollout.tier.updated",
+        "tenant.role.metadata.updated",
+        "tenant.custom_role.created",
+        "tenant.custom_role.updated",
+        "tenant.custom_role.deleted",
+        "tenant.role_assignment.created",
+        "tenant.role_assignment.deleted",
+        "tenant.resource_role_assignment.created",
+        "tenant.resource_role_assignment.deleted",
+        "tenant.resource_access.updated",
+        "tenant.resource_access.deleted",
+        "tenant.ads_account.onboarding.redemption",
+        "tenant.session_policy.created",
+        "tenant.session_policy.updated",
+        "tenant.session_policy.deleted",
+        "tenant.session_revocation.started",
+        "tenant.third_party_app_policy.updated",
+        "tenant.user.added",
+        "tenant.user.updated",
+        "tenant.user.removed",
+        "tenant.user.looked_up",
+        "tenant.user.invited",
+        "tenant.membership.revoked",
+        "tenant.api_organization_invite.upserted",
+        "tenant.api_organization_invite.deleted",
+        "tenant.chatgpt_workspace_invite.upserted",
+        "tenant.membership.accepted",
+        "tenant.membership.declined",
+        "tenant.workspace_invite_email_settings.updated",
     ]
     """The event type."""
 
@@ -1086,6 +1217,16 @@ class AuditLogListResponse(BaseModel):
     """The details for events with this `type`."""
 
     external_key_removed: Optional[ExternalKeyRemoved] = FieldInfo(alias="external_key.removed", default=None)
+    """The details for events with this `type`."""
+
+    external_storage_registered: Optional[ExternalStorageRegistered] = FieldInfo(
+        alias="external_storage.registered", default=None
+    )
+    """The details for events with this `type`."""
+
+    external_storage_removed: Optional[ExternalStorageRemoved] = FieldInfo(
+        alias="external_storage.removed", default=None
+    )
     """The details for events with this `type`."""
 
     group_created: Optional[GroupCreated] = FieldInfo(alias="group.created", default=None)

@@ -4,7 +4,7 @@ from typing import Callable, Protocol, Awaitable
 from weakref import WeakKeyDictionary
 from dataclasses import dataclass
 
-import httpx
+import httpx2
 
 from ._models import FinalRequestOptions
 from ._exceptions import OpenAIError
@@ -19,13 +19,13 @@ class _Provider:
 @dataclass
 class _ProviderRuntime:
     name: str
-    base_url: str | httpx.URL
+    base_url: str | httpx2.URL
     transform_request: Callable[[FinalRequestOptions], FinalRequestOptions] | None = None
     transform_async_request: Callable[[FinalRequestOptions], Awaitable[FinalRequestOptions]] | None = None
-    prepare_request: Callable[[httpx.Request], None] | None = None
-    prepare_async_request: Callable[[httpx.Request], Awaitable[None]] | None = None
-    normalize_response: Callable[[httpx.Response], httpx.Response] | None = None
-    normalize_async_response: Callable[[httpx.Response], Awaitable[httpx.Response]] | None = None
+    prepare_request: Callable[[httpx2.Request], None] | None = None
+    prepare_async_request: Callable[[httpx2.Request], Awaitable[None]] | None = None
+    normalize_response: Callable[[httpx2.Response], httpx2.Response] | None = None
+    normalize_async_response: Callable[[httpx2.Response], Awaitable[httpx2.Response]] | None = None
 
 
 class _ProviderDefinition(Protocol):

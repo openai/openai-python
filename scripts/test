@@ -10,7 +10,7 @@ YELLOW='\033[0;33m'
 NC='\033[0m' # No Color
 
 function steady_is_running() {
-  curl --silent "http://127.0.0.1:4010/_x-steady/health" >/dev/null 2>&1
+  curl --silent --fail "http://127.0.0.1:4010/_x-steady/health" >/dev/null 2>&1
 }
 
 kill_server_on_port() {
@@ -43,7 +43,8 @@ elif ! steady_is_running ; then
   echo -e "To run the server, pass in the path or url of your OpenAPI"
   echo -e "spec to the steady command:"
   echo
-  echo -e "  \$ ${YELLOW}npm exec --package=@stdy/cli@0.22.1 -- steady path/to/your.openapi.yml --host 127.0.0.1 -p 4010 --validator-query-array-format=brackets --validator-form-array-format=brackets --validator-query-object-format=brackets --validator-form-object-format=brackets${NC}"
+  echo -e "  \$ ${YELLOW}./scripts/bootstrap${NC}"
+  echo -e "  \$ ${YELLOW}./scripts/mock path/to/your.openapi.yml${NC}"
   echo
 
   exit 1
@@ -54,8 +55,12 @@ fi
 
 export DEFER_PYDANTIC_BUILD=false
 
+if [ "${OPENAI_TEST_HTTP_CLIENT:-httpx}" = "httpx2" ]; then
+  echo "==> Using HTTPX2 for sync and async API-resource clients (including RESPX-backed cases)"
+fi
+
 echo "==> Running tests"
-rye run pytest "$@"
+uv run --locked --all-extras pytest "$@"
 
 echo "==> Running Pydantic v1 tests"
-rye run nox -s test-pydantic-v1 -- "$@"
+./scripts/test-pydantic-v1 "$@"

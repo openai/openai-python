@@ -1,9 +1,11 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 from typing import Optional
 from typing_extensions import Literal, Required, TypedDict
+
+from .image_detail import ImageDetail
 
 __all__ = ["ResponseInputImageParam", "PromptCacheBreakpoint"]
 
@@ -21,10 +23,10 @@ class PromptCacheBreakpoint(TypedDict, total=False):
 class ResponseInputImageParam(TypedDict, total=False):
     """An image input to the model.
 
-    Learn about [image inputs](https://platform.openai.com/docs/guides/vision).
+    Learn about [image inputs](https://developers.openai.com/api/docs/guides/images-vision).
     """
 
-    detail: Required[Literal["low", "high", "auto", "original"]]
+    detail: Required[ImageDetail]
     """The detail level of the image to be sent to the model.
 
     One of `high`, `low`, `auto`, or `original`. Defaults to `auto`.

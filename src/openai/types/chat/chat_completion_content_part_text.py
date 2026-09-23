@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# File generated from our OpenAPI spec by Castiron. See CONTRIBUTING.md for details.
 
 from typing import Optional
 from typing_extensions import Literal
@@ -19,9 +19,7 @@ class PromptCacheBreakpoint(BaseModel):
 
 
 class ChatCompletionContentPartText(BaseModel):
-    """
-    Learn about [text inputs](https://platform.openai.com/docs/guides/text-generation).
-    """
+    """Learn about [text inputs](https://developers.openai.com/api/docs/guides/text)."""
 
     text: str
     """The text content."""
