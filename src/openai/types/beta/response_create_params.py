@@ -24,6 +24,7 @@ from .beta_response_conversation_param_param import BetaResponseConversationPara
 
 __all__ = [
     "ResponseCreateParamsBase",
+    "AccessPrograms",
     "ContextManagement",
     "Conversation",
     "Moderation",
@@ -42,6 +43,9 @@ __all__ = [
 
 
 class ResponseCreateParamsBase(TypedDict, total=False):
+    access_programs: AccessPrograms
+    """Domain-specific access programs to use for this request."""
+
     background: Optional[bool]
     """
     Whether to run the model response in the background.
@@ -451,6 +455,24 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     """
 
     betas: Annotated[List[Literal["responses_multi_agent=v1"]], PropertyInfo(alias="openai-beta")]
+
+
+class AccessPrograms(TypedDict, total=False):
+    """Domain-specific access programs to use for this request."""
+
+    cyber: Literal["standard", "daybreak_blue", "daybreak_red"]
+    """The Cyber access program to use for this request.
+
+    Supported values are `standard`, `daybreak_blue`, and `daybreak_red`. If
+    omitted, the API resolves the program from the model's Cyber tier and your
+    organization and project access, subject to model-specific eligibility
+    restrictions. By default, models without a Cyber tier use Standard. Blue-tier
+    models use Daybreak Blue when authorized; otherwise they fall back to Standard
+    unless the model requires Daybreak access. Red-tier models use Daybreak Red and
+    require authorization. Requests that require unavailable Daybreak access
+    return 403. An implicit Standard fallback is represented by null in the
+    response's access_programs field, rather than an explicit Standard selection.
+    """
 
 
 class ContextManagement(TypedDict, total=False):

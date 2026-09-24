@@ -25,6 +25,7 @@ from .beta_tool_choice_apply_patch import BetaToolChoiceApplyPatch
 
 __all__ = [
     "BetaResponse",
+    "AccessPrograms",
     "IncompleteDetails",
     "ToolChoice",
     "ToolChoiceBetaSpecificProgrammaticToolCallingParam",
@@ -44,6 +45,11 @@ __all__ = [
     "PromptCacheOptions",
     "Reasoning",
 ]
+
+
+class AccessPrograms(BaseModel):
+    cyber: Literal["standard", "daybreak_blue", "daybreak_red"]
+    """The effective Cyber access program used for this response."""
 
 
 class IncompleteDetails(BaseModel):
@@ -310,6 +316,8 @@ class Reasoning(BaseModel):
 class BetaResponse(BaseModel):
     id: str
     """Unique identifier for this Response."""
+
+    access_programs: Optional[AccessPrograms] = None
 
     created_at: float
     """Unix timestamp (in seconds) of when this Response was created."""

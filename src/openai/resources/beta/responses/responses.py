@@ -112,6 +112,7 @@ class Responses(SyncAPIResource):
     def create(
         self,
         *,
+        access_programs: response_create_params.AccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
         context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
@@ -280,6 +281,8 @@ class Responses(SyncAPIResource):
         to use your own data as input for the model's response.
 
         Args:
+          access_programs: Domain-specific access programs to use for this request.
+
           background: Whether to run the model response in the background.
               [Learn more](https://developers.openai.com/api/docs/guides/background).
 
@@ -519,6 +522,7 @@ class Responses(SyncAPIResource):
         self,
         *,
         stream: Literal[True],
+        access_programs: response_create_params.AccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
         context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
@@ -692,6 +696,8 @@ class Responses(SyncAPIResource):
               See the
               [Streaming section below](https://developers.openai.com/api/reference/resources/responses/streaming-events)
               for more information.
+
+          access_programs: Domain-specific access programs to use for this request.
 
           background: Whether to run the model response in the background.
               [Learn more](https://developers.openai.com/api/docs/guides/background).
@@ -925,6 +931,7 @@ class Responses(SyncAPIResource):
         self,
         *,
         stream: bool,
+        access_programs: response_create_params.AccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
         context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
@@ -1098,6 +1105,8 @@ class Responses(SyncAPIResource):
               See the
               [Streaming section below](https://developers.openai.com/api/reference/resources/responses/streaming-events)
               for more information.
+
+          access_programs: Domain-specific access programs to use for this request.
 
           background: Whether to run the model response in the background.
               [Learn more](https://developers.openai.com/api/docs/guides/background).
@@ -1329,6 +1338,7 @@ class Responses(SyncAPIResource):
     def create(
         self,
         *,
+        access_programs: response_create_params.AccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
         context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
@@ -1490,6 +1500,7 @@ class Responses(SyncAPIResource):
             "/responses?beta=true",
             body=maybe_transform(
                 {
+                    "access_programs": access_programs,
                     "background": background,
                     "context_management": context_management,
                     "conversation": conversation,
@@ -2114,6 +2125,7 @@ class AsyncResponses(AsyncAPIResource):
     async def create(
         self,
         *,
+        access_programs: response_create_params.AccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
         context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
@@ -2282,6 +2294,8 @@ class AsyncResponses(AsyncAPIResource):
         to use your own data as input for the model's response.
 
         Args:
+          access_programs: Domain-specific access programs to use for this request.
+
           background: Whether to run the model response in the background.
               [Learn more](https://developers.openai.com/api/docs/guides/background).
 
@@ -2521,6 +2535,7 @@ class AsyncResponses(AsyncAPIResource):
         self,
         *,
         stream: Literal[True],
+        access_programs: response_create_params.AccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
         context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
@@ -2694,6 +2709,8 @@ class AsyncResponses(AsyncAPIResource):
               See the
               [Streaming section below](https://developers.openai.com/api/reference/resources/responses/streaming-events)
               for more information.
+
+          access_programs: Domain-specific access programs to use for this request.
 
           background: Whether to run the model response in the background.
               [Learn more](https://developers.openai.com/api/docs/guides/background).
@@ -2927,6 +2944,7 @@ class AsyncResponses(AsyncAPIResource):
         self,
         *,
         stream: bool,
+        access_programs: response_create_params.AccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
         context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
@@ -3100,6 +3118,8 @@ class AsyncResponses(AsyncAPIResource):
               See the
               [Streaming section below](https://developers.openai.com/api/reference/resources/responses/streaming-events)
               for more information.
+
+          access_programs: Domain-specific access programs to use for this request.
 
           background: Whether to run the model response in the background.
               [Learn more](https://developers.openai.com/api/docs/guides/background).
@@ -3331,6 +3351,7 @@ class AsyncResponses(AsyncAPIResource):
     async def create(
         self,
         *,
+        access_programs: response_create_params.AccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
         context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
@@ -3492,6 +3513,7 @@ class AsyncResponses(AsyncAPIResource):
             "/responses?beta=true",
             body=await async_maybe_transform(
                 {
+                    "access_programs": access_programs,
                     "background": background,
                     "context_management": context_management,
                     "conversation": conversation,
@@ -5195,6 +5217,7 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
     def create(
         self,
         *,
+        access_programs: beta_responses_client_event_param.ResponseCreateAccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
         context_management: Optional[Iterable[beta_responses_client_event_param.ResponseCreateContextManagement]]
         | Omit = omit,
@@ -5359,6 +5382,7 @@ class ResponsesResponseResource(BaseResponsesConnectionResource):
                 strip_not_given(
                     {
                         "type": "response.create",
+                        "access_programs": access_programs,
                         "background": background,
                         "context_management": context_management,
                         "conversation": conversation,
@@ -5449,6 +5473,7 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
     async def create(
         self,
         *,
+        access_programs: beta_responses_client_event_param.ResponseCreateAccessPrograms | Omit = omit,
         background: Optional[bool] | Omit = omit,
         context_management: Optional[Iterable[beta_responses_client_event_param.ResponseCreateContextManagement]]
         | Omit = omit,
@@ -5613,6 +5638,7 @@ class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
                 strip_not_given(
                     {
                         "type": "response.create",
+                        "access_programs": access_programs,
                         "background": background,
                         "context_management": context_management,
                         "conversation": conversation,
