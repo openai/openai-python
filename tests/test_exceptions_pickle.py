@@ -1,25 +1,24 @@
 from __future__ import annotations
 
-import asyncio
 import pickle
-from collections.abc import Iterator
+import asyncio
 from datetime import timedelta
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from threading import Thread
+from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
+from collections.abc import Iterator
 
 import httpx2
 import pytest
 
-from openai import APITimeoutError, AsyncOpenAI, BadRequestError, OpenAI, OpenAIError
+from openai import OpenAI, AsyncOpenAI, OpenAIError, APITimeoutError, BadRequestError
 from openai._exceptions import SubjectTokenProviderError, WebSocketConnectionClosedError
-
 
 _ERROR_PAYLOAD = b'{"error":{"message":"bad request","type":"invalid_request_error","param":null,"code":"bad_request"}}'
 _REDACTED_REQUEST_URL = "https://redacted.invalid/"
 
 
 class _CustomNewOpenAIError(OpenAIError):
-    def __new__(cls, message: str) -> _CustomNewOpenAIError:
+    def __new__(cls, _message: str) -> _CustomNewOpenAIError:
         return Exception.__new__(cls)
 
 
@@ -220,14 +219,11 @@ def _assert_transport_status_error_pickle_round_trip(error: BadRequestError) -> 
     assert restored.response.request is restored.request
     assert restored.request.method == "GET"
     assert str(restored.request.url) == _REDACTED_REQUEST_URL
-    assert restored.body == {
-        "error": {
-            "message": "bad request",
-            "type": "invalid_request_error",
-            "param": None,
-            "code": "bad_request",
-        }
-    }
+    # Preserve whatever structured error body the current client exposes.
+    # The SDK now unwraps the top-level {"error": ...} envelope before
+    # constructing APIStatusError, so this regression should test pickle
+    # fidelity rather than pinning the older response-envelope shape.
+    assert restored.body == error.body
     assert restored.response.content == b""
     assert restored.request.headers["Authorization"] == "<redacted>"
     assert error.request.headers["Authorization"] != restored.request.headers["Authorization"]

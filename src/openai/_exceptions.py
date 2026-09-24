@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import sys
-from datetime import timedelta
 from typing import TYPE_CHECKING, Any, Optional, cast
+from datetime import timedelta
 from typing_extensions import Literal, override
 
 import httpx2
@@ -97,8 +97,7 @@ def _is_http_response(value: object) -> bool:
 
 def _snapshot_headers(headers: Any) -> list[tuple[bytes, bytes]]:
     return [
-        (name, value if name.lower() in _SAFE_HEADER_VALUES else _REDACTED_HEADER_VALUE)
-        for name, value in headers.raw
+        (name, value if name.lower() in _SAFE_HEADER_VALUES else _REDACTED_HEADER_VALUE) for name, value in headers.raw
     ]
 
 
@@ -267,7 +266,8 @@ class APIError(OpenAIError):
         self.body = body
 
         if is_dict(body):
-            self.code = cast(Any, construct_type(type_=Optional[str], value=body.get("code")))
+            code = body.get("code")
+            self.code = str(code) if code is not None else None
             self.param = cast(Any, construct_type(type_=Optional[str], value=body.get("param")))
             self.type = cast(Any, construct_type(type_=str, value=body.get("type")))
         else:
@@ -377,10 +377,17 @@ class LengthFinishReasonError(OpenAIError):
 
 
 class ContentFilterFinishReasonError(OpenAIError):
-    def __init__(self) -> None:
+    completion: ChatCompletion | None
+    """The completion that caused this error, if provided.
+
+    When streaming, this is the accumulated completion and may not include usage.
+    """
+
+    def __init__(self, *, completion: ChatCompletion | None = None) -> None:
         super().__init__(
-            f"Could not parse response content as the request was rejected by the content filter",
+            "Could not parse response content as the request was rejected by the content filter",
         )
+        self.completion = completion
 
 
 class InvalidWebhookSignatureError(ValueError):

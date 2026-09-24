@@ -1,18 +1,18 @@
 from __future__ import annotations
 
-import asyncio
-import importlib
 import os
 import pickle
+import asyncio
+import importlib
 import threading
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any, cast
+from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from typing_extensions import override
 
 import httpx2
 import pytest
 
-from openai import AsyncOpenAI, BadRequestError, OpenAI
+from openai import OpenAI, AsyncOpenAI, BadRequestError
 
 pytestmark = pytest.mark.skipif(
     os.environ.get("OPENAI_TEST_LEGACY_HTTPX") != "1", reason="requires the dedicated legacy HTTPX compatibility lane"
