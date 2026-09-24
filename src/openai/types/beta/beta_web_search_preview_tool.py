@@ -9,10 +9,7 @@ __all__ = ["BetaWebSearchPreviewTool", "UserLocation"]
 
 
 class UserLocation(BaseModel):
-    """The approximate location of the user.
-
-    If omitted or null, defaults to the United States. To avoid this fallback, pass `{"type": "approximate"}` without location fields. To localize results, provide the relevant location fields.
-    """
+    """The user's location."""
 
     type: Literal["approximate"]
     """The type of location approximation. Always `approximate`."""
@@ -58,9 +55,4 @@ class BetaWebSearchPreviewTool(BaseModel):
     """
 
     user_location: Optional[UserLocation] = None
-    """The approximate location of the user.
-
-    If omitted or null, defaults to the United States. To avoid this fallback, pass
-    `{"type": "approximate"}` without location fields. To localize results, provide
-    the relevant location fields.
-    """
+    """The user's location."""

@@ -26,6 +26,7 @@ from .beta_response_conversation_param_param import BetaResponseConversationPara
 __all__ = [
     "BetaResponsesClientEventParam",
     "ResponseCreate",
+    "ResponseCreateAccessPrograms",
     "ResponseCreateContextManagement",
     "ResponseCreateConversation",
     "ResponseCreateModeration",
@@ -39,6 +40,24 @@ __all__ = [
     "ResponseCreateToolChoice",
     "ResponseCreateToolChoiceBetaSpecificProgrammaticToolCallingParam",
 ]
+
+
+class ResponseCreateAccessPrograms(TypedDict, total=False):
+    """Domain-specific access programs to use for this request."""
+
+    cyber: Literal["standard", "daybreak_blue", "daybreak_red"]
+    """The Cyber access program to use for this request.
+
+    Supported values are `standard`, `daybreak_blue`, and `daybreak_red`. If
+    omitted, the API resolves the program from the model's Cyber tier and your
+    organization and project access, subject to model-specific eligibility
+    restrictions. By default, models without a Cyber tier use Standard. Blue-tier
+    models use Daybreak Blue when authorized; otherwise they fall back to Standard
+    unless the model requires Daybreak access. Red-tier models use Daybreak Red and
+    require authorization. Requests that require unavailable Daybreak access
+    return 403. An implicit Standard fallback is represented by null in the
+    response's access_programs field, rather than an explicit Standard selection.
+    """
 
 
 class ResponseCreateContextManagement(TypedDict, total=False):
@@ -241,6 +260,9 @@ class ResponseCreate(TypedDict, total=False):
 
     type: Required[Literal["response.create"]]
     """The type of the client event. Always `response.create`."""
+
+    access_programs: ResponseCreateAccessPrograms
+    """Domain-specific access programs to use for this request."""
 
     background: Optional[bool]
     """
