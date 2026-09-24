@@ -92,6 +92,14 @@ from .data_retention import (
     DataRetentionWithStreamingResponse,
     AsyncDataRetentionWithStreamingResponse,
 )
+from .external_storage import (
+    ExternalStorage,
+    AsyncExternalStorage,
+    ExternalStorageWithRawResponse,
+    AsyncExternalStorageWithRawResponse,
+    ExternalStorageWithStreamingResponse,
+    AsyncExternalStorageWithStreamingResponse,
+)
 from .projects.projects import (
     Projects,
     AsyncProjects,
@@ -137,6 +145,10 @@ class Organization(SyncAPIResource):
     @cached_property
     def data_retention(self) -> DataRetention:
         return DataRetention(self._client)
+
+    @cached_property
+    def external_storage(self) -> ExternalStorage:
+        return ExternalStorage(self._client)
 
     @cached_property
     def spend_limit(self) -> SpendLimit:
@@ -207,6 +219,10 @@ class AsyncOrganization(AsyncAPIResource):
     @cached_property
     def data_retention(self) -> AsyncDataRetention:
         return AsyncDataRetention(self._client)
+
+    @cached_property
+    def external_storage(self) -> AsyncExternalStorage:
+        return AsyncExternalStorage(self._client)
 
     @cached_property
     def spend_limit(self) -> AsyncSpendLimit:
@@ -282,6 +298,10 @@ class OrganizationWithRawResponse:
         return DataRetentionWithRawResponse(self._organization.data_retention)
 
     @cached_property
+    def external_storage(self) -> ExternalStorageWithRawResponse:
+        return ExternalStorageWithRawResponse(self._organization.external_storage)
+
+    @cached_property
     def spend_limit(self) -> SpendLimitWithRawResponse:
         return SpendLimitWithRawResponse(self._organization.spend_limit)
 
@@ -334,6 +354,10 @@ class AsyncOrganizationWithRawResponse:
     @cached_property
     def data_retention(self) -> AsyncDataRetentionWithRawResponse:
         return AsyncDataRetentionWithRawResponse(self._organization.data_retention)
+
+    @cached_property
+    def external_storage(self) -> AsyncExternalStorageWithRawResponse:
+        return AsyncExternalStorageWithRawResponse(self._organization.external_storage)
 
     @cached_property
     def spend_limit(self) -> AsyncSpendLimitWithRawResponse:
@@ -390,6 +414,10 @@ class OrganizationWithStreamingResponse:
         return DataRetentionWithStreamingResponse(self._organization.data_retention)
 
     @cached_property
+    def external_storage(self) -> ExternalStorageWithStreamingResponse:
+        return ExternalStorageWithStreamingResponse(self._organization.external_storage)
+
+    @cached_property
     def spend_limit(self) -> SpendLimitWithStreamingResponse:
         return SpendLimitWithStreamingResponse(self._organization.spend_limit)
 
@@ -442,6 +470,10 @@ class AsyncOrganizationWithStreamingResponse:
     @cached_property
     def data_retention(self) -> AsyncDataRetentionWithStreamingResponse:
         return AsyncDataRetentionWithStreamingResponse(self._organization.data_retention)
+
+    @cached_property
+    def external_storage(self) -> AsyncExternalStorageWithStreamingResponse:
+        return AsyncExternalStorageWithStreamingResponse(self._organization.external_storage)
 
     @cached_property
     def spend_limit(self) -> AsyncSpendLimitWithStreamingResponse:

@@ -243,7 +243,7 @@ class BaseAPIResponse(Generic[R]):
         # in the response, e.g. application/json; charset=utf-8
         content_type, *_ = response.headers.get("content-type", "*").split(";")
         if not content_type.endswith("json"):
-            if is_basemodel(cast_to):
+            if is_basemodel(cast(type, cast_to)):
                 try:
                     data = response.json()
                 except Exception as exc:
@@ -589,7 +589,7 @@ class StreamAlreadyConsumed(OpenAIError):
     been streamed.
 
     This can happen if you use a method like `.iter_lines()` and then attempt
-    to read th entire response body afterwards, e.g.
+    to read the entire response body afterwards, e.g.
 
     ```py
     response = await client.post(...)

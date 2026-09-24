@@ -391,7 +391,7 @@ class AzureOpenAI(BaseAzureClient[httpx2.Client, Stream[Any]], OpenAI):
         _extra_kwargs: Mapping[str, Any] = {},
     ) -> Self:
         """
-        Create a new client instance re-using the same options given to the current client with optional overriding.
+        Create a new client instance reusing the same options given to the current client with optional overriding.
         """
         if data_residency is not None:
             raise OpenAIError("`data_residency` is only supported by OpenAI clients")
@@ -410,7 +410,7 @@ class AzureOpenAI(BaseAzureClient[httpx2.Client, Stream[Any]], OpenAI):
             current_provider=self._azure_ad_token_provider,
         )
 
-        return super().copy(
+        copied = super().copy(
             api_key=api_key,
             admin_api_key=admin_api_key,
             workload_identity=workload_identity,
@@ -434,6 +434,14 @@ class AzureOpenAI(BaseAzureClient[httpx2.Client, Stream[Any]], OpenAI):
                 **_extra_kwargs,
             },
         )
+        # `super().copy()` reconstructs the client from `base_url`, which does not carry the
+        # Azure endpoint/deployment context that `_prepare_url` relies on to route
+        # non-deployment endpoints (e.g. `/models`). Preserve it unless the caller overrides
+        # the base URL.
+        if base_url is None:
+            copied._azure_endpoint = self._azure_endpoint
+            copied._azure_deployment = self._azure_deployment
+        return copied
 
     with_options = copy
 
@@ -743,7 +751,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx2.AsyncClient, AsyncStream[Any]], As
         _extra_kwargs: Mapping[str, Any] = {},
     ) -> Self:
         """
-        Create a new client instance re-using the same options given to the current client with optional overriding.
+        Create a new client instance reusing the same options given to the current client with optional overriding.
         """
         if data_residency is not None:
             raise OpenAIError("`data_residency` is only supported by OpenAI clients")
@@ -762,7 +770,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx2.AsyncClient, AsyncStream[Any]], As
             current_provider=self._azure_ad_token_provider,
         )
 
-        return super().copy(
+        copied = super().copy(
             api_key=api_key,
             admin_api_key=admin_api_key,
             workload_identity=workload_identity,
@@ -786,6 +794,14 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx2.AsyncClient, AsyncStream[Any]], As
                 **_extra_kwargs,
             },
         )
+        # `super().copy()` reconstructs the client from `base_url`, which does not carry the
+        # Azure endpoint/deployment context that `_prepare_url` relies on to route
+        # non-deployment endpoints (e.g. `/models`). Preserve it unless the caller overrides
+        # the base URL.
+        if base_url is None:
+            copied._azure_endpoint = self._azure_endpoint
+            copied._azure_deployment = self._azure_deployment
+        return copied
 
     with_options = copy
 
