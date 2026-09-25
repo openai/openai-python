@@ -43,7 +43,7 @@ def _load_env_file() -> None:
             raise RuntimeError(f"BEDROCK_LIVE_ENV_FILE does not exist: {path}")
         return
 
-    for line_number, raw_line in enumerate(path.read_text().splitlines(), start=1):
+    for line_number, raw_line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
         line = raw_line.strip()
         if not line or line.startswith("#"):
             continue

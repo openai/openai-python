@@ -22,9 +22,9 @@ from openai.lib._bedrock_auth import BedrockAwsAuth, BedrockAwsAuthConfig
 FIXTURE_PATH = Path(__file__).parents[1] / "fixtures" / "bedrock_auth" / "v1" / "cases.json"
 SCHEMA_PATH = FIXTURE_PATH.with_name("schema.json")
 SHARED_SIGV4_FIXTURE_PATH = Path(__file__).parents[1] / "fixtures" / "bedrock" / "v1" / "sigv4.json"
-FIXTURES = cast(dict[str, Any], json.loads(FIXTURE_PATH.read_text()))
-SCHEMA = cast(dict[str, Any], json.loads(SCHEMA_PATH.read_text()))
-SHARED_SIGV4_FIXTURE = cast(dict[str, Any], json.loads(SHARED_SIGV4_FIXTURE_PATH.read_text()))
+FIXTURES = cast(dict[str, Any], json.loads(FIXTURE_PATH.read_text(encoding="utf-8")))
+SCHEMA = cast(dict[str, Any], json.loads(SCHEMA_PATH.read_text(encoding="utf-8")))
+SHARED_SIGV4_FIXTURE = cast(dict[str, Any], json.loads(SHARED_SIGV4_FIXTURE_PATH.read_text(encoding="utf-8")))
 
 # This is deliberately specific to the small, checked-in v1 fixture contract.
 _REQUIRED_CASE_FIELDS: dict[str, dict[str, list[str]]] = {
