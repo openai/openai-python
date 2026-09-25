@@ -6025,6 +6025,24 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ListFilesResponse'
+        '400':
+          description: The file listing parameters are invalid.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: The file specified by the after cursor was not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Too many file requests. Reduce the request rate and try again later.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
       x-oaiMeta:
         group: files
         examples:
@@ -6122,6 +6140,24 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OpenAIFile'
+        '400':
+          description: The file upload request is invalid or exceeds a file size or storage quota limit.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Too many file requests. Reduce the request rate and try again later.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: The file could not be uploaded because of a server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
       x-oaiMeta:
         group: files
         examples:
@@ -6196,6 +6232,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeleteFileResponse'
+        '404':
+          description: The file was not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Too many file requests. Reduce the request rate and try again later.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
       x-oaiMeta:
         group: files
         examples:
@@ -6247,6 +6295,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OpenAIFile'
+        '404':
+          description: The file was not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Too many file requests. Reduce the request rate and try again later.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
       x-oaiMeta:
         group: files
         examples:
@@ -6302,6 +6362,30 @@ paths:
             application/json:
               schema:
                 type: string
+        '400':
+          description: The file cannot be downloaded for its purpose or the account does not have permission to download it.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: The file was not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Too many file requests. Reduce the request rate and try again later.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: The file could not be downloaded because of a server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
       x-oaiMeta:
         group: files
         examples:
@@ -20874,6 +20958,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Upload'
+        '400':
+          description: The upload request is invalid or exceeds a file size or storage quota limit.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Too many upload requests. Reduce the request rate and try again later.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
       x-oaiMeta:
         group: uploads
         examples:
@@ -20928,6 +21024,30 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Upload'
+        '400':
+          description: The upload is no longer pending or is already being completed and cannot be cancelled.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: The upload was not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '410':
+          description: The upload has expired. Create a new upload before adding parts or completing it.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Too many upload requests. Reduce the request rate and try again later.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
       x-oaiMeta:
         group: uploads
         examples:
@@ -20982,6 +21102,36 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Upload'
+        '400':
+          description: The upload cannot be completed in its current state, the parts are invalid, or the uploaded size does not match the specified size.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: The upload was not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '410':
+          description: The upload has expired. Create a new upload before adding parts or completing it.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Too many upload requests. Reduce the request rate and try again later.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: The upload could not be completed. Retry the same request, preserving the part order and MD5 value.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
       x-oaiMeta:
         group: uploads
         examples:
@@ -21045,6 +21195,36 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UploadPart'
+        '400':
+          description: The upload cannot accept more parts, or the part exceeds an upload size limit.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: The upload was not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '410':
+          description: The upload has expired. Create a new upload before adding parts or completing it.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Too many upload requests. Reduce the request rate and try again later.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: The part could not be uploaded. Try the request again.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
       x-oaiMeta:
         group: uploads
         examples:
