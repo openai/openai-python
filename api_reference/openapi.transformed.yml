@@ -17933,6 +17933,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Response'
+        '404':
+          description: The response was not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '429':
           $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
@@ -18038,7 +18044,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/ErrorResponse'
         '429':
           $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
@@ -18097,7 +18103,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/ErrorResponse'
         '429':
           $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
@@ -18226,6 +18232,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ResponseItemList'
+        '404':
+          description: The response or the item specified by `after` was not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '429':
           $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
@@ -30112,6 +30124,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BetaResponse'
+        '404':
+          description: The response was not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BetaErrorResponse'
         '429':
           $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
@@ -30230,7 +30248,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BetaError'
+                $ref: '#/components/schemas/BetaErrorResponse'
         '429':
           $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
@@ -30302,7 +30320,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BetaError'
+                $ref: '#/components/schemas/BetaErrorResponse'
         '429':
           $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
@@ -30616,6 +30634,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/BetaResponseItemList'
+        '404':
+          description: The response or the item specified by `after` was not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BetaErrorResponse'
         '429':
           $ref: '#/components/responses/TooManyRequests'
       x-oaiMeta:
@@ -35547,6 +35571,7 @@ components:
               propertyName: type
           seed:
             type: integer
+            format: int64
             minimum: -9223372036854775808
             maximum: 9223372036854775807
             nullable: true
@@ -35557,7 +35582,6 @@ components:
               Determinism is not guaranteed, and you should refer to the `system_fingerprint` response parameter to monitor changes in the backend.
             x-oaiMeta:
               beta: true
-            format: int64
           stream_options:
             $ref: '#/components/schemas/ChatCompletionStreamOptions'
           tools:
@@ -89274,6 +89298,13 @@ components:
       anyOf:
       - type: string
       - $ref: '#/components/schemas/ChatModel'
+    BetaErrorResponse:
+      type: object
+      properties:
+        error:
+          $ref: '#/components/schemas/BetaError'
+      required:
+      - error
     BetaError:
       type: object
       properties:
