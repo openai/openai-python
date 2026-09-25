@@ -18,9 +18,12 @@ class Answer(BaseModel):
 
 
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+@pytest.mark.parametrize("initial_output", ["null", "missing", "empty"])
 @pytest.mark.parametrize("terminal_output", ["null", "missing", "empty", "present"])
 @pytest.mark.parametrize("has_items", [True, False], ids=["with-items", "without-items"])
-async def test_stream_recovers_finalized_output(sync: bool, terminal_output: str, has_items: bool) -> None:
+async def test_stream_recovers_finalized_output(
+    sync: bool, initial_output: str, terminal_output: str, has_items: bool
+) -> None:
     items: list[dict[str, object]] = (
         [
             {
@@ -57,7 +60,9 @@ async def test_stream_recovers_finalized_output(sync: bool, terminal_output: str
         if has_items
         else []
     )
-    response: dict[str, object] = {"id": "resp_test", "status": "in_progress", "output": []}
+    response: dict[str, object] = {"id": "resp_test", "status": "in_progress"}
+    if initial_output != "missing":
+        response["output"] = None if initial_output == "null" else []
     events: list[dict[str, object]] = [{"type": "response.created", "response": response}]
     for index, item in enumerate(items):
         added = {**item, "status": "in_progress"}
